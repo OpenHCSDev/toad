@@ -1368,7 +1368,7 @@ class DocumentViewport:
                                   if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
                 restored = ()
                 if restoring:
-                    anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
+                    anchor = self.window.reader_anchor(restoring[0])
                     started = monotonic()
                     restored = await self._restore_bodies(restoring, anchor, demand)
                     if any(owner in visible for owner in restored):
@@ -1458,7 +1458,7 @@ class DocumentViewport:
                              if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
                     if not batch:
                         continue
-                    anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
+                    anchor = self.window.reader_anchor(batch[0])
                     restored = await self._restore_bodies(tuple(batch), anchor, demand)
                     # Live content or a width change can change actual cost.
                     # Re-admit the completed native batch before the next one.

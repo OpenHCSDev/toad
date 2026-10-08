@@ -185,7 +185,23 @@ async def main():
             assert not dormant.query(MarkdownParagraph), "Cold body retained its native message pumps"
             before = len(app._registry)
             view.window.release_anchor()
+            output = os.environ.get("VIEWPORT_EVIDENCE")
+            if output:
+                position = view.window.history_anchor
+                (Path(output) / "cold-navigation-acquired.json").write_text(json.dumps(dict(
+                    measurement=type(dormant._body_measurement).__name__,
+                    rows=dormant.measured_rows, source_bytes=len(dormant.source.encode()),
+                    scroll=view.window.scroll_y, target=view.window.scroll_target_y,
+                    anchor=repr(position), revision=view.window.scroll_revision,
+                    source_geometry=[str(geometry) for owner, geometry in
+                                     app.screen._compositor.published_geometry((dormant,))],
+                ), indent=2))
             view.window.scroll_to_widget(dormant, animate=False, immediate=True)
+            if output:
+                (Path(output) / "cold-navigation-selected.json").write_text(json.dumps(dict(
+                    scroll=view.window.scroll_y, target=view.window.scroll_target_y,
+                    anchor=repr(view.window.history_anchor), revision=view.window.scroll_revision,
+                ), indent=2))
             await settled(view, pilot)
             output = os.environ.get("VIEWPORT_EVIDENCE")
             if output:
@@ -224,6 +240,14 @@ async def main():
                 view.window.scroll_to_widget(docs[index], animate=False, immediate=True)
                 await settled(view, pilot)
                 returned = docs[index]
+                if output and returned not in app.screen._compositor.visible_widgets:
+                    (Path(output) / "cold-return-unexposed.json").write_text(json.dumps(dict(
+                        index=index, measurement=type(returned._body_measurement).__name__,
+                        rows=returned.measured_rows, scroll=view.window.scroll_y,
+                        target=view.window.scroll_target_y, revision=view.window.scroll_revision,
+                        source_geometry=[str(geometry) for owner, geometry in
+                                         app.screen._compositor.published_geometry((returned,))],
+                    ), indent=2))
                 assert returned in app.screen._compositor.visible_widgets
                 assert returned.body_ready, "Visible source was not restored"
                 if returned.body_retained_paint_ready:

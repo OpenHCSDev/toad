@@ -321,3 +321,26 @@ do not establish a sole cause. The candidate is not published as the new
 default; the current width default remains. Raw installed lifetime failure
 and cold-destination.json are retained; no retries or bounds were changed.
 Parent owns the actual cold navigation/anchor relation next.
+
+## Reader source identity checkpoint
+
+Original cold navigation selected scroll0; later paragraph compensation
+moved it to56 while preserving a paragraph whose source offset changed16→72.
+The trace does not establish which message owned that paragraph. Selecting
+only ready paint can choose a later source point while the original paragraph
+is still wrapping. HistoryWindow now chooses the visible original message
+first, then an exposed source within that message regardless of paint
+readiness. Foreground and lookahead body restoration now share reader_anchor
+instead of independently selecting the first visible body. Tail/interaction
+custody and native placement compensation are unchanged.
+
+This coherent ownership change is not full cold acceptance. The original
+cold App now reaches repeated returns but still loses index4 (RenderedBody
+rows38, scroll/target163, no exposed/published native placement).
+shared-reader-cold/cold-return-unexposed.json retains the exact observation.
+Native producer owner is reviewing committed/query geometry supply; Parent
+retains Toad ownership. Original cold assertions and bounds are unchanged.
+The initial full-operation profile timed out before navigation and is an
+observation limit; the later acquisition-scoped trace reached the failure.
+Complete HEAD source AST288/417/40 parsed with zero omissions, all anchor
+writers and consumers inspected; current changed modules also compile.

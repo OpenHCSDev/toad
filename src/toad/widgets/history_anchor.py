@@ -278,13 +278,23 @@ class HistoryWindow(VerticalScroll):
         if self.follows_tail:
             return fallback
         visible = self.screen._compositor.visible_widgets
+        # The reader's original message owns the position even while its
+        # paragraphs are preparing. A ready leaf in the next message cannot
+        # replace that source identity as the first message acquires height.
+        body = min(self.visible_history_items(self.document_viewport.owners),
+                   key=lambda node: visible[node][0].y, default=None)
+        # Source identity precedes paint readiness. Skipping an unprepared
+        # paragraph selects a later source point; wrapping earlier text then
+        # moves the reader to preserve a paragraph they never chose.
         sources = (node for node in visible
-                   if ((isinstance(node, PreparedPaintSource) and node.presentation_ready)
+                   if (isinstance(node, PreparedPaintSource)
                        or (isinstance(node, ViewportBody) and node.body_retained_paint_ready))
+                   if body is None or node is body or body in node.ancestors
                    if next((parent for parent in node.ancestors
                             if isinstance(parent, HistoryWindow)), None) is self)
         painted = self.visible_history_items(sources)
-        return min(painted, key=lambda node: visible[node][0].y, default=fallback)
+        return min(painted, key=lambda node: visible[node][0].y,
+                   default=fallback if body is None else body)
 
     def protect_history(
         self, items, *, older: bool, fallback: Widget,
