@@ -25,7 +25,7 @@ from textual.visual import VisualType
 from toad.app import ToadApp
 from toad.render_tasks import RichRenderTask
 from toad.rich_preparation import (
-    ContentSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource, SyntaxSource,
+    ContentSource, PreparedPaintSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource, SyntaxSource,
 )
 
 
@@ -35,7 +35,7 @@ class _Preparation:
     task: RichRenderTask
 
 
-class WorkerStatic(Static):
+class WorkerStatic(PreparedPaintSource, Static):
     """Accept ordinary data-only Rich renderables without a per-view adapter.
 
     CPU workers own measurement and all Rich rendering. The UI measures cached

@@ -15,6 +15,7 @@ from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 from textual.widgets import Label
 from textual.widgets._markdown import Markdown, MarkdownBlock
 
@@ -37,7 +38,11 @@ class PreparedMarkdownContent(WorkerStatic):
         window = next((ancestor for ancestor in self.ancestors
                        if isinstance(ancestor, HistoryWindow)), None)
         if layout and window is not None:
-            async with window.preserve_history(self):
+            # WorkerStatic installs detached paint and invalidates extent; it
+            # does not mount, remove or reorder native children. The document
+            # owns those mutations. Borrow its reader compensation without
+            # reacquiring that document's native tree fence on a child worker.
+            async with window.preserve_reader(self):
                 yield
         else:
             async with super().preparation_publication(layout=layout):
@@ -82,7 +87,8 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
 
     def native_body_ready(self) -> bool:
         return (super().native_body_ready() and not self.loading
-                and all(block.paint_ready for block in self.query(PreparedMarkdownContent)))
+                and all(block.paint_ready for block in
+                        walk_depth_first(self, PreparedMarkdownContent, with_root=False)))
 
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately
