@@ -339,8 +339,14 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         reader = self.reader
         if reader is None or not self.rows:
             return
-        limit = (min(HISTORY_PAGE_SIZE, HISTORY_WINDOW_SIZE - len(self.rows))
-                 if older and self.window.follows_tail else HISTORY_PAGE_SIZE)
+        # This read is a native admission, not the transport's incremental
+        # scan. Its result mounts immediately. Use the window's existing
+        # admission budget so one edge read cannot arrange and start rendering
+        # an entire transport page before pointer input gets another frame.
+        limit = min(HISTORY_PAGE_SIZE,
+                    self.window.document_viewport.budget.admission_items)
+        if older and self.window.follows_tail:
+            limit = min(limit, HISTORY_WINDOW_SIZE - len(self.rows))
         if limit <= 0:
             return
         edge = self.rows[0 if older else -1][0].view_cursor
