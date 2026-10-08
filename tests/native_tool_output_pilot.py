@@ -94,6 +94,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
         bash.scroll_visible(animate=False)
         await until(pilot, lambda: bool(bash.query(TextContent)))
         text = bash.query_one(TextContent)
+        await asyncio.wait_for(text.wait_ready(), 15)
         assert "NATIVE_TOOL_TEXT" in text.get_selection(SELECT_ALL)[0]
         assert "\x1b" not in text.get_selection(SELECT_ALL)[0]
         await until(pilot, lambda: painted(app, bash, "NATIVE_TOOL_TEXT"))
