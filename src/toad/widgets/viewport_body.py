@@ -853,8 +853,8 @@ class ViewportPresentation:
         for anchor in self.anchors:
             if anchor not in displayed and anchor.document_viewport.membership.displayed():
                 displayed[anchor] = None
-        return tuple(window for window in displayed
-                     if window.is_attached and window.history_mutating())
+        return tuple(root for window in displayed if window.is_attached
+                     if (root := window.history_mutation_root) is not None)
 
     def prepare(self) -> tuple[Widget, ...]:
         screen = self.screen
@@ -864,12 +864,15 @@ class ViewportPresentation:
         # membership owner. Mutation, body readiness and follow checks don't
         # independently select the same windows again within the same frame.
         windows = tuple(self.frame_windows())
-        deferred = dict.fromkeys(self.mutation_roots(windows))
-        pending_windows = set(deferred)
+        mutations = self.mutation_roots(windows)
+        deferred = dict.fromkeys(mutations)
+        pending_windows = {window for window in windows
+                           if window.history_mutating()}
         # Each source owns its pending paint. Native publication derives the
         # blocked geometry; this owner neither masks regions nor stops chrome.
         for window, body in self.visible_bodies(windows):
-            if window in deferred:
+            if any(root is body or root in body.ancestors or body in root.ancestors
+                   for root in mutations):
                 continue
             if not body.body_ready:
                 window.document_viewport.request()
