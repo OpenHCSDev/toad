@@ -213,6 +213,10 @@ class HistoryWindow(VerticalScroll):
 
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
+        # Animation ticks and direct native scrolling change reader intent
+        # too. The existing restoration scope excludes layout compensation.
+        if new_value != old_value and not self._restoring:
+            self.scroll_revision += 1
         # Rejoin at the bottom after actual downward movement, including
         # keyboard, wheel and scrollbar input. Compensation uses the existing
         # restoration transaction and cannot choose a different reader policy.
