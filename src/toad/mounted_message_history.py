@@ -55,6 +55,7 @@ class MarkdownMessageStyle(WireMessageStyle):
 
 class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, CategorizedMount, containers.VerticalGroup):
     """Own the real row window, asynchronous page publication and its paint witnesses."""
+    CACHE_SUBTREE_GEOMETRY = True
     def __init__(self, view):
         super().__init__(source_state=LiveTranscript())
         self.view = view
@@ -157,7 +158,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             )
         else:
             anchor, protected = None, set()
-        async with window.preserve_history(anchor):
+        async with window.preserve_history(anchor, root=self):
             yield protected
         window.check_follow()
 

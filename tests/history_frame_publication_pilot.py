@@ -217,8 +217,8 @@ async def main():
                 entered, release = asyncio.Event(), asyncio.Event()
 
                 @asynccontextmanager
-                async def held_history(widget):
-                    async with preserve_history(widget):
+                async def held_history(widget, *, root=None):
+                    async with preserve_history(widget, root=root):
                         yield
                         app.held_window = window
                         try:

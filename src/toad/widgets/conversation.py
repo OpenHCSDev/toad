@@ -269,6 +269,7 @@ class CategorizedMount:
 
 
 class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
+    CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
 
     @height_dependency(INDEPENDENT_HEIGHT)
@@ -1409,7 +1410,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             or message.event.session_id != self.agent.session_id
         ):
             return
-        async with self.window.preserve_history(None):
+        async with self.window.preserve_history(None, root=self.contents):
             for started in message.event.update.starts:
                 if (
                     message.publisher is not self.agent
@@ -1427,7 +1428,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         ):
             return
         if message.event.update.text is not None:
-            async with self.window.preserve_history(None):
+            async with self.window.preserve_history(None, root=self.contents):
                 await self.present_started_input(message.event.update)
                 self.submissions.publish_pending()
 

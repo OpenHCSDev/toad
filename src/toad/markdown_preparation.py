@@ -1,6 +1,7 @@
 """Process-safe conversation parsing and code-fence highlighting data."""
 
 from dataclasses import dataclass, field
+from functools import cached_property
 
 from markdown_it.token import Token
 from textual.content import Content
@@ -8,6 +9,19 @@ from textual.widgets._markdown import MarkdownBlock, MarkdownFence
 
 
 FenceKey = tuple[str, str, bool, bool]
+
+
+@dataclass(frozen=True)
+class PreparedMarkdownPart:
+    """One bounded native source part, without an invented transcript role."""
+
+    text: str
+
+    @cached_property
+    def retained_bytes(self) -> int:
+        from toad.work_preparation import retained_bytes
+
+        return retained_bytes(self)
 
 
 @dataclass(frozen=True)

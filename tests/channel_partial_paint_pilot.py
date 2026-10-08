@@ -61,7 +61,12 @@ async def main():
                     body = widget.read_ack_widget()
                     if body is None:
                         from toad.widgets.irc_message import IRCMessageText
-                        await widget.query_one(IRCMessageText).wait_ready()
+                        # The viewport admits preparation after the original
+                        # row is exposed. Waiting on an offscreen worker first
+                        # would make this consumer depend on eager preparation.
+                        widget.scroll_visible(animate=False, immediate=True)
+                        async with asyncio.timeout(5):
+                            await widget.query_one(IRCMessageText).wait_ready()
                         body = widget.read_ack_widget()
                         assert body is not None
                     chat.window.scroll_to(

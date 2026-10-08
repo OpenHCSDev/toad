@@ -229,7 +229,7 @@ class CheckpointPlan(ABC):
 
     @asynccontextmanager
     async def publication(self, view: Conversation, prepared: PreparedCommit):
-        async with view.window.preserve_history(self.anchor(prepared)):
+        async with view.window.preserve_history(self.anchor(prepared), root=view.contents):
             yield
 
     def finish(self, view: Conversation, cursor: TranscriptCursor) -> None:

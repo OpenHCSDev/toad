@@ -1,8 +1,12 @@
 """Native saved-history trim must not become a new reader travel sample."""
 import asyncio
+from collections import Counter
 from dataclasses import replace
+import inspect
+from contextlib import contextmanager
 import json
 import os
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -11,6 +15,7 @@ from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from toad.app import ToadApp
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.history_anchor import HistoryAnchor, HistoryWindow, RecordAnchor
 
 
 async def main():
@@ -45,9 +50,39 @@ async def main():
                 await view.contents.mount(history)
             await pilot.pause()
             viewport = window.document_viewport
-            async with asyncio.timeout(10):
-                while viewport._worker is not None or not viewport.visible_bodies_ready:
-                    await pilot.pause(.02)
+            try:
+                async with asyncio.timeout(10):
+                    while viewport._worker is not None or not viewport.visible_bodies_ready:
+                        await pilot.pause(.02)
+            except TimeoutError:
+                def await_chain(task):
+                    current = task.get_coro()
+                    chain = []
+                    while inspect.iscoroutine(current) or inspect.isgenerator(current):
+                        if inspect.iscoroutine(current):
+                            frame, current = current.cr_frame, current.cr_await
+                        else:
+                            frame, current = current.gi_frame, current.gi_yieldfrom
+                        if frame is not None:
+                            chain.append(f"{Path(frame.f_code.co_filename).name}:{frame.f_code.co_name}:{frame.f_lineno}")
+                    return tuple(chain)
+                visible = app.screen._compositor.visible_widgets
+                print(json.dumps(dict(
+                    window_mutation=type(window.history_mutation_root).__name__,
+                    bodies=[dict(kind=type(body).__name__, visible=body in visible,
+                                 ready=body.body_ready, dormant=body.body_dormant,
+                                 measurement=type(body._body_measurement).__name__,
+                                 width=body._body_measurement.width,
+                                 rows=body._body_measurement.rows)
+                            for body in viewport.owners],
+                    workers=[dict(group=worker.group, node=type(worker.node).__name__,
+                                  state=worker.state.name, error=str(worker.error))
+                             for worker in app.workers],
+                    waits=[dict(count=count, chain=chain) for chain, count in
+                           Counter(await_chain(worker._task) for worker in app.workers
+                                   if worker._task is not None).items()],
+                )), flush=True)
+                raise
             marker = histories[-1]
             window.release_anchor()
             window.scroll_to_widget(marker, animate=False, immediate=True, top=True)
@@ -72,24 +107,69 @@ async def main():
             window.watch(window, 'scroll_y', changed, init=False)
             original_demand = viewport.lookahead.demand
             demand_before = repr(original_demand)
-            async with window.preserve_history(marker):
-                await histories[0].remove()
-            await pilot.pause()
+            anchor_trace = []
+            owner_codes = {HistoryAnchor.capture.__func__.__code__,
+                           HistoryAnchor.before_layout.__code__,
+                           RecordAnchor._restore.__code__, HistoryWindow._size_updated.__code__,
+                           type(viewport.lookahead).settle.__code__}
+            def trace_anchor(frame, event, result):
+                if frame.f_code not in owner_codes or event not in ('call', 'return'):
+                    return
+                owner = frame.f_locals.get('window', frame.f_locals.get('self'))
+                if owner is viewport.lookahead:
+                    owner = window
+                if owner is not window:
+                    return
+                anchor = result if isinstance(result, HistoryAnchor) else frame.f_locals.get('self')
+                target = frame.f_locals.get('widget', getattr(anchor, 'widget', None))
+                anchor_trace.append(dict(method=frame.f_code.co_qualname, event=event,
+                    scroll_y=window.scroll_y, maximum=window.max_scroll_y,
+                    mutation=type(window.history_mutation_root).__name__,
+                    target=type(target).__name__, target_id=id(target),
+                    anchor_scroll=getattr(anchor, 'scroll_y', None),
+                    anchor_virtual=getattr(anchor, 'virtual_y', None),
+                    demand_id=id(viewport.lookahead.demand)))
+            @contextmanager
+            def observe_anchors():
+                previous = sys.getprofile()
+                sys.setprofile(trace_anchor)
+                try:
+                    yield
+                finally:
+                    sys.setprofile(previous)
+            with observe_anchors():
+                async with window.preserve_history(None, root=marker):
+                    assert window.history_mutation_root is marker
+                    assert app.screen.viewport_presentation.mutation_roots() == (marker,)
+                    async with window.preserve_history(None, root=histories[0]):
+                        assert window.history_mutation_root is view.contents
+                    assert window.history_mutation_root is marker
+                assert window.history_mutation_root is None
+                async with window.preserve_history(marker, root=view.contents):
+                    await histories[0].remove()
+                await pilot.pause()
             after = dict(y=window.scroll_y, maximum=window.max_scroll_y,
                          marker_y=marker.region.y, revision=window.scroll_revision)
             trim_changes, trim_samples = changes[:], samples[:]
             trim_demand = repr(viewport.lookahead.demand)
+            trim_demand_id = id(viewport.lookahead.demand)
+            trim_trace = tuple(anchor_trace)
             trim_same_demand = viewport.lookahead.demand is original_demand
             changes.clear()
             samples.clear()
             # Ordinary native resize also reflows the original window, without
             # an active prepend/trim anchor. Its clamp is geometry, not input.
-            await pilot.resize_terminal(120, 195)
-            await pilot.pause()
+            resize_demand_id = id(viewport.lookahead.demand)
+            with observe_anchors():
+                await pilot.resize_terminal(120, 195)
+                await pilot.pause()
             resize = dict(y=window.scroll_y, maximum=window.max_scroll_y,
                           revision=window.scroll_revision, changes=changes[:],
                           samples=samples[:], demand_before=trim_demand,
-                          demand_after=repr(viewport.lookahead.demand))
+                          demand_after=repr(viewport.lookahead.demand),
+                          demand_id_before=resize_demand_id,
+                          demand_id_after=id(viewport.lookahead.demand))
+            resize_trace = tuple(anchor_trace[len(trim_trace):])
             await pilot.resize_terminal(120, 35)
             await pilot.pause()
             changes.clear()
@@ -104,6 +184,7 @@ async def main():
                            demand_after=trim_demand, resize=resize,
                            input_control=input_control,
                            same_demand=trim_same_demand,
+                           anchor_trace=anchor_trace,
                            source_resources=[id(item) for item in histories[1:]],
                            remaining_histories=len(window.histories),
                            agent_bound=view.agent is not None)
@@ -113,13 +194,20 @@ async def main():
             assert all(item['restoring'] for item in trim_changes), receipt
             assert after['revision'] == before['revision'], receipt
             assert after['marker_y'] == before['marker_y'], receipt
-            assert receipt['same_demand'], receipt
-            assert receipt['demand_after'] == demand_before, receipt
+            def last_idle_demand(trace):
+                settled = [item['demand_id'] for item in trace
+                           if item['method'] == 'DirectionalPreparation.settle' and item['event'] == 'return']
+                return settled[-1] if settled else None
+            # The original idle timer can expire during an awaited layout.
+            # Only that recorded owner transition may replace motion demand;
+            # compensation itself must never sample or invent another demand.
+            assert trim_same_demand or trim_demand_id == last_idle_demand(trim_trace), receipt
             assert not receipt['agent_bound'], 'This source counter must not start ACP/native'
             assert resize['changes'], 'Native resize did not clamp this saved reader'
             assert all(item['restoring'] for item in resize['changes']), receipt
             assert not any(item['sampled'] for item in resize['samples']), receipt
-            assert resize['demand_after'] == resize['demand_before'], receipt
+            assert (resize['demand_id_after'] == resize['demand_id_before']
+                    or resize['demand_id_after'] == last_idle_demand(resize_trace)), receipt
             assert any(item['sampled'] and not item['restoring']
                        for item in input_control['samples']), receipt
             assert app._exception is None

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from functools import cached_property
 from contextlib import AsyncExitStack, asynccontextmanager, contextmanager
 import asyncio
@@ -12,7 +12,8 @@ from weakref import WeakSet
 
 from textual.widget import Widget
 from textual.containers import VerticalScroll
-from toad.widgets.viewport_body import DocumentViewport
+from toad.widgets.viewport_body import DocumentViewport, ViewportBody
+from toad.rich_preparation import PreparedPaintSource
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
@@ -118,6 +119,7 @@ class HistoryWindow(VerticalScroll):
     _restoring = False
     history_anchor: HistoryAnchor | None = None
     history_layout_ready: asyncio.Event | None = None
+    _history_mutation_root: Widget | None = None
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -146,7 +148,10 @@ class HistoryWindow(VerticalScroll):
     def restore_history_layout(self, position: HistoryAnchor) -> bool:
         previous = self.scroll_y
         position.restore(self)
-        self.history_anchor = HistoryAnchor.capture(position.widget, self)
+        # A held layout can clamp scroll before publishing the new source
+        # position. That clamp is not a new reader intent. Keep the acquired
+        # source/reader relation until this transaction finishes.
+        self.history_anchor = position
         return self.scroll_y != previous
 
     def finish_history_layout(self) -> None:
@@ -208,11 +213,16 @@ class HistoryWindow(VerticalScroll):
 
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
+        # Animation ticks and direct native scrolling change reader intent
+        # too. The existing restoration scope excludes layout compensation.
+        if new_value != old_value and not self._restoring:
+            self.scroll_revision += 1
         # Rejoin at the bottom after actual downward movement, including
         # keyboard, wheel and scrollbar input. Compensation uses the existing
         # restoration transaction and cannot choose a different reader policy.
         if (new_value > old_value and not self._restoring
-                and all(not history.has_newer for history in self.histories)):
+                and all(not history.has_newer for history in self.histories)
+                and self.document_viewport.source_tail_visible):
             # A lazy pager's mounted edge is not the source tail. Explicit End
             # still chooses follow through jump_to_latest; ordinary travel only
             # rejoins it once the current source has no unpublished newer rows.
@@ -237,7 +247,44 @@ class HistoryWindow(VerticalScroll):
 
     def history_mutating(self) -> bool:
         """Native tree locking is the publication fence, not source status."""
-        return self.lock.is_locked
+        return self.history_mutation_root is not None
+
+    @property
+    def history_mutation_root(self) -> Widget | None:
+        """The subtree owned by the active native publication transaction.
+
+        A direct native window lock still protects the whole window. Scoped
+        history publications name their original mutation owner instead.
+        """
+        if not self.lock.is_locked:
+            return None
+        return self if self._history_mutation_root is None else self._history_mutation_root
+
+    def visible_history_items(self, items):
+        """Borrow this window's clipped cohort from the original native scene."""
+        visible = self.screen._compositor.visible_widgets
+        viewport = self.content_region
+        for item in items:
+            if item in visible:
+                region, clip = visible[item]
+                if (region.overlaps(viewport) and region.overlaps(clip)
+                        and clip.overlaps(viewport)):
+                    yield item
+
+    def reader_anchor(self, fallback: Widget) -> Widget:
+        """Extent publication preserves the reader, not the changed paragraph."""
+        if self.history_anchor is not None:
+            return self.history_anchor.widget
+        if self.follows_tail:
+            return fallback
+        visible = self.screen._compositor.visible_widgets
+        sources = (node for node in visible
+                   if ((isinstance(node, PreparedPaintSource) and node.presentation_ready)
+                       or (isinstance(node, ViewportBody) and node.body_retained_paint_ready))
+                   if next((parent for parent in node.ancestors
+                            if isinstance(parent, HistoryWindow)), None) is self)
+        painted = self.visible_history_items(sources)
+        return min(painted, key=lambda node: visible[node][0].y, default=fallback)
 
     def protect_history(
         self, items, *, older: bool, fallback: Widget,
@@ -249,15 +296,7 @@ class HistoryWindow(VerticalScroll):
         and the window's original selection/focus before admitting or trimming.
         """
         items = tuple(items)
-        visible = self.screen._compositor.visible_widgets
-        viewport = self.content_region
-        retained = []
-        for item in items:
-            if item in visible:
-                region, clip = visible[item]
-                if (region.overlaps(viewport) and region.overlaps(clip)
-                        and clip.overlaps(viewport)):
-                    retained.append(item)
+        retained = tuple(self.visible_history_items(items))
         anchor = retained[0 if older else -1] if retained else fallback
         protected = protected_presentations(items, self.screen._interaction_widgets())
         protected.update(retained)
@@ -265,15 +304,28 @@ class HistoryWindow(VerticalScroll):
         return anchor, protected
 
     @asynccontextmanager
-    async def preserve_history(self, widget: Widget | None):
+    async def preserve_history(self, widget: Widget | None, *, root: Widget | None = None):
         """Fence a native source mutation inside its reader layout lifetime."""
         async with AsyncExitStack() as reader:
             async with self.lock:
                 # Acquire the native mutation before borrowing an outstanding
                 # anchor. Its owner cannot finish layout while this mutation
                 # holds the tree fence. Release that fence before compensation.
-                await reader.enter_async_context(self.preserve_reader(widget))
-                yield
+                previous = self._history_mutation_root
+                mutation = self if root is None else root
+                if mutation is not self and self not in mutation.ancestors:
+                    raise ValueError("History mutation must belong to its window")
+                if previous is not None:
+                    if previous is mutation or previous in mutation.ancestors:
+                        mutation = previous
+                    elif mutation not in previous.ancestors:
+                        mutation = Widget.get_common_ancestor(previous, mutation)
+                self._history_mutation_root = mutation
+                try:
+                    await reader.enter_async_context(self.preserve_reader(widget))
+                    yield
+                finally:
+                    self._history_mutation_root = previous
 
     @asynccontextmanager
     async def preserve_reader(self, widget: Widget | None):
@@ -335,10 +387,11 @@ class HistoryAnchor(WindowRestoration):
         )
 
     def before_layout(self, window: HistoryWindow) -> HistoryAnchor:
-        """Refresh reader intent before layout, rebinding geometry only on transition."""
-        if window.follows_tail != self.follow_tail:
+        """Rebind on navigation; layout clamps never replace reader intent."""
+        if (window.follows_tail != self.follow_tail
+                or window.scroll_revision != self.scroll_revision):
             return self.capture(self.widget, window)
-        return replace(self, scroll_y=window.scroll_y, scroll_revision=window.scroll_revision)
+        return self
 
     @property
     def geometry_targets(self) -> tuple[Widget, ...]:

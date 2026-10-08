@@ -98,7 +98,10 @@ async def main():
             preparation = TranscriptBodyPreparation(
                 app.render_processes, app.native_ansi_color, app.current_theme.dark,
             )
-            await preparation.dispatch(background.TRANSCRIPT_EVENT(background.source))
+            from toad.render_tasks import MarkdownRenderTask
+            await app.render_processes.prepare(MarkdownRenderTask(
+                background.source, app.native_ansi_color, app.current_theme.dark,
+            ))
             await manager._restore_bodies((background,), foreground, manager.lookahead.demand)
             assert background.body_ready
             background_delivery = lookahead.delivery_seconds
