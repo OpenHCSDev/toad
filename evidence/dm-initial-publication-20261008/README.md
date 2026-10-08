@@ -677,3 +677,34 @@ no evidence was changed then. Materialized original HEAD bytes and appended here
 
 Next work is original synchronous geometry/layout and paint publication; native
 capture/FIFO is preserved rather than bypassed to mask its costs.
+
+
+## Wire row resources owned by composition
+
+WireMarkdownMessage and IRCMessage now retain the actual body and notification
+widgets created by their original compose methods. Recomposition acquires fresh
+resources; unmounted resources cannot supply read/extent evidence. Compact and
+full Markdown remain distinct rendering contracts. CommsChatView uses the row's
+notification resource, revalidating attachment after the asynchronous read.
+Three body queries and the per-row notification descendant query are deleted.
+No message, read ledger, status or preparation result is copied.
+
+AST:288 production/417 authored modules parsed, zero omissions. All changed row
+family body/feedback selector calls are gone. The separate incoming/outgoing
+transcript WireMessageHandling queries belong to another declared resource
+family; this change does not claim to replace them.
+
+Existing real private wire partial-paint control passed: only painted bodies
+acknowledged, scrolling admits the remaining original page and compact/Markdown
+style replacement preserves identities/read results. Actual private Toad App
+resource control passed: both styles own their mounted children, recomposition
+replaces retired instances and removed bodies cannot authorize reads. First
+resource fixture used a bare Screen without the real history viewport and failed
+its Markdown admission; preserved, then corrected to the real wire/window.
+No production fallback or timeout changed.
+
+Raw/source control files are under
+`/home/ts/.cache/agent-scratch/dm-owned-resources-20261008/`. Speed improvement is
+unmeasured. The next required installed observation also retains Layout.widget
+identity and original node/layout source epochs in the existing recorder so
+native work can distinguish real changed extents from repeated late requests.

@@ -38,7 +38,6 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.widgets.message_notifications import MessageNotifications
 from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
@@ -318,8 +317,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
         visible = {widget for _, widget in self._visible_notification_rows()}
         for message, widget in rows:
             if widget in visible:
-                feedback = next(iter(widget.query(MessageNotifications)), None)
-                if feedback is None:
+                feedback = widget.notifications
+                if feedback is None or not feedback.is_attached:
                     continue  # Style replacement has unmounted this row's children.
                 if error is not None:
                     feedback.show_error(error)
