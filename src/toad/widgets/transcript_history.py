@@ -18,10 +18,8 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     TranscriptEvent, ContextTranscript, UserTranscript, IncomingTranscript, AgentTextTranscript, SentTranscript,
-    ThinkingTranscript, ToolTranscript, ToolStartTranscript, ToolEndTranscript,
+    ThinkingTranscript,
 )
-from agent_comms.tool_results import tool_result_content
-from agent_comms.native_tools import NativeTool
 from textual import events, on
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
@@ -33,10 +31,6 @@ from textual.widgets import Static
 from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation
-from acp import schema as protocol
-from toad.acp.status import ToolCallStatus
-from toad.jsonrpc import value_schema
-from toad.acp.encode_tool_call_id import encode_tool_call_id
 from toad.transcript_preparation import (
     CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageBuffer,
     ProjectedTranscriptSource,
@@ -70,7 +64,6 @@ class _PublicationRetired(Exception):
 class TranscriptBlockConsumer(MroDispatch):
     def __init__(self, *, fragment: bool, show_divider: bool):
         self.blocks: list[Widget] = []
-        self.tools: dict[str, protocol.ToolCall] = {}
         self.fragment = fragment
         self.show_divider = show_divider
 
@@ -107,42 +100,11 @@ class TranscriptBlockConsumer(MroDispatch):
     def thinking(self, event: ThinkingTranscript):
         self.blocks.append(AgentThought(event.text, paginate=not self.fragment))
 
-    def tool(self, event: ToolTranscript) -> protocol.ToolCall:
-        tool_id = event.tool_call_id
-        if tool_id not in self.tools:
-            self.tools[tool_id] = protocol.ToolCall(
-                tool_call_id=tool_id, title=event.tool_name or 'Tool', status='completed',
-                kind=NativeTool.start(tool_id, event.tool_name, {}).kind)
-
-            self.blocks.append(ToolCall(ToolCallStatus.from_acp(self.tools[tool_id]), id=encode_tool_call_id(tool_id)))
-        return self.tools[tool_id]
-
-    @handles(ToolStartTranscript)
-    def tool_start(self, event: ToolStartTranscript):
-        self.tool(event).raw_input = event.raw_input
-
-    @handles(ToolEndTranscript)
-    def tool_end(self, event: ToolEndTranscript):
-        tool = self.tool(event)
-        tool.status = "completed" if event.ok else "failed"
-        # Reuse the existing declaration-owned validator cache. Keep strict
-        # field decoding: the SDK model's assignment hook drops invalid items.
-        tool.content = value_schema(protocol.ToolCall.model_fields["content"].annotation).validate_python(
-            tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
-        )
-
-
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
                       show_divider: bool = True) -> list[Widget]:
-    consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider)
-    for event in events:
-        consumer.dispatch_sync(event)
-    # All native tool events in this page are assembled before UI admission.
-    # Capture the final typed state once, so a failed end cannot leave a completed badge.
-    for block in consumer.blocks:
-        if isinstance(block, ToolCall):
-            block.set_reactive(ToolCall.tool_call, ToolCallStatus.from_acp(consumer.tools[block.tool_call.call.tool_call_id]))
-    return consumer.blocks
+    """Standalone source callers use the same resource producer as page work."""
+    return [block for source in transcript_fragments(events, split_text=fragment)
+            for block in source.blocks(fragment=fragment, show_divider=show_divider)]
 
 
 class HistoryEdge(Static, can_focus=True):
@@ -217,8 +179,8 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         # same indivisible block forever without producing visible Markdown.
         if self.fragment.starts_agent_activity and not self.fragment.continuation:
             yield AgentActivityDivider(self._message_category, clock=MessageClock.recorded(self.fragment.events[0].timestamp))
-        yield from transcript_blocks(
-            self.fragment.events, fragment=True, show_divider=not self.fragment.continuation,
+        yield from self.fragment.blocks(
+            fragment=True, show_divider=not self.fragment.continuation,
         )
 
     async def update_fragment(self, fragment: TranscriptFragment) -> None:
