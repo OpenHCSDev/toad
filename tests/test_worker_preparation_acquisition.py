@@ -545,7 +545,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             document = AgentResponse(source)
             started = time.monotonic()
             await view.post(document)
-            await document.update(source)
+            post_ms = (time.monotonic() - started) * 1000
             await settled(pilot, view)
             async with asyncio.timeout(20):
                 while not document.body_ready:
@@ -642,6 +642,35 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                 import traceback
                 receipt = {
                     "measurement": type(document._body_measurement).__name__,
+                    "viewport_pending": window.document_viewport._pending,
+                    "viewport_worker": str(window.document_viewport._worker),
+                    "frame_state": type(app.screen.frame_presentation.state).__name__,
+                    "frame_callbacks": [(type(owner).__name__, str(callback))
+                                        for owner, callback in app.screen.frame_presentation.callbacks],
+                    "scroll": {"y": window.scroll_y, "max_y": window.max_scroll_y,
+                               "follows_tail": window.follows_tail,
+                               "anchor": str(window.history_anchor)},
+                    "document_geometry": str(app.screen._compositor.visible_widgets.get(document)),
+                    "following_geometry": str(app.screen._compositor.visible_widgets.get(following)),
+                    "ranges": {"document": (document.start, document.stop, len(document.fragments)),
+                               "following": (following.start, following.stop, len(following.fragments))},
+                    "retirement": {
+                        "body_ready": document.body_ready,
+                        "native_lock": document.lock.is_locked,
+                        "content_lock": document._content_lock.locked(),
+                        "stream": str(document._stream),
+                        "children": len(document.reconstructible_children()),
+                        "prepared_current": document.prepared_paint_is_current(document.prepared_paint_sources()),
+                        "published_placement": str(tuple(app.screen._compositor.published_geometry((document,)))),
+                        "missing_paint": [str(owner) for owner, content in document.prepared_paint_sources()
+                                          if content is None],
+                        "nested_not_ready": [str(owner) for owner in walk_depth_first(document, MeasuredViewportBody)
+                                             if not owner.body_ready],
+                    },
+                    "protected": [str(owner) for owner in window.document_viewport.protected()],
+                    "roots": [(str(owner), type(owner._body_measurement).__name__,
+                               str(owner.outer_size), str(owner.virtual_size))
+                              for owner in window.document_viewport.body_roots()],
                     "children": [(type(child).__name__, child._pruning, child._closing,
                                   str(child._task)) for child in document.children],
                     "fragments": [type(child).__name__ for child in document.fragment_views],
@@ -662,7 +691,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             assert document._body_measurement.content is captured
             assert "Preparing preview" not in viewport_text(window)
             assert app._exception is None
-            result = {"paged": True, "sections": 24, "ready_ms": ready_ms,
+            result = {"paged": True, "sections": 24, "post_ms": post_ms, "ready_ms": ready_ms,
                       "visible_nested_text": True, "links_and_source_copy": True,
                       "retired_source_not_preview": True, "warm_paint_identity": True,
                       "native_wheel_reverse_stop": True, "provider_inputs": 0,
