@@ -7,7 +7,6 @@ from collections.abc import Awaitable
 import asyncio
 from contextvars import Context, copy_context
 import os
-from pathlib import Path
 from typing import TypeVar, Generic, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -78,6 +77,21 @@ class ReusableRenderTask(RenderTask[ResultT]):
 
 class RendererSpawn(ABC):
     @staticmethod
+    def start_workers(executor) -> None:
+        """Start the owned pool without occupying admission with a dummy job.
+
+        ProcessPoolExecutor has no public prestart operation. Its original
+        launch hook starts the configured workers before the manager thread;
+        submission, worker replacement and shutdown remain executor-owned.
+        """
+        try:
+            executor._launch_processes()
+            executor._start_executor_manager_thread()
+        except BaseException:
+            executor.shutdown(wait=True, cancel_futures=True)
+            raise
+
+    @staticmethod
     def prepare_spawn() -> None:
         """Initialize POSIX spawn bookkeeping before a UI captures stderr.
 
@@ -96,6 +110,10 @@ class RendererSpawn(ABC):
 class Renderer(RendererSpawn):
     def __init__(self) -> None:
         self._submissions: set[asyncio.Task] = set()
+
+    def start(self) -> None:
+        """Begin owned startup; remote clients retain on-demand connection."""
+        self.prepare_spawn()
 
     @staticmethod
     def execution_context() -> Context:
@@ -141,23 +159,6 @@ class Renderer(RendererSpawn):
         preparation lifetime while foreground consumers continue to submit.
         """
         await self.capture(task)
-
-    async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
-        """Start matching workers and common parser/highlighter imports off-loop.
-
-        These small, data-only tasks use normal admission and cancellation. No
-        source files are opened, no user history is fetched and nothing is mounted.
-        """
-        from toad.render_tasks import MarkdownRenderTask, PatchRenderTask
-
-        await asyncio.gather(
-            self.prepare(MarkdownRenderTask(
-                "```python\npass\n```\n\n```json\n{}\n```\n", ansi, dark,
-            )),
-            self.prepare(PatchRenderTask(
-                "--- warmup.py\n+++ warmup.py\n@@ -1 +1 @@\n-pass\n+value = 1\n", ansi, dark,
-            )),
-        )
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         """Deliver one independent result from the worker's captured value."""

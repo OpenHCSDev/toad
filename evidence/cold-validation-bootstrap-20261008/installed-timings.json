@@ -1,0 +1,851 @@
+{
+  "rows": [
+    {
+      "t": 2.630406050942838,
+      "clock": 963384.806793165,
+      "name": "dependencies",
+      "toad": "/home/ts/wt/toad-viewport-demand-20260929/.artifacts/cold-validation-bootstrap-20261008/runtime/lib/python3.14/site-packages/toad/__init__.py",
+      "textual": "/home/ts/wt/toad-viewport-demand-20260929/.artifacts/cold-validation-bootstrap-20261008/runtime/lib/python3.14/site-packages/textual/__init__.py",
+      "thread": "agent-comms-ux",
+      "pid": 477574
+    },
+    {
+      "t": 2.6439276749733835,
+      "clock": 963384.820314439,
+      "name": "app.open"
+    },
+    {
+      "t": 3.4581510089337826,
+      "clock": 963385.634537593,
+      "name": "shell.ready",
+      "categories": [
+        "user",
+        "inbound",
+        "outbound",
+        "tool",
+        "agent",
+        "thinking",
+        "other"
+      ]
+    },
+    {
+      "t": 3.7256523659452796,
+      "clock": 963385.902038999,
+      "name": "AgentProcess.start.begin",
+      "argument_type": "Agent"
+    },
+    {
+      "t": 3.8000317739788443,
+      "clock": 963385.976418408,
+      "name": "AgentProcess.start.end"
+    },
+    {
+      "t": 3.800141582963988,
+      "clock": 963385.976528086,
+      "name": "AgentProcess.communicate.begin",
+      "argument_type": null
+    },
+    {
+      "t": 3.841852910933085,
+      "clock": 963386.018239485,
+      "name": "AgentSession.initialize.begin",
+      "argument_type": null
+    },
+    {
+      "t": 3.8431846579769626,
+      "clock": 963386.019571321,
+      "name": "rpc.send",
+      "method": "initialize"
+    },
+    {
+      "t": 5.051612150040455,
+      "clock": 963387.227998863,
+      "name": "rpc.receive",
+      "method": null,
+      "id": 1,
+      "bytes": 872
+    },
+    {
+      "t": 5.0519488180289045,
+      "clock": 963387.228335302,
+      "name": "AgentSession.initialize.end"
+    },
+    {
+      "t": 5.051974997972138,
+      "clock": 963387.228361461,
+      "name": "AgentSession.load.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.065763538936153,
+      "clock": 963387.242150263,
+      "name": "rpc.send",
+      "method": "session/load"
+    },
+    {
+      "t": 5.13452842598781,
+      "clock": 963387.310915269,
+      "name": "rpc.receive",
+      "method": "session/update",
+      "id": null,
+      "bytes": 3297
+    },
+    {
+      "t": 5.134856187039986,
+      "clock": 963387.311242691,
+      "name": "SessionNotificationOwner.receive.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.134904679027386,
+      "clock": 963387.311291133,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.1350562969455495,
+      "clock": 963387.31144275,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.135074281017296,
+      "clock": 963387.311460744,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.154876871965826,
+      "clock": 963387.331263466,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.155115645029582,
+      "clock": 963387.331502149,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.156311133992858,
+      "clock": 963387.332697647,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.156723927007988,
+      "clock": 963387.33311045,
+      "name": "SessionNotificationOwner.receive.end"
+    },
+    {
+      "t": 5.505017980001867,
+      "clock": 963387.681404573,
+      "name": "rpc.receive",
+      "method": "session/update",
+      "id": null,
+      "bytes": 42570
+    },
+    {
+      "t": 5.505254428950138,
+      "clock": 963387.681640912,
+      "name": "SessionNotificationOwner.receive.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.5052884930046275,
+      "clock": 963387.681674956,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.505410394980572,
+      "clock": 963387.681796868,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.505426525021903,
+      "clock": 963387.681812988,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.53938108694274,
+      "clock": 963387.71576766,
+      "name": "CommsUpdateConsumer.consume_metadata.begin",
+      "argument_type": "dict"
+    },
+    {
+      "t": 5.5394487149314955,
+      "clock": 963387.715835228,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 5.539534267038107,
+      "clock": 963387.71592075,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.539554044953547,
+      "clock": 963387.715940518,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 5.544668167945929,
+      "clock": 963387.721054781,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.545530333998613,
+      "clock": 963387.721916947,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.545941833988763,
+      "clock": 963387.722328448,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.546142203966156,
+      "clock": 963387.722528838,
+      "name": "CommsUpdateConsumer.consume_metadata.end"
+    },
+    {
+      "t": 5.561858642962761,
+      "clock": 963387.738245477,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.562361547024921,
+      "clock": 963387.73874808,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.563445313018747,
+      "clock": 963387.739831827,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.5636056070216,
+      "clock": 963387.739992121,
+      "name": "SessionNotificationOwner.receive.end"
+    },
+    {
+      "t": 5.563698995043524,
+      "clock": 963387.740085548,
+      "name": "rpc.receive",
+      "method": "session/update",
+      "id": null,
+      "bytes": 316
+    },
+    {
+      "t": 5.563895486993715,
+      "clock": 963387.740282021,
+      "name": "SessionNotificationOwner.receive.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.563935923972167,
+      "clock": 963387.740322407,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.56401068600826,
+      "clock": 963387.740397169,
+      "name": "AgentController.publish_transcript_snapshot.begin",
+      "argument_type": "TranscriptSnapshotUpdate"
+    },
+    {
+      "t": 5.57346249895636,
+      "clock": 963387.749849142,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.573490681941621,
+      "clock": 963387.749877115,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.57357388001401,
+      "clock": 963387.749960323,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.575971449026838,
+      "clock": 963387.752357932,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.5762823389377445,
+      "clock": 963387.752668842,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.576885913964361,
+      "clock": 963387.753272407,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.576967237982899,
+      "clock": 963387.753353701,
+      "name": "SessionNotificationOwner.receive.end"
+    },
+    {
+      "t": 5.577004379010759,
+      "clock": 963387.753390832,
+      "name": "rpc.receive",
+      "method": "session/update",
+      "id": null,
+      "bytes": 264
+    },
+    {
+      "t": 5.5770580909447744,
+      "clock": 963387.753444554,
+      "name": "SessionNotificationOwner.receive.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.577080392977223,
+      "clock": 963387.753466836,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.57713424495887,
+      "clock": 963387.753520698,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.577145505929366,
+      "clock": 963387.75353194,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "ValidateSessionUpdateTask"
+    },
+    {
+      "t": 5.57826059195213,
+      "clock": 963387.754647105,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.57847899699118,
+      "clock": 963387.75486555,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.578759207972325,
+      "clock": 963387.755145752,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.578873023972847,
+      "clock": 963387.755259618,
+      "name": "SessionNotificationOwner.receive.end"
+    },
+    {
+      "t": 5.579198241000995,
+      "clock": 963387.755584784,
+      "name": "rpc.receive",
+      "method": null,
+      "id": 2,
+      "bytes": 43783
+    },
+    {
+      "t": 5.580449384986423,
+      "clock": 963387.756835868,
+      "name": "CommsUpdateConsumer.consume_metadata.begin",
+      "argument_type": "dict"
+    },
+    {
+      "t": 5.580473740934394,
+      "clock": 963387.756860184,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 5.580761716933921,
+      "clock": 963387.757148211,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.580809297971427,
+      "clock": 963387.757195801,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 5.587649466004223,
+      "clock": 963387.764036029,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.590027577010915,
+      "clock": 963387.766414151,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.591094000963494,
+      "clock": 963387.767480494,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.595948350965045,
+      "clock": 963387.772334954,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 5.596951965009794,
+      "clock": 963387.773338458,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.5972514329478145,
+      "clock": 963387.773637916,
+      "name": "CommsUpdateConsumer.consume_metadata.end"
+    },
+    {
+      "t": 5.597982008941472,
+      "clock": 963387.774368533,
+      "name": "AgentSession.load.end"
+    },
+    {
+      "t": 5.638236423023045,
+      "clock": 963387.814623157,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.645453225937672,
+      "clock": 963387.821839819,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 5.7209258989896625,
+      "clock": 963387.897312482,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.757728212978691,
+      "clock": 963387.934114767,
+      "name": "CommsUpdateConsumer.consume_metadata.begin",
+      "argument_type": "dict"
+    },
+    {
+      "t": 5.757786714006215,
+      "clock": 963387.934173208,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 5.757874912000261,
+      "clock": 963387.934261395,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.757888988009654,
+      "clock": 963387.934275442,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 5.762021449045278,
+      "clock": 963387.938408102,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.7624494809424505,
+      "clock": 963387.938836064,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.7627930929884315,
+      "clock": 963387.939179686,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 5.76285185397137,
+      "clock": 963387.939238308,
+      "name": "CommsUpdateConsumer.consume_metadata.end"
+    },
+    {
+      "t": 5.791912710992619,
+      "clock": 963387.968299254,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.79231352196075,
+      "clock": 963387.968700045,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 5.792427707929164,
+      "clock": 963387.968814222,
+      "name": "SnapshotPublication.publish_page.begin",
+      "argument_type": null
+    },
+    {
+      "t": 5.793428065953776,
+      "clock": 963387.9698146,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.793462781934068,
+      "clock": 963387.969849225,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "TranscriptRenderTask"
+    },
+    {
+      "t": 5.799260281957686,
+      "clock": 963387.975647015,
+      "name": "AgentController.publish_transcript_snapshot.end"
+    },
+    {
+      "t": 5.894501170958392,
+      "clock": 963388.070887995,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 5.8947845889488235,
+      "clock": 963388.071171072,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 5.895758486003615,
+      "clock": 963388.07214504,
+      "name": "TranscriptHistory.prepare_body.begin",
+      "argument_type": "partial"
+    },
+    {
+      "t": 5.896364385960624,
+      "clock": 963388.072750879,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.896387279033661,
+      "clock": 963388.072773742,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "MarkdownRenderTask"
+    },
+    {
+      "t": 5.896459195995703,
+      "clock": 963388.072845699,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 5.896477269940078,
+      "clock": 963388.072863753,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "MarkdownRenderTask"
+    },
+    {
+      "t": 6.422592189977877,
+      "clock": 963388.598978774,
+      "name": "CommsUpdateConsumer.consume_metadata.begin",
+      "argument_type": "dict"
+    },
+    {
+      "t": 6.422679055016488,
+      "clock": 963388.599065558,
+      "name": "ApplicationValidationOwner.validate.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 6.422789184027351,
+      "clock": 963388.599175637,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.422804723028094,
+      "clock": 963388.599191197,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "DecodeCommsMetadataTask"
+    },
+    {
+      "t": 6.553510659956373,
+      "clock": 963388.729897213,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.553592865937389,
+      "clock": 963388.729979309,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.5538829260040075,
+      "clock": 963388.730269439,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.553907162044197,
+      "clock": 963388.730293605,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.554235765943304,
+      "clock": 963388.730622339,
+      "name": "ApplicationValidationOwner.validate.end"
+    },
+    {
+      "t": 6.554330134997144,
+      "clock": 963388.730716668,
+      "name": "CommsUpdateConsumer.consume_metadata.end"
+    },
+    {
+      "t": 6.619878979981877,
+      "clock": 963388.796265703,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.620158078963868,
+      "clock": 963388.796544622,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.620255082962103,
+      "clock": 963388.796641636,
+      "name": "TranscriptHistory.prepare_body.end"
+    },
+    {
+      "t": 6.663908696034923,
+      "clock": 963388.84029527,
+      "name": "SnapshotPublication.publish_page.end"
+    },
+    {
+      "t": 6.664006763021462,
+      "clock": 963388.840393236,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 6.664580240962096,
+      "clock": 963388.840966734,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 6.665033931029029,
+      "clock": 963388.841420405,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 6.665335573954508,
+      "clock": 963388.841722047,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 6.665696298005059,
+      "clock": 963388.842082791,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 6.684258796041831,
+      "clock": 963388.86064551,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 6.685667137964629,
+      "clock": 963388.862053752,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 6.687028190935962,
+      "clock": 963388.863414714,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.6870483190286905,
+      "clock": 963388.863434782,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "MarkdownRenderTask"
+    },
+    {
+      "t": 6.704018185962923,
+      "clock": 963388.880404779,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 6.718099100980908,
+      "clock": 963388.894485664,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.721835640026256,
+      "clock": 963388.898222124,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.72435364802368,
+      "clock": 963388.900740131,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.749189618974924,
+      "clock": 963388.925576463,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.749224485014565,
+      "clock": 963388.925610968,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "RichRenderTask"
+    },
+    {
+      "t": 6.749293004977517,
+      "clock": 963388.925679488,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.749304285971448,
+      "clock": 963388.925690739,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "RichRenderTask"
+    },
+    {
+      "t": 6.758028849028051,
+      "clock": 963388.934415553,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.758369024959393,
+      "clock": 963388.934755518,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.777216524002142,
+      "clock": 963388.953603147,
+      "name": "history.visible",
+      "cursor": 147260275,
+      "ready": true,
+      "loading": 0,
+      "bodies": 4
+    },
+    {
+      "t": 6.787417909014039,
+      "clock": 963388.963804602,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.791941570932977,
+      "clock": 963388.968328135,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.809307839954272,
+      "clock": 963388.985694403,
+      "name": "TranscriptPublication.application_current.begin",
+      "argument_type": null
+    },
+    {
+      "t": 6.809596447972581,
+      "clock": 963388.985982931,
+      "name": "TranscriptPublication.application_current.end"
+    },
+    {
+      "t": 6.850310764042661,
+      "clock": 963389.026697348,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.850343085941859,
+      "clock": 963389.026729539,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "MarkdownRenderTask"
+    },
+    {
+      "t": 6.865924648009241,
+      "clock": 963389.042311372,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.866050287033431,
+      "clock": 963389.04243675,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.866067148977891,
+      "clock": 963389.042453602,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "RichRenderTask"
+    },
+    {
+      "t": 6.8666089969919994,
+      "clock": 963389.04299547,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.8865655900444835,
+      "clock": 963389.062952164,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.887576848967001,
+      "clock": 963389.063963362,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 6.887600093032233,
+      "clock": 963389.063986596,
+      "name": "RenderProcessPool.capture.begin",
+      "argument_type": "MarkdownRenderTask"
+    },
+    {
+      "t": 6.890261071966961,
+      "clock": 963389.066647625,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 6.960531655000523,
+      "clock": 963389.136918228,
+      "name": "RenderProcessPool.capture.end"
+    },
+    {
+      "t": 6.974686400964856,
+      "clock": 963389.151073084,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 7.046456197975203,
+      "clock": 963389.222842762,
+      "name": "PreparationRuntime._execute.begin",
+      "argument_type": "WorkKey"
+    },
+    {
+      "t": 7.067267072037794,
+      "clock": 963389.243653936,
+      "name": "AgentProcess.communicate.end"
+    },
+    {
+      "t": 7.266317307949066,
+      "clock": 963389.442703801,
+      "name": "PreparationRuntime._execute.end"
+    },
+    {
+      "t": 7.298678645980544,
+      "clock": 963389.4750655,
+      "name": "PreparationRuntime._execute.end"
+    }
+  ],
+  "app_error": null,
+  "provider_inputs": 0
+}
