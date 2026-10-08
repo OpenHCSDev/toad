@@ -39,3 +39,8 @@ the remaining exposure/reader relation still needs its actual geometry trace.
 The candidate is unpublished and the previous launch default is unchanged.
 Raw failures remain in `dm-mount-installed-20261008` and
 `dm-mount-retirement-source-20261008` under the owned scratch directory.
+The added geometry trace (`dm-mount-geometry-source-20261008`) confirms the old
+body is actually offscreen and not interaction-protected. The reader is at the
+native bottom with follow intent, no anchor, no viewport worker and no deferred
+frame callback. Retirement acquisition, rather than mistaken exposure or a
+still-pending frame, is the remaining investigation.

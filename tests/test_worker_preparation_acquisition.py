@@ -652,6 +652,8 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                                "anchor": str(window.history_anchor)},
                     "document_geometry": str(app.screen._compositor.visible_widgets.get(document)),
                     "following_geometry": str(app.screen._compositor.visible_widgets.get(following)),
+                    "ranges": {"document": (document.start, document.stop, len(document.fragments)),
+                               "following": (following.start, following.stop, len(following.fragments))},
                     "protected": [str(owner) for owner in window.document_viewport.protected()],
                     "roots": [(str(owner), type(owner._body_measurement).__name__,
                                str(owner.outer_size), str(owner.virtual_size))
