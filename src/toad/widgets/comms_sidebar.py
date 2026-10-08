@@ -221,10 +221,12 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         padding: 0;
     }
     CommsRow.-selected, CommsRow.-selected:hover, CommsRow.-selected:focus {
-        background: $accent 25%;
+        background: $accent;
+        color: $background !important;
     }
     CommsRow:ansi.-selected, CommsRow:ansi.-selected:hover, CommsRow:ansi.-selected:focus {
         background: ansi_blue;
+        color: ansi_bright_white !important;
     }
     CommsRow.-unread { text-style: bold; }
     CommsRow.-current { color: $text; text-style: bold; }

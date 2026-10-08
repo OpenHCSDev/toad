@@ -362,6 +362,90 @@ def test_active_markdown_acquires_inline_content_off_ui(tmp_path, monkeypatch):
     asyncio.run(mounted())
 
 
+def test_active_markdown_retains_paint_until_current_source_commits(tmp_path, monkeypatch):
+    """An open conversation borrows preceding paint without admitting stale source."""
+    from textual import events
+    from toad.rich_preparation import ContentSource, RenderableSource
+    from toad.widgets.agent_response import AgentResponse
+    from toad.widgets.prepared_markdown import PreparedParagraph
+    from rich.text import Text
+
+    async def mounted():
+        project = tmp_path / "project"
+        project.mkdir()
+        service = Comms(tmp_path / "wire")
+        service.messaging.initialize_private_initial_protocol()
+        for key in tuple(os.environ):
+            if key.startswith("AGENT_COMMS_"):
+                monkeypatch.delenv(key)
+        for key, value in {"AGENT_COMMS_ROOT": service.root,
+                           "XDG_CONFIG_HOME": tmp_path / "config",
+                           "XDG_STATE_HOME": tmp_path / "state",
+                           "XDG_DATA_HOME": tmp_path / "data"}.items():
+            monkeypatch.setenv(key, str(value))
+        app = ToadApp(project_dir=str(project))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.conversation
+            document = AgentResponse("Original response", paginate=False)
+            await view.post(document)
+            await document.update("Original response")
+            paragraph = document.query_one(PreparedParagraph)
+            await asyncio.wait_for(paragraph.wait_ready(), 20)
+            await pilot.pause()
+            prepared, request = paragraph.prepared_content, paragraph._ready_request
+            original = paragraph._content
+            for _ in range(20):
+                paragraph.set_content(original)
+            assert paragraph._generation == request.generation
+            assert paragraph._wanted == request
+            assert paragraph.prepared_content is prepared
+            assert paragraph.preparation_complete and paragraph.paint_ready
+
+            changed = Content.styled("Changed response 界", "bold red")
+            paragraph.set_content(changed)
+            assert paragraph._prepared is prepared
+            assert paragraph._ready_request is request
+            assert not paragraph.paint_ready and not paragraph.preparation_complete
+            assert paragraph.prepared_content is None
+            assert paragraph.get_selection(SELECT_ALL)[0] == original.plain
+            assert "Preparing preview" not in paragraph.render_line(0).text
+            editor = view.prompt.prompt_text_area
+            editor.focus(scroll_visible=False)
+            for key in "kept draft":
+                app._driver.process_message(events.Key(key, key))
+            await asyncio.wait_for(paragraph.wait_ready(), 20)
+            await pilot.pause()
+            assert paragraph.paint_ready and paragraph.preparation_complete
+            assert paragraph.get_selection(SELECT_ALL)[0] == changed.plain
+            assert paragraph.prepared_content is not prepared
+            assert editor.text == "kept draft"
+
+            # Native Content.__eq__ omits spans. Formatting/action changes are
+            # independent source answers even when plain text stays identical.
+            generation = paragraph._generation
+            paragraph.set_content(Content.styled(changed.plain, "italic blue"))
+            assert paragraph._generation == generation + 1
+            assert not paragraph.paint_ready
+            await asyncio.wait_for(paragraph.wait_ready(), 20)
+            await pilot.resize_terminal(95, 35)
+            await pilot.pause()
+            await asyncio.wait_for(paragraph.wait_ready(), 20)
+            assert paragraph._wanted.task.presentation.options.max_width > 0
+            assert paragraph.paint_ready
+            assert not RenderableSource(Text("mutable")).same_source(RenderableSource(Text("mutable")))
+            assert not ContentSource(changed).same_source(ContentSource(Content(changed.plain)))
+            assert app._exception is None
+            result = {"unchanged_native_updates": 20, "prepared_identity_retained": True,
+                      "pending_source_not_ready": True, "displayed_source_copy": True,
+                      "changed_spans_reprepared": True, "driver_draft": editor.text,
+                      "provider_inputs": 0, "scope": "open source App/native Markdown; no ACP/provider"}
+            (tmp_path / "retained-markdown-paint.json").write_text(json.dumps(result) + "\n")
+            print(json.dumps(result), flush=True)
+
+    asyncio.run(mounted())
+
+
 def test_custom_markdown_block_keeps_its_bound_conversion(tmp_path, monkeypatch):
     """A native extension may depend on its actual document and block identity."""
     from toad.widgets.prepared_markdown import PreparedConversationMarkdown, PreparedParagraph
