@@ -126,6 +126,7 @@ class ReferenceTree(TargetTree):
 
 class FixtureApp(CoreEventReceiver, App):
     CSS = "Screen { layout: horizontal; } #reference { width: 40; }"
+    selected_session = None
 
     def __init__(self, source):
         super().__init__()
@@ -185,7 +186,7 @@ async def main():
             peer.action_open_selected()
             await pilot.pause()
             assert app.opened[-1] == ("peer", "thread")
-            assert peer.has_class("-selected")
+            assert not peer.has_class("-selected"), "Opening a row is not bulk selection"
             assert tree.view_state.selected == ("inbound", "peer")
             tree.groups["inbound"].rows["channel", "#team"].action_open_selected()
             await pilot.pause()

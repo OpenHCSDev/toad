@@ -45,6 +45,11 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
     def channels_context(self) -> tuple[str, str]:
         return "", ""
 
+    @property
+    def navigation_target_name(self) -> str | None:
+        """The displayed destination, independent of sidebar click intent."""
+        return None
+
     def relationship_context(self) -> tuple[str, str | None]:
         return self.channels_context()[0], self.coordination_root
 
