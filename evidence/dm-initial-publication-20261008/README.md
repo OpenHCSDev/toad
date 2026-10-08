@@ -647,3 +647,33 @@ incoming messages; its route ended at Window. That source observation also
 included the merged prepared-style rule and preceded the final single-dispatch
 correction, so its aggregate timings are not a causal measurement of this patch.
 Neither this viewport change nor the native mount candidate is published live.
+
+
+## Published document wheel / native mount integration
+
+Textual120 and Toad571 merged. Matched published frontend: Toad fbb8e395d,
+Textual c330608250, unchanged Core client09a0131ab. Full954assets /69packages /
+2857RECORD entries and retained native Pi matched.
+
+Actual installed private-driver observation preserved160 ordered wheel packets,
+three reversals and20 incoming messages /16recipients, provider0. Wheel median
+3.88ms/p95 78.80/max219.98; backlog after final post3.86ms. Frame p95 109.87ms/
+max337.05; loop max105.21. Overall pacing still FAIL, not a statistical speedup
+claim. Timer update reached61.32ms UI CPU; layout48.81ms UI CPU.
+
+Installed real-click disclosure passed: no closed body, opened body current, live
+error, closed update deferred, reopen current, original pre-mount explicit read.
+Reviewed frontend publisher changed NEW launches only; backend defaults, active
+route and native package preserved. Existing windows keep imported modules.
+Receipt: `.artifacts/document-wheel-routing-delivery-20261008/live-publication.json`.
+Raw build/App/disclosure/publication files remain in
+`/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/`.
+
+Removed55,187,908bytes of superseded never-published native-mount candidate
+runtime after fresh privileged census226processes/no gaps/no refs and separate
+default/publication checks. Wheels/source/proofs/raw and actual published/rollback
+runtimes retained. The first evidence append met absent sparse-checkout path;
+no evidence was changed then. Materialized original HEAD bytes and appended here.
+
+Next work is original synchronous geometry/layout and paint publication; native
+capture/FIFO is preserved rather than bypassed to mask its costs.
