@@ -9,6 +9,8 @@ import sys
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+from agent_comms.comms import Comms
+
 from textual.selection import SELECT_ALL
 from textual.widgets._markdown import MarkdownParagraph
 
@@ -17,12 +19,38 @@ from toad.widgets.agent_response import AgentResponse
 
 
 async def settled(view, pilot):
-    async with asyncio.timeout(12):
-        while True:
-            await pilot.pause(.02)
-            manager = view.window.document_viewport
-            if manager._worker is None and manager.visible_bodies_ready:
-                return
+    manager = view.window.document_viewport
+    try:
+        async with asyncio.timeout(12):
+            while True:
+                await pilot.pause(.02)
+                # Visible readiness alone is not completion of the admitted
+                # offscreen retirement cohort; its extent callbacks may still run.
+                if (manager._worker is None and manager.visible_bodies_ready
+                        and all(owner.body_dormant or manager.requires_body(owner)
+                                for owner in manager.body_roots())):
+                    return
+    except TimeoutError:
+        output = os.environ.get("VIEWPORT_EVIDENCE")
+        if output:
+            roots = []
+            for owner in manager.body_roots():
+                sources = owner.prepared_paint_sources()
+                roots.append(dict(
+                    measurement=type(owner._body_measurement).__name__,
+                    ready=owner.body_ready, required=manager.requires_body(owner),
+                    admitted=owner in manager.admitted_bodies,
+                    locked=owner.lock.is_locked,
+                    missing=[dict(type=type(child).__name__, size=str(child.size),
+                                  ready=child.prepared_content is not None,
+                                  ready_signal=getattr(child, "_ready", None).is_set()
+                                  if hasattr(child, "_ready") else None)
+                             for child, resource in sources if resource is None]))
+            (Path(output) / "settlement-timeout.json").write_text(json.dumps(dict(
+                pending=manager._pending, accepts_frame=manager.accepts_frame(),
+                awaiting_frame=view.window.screen.frame_presentation.awaits_publication(
+                    view.window, manager.request), roots=roots), indent=2))
+        raise
 
 
 async def worker_custody(output: Path):
@@ -120,30 +148,71 @@ async def worker_custody(output: Path):
 
 
 async def main():
-    with TemporaryDirectory(prefix="toad-viewport-body-") as directory:
+    with TemporaryDirectory(prefix="toad-viewport-body-", dir=os.environ.get("VIEWPORT_EVIDENCE")) as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
+        Comms(root / "wire").messaging.initialize_private_initial_protocol()
         app = ToadApp(project_dir=str(root))
         async with app.run_test(size=(120, 40)) as pilot:
-            await pilot.pause()
+            await app.selected_session.wait_content_ready()
+            assert await app.selected_session.wait_presented()
             view = app.selected_session.conversation
-            source = lambda i: f"## Document {i}\n\n" + "A measured paragraph with selectable source. " * 12 + "\n\nAnother paragraph."
+            source = lambda i: f"## Document {i}\n\n" + "\n\n".join(
+                f"Paragraph {j}. " + "A measured paragraph with selectable source. " * 12
+                for j in range(9))
             docs = [AgentResponse(source(i)) for i in range(32)]
             await view.contents.mount(*docs)
             view.window.anchor()
             await settled(view, pilot)
+            if sum(doc.body_dormant for doc in docs) < 20:
+                receipt = dict(accepts_frame=view.window.document_viewport.accepts_frame(),
+                               owners=len(view.window.document_viewport.owners),
+                               admitted=len(view.window.document_viewport.admitted_bodies),
+                               roots=[dict(measurement=type(doc._body_measurement).__name__,
+                                           ready=doc.body_ready, registered=doc._body_viewport is not None,
+                                           visible=doc in app.screen._compositor.visible_widgets)
+                                      for doc in docs])
+                output = os.environ.get("VIEWPORT_EVIDENCE")
+                if output:
+                    (Path(output) / "retirement-state.json").write_text(json.dumps(receipt, indent=2))
             assert sum(doc.body_dormant for doc in docs) >= 20
             assert all(doc.source == source(i) for i, doc in enumerate(docs))
-            dormant = next(doc for doc in docs if doc.body_dormant)
+            from toad.widgets.viewport_body import MeasuredBody
+            cold = [doc for doc in docs if type(doc._body_measurement) is MeasuredBody]
+            assert cold, "Original widget budget never exercised cold eviction"
+            dormant = cold[0]
             assert not dormant.query(MarkdownParagraph), "Cold body retained its native message pumps"
             before = len(app._registry)
             view.window.release_anchor()
             view.window.scroll_to_widget(dormant, animate=False, immediate=True)
             await settled(view, pilot)
+            output = os.environ.get("VIEWPORT_EVIDENCE")
+            if output:
+                manager = view.window.document_viewport
+                compositor = app.screen._compositor
+                (Path(output) / "cold-destination.json").write_text(json.dumps(dict(
+                    measurement=type(dormant._body_measurement).__name__,
+                    ready=dormant.body_ready, paragraphs=len(dormant.query(MarkdownParagraph)),
+                    visible=dormant in compositor.visible_widgets,
+                    required=manager.requires_body(dormant),
+                    pending=manager._pending, worker=manager._worker is not None,
+                    scroll=view.window.scroll_y, target=view.window.scroll_target_y,
+                    follows=view.window.follows_tail,
+                    region=str(dormant.region), virtual_region=str(dormant.virtual_region),
+                    viewport=str(view.window.content_region),
+                    source_geometry=[str(geometry) for owner, geometry in
+                                     compositor.published_geometry((dormant,))],
+                    frame_wait=app.screen.frame_presentation.awaits_publication(
+                        view.window, manager.request)), indent=2))
             assert dormant.body_ready and dormant.query(MarkdownParagraph)
-            text = dormant.query_one(MarkdownParagraph)
-            expected = text.render().plain
+            # Selection protects the actual rendered endpoint, not the first
+            # hidden paragraph whose preparation is deliberately lazy.
+            text = next(view.window.visible_history_items(dormant.query(MarkdownParagraph)))
+            selected = text.get_selection(SELECT_ALL)
+            assert selected is not None
+            expected = selected[0]
+            assert "A measured paragraph with selectable source." in expected
             app.screen.selections = {text: SELECT_ALL}
             view.window.scroll_end(animate=False, immediate=True)
             await settled(view, pilot)
@@ -154,7 +223,18 @@ async def main():
                 view.window.release_anchor()
                 view.window.scroll_to_widget(docs[index], animate=False, immediate=True)
                 await settled(view, pilot)
-                assert docs[index].query(MarkdownParagraph), "Visible source was not restored"
+                returned = docs[index]
+                assert returned in app.screen._compositor.visible_widgets
+                assert returned.body_ready, "Visible source was not restored"
+                if returned.body_retained_paint_ready:
+                    selected = returned.get_selection(SELECT_ALL)
+                    assert selected is not None
+                    assert "A measured paragraph with selectable source." in selected[0]
+                else:
+                    paragraphs = returned.query(MarkdownParagraph)
+                    assert paragraphs, "Cold source was not reconstructed"
+                    assert any("A measured paragraph with selectable source." in child.source
+                               for child in paragraphs)
             assert len(app._registry) <= before + 40, "Repeated visibility accumulated presentation trees"
             await pilot.resize_terminal(90, 40)
             await settled(view, pilot)
@@ -174,7 +254,9 @@ async def main():
             async def transaction():
                 async with view.window.history_lock:
                     async with view.window.preserve_history(anchor):
-                        pass
+                        # Unchanged transactions correctly skip reflow. This
+                        # retirement check needs an actual native extent edit.
+                        anchor.styles.margin = (1, 0)
 
             # The anchor can retire after a transaction requests its frame.
             # A completed layout must release it even though compensation no
@@ -190,13 +272,13 @@ async def main():
 
             owner_mode = app.selected_mode
             other = await app.session_navigation.new(app.session_navigation.default_source)
-            await app.switch_mode(owner_mode)
+            await app.select_session(owner_mode)
             await settled(view, pilot)
 
             async def switch_during_transaction():
                 async with view.window.history_lock:
                     async with view.window.preserve_history(docs[0]):
-                        await app.switch_mode(other.mode_name)
+                        await app.select_session(other.mode_name)
 
             # Suspension may occur inside the mutation, before __aexit__ has
             # created any frame waiter for the suspend hook to release.
