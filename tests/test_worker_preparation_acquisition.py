@@ -452,6 +452,9 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
     from textual import events
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.prepared_markdown import PreparedMarkdownContent
+    from toad.rich_preparation import PreparedPaintSource
+    from toad.widgets.viewport_body import MeasuredViewportBody, RenderedBody
+    from textual.walk import walk_depth_first
     from viewport_recent_tabs_pilot import settled
     from sidebar_retirement_pilot import viewport_text
 
@@ -494,17 +497,36 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             window.release_anchor()
             window.scroll_home(animate=False, immediate=True)
             await settled(pilot, view)
+            # Live body readiness admits native layout. Worker paint has its
+            # own original after-refresh publication, which retention borrows.
+            # A retired placeholder has no remaining worker and still fails
+            # the actual paint assertions below.
+            async with asyncio.timeout(20):
+                while any(widget.prepared_content is None
+                          for widget in app.screen._compositor.visible_widgets
+                          if isinstance(widget, PreparedPaintSource)):
+                    await pilot.pause(.02)
+            await settled(pilot, view)
             paint = viewport_text(window)
             assert "Saved section" in paint and "Original parent" in paint
             assert "Preparing preview" not in paint
-            ready = tuple(block for block in document.query(PreparedMarkdownContent)
+            ready = tuple(block for block in walk_depth_first(document, PreparedMarkdownContent)
                           if block.paint_ready and block.prepared_content is not None)
-            assert ready
-            assert any(span.style.meta.get("@click", "")
-                       for block in ready for span in block._ready_request.task.source.value.spans
-                       if not isinstance(span.style, str))
+            retained = tuple((body, body._body_measurement.content)
+                             for body in walk_depth_first(window)
+                             if isinstance(body, MeasuredViewportBody)
+                             and isinstance(body._body_measurement, RenderedBody))
+            assert ready or retained
+            assert (any(span.style.meta.get("@click", "")
+                        for block in ready for span in block._ready_request.task.source.value.spans
+                        if not isinstance(span.style, str))
+                    or any(segment.style and segment.style.meta.get("@click", "")
+                           for body, content in retained for strip in content.lines
+                           for segment in strip))
             for block in ready:
                 assert block.get_selection(SELECT_ALL)[0] == block._ready_request.task.source.value.plain
+            for body, content in retained:
+                assert body.get_selection(SELECT_ALL)[0] == content.text
             region = window.scrollable_content_region
             offset = region.offset + (region.width // 2, region.height // 2)
             before = window.scroll_y
@@ -518,13 +540,49 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             reverse = window.scroll_y
             await settled(pilot, view)
             assert down > before and reverse < down
+            async with asyncio.timeout(20):
+                while any(widget.prepared_content is None
+                          for widget in app.screen._compositor.visible_widgets
+                          if isinstance(widget, PreparedPaintSource)):
+                    await pilot.pause(.02)
+            await settled(pilot, view)
             assert "Preparing preview" not in viewport_text(window)
+            retained = tuple(body._body_measurement.content
+                             for body in walk_depth_first(window)
+                             if isinstance(body, MeasuredViewportBody)
+                             and isinstance(body._body_measurement, RenderedBody))
+            assert all("Preparing preview" not in content.text for content in retained)
             stopped = window.scroll_y
             await pilot.pause(.2)
             assert window.scroll_y == stopped
+            # The paged response is one viewport owner. Its internal fragments
+            # cannot retire independently while their enclosing body is visible.
+            # Move the original body offscreen through another real response.
+            following_source = "\n\n".join(f"Following response paragraph {i}" for i in range(40))
+            following = AgentResponse(following_source)
+            await view.post(following)
+            await following.update(following_source)
+            window.release_anchor()
+            window.scroll_end(animate=False, immediate=True)
+            await settled(pilot, view)
+            async with asyncio.timeout(20):
+                while not isinstance(document._body_measurement, RenderedBody):
+                    await pilot.pause(.02)
+            captured = document._body_measurement.content
+            assert "Preparing preview" not in captured.text
+            assert "Original parent" in captured.text and "Saved section" in captured.text
+            assert not tuple(walk_depth_first(document, PreparedPaintSource))
+            assert any(segment.style and segment.style.meta.get("@click", "")
+                       for strip in captured.lines for segment in strip)
+            assert document.get_selection(SELECT_ALL)[0] == captured.text
+            document.scroll_visible(animate=False, immediate=True)
+            await settled(pilot, view)
+            assert document._body_measurement.content is captured
+            assert "Preparing preview" not in viewport_text(window)
             assert app._exception is None
             result = {"paged": True, "sections": 24, "ready_ms": ready_ms,
                       "visible_nested_text": True, "links_and_source_copy": True,
+                      "retired_source_not_preview": True, "warm_paint_identity": True,
                       "native_wheel_reverse_stop": True, "provider_inputs": 0,
                       "scope": "source Toad App/paged authored Markdown; not saved SDK acceptance"}
             (tmp_path / "paged-markdown-result.json").write_text(json.dumps(result) + "\n")
