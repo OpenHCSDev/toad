@@ -25,6 +25,8 @@ from toad.widgets.incoming_message import IncomingMessage
 from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
 from toad.widgets.message_divider import MessageDivider
 from toad.widgets.tool_call import ToolCall
+from toad.acp.status import ToolCallStatus
+from acp import schema as protocol
 from toad.widgets.user_input import UserInput
 
 
@@ -307,7 +309,7 @@ async def main() -> None:
             assert reply is not None
             incoming = await native.post(IncomingMessage(IncomingTranscript(sent.body, route=MessageRoute(sent.sender, (sent.target,)), source=sent.reference, timestamp=sent.timestamp)))
             thought = await native.post(AgentThought("not a displayed message"))
-            tool = await native.post(ToolCall({"toolCallId": "tool-one", "title": "Read source"}))
+            tool = await native.post(ToolCall(ToolCallStatus.from_acp(protocol.ToolCall.model_validate({"toolCallId": "tool-one", "title": "Read source"}, strict=True))))
             await pilot.pause()
             assert len(user.query(MessageDivider)) == 1
             assert "User" in user.query_one(MessageDivider).render().plain
@@ -350,31 +352,29 @@ async def main() -> None:
             wire_block = next(widget for message, widget in chat.message_history.rows
                               if message.seq == sent.seq)
             assert isinstance(wire_block, IRCMessage)
-            assert len(wire_block.query(MessageDivider)) == 1
-            expected_time = time.strftime("%H:%M:%S", time.localtime(sent.timestamp))
-            inbound_divider = wire_block.query_one(MessageDivider)
+            assert not wire_block.query(MessageDivider)
+            expected_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sent.timestamp))
             wire_block.scroll_visible(animate=False, immediate=True)
             await pilot.pause()
-            assert expected_time in inbound_divider.render().plain, (
-                expected_time, inbound_divider.clock, inbound_divider.size.width,
-                inbound_divider.render().plain,
-            )
-            assert "Inbound" in wire_block.query_one(MessageDivider).render().plain
+            assert expected_time in wire_block.border_title
+            assert "Inbound" in wire_block.border_title
+            rows = app.screen._compositor.render_strips()
+            assert expected_time in rows[wire_block.region.y].text
             outgoing_block = next(widget for message, widget in chat.message_history.rows
                                   if message.seq == outbound.seq)
-            assert "Outbound" in outgoing_block.query_one(MessageDivider).render().plain
+            assert "Outbound" in outgoing_block.border_title
             await chat.message_history.toggle_style()
             await pilot.pause()
             wire_block = next(widget for message, widget in chat.message_history.rows
                               if message.seq == sent.seq)
             assert isinstance(wire_block, WireMarkdownMessage)
-            assert len(wire_block.query(MessageDivider)) == 1
+            assert not wire_block.query(MessageDivider)
             assert len(wire_block.query(AgentResponse)) == 1
             assert len(wire_block.query(AgentResponse).first().query(MessageDivider)) == 0
-            assert expected_time in wire_block.query_one(MessageDivider).render().plain
+            assert expected_time in wire_block.border_title
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
-    print("timestamped full-width user, inbound, agent and IRC/Markdown dividers; no thought divider")
+    print("timestamped native dividers and wire row borders; no nested wire or thought divider")
 
 
 if __name__ == "__main__":
