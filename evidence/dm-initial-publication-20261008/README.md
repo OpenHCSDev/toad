@@ -760,3 +760,34 @@ the header layout epoch unchanged, changed activity still reorders members,
 original widget identities/pins and unchanged prepared resource preserved.
 Raw: `/home/ts/.cache/agent-scratch/channel-label-owner-20261008/source-app.log`.
 Installed latency remains to be measured; no broad pacing pass claimed.
+
+## Channel label fix delivered
+
+Toad573 merged; exact96f961acd cohort built with retained nativec330/Core09a.
+954assets/69packages/2857RECORD/native package matched. Installed original
+activity-order check passed including pin/counts and unchanged header epoch.
+
+Installed same160-wheel/20-message/16-recipient burst: ordered delivery,
+channel-header Layout48 to0 and all other sidebar-source Layout to0. Remaining
+layout sources are message captions/disclosures/bodies/window. This proves the
+competing header writer caused the wasted work. Aggregate pacing still FAIL:
+wheel median19.52ms/p95218.63/max257.07; final backlog2.21ms; framep95105.79/
+max277.09; loopmax114.78. One run does not establish overall speedup.
+
+Original frontend publisher selected channel-label-owner-delivery runtime for
+NEW launches, preserving backend defaults/route/native/running owners. Receipt:
+`.artifacts/channel-label-owner-delivery-20261008/live-publication.json`. Raw
+source/build/installed/publication are under
+`/home/ts/.cache/agent-scratch/channel-label-owner-20261008/`. Existing user
+windows retain loaded modules.
+
+Native121 descriptor review is integrated separately: cursor shape alone is
+paint-only, enums remain conservative and custom pointer-reading renderers
+remain measurement-sensitive. This cohort retains c330 and does not claim the
+later cursor fix installed. Next rendering pass targets the empty collapsed
+notification content resource, preserving native input and actual expanded
+feedback rather than bypassing requests.
+
+The initial evidence append was refused by the shell pre-execution parser on a
+quotation in documentation; no command ran. The original tracked bytes were
+materialized and this edit applied through the ordinary file patch tool.
