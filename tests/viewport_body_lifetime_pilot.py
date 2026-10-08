@@ -16,7 +16,6 @@ from textual.widgets._markdown import MarkdownParagraph
 
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
-from toad.rich_preparation import PreparedPaintSource
 
 
 async def settled(view, pilot):
@@ -36,9 +35,7 @@ async def settled(view, pilot):
         if output:
             roots = []
             for owner in manager.body_roots():
-                sources = tuple((child, child.prepared_content)
-                                for child in owner.body_geometry_targets()
-                                if isinstance(child, PreparedPaintSource))
+                sources = owner.prepared_paint_sources()
                 roots.append(dict(
                     measurement=type(owner._body_measurement).__name__,
                     ready=owner.body_ready, required=manager.requires_body(owner),
@@ -167,7 +164,7 @@ async def retirement_visibility(output: Path):
             first = AgentResponse("Original body\n\nActual retained paragraph.")
             await view.contents.mount(first)
             async with asyncio.timeout(15):
-                while not first.body_ready:
+                while not first.body_ready or not first.prepared_paint_is_current(first.prepared_paint_sources()):
                     await pilot.pause(.02)
             # Suspend original housekeeping so this check owns one retirement.
             await manager.suspend_source()
@@ -177,7 +174,7 @@ async def retirement_visibility(output: Path):
             await pilot.pause()
             assert not manager.requires_body(first)
             children = first.reconstructible_children()
-            assert children and first.capture_native_paint(first._body_measurement) is not None
+            assert children and first.prepared_paint_is_current(first.prepared_paint_sources())
             operation = first.retire_body()
             # Actual scrolling exposes the body after synchronous acquisition,
             # before the returned operation measures/commits its captured rows.
@@ -233,10 +230,9 @@ async def main():
             assert sum(doc.body_dormant for doc in docs) >= 20
             assert all(doc.source == source(i) for i, doc in enumerate(docs))
             from toad.widgets.viewport_body import MeasuredBody
-            # Widget admission prices native controls; immutable paint has its
-            # own byte admission. This small source need not exhaust that pool.
-            # Exercise cold reconstruction through the same real paint release
-            # used by eviction, without changing either production budget.
+            # Paint and native controls have separate byte and widget admission.
+            # Exercise cold reconstruction using the original paint release;
+            # this small source does not establish real byte-pressure eviction.
             dormant = next(doc for doc in docs if doc.body_dormant
                            and not view.window.document_viewport.requires_body(doc))
             dormant.release_paint()

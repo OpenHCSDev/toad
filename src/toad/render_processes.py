@@ -24,15 +24,18 @@ Result = TypeVar("Result")
 
 
 def _initialize_worker() -> None:
-    """Acquire typed ingress declarations without borrowing an agent identity.
+    """Acquire ingress and rendering declarations without an agent identity.
 
     These application workers serve both rendering and ACP validation. Finish
-    the required SDK imports during their own startup, before the first ordered
-    notification lends them a task. No notification or rendering job is made.
+    the required SDK and body rendering imports during their own startup,
+    before a notification or recent page lends them a task. Editor and patch
+    implementations remain owned by those tasks, rather than Markdown startup.
+    No notification or rendering job is made.
     """
     os.environ.pop("PI_AGENT_ID", None)
     os.environ.pop("AGENT_COMMS_THREAD", None)
     from toad.acp import sdk_boundary  # noqa: F401 -- declare worker ingress capabilities
+    from toad import render_tasks  # noqa: F401 -- declare worker rendering capabilities
 
 
 class RenderProcessPool(Renderer):
