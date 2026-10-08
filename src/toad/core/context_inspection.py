@@ -3,10 +3,11 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
 from typing import TYPE_CHECKING, Awaitable, Callable
+from acp.exceptions import RequestError
 
 from agent_comms.field_codec import FieldCodec
 from agent_comms.declared_family import DeclaredFamily
@@ -22,7 +23,7 @@ from agent_comms.selected_source import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
     CodexRolloutProvenance, ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
-    SegmentManifest,
+    SegmentManifest, TurnContext,
 )
 from agent_comms.working_memory_labels import JevClassifier, ModelLabel
 from agent_comms.working_memory_questions import SpanAnswer
@@ -457,6 +458,45 @@ class NativeMessageRange(ContextNode):
         return "Current native message range; expand to read the original public text."
 
 
+class CoreInspection(ABC):
+    """Availability of the backend's original Core contributor observation."""
+
+    def roots(self, inspection):
+        return ()
+
+    def groups(self, inspection):
+        return ()
+
+    @property
+    @abstractmethod
+    def status(self):
+        """Describe only this independently acquired contributor resource."""
+
+
+@dataclass(frozen=True)
+class UnavailableCoreInspection(CoreInspection):
+    error: str = "Core contributors have not been acquired"
+
+    @property
+    def status(self):
+        return f"Core instructions unavailable: {self.error}"
+
+
+@dataclass(frozen=True)
+class AcquiredCoreInspection(CoreInspection):
+    context: TurnContext
+
+    def roots(self, inspection):
+        return inspection.contributors(self.context)
+
+    def groups(self, inspection):
+        return (("Current Core instructions · before next input", self.roots(inspection), True),)
+
+    @property
+    def status(self):
+        return "Current Core instructions available"
+
+
 @dataclass(frozen=True)
 class ContextInspection:
     """Original observed objects and selection identity, shared by any frontend."""
@@ -467,6 +507,7 @@ class ContextInspection:
     annotations: tuple[ModelLabel, ...] = ()
     imported_sources: tuple[CodexRolloutProvenance, ...] = ()
     manifest_sources: tuple[CapturedWireSource[ContextManifest], ...] = ()
+    core: CoreInspection = field(default_factory=UnavailableCoreInspection)
 
     @classmethod
     def read(cls, comms, owner, *, previous=()):
@@ -495,8 +536,8 @@ class ContextInspection:
 
     def changed_since(self, previous: ContextInspection) -> bool:
         """Whether the original recorded request observations changed."""
-        return (self.manifests, self.annotations, self.imported_sources) != (
-            previous.manifests, previous.annotations, previous.imported_sources)
+        return (self.manifests, self.annotations, self.imported_sources, self.core) != (
+            previous.manifests, previous.annotations, previous.imported_sources, previous.core)
 
     def imported(self):
         return tuple(ReferenceNode(
@@ -565,6 +606,22 @@ class ContextInspection:
         context = await Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
         return context.require_session_file(self.owner.require_saved_session())
 
+    async def acquire_core(self):
+        payload = await self._request("context_core")
+        context = await Coordination.run_worker(partial(FieldCodec.decode, TurnContext, payload))
+        if context.thread != self.owner.incarnation:
+            raise ValueError("Core context belongs to another thread incarnation")
+        return replace(self, core=AcquiredCoreInspection(context))
+
+    async def core_source(self, context, position, source):
+        def request():
+            return dict(owner=FieldCodec.encode(context.thread), segment=position,
+                manifest=FieldCodec.encode(context.segments[position].manifest(0)),
+                source=FieldCodec.encode(source))
+        parameters = await Coordination.run_worker(request)
+        payload = await self._request("context_core_source", **parameters)
+        return await Coordination.run_worker(partial(FieldCodec.decode, ContextSourceText, payload))
+
     async def current_source(self, context, position, source):
         payload = await self._request("context_source",
             observation=FieldCodec.encode(context.observation()), segment=position,
@@ -596,10 +653,10 @@ class ContextInspection:
                                  partial(self.current_source, context, i)).dispatch_sync(segment)
                      for i, segment in enumerate(context.segments))
 
-    def contributors(self, context: NativeContextData):
-        return tuple(SegmentNodes(f"core/{context.identity.session_id}/{i}/{segment.declared_name}",
-                     partial(self.current_source, context, len(context.segments) + i)).dispatch_sync(segment)
-                     for i, segment in enumerate(context.contributors))
+    def contributors(self, context: TurnContext):
+        return tuple(SegmentNodes(f"core/{context.thread.name}/{context.thread.created_at}/{i}/{segment.declared_name}",
+                     partial(self.core_source, context, i)).dispatch_sync(segment)
+                     for i, segment in enumerate(context.segments))
 
 
 class InspectionState(DeclaredFamily, affix="Inspection"):
@@ -631,6 +688,10 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
             self.name, previous=self.manifest_sources))
+        try:
+            inspection = await inspection.acquire_core()
+        except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
+            inspection = replace(inspection, core=UnavailableCoreInspection(str(error)))
         return HoldingInspection(inspection, revision)
 
     def receive_inspection(self, acquired) -> InspectionState:
@@ -651,12 +712,6 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def present_acquired(self, previous, consumer) -> None:
         """Publish acquired answers through this inspection's resource state."""
         self.present(consumer)
-
-    async def refresh_contributors(self, consumer) -> None:
-        """Only an acquired native preview owns current contributor refresh."""
-
-    def with_contributors(self, expected, native) -> InspectionState:
-        return self
 
     def with_native(self, inspection, native) -> InspectionState:
         return self
@@ -747,7 +802,8 @@ class HoldingInspection(InspectionState):
             self.present(consumer)
 
     def groups(self):
-        return (*self.inspection.working_memory(),
+        return (*self.inspection.core.groups(self.inspection),
+                *self.inspection.working_memory(),
                 ("Imported instructions · historical, not current", self.inspection.imported(), False),
                 ("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False))
 
@@ -761,7 +817,7 @@ class HoldingInspection(InspectionState):
         return UnavailableNativeInspection(self.inspection, self.revision, str(error)) if self.same_source(inspection) else self
 
     def current_roots(self):
-        raise ValueError("Current native context is not loaded; a selected recorded request can be read separately")
+        return self.inspection.core.roots(self.inspection)
 
     async def find(self, query, selected):
         roots = selected.search_roots if selected is not None else ContextNode.search_roots
@@ -779,7 +835,7 @@ class HoldingInspection(InspectionState):
 
     @property
     def status(self):
-        return f"{self.name} · recorded manifests available\nReading native context…"
+        return f"{self.name} · {self.inspection.core.status}\nReading native context…"
 
 
 @dataclass(frozen=True)
@@ -804,26 +860,14 @@ class NativeInspection(HoldingInspection):
             return self
         return NativeInspection(self.inspection, self.revision, native)
 
-    async def refresh_contributors(self, consumer) -> None:
-        native = await Coordination.run_worker(partial(self.native.with_current_contributors,
-            self.inspection.service, self.inspection.owner))
-        consumer(self, native)
-
-    def with_contributors(self, expected, native) -> InspectionState:
-        if (self.same_source(expected.inspection) and self.native is expected.native
-                and native.contributors != self.native.contributors):
-            return NativeInspection(self.inspection, self.revision, native)
-        return self
-
     def groups(self):
         return (
-            ("Current Core instructions · before next input", self.inspection.contributors(self.native), True),
             ("Current native base · before next input and provider hooks", self.inspection.active(self.native), True),
             *super().groups(),
         )
 
     def current_roots(self):
-        return (*self.inspection.contributors(self.native), *self.inspection.active(self.native))
+        return (*super().current_roots(), *self.inspection.active(self.native))
 
     def contains_native(self, matches) -> bool:
         return matches(self.native)
@@ -833,7 +877,7 @@ class NativeInspection(HoldingInspection):
 
     @property
     def status(self):
-        return (f"{self.name} · current Core instructions and native base before future input/provider hooks\n"
+        return (f"{self.name} · {self.inspection.core.status}; native base available\n"
                 f"Segment counts: estimates ({self.native.counter}) · provider totals unavailable")
 
 
@@ -848,4 +892,4 @@ class UnavailableNativeInspection(HoldingInspection):
 
     @property
     def status(self):
-        return f"{self.name} · recorded manifests only\nCurrent detail unavailable: {self.error}"
+        return f"{self.name} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"
