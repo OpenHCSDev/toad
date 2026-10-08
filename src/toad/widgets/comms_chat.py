@@ -17,6 +17,7 @@ from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
+from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.message_viewport import NotificationViewport
 from agent_comms.messages import Message as WireMessage
 from textual import containers, work
@@ -188,6 +189,38 @@ class CommsChatView(DeliveryFailureView, Conversation):
         """A retained view reads current source after its original tab admission."""
         await super()._selected_commands_changed(event)
         await self._refresh()
+
+    @handles(TranscriptSourceWorkFinished)
+    async def on_transcript_source_work_finished(self, event) -> None:
+        """Reconcile an observation which arrived during this source's work."""
+        super().on_transcript_source_work_finished(event)
+        history = self.message_history
+        reader = history.reader
+        access = self.app.coordination_access
+        if (event.publisher is not history or reader is None
+                or not history.state.accepts_source_work
+                or reader.source.loading
+                or reader.comms is not access.observed_service
+                or access.revision is None
+                or reader.source.matches_revision(access.revision)):
+            return
+        snapshot = history.source_snapshot()
+        if not snapshot.current(history):
+            return
+        # A read can also be newer than the observer's last publication. Their
+        # file revisions are identities, not an ordering: check the original
+        # service before admitting more work rather than repeatedly rereading
+        # an already-current page until the observer's next tick.
+        try:
+            revision = await self.app.preparation.run_thread(reader.comms.views.revision)
+        except (OSError, ValueError, RuntimeError):
+            # An unavailable/replaced route has no revision to admit. Its
+            # original observer remains responsible for the next observation.
+            return
+        if (reader is history.reader and snapshot.current(history)
+                and reader.comms is access.observed_service
+                and not reader.source.matches_revision(revision)):
+            await self._refresh()
 
     def prepare_prompt(self) -> None:
         """Apply comms prompt state after a mode becomes active."""
