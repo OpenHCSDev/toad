@@ -165,10 +165,17 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         if getattr(self, "selected_categories", None) == selected:
             return
+        visible = self.message_category in getattr(self, "selected_categories", ())
         self.selected_categories = selected
         apply_block_filter(self, selected)
+        if self.is_attached and not visible and self.message_category in selected and not self.children:
+            self.publish_body(self.materialize_native_body).call_next(self)
 
     def compose(self) -> ComposeResult:
+        # A filtered source slot retains identity/coverage, not hidden native
+        # bodies. Its existing body publisher materializes on first reveal.
+        if self.message_category not in self.selected_categories:
+            return
         # A semantic fragment may be one oversized paragraph, list, or fence.
         # It is already a page leaf: re-paging it would recursively remount the
         # same indivisible block forever without producing visible Markdown.
@@ -241,13 +248,19 @@ class TranscriptPageView(PreparedContentRange, VerticalGroup):
         batch_size: int, before: Widget, current: Callable[[], bool], newest: bool = True,
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire a page until its original source transfers native custody."""
-        view = cls(page, fragments=fragments, batch_size=batch_size, newest=newest)
+        view = cls(page, fragments=fragments, batch_size=min(batch_size, cls.BATCH), newest=newest)
         view.visible_categories = owner.selected_categories
         with ExitStack() as acquisition:
             acquisition.callback(owner.remove_children, (view,))
             await owner.mount(view, before=before)
             if not current():
                 raise _PublicationRetired
+            selected = cls.initial_slice(fragments, batch_size, newest)
+            if selected != slice(view.start, view.stop):
+                previous = {view.start + index: child for index, child in enumerate(view.fragment_views)}
+                if not await view.replace_range(fragments, selected, previous, current):
+                    raise _PublicationRetired
+            view.batch_size = batch_size
             yield view
             acquisition.pop_all()
 
@@ -332,19 +345,20 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._fragment_budget = self.budget.max_items
         self.window: HistoryWindow
 
-    async def prepare_fragments(self, fragments, current: Callable[[], bool]) -> None:
+    async def prepare_fragments(self, fragments, current: Callable[[], bool], *, selected=None) -> None:
         """Prepare this admitted source range before acquiring native custody."""
         from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 
         preparation = TranscriptBodyPreparation(
             self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+            selected=self.selected_categories if selected is None else selected,
         )
         await preparation.prepare_fragments(fragments, current, batch_size=self.budget.admission_items)
 
-    async def prepare_body(self, current: Callable[[], bool]) -> None:
+    async def prepare_body(self, current: Callable[[], bool], *, selected=None) -> None:
         """Warm the actual page admissions, including a restored reader range."""
         for page in self.pages:
-            await self.prepare_fragments(page.fragments[page.start:page.stop], current)
+            await self.prepare_fragments(page.fragments[page.start:page.stop], current, selected=selected)
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
@@ -628,6 +642,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         from toad.widgets.transcript_fragments import TranscriptBodyPreparation
         preparation = TranscriptBodyPreparation(
             self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
+            selected=self.selected_categories,
         )
         for page in pages:
             await page.prepare_adjacent(preparation, demand, count, current)

@@ -228,7 +228,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                         self.fragments, selected, previous, current, prefix=self._prefix,
                     ):
                         return False
-                elif not await self.extend(older, current):
+                elif not await self.extend(older, current, prefix=self._prefix):
                     return False
                 visible = self.screen._compositor.visible_widgets
                 protected = protected_presentations(self.fragment_views, self.screen._interaction_widgets())
