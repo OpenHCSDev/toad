@@ -88,6 +88,10 @@ class ViewportBody:
     def release_paint(self) -> None:
         """Release a prepared paint resource at working-set eviction."""
 
+    def retain_paint(self) -> None:
+        """Admit this body's paint through its original resource lifetime."""
+        raise NotImplementedError
+
     @property
     def measured_rows(self) -> int:
         raise NotImplementedError
@@ -238,6 +242,9 @@ class BodyMeasurement(ABC):
     def released(self):
         return self
 
+    def admitted(self):
+        return self
+
     def style_updated(self, body):
         return self
 
@@ -278,6 +285,9 @@ class MeasuredBody(BodyMeasurement):
 
 @dataclass(frozen=True)
 class LiveBody(MeasuredBody):
+    def released(self):
+        return ReleasedBody(self.width, self.rows, self.widgets)
+
     def capture_requested(self):
         return CapturingBody(self.width, self.rows, self.widgets)
 
@@ -341,8 +351,30 @@ class CapturingBody(LiveBody):
     def required(self):
         return LiveBody(self.width, self.rows, self.widgets)
 
+
+@dataclass(frozen=True)
+class ReleasedBody(LiveBody):
+    """Unadmitted native children awaiting their original bounded retirement.
+
+    Their last measured extent remains useful; preparing complete pixels only
+    to discard them is not required. Visible demand or renewed paint admission
+    revokes this release before the original source custody can prune children.
+    """
+
     def released(self):
+        return self
+
+    def required(self):
+        return LiveBody(self.width, self.rows, self.widgets)
+
+    def admitted(self):
         return self.required()
+
+    def prepare_publication(self, body):
+        return MeasuredBody(self.width, self.rows, self.widgets).prepare_publication(body)
+
+    def retire(self, body):
+        return body.release_native_body(self)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -417,6 +449,9 @@ class MaterializingBody(BodyMeasurement):
 
     def released(self):
         return self._updated(self.previous.released())
+
+    def admitted(self):
+        return self._updated(self.previous.admitted())
 
     def style_updated(self, body):
         # Descendant writes belong to the new source, not the old captured
@@ -624,6 +659,9 @@ class MeasuredViewportBody(ViewportBody):
     def release_paint(self):
         self._update_body_measurement(self._body_measurement.released())
 
+    def retain_paint(self):
+        self._update_body_measurement(self._body_measurement.admitted())
+
     def invalidate_body(self):
         self._update_body_measurement(self._body_measurement.invalidated())
 
@@ -779,20 +817,37 @@ class MeasuredViewportBody(ViewportBody):
 
         return measured()
 
+    def retirement_current(self, current):
+        return (self._body_measurement is current and self.is_attached and not self._closing
+                and self._body_viewport is not None
+                and self not in self._body_viewport.protected())
+
+    async def release_native_body(self, current):
+        if not self.body_ready or not self.retirement_current(current):
+            return False
+        children = self.reconstructible_children()
+        if not children:
+            return False
+        async with self.retirement_custody() as can_commit:
+            if (not can_commit or not self.retirement_current(current)
+                    or self._body_viewport.requires_body(self)):
+                return False
+            self._update_body_measurement(MeasuredBody(current.width, current.rows, current.widgets))
+            self.retire_body_resources()
+            await self.remove_children(children)
+        return True
+
     async def finish_native_retirement(self, current, children, paint, sources):
         rendered = await paint
         # The original state is the captured source/width/style lifetime. An
         # asynchronous change invalidates it rather than copying a revision.
-        if self._body_measurement is not current or not self.is_attached or self._closing:
+        if not self.retirement_current(current):
             return False
         if not rendered.ready(self):
             return False
         async with self.retirement_custody() as can_commit:
-            if (not can_commit or self._body_measurement is not current or not rendered.ready(self)
-                    or not self.prepared_paint_is_current(sources)
-                    or not self.is_attached or self._closing
-                    or self._body_viewport is None
-                    or self in self._body_viewport.protected()):
+            if (not can_commit or not self.retirement_current(current) or not rendered.ready(self)
+                    or not self.prepared_paint_is_current(sources)):
                 return False
             self._update_body_measurement(rendered)
             self.retire_body_resources()
@@ -1147,11 +1202,13 @@ class DocumentViewport:
     def _trim_warm(self, *, required=(), ahead=()):
         self.admitted_bodies = self.admission(required=required, ahead=ahead)
         admitted = self.admitted_bodies
+        for owner in tuple(self.owners):
+            if owner in admitted:
+                owner.retain_paint()
+            else:
+                owner.release_paint()
         for key in tuple(self._warm):
             if key() not in admitted:
-                owner = key()
-                if owner is not None:
-                    owner.release_paint()
                 self._warm.pop(key)
                 self.body_evictions += 1
         for owner in reversed(ahead):
@@ -1359,9 +1416,10 @@ class DocumentViewport:
                     for owner, retired in zip(batch, results):
                         if retired:
                             retired_owners.append(owner)
-                            key = ref(owner)
-                            self._warm[key] = key
-                            self._warm.move_to_end(key)
+                            if owner in admitted:
+                                key = ref(owner)
+                                self._warm[key] = key
+                                self._warm.move_to_end(key)
                     if any(results):
                         # Pruning retires the old scene. Continue from the next
                         # published layout, never lazily arrange it for capture.

@@ -58,8 +58,10 @@ async def main(observe):
                 chosen = next(child for child in history.pages[0].fragment_views
                               if child in app.screen._compositor.visible_widgets
                               and child.query(MarkdownParagraph))
-                text = chosen.query_one(MarkdownParagraph)
-                expected = text.render().plain
+                text = next(window.visible_history_items(chosen.query(MarkdownParagraph)))
+                selected = text.get_selection(SELECT_ALL)
+                assert selected is not None
+                expected = selected[0]
                 app.screen.selections = {text: SELECT_ALL}
                 start = history.pages[0].start
                 for _ in range(3):
