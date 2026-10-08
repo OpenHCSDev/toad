@@ -147,6 +147,57 @@ async def worker_custody(output: Path):
     print(json.dumps(receipt), flush=True)
 
 
+async def retirement_visibility(output: Path):
+    """A captured offscreen body keeps its native tree after real exposure."""
+    output.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="retirement-visible-", dir=output) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"),
+                          XDG_DATA_HOME=str(root / "data"))
+        app = ToadApp(project_dir=str(root))
+        async with app.run_test(size=(100, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.conversation
+            window, manager = view.window, view.window.document_viewport
+            first = AgentResponse("Original body\n\nActual retained paragraph.")
+            await view.contents.mount(first)
+            async with asyncio.timeout(15):
+                while not first.body_ready or not first.prepared_paint_is_current(first.prepared_paint_sources()):
+                    await pilot.pause(.02)
+            # Suspend original housekeeping so this check owns one retirement.
+            await manager.suspend_source()
+            second = AgentResponse("\n\n".join("Later original paragraph " * 8 for _ in range(30)))
+            await view.contents.mount(second)
+            window.scroll_end(animate=False, immediate=True)
+            await pilot.pause()
+            assert not manager.requires_body(first)
+            children = first.reconstructible_children()
+            assert children and first.prepared_paint_is_current(first.prepared_paint_sources())
+            operation = first.retire_body()
+            # Actual scrolling exposes the body after synchronous acquisition,
+            # before the returned operation measures/commits its captured rows.
+            window.release_anchor()
+            window.scroll_to_widget(first, animate=False, immediate=True, top=True)
+            await pilot.pause()
+            assert manager.requires_body(first)
+            assert await operation is False
+            assert first.reconstructible_children() == children and not first.body_dormant
+            assert all(child.is_attached for child in children)
+            assert first.body_ready
+            assert await first.retire_body() is False
+            window.scroll_end(animate=False, immediate=True)
+            await pilot.pause()
+            assert not manager.requires_body(first)
+            assert await first.retire_body() is True
+            assert first.body_dormant and not any(child.is_attached for child in children)
+            manager.resume_source()
+            assert app._exception is None
+        await asyncio.get_running_loop().shutdown_default_executor()
+    print("PASS: real exposure revokes captured retirement; native body retained; offscreen retirement still completes")
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-viewport-body-", dir=os.environ.get("VIEWPORT_EVIDENCE")) as directory:
         root = Path(directory)
@@ -328,6 +379,8 @@ async def main():
 if __name__ == "__main__":
     if len(sys.argv) == 3 and sys.argv[1] == "--worker-custody-only":
         asyncio.run(worker_custody(Path(sys.argv[2]).resolve()))
+    elif len(sys.argv) == 3 and sys.argv[1] == "--retirement-visibility-only":
+        asyncio.run(retirement_visibility(Path(sys.argv[2]).resolve()))
     elif len(sys.argv) == 1:
         asyncio.run(main())
     else:
