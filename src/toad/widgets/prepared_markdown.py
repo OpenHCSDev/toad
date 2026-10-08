@@ -22,6 +22,7 @@ from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
 from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart
 from toad.block_content import MarkdownBlockContent
+from toad.layout import trim_trailing_margin
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.viewport_body import MeasuredViewportBody
 from toad.widgets.worker_static import WorkerStatic
@@ -195,6 +196,21 @@ class PreparedH6(ConversationMarkdown.BLOCKS["h6"], PreparedMarkdownContent):
     pass
 
 
+class PreparedCodeLabel(Label, PreparedMarkdownContent):
+    """Code uses the same native Content worker and publication lifetime."""
+
+
+class PreparedCodeFence(ConversationCodeFence):
+    def set_content(self, content: Content) -> None:
+        self._content = content
+        label = self.query_one_optional("#code-content", PreparedCodeLabel)
+        if label is not None:
+            label.update(content)
+
+    def compose(self) -> ComposeResult:
+        yield PreparedCodeLabel(self._highlighted_code, id="code-content", expand=True)
+
+
 class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, ConversationMarkdown):
     DEFAULT_CSS = """
     PreparedConversationMarkdown.-message-fragment {
@@ -210,6 +226,7 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         "paragraph_open": PreparedParagraph,
         "h1": PreparedH1, "h2": PreparedH2, "h3": PreparedH3,
         "h4": PreparedH4, "h5": PreparedH5, "h6": PreparedH6,
+        "fence": PreparedCodeFence, "code_block": PreparedCodeFence,
     }
 
     def native_body_ready(self) -> bool:
@@ -352,8 +369,19 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
 
     def _get_prepared_fence(self, code: str, language: str, ansi: bool, dark: bool) -> Content | None:
         resource = self._prepared_markdown
-        prepared = None if resource is None else resource.fences.get((code, language, ansi, dark))
-        return None if prepared is None else prepared.content
+        return None if resource is None else resource.fence_content(code, language, ansi, dark)
+
+    def acquire_document_content(self):
+        """Lend original resolved tokens/content, never a bound widget hook."""
+        assert self._prepared_markdown is not None
+        return self._prepared_markdown.inline_content
+
+    def acquire_document_fences(self):
+        assert self._prepared_markdown is not None
+        return self._prepared_markdown.fence_content
+
+    def get_document_process_layout(self):
+        return trim_trailing_margin
 
     def _get_token_content(self, token: Token, *, block: MarkdownBlock) -> Content:
         # The native document owns this token cohort. Content was acquired
@@ -364,23 +392,3 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             return super()._get_token_content(token, block=block)
         assert self._prepared_markdown is not None
         return self._prepared_markdown.inline_content(token)
-
-    def get_block_class(self, block_name: str) -> type[MarkdownBlock]:
-        if block_name in {"fence", "code_block"}:
-            return PreparedCodeFence
-        return super().get_block_class(block_name)
-
-
-class PreparedCodeLabel(Label, PreparedMarkdownContent):
-    """Code uses the same native Content worker and publication lifetime."""
-
-
-class PreparedCodeFence(ConversationCodeFence):
-    def set_content(self, content: Content) -> None:
-        self._content = content
-        label = self.query_one_optional("#code-content", PreparedCodeLabel)
-        if label is not None:
-            label.update(content)
-
-    def compose(self) -> ComposeResult:
-        yield PreparedCodeLabel(self._highlighted_code, id="code-content", expand=True)
