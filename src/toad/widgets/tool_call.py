@@ -194,10 +194,12 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         *,
         id: str | None = None,
         classes: str | None = None,
+        output_parts: tuple[ToolOutputPart, ...] | None = None,
     ) -> None:
         self.set_reactive(ToolCall.tool_call, tool_call)
         super().__init__(id=id, classes=classes)
         self.output = ToolOutput(self)
+        self.output.replace(tool_call.call, parts=output_parts)
         self._manual_expansion: bool | None = None
         self._auto_expanded = False
 
@@ -260,7 +262,6 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
 
     def compose(self) -> ComposeResult:
         assert self.tool_call is not None
-        self.output.replace(self.tool_call.call)
         self._update_metadata()
         yield ToolCallHeader(self.tool_call_header_content, markup=False).with_tooltip(
             "Expand to see full title"

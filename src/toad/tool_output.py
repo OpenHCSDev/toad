@@ -8,7 +8,7 @@ earlier dictionary or changes Read's filename without changing its text.
 import asyncio
 from abc import abstractmethod
 from copy import deepcopy
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import partial
 import re
 from typing import TYPE_CHECKING
@@ -39,6 +39,10 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     """A captured output value; a case owns rendering and preparation hooks."""
 
     available = True
+
+    def admit(self) -> ToolOutputPart:
+        """Borrow immutable source; mutable preparation belongs to its view."""
+        return self
 
     @abstractmethod
     def compose(self, view: Widget) -> tuple[Widget, ...]: ...
@@ -213,6 +217,11 @@ class PatchToolOutputPart(ToolOutputPart):
     source: str
     preparation: PatchPreparation = field(default_factory=PatchPreparation, compare=False)
 
+    def admit(self) -> ToolOutputPart:
+        # A reconstructed body must not inherit another body's futures or
+        # cancellation. Retain the exact patch source, acquire its own warm-up.
+        return replace(self, preparation=PatchPreparation())
+
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (ToolCallDiff(self.source, preparation=self.preparation),)
 
@@ -378,15 +387,20 @@ class ToolOutput:
         assert view is not None
         return view
 
-    def replace(self, tool_call: schema.ToolCall) -> None:
-        self.suppress_auto_expansion = tool_call.kind == "read"
+    @staticmethod
+    def capture_parts(tool_call: schema.ToolCall) -> tuple[ToolOutputPart, ...]:
+        """Pure ACP interpretation, shared by live ingress and saved workers."""
         raw_input = tool_call.raw_input or {}
         path = (raw_input.get("path") or raw_input.get("file_path") or raw_input.get("filePath")) if isinstance(raw_input, dict) else None
-        read_path = path if self.suppress_auto_expansion and isinstance(path, str) else None
-        parts = tuple(decode_content(item, read_path) for item in tool_call.content or ())
+        read_path = path if tool_call.kind == "read" and isinstance(path, str) else None
+        return tuple(decode_content(item, read_path) for item in tool_call.content or ())
+
+    def replace(self, tool_call: schema.ToolCall, *, parts: tuple[ToolOutputPart, ...] | None = None) -> None:
+        self.suppress_auto_expansion = tool_call.kind == "read"
+        parts = self.capture_parts(tool_call) if parts is None else parts
         if parts != self.parts:
             self.cancel_preparation()
-            self.parts = parts
+            self.parts = tuple(part.admit() for part in parts)
 
     @property
     def has_content(self) -> bool:

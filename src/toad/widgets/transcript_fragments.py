@@ -20,6 +20,7 @@ from toad.widgets.message_filter import event_category
 
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
+    from toad.tool_output import ToolOutputPart
 
 class _FragmentParserState(local):
     def __init__(self) -> None:
@@ -168,12 +169,14 @@ class ToolTranscriptFragment(TranscriptFragment):
     """One original grouped tool and its worker-acquired ACP presentation."""
 
     tool_call: ToolCallStatus
+    output_parts: "tuple[ToolOutputPart, ...]"
 
     def blocks(self, *, fragment: bool = False, show_divider: bool = True):
         from toad.acp.encode_tool_call_id import encode_tool_call_id
         from toad.widgets.tool_call import ToolCall
 
-        return [ToolCall(self.tool_call, id=encode_tool_call_id(self.tool_call.call.tool_call_id))]
+        return [ToolCall(self.tool_call, id=encode_tool_call_id(self.tool_call.call.tool_call_id),
+                         output_parts=self.output_parts)]
 
 
 class TranscriptFragmentConsumer(MroDispatch):
@@ -221,11 +224,14 @@ def transcript_fragments(
     # Grouping belongs to this producer. Decode once after the final event,
     # before storage/byte accounting and before any native reconstruction.
     for index in consumer.tools.values():
+        from toad.tool_output import ToolOutput
+
         source = consumer.fragments[index]
+        call = ToolCallStatus.from_transcript(source.events)
         consumer.fragments[index] = ToolTranscriptFragment(
             source.events, continuation=source.continuation,
             starts_agent_activity=source.starts_agent_activity,
-            tool_call=ToolCallStatus.from_transcript(source.events),
+            tool_call=call, output_parts=ToolOutput.capture_parts(call.call),
         )
     # This producer runs in the existing renderer for saved and paged sources.
     # Deliver the measured resource with its source rather than walking nested
