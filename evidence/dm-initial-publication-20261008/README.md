@@ -364,3 +364,71 @@ Parent retains that separate publication-observer/source-transition trace;
 there is no full-history or physical saved-session acceptance claim.
 Final source raw: bound-reader-final-source.log. Tail negatives:
 predecessor-tail-anchor.log and bound-reader-confirmation.log.
+
+Followthrough: the tail control now reads its marker from the actual native
+ChopsUpdate/LayoutUpdate cells rather than sampling current DOM geometry during
+unrelated publication. Its expected reader destination derives from the original
+anchor geometry and scroll intent; held paint is not that destination. The
+published installed build passes this corrected tail/reader control, including
+the original forbidden tail geometry reads. No production change or timing
+waiver. Raw published-tail-observation.log retains the intermediate overly broad
+damage observation failure; published-tail-cells.log records the actual-cell pass.
+Physical saved-session frame time remains unverified.
+
+Installed physical followthrough: the merged Core launcher correction aedccdd86
+was absent from /home/ts/bin/toad-comms. Installed its exact original source;
+default frontend selection now follows published Toad independently of backend
+Python, while explicit runtime overrides remain matched. Prior launcher bytes
+are retained in sidebar-drag-hotpath-20261007/toad-comms-before-frontend-selection.sh.
+One existing-owner, zero-submission wheel_cadence capture completed on isolated
+plain st, using the actual default DM frontend and original backend. Evidence:
+/home/ts/.cache/agent-scratch/dm-owned-reader-wheel-physical-20261008/receipt.json,
+terminal.mp4, wheel-up-motion.png, scroll-travel.jsonl and frame-delivery.json.
+All recorded owned processes retired without cleanup errors. Sampled up-motion
+cells show original message text, without preview placeholders. This is not a
+complete frame-pacing pass: median enqueue-to-writer 2.54ms/p95 16.18ms, but native
+writer intervals include idle/nonbody frames and cannot establish smoothness.
+The original source-bound body observer recorded no body outputs for these saved
+message rows; its scope must be resolved before claiming useful-body latency.
+
+Motion correlation: each physical 36-packet gesture produced 36 original
+nonrestoration scroll updates; the worst final-scroll delay after input submission
+was 8.34ms. Next-writer completion from those scroll updates had median about
+8ms and worst47.28ms. That is writer acknowledgement, not pixel input latency.
+
+Fast active-channel check remains FAILED against the requested responsiveness:
+160 wheel packets at5ms spacing, three reversals,20 incoming messages/16 private
+recipients, actual installed App/native Driver. Wheel handling median76.1ms,
+p95278.3ms/max348.8ms; UI-loop max82.5ms, four gaps over50ms. Final queue drain
+3.49ms does not erase the in-burst lag. All packets remained ordered. Raw:
+sidebar-drag-hotpath-20261007/dm-owned-reader-active-wheel-visible-20261008/result.json.
+The original helper timeout is preserved in dm-owned-reader-active-wheel.log;
+it demanded extent readiness for every mounted row before any input. The corrected
+helper requires the actual visible row cohort to be ready, with the original
+30s bound and input workload unchanged. Both App handles are terminal, provider0.
+Parent owns the remaining active-channel publication/dispatch cost trace.
+
+## Compact native-content preparation
+
+IRCMessageSource already produces native Content, including symbolic styles,
+sender/target actions, URLs and authoritative mention spans. Its old RichSource
+base converted that Content to Rich Text and wrapped it through a second
+renderer. It now inherits the existing NativeContentSource implementation used
+by plain/ANSI tool output. Formatting remains in the worker; native wrapping,
+selection/source coordinates and strip metadata use that original owner.
+No widget, cache, codec or preparation queue was added.
+
+The full current src/tests/tools AST pass parsed 745 modules without omissions;
+all source construction and style consumers were inspected. The existing actual
+IRC App passed full-width wrapping at 80/36/120 columns, sender/target clicks,
+keyboard navigation and style-only no-layout publication. Its original control
+now also checks native select-all/copy preserves the complete source text.
+Raw: sidebar-drag-hotpath-20261007/dm-native-content-wrap-selection.log.
+
+The same private active-channel workload completed with this Toad source and
+the integrated owner-presentation Core source: wheel median24.0ms/p95195.5ms,
+maximum225.0ms; largest UI-loop gap84.1ms. This is one source-App run, not an
+installed/live or causal speedup claim. The workload still fails the requested
+frame pacing; all 160 wheel packets were ordered, 20 incoming messages were
+published and provider inputs were zero. Raw:
+sidebar-drag-hotpath-20261007/dm-native-content-wheel-20261008/result.json.

@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
+from textual._compositor import ChopsUpdate, LayoutUpdate
 
 from toad.widgets.note import Note
 
@@ -12,12 +13,43 @@ from history_scroll_frames_pilot import ScrollFrameApp
 from toad.widgets.history_anchor import HistoryAnchor
 
 
+class TailFrameApp(ScrollFrameApp):
+    """Read the marker from published cells, never from unpainted DOM geometry."""
+
+    def _display(self, screen, renderable):
+        observed, self.observed = self.observed, None
+        try:
+            result = super()._display(screen, renderable)
+        finally:
+            self.observed = observed
+        if observed is None or renderable is None or self._batch_count:
+            return result
+        marker, window, frames = observed
+        region = window.scrollable_content_region
+        if isinstance(renderable, ChopsUpdate):
+            rows = ((y, "".join(strip.text for _, strip in
+                              renderable._get_line_chops(y, max(x1, region.x),
+                                                         min(x2, region.right))))
+                    for y, x1, x2 in renderable.spans
+                    if region.y <= y < region.bottom and x1 < region.right and x2 > region.x)
+        elif isinstance(renderable, LayoutUpdate):
+            rows = ((y, "".join(strip.text for strip in line))
+                    for y, line in enumerate(renderable.strips, renderable.region.y)
+                    if region.y <= y < region.bottom)
+        else:
+            raise AssertionError(f"Unobserved native publication: {type(renderable).__name__}")
+        for y, text in rows:
+            if str(marker.render()).splitlines()[0] in text:
+                frames.append(y - window.content_region.y)
+        return result
+
+
 async def main():
     with TemporaryDirectory(prefix="toad-tail-anchor-") as directory:
         root = Path(directory)
         os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"), XDG_CONFIG_HOME=str(root / "config"),
                           XDG_STATE_HOME=str(root / "state"), XDG_DATA_HOME=str(root / "data"))
-        app = ScrollFrameApp(project_dir=str(root))
+        app = TailFrameApp(project_dir=str(root))
         async with app.run_test(size=(100, 32)) as pilot:
             await pilot.pause()
             view = app.selected_session.conversation
@@ -42,13 +74,14 @@ async def main():
                 assert window.follows_tail and window.scroll_y == window.max_scroll_y
 
             # Reader input can change the policy while admission is suspended.
-            # Capture the record's old committed coordinate before the prepend.
+            # Navigation changes reader intent before the held paint can move.
+            # Derive the intended position from the original anchor geometry.
             async with window.history_lock:
                 async with window.preserve_history(marker):
                     window.release_anchor()
                     window.scroll_to_widget(marker, animate=False, immediate=True)
                     await pilot.pause()
-                    expected = marker.region.y - window.content_region.y
+                    expected = HistoryAnchor._offset(marker, window) - window.scroll_y
                     frames = []
                     app.observed = marker, window, frames
                     await contents.mount(Note("Prepended one\nPrepended two"), before=0)
