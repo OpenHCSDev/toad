@@ -843,3 +843,67 @@ route and existing loaded windows:
 `.artifacts/dm-body-publication-delivery-20261008/live-publication.json`.
 Raw source/installed/build/burst/publication:
 `/home/ts/.cache/agent-scratch/dm-body-publication-20261008/`.
+
+## Supplied native titles and settled receipts — delivered
+
+Reviewed merged native123 preserves supplied Collapsible titles instead of
+publishing its default Toggle first. Same-text Content span/metadata changes
+reach the original child. Native constructor/subclass watchers, arbitrary
+children and collapsed events retain their original contracts. The installed
+original supplied-title control and actual notification disclosure control
+passed. The native-supplied-title runtime was published for new launches.
+
+Toad576 now starts painted-read work only while the original history has tail,
+channel or historical receipts. No flag/copy/queue/cache was added. Actual
+pending acknowledgments retain their source/currentness/paint witnesses.
+The existing private App partial-paint control passed against source and the
+installed wheel: unseen bodies remain unread; scrolling acknowledges the rest;
+50 settled visibility calls start no acknowledgment work; both style changes
+retain original row/read identity. Production changes only mark_visible;705
+modules parse with0 omissions. Read acquisition/publication remains independent.
+
+New-launch frontend is published through its existing owner:
+`.artifacts/settled-wire-receipts-delivery-20261008/live-publication.json`.
+Raw checks/build/publication:
+`/home/ts/.cache/agent-scratch/settled-wire-receipts-20261008/`.
+Backend defaults/route/running owners remain unchanged. Existing windows retain
+their loaded modules. Broad frame-time acceptance is still incomplete.
+
+The custom thread-time cProfile experiment returned impossible negative totals,
+including after UI-thread restriction. Those timing results are rejected and
+remain raw in native-supplied-title scratch; no speedup is inferred from them.
+The recorder retains UI-thread gating and uses its original monotonic profiler
+clock again; enclosing CPU spans remain separate measurements.
+
+Three superseded unused runtime directories were removed after a fresh225-process
+census with no gaps/references and checking all default symlinks:173008144bytes.
+Wheels/source/proofs/raw and current/immediate rollback/backend runtimes remain.
+Original cleanup evidence is under disk-cleanup-owner-20261002:
+`Parent-superseded-dm-runtimes-retired-20261008.json`.
+
+## Message-owned timestamp caption
+
+Compact and Markdown wire messages now paint their timestamp/direction on the
+original row border, deleting one MessageDivider child per message. MessageClock
+still owns dates; body paint alone owns read acknowledgment. Notification
+disclosure, links, clipboard and historical identity remain distinct contracts.
+Timestamp tooltip also appears over the row through native ancestor lookup.
+
+Actual private Apps passed compact/Markdown caption/direction, caption-only
+unread protection, wrapping/routing, and reader preservation under body growth
+and tail replacement. Final installed caption/spacing and reader checks passed.
+705 Python modules parsed without omissions. Review caught application .block
+margin precedence; the owning stylesheet preserves top/right/bottom spacing.
+Initial CSS color refusal and stale ToolCall fixture input remain in raw logs.
+
+An older reader fixture acquired startup predecessor rows before source page
+acceptance and waited on a retired body. The corrected acquisition waits the
+existing source_checkpoint_available; no production exemption was added.
+
+One installed private native-driver burst delivered160 wheel packets/3 reversals
+and20 incoming messages over48 rows in order, provider/public inputs zero.
+Frame p95 remained92.8ms and maximum225ms: pacing remains unacceptable.
+This removes48 widget lifetimes, not a broad performance pass. Raw checks and
+negatives: /home/ts/.cache/agent-scratch/dm-native-caption-20261008/.
+New-launch delivery uses the original reviewed frontend owner; existing user
+windows are not restarted.
