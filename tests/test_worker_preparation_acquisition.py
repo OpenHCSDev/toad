@@ -446,6 +446,93 @@ def test_active_markdown_retains_paint_until_current_source_commits(tmp_path, mo
     asyncio.run(mounted())
 
 
+def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypatch):
+    """Real paged bodies publish worker text through their original native reader."""
+    import time
+    from textual import events
+    from toad.widgets.agent_response import AgentResponse
+    from toad.widgets.prepared_markdown import PreparedMarkdownContent
+    from viewport_recent_tabs_pilot import settled
+    from sidebar_retirement_pilot import viewport_text
+
+    async def mounted():
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / "source.py").write_text("value = 1\n")
+        service = Comms(tmp_path / "wire")
+        service.messaging.initialize_private_initial_protocol()
+        for key in tuple(os.environ):
+            if key.startswith("AGENT_COMMS_"):
+                monkeypatch.delenv(key)
+        for key, value in {"AGENT_COMMS_ROOT": service.root,
+                           "XDG_CONFIG_HOME": tmp_path / "config",
+                           "XDG_STATE_HOME": tmp_path / "state",
+                           "XDG_DATA_HOME": tmp_path / "data"}.items():
+            monkeypatch.setenv(key, str(value))
+        source = "\n\n".join(
+            f"## Saved section {i}\n\nOriginal paragraph 界 [source](source.py).\n\n"
+            "- Original parent **text** and [project link](source.py)\n"
+            "  - Nested child *text* and [web link](https://example.com)\n"
+            "    - Deep child with `original coordinates`\n"
+            for i in range(24)
+        )
+        app = ToadApp(project_dir=str(project))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.conversation
+            document = AgentResponse(source)
+            started = time.monotonic()
+            await view.post(document)
+            await document.update(source)
+            await settled(pilot, view)
+            async with asyncio.timeout(20):
+                while not document.body_ready:
+                    await pilot.pause(.02)
+            ready_ms = (time.monotonic() - started) * 1000
+            assert document._paged is not None
+            window = view.window
+            window.release_anchor()
+            window.scroll_home(animate=False, immediate=True)
+            await settled(pilot, view)
+            paint = viewport_text(window)
+            assert "Saved section" in paint and "Original parent" in paint
+            assert "Preparing preview" not in paint
+            ready = tuple(block for block in document.query(PreparedMarkdownContent)
+                          if block.paint_ready and block.prepared_content is not None)
+            assert ready
+            assert any(span.style.meta.get("@click", "")
+                       for block in ready for span in block._ready_request.task.source.value.spans
+                       if not isinstance(span.style, str))
+            for block in ready:
+                assert block.get_selection(SELECT_ALL)[0] == block._ready_request.task.source.value.plain
+            region = window.scrollable_content_region
+            offset = region.offset + (region.width // 2, region.height // 2)
+            before = window.scroll_y
+            for _ in range(16):
+                await pilot._post_mouse_events([events.MouseScrollDown], offset=offset)
+            await pilot.wait_for_scheduled_animations()
+            down = window.scroll_y
+            for _ in range(8):
+                await pilot._post_mouse_events([events.MouseScrollUp], offset=offset)
+            await pilot.wait_for_scheduled_animations()
+            reverse = window.scroll_y
+            await settled(pilot, view)
+            assert down > before and reverse < down
+            assert "Preparing preview" not in viewport_text(window)
+            stopped = window.scroll_y
+            await pilot.pause(.2)
+            assert window.scroll_y == stopped
+            assert app._exception is None
+            result = {"paged": True, "sections": 24, "ready_ms": ready_ms,
+                      "visible_nested_text": True, "links_and_source_copy": True,
+                      "native_wheel_reverse_stop": True, "provider_inputs": 0,
+                      "scope": "source Toad App/paged authored Markdown; not saved SDK acceptance"}
+            (tmp_path / "paged-markdown-result.json").write_text(json.dumps(result) + "\n")
+            print(json.dumps(result), flush=True)
+
+    asyncio.run(mounted())
+
+
 def test_custom_markdown_block_keeps_its_bound_conversion(tmp_path, monkeypatch):
     """A native extension may depend on its actual document and block identity."""
     from toad.widgets.prepared_markdown import PreparedConversationMarkdown, PreparedParagraph
