@@ -407,6 +407,7 @@ def test_active_markdown_retains_paint_until_current_source_commits(tmp_path, mo
             assert paragraph._prepared is prepared
             assert paragraph._ready_request is request
             assert not paragraph.paint_ready and not paragraph.preparation_complete
+            assert paragraph.presentation_ready and document.body_ready
             assert paragraph.prepared_content is None
             assert paragraph.get_selection(SELECT_ALL)[0] == original.plain
             assert "Preparing preview" not in paragraph.render_line(0).text
