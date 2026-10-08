@@ -511,3 +511,23 @@ live services/SQL handles into the pure renderer. Native source review confirms
 existing arrangement reuse and spatial culling; no further traversal deletion
 was justified. Remaining work is the original row measurement/publication and
 paint family; no speculative cache, process adapter or weaker readiness added.
+
+## Notification disclosure simplification
+
+`MessageNotifications` keeps its original notification tuple/error and native
+Collapsible. Its details Static is acquired only by expansion or explicit
+existing details access. Closed status updates update the summary but do not
+format or refresh hidden recipient text. Once acquired, the same body survives
+collapse and is refreshed from the current original outcome on reopening.
+No second status store, cache, polling task or disclosure implementation.
+
+Source consumers: all705 src/tests modules parsed with zero omissions; seven
+notification details reads, no external writes. Existing explicit reads remain
+supported, including before mount. Changed module compiles; diff check passes.
+Real native App/Pilot disclosure check passed: no collapsed child,48 recipient
+summary, actual title clicks, live unavailable result, deferred closed updates,
+current empty result on reopen and one retained body. The authored check first
+passed an unsupported constructor id; it refused before widget mounting. Its
+original bytes are retained, then only that fixture call was corrected.
+Raw check: /home/ts/.cache/agent-scratch/dm-notification-disclosure-20261008/source-disclosure.log.
+This is disclosure behavior evidence, not a frame-time or full DM acceptance.
