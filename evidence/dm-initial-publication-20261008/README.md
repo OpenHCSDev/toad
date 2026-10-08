@@ -577,3 +577,73 @@ First harness used stdin, which process spawn cannot reopen; raw refusal is
 retained. Corrected only the runner to a persistent original main-guarded file.
 Unknown runtime replacement of declared methods remains outside this claim.
 Raw: `/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/`.
+
+
+PR570 merged; its candidate installed controls passed2/8.31s. The candidate
+is NOT the live default: publication is held by the affected scroll result.
+Candidate original native wheel run: median267.6ms/p95471.3ms/max499.0ms;
+unchanged currently installed cohort comparison:4.2/204.0/237.4ms. Both have
+large frame gaps and all packets ordered. Candidate source run had median8.1ms,
+so one installed comparison does not prove a sole causal regression, but it
+cannot be waved away to publish a performance improvement. Candidate and
+unchanged raw deliveries,frames,scroll positions and loop gaps are retained.
+Current default remains dm-notification-disclosure-delivery-20261008/runtime.
+Candidate: prepared-style-measurement-delivery-20261008/runtime; verified954
+assets/full69/2857 RECORDs and unchanged Core/native supply. No public inputs.
+Original native review confirms sibling row measurement epochs are not retired
+by an unrelated row mutation: ancestry invalidation stops at its real fixed-size
+boundary. Changed vertical membership still requires cumulative placement;
+there is no supported blanket native invalidation deletion. Next investigation
+is delayed original pointer completion and page-admission timing using the
+captured packet/scroll relation, alongside measured synchronous reflow cost.
+
+
+### Original pointer wait versus mount acquisition
+
+Dispatch observation records original native queues without changing delivery:
+App MouseScrollUp247.8ms; MountedMessageHistory Callback219.38ms (update_styles
+plus original next-callback flush); overlapping IRCMessage Compose188–208ms.
+These are wall durations including waits, not exclusive CPU or style cost.
+Source: Widget.mount registers children, posts update_styles and schedules the
+same AwaitMount with call_next. MessagePump._dispatch_message then awaits its
+next callbacks before completing the parent dispatch. AwaitMount waits every
+original child mounted event under its completion lock, then refreshes parent
+layout/mouse geometry. Wheel delivery awaits original routed/bubbled queues,
+including this mounted-history parent. Thus unrelated new-child acquisition can
+hold existing viewport input despite a responsive asyncio loop.
+No wheel bypass or reordering is justified. Native owner Arendt owns moving
+optional mount completion through its original lifetime without blocking the
+parent input queue, preserving explicit awaits, unawaited mounts, errors,
+layout/mouse currentness and cancellation. Parent remains Toad writer.
+Raw: prepared-style-measurement-20261008/candidate-dispatch-waits/
+(dispatch-waits.json,ui-cpu.json,result.json). Same original private fixture,
+160 ordered wheel packets,20 updates/16 recipients,0provider; handle terminal.
+Prepared-style candidate publication remains held; current default unchanged.
+
+
+## Document wheel routing
+
+DM and channel histories already select the same compact IRCMessage by default.
+The optional Markdown row has distinct full Markdown behavior; it is not the
+default DM renderer. Lazy notification details are in the published frontend.
+
+The native mount-completion candidate removes the history actor callback join
+(previously 219 ms). Its installed private-driver observation still has slow
+frames: wheel median 92.55 ms / p95 288.81 ms; frame p95 106.1 ms. This is a
+targeted queue repair, not an overall pacing pass.
+
+At a reached viewport edge, native generic wheel bubbling continued through
+workspace ancestors that cannot scroll the document. HistoryWindow now ends
+that route after the original native movement/clamping. Nested controls still
+receive input first. Explicit super delegation prevents the native MRO dispatcher
+from invoking the base movement twice.
+
+The actual private Toad App control passed: one native movement, stopped clamped
+edge events, and independent nested scrolling. Raw control and earlier fixture
+refusals are retained under
+`/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/document-wheel-boundary-controls/`.
+The preceding burst observation retained ordered 160 wheel packets and 20
+incoming messages; its route ended at Window. That source observation also
+included the merged prepared-style rule and preceded the final single-dispatch
+correction, so its aggregate timings are not a causal measurement of this patch.
+Neither this viewport change nor the native mount candidate is published live.

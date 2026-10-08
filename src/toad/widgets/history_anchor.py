@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, ClassVar
 from weakref import WeakSet
 
 from textual.widget import Widget
+from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.viewport_body import DocumentViewport, ViewportBody
 from toad.rich_preparation import PreparedPaintSource
@@ -112,7 +113,32 @@ class OffsetReaderPosition(ReaderPosition):
 
 
 class HistoryWindow(VerticalScroll):
-    """Reader movement owns follow intent; layout only applies it."""
+    """A document owns reader intent and ends its pointer-scroll route.
+
+    Nested controls receive the native event first. Once it reaches this
+    viewport, moving or clamping completes it; workspace ancestors cannot
+    scroll this document and must not hold its input at a reached boundary.
+    """
+
+    def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
+        event.prevent_default()
+        super()._on_mouse_scroll_up(event)
+        event.stop()
+
+    def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
+        event.prevent_default()
+        super()._on_mouse_scroll_down(event)
+        event.stop()
+
+    def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
+        event.prevent_default()
+        super()._on_mouse_scroll_left(event)
+        event.stop()
+
+    def _on_mouse_scroll_right(self, event: events.MouseScrollRight) -> None:
+        event.prevent_default()
+        super()._on_mouse_scroll_right(event)
+        event.stop()
 
     CACHE_SUBTREE_GEOMETRY = True
     scroll_revision = 0
