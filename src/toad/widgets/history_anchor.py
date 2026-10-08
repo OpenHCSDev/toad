@@ -12,7 +12,8 @@ from weakref import WeakSet
 
 from textual.widget import Widget
 from textual.containers import VerticalScroll
-from toad.widgets.viewport_body import DocumentViewport
+from toad.widgets.viewport_body import DocumentViewport, ViewportBody
+from toad.rich_preparation import PreparedPaintSource
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
@@ -252,6 +253,32 @@ class HistoryWindow(VerticalScroll):
             return None
         return self if self._history_mutation_root is None else self._history_mutation_root
 
+    def visible_history_items(self, items):
+        """Borrow this window's clipped cohort from the original native scene."""
+        visible = self.screen._compositor.visible_widgets
+        viewport = self.content_region
+        for item in items:
+            if item in visible:
+                region, clip = visible[item]
+                if (region.overlaps(viewport) and region.overlaps(clip)
+                        and clip.overlaps(viewport)):
+                    yield item
+
+    def reader_anchor(self, fallback: Widget) -> Widget:
+        """Extent publication preserves the reader, not the changed paragraph."""
+        if self.history_anchor is not None:
+            return self.history_anchor.widget
+        if self.follows_tail:
+            return fallback
+        visible = self.screen._compositor.visible_widgets
+        sources = (node for node in visible
+                   if ((isinstance(node, PreparedPaintSource) and node.presentation_ready)
+                       or (isinstance(node, ViewportBody) and node.body_retained_paint_ready))
+                   if next((parent for parent in node.ancestors
+                            if isinstance(parent, HistoryWindow)), None) is self)
+        painted = self.visible_history_items(sources)
+        return min(painted, key=lambda node: visible[node][0].y, default=fallback)
+
     def protect_history(
         self, items, *, older: bool, fallback: Widget,
     ) -> tuple[Widget, set[Widget]]:
@@ -262,15 +289,7 @@ class HistoryWindow(VerticalScroll):
         and the window's original selection/focus before admitting or trimming.
         """
         items = tuple(items)
-        visible = self.screen._compositor.visible_widgets
-        viewport = self.content_region
-        retained = []
-        for item in items:
-            if item in visible:
-                region, clip = visible[item]
-                if (region.overlaps(viewport) and region.overlaps(clip)
-                        and clip.overlaps(viewport)):
-                    retained.append(item)
+        retained = tuple(self.visible_history_items(items))
         anchor = retained[0 if older else -1] if retained else fallback
         protected = protected_presentations(items, self.screen._interaction_widgets())
         protected.update(retained)

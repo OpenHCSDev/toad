@@ -1054,8 +1054,15 @@ class DocumentViewport:
 
     @property
     def source_tail_visible(self) -> bool:
-        """Registered source owners distinguish a mounted edge from the tail."""
-        return all(not owner.has_newer_source for owner in self.owners)
+        """The last document body owns this window's current source edge.
+
+        An older message can retain a partial range after a newer message is
+        published. That old range cannot revoke the newer message's tail.
+        Native document order already owns their relation; warm membership
+        and registration order do not supply another chronology.
+        """
+        last = next(reversed(tuple(self.body_roots())), None)
+        return last is None or not last.has_newer_source
 
     def body_roots(self):
         """Native document order, stopping at each registered body boundary.

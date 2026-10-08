@@ -146,7 +146,7 @@ class PreparedMarkdownContent(WorkerStatic):
             # does not mount, remove or reorder native children. The document
             # owns those mutations. Borrow its reader compensation without
             # reacquiring that document's native tree fence on a child worker.
-            async with window.preserve_reader(self):
+            async with window.preserve_reader(window.reader_anchor(self)):
                 yield
         else:
             async with super().preparation_publication(layout=layout):
