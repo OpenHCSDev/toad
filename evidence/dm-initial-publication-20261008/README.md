@@ -479,3 +479,17 @@ Raw: sidebar-published-revision-control.log, live-sidebar-publication.log and
 live-sidebar-acp-publication.log. A custom recorder diagnostic command was
 refused before launch by the original existing-thread target contract; retained
 physical-sidebar-publication-diagnostic.log records that refusal.
+
+Toad #568 merged. The reviewed installed frontend passed the same actual
+current-selection App and all954 assets/full69/2857 RECORD entries; the original
+publisher installed it for new launches without backend changes or owner restart.
+Its physical existing-thread journey completed: Ctrl+B roster reveal, actual
+#comms tab open and both member-disclosure clicks. Final screenshot shows the
+channel text and real roster. Original owner identity remained alive and unchanged;
+all recorder-owned processes joined with no cleanup errors. No inputs submitted.
+Raw/video: sidebar-publication-retry-physical-20261008; existing Textual log:
+sidebar-publication-physical-textual.log. No caught sidebar error occurred in
+this run. The source retry defect is repaired, but the initiating cause of the
+earlier empty roster remains unrecorded; this single working path does not
+establish that cause or smooth active-scroll performance. Footage performance
+review remains separate from the observed channel/disclosure behavior.
