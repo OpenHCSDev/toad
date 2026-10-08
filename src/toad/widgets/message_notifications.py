@@ -3,6 +3,7 @@
 from collections import Counter
 
 from agent_comms.presentation import MessageNotification
+from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible, Static
 
@@ -26,15 +27,18 @@ class MessageNotifications(Collapsible):
         self._details: Static | None = None
         super().__init__(title="Notification status not checked", collapsed=True)
 
+    def compose(self) -> ComposeResult:
+        yield self._title
+        if self._details is not None:
+            yield self.Contents(self._details)
+
     @property
     def details(self) -> Static:
         """Acquire the original disclosure body only when it is requested."""
         if self._details is None:
             self._details = Static(markup=False)
             if self.is_mounted:
-                self.query_one(self.Contents).mount(self._details)
-            else:
-                self._contents_list.append(self._details)
+                self.mount(self.Contents(self._details))
         self._details.update(self._detail_text())
         return self._details
 
