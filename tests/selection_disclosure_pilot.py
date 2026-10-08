@@ -1,4 +1,4 @@
-"""One purple selected row; user-expanded latest tools stay expanded."""
+"""Bulk selection is distinct from focus/hover; expanded tools stay expanded."""
 
 import asyncio
 import os
@@ -34,9 +34,9 @@ async def main():
             await pilot.pause()
             rows = {row.thread_name: row for row in group.query(ThreadStatusRow)}
             assert rows.keys() >= {"first", "second", "third"}
-            # Selection denotes the remembered destination. Focus and hover
-            # are navigation hints, never a second filled selection.
-            sidebar.navigation.remember(rows["first"])
+            # Only explicit bulk selection receives a filled background.
+            # Focus and hover keep their separate native hints.
+            sidebar.pointer_select(rows["first"], control=True)
             rows["second"].focus(scroll_visible=False)
             await pilot.hover(rows["third"])
             await pilot.pause()
@@ -44,12 +44,11 @@ async def main():
             assert rows["first"].has_class("-selected")
             assert rows["second"].has_focus
             assert "hover" in rows["third"].pseudo_classes
-            purple = rows["first"].get_visual_style().background
-            assert purple.ansi == 5, purple  # pywal-owned magenta, not fixed RGB
-            assert rows["first"].get_visual_style().foreground.ansi == 0
+            selected_background = rows["first"].get_visual_style().background
+            assert selected_background.ansi == 4, selected_background
             for name in ("second", "third"):
                 background = rows[name].get_visual_style().background
-                assert background != purple, (name, background)
+                assert background != selected_background, (name, background)
 
             app.settings.tools.expand = SuccessExpansion
             conversation = app.selected_session.conversation

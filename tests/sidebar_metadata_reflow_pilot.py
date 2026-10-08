@@ -82,7 +82,7 @@ async def main(root):
         rows = dict(group._members)
         prepared = {name: row.thread_preparation(row.retained_thread_presentation(
             sidebar.projection.snapshot.all_people[name])) for name, row in rows.items()}
-        sidebar.navigation.pointer_select(rows['member-00'], control=True)
+        sidebar.pointer_select(rows['member-00'], control=True)
         calls = Counter()
         watched = {ThreadRowInput.presentation.__code__: 'person_captures',
                    prepare_thread_presentation.__code__: 'row_preparations',

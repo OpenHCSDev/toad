@@ -29,7 +29,7 @@ class MessageClock(ABC):
     def format(timestamp: float) -> tuple[str, str | None]:
         try:
             local = time.localtime(timestamp)
-            return time.strftime("%H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
+            return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
         except (OverflowError, OSError, ValueError):
             return "time unknown", None
 

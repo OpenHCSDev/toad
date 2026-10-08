@@ -87,6 +87,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     def coordination_root(self) -> str | None:
         return self.wire_root
 
+    @property
+    def navigation_target_name(self) -> str:
+        return self.target
+
     def relationship_context(self) -> tuple[str, str | None]:
         return self.me, self.recovery_root
 

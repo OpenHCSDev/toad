@@ -84,7 +84,7 @@ class SidebarProjection:
                 # native reuse, not reuse of an old revision or authority.
                 self.snapshot = snapshot
                 self.sidebar.navigation.apply()
-                self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
+                self.sidebar.sync_current()
             else:
                 await self.rebuild(snapshot)
             if not self.sidebar.accepts_publication():
@@ -194,7 +194,7 @@ class SidebarProjection:
                 self.sidebar.sort_children(key=positions.__getitem__)
                 self.sidebar.navigation.rows_changed()
             self.sidebar.navigation.apply()
-            self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
+            self.sidebar.sync_current()
             self.sync_spinner()
             # Retain full row text. Only the content grows; the outer sidebar owns
             # both native scrollbars and keeps their geometry at the visible edge.
