@@ -36,3 +36,13 @@ This corrects readiness membership and shared capture ownership (MEMB-2 and
 IMPL-13). No production placeholder-string check, alternate renderer, readiness
 registry or additional cache was introduced. Source App success does not prove
 smooth frame times or acceptance of the user's already-open client.
+
+The durable installed candidate passed the same paged Markdown check, existing
+retained-paint and custom-converter controls, and saved-tool reconstruction.
+That last control now asks the original body to materialize before accessing
+its offscreen controls. All 16 tool declarations were acquired off the UI
+thread; eight admitted bodies reconstructed the same declarations. Its
+initial assumption that offscreen controls must remain mounted is preserved
+in the failed run log. Installed results are in
+`/home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007/committed-preview-installed.log`
+and `committed-preview-installed-tools.log` beside it. No provider input ran.
