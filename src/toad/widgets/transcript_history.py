@@ -169,7 +169,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         self.selected_categories = selected
         apply_block_filter(self, selected)
         if self.is_attached and not visible and self.message_category in selected and not self.children:
-            self.publish_body(self.materialize_native_body).call_next(self)
+            self.publish_body(self.materialize_native_body).call_when_ready(self)
 
     def compose(self) -> ComposeResult:
         # A filtered source slot retains identity/coverage, not hidden native
@@ -409,14 +409,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
             from toad.widgets.conversation import Conversation
-            # Transfer covered native display inside the page admission. Join
-            # stream teardown on the original Conversation pump after these
-            # source/tree locks release, never while mount waits for coverage.
+            # Transfer covered native display inside the page admission. The
+            # original retirement receipt owns teardown; observe its completed
+            # result without holding the Conversation pump or mount admission.
             # Standalone saved viewers have no live transcript to transfer.
             # Resolve custody from native ancestry, not a second owner field.
             for ancestor in self.ancestors:
                 if isinstance(ancestor, Conversation):
-                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_next(ancestor)
+                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(ancestor)
                     break
 
     def publish_committed(self) -> None:
