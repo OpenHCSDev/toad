@@ -16,6 +16,59 @@ from toad.widgets.side_bar import SideBarCollapsible
 from toad.widgets.thread_comms import ThreadCommsSidebar
 
 
+def test_core_context_stays_visible_without_native_preview(tmp_path, monkeypatch):
+    """The real owner socket supplies Core even without an SDK saved session."""
+    import tempfile
+    from pathlib import Path
+    from delivery_owner_fixture import canonical_delivery_owner
+    from toad.core.context_inspection import AcquiredCoreInspection, UnavailableNativeInspection
+    from textual.widgets import Static
+
+    async def mounted():
+        with tempfile.TemporaryDirectory(prefix="core-context-ui-", dir="/var/tmp") as directory:
+            async with canonical_delivery_owner(Path(directory)) as (service, owner, _, _):
+                for key in tuple(os.environ):
+                    if key.startswith("AGENT_COMMS_"):
+                        monkeypatch.delenv(key)
+                for key, value in {
+                    "AGENT_COMMS_ROOT": service.root,
+                    "XDG_CONFIG_HOME": tmp_path / "config",
+                    "XDG_STATE_HOME": tmp_path / "state",
+                    "XDG_DATA_HOME": tmp_path / "data",
+                    "XDG_CACHE_HOME": tmp_path / "cache",
+                }.items():
+                    monkeypatch.setenv(key, str(value))
+                app = ToadApp(project_dir=str(tmp_path))
+                async with app.run_test(size=(130, 44)) as pilot:
+                    screen = app.selected_session
+                    await screen.wait_content_ready()
+                    screen._comms_thread = "alpha"
+                    screen.initial_coordination_root = str(service.root)
+                    sidebar = screen.query_one(SessionThreadSidebar)
+                    sidebar.reveal()
+                    await sidebar.wait_content_ready()
+                    explorer = sidebar.query_one(ContextExplorer)
+                    explorer.query_ancestor(SideBarCollapsible).collapsed = False
+                    await explorer._read(force=True).wait()
+                    for worker in tuple(explorer.workers):
+                        if worker.node is explorer and not worker.is_finished:
+                            await worker.wait()
+                    await pilot.pause()
+                    assert isinstance(explorer.state, UnavailableNativeInspection)
+                    assert isinstance(explorer.state.inspection.core, AcquiredCoreInspection)
+                    tree = explorer.query_one(ContextTree)
+                    assert any(node.label.plain.startswith("Current Core instructions")
+                               for node in tree.root.children)
+                    nodes = explorer.state.current_roots()
+                    assert nodes and all(node.key.startswith("core/") for node in nodes)
+                    assert "Current Core instructions available" in explorer.state.status
+                    assert "Native detail unavailable" in explorer.query_one(".context-status", Static).render().plain
+                    assert service.registry.require("alpha").session_file is None
+                    assert owner.turns.persistent_backends == {}
+                    assert app._exception is None
+    asyncio.run(mounted())
+
+
 def test_inspection_publication_tracks_source_not_observation_revision(tmp_path):
     service = Comms(tmp_path / "wire", private_initial_writes=True)
     service.registry.declare(Thread("owner", frozenset(), str(tmp_path)))
