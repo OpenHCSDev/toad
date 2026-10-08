@@ -307,3 +307,17 @@ paint-admission-app.log, paint-admission-bounds-corrected.log and
 paint-admission-cold-app.log. Earlier negatives remain preserved, including
 the original bounded fixture selection and missing output-directory refusal.
 No provider input was sent. Installed verification and publication follow.
+
+## Installed candidate and remaining cold navigation gap
+
+Candidate706341498 installed assets/RECORDs/full69 and unchanged native
+supply verified. The original paged App passes on the installed wheel
+(15.22 s; post5.136 ms, readiness3.117 s) and the bounded runway App passes.
+The installed cold lifecycle fails at its first target return: the chosen
+message is RenderedBody/ready with no children, but is outside the viewport
+(region y=-67,height38; scroll/target70). The source run had returned that
+message visibly as LiveBody with paragraphs. These differing observations
+do not establish a sole cause. The candidate is not published as the new
+default; the current width default remains. Raw installed lifetime failure
+and cold-destination.json are retained; no retries or bounds were changed.
+Parent owns the actual cold navigation/anchor relation next.
