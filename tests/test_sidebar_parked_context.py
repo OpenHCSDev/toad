@@ -64,8 +64,11 @@ def test_core_context_stays_visible_without_native_preview(tmp_path, monkeypatch
                     assert "Current Core instructions available" in explorer.state.status
                     assert "Native detail unavailable" in explorer.query_one(".context-status", Static).render().plain
                     assert service.registry.require("alpha").session_file is None
-                    assert owner.turns.persistent_backends == {}
+                    assert all(not backend.custody.available
+                               for backend in owner.turns.persistent_backends.values())
+                    assert not owner.turns.turn_tasks
                     assert app._exception is None
+                    print("Actual App: Core group retained after native saved-session refusal; no turn or native child", flush=True)
     asyncio.run(mounted())
 
 
