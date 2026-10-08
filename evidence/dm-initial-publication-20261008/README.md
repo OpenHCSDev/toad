@@ -390,3 +390,20 @@ complete frame-pacing pass: median enqueue-to-writer 2.54ms/p95 16.18ms, but nat
 writer intervals include idle/nonbody frames and cannot establish smoothness.
 The original source-bound body observer recorded no body outputs for these saved
 message rows; its scope must be resolved before claiming useful-body latency.
+
+Motion correlation: each physical 36-packet gesture produced 36 original
+nonrestoration scroll updates; the worst final-scroll delay after input submission
+was 8.34ms. Next-writer completion from those scroll updates had median about
+8ms and worst47.28ms. That is writer acknowledgement, not pixel input latency.
+
+Fast active-channel check remains FAILED against the requested responsiveness:
+160 wheel packets at5ms spacing, three reversals,20 incoming messages/16 private
+recipients, actual installed App/native Driver. Wheel handling median76.1ms,
+p95278.3ms/max348.8ms; UI-loop max82.5ms, four gaps over50ms. Final queue drain
+3.49ms does not erase the in-burst lag. All packets remained ordered. Raw:
+sidebar-drag-hotpath-20261007/dm-owned-reader-active-wheel-visible-20261008/result.json.
+The original helper timeout is preserved in dm-owned-reader-active-wheel.log;
+it demanded extent readiness for every mounted row before any input. The corrected
+helper requires the actual visible row cohort to be ready, with the original
+30s bound and input workload unchanged. Both App handles are terminal, provider0.
+Parent owns the remaining active-channel publication/dispatch cost trace.
