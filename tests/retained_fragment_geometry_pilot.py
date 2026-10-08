@@ -181,8 +181,9 @@ async def main():
             assert body.body_ready and not old_children & set(body.walk_children())
             # The original body family paints full retained rows on reentry.
             # A restoration may not parse/remount at the same width.
-            family = [body, PreparedConversationMarkdown("# Native prepared body\n\nRetained full lines."),
-                      StreamingMarkdown("# Native streaming body\n\nRetained full lines.", paginate=False)]
+            full_body = "\n\n".join(f"Retained native paragraph {index}." for index in range(40))
+            family = [body, PreparedConversationMarkdown("# Native prepared body\n\n" + full_body),
+                      StreamingMarkdown("# Native streaming body\n\n" + full_body, paginate=False)]
             from textual.widget import Widget
             trailing_space = Widget()
             trailing_space.styles.height = 40
@@ -206,6 +207,24 @@ async def main():
             for member in family:
                 await acquire_capture(member)
             scene.reflow(app.screen, app.size)
+            # A real declaration write may arrive between native bands. The
+            # original capture must discard its partial rows and leave every
+            # native child in custody, rather than publish mixed-style paint.
+            for member in family:
+                children = tuple(member.children)
+                original_color = member.styles.color
+                retirement = asyncio.create_task(member.retire_body())
+                asyncio.get_running_loop().call_soon(setattr, member.styles, 'color', '#bada55')
+                try:
+                    assert not await retirement, type(member).__name__
+                    assert not member.body_dormant and tuple(member.children) == children
+                    assert all(child.is_attached for child in children)
+                finally:
+                    member.styles.color = original_color
+                await pilot.pause()
+                scene.reflow(app.screen, app.size)
+                await acquire_capture(member)
+            receipt['between_band_style_write_retains_all_native_children'] = len(family)
             native_captures = Counter()
 
             def observe_capture(frame, event, arg):
@@ -227,8 +246,8 @@ async def main():
                         operations.append(operation)
                 finally:
                     sys.setprofile(None)
-                # Borrow rows before preparation can yield and first removal
-                # can invalidate sibling placement in the original scene.
+                # Acquire each cohort's original geometry/resources before
+                # band painting or first removal can yield to another task.
                 assert native_captures == Counter(bodies=len(family)), native_captures
                 assert all(not member.body_dormant for member in family)
                 assert all(await asyncio.gather(*operations))
@@ -244,7 +263,11 @@ async def main():
                 published_scene = scene._full_map, scene._visible_map
                 captured_member, placement = next(scene.published_geometry((member,)))
                 assert captured_member is member
-                scene.render_subtree_strips(member, placement, admit=lambda participants: True)
+                native = scene.render_subtree_strips(member, placement, admit=lambda participants: True)
+                assert native is not None
+                _, bands = native
+                for _ in bands:
+                    pass
                 assert scene._full_map is published_scene[0]
                 assert scene._visible_map is published_scene[1]
                 if not member.body_dormant:
