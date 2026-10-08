@@ -37,7 +37,11 @@ class PreparedMarkdownContent(WorkerStatic):
         window = next((ancestor for ancestor in self.ancestors
                        if isinstance(ancestor, HistoryWindow)), None)
         if layout and window is not None:
-            async with window.preserve_history(self):
+            # WorkerStatic installs detached paint and invalidates extent; it
+            # does not mount, remove or reorder native children. The document
+            # owns those mutations. Borrow its reader compensation without
+            # reacquiring that document's native tree fence on a child worker.
+            async with window.preserve_reader(self):
                 yield
         else:
             async with super().preparation_publication(layout=layout):
