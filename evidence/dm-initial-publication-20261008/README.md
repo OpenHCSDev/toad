@@ -531,3 +531,19 @@ passed an unsupported constructor id; it refused before widget mounting. Its
 original bytes are retained, then only that fixture call was corrected.
 Raw check: /home/ts/.cache/agent-scratch/dm-notification-disclosure-20261008/source-disclosure.log.
 This is disclosure behavior evidence, not a frame-time or full DM acceptance.
+
+Installed and delivered: PR569 merged. The original durable frontend publisher
+now selects `.artifacts/dm-notification-disclosure-delivery-20261008/runtime`
+for new Toad launches. Original Core09a/nativeb486 wheels reused byte-exact;
+954 source/wheel assets,69 packages and2857 RECORD entries verified. Backend
+defaults and running owners remain unchanged; existing windows keep their
+loaded code. Publication receipt: `live-publication.json` in that directory.
+The same native disclosure check passed using installed imports.
+Original private wire/native Driver workload passed ordered160 wheel packets,
+20 incoming messages and16 recipients with no provider inputs; all owned
+handles terminal. Pacing remains FAIL: wheel p95159.1ms/max229.2ms,
+UI-loop max125.9ms and published-frame p95104.9ms/max184.0ms. This noisy
+single run does not establish a speedup. Remaining synchronous native layout,
+measurement and publication cost must still be removed through its owners.
+Raw installed results/publication under
+`/home/ts/.cache/agent-scratch/dm-notification-disclosure-20261008/`.
