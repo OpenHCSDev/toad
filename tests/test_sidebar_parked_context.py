@@ -263,7 +263,8 @@ def test_context_detail_retains_native_reader_through_fresh_reads_and_tab_return
                 assert area.document is document and area.wrapped_document is wrapped
                 assert area.selection == selection and area.scroll_offset == reader
                 assert explorer.state.presentation_current(state)
-                assert "Current detail unavailable:" in explorer.state.status
+                assert "Native detail unavailable:" in explorer.state.status
+                assert "Core instructions unavailable:" in explorer.state.status
                 assert counts["loading_covers"] == 0
             finally:
                 threading.setprofile_all_threads(None)
