@@ -126,13 +126,17 @@ class FramePresentation:
     def begin(self):
         self.state.begin(self)
 
+    def awaits_publication(self, owner: Widget, callback: Callable[[], object]) -> bool:
+        """Whether this owner's work already waits for its native receipt."""
+        return (owner, callback) in self.callbacks
+
     def defer(self, owner: Widget, callback: Callable[[], object]) -> None:
-        if (owner, callback) not in self.callbacks:
+        if not self.awaits_publication(owner, callback):
             self.state.defer(self, owner, callback)
 
     def flush_owner(self, owner: Widget, callback: Callable[[], object]) -> None:
         """Native sender admission precedes the original terminal writer join."""
-        if (owner, callback) in self.callbacks:
+        if self.awaits_publication(owner, callback):
             self.screen.app._driver.call_after_flush(
                 partial(self.release, owner, callback, self.state.scene))
 

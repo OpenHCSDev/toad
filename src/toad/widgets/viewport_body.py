@@ -839,10 +839,12 @@ class MeasuredViewportBody(ViewportBody):
                     return
 
     def on_worker_static_extent_ready(self, _event):
-        # The original prepared sender bubbles its committed extent. Nested
-        # body boundaries keep bubbling until the registered capture owner.
-        if self.body_capture_pending and self._body_viewport is not None:
-            self._body_viewport.request()
+        # The prepared sender commits readiness for visible publication as
+        # well as complete retirement capture. Nested boundaries keep bubbling
+        # until the registered body, which owns both demands in this viewport.
+        viewport = self._body_viewport
+        if viewport is not None and (self.body_capture_pending or viewport.requires_body(self)):
+            viewport.request()
 
 
 class ViewportPresentation:
@@ -1317,11 +1319,16 @@ class DocumentViewport:
                 # The same foreground worker admits message source ranges.
                 # Restore its whole visible cohort first; one range's reader
                 # compensation must not wait on an unstarted sibling restore.
-                async with asyncio.TaskGroup() as source_preparation:
-                    source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
-                                    for owner in required]
-                if any(task.result() for task in source_tasks):
-                    screen.frame_presentation.defer(self.window, self.request)
+                if not screen.frame_presentation.awaits_publication(self.window, self.request):
+                    # The next source edge uses committed frame geometry.
+                    # Waiting for that receipt does not stop retirement or
+                    # preparation needed to make the same frame publishable.
+                    async with asyncio.TaskGroup() as source_preparation:
+                        source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
+                                        for owner in required]
+                    if any(task.result() for task in source_tasks):
+                        screen.frame_presentation.defer(self.window, self.request)
+                        return
                 if self._pending:
                     continue
                 retiring = tuple(owner for owner in owners

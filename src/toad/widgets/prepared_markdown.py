@@ -24,7 +24,8 @@ from toad.markdown_preparation import PreparedMarkdown
 from toad.block_content import MarkdownBlockContent
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
-from toad.widgets.viewport_body import MeasuredViewportBody
+from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
+from textual.walk import walk_depth_first
 from toad.widgets.worker_static import WorkerStatic
 
 
@@ -69,6 +70,17 @@ class PreparedContentRange:
     def on_unmount(self) -> None:
         self._fragment_views = ()
 
+    async def on_mount(self) -> None:
+        await self._join_part_publications(self.fragment_views)
+
+    async def _join_part_publications(self, parts) -> None:
+        # A part's DOM mount and source publication have distinct completion.
+        # Before committing a range, join its original body workers; a preview
+        # extent must not become the next paging edge. Settled bodies are no-ops.
+        for part in parts:
+            for body in walk_depth_first(part, ViewportBody, with_root=True):
+                await body.restore_body()
+
     def capture_admission(self):
         raise NotImplementedError
 
@@ -91,6 +103,7 @@ class PreparedContentRange:
             if added:
                 acquisition.callback(self.remove_children, added)
                 await self.mount_all(added, before=previous[0] if older and previous else None)
+                await self._join_part_publications(added)
             if not current() or self.capture_admission() != admission:
                 return False
             self._fragment_views = (*added, *previous) if older else (*previous, *added)
@@ -110,6 +123,7 @@ class PreparedContentRange:
             if added:
                 acquisition.callback(self.remove_children, added)
                 await self.mount_all(added)
+                await self._join_part_publications(added)
             if not current():
                 return False
             self.fragments, self._fragment_views = fragments, ordered
@@ -221,6 +235,14 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def reconstructible_children(self) -> tuple[Widget, ...]:
         """Native resources rebuilt from this document's original source."""
         return tuple(child for child in self.children if isinstance(child, MarkdownBlock))
+
+    def _initialize_document(self, markdown: str | None) -> AwaitComplete:
+        # Mount admits the body; its materialization worker owns prepared
+        # content. Observe the original initialization on this body's pump,
+        # after mount, rather than holding the conversation's mount receipt.
+        # The native implementation retains source consumption and TOC order.
+        self.call_later(super()._initialize_document(markdown))
+        return AwaitComplete.nothing()
 
     def retire_body_resources(self) -> None:
         """Release reconstructible preparation with the native retirement."""
