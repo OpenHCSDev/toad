@@ -37,6 +37,7 @@ from toad.transcript_preparation import (
 )
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.prepared_markdown import PreparedContentRange
+from toad.markdown_preparation import PreparedMarkdownPart
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
@@ -60,10 +61,12 @@ class _PublicationRetired(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
 
 class TranscriptBlockConsumer(MroDispatch):
-    def __init__(self, *, fragment: bool, show_divider: bool):
+    def __init__(self, *, fragment: bool, show_divider: bool,
+                 markdown_part: PreparedMarkdownPart | None = None):
         self.blocks: list[Widget] = []
         self.fragment = fragment
         self.show_divider = show_divider
+        self.markdown_part = markdown_part
 
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript):
@@ -73,30 +76,35 @@ class TranscriptBlockConsumer(MroDispatch):
     @handles(UserTranscript)
     def user(self, event: UserTranscript):
         self.blocks.append(UserInput(event.text, claim=TranscriptInputClaim(event),
+                                     markdown_part=self.markdown_part,
                                      show_divider=self.show_divider,
                                      clock=MessageClock.recorded(event.timestamp)))
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript):
         from toad.widgets.incoming_message import IncomingMessage
-        self.blocks.append(IncomingMessage(event, show_header=self.show_divider))
+        self.blocks.append(IncomingMessage(event, show_header=self.show_divider,
+                                           markdown_part=self.markdown_part))
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
         from toad.widgets.outgoing_message import OutgoingMessage
-        self.blocks.append(OutgoingMessage(event, show_header=self.show_divider))
+        self.blocks.append(OutgoingMessage(event, show_header=self.show_divider,
+                                           markdown_part=self.markdown_part))
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript):
         self.blocks.append(AgentResponse(
             event.text, delivery=ResponseDelivery.from_route(event.routing.reply if event.routing else None),
             category=event_category(event), paginate=not self.fragment,
+            markdown_part=self.markdown_part,
             show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp),
         ))
 
     @handles(ThinkingTranscript)
     def thinking(self, event: ThinkingTranscript):
-        self.blocks.append(AgentThought(event.text, paginate=not self.fragment))
+        self.blocks.append(AgentThought(event.text, paginate=not self.fragment,
+                                       markdown_part=self.markdown_part))
 
 def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
                       show_divider: bool = True) -> list[Widget]:

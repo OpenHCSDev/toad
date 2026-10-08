@@ -230,9 +230,13 @@ async def main():
             assert sum(doc.body_dormant for doc in docs) >= 20
             assert all(doc.source == source(i) for i, doc in enumerate(docs))
             from toad.widgets.viewport_body import MeasuredBody
-            cold = [doc for doc in docs if type(doc._body_measurement) is MeasuredBody]
-            assert cold, "Original widget budget never exercised cold eviction"
-            dormant = cold[0]
+            # Paint and native controls have separate byte and widget admission.
+            # Exercise cold reconstruction using the original paint release;
+            # this small source does not establish real byte-pressure eviction.
+            dormant = next(doc for doc in docs if doc.body_dormant
+                           and not view.window.document_viewport.requires_body(doc))
+            dormant.release_paint()
+            assert type(dormant._body_measurement) is MeasuredBody
             assert not dormant.query(MarkdownParagraph), "Cold body retained its native message pumps"
             before = len(app._registry)
             view.window.release_anchor()

@@ -42,7 +42,8 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         yield from self._prefix
 
     def _body(self, fragment: PreparedMarkdownPart) -> PreparedConversationMarkdown:
-        return PreparedConversationMarkdown(fragment.text, classes="-message-fragment")
+        return PreparedConversationMarkdown(fragment.text, markdown_part=fragment,
+                                            classes="-message-fragment")
 
     @property
     def retained_source_bytes(self) -> int:
@@ -60,7 +61,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             if not current():
                 return False
             await asyncio.gather(*(self.app.render_processes.prepare(MarkdownRenderTask(
-                part.text, self.app.native_ansi_color, self.app.current_theme.dark,
+                part, self.app.native_ansi_color, self.app.current_theme.dark,
             )) for part in parts[first:first + self.batch_size]))
         return current()
 
@@ -127,18 +128,30 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         async with self._content_lock:
             if not is_current():
                 return
-            if self.body_dormant:
+            # MaterializingBody is dormant while publishing, even when its
+            # previous native roots remain usable. Append needs reconstruction
+            # only after those roots have actually been retired.
+            if not super().reconstructible_children():
                 self._needs_full_markdown_update = True
-            fragments = (await self.app.render_processes.submit(MarkdownPartsTask(source))
-                         if self._paginate and not RenderBudget().fits(source) else ())
+            if self._markdown_part is not None and self._markdown_part.text != source:
+                self._markdown_part = None
+            fragments = (await self.app.render_processes.submit(MarkdownPartsTask(self.acquired_source(source)))
+                         if self._paginate and self.partitionable_syntax
+                         and not RenderBudget().fits(source) else ())
             if not is_current():
                 return
             if len(fragments) <= 1:
+                if fragments:
+                    self._markdown_part = fragments[0]
                 if self.fragments:
                     await self.remove_children(self.fragment_views)
                     self.fragments, self._fragment_views = (), ()
                     self.start = self.stop = 0
-                if append and self.source + text == source and not self._needs_full_markdown_update:
+                    # Paged views replaced the native roots. Reconstruct the
+                    # body before native append can update its final block.
+                    self._needs_full_markdown_update = True
+                if (append and self.source + text == source
+                        and not self._needs_full_markdown_update):
                     await self._append_body_source(text)
                 else:
                     await self._update_body_source(source)
@@ -161,8 +174,9 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             for index, child in previous.items():
                 if not is_current():
                     return
-                if selected.start <= index < selected.stop and child.source != fragments[index].text:
-                    await child.update(fragments[index].text)
+                if (selected.start <= index < selected.stop
+                        and child._markdown_part != fragments[index]):
+                    await child.update_part(fragments[index])
             async with window.preserve_history(None, root=self):
                 if not is_current():
                     return
