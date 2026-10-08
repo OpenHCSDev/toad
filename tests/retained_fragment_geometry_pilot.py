@@ -16,6 +16,7 @@ from time import perf_counter
 from agent_comms.comms import Comms
 from textual._compositor import Compositor
 from toad.app import ToadApp
+from toad.rich_preparation import PreparedPaintSource
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -63,11 +64,16 @@ async def main():
             async def acquire_capture(member):
                 """Exercise the body's original complete-row acquisition."""
                 async with asyncio.timeout(10):
-                    while not member.prepared_paint_is_current(member.prepared_paint_sources()):
+                    while True:
+                        await pilot.pause(.02)
+                        if not member._after_refresh_pending(app.screen, app.screen._layout_mutation_roots()):
+                            capture = member.capture_native_paint(member._body_measurement)
+                            if (capture is not None and capture.current(member)
+                                    and not member._after_refresh_pending(app.screen, app.screen._layout_mutation_roots())):
+                                return
                         if member.body_ready and not member.body_capture_pending:
                             assert not await member.retire_body()
                             assert member.body_capture_pending
-                        await pilot.pause(.02)
 
             await settle()
             live_targets = tuple(owner for owner in viewport.body_roots()
@@ -154,7 +160,17 @@ async def main():
             await pilot.pause()
             compare()
             receipt['resize_invalidated'] = True
+            # Native exposure owns source custody even in this parked fixture.
+            # The styled fragment is visible here and may not be pruned.
+            assert not await body.retire_body()
+            window.styles.height = 4
+            await pilot.pause()
+            window.release_anchor()
+            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
+            await pilot.pause()
+            assert not viewport.requires_body(body)
             old_children = set(body.walk_children())
+            await acquire_capture(body)
             assert await body.retire_body()
             await pilot.pause()
             retired_scene, _ = compare()
@@ -167,7 +183,10 @@ async def main():
             # A restoration may not parse/remount at the same width.
             family = [body, PreparedConversationMarkdown("# Native prepared body\n\nRetained full lines."),
                       StreamingMarkdown("# Native streaming body\n\nRetained full lines.", paginate=False)]
-            await window.mount(*family[1:])
+            from textual.widget import Widget
+            trailing_space = Widget()
+            trailing_space.styles.height = 40
+            await window.mount(*family[1:], trailing_space)
             await pilot.pause()
             window.release_anchor()
             window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
@@ -225,7 +244,7 @@ async def main():
                 published_scene = scene._full_map, scene._visible_map
                 captured_member, placement = next(scene.published_geometry((member,)))
                 assert captured_member is member
-                scene.render_subtree_strips(member, placement)
+                scene.render_subtree_strips(member, placement, admit=lambda participants: True)
                 assert scene._full_map is published_scene[0]
                 assert scene._visible_map is published_scene[1]
                 if not member.body_dormant:
@@ -402,7 +421,8 @@ async def main():
                     member.lock.is_locked, member in viewport.protected(),
                     [(type(source).__name__, source.presentation_ready,
                       source.prepared_content is not None, tuple(source.size))
-                     for source, _ in member.prepared_paint_sources()])
+                     for source in member.body_geometry_targets()
+                     if isinstance(source, PreparedPaintSource)])
                 await pilot.pause()
                 family_receipts[-1]['settled_preceding_writer_released_without_replacing_current_paint'] = True
             receipt['rendered_family_reentry'] = family_receipts
@@ -420,6 +440,7 @@ async def main():
             assert not await operation
             assert not streaming.body_dormant
             await streaming.finish_stream()
+            await acquire_capture(streaming)
             assert await streaming.retire_body()
             await pilot.pause()
             receipt['inflight_stream_blocks_captured_retirement_commit'] = True

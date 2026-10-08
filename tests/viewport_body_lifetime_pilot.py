@@ -16,6 +16,7 @@ from textual.widgets._markdown import MarkdownParagraph
 
 from runtime_fixture import ToadApp
 from toad.widgets.agent_response import AgentResponse
+from toad.rich_preparation import PreparedPaintSource
 
 
 async def settled(view, pilot):
@@ -35,7 +36,9 @@ async def settled(view, pilot):
         if output:
             roots = []
             for owner in manager.body_roots():
-                sources = owner.prepared_paint_sources()
+                sources = tuple((child, child.prepared_content)
+                                for child in owner.body_geometry_targets()
+                                if isinstance(child, PreparedPaintSource))
                 roots.append(dict(
                     measurement=type(owner._body_measurement).__name__,
                     ready=owner.body_ready, required=manager.requires_body(owner),
@@ -164,7 +167,7 @@ async def retirement_visibility(output: Path):
             first = AgentResponse("Original body\n\nActual retained paragraph.")
             await view.contents.mount(first)
             async with asyncio.timeout(15):
-                while not first.body_ready or not first.prepared_paint_is_current(first.prepared_paint_sources()):
+                while not first.body_ready:
                     await pilot.pause(.02)
             # Suspend original housekeeping so this check owns one retirement.
             await manager.suspend_source()
@@ -174,7 +177,7 @@ async def retirement_visibility(output: Path):
             await pilot.pause()
             assert not manager.requires_body(first)
             children = first.reconstructible_children()
-            assert children and first.prepared_paint_is_current(first.prepared_paint_sources())
+            assert children and first.capture_native_paint(first._body_measurement) is not None
             operation = first.retire_body()
             # Actual scrolling exposes the body after synchronous acquisition,
             # before the returned operation measures/commits its captured rows.
