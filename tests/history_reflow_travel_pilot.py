@@ -140,7 +140,7 @@ async def main():
             with observe_anchors():
                 async with window.preserve_history(None, root=marker):
                     assert window.history_mutation_root is marker
-                    assert app.screen.viewport_presentation.mutation_roots() == (marker,)
+                    assert tuple(app.screen.viewport_presentation.mutation_roots()) == (marker,)
                     async with window.preserve_history(None, root=histories[0]):
                         assert window.history_mutation_root is view.contents
                     assert window.history_mutation_root is marker
