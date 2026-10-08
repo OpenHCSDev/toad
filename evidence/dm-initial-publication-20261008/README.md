@@ -738,3 +738,25 @@ Receipt: `.artifacts/dm-owned-resources-delivery-20261008/live-publication.json`
 Source/build/installed/publication raw are retained in
 `/home/ts/.cache/agent-scratch/dm-owned-resources-20261008/`. Existing user windows
 keep imported modules. Goal remains open for frame pacing and full user workflows.
+
+
+## Channel header has one presentation owner
+
+Source trace proves the paired channel-row layout epochs: SidebarProjection
+first wrote pin/name without counts, then ChannelGroup.present wrote name/counts
+without pin. Even identical final sources therefore changed the displayed text
+twice. The second write also erased the visible pin marker.
+
+Deleted the first writer. Existing ChannelGroup.present now supplies pin/name/
+active/registered counts once under original member custody. Its row's original
+Static content equality handles unchanged text. No new state/cache or suppressed
+layout request. Actual source changes still use native update/layout.
+
+Before/after AST705 source/test modules parsed with zero omissions; all channel
+header label publication now comes from ChannelGroup.present. Existing real
+private-store/native-App activity-order control extended in place and passed:
+pinned channel label/counts survive, rebuilding an unchanged snapshot leaves
+the header layout epoch unchanged, changed activity still reorders members,
+original widget identities/pins and unchanged prepared resource preserved.
+Raw: `/home/ts/.cache/agent-scratch/channel-label-owner-20261008/source-app.log`.
+Installed latency remains to be measured; no broad pacing pass claimed.
