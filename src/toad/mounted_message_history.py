@@ -8,6 +8,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
 from textual import containers
+from textual import on
 from textual.widget import Widget
 from toad.block_navigation import ConversationBlock, ChildBlockCursor
 from toad.widgets.conversation import CategorizedMount
@@ -18,6 +19,7 @@ from toad.screens.session_view import SessionView
 from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
 from toad.transcript_state import LiveTranscript, LatestViewportRequest
 from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
+from toad.widgets.worker_static import WorkerStatic
 
 HISTORY_PAGE_SIZE = 40
 INITIAL_HISTORY_PAGE_SIZE = 8
@@ -313,6 +315,12 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         # and row publication. The painted window owns its receipt demand.
         self.mark_visible()
         self.view._refresh_notifications()
+        # The page's region includes every row's extent. A preview's short
+        # box cannot establish an earlier edge or insufficient runway: doing
+        # so admits another whole page while the original one is preparing.
+        if any(message.membership is None and not widget.native_extent_ready
+               for message, widget in self.rows):
+            return
         if self.follows_tail and self.has_newer:
             self._request_page(False)
         elif (self.has_older and region.y >= viewport.y - self.prefetch_distance
@@ -320,6 +328,10 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             self._request_page(True)
         elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
             self._request_page(False)
+
+    @on(WorkerStatic.ExtentReady)
+    def _row_extent_ready(self) -> None:
+        self._scroll_changed()
 
     async def _load_page(self, older: bool) -> None:
         snapshot = self.source_snapshot()
