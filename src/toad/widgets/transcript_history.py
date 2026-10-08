@@ -226,6 +226,7 @@ class TranscriptPageAdmission:
 
 
 class TranscriptPageView(VerticalGroup):
+    CACHE_SUBTREE_GEOMETRY = True
     BATCH = 4
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
@@ -368,7 +369,7 @@ class TranscriptPageView(VerticalGroup):
         async with window.history_lock:
             if not current() or self.capture_admission() != admission:
                 return False
-            async with window.preserve_history(None):
+            async with window.preserve_history(None, root=self):
                 ordered = tuple(previous[index] if index in previous else self._body(fragments[index])
                                 for index in range(start, stop))
                 added = tuple(child for child in ordered if child not in previous.values())
@@ -389,6 +390,7 @@ class TranscriptPageView(VerticalGroup):
 
 
 class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
+    CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 24
 
     @property
@@ -662,7 +664,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     return
                 if selected != view.update_slice(fragments, window.follows_tail):
                     continue
-                async with window.preserve_history(None):
+                async with window.preserve_history(None, root=self):
                     self.filter.remove()
                 if selected != view.update_slice(fragments, window.follows_tail):
                     continue
@@ -810,7 +812,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         async with window.history_lock:
             if not snapshot.current(self) or not request.current(window):
                 return False
-            async with window.preserve_history(None):
+            async with window.preserve_history(None, root=self):
                 previous = tuple(self.pages)
                 if view.capture_admission().interval == CommittedInterval(page.before, page.after):
                     self.pages = deque([view])
@@ -862,7 +864,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     self.fragment_views, older=older,
                     fallback=edge.fragment_views[0 if older else -1] if edge.fragment_views else edge,
                 )
-                async with self.window.preserve_history(anchor):
+                async with self.window.preserve_history(anchor, root=self):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments)
                     self._require_publication()
         except _PublicationRetired:

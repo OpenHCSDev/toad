@@ -72,7 +72,14 @@ async def main():
             window.watch(window, 'scroll_y', changed, init=False)
             original_demand = viewport.lookahead.demand
             demand_before = repr(original_demand)
-            async with window.preserve_history(marker):
+            async with window.preserve_history(None, root=marker):
+                assert window.history_mutation_root is marker
+                assert app.screen.viewport_presentation.mutation_roots() == (marker,)
+                async with window.preserve_history(None, root=histories[0]):
+                    assert window.history_mutation_root is view.contents
+                assert window.history_mutation_root is marker
+            assert window.history_mutation_root is None
+            async with window.preserve_history(marker, root=view.contents):
                 await histories[0].remove()
             await pilot.pause()
             after = dict(y=window.scroll_y, maximum=window.max_scroll_y,

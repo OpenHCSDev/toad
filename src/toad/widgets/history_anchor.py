@@ -118,6 +118,7 @@ class HistoryWindow(VerticalScroll):
     _restoring = False
     history_anchor: HistoryAnchor | None = None
     history_layout_ready: asyncio.Event | None = None
+    _history_mutation_root: Widget | None = None
 
     def action_scroll_end(self) -> None:
         self.jump_to_latest()
@@ -237,7 +238,18 @@ class HistoryWindow(VerticalScroll):
 
     def history_mutating(self) -> bool:
         """Native tree locking is the publication fence, not source status."""
-        return self.lock.is_locked
+        return self.history_mutation_root is not None
+
+    @property
+    def history_mutation_root(self) -> Widget | None:
+        """The subtree owned by the active native publication transaction.
+
+        A direct native window lock still protects the whole window. Scoped
+        history publications name their original mutation owner instead.
+        """
+        if not self.lock.is_locked:
+            return None
+        return self if self._history_mutation_root is None else self._history_mutation_root
 
     def protect_history(
         self, items, *, older: bool, fallback: Widget,
@@ -265,15 +277,28 @@ class HistoryWindow(VerticalScroll):
         return anchor, protected
 
     @asynccontextmanager
-    async def preserve_history(self, widget: Widget | None):
+    async def preserve_history(self, widget: Widget | None, *, root: Widget | None = None):
         """Fence a native source mutation inside its reader layout lifetime."""
         async with AsyncExitStack() as reader:
             async with self.lock:
                 # Acquire the native mutation before borrowing an outstanding
                 # anchor. Its owner cannot finish layout while this mutation
                 # holds the tree fence. Release that fence before compensation.
-                await reader.enter_async_context(self.preserve_reader(widget))
-                yield
+                previous = self._history_mutation_root
+                mutation = self if root is None else root
+                if mutation is not self and self not in mutation.ancestors:
+                    raise ValueError("History mutation must belong to its window")
+                if previous is not None:
+                    if previous is mutation or previous in mutation.ancestors:
+                        mutation = previous
+                    elif mutation not in previous.ancestors:
+                        mutation = Widget.get_common_ancestor(previous, mutation)
+                self._history_mutation_root = mutation
+                try:
+                    await reader.enter_async_context(self.preserve_reader(widget))
+                    yield
+                finally:
+                    self._history_mutation_root = previous
 
     @asynccontextmanager
     async def preserve_reader(self, widget: Widget | None):

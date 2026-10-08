@@ -207,7 +207,7 @@ class SnapshotPublication(TranscriptPublication):
                 if not self.source_current(self.page.after):
                     self.owner.require_checkpoint()
                     return
-                async with self.window.preserve_history(None):
+                async with self.window.preserve_history(None, root=self.contents):
                     accepted = False
                     try:
                         await self.contents.mount(history)
