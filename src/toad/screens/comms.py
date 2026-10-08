@@ -21,7 +21,6 @@ from toad.widgets.comms_chat import CommsChatView
 from toad.core.input_events import SelectHistoricalIdentity
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
-from toad.widgets.channels_sidebar import ChannelsSlot, ChannelsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationContext, NavigationOwner
@@ -41,7 +40,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         Binding("escape", "back_to_agent", "Agent session"),
         Binding("ctrl+h", "historical_sessions", "Saved sessions"),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
-        Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+t", "message_style", "IRC / Markdown"),
         Binding(
             "ctrl+left_square_bracket",
@@ -256,11 +254,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             target = chat.prompt.prompt_text_area
             return target if target.focusable else None
         return None
-
-    def action_show_sidebar(self) -> None:
-        sidebar = self.screen.query_one(ChannelsSidebar)
-        sidebar.reveal()
-        sidebar.query_one("SideBarCollapsible CollapsibleTitle").focus()
 
     @on(SideBar.Dismiss)
     def on_side_bar_dismiss(self, event: SideBar.Dismiss) -> None:

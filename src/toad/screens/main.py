@@ -118,7 +118,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("ctrl+g", "toggle_irc", "IRC view"),
-        Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("ctrl+h", "go_home", "Home", show=False),
         Binding(
             "ctrl+left_square_bracket",
@@ -494,18 +493,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     ) -> None:
         if event.option.id is not None:
             self.conversation.prompt.suggest(event.option.id)
-
-    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
-        if action == "show_sidebar":
-            sidebar = self.query_one_optional(ChannelsSidebar)
-            if sidebar is None or sidebar.has_focus_within:
-                return False
-        return True
-
-    def action_show_sidebar(self) -> None:
-        self.side_bar.reveal()
-        if title := self.side_bar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
-            title.focus()
 
     def action_focus_prompt(self) -> None:
         if conversation := self.query_one_optional(Conversation):
