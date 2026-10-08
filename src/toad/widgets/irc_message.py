@@ -96,6 +96,10 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
     def __init__(self, message: Message, *, direction: str = "Inbound"):
         super().__init__()
         self.message = message
+        # Composition acquires these native resources. Recomposition replaces
+        # them; the row never borrows a retired body from a selector cache.
+        self.body = None
+        self.notifications = None
         self.direction = (
             f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
             if isinstance(message, HistoricalMessage) else direction
@@ -104,7 +108,8 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
     def compose(self) -> ComposeResult:
         yield MessageDivider(self.direction, clock=MessageClock.recorded(self.message.timestamp))
         yield from self.compose_body()
-        yield MessageNotifications()
+        self.notifications = MessageNotifications()
+        yield self.notifications
 
     def compose_body(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse
@@ -114,7 +119,8 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
             yield ThreadLink(self.message.sender, source)
             yield Static(" → ", markup=False, expand=False)
             yield ThreadLink(self.message.target, source)
-        yield AgentResponse(self.message.body, show_divider=False)
+        self.body = AgentResponse(self.message.body, show_divider=False)
+        yield self.body
         if self.message.mentions:
             with HorizontalGroup():
                 yield Static("Mentioned: ", expand=False)
@@ -123,14 +129,12 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
 
     def read_ack_widget(self) -> Widget | None:
         """Only the rendered message body can authorize a read."""
-        from toad.widgets.agent_response import AgentResponse
-
-        return self.query_one(AgentResponse)
+        return self.body if self.body is not None and self.body.is_attached else None
 
     @property
     def native_extent_ready(self) -> bool:
         """Paging borrows the body's real extent, not its loading placeholder."""
-        return self.read_ack_widget().body_ready
+        return self.body is not None and self.body.is_attached and self.body.body_ready
 
     def action_open_target(self, target: str):
         if isinstance(self.message, HistoricalMessage) and not target.startswith("#"):
@@ -160,16 +164,17 @@ class IRCMessage(WireMarkdownMessage, can_focus=True):
     """
 
     def compose_body(self) -> ComposeResult:
-        yield IRCMessageText(IRCMessageSource(self.message))
+        self.body = IRCMessageText(IRCMessageSource(self.message))
+        yield self.body
 
     def read_ack_widget(self) -> Widget | None:
         """Only the text block can authorize a read, never its divider."""
-        body = self.query_one(IRCMessageText)
-        return body if body.paint_ready else None
+        body = self.body
+        return body if body is not None and body.is_attached and body.paint_ready else None
 
     @property
     def native_extent_ready(self) -> bool:
-        return self.query_one(IRCMessageText).preparation_complete
+        return self.body is not None and self.body.is_attached and self.body.preparation_complete
 
     def get_clipboard_text(self) -> str:
         return f"{self.message.sender} → {self.message.target}: {self.message.body}"

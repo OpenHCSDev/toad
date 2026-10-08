@@ -647,3 +647,64 @@ incoming messages; its route ended at Window. That source observation also
 included the merged prepared-style rule and preceded the final single-dispatch
 correction, so its aggregate timings are not a causal measurement of this patch.
 Neither this viewport change nor the native mount candidate is published live.
+
+
+## Published document wheel / native mount integration
+
+Textual120 and Toad571 merged. Matched published frontend: Toad fbb8e395d,
+Textual c330608250, unchanged Core client09a0131ab. Full954assets /69packages /
+2857RECORD entries and retained native Pi matched.
+
+Actual installed private-driver observation preserved160 ordered wheel packets,
+three reversals and20 incoming messages /16recipients, provider0. Wheel median
+3.88ms/p95 78.80/max219.98; backlog after final post3.86ms. Frame p95 109.87ms/
+max337.05; loop max105.21. Overall pacing still FAIL, not a statistical speedup
+claim. Timer update reached61.32ms UI CPU; layout48.81ms UI CPU.
+
+Installed real-click disclosure passed: no closed body, opened body current, live
+error, closed update deferred, reopen current, original pre-mount explicit read.
+Reviewed frontend publisher changed NEW launches only; backend defaults, active
+route and native package preserved. Existing windows keep imported modules.
+Receipt: `.artifacts/document-wheel-routing-delivery-20261008/live-publication.json`.
+Raw build/App/disclosure/publication files remain in
+`/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/`.
+
+Removed55,187,908bytes of superseded never-published native-mount candidate
+runtime after fresh privileged census226processes/no gaps/no refs and separate
+default/publication checks. Wheels/source/proofs/raw and actual published/rollback
+runtimes retained. The first evidence append met absent sparse-checkout path;
+no evidence was changed then. Materialized original HEAD bytes and appended here.
+
+Next work is original synchronous geometry/layout and paint publication; native
+capture/FIFO is preserved rather than bypassed to mask its costs.
+
+
+## Wire row resources owned by composition
+
+WireMarkdownMessage and IRCMessage now retain the actual body and notification
+widgets created by their original compose methods. Recomposition acquires fresh
+resources; unmounted resources cannot supply read/extent evidence. Compact and
+full Markdown remain distinct rendering contracts. CommsChatView uses the row's
+notification resource, revalidating attachment after the asynchronous read.
+Three body queries and the per-row notification descendant query are deleted.
+No message, read ledger, status or preparation result is copied.
+
+AST:288 production/417 authored modules parsed, zero omissions. All changed row
+family body/feedback selector calls are gone. The separate incoming/outgoing
+transcript WireMessageHandling queries belong to another declared resource
+family; this change does not claim to replace them.
+
+Existing real private wire partial-paint control passed: only painted bodies
+acknowledged, scrolling admits the remaining original page and compact/Markdown
+style replacement preserves identities/read results. Actual private Toad App
+resource control passed: both styles own their mounted children, recomposition
+replaces retired instances and removed bodies cannot authorize reads. First
+resource fixture used a bare Screen without the real history viewport and failed
+its Markdown admission; preserved, then corrected to the real wire/window.
+No production fallback or timeout changed.
+
+Raw/source control files are under
+`/home/ts/.cache/agent-scratch/dm-owned-resources-20261008/`. Speed improvement is
+unmeasured. The next required installed observation also retains Layout.widget
+identity and original node/layout source epochs in the existing recorder so
+native work can distinguish real changed extents from repeated late requests.
