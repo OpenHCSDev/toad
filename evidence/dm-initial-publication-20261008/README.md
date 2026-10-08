@@ -213,7 +213,7 @@ Profiles are in `wheel-owner-profile-20261008` and
 Two diagnostic setup negatives (subclass CSS path and multiprocessing main
 guard) remain recorded; they are not rendering or provider failures.
 
-### Installed candidate remains unpublished
+### Initial installed candidate result
 
 The candidate passed full installed asset/origin/RECORD verification and the
 three-resize source/style/selection check. Its paged-message journey timed out
@@ -236,3 +236,36 @@ state in `dmnw3` through `dmnw8`. All those App attempts are terminal; none
 submitted provider input. Previous writer interval statistics include the
 100ms wheel input cadence and idle settlement; they do not alone prove a
 317ms input-to-pixel stall.
+
+### Independent width delivery and range ownership
+
+The width-only change is merged in Toad #564 and published for new launches
+through the original frontend publication owner. Its installed three-resize,
+source/style/selection result passed; the separate paged negative also occurs
+on the unchanged predecessor. That failure leaves reconstruction unqualified,
+but does not block the independently verified width change. The existing
+backend, native renderer and open sessions retain their original supply.
+The installed source is `dcf85738`; current main has identical product bytes.
+Publication is retained in `.artifacts/assigned-parent-width-delivery-20261008`.
+
+PreparedContentRange no longer joins body writers in Mount, extend or replace.
+This type owns native range membership; BodyMeasurement owns content writers
+and WorkspaceScreen/DocumentViewport own paint readiness. The original frame
+receipt still gates the next measured paging edge. Previously a mounted page
+could await a child writer while its acquiring parent held the same window
+mutation lock that the child's source publication needed. Both range users,
+StreamingMarkdown and TranscriptPageView, now use the shared membership-only
+implementation; the redundant join method and imports are deleted.
+
+This range change is a separate unpublished branch checkpoint. The actual App
+now reaches retirement, but does not complete the original warm-retention
+check. `dmnw11` caught child shutdown waiting on native child tasks; `dmnw12`
+caught runnable message/worker activity with the old body released. These are
+different snapshots of unfinished work, not proof of a static native deadlock.
+The native owner has both. The existing failure-only task diagnostic now sees
+the original Python coroutine wrappers and native mount/exit child identities.
+No new queue, timeout, readiness flag or callback exemption was introduced.
+
+The complete source relation parsed 288 production, 417 test and 40 tool
+modules without omissions. Original App negatives and private fixture state
+`dmnw9` through `dmnw12` remain retained; no provider input was submitted.

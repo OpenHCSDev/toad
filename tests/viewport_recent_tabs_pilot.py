@@ -66,6 +66,15 @@ def task_waiting(task):
                                for child in receipt._widgets if not child._mounted_event.is_set()]
                     chain.append(f"mount parent={type(receipt._parent).__name__}@{id(receipt._parent):x} "
                                  f"pending={pending}")
+            if frame.f_code.co_name == "_message_loop_exit" and "children" in frame.f_locals:
+                owner = frame.f_locals["self"]
+                pending = [f"{type(child).__name__}@{id(child):x}:"
+                           f"closing={child._closing},closed={child._closed},"
+                           f"mounted={child._mounted_event.is_set()},task={child._task}"
+                           for child in frame.f_locals["children"]
+                           if child._task is not None and not child._task.done()]
+                chain.append(f"exit parent={type(owner).__name__}@{id(owner):x} "
+                             f"task={task.get_name()} pending={pending}")
         operation = operation.cr_await if inspect.iscoroutine(operation) else operation.gi_yieldfrom
     return chain
 
