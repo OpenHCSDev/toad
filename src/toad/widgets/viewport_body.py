@@ -222,8 +222,11 @@ class BodyMeasurement(ABC):
     def geometry_targets(self, body):
         return (body,) if self.requires_geometry(body) else ()
 
-    def capture_requested(self):
+    def capture_requested(self, targets=None):
         return self
+
+    def capture_preparation(self, body, targets):
+        """Source publication does not acquire a retirement geometry demand."""
 
     def required(self):
         return self
@@ -294,13 +297,16 @@ class LiveBody(MeasuredBody):
     def released(self):
         return ReleasedBody(self.width, self.rows, self.widgets)
 
-    def capture_requested(self):
-        return CapturingBody(self.width, self.rows, self.widgets)
+    def capture_requested(self, targets=None):
+        return CapturingBody(self.width, self.rows, self.widgets,
+                             targets=() if targets is None else targets)
 
     def prepare_publication(self, body):
         # Borrow the original published scene synchronously, before a writer
         # or its byte measurement can change the native tree.
-        return body.capture_native_paint(self)
+        capture = body.capture_native_paint(self)
+        return (capture.prepare(body, self) if capture is not None
+                else MeasuredBody(self.width, self.rows, self.widgets).prepare_publication(body))
 
     def invalidated(self):
         # The original native tree still carries its pixels. Replace the
@@ -335,6 +341,16 @@ class LiveBody(MeasuredBody):
     def retire(self, body):
         return body.retire_native_body(self)
 
+    def capture_retirement(self, body, children):
+        # Retirement acquires the current scene after the native frame owner
+        # publishes its geometry. Preceding-source capture above must instead
+        # borrow synchronously before that source's writer changes the tree.
+        capture = body.capture_native_paint(self)
+        if capture is not None:
+            return capture.retire(body, self, children)
+        body._update_body_measurement(self.capture_requested())
+        return BodyMeasurement.retire(self, body)
+
 
 @dataclass(frozen=True)
 class CapturingBody(LiveBody):
@@ -347,12 +363,22 @@ class CapturingBody(LiveBody):
     """
 
     capture_pending = True
+    targets: tuple[Widget, ...] = ()
 
-    def capture_requested(self):
-        return self
+    def capture_requested(self, targets=None):
+        return self if targets is None or targets == self.targets else replace(self, targets=targets)
+
+    def capture_preparation(self, body, targets):
+        if body._body_measurement is self:
+            body._update_body_measurement(self.capture_requested(targets))
 
     def geometry_targets(self, body):
-        return (body, *walk_depth_first(body, PreparedPaintSource, with_root=False))
+        return (body, *self.targets)
+
+    def capture_retirement(self, body, children):
+        capture = body.capture_native_paint(self)
+        return (capture.retire(body, self, children) if capture is not None
+                else BodyMeasurement.retire(self, body))
 
     def required(self):
         return LiveBody(self.width, self.rows, self.widgets)
@@ -589,6 +615,51 @@ class RenderedBody(MeasuredBody):
             await body.materialize_body()
 
 
+@dataclass(frozen=True)
+class BodyPaintCapture:
+    """Borrowed native paint and its participants until preparation/pruning.
+
+    Compositor supplies this exact cohort once. The temporary acquisition owns
+    its original source witnesses; the retained body owns only immutable rows,
+    so pruning does not keep the retired child widgets and resources alive.
+    """
+
+    content: PreparedRichContent
+    sources: tuple[tuple[PreparedPaintSource, PreparedRichContent], ...]
+    bodies: tuple[ViewportBody, ...]
+    style_revision: int
+    geometry_revision: int
+    paint_state: PaintState
+    widgets: int
+
+    def current(self, body):
+        return (self.style_revision == body._subtree_style_revision
+                and self.geometry_revision == body._geometry_revision
+                and all(owner.is_attached and owner.prepared_content is resource
+                        for owner, resource in self.sources)
+                and all(owner.is_attached and owner.body_ready for owner in self.bodies))
+
+    async def prepare(self, body, current):
+        size_bytes = await body.app.preparation.run_thread(retained_bytes, self.content)
+        return RenderedBody(
+            current.width, current.rows, self.widgets, content=self.content,
+            resource_bytes=size_bytes, style_revision=self.style_revision, paint_state=self.paint_state,
+        )
+
+    async def retire(self, body, current, children):
+        rendered = await self.prepare(body, current)
+        if not body.retirement_current(current) or not self.current(body) or not rendered.ready(body):
+            return False
+        async with body.retirement_custody() as can_commit:
+            if (not can_commit or not body.retirement_current(current)
+                    or not self.current(body) or not rendered.ready(body)):
+                return False
+            body._update_body_measurement(rendered)
+            body.retire_body_resources()
+            await body.remove_children(children)
+        return True
+
+
 class MeasuredViewportBody(ViewportBody):
     """The body owns Live, Rendered and Measured behavior, not copied flags."""
 
@@ -680,6 +751,9 @@ class MeasuredViewportBody(ViewportBody):
         # NodeList removal happens later and cannot invalidate it for us.
         self.refresh(layout=True)
         if self._body_viewport is not None:
+            if measurement.capture_pending:
+                self.screen.frame_presentation.defer(
+                    self._body_viewport.window, self._body_viewport.request)
             self._body_viewport.request()
 
     def notify_style_update(self):
@@ -763,65 +837,52 @@ class MeasuredViewportBody(ViewportBody):
         children = self.reconstructible_children()
         if not children:
             return BodyMeasurement.retire(current, self)
-        sources = self.prepared_paint_sources()
-        if not self.prepared_paint_is_current(sources):
+        screen = self.screen
+        if self._after_refresh_pending(screen, screen._layout_mutation_roots()):
             self._update_body_measurement(current.capture_requested())
+            screen.frame_presentation.defer(self._body_viewport.window, self._body_viewport.request)
             return BodyMeasurement.retire(current, self)
-        paint = self.capture_native_paint(current, sources=sources)
-        return self.finish_native_retirement(current, children, paint, sources)
+        return current.capture_retirement(self, children)
 
-    def prepared_paint_sources(self):
-        """Borrow original committed resources, including nested body contents."""
-        return tuple((child, child.prepared_content)
-                     for child in walk_depth_first(self, with_root=True)
-                     if isinstance(child, PreparedPaintSource))
-
-    def prepared_paint_is_current(self, sources):
-        current = self.prepared_paint_sources()
-        return (len(current) == len(sources)
-                and all(owner is original and resource is not None and resource is prepared
-                        for (owner, resource), (original, prepared) in zip(current, sources))
-                and all(child.body_ready for child in walk_depth_first(self, with_root=False)
-                        if isinstance(child, ViewportBody)))
-
-    def capture_native_paint(self, current, *, sources=None):
+    def capture_native_paint(self, current):
         """Capture once for retirement and preceding-source publication."""
-        if sources is None:
-            sources = self.prepared_paint_sources()
-        unprepared = MeasuredBody(current.width, current.rows, current.widgets)
         if (not current.ready(self) or not self.is_attached or self.lock.is_locked
                 or any(self in endpoint.walk_ancestors(with_self=True)
-                       for endpoint in self.screen._interaction_widgets())
-                or not self.prepared_paint_is_current(sources)):
-            return unprepared.prepare_publication(self)
+                       for endpoint in self.screen._interaction_widgets())):
+            return None
         compositor = self.screen._compositor
-        style_revision = self._subtree_style_revision
-        paint_state = self._resolved_paint_state()
         captured = tuple(compositor.published_geometry((self,)))
         if not captured:
-            return unprepared.prepare_publication(self)
+            return None
         _body, placement = captured[0]
-        size, rows = compositor.render_subtree_strips(self, placement)
-        # Arrangement may acquire a different width and start preparation.
-        # Its provisional rows cannot become the source's retained resource.
-        if not self.prepared_paint_is_current(sources):
-            return unprepared.prepare_publication(self)
+        sources = ()
+        bodies = ()
+
+        def admit(participants):
+            nonlocal sources, bodies
+            sources = tuple((owner, owner.prepared_content) for owner in participants
+                            if isinstance(owner, PreparedPaintSource))
+            bodies = tuple(owner for owner in participants
+                           if owner is not self and isinstance(owner, ViewportBody))
+            if (any(resource is None for _, resource in sources)
+                    or any(not owner.body_ready for owner in bodies)):
+                current.capture_preparation(self, tuple(dict.fromkeys(
+                    (*bodies, *(owner for owner, _ in sources)))))
+                return False
+            return True
+
+        native = compositor.render_subtree_strips(self, placement, admit=admit)
+        if native is None:
+            return None
+        size, rows = native
         # Native capture already owns final styled terminal rows. Retain those
         # rows directly; rendering them again in Rich workers duplicates work
         # and serializes a resource that never leaves this process.
         content = PreparedRichContent(size.width, tuple(rows))
-        widgets = self.materialized_widget_count
-
-        async def measured():
-            size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
-            if not self.prepared_paint_is_current(sources):
-                return unprepared
-            return RenderedBody(
-                current.width, current.rows, widgets, content=content,
-                resource_bytes=size_bytes, style_revision=style_revision, paint_state=paint_state,
-            )
-
-        return measured()
+        return BodyPaintCapture(
+            content, sources, bodies, self._subtree_style_revision,
+            self._geometry_revision, self._resolved_paint_state(), self.materialized_widget_count,
+        )
 
     def retirement_current(self, current):
         """Borrow current viewport demand again after asynchronous capture."""
@@ -839,23 +900,6 @@ class MeasuredViewportBody(ViewportBody):
             if not can_commit or not self.retirement_current(current):
                 return False
             self._update_body_measurement(MeasuredBody(current.width, current.rows, current.widgets))
-            self.retire_body_resources()
-            await self.remove_children(children)
-        return True
-
-    async def finish_native_retirement(self, current, children, paint, sources):
-        rendered = await paint
-        # The original state is the captured source/width/style lifetime. An
-        # asynchronous change invalidates it rather than copying a revision.
-        if not self.retirement_current(current):
-            return False
-        if not rendered.ready(self):
-            return False
-        async with self.retirement_custody() as can_commit:
-            if (not can_commit or not self.retirement_current(current) or not rendered.ready(self)
-                    or not self.prepared_paint_is_current(sources)):
-                return False
-            self._update_body_measurement(rendered)
             self.retire_body_resources()
             await self.remove_children(children)
         return True
@@ -1403,6 +1447,11 @@ class DocumentViewport:
                         return
                 if self._pending:
                     continue
+                if screen.frame_presentation.awaits_publication(self.window, self.request):
+                    # Foreground restoration remains free to prepare all
+                    # exposed siblings. Retirement resumes from the original
+                    # native callback after their geometry and paint publish.
+                    return
                 retiring = tuple(owner for owner in owners
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)

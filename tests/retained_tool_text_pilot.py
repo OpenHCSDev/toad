@@ -97,8 +97,7 @@ async def publication_lifetime(app, pilot, tool):
     assert text in set(app.screen._interaction_widgets())
     assert body in window.document_viewport.protected()
     assert tool in protected_blocks(conversation, (tool,))
-    measured = await body.capture_native_paint(body._body_measurement)
-    assert not isinstance(measured, RenderedBody)
+    assert body.capture_native_paint(body._body_measurement) is None
     await tool.update_tool_call(payload("gesture replacement"))
     assert body.query_one(TextContent) is not text
     assert app.screen._select_state is None and text not in app.screen.selections
