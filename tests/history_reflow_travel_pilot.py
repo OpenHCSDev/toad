@@ -1,6 +1,8 @@
 """Native saved-history trim must not become a new reader travel sample."""
 import asyncio
+from collections import Counter
 from dataclasses import replace
+import inspect
 import json
 import os
 from pathlib import Path
@@ -45,9 +47,39 @@ async def main():
                 await view.contents.mount(history)
             await pilot.pause()
             viewport = window.document_viewport
-            async with asyncio.timeout(10):
-                while viewport._worker is not None or not viewport.visible_bodies_ready:
-                    await pilot.pause(.02)
+            try:
+                async with asyncio.timeout(10):
+                    while viewport._worker is not None or not viewport.visible_bodies_ready:
+                        await pilot.pause(.02)
+            except TimeoutError:
+                def await_chain(task):
+                    current = task.get_coro()
+                    chain = []
+                    while inspect.iscoroutine(current) or inspect.isgenerator(current):
+                        if inspect.iscoroutine(current):
+                            frame, current = current.cr_frame, current.cr_await
+                        else:
+                            frame, current = current.gi_frame, current.gi_yieldfrom
+                        if frame is not None:
+                            chain.append(f"{Path(frame.f_code.co_filename).name}:{frame.f_code.co_name}:{frame.f_lineno}")
+                    return tuple(chain)
+                visible = app.screen._compositor.visible_widgets
+                print(json.dumps(dict(
+                    window_mutation=type(window.history_mutation_root).__name__,
+                    bodies=[dict(kind=type(body).__name__, visible=body in visible,
+                                 ready=body.body_ready, dormant=body.body_dormant,
+                                 measurement=type(body._body_measurement).__name__,
+                                 width=body._body_measurement.width,
+                                 rows=body._body_measurement.rows)
+                            for body in viewport.owners],
+                    workers=[dict(group=worker.group, node=type(worker.node).__name__,
+                                  state=worker.state.name, error=str(worker.error))
+                             for worker in app.workers],
+                    waits=[dict(count=count, chain=chain) for chain, count in
+                           Counter(await_chain(worker._task) for worker in app.workers
+                                   if worker._task is not None).items()],
+                )), flush=True)
+                raise
             marker = histories[-1]
             window.release_anchor()
             window.scroll_to_widget(marker, animate=False, immediate=True, top=True)
