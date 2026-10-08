@@ -791,3 +791,26 @@ feedback rather than bypassing requests.
 The initial evidence append was refused by the shell pre-execution parser on a
 quotation in documentation; no command ran. The original tracked bytes were
 materialized and this edit applied through the ordinary file patch tool.
+
+## Deferred empty notification contents — delivered
+
+Toad574 now creates the original native Contents only when the notification
+body is acquired. Native title/toggle/focus/collapsed styling retain their
+existing owners. General Collapsible child lifetimes are unchanged. The body
+is retained across close/reopen and recomposed with its original notification.
+Only compose/details change; all other methods are AST equal. Full288 production
+and417 test modules parsed without omissions. Mouse/keyboard disclosure, live
+error, collapsed update, reopen, recomposition and pre-mount acquisition passed
+in the actual native App against source and the installed wheel.
+
+The installed160-wheel/20-message/16-recipient burst recorded zero Contents
+layout requests (previous40). Input stayed ordered. Wheel median4.25ms,
+p95101.22/max145.45; final backlog10.32ms; framep95104.79/max152.90;
+loopmax75.78. Frame pacing still fails the requested responsiveness. Native121
+is also included; a single combined run does not isolate aggregate gains.
+
+Installed for new launches through the original frontend publisher:
+`.artifacts/dm-empty-disclosure-delivery-20261008/live-publication.json`.
+Core/backend defaults, route and running owners are preserved. Existing windows
+retain loaded modules. Raw checks/build/burst/publication:
+`/home/ts/.cache/agent-scratch/dm-empty-disclosure-20261008/`.
