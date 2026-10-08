@@ -67,7 +67,9 @@ class MessageNotifications(Collapsible):
         summary = " · ".join(f"{state} ({counts[state]})" for state in states[:3])
         if len(states) > 3:
             summary += f" · {sum(counts[state] for state in states[3:])} others"
-        self.title = Content(summary or "No recorded notification result")
+        title = Content(summary or "No recorded notification result")
+        if not title.is_same(Content.from_text(self.title)):
+            self.title = title
         if not self.collapsed:
             _ = self.details
         self.set_class(any(item.busy for item in notifications), "-working")
@@ -78,7 +80,9 @@ class MessageNotifications(Collapsible):
         if self._error == detail:
             return
         self._notifications, self._error = None, detail
-        self.title = Content("Notification status unavailable")
+        title = Content("Notification status unavailable")
+        if not title.is_same(Content.from_text(self.title)):
+            self.title = title
         if not self.collapsed:
             _ = self.details
         self.remove_class("-working")
