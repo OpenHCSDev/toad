@@ -26,6 +26,7 @@ async def main():
         comms.registry.declare(Thread(name, frozenset({'team'}), str(root),
             process_identity=ProcessIdentity.capture(os.getpid())))
     comms.channels.set_thread_pinned('#team', 'pinned', True)
+    comms.channels.set_channel_pinned('#team', True)
     comms.channels.set_channel_sort('#team', ThreadSort.LAST_ACTIVITY)
     comms.agents.set_activity('recent', ActivityState.IDLE)
     comms.agents.set_activity('older', ActivityState.IDLE)
@@ -37,6 +38,15 @@ async def main():
                      if group.row.target_name == '#team')
         await group.reveal_members()
         await pilot.pause()
+        channel_view = next(view for view in sidebar.projection.snapshot.wire.channels
+                            if view.channel.name == '#team')
+        expected_label = f"* #team {channel_view.active_agents}/{channel_view.registered_agents}"
+        assert str(group.row.content) == expected_label
+        epoch = group.row._layout_updates
+        await sidebar.projection.rebuild(sidebar.projection.snapshot)
+        await pilot.pause()
+        assert str(group.row.content) == expected_label
+        assert group.row._layout_updates == epoch, "Unchanged channel label requested layout"
         original = dict(group._members)
         unchanged = original['older']._thread_presentation
         assert tuple(row.target_name for row in group.member_container.children) == (
@@ -55,6 +65,9 @@ async def main():
         assert group._members == original
         assert original['older']._thread_presentation is unchanged
         assert original['recent']._thread_presentation.source.busy
+        channel_view = next(view for view in sidebar.projection.snapshot.wire.channels
+                            if view.channel.name == '#team')
+        assert str(group.row.content) == f"* #team {channel_view.active_agents}/{channel_view.registered_agents}"
         assert app._exception is None
         print('Actual activity moved the changed native row ahead of the retained row; '
               'pin, widget identity and unchanged paint resource preserved.', flush=True)
