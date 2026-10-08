@@ -10,6 +10,7 @@ from typing import cast
 from rich.console import RenderableType
 from rich.protocol import is_renderable
 from textual import events
+from textual.message import Message
 from textual._measurement import NATIVE_WIDGET_HEIGHT, NATIVE_WIDGET_WIDTH, height_dependency
 from textual.content import Content
 from textual.geometry import Region, Size
@@ -41,6 +42,9 @@ class WorkerStatic(Static):
     dimensions and requests only visible prepared rows. One in-flight request
     per widget coalesces source/style/size changes, and stale results are ignored.
     """
+
+    class ExtentReady(Message):
+        """This source request's final extent has committed to native layout."""
 
     def __init__(self, content: RenderableType | RichSource | Content = "", *,
                  name: str | None = None, id: str | None = None,
@@ -120,7 +124,11 @@ class WorkerStatic(Static):
         width = width if width is not None else (parent.scrollable_content_region.width
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
-        width = max(1, width or app.size.width)
+        # A mounted node may not have its native box yet. App width is not
+        # this widget's wrapping width; measurement/Resize supplies the real
+        # answer. Preparing the guessed width would discard a whole CPU job.
+        if width <= 0:
+            return
         options = app.console_options.update(width=width, height=None, highlight=False)
         link_style = self.link_style if self.auto_links and not self.screen._selecting else None
         wanted = self._wanted
@@ -177,7 +185,7 @@ class WorkerStatic(Static):
                         self._prepared = None
                         self._ready_request = request
                         super().update(f"Unable to prepare preview: {error}")
-                        self._ready.set()
+                        self.call_after_refresh(self._publish_ready, request)
                     continue
                 if self._closed or self._pruning or not self.is_attached:
                     return
@@ -204,7 +212,15 @@ class WorkerStatic(Static):
         # original layout/refresh completes, for the same source request.
         if (not self._closed and self.is_attached
                 and request == self._ready_request == self._wanted):
+            completed = self._ready.is_set()
             self._ready.set()
+            if not completed:
+                self.post_message(self.ExtentReady())
+
+    @property
+    def preparation_complete(self) -> bool:
+        """Successful rows and displayed errors both own a settled extent."""
+        return self._ready.is_set() and self._ready_request == self._wanted
 
     async def wait_ready(self) -> None:
         await self._ready.wait()
