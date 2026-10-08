@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
+from textual.binding import Binding
 from textual.dom import DOMNode
 from textual.events import Resize, ScreenResume
 from textual.geometry import Size
@@ -79,6 +80,8 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
 
 
 class WorkspaceScreen(SidebarFocusOwner, Screen):
+    BINDINGS = [Binding("ctrl+b,f20", "show_sidebar", "Sidebar")]
+
     @property
     def COMMANDS(self):
         return self.app.workspace_sessions.source.commands()
@@ -100,6 +103,18 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     def sidebar_focus_target(self):
         return self.app.workspace_sessions.source.sidebar_focus_target()
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action == "show_sidebar":
+            sidebar = self.app.workspace_chrome.channels
+            return sidebar.display and not sidebar.has_focus_within
+        return super().check_action(action, parameters)
+
+    def action_show_sidebar(self) -> None:
+        sidebar = self.app.workspace_chrome.channels
+        sidebar.reveal()
+        if title := sidebar.query_one_optional("SideBarCollapsible CollapsibleTitle"):
+            title.focus()
 
     # Keep measured geometry for fast revisits, but do not retain every inactive
     # tab's rendered line/segment graph in the cyclic collector's live heap.
