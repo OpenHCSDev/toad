@@ -281,7 +281,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self.settings = ToadSettings.open(self)
         self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
-        self._renderer_warmup_started = False
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()
         self.navigation_reader = NavigationReader()
@@ -374,6 +373,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
 
 
     async def on_load(self) -> None:
+        self.preparation.renderer.start()
         self._prewarm_conversation_css()
         db = await self.get_db()
         await db.create()
@@ -430,20 +430,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             self.navigation_reader.invalidate()
         self.session_navigation.entered(mode, self.selected_mode)
         return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
-
-    def _display(self, screen: Screen, renderable) -> None:
-
-        super()._display(screen, renderable)
-        if (not self._renderer_warmup_started and renderable is not None
-                and not self._batch_count and screen is self.screen):
-            self._renderer_warmup_started = True
-            self._warm_renderer()
-
-    @work(group="renderer-warmup", exit_on_error=False)
-    async def _warm_renderer(self) -> None:
-        await self.render_processes.warm_up(
-            project=self.project_dir, ansi=self.native_ansi_color, dark=self.current_theme.dark,
-        )
 
     def _load_screen_css(self, screen: Screen) -> None:
         from toad.screens.workspace import WorkspaceScreen
