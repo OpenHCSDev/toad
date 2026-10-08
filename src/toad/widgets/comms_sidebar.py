@@ -180,7 +180,9 @@ class ChannelGroup(SidebarGroup):
         row = self.row
         sidebar = self.query_ancestor(CommsSidebar)
         if row.is_attached:
-            row.tooltip = f"{len(view.members)} threads · tags: {', '.join(sorted(view.channel.tags)) or 'all'}"
+            row.set_label(f"{view.channel.name} {view.active_agents}/{view.registered_agents}")
+            row.tooltip = (f"{view.active_agents} running or idle / {view.registered_agents} registered agents"
+                           f" · tags: {', '.join(sorted(view.channel.tags)) or 'all'}")
             self.expanded = sidebar.navigation.state.expanded.get(
                 row.target_name, row.target.expanded_by_default)
 

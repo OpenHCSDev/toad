@@ -334,7 +334,8 @@ async def multi_channel_removal():
             dialog = app.screen
             assert dialog.definition.targets == ('#alpha', '#beta')
             assert 'Remove #alpha' in dialog.definition.confirmation
-            assert 'Remove #beta' in dialog.definition.confirmation
+            assert '#beta' in dialog.definition.confirmation
+            assert dialog.definition.confirmation.count('Threads, saved views and history remain.') == 1
             await pilot.click('#command-confirmed')
             await pilot.click('#command-apply')
             async with asyncio.timeout(10):
