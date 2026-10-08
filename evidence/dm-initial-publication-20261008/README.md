@@ -407,3 +407,28 @@ it demanded extent readiness for every mounted row before any input. The correct
 helper requires the actual visible row cohort to be ready, with the original
 30s bound and input workload unchanged. Both App handles are terminal, provider0.
 Parent owns the remaining active-channel publication/dispatch cost trace.
+
+## Compact native-content preparation
+
+IRCMessageSource already produces native Content, including symbolic styles,
+sender/target actions, URLs and authoritative mention spans. Its old RichSource
+base converted that Content to Rich Text and wrapped it through a second
+renderer. It now inherits the existing NativeContentSource implementation used
+by plain/ANSI tool output. Formatting remains in the worker; native wrapping,
+selection/source coordinates and strip metadata use that original owner.
+No widget, cache, codec or preparation queue was added.
+
+The full current src/tests/tools AST pass parsed 745 modules without omissions;
+all source construction and style consumers were inspected. The existing actual
+IRC App passed full-width wrapping at 80/36/120 columns, sender/target clicks,
+keyboard navigation and style-only no-layout publication. Its original control
+now also checks native select-all/copy preserves the complete source text.
+Raw: sidebar-drag-hotpath-20261007/dm-native-content-wrap-selection.log.
+
+The same private active-channel workload completed with this Toad source and
+the integrated owner-presentation Core source: wheel median24.0ms/p95195.5ms,
+maximum225.0ms; largest UI-loop gap84.1ms. This is one source-App run, not an
+installed/live or causal speedup claim. The workload still fails the requested
+frame pacing; all 160 wheel packets were ordered, 20 incoming messages were
+published and provider inputs were zero. Raw:
+sidebar-drag-hotpath-20261007/dm-native-content-wheel-20261008/result.json.
