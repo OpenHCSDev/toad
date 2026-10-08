@@ -239,10 +239,10 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
 
     def _initialize_document(self, markdown: str | None) -> AwaitComplete:
         # Mount admits the body; its materialization worker owns prepared
-        # content. Observe the original initialization on this body's pump,
-        # after mount, rather than holding the conversation's mount receipt.
-        # The native implementation retains source consumption and TOC order.
-        self.call_later(super()._initialize_document(markdown))
+        # content. Observe that original receipt after completion; waiting on
+        # this pump would hold wheel delivery behind background preparation.
+        # Native source consumption and TOC completion remain unchanged.
+        super()._initialize_document(markdown).call_when_ready(self)
         return AwaitComplete.nothing()
 
     def retire_body_resources(self) -> None:
