@@ -3,6 +3,7 @@ import sys
 
 import click
 from toad.app import ToadApp
+from toad.application_lifetime import ApplicationLifetime
 from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
 from toad.render_choices import RendererChoice
@@ -45,20 +46,6 @@ def renderer_from_cli(backend: str | None) -> Renderer | None:
         return RendererChoice.decode(backend).start()
     except (RuntimeError, ValueError) as error:
         raise click.ClickException(str(error)) from error
-
-
-def set_process_title(title: str) -> None:
-    """Set the process title.
-
-    Args:
-        title: Desired title.
-    """
-    try:
-        import setproctitle
-
-        setproctitle.setproctitle(title)
-    except Exception:
-        pass
 
 
 def check_directory(path: str) -> None:
@@ -212,7 +199,7 @@ def run(
             title=serve_command,
             public_url=public_url,
         )
-        set_process_title("toad --serve")
+        ApplicationLifetime.set_process_title("toad --serve")
         server.serve()
     else:
         app = ToadApp(
@@ -316,7 +303,7 @@ def acp(
             port=port,
             title=serve_command,
         )
-        set_process_title("toad acp --serve")
+        ApplicationLifetime.set_process_title("toad acp --serve")
         server.serve()
 
     else:
@@ -381,7 +368,7 @@ def serve(port: int, host: str, public_url: str | None = None) -> None:
     server = ToadWebServer(
         sys.argv[0], host=host, port=port, title="Toad", public_url=public_url
     )
-    set_process_title("toad serve")
+    ApplicationLifetime.set_process_title("toad serve")
     server.serve()
 
 

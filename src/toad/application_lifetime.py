@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from functools import partial
+from importlib import import_module
 import platform
 from time import monotonic
 from typing import TYPE_CHECKING
@@ -27,7 +28,7 @@ class UsageReports:
 
     async def deliver(self, event_name: str, properties: dict[str, object]) -> None:
         app = self.app
-        import httpx
+        httpx = await app.preparation.run_thread(import_module, "httpx")
         from toad import get_version
 
         width, height = app.size
@@ -52,6 +53,16 @@ class UsageReports:
 class ApplicationLifetime:
     """A confirmed quit and explicit quit share the same save-after-blur path."""
 
+    @staticmethod
+    def set_process_title(title: str) -> None:
+        """Name the terminal application or its CLI server process."""
+        try:
+            import setproctitle
+
+            setproctitle.setproctitle(title)
+        except Exception:
+            pass
+
     def __init__(self, app: ToadApp, initial_mode: str | None) -> None:
         self.app = app
         self.initial_mode = initial_mode
@@ -70,12 +81,11 @@ class ApplicationLifetime:
             await app.session_navigation.new(app.session_navigation.default_source)
         app.terminal_attention.attach()
         app.set_timer(1, self.check_version)
-        from toad.cli import set_process_title
-        app.run_worker(partial(set_process_title, "toad"), thread=True, exit_on_error=False)
+        app.run_worker(partial(self.set_process_title, "toad"), thread=True, exit_on_error=False)
         app.update_show_sessions()
 
     def check_version(self) -> None:
-        self.app.run_worker(self.version.check, exit_on_error=False)
+        self.app.run_worker(partial(self.version.check, self.app.preparation.run_thread), exit_on_error=False)
 
     def confirm_quit(self) -> None:
         now = monotonic()
