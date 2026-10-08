@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 from textual.content import Content
 from textual.style import Style
 from agent_comms.messages import Message
-from toad.rich_preparation import RichSource
+from toad.rich_preparation import NativeContentSource
 
 _INLINE = re.compile(
     r"(?<!\\)(?:`(?P<code>[^`\n]+)`|\*\*(?P<strong>[^\n]+?)\*\*|"
@@ -18,7 +18,7 @@ _INLINE = re.compile(
 
 
 @dataclass(frozen=True)
-class IRCMessageSource(RichSource):
+class IRCMessageSource(NativeContentSource):
     """Original wire content; formatting and wrapping belong to its worker."""
 
     message: Message

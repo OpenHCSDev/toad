@@ -11,6 +11,7 @@ from agent_comms.messages import Message, MessageType
 from textual import on
 from textual.app import ComposeResult
 from textual.screen import Screen
+from textual.selection import SELECT_ALL
 from runtime_fixture import ToadApp
 
 from toad.core.input_events import SelectTarget
@@ -131,6 +132,11 @@ async def main():
             ("explorer-grandchild", "thread"),
             ("#all", "channel"),
         ]
+        app.screen.selections = {body: SELECT_ALL}
+        await body.wait_ready()
+        await pilot.pause()
+        assert body.get_selection(SELECT_ALL)[0] == body._source.materialize().plain
+        assert body._wanted.task.source.selection is not None
         assert app._exception is None
     print(
         "IRC wrapping: full-width body, newlines, clickable spans and keyboard navigation passed"
