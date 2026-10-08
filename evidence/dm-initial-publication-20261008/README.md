@@ -212,3 +212,27 @@ Profiles are in `wheel-owner-profile-20261008` and
 `wheel-owner-assigned-width-20261008` under the existing sidebar scratch root.
 Two diagnostic setup negatives (subclass CSS path and multiprocessing main
 guard) remain recorded; they are not rendering or provider failures.
+
+### Installed candidate remains unpublished
+
+The candidate passed full installed asset/origin/RECORD verification and the
+three-resize source/style/selection check. Its paged-message journey timed out
+reconstructing the older offscreen message after posting a following response.
+The current installed predecessor fails the same check without the width
+change. This is not evidence that the width change caused the failure, nor
+proof that the affected paged path is qualified.
+
+Failure-only diagnostics now record the complete awaited task chains and the
+original native callback/mutation owners. The parent is waiting in
+replace_range/join_part_publications under its source mutation while nested
+Markdown workers await native mounting. Preparation callbacks remain held by
+that mutation. The exact cycle and repair still need source ownership analysis;
+the observed waits alone do not prove deadlock. No new package was published.
+
+Original negatives and diagnostics are retained in
+`assigned-parent-width-*.log`, `paged-body-wait.log` and
+`paged-publication-wait.log` under the same scratch root, with private fixture
+state in `dmnw3` through `dmnw8`. All those App attempts are terminal; none
+submitted provider input. Previous writer interval statistics include the
+100ms wheel input cadence and idle settlement; they do not alone prove a
+317ms input-to-pixel stall.

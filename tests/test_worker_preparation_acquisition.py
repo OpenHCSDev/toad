@@ -304,7 +304,7 @@ def test_active_markdown_acquires_inline_content_off_ui(tmp_path, monkeypatch):
     from textual import events
     from textual.widgets._markdown import MarkdownBlock, MarkdownHeader, MarkdownTable
     from toad.live_output import ResponseStream
-    from viewport_recent_tabs_pilot import settled
+    from viewport_recent_tabs_pilot import settled, task_waiting
     from sidebar_retirement_pilot import viewport_text
     from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 
@@ -514,7 +514,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
     from toad.rich_preparation import PreparedPaintSource
     from toad.widgets.viewport_body import MeasuredViewportBody, RenderedBody
     from textual.walk import walk_depth_first
-    from viewport_recent_tabs_pilot import settled
+    from viewport_recent_tabs_pilot import settled, task_waiting
     from sidebar_retirement_pilot import viewport_text
 
     async def mounted():
@@ -639,7 +639,6 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                            or tuple(walk_depth_first(document, PreparedPaintSource))):
                         await pilot.pause(.02)
             except TimeoutError:
-                import traceback
                 receipt = {
                     "measurement": type(document._body_measurement).__name__,
                     "viewport_pending": window.document_viewport._pending,
@@ -674,8 +673,13 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                     "children": [(type(child).__name__, child._pruning, child._closing,
                                   str(child._task)) for child in document.children],
                     "fragments": [type(child).__name__ for child in document.fragment_views],
-                    "tasks": ["".join(traceback.format_stack(frame))
-                              for task in asyncio.all_tasks() for frame in task.get_stack()],
+                    "workers": [{"group": worker.group, "node": type(worker.node).__name__,
+                                    "state": worker.state.name, "waiting": task_waiting(worker._task)}
+                                   for worker in app.workers],
+                    "tasks": [task_waiting(task) for task in asyncio.all_tasks()],
+                    "native_callbacks": [(type(sender).__name__, str(callback))
+                                         for callback, sender in app.screen._callbacks],
+                    "mutation_roots": [str(node) for node in app.screen._layout_mutation_roots()],
                 }
                 (tmp_path / "retirement-timeout.json").write_text(json.dumps(receipt, indent=2))
                 raise
