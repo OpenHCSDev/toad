@@ -596,3 +596,26 @@ boundary. Changed vertical membership still requires cumulative placement;
 there is no supported blanket native invalidation deletion. Next investigation
 is delayed original pointer completion and page-admission timing using the
 captured packet/scroll relation, alongside measured synchronous reflow cost.
+
+
+### Original pointer wait versus mount acquisition
+
+Dispatch observation records original native queues without changing delivery:
+App MouseScrollUp247.8ms; MountedMessageHistory Callback219.38ms (update_styles
+plus original next-callback flush); overlapping IRCMessage Compose188–208ms.
+These are wall durations including waits, not exclusive CPU or style cost.
+Source: Widget.mount registers children, posts update_styles and schedules the
+same AwaitMount with call_next. MessagePump._dispatch_message then awaits its
+next callbacks before completing the parent dispatch. AwaitMount waits every
+original child mounted event under its completion lock, then refreshes parent
+layout/mouse geometry. Wheel delivery awaits original routed/bubbled queues,
+including this mounted-history parent. Thus unrelated new-child acquisition can
+hold existing viewport input despite a responsive asyncio loop.
+No wheel bypass or reordering is justified. Native owner Arendt owns moving
+optional mount completion through its original lifetime without blocking the
+parent input queue, preserving explicit awaits, unawaited mounts, errors,
+layout/mouse currentness and cancellation. Parent remains Toad writer.
+Raw: prepared-style-measurement-20261008/candidate-dispatch-waits/
+(dispatch-waits.json,ui-cpu.json,result.json). Same original private fixture,
+160 ordered wheel packets,20 updates/16 recipients,0provider; handle terminal.
+Prepared-style candidate publication remains held; current default unchanged.
