@@ -14,7 +14,6 @@ from textual.css.query import NoMatches
 from textual import containers
 from textual.widgets import Static
 from textual.widget import Widget
-from textual.walk import walk_depth_first
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
@@ -33,7 +32,6 @@ from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.widgets.viewport_body import MeasuredViewportBody
-from toad.rich_preparation import PreparedPaintSource
 from textual.await_complete import AwaitComplete
 
 class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
@@ -44,11 +42,6 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
     @property
     def output(self) -> ToolOutput:
         return self.query_ancestor(ToolCall).output
-
-    def native_body_ready(self) -> bool:
-        return (super().native_body_ready()
-                and all(worker.presentation_ready for worker in
-                        walk_depth_first(self, PreparedPaintSource, with_root=False)))
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
