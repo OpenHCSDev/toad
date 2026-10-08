@@ -38,6 +38,10 @@ class RichSource(ABC):
     def prepare(self, presentation: RichPresentation) -> PreparedRichContent:
         return prepare_rich(self, presentation)
 
+    def same_source(self, other: RichSource) -> bool:
+        """Mutable/custom renderables must acquire their supplied value again."""
+        return False
+
     def capture_selection(self, selection: Selection | None,
                           style: NativeStyle | None) -> RichSource:
         return self
@@ -90,6 +94,13 @@ class ContentSource(NativeContentSource):
     """Already acquired native content retains its symbolic component styles."""
 
     value: Content
+
+    def same_source(self, other: RichSource) -> bool:
+        # Content equality is text-only. Spans also own formatting, links and
+        # action targets, so only its native full-content comparison suffices.
+        return (type(other) is type(self) and self.value.is_same(other.value)
+                and self.selection == other.selection
+                and self.selection_style == other.selection_style)
 
     @classmethod
     def capture(cls, value: Content, selection: Selection | None,
