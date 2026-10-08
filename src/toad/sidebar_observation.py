@@ -102,7 +102,7 @@ class SidebarObservation:
         # own revision invalidates its snapshot; do not force a full history
         # read whenever a selected rich Conversation is reconstructed.
         await self.sidebar.projection.sync_sessions()
-        self.sidebar.navigation.mode_changed(self.sidebar.app.selected_mode)
+        self.sidebar.sync_current()
         self.refresh()
 
     async def sync(self) -> None:

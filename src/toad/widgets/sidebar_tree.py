@@ -172,6 +172,9 @@ class SidebarGroup(VerticalGroup):
                 prepared[group][key] = pending[source]
             for group in admitted:
                 await group._reconcile_members(prepared[group], witnesses[group])
+            for tree in dict.fromkeys(group.query_ancestor(TargetTree) for group in admitted
+                                      if group.accepts_members()):
+                tree.sync_current()
 
     async def reconcile_rows(self, keys, rows, create, update, *, replace=None):
         """Retain rows by identity; specialize their construction and content only.
@@ -216,14 +219,72 @@ class SidebarGroup(VerticalGroup):
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
-    DEFAULT_CSS = """
-    TargetTree .-selected, TargetTree .-selected:hover, TargetTree .-selected:focus {
-        background: #ad8bf5; color: #161021 !important; text-style: bold;
-    }
-    TargetTree:ansi .-selected, TargetTree:ansi .-selected:hover, TargetTree:ansi .-selected:focus {
-        background: ansi_magenta; color: ansi_black !important; text-style: bold;
-    }
-    """
+    @property
+    def selection_state(self):
+        raise NotImplementedError
+
+    def selection_for(self, row):
+        raise NotImplementedError
+
+    def accepts_selection(self) -> bool:
+        return True
+
+    def remember_row(self, row) -> None:
+        """Navigation establishes a range anchor; it is not bulk selection."""
+        rows = self._ordered_rows()
+        if self.accepts_selection() and row in rows:
+            self._cursor = rows.index(row)
+            state = self.selection_state
+            state.selected = self.selection_for(row)
+            state.selected_targets = ()
+            self.apply_selection()
+
+    def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
+        if not self.accepts_selection():
+            return
+        rows = self._ordered_rows()
+        if row not in rows:
+            return
+        selected = self.selection_for(row)
+        state = self.selection_state
+        current = state.selected_targets
+        if menu and selected in current:
+            return
+        identities = tuple(self.selection_for(item) for item in rows)
+        if shift and state.selected in identities:
+            start, end = sorted((identities.index(state.selected), identities.index(selected)))
+            span = identities[start:end + 1]
+            state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
+        elif control:
+            state.selected_targets = (tuple(item for item in current if item != selected)
+                                      if selected in current else (*current, selected))
+            state.selected = selected
+        else:
+            state.selected = selected
+            state.selected_targets = (selected,)
+        self.apply_selection()
+
+    def apply_selection(self) -> None:
+        rows = self._ordered_rows()
+        state = self.selection_state
+        identities = {self.selection_for(row) for row in rows}
+        state.selected_targets = tuple(target for target in state.selected_targets if target in identities)
+        for row in rows:
+            row.set_class(self.selection_for(row) in state.selected_targets, "-selected")
+
+    @property
+    def navigation_root(self):
+        raise NotImplementedError
+
+    def sync_current(self) -> None:
+        """Every representation of the displayed destination shares its paint."""
+        view = self.app.selected_session
+        root = self.navigation_root
+        target = (view.navigation_target_name
+                  if view is not None and root is not None and view.belongs_to_wire(root)
+                  else None)
+        for row in self._ordered_rows():
+            row.current = row.target_name == target
 
     def _ordered_rows(self):
         raise NotImplementedError

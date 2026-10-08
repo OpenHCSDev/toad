@@ -41,6 +41,7 @@ class RelationshipTreeState:
     expanded: dict[str, bool] = field(default_factory=dict)
     scroll: dict[str, float] = field(default_factory=dict)
     selected: tuple[str, str] | None = None
+    selected_targets: tuple[tuple[str, str], ...] = ()
 
 
 class RelationshipSort(SortControl[ThreadSort]):
@@ -103,8 +104,6 @@ class RelationshipRow(CommsRow):
         if event.button == 3:
             event.stop()
             self.query_ancestor(ThreadCommsSidebar).show_row_menu(self, event.screen_offset)
-        else:
-            super().on_click(event)
 
 
 class RelationshipRows(SidebarGroup):
@@ -161,7 +160,6 @@ class RelationshipRows(SidebarGroup):
         if (self.model is not model or tree.owner != owner
                 or tree._generation != generation):
             return
-        state = tree.view_state
         container = self.member_container
         entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
         empty = container.query_one_optional(".relationship-empty")
@@ -199,13 +197,13 @@ class RelationshipRows(SidebarGroup):
                 row.tooltip = entry.target
             if entry.detail:
                 row.tooltip = Content(f"{entry.target}\n{entry.detail}")
-            row.set_class(state.selected == (self.model.key, entry.target), "-selected")
 
         wanted = tuple(key for key in entries if self.expanded or key in self.rows)
         ordered = await self.reconcile_rows(
             wanted, self.rows, create, update,
             replace=lambda key, row: row.thread_incarnation != (
                 entries[key].person.thread.incarnation if entries[key].person is not None else None))
+        tree.apply_selection()
         if ordered != previous_order:
             if old_scroll > 0 and anchor in ordered:
                 new_y = sum(2 if row.has_class("-wire-thread") else 1
@@ -228,7 +226,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         super().__init__()
         self.owner = owner
         self.wire_root = wire_root
-        self.selected = ""
         self._cursor = 0
         self._generation = 0
         self._refresh_task = None
@@ -302,6 +299,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         # seven checkbox queries on every global update in every hidden tab.
         if self._live:
             self._bind_screen_identity()
+        self.sync_current()
         self._sync_filter_control()
         self.refresh_relationships()
 
@@ -342,6 +340,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         if self._live:
             self._bind_screen_identity()
+        self.sync_current()
         self._sync_filter_control()
         self.refresh_relationships()
 
@@ -493,14 +492,16 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 for row in group.visible_members
                 if isinstance(row, RelationshipRow) and row.is_navigation_row()]
 
-    def remember_row(self, row):
-        if row not in self._ordered_rows():
-            return
-        group = row.query_ancestor(RelationshipRows)
-        self.view_state.selected = group.model.key, row.target_name
-        self.selected = row.target_name
-        for visible in self._ordered_rows():
-            visible.set_class(visible is row, "-selected")
+    @property
+    def selection_state(self):
+        return self.view_state
+
+    def selection_for(self, row):
+        return row.query_ancestor(RelationshipRows).model.key, row.target_name
+
+    @property
+    def navigation_root(self):
+        return Path(self.wire_root).expanduser().resolve() if self.wire_root is not None else None
 
     def unread(self, target: NavigationTarget):
         access = self.app.coordination_access

@@ -15,7 +15,6 @@ class SidebarNavigation:
         self.painted_selection = None
         self.painted_targets = ()
         self.selected_row = None
-        self.painted_mode = None
         self.selection_applied = False
 
     @property
@@ -37,7 +36,6 @@ class SidebarNavigation:
         self.ready.clear()
         self.selected_row = None
         self.selection_applied = False
-        self.painted_mode = None
 
     def capture(self) -> None:
         if not self.restoring:
@@ -91,51 +89,11 @@ class SidebarNavigation:
                 return
             self.ready.set()
 
-    def selection_for(self, row: CommsRow) -> SidebarSelection:
-        channel = row.query_ancestor(ChannelGroup).row.target_name
-        return SidebarSelection(channel, row.target_name)
-
-    def remember(self, row: CommsRow) -> None:
-        if self.restoring:
-            return
-        rows = self.sidebar.projection.rows
-        if row in rows:
-            self.sidebar._cursor = rows.index(row)
-            self.state.selected = self.selection_for(row)
-            self.state.selected_targets = (self.state.selected,)
-            self.apply()
-
-    def pointer_select(self, row: CommsRow, *, control=False, shift=False, menu=False) -> None:
-        """Selection is view intent; backend declarations own the operations."""
-        if self.restoring:
-            return
-        rows = self.sidebar.projection.rows
-        if row not in rows:
-            return
-        selected = self.selection_for(row)
-        current = self.state.selected_targets
-        if menu and selected in current:
-            return
-        identities = tuple(self.selection_for(item) for item in rows)
-        if shift and self.state.selected in identities and selected in identities:
-            start, end = sorted((identities.index(self.state.selected), identities.index(selected)))
-            span = identities[start:end + 1]
-            self.state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
-        elif control:
-            self.state.selected_targets = (tuple(item for item in current if item != selected)
-                                           if selected in current else (*current, selected))
-            self.state.selected = selected
-        else:
-            self.state.selected = selected
-            self.state.selected_targets = (selected,)
-        self.selection_applied = False
-        self.apply()
-
     def menu_context(self, row: CommsRow):
         from dataclasses import replace
         context = row.target.menu_context(
             self.sidebar, mode_name=row.mode_name,
-            channel=self.selection_for(row).channel)
+            channel=self.sidebar.selection_for(row).channel)
         selected = self.state.selected_targets
         names = tuple(dict.fromkeys(item.target for item in selected))
         if len(selected) < 2:
@@ -155,25 +113,25 @@ class SidebarNavigation:
     def rows_changed(self) -> None:
         """Native row replacement invalidates retained navigation paint."""
         self.selection_applied = False
-        self.painted_mode = None
 
     def apply(self) -> None:
         if self.selection_current():
             return
         rows = self.sidebar.projection.rows
-        identities = {self.selection_for(row) for row in rows}
+        identities = {self.sidebar.selection_for(row) for row in rows}
         # Collapsed resources still exist, but are not admitted selection or
         # range endpoints. Keep the header as the surviving navigation anchor.
+        had_selection = bool(self.state.selected_targets)
         self.state.selected_targets = tuple(
             target for target in self.state.selected_targets if target in identities)
         if self.state.selected is not None and self.state.selected not in identities:
             header = SidebarSelection(self.state.selected.channel, self.state.selected.channel)
             self.state.selected = header if header in identities else None
-            if not self.state.selected_targets and self.state.selected is not None:
+            if had_selection and not self.state.selected_targets and self.state.selected is not None:
                 self.state.selected_targets = (self.state.selected,)
         self.selected_row = None
         for index, row in enumerate(rows):
-            identity = self.selection_for(row)
+            identity = self.sidebar.selection_for(row)
             row.set_class(identity in self.state.selected_targets, "-selected")
             if identity == self.state.selected:
                 self.selected_row = row
@@ -192,40 +150,20 @@ class SidebarNavigation:
             return before != viewport.scroll_y
         return False
 
-    def mode_changed(self, mode_name: str) -> None:
-        from toad.screens.comms import CommsScreen
-
-        if not self.sidebar.accepts_publication():
-            return
-        if self.sidebar.screen is not self.sidebar.app.screen:
-            # A tab switch changes presentation, not the channel roster's
-            # lifetime. Keep keyed rows and reconcile real source changes on
-            # activation; closing the screen still performs normal teardown.
-            self.sidebar.projection.pause_spinner()
-            return
-        target = self.sidebar.screen.target if isinstance(self.sidebar.screen, CommsScreen) and self.sidebar.screen.is_active else None
-        if self.painted_mode == (mode_name, target):
-            return
-        for row in self.sidebar.projection.thread_rows:
-            row.current = row.mode_name == mode_name
-        for row in self.sidebar.projection.channels.values():
-            row.current = row.target_name == target
-        self.painted_mode = (mode_name, target)
-
     async def focus_current(self) -> None:
         """Focus the current session in this authoritative sessions view."""
         await self.sidebar.observation.sync()
         rows = self.sidebar.projection.rows
         if not rows:
             return
-        current_mode = self.sidebar.app.selected_mode
-        if not any(row.mode_name == current_mode for row in self.sidebar.projection.session_rows):
+        self.sidebar.sync_current()
+        if not any(row.current for row in rows):
             aggregate = self.sidebar.projection.channels.get(ALL_COMMS_TARGET)
             if aggregate is not None:
                 group = aggregate.query_ancestor(ChannelGroup)
                 await group.reveal_members()
                 rows = self.sidebar.projection.rows
-        target = next((row for row in self.sidebar.projection.session_rows if row.mode_name == current_mode), rows[0])
+        target = next((row for row in rows if row.current), rows[0])
         self.sidebar._cursor = rows.index(target)
         self.sidebar._apply_cursor(rows)
         target.focus()

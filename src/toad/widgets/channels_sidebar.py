@@ -7,10 +7,10 @@ from textual.widget import Widget
 
 
 class ChannelsSidebar(CommsSideBar):
-    def __init__(self, session_thread: str = "", selected_target: str = "", *,
+    def __init__(self, session_thread: str = "", *,
                  observe: bool = True, defer_mount: bool = False) -> None:
         self.roster = CommsSidebar(
-            session_thread=session_thread, selected_target=selected_target, observe=observe,
+            session_thread=session_thread, observe=observe,
         )
         super().__init__(
             SideBar.Panel(

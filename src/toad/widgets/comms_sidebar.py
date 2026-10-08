@@ -170,7 +170,6 @@ class ChannelGroup(SidebarGroup):
             row.mode_name = modes.get(name)
             row.target = person_target(snapshot.all_people[name])
             row.apply_thread_preparation(prepared_rows[name])
-            row.current = row.mode_name == app.selected_mode
 
         await self.reconcile_rows(
             prepared_rows, self._members, create, update,
@@ -209,7 +208,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         return self.target.name
 
     def show_menu(self, sidebar, offset) -> None:
-        sidebar.navigation.pointer_select(self, menu=True)
+        sidebar.pointer_select(self, menu=True)
         sidebar.navigation.menu_context(self).show_menu(sidebar, offset)
 
 
@@ -219,9 +218,15 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         height: auto;
         padding: 0;
     }
-    CommsRow.-selected { background: $accent 35%; }
+    CommsRow.-selected, CommsRow.-selected:hover, CommsRow.-selected:focus {
+        background: $accent 25%;
+    }
+    CommsRow:ansi.-selected, CommsRow:ansi.-selected:hover, CommsRow:ansi.-selected:focus {
+        background: ansi_blue;
+    }
     CommsRow.-unread { text-style: bold; }
     CommsRow.-current { color: $text; text-style: bold; }
+    CommsRow.-current:hover, CommsRow.-current:focus { text-style: bold underline; }
     CommsRow.-channel-active { color: $warning 100%; text-style: bold; }
     """
 
@@ -256,7 +261,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     @property
     def selected(self) -> bool:
         sidebar = self.sidebar_owner()
-        return sidebar is not None and sidebar.navigation.selection_for(self) in sidebar.navigation.state.selected_targets
+        return sidebar is not None and sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
     def set_label(self, label: str) -> None:
         self.retire_thread_preparation()
@@ -281,7 +286,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
 
     def action_open_selected(self) -> None:
         if sidebar := self.sidebar_owner():
-            sidebar.navigation.remember(self)
+            sidebar.remember_row(self)
         screen = self.app.selected_session
         if isinstance(screen, NavigationOwner):
             # The route outlives this row (inactive rosters are retired after
@@ -308,7 +313,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         if sidebar := self.sidebar_owner():
             if event.ctrl or event.shift:
                 event.stop()
-                sidebar.navigation.pointer_select(self, control=event.ctrl, shift=event.shift)
+                sidebar.pointer_select(self, control=event.ctrl, shift=event.shift)
                 return
         self.action_open_selected()
 
@@ -321,7 +326,7 @@ class ThreadRow(CommsRow):
             super().action_open_selected()
         else:
             if sidebar := self.sidebar_owner():
-                sidebar.navigation.remember(self)
+                sidebar.remember_row(self)
             self.app.select_session(self.mode_name)
 
 
@@ -453,14 +458,13 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     selected: reactive[str] = reactive("", init=False)
     session_thread: reactive[str] = reactive("", init=False)
 
-    def __init__(self, session_thread: str = "", selected_target: str = "", *,
+    def __init__(self, session_thread: str = "", *,
                  observe: bool = True, **kwargs):
         super().__init__(**kwargs)
         from toad.sidebar_navigation import SidebarNavigation
         from toad.sidebar_observation import SidebarObservation
         from toad.sidebar_projection import SidebarProjection
         self.session_thread = session_thread
-        self.selected = selected_target
         self.can_focus = True
         self._cursor = 0
         self.navigation = SidebarNavigation(self)
@@ -489,7 +493,7 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
 
     @handles(SessionSelected)
     async def session_selected(self, event: CoreEventMessage) -> None:
-        self.navigation.mode_changed(event.event.mode_name)
+        self.sync_current()
 
     @handles(ThreadActionsChanged)
     async def thread_actions_changed(self, event: CoreEventMessage) -> None:
@@ -510,6 +514,26 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
     def _ordered_rows(self):
         return self.projection.rows
 
+    @property
+    def selection_state(self):
+        return self.navigation.state
+
+    def selection_for(self, row):
+        from toad.session_tracker import SidebarSelection
+        return SidebarSelection(row.query_ancestor(ChannelGroup).row.target_name, row.target_name)
+
+    def accepts_selection(self) -> bool:
+        return not self.navigation.restoring
+
+    def apply_selection(self) -> None:
+        self.navigation.selection_applied = False
+        self.navigation.apply()
+
+    @property
+    def navigation_root(self):
+        service = self.observation.service
+        return service.root if service is not None else None
+
     def action_open_selected(self) -> None:
         rows = self.projection.rows
         focused = self.app.focused if self.app else None
@@ -521,8 +545,7 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         else:
             return
         self._apply_cursor(rows)
-        self.navigation.remember(target)
-        self.selected = target.target_name
+        self.remember_row(target)
         target.action_open_selected()
 
     def on_click(self, event) -> None:

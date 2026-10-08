@@ -74,9 +74,8 @@ class WorkspaceChrome:
         roster = self.channels.roster
         roster.navigation.capture()
         await roster.observation.bind(view.app.coordination_access.service)
-        actor, target = view.channels_context()
+        actor, _ = view.channels_context()
         roster.session_thread = actor
-        roster.selected = target
         roster.observation.set_enabled(view.shows_channels)
         self.channels.display = view.shows_channels
         self.footer.compact = view.footer_compact
