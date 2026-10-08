@@ -124,14 +124,14 @@ class WorkerStatic(PreparedPaintSource, Static):
             raise TypeError("WorkerStatic requires data-only Rich content or RichSource")
         self.set_source(cast(RenderableType | RichSource, content))
 
-    def _request_preparation(self, width: int | None = None, *, capture: bool = False) -> None:
+    def _request_preparation(self, *, capture: bool = False) -> None:
         if self._closed or self._pruning or not self.is_attached:
             return
         app = self.app
         assert isinstance(app, ToadApp)
         auto_width = self.styles.is_auto_width
         parent = self.parent
-        width = width if width is not None else (parent.scrollable_content_region.width
+        width = (parent.scrollable_content_region.width
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
         # A mounted node may not have its native box yet. App width is not
