@@ -58,8 +58,6 @@ def test_history_publication_scope_owns_native_fence_and_releases_on_cancel(tmp_
             assert window.history_mutation_root is None
             assert not window.lock.is_locked
             async with window.lock:
-                assert window.history_mutation_root is None
-            async with window.preserve_history(None):
                 assert window.history_mutation_root is window
             assert window.history_mutation_root is None
             assert app._exception is None
@@ -664,10 +662,10 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                         "content_lock": document._content_lock.locked(),
                         "stream": str(document._stream),
                         "children": len(document.reconstructible_children()),
-                        "capture_admitted": document.capture_native_paint(document._body_measurement) is not None,
+                        "prepared_current": document.prepared_paint_is_current(document.prepared_paint_sources()),
                         "published_placement": str(tuple(app.screen._compositor.published_geometry((document,)))),
-                        "missing_paint": [str(owner) for owner in document.body_geometry_targets()
-                                          if isinstance(owner, PreparedPaintSource) and owner.prepared_content is None],
+                        "missing_paint": [str(owner) for owner, content in document.prepared_paint_sources()
+                                          if content is None],
                         "nested_not_ready": [str(owner) for owner in walk_depth_first(document, MeasuredViewportBody)
                                              if not owner.body_ready],
                     },

@@ -16,7 +16,6 @@ from time import perf_counter
 from agent_comms.comms import Comms
 from textual._compositor import Compositor
 from toad.app import ToadApp
-from toad.rich_preparation import PreparedPaintSource
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -64,16 +63,11 @@ async def main():
             async def acquire_capture(member):
                 """Exercise the body's original complete-row acquisition."""
                 async with asyncio.timeout(10):
-                    while True:
-                        await pilot.pause(.02)
-                        if not member._after_refresh_pending(app.screen, app.screen._layout_mutation_roots()):
-                            capture = member.capture_native_paint(member._body_measurement)
-                            if (capture is not None and capture.current(member)
-                                    and not member._after_refresh_pending(app.screen, app.screen._layout_mutation_roots())):
-                                return
+                    while not member.prepared_paint_is_current(member.prepared_paint_sources()):
                         if member.body_ready and not member.body_capture_pending:
                             assert not await member.retire_body()
                             assert member.body_capture_pending
+                        await pilot.pause(.02)
 
             await settle()
             live_targets = tuple(owner for owner in viewport.body_roots()
@@ -160,20 +154,10 @@ async def main():
             await pilot.pause()
             compare()
             receipt['resize_invalidated'] = True
-            # Native exposure owns source custody even in this parked fixture.
-            # The styled fragment is visible here and may not be pruned.
-            assert not await body.retire_body()
-            window.styles.height = 4
-            await pilot.pause()
-            window.release_anchor()
-            window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
-            await pilot.pause()
-            assert not viewport.requires_body(body)
             old_children = set(body.walk_children())
-            await acquire_capture(body)
             assert await body.retire_body()
             await pilot.pause()
-            retired_scene, _, _placement = compare()
+            retired_scene, _ = compare()
             assert not old_children & retired_scene.keys()
             await body.restore_body()
             await pilot.pause()
@@ -181,13 +165,9 @@ async def main():
             assert body.body_ready and not old_children & set(body.walk_children())
             # The original body family paints full retained rows on reentry.
             # A restoration may not parse/remount at the same width.
-            full_body = "\n\n".join(f"Retained native paragraph {index}." for index in range(40))
-            family = [body, PreparedConversationMarkdown("# Native prepared body\n\n" + full_body),
-                      StreamingMarkdown("# Native streaming body\n\n" + full_body, paginate=False)]
-            from textual.widget import Widget
-            trailing_space = Widget()
-            trailing_space.styles.height = 40
-            await window.mount(*family[1:], trailing_space)
+            family = [body, PreparedConversationMarkdown("# Native prepared body\n\nRetained full lines."),
+                      StreamingMarkdown("# Native streaming body\n\nRetained full lines.", paginate=False)]
+            await window.mount(*family[1:])
             await pilot.pause()
             window.release_anchor()
             window.scroll_to(y=window.max_scroll_y, animate=False, immediate=True)
@@ -207,24 +187,6 @@ async def main():
             for member in family:
                 await acquire_capture(member)
             scene.reflow(app.screen, app.size)
-            # A real declaration write may arrive between native bands. The
-            # original capture must discard its partial rows and leave every
-            # native child in custody, rather than publish mixed-style paint.
-            for member in family:
-                children = tuple(member.children)
-                original_color = member.styles.color
-                retirement = asyncio.create_task(member.retire_body())
-                asyncio.get_running_loop().call_soon(setattr, member.styles, 'color', '#bada55')
-                try:
-                    assert not await retirement, type(member).__name__
-                    assert not member.body_dormant and tuple(member.children) == children
-                    assert all(child.is_attached for child in children)
-                finally:
-                    member.styles.color = original_color
-                await pilot.pause()
-                scene.reflow(app.screen, app.size)
-                await acquire_capture(member)
-            receipt['between_band_style_write_retains_all_native_children'] = len(family)
             native_captures = Counter()
 
             def observe_capture(frame, event, arg):
@@ -246,8 +208,8 @@ async def main():
                         operations.append(operation)
                 finally:
                     sys.setprofile(None)
-                # Acquire each cohort's original geometry/resources before
-                # band painting or first removal can yield to another task.
+                # Borrow rows before preparation can yield and first removal
+                # can invalidate sibling placement in the original scene.
                 assert native_captures == Counter(bodies=len(family)), native_captures
                 assert all(not member.body_dormant for member in family)
                 assert all(await asyncio.gather(*operations))
@@ -263,11 +225,7 @@ async def main():
                 published_scene = scene._full_map, scene._visible_map
                 captured_member, placement = next(scene.published_geometry((member,)))
                 assert captured_member is member
-                native = scene.render_subtree_strips(member, placement, admit=lambda participants: True)
-                assert native is not None
-                _, bands = native
-                for _ in bands:
-                    pass
+                scene.render_subtree_strips(member, placement)
                 assert scene._full_map is published_scene[0]
                 assert scene._visible_map is published_scene[1]
                 if not member.body_dormant:
@@ -444,8 +402,7 @@ async def main():
                     member.lock.is_locked, member in viewport.protected(),
                     [(type(source).__name__, source.presentation_ready,
                       source.prepared_content is not None, tuple(source.size))
-                     for source in member.body_geometry_targets()
-                     if isinstance(source, PreparedPaintSource)])
+                     for source, _ in member.prepared_paint_sources()])
                 await pilot.pause()
                 family_receipts[-1]['settled_preceding_writer_released_without_replacing_current_paint'] = True
             receipt['rendered_family_reentry'] = family_receipts
@@ -463,7 +420,6 @@ async def main():
             assert not await operation
             assert not streaming.body_dormant
             await streaming.finish_stream()
-            await acquire_capture(streaming)
             assert await streaming.retire_body()
             await pilot.pause()
             receipt['inflight_stream_blocks_captured_retirement_commit'] = True
@@ -513,7 +469,7 @@ async def main():
             receipt['retirement_and_restore_invalidated'] = True
             await history.remove()
             await pilot.pause()
-            final_scene, _, _placement = compare()
+            final_scene, _ = compare()
             assert not set(bodies) & final_scene.keys()
             assert not set(bodies) & scene._subtree_geometry.keys()
             assert app._exception is None
