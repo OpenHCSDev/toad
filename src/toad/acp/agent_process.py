@@ -8,7 +8,7 @@ from pathlib import Path
 from agent_comms.child_process import StreamingChildStdio, join_retirement
 from toad import jsonrpc
 from toad.core.events import LogAgentFail
-from toad.acp.wire_message import IncomingWireMessage
+from toad.acp.wire_message import ReadAgentWireTask
 
 
 class AgentProcess:
@@ -222,31 +222,13 @@ class AgentProcess:
         while line := (await process.stdout.readline()):
             if not line.strip():
                 continue
-            try:
-                # Keep this read's original bytes and decoder until completion.
-                # Cancellation joins pure acquisition before retiring the child;
-                # no session or native state is accessed by the decode worker.
-                line_str = await join_retirement(asyncio.create_task(
-                    asyncio.to_thread(line.decode, "utf-8"), name="agent-utf8",
-                ))
-            except Exception as error:
-                agent.log(f"[error] Unable to decode utf-8 from agent: {error}")
-                continue
-            for session in tuple(self.sessions):
-                session.agent.log(f"[agent] {line_str}")
-            try:
-                agent_data: jsonrpc.JSONType = await join_retirement(asyncio.create_task(
-                    asyncio.to_thread(json.loads, line_str), name="agent-json",
-                ))
-            except Exception as error:
-                agent.log(f"[error] failed to decode JSON from agent: {error}")
-                continue
-            try:
-                incoming = IncomingWireMessage.decode(agent_data)
-            except ValueError as error:
-                agent.log(f"[error] {error}")
-                continue
-            await incoming.receive(self.recipient(agent_data), call_jsonrpc)
+            # The attached controller supplies its existing process renderer;
+            # a headless controller retains its original non-App execution.
+            # Join this one read before cancellation retires its child or logs.
+            incoming = await join_retirement(asyncio.create_task(
+                agent.controller.validation.validate(ReadAgentWireTask(line)), name="agent-wire-read",
+            ))
+            await incoming.receive(self, call_jsonrpc)
         for session in tuple(self.sessions):
             if not session.accepts_updates:
                 continue

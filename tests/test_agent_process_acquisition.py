@@ -12,6 +12,42 @@ import time
 from toad.acp.agent_process import AgentProcess
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
+from toad.acp.wire_message import IncomingWireMessage, ReadAgentWireTask, WireInputFailure, WireResponse
+from toad.render_processes import RenderProcessPool
+
+
+def observed_wire_capture(function):
+    """Run the actual declared acquisition; record its executing process."""
+    return os.getpid(), function()
+
+
+class ObservedWirePool(RenderProcessPool):
+    def __init__(self):
+        super().__init__()
+        self.wire_pids = []
+
+    async def run(self, function, *args):
+        if isinstance(getattr(function, "__self__", None), ReadAgentWireTask):
+            pid, result = await super().run(observed_wire_capture, function)
+            self.wire_pids.append(pid)
+            return result
+        return await super().run(function, *args)
+
+
+def test_strict_wire_failures_keep_original_log_source_and_response_batches():
+    bad_utf8 = IncomingWireMessage.read(b"\xff\n")
+    assert isinstance(bad_utf8, WireInputFailure) and bad_utf8.source is None
+    assert bad_utf8.message.startswith("[error] Unable to decode utf-8 from agent:")
+    bad_json = IncomingWireMessage.read(b"{not json}\n")
+    assert isinstance(bad_json, WireInputFailure) and bad_json.source == "{not json}\n"
+    assert bad_json.message.startswith("[error] failed to decode JSON from agent:")
+    bad_envelope = IncomingWireMessage.read(b"23\n")
+    assert isinstance(bad_envelope, WireInputFailure) and bad_envelope.source == "23\n"
+    assert bad_envelope.message == "[error] Agent sent an invalid JSON-RPC object or response batch"
+    source = b'[{"jsonrpc":"2.0","id":1,"result":{}},{"jsonrpc":"2.0","id":2,"error":{"code":-1}}]\n'
+    response = IncomingWireMessage.read(source)
+    assert isinstance(response, WireResponse) and response.source == source.decode("utf-8")
+    assert [item["id"] for item in response.payload] == [1, 2]
 
 
 def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
@@ -49,7 +85,8 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
                   and isinstance(getattr(arg, "__self__", None), bytes)):
                 counts["ui_wire_utf8"] += 1
 
-        app = ToadApp(project_dir=str(tmp_path), agent_data=definition)
+        pool = ObservedWirePool()
+        app = ToadApp(project_dir=str(tmp_path), agent_data=definition, renderer=pool)
         old_ui, old_threads = sys.getprofile(), threading.getprofile()
         threading.setprofile_all_threads(profile)
         try:
@@ -69,7 +106,19 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
                     editor = view.prompt.prompt_text_area
                     editor.focus(scroll_visible=False)
                     started = time.perf_counter()
-                    await pilot.press("d", "r", "a", "f", "t")
+                    from textual.events import Key
+
+                    # Measure driver delivery through paint. Pilot.press waits
+                    # for whole-thread idleness twice per key, conflating input
+                    # latency with concurrent response/preparation completion.
+                    for key in "draft":
+                        app._driver.send_message(Key(key, key))
+                    async with asyncio.timeout(20):
+                        while editor.text != "draft":
+                            await asyncio.sleep(0)
+                        painted = asyncio.Event()
+                        editor.call_after_refresh(painted.set)
+                        await painted.wait()
                     typing_ms = (time.perf_counter() - started) * 1000
                     await asyncio.wait_for(request, 20)
                     async with asyncio.timeout(20):
@@ -77,11 +126,13 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
                             await pilot.pause()
                     assert editor.text == "draft"
                     assert counts["ui_wire_json"] == counts["ui_wire_utf8"] == 0
-                    assert counts["worker_wire_json"] >= 4
+                    assert counts["worker_wire_json"] == 0
+                    assert len(pool.wire_pids) >= 4 and all(pid != os.getpid() for pid in pool.wire_pids)
                     recorded = [json.loads(line) for line in (tmp_path / "completion-wire.jsonl").read_text().splitlines()]
                     assert recorded == [{"prompt": original}]
                     assert app._exception is None
-                    print({**counts, "draft_ms": round(typing_ms, 1), "local_acp_requests": 1,
+                    print({**counts, "process_wire_reads": len(pool.wire_pids),
+                           "draft_ms": round(typing_ms, 1), "local_acp_requests": 1,
                            "provider_inputs": 0, "physical_terminal": False}, flush=True)
                 finally:
                     if not request.done():
@@ -89,8 +140,9 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
                     await asyncio.gather(request, return_exceptions=True)
                     await agent.stop()
                 assert not Path(f"/proc/{pid}").exists()
-                assert not any(task.get_name() in ("agent-utf8", "agent-json")
+                assert not any(task.get_name() == "agent-wire-read"
                                for task in asyncio.all_tasks() if not task.done())
+            assert all(not Path(f"/proc/{pid}").exists() for pid in pool.wire_pids)
         finally:
             threading.setprofile_all_threads(old_threads)
             sys.setprofile(old_ui)
