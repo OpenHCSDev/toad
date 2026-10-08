@@ -165,3 +165,28 @@ owner-usability input was unreached. Raw native journals and failures remain in
 unprofiled directory retains frame-delivery.json, scroll-travel.jsonl,
 terminal.mp4 and wheel-up-partial-film.png. Existing user processes/defaults
 were not changed by either measurement.
+
+## Captured table geometry installed
+
+The native layout now paints table keylines using the same acquired geometry
+as its child cells. Offscreen capture previously combined new cell placements
+with the last Resize size, which could be zero. Native held-root geometry
+discovery also shares the original ancestry answers during each traversal;
+it adds no persistent cache. Textual #118 and #119 are merged.
+
+The candidate reuses the qualified cold-body Toad wheel and retained backend.
+All 954 source/wheel assets, 69 distributions and 2857 installed RECORD rows
+passed verification. The installed original retained-fragment App passed source,
+style, resize, writer custody, warm reentry and disposal checks. The installed
+native twelve-table App retained every offscreen table keyline without changing
+published geometry or Resize state.
+
+New Toad launches now use this candidate; running sessions remain unchanged.
+The earlier physical upward-wheel measurement still has p95 writer intervals
+of 97.73 ms and a 317.44 ms maximum. This publication does not claim those
+stalls are resolved or that the incomplete physical journey passed.
+
+Build, installed checks and publication logs are in
+`/home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007/captured-table-*.log`.
+Installed runtime and original publication result are in
+`.artifacts/captured-table-geometry-delivery-20261008`.
