@@ -52,6 +52,10 @@ class ViewportBody:
     async def restore_body(self) -> bool:
         raise NotImplementedError
 
+    async def prepare_visible_source(self) -> bool:
+        """Admit source parts through this body's existing viewport worker."""
+        return False
+
     @property
     def retained_source_bytes(self) -> int:
         return 0
@@ -1183,6 +1187,16 @@ class DocumentViewport:
                 # move the viewport while it awaits. The existing request
                 # owns that invalidation: serve its visible cohort before
                 # retiring or predicting from the preceding scene.
+                if self._pending:
+                    continue
+                # The same foreground worker admits message source ranges.
+                # Restore its whole visible cohort first; one range's reader
+                # compensation must not wait on an unstarted sibling restore.
+                async with asyncio.TaskGroup() as source_preparation:
+                    source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
+                                    for owner in required]
+                if any(task.result() for task in source_tasks):
+                    screen.frame_presentation.defer(self.window, self.request)
                 if self._pending:
                     continue
                 retiring = tuple(owner for owner in owners

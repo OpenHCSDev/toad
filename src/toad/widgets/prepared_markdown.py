@@ -1,7 +1,7 @@
 """Use the app-owned CPU pool for heavy conversation Markdown preparation."""
 
 import asyncio
-from contextlib import asynccontextmanager
+from contextlib import ExitStack, asynccontextmanager
 from collections.abc import Callable
 from functools import partial
 from typing import cast
@@ -25,6 +25,110 @@ from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
 from toad.widgets.worker_static import WorkerStatic
+
+
+class PreparedContentRange:
+    """Bound native source parts without giving them transcript identity.
+
+    Transcript pages and individual Markdown messages share native admission,
+    not cursors, coverage, categories or source acquisition. Each owner supplies
+    its original admission identity and constructs its own part widgets.
+    """
+
+    BATCH = 4
+
+    def __init__(self, *args, fragments=(), newest: bool = True,
+                 batch_size: int = BATCH, **kwargs):
+        if type(batch_size) is not int or batch_size < 1:
+            raise ValueError("batch_size must be a positive integer")
+        self.batch_size = batch_size
+        self.fragments = fragments
+        selected = self.initial_slice(fragments, batch_size, newest)
+        self.start, self.stop = selected.start, selected.stop
+        self._fragment_views = ()
+        super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
+        start = max(0, len(fragments) - batch_size) if newest else 0
+        return slice(start, min(len(fragments), start + batch_size))
+
+    def _body(self, fragment):
+        raise NotImplementedError
+
+    def compose(self):
+        self._fragment_views = tuple(self._body(fragment)
+                                     for fragment in self.fragments[self.start:self.stop])
+        yield from self._fragment_views
+
+    @property
+    def fragment_views(self):
+        return self._fragment_views
+
+    def on_unmount(self) -> None:
+        self._fragment_views = ()
+
+    def capture_admission(self):
+        raise NotImplementedError
+
+    def extension_slice(self, older: bool) -> slice:
+        return (slice(max(0, self.start - self.batch_size), self.start) if older
+                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
+
+    def update_slice(self, fragments, follow: bool) -> slice:
+        if follow:
+            return self.initial_slice(fragments, self.batch_size, True)
+        stop = min(self.stop, len(fragments))
+        return slice(min(self.start, stop), stop)
+
+    async def extend(self, older: bool, current: Callable[[], bool]) -> bool:
+        admission = self.capture_admission()
+        selected = self.extension_slice(older)
+        added = tuple(self._body(fragment) for fragment in self.fragments[selected])
+        previous = self.fragment_views
+        with ExitStack() as acquisition:
+            if added:
+                acquisition.callback(self.remove_children, added)
+                await self.mount_all(added, before=previous[0] if older and previous else None)
+            if not current() or self.capture_admission() != admission:
+                return False
+            self._fragment_views = (*added, *previous) if older else (*previous, *added)
+            if older:
+                self.start = selected.start
+            else:
+                self.stop = selected.stop
+            acquisition.pop_all()
+        return True
+
+    async def replace_range(self, fragments, selected, previous, current, *, prefix=()) -> bool:
+        """Publish ordered native parts inside their owner's source custody."""
+        ordered = tuple(previous[index] if index in previous else self._body(fragments[index])
+                        for index in range(selected.start, selected.stop))
+        added = tuple(child for child in ordered if child not in previous.values())
+        with ExitStack() as acquisition:
+            if added:
+                acquisition.callback(self.remove_children, added)
+                await self.mount_all(added)
+            if not current():
+                return False
+            self.fragments, self._fragment_views = fragments, ordered
+            self.start, self.stop = selected.start, selected.stop
+            rank = {child: index for index, child in enumerate((*prefix, *ordered))}
+            self.sort_children(key=lambda child: rank.get(child, len(rank)))
+            self.remove_children(tuple(child for child in previous.values() if child not in ordered))
+            acquisition.pop_all()
+        return True
+
+    def trim(self, count: int, *, older: bool) -> None:
+        bodies = self.fragment_views
+        boundary = count if older else len(bodies) - count
+        retired = bodies[:boundary] if older else bodies[boundary:]
+        self._fragment_views = bodies[boundary:] if older else bodies[:boundary]
+        if older:
+            self.start += count
+        else:
+            self.stop -= count
+        self.remove_children(retired)
 
 
 class PreparedMarkdownContent(WorkerStatic):
@@ -77,6 +181,15 @@ class PreparedH6(ConversationMarkdown.BLOCKS["h6"], PreparedMarkdownContent):
 
 
 class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
+    DEFAULT_CSS = """
+    PreparedConversationMarkdown.-message-fragment {
+        min-height: 1;
+        padding: 0;
+        margin: 0;
+        layout: stream;
+    }
+    """
+
     BLOCKS = {
         **ConversationMarkdown.BLOCKS,
         "paragraph_open": PreparedParagraph,

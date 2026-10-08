@@ -42,10 +42,10 @@ from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageVie
 from toad.transcript_state import LatestViewportRequest
 
 
-def observed_parse(function, events):
+def observed_parse(function, *arguments):
     """Importable worker probe: timing covers actual fragmentation, not a sleep."""
     started = time.monotonic()
-    fragments = function(events)
+    fragments = function(*arguments)
     return (os.getpid(), started, time.monotonic(), fragments)
 
 
@@ -64,20 +64,21 @@ class ObservedPool(RenderProcessPool):
 
     async def run(self, function, *args):
         from toad.widgets.transcript_fragments import TranscriptRenderTask
+        from toad.render_tasks import MarkdownPartsTask
 
-        assert not args and isinstance(function.__self__, TranscriptRenderTask)
-        events = function.__self__.events
+        assert not args
+        task = function.__self__
         if self.app is not None:
             window = self.app.selected_session.conversation.window
             assert not self.app._batch_count
             assert window.history_anchor is None and (not window.history_lock.locked())
-        pid, started, finished, result = await super().run(
-            observed_parse, transcript_fragments, events
-        )
+        if isinstance(task, (TranscriptRenderTask, MarkdownPartsTask)):
+            pid, started, finished, result = await super().run(observed_parse, function)
+        else:
+            return await super().run(function)
         self.observations.append((pid, started, finished))
         self.entered.set()
         await self.release.wait()
-        task = function.__self__
         return RenderPreparation(task).store_result(task.accept_result(result))
 
 
@@ -212,7 +213,7 @@ async def main():
                 await asyncio.sleep(0)
                 pool.release.set()
                 await asyncio.gather(obsolete, latest)
-                assert response.source == "latest" and response._paged is None
+                assert response.source == "latest" and not response.fragments
                 pool.hold()
                 cancelled = asyncio.create_task(
                     response._update_content(live_text + "\n\nCANCELLED", append=False)
@@ -223,7 +224,7 @@ async def main():
                     await cancelled
                 pool.release.set()
                 await response.append(" preserved")
-                assert response.source == "latest preserved" and response._paged is None
+                assert response.source == "latest preserved" and not response.fragments
                 ui_beats = []
                 timer = app.set_interval(
                     0.005, lambda: ui_beats.append(time.monotonic())
@@ -242,9 +243,13 @@ async def main():
                     )
                 ]
                 assert max(ui_gaps) < 0.2, max(ui_gaps)
-                history = response._paged
-                assert history is not None
-                assert history.pages[0].page.events[0].text == text
+                assert response.fragments and response.fragment_views
+                assert response.source == text
+                # Cursor controls require an actual transcript page, not an
+                # individual message's native rendering range.
+                history = TranscriptHistory(page(text), fragments=actual)
+                await conversation.contents.mount(history)
+                await pilot.pause()
                 with patch(
                     "toad.widgets.transcript_history.transcript_fragments",
                     side_effect=AssertionError,
