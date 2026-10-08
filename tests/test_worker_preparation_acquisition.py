@@ -56,6 +56,11 @@ def test_prepared_measurement_ignores_parent_height_and_invalidates_source(tmp_p
                 assert worker.get_content_width(box, box) == prepared.width
                 assert worker._wanted is request
                 assert worker.prepared_content is prepared
+            for tentative_width in (width // 2, width * 2, width):
+                box = Size(tentative_width, 100)
+                assert worker.get_content_height(box, box, tentative_width) == len(prepared.lines)
+                assert worker._wanted is request
+                assert worker.prepared_content is prepared
             worker.update(Content("Changed row\n" * 30))
             await asyncio.wait_for(worker.wait_ready(), 20)
             await pilot.pause()
