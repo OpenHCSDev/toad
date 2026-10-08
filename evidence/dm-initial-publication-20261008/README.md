@@ -279,3 +279,31 @@ joins original nested body publications; it still times out awaiting native
 mounting. Neither observation is a successful full paged acceptance. The
 profile cannot explain retirement cost because it failed at the earlier paint
 assertion, and profiling overhead prevents direct timing comparison.
+
+## Retained paint admission and completed source App
+
+The viewport used the last materialized widget count to decide whether to
+retain message paint. That conflated compact retained rows with a disposable
+native tree, discarded useful paint before retirement, and let lookahead
+rebuild hidden controls. PresentationBudget now admits paint by the original
+message count and actual source/row bytes; native lookahead keeps its original
+widget budget. DocumentViewport derives both orders from its existing owners
+and warm chronology, with no second stored admission policy. Session/sidebar
+native tree budgets are unchanged.
+
+The original paged nested-Markdown App passed (12.29 s): 24 sections, Unicode,
+nested text, links and copying, wheel reversal/stop, native retirement and
+return to the same retained paint resource. Posting was 5.077 ms; readiness
+1.8007 s. This is source App evidence, not physical frame-time evidence.
+The bounded runway App has no stationary restore/retire/reconcile calls,
+no further evictions, and 48 native widgets against its 60-widget limit. Its
+fixture now selects a genuinely retired tree, not never-materialized source;
+content-cost invalidation and resize checks pass. The original cold-body App
+also passes source/selection, cold restoration, scroll/resize/live-update,
+mutation-anchor retirement and session suspension.
+
+Raw logs are in /home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007:
+paint-admission-app.log, paint-admission-bounds-corrected.log and
+paint-admission-cold-app.log. Earlier negatives remain preserved, including
+the original bounded fixture selection and missing output-directory refusal.
+No provider input was sent. Installed verification and publication follow.
