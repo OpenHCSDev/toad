@@ -131,7 +131,7 @@ class SeekingFilter(NoFilter):
                 viewport = snapshot.window.content_region
                 anchor = next((child for child in owner.fragment_views
                                if child in visible and visible[child][0].overlaps(viewport)), None)
-                async with snapshot.window.preserve_history(anchor):
+                async with snapshot.window.preserve_history(anchor, root=owner):
                     with ExitStack() as acquisition:
                         filtering.state = admitted_state = Filtered(projection)
                         acquisition.callback(admitted_state.remove, filtering)
@@ -292,7 +292,7 @@ class TranscriptFilter:
 
     async def retire(self, retired: FilterState) -> None:
         async with self.owner.window.history_lock:
-            async with self.owner.window.preserve_history(None):
+            async with self.owner.window.preserve_history(None, root=self.owner):
                 retired.remove(self)
         if self.owner.is_attached:
             self.owner._scroll_changed()

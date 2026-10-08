@@ -60,6 +60,9 @@ class RenderBudget:
     characters: int = 800
     lines: int = 12
 
+    def fits(self, text: str) -> bool:
+        return len(text) <= self.characters and len(text.splitlines()) <= self.lines
+
     def _split_table(self, text: str) -> Iterator[str]:
         """Page a large GFM table by rows, repeating its required header."""
         lines = text.splitlines(keepends=True)
@@ -87,8 +90,7 @@ class RenderBudget:
     def split(self, text: str) -> Iterator[str]:
         if not text:
             return
-        if (len(text) <= self.characters
-                and len(text.splitlines()) <= self.lines):
+        if self.fits(text):
             # No block can exceed either budget when the entire document fits.
             # Return the unchanged source; there is no partition decision to
             # parse, and normal Markdown rendering still handles its syntax.

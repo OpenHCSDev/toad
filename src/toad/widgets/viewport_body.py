@@ -46,11 +46,36 @@ class ViewportBody:
     def body_requires_geometry(self) -> bool:
         raise NotImplementedError
 
+    @property
+    def body_retained_paint_ready(self) -> bool:
+        """The body supplies complete pixels without reading mutable children."""
+        raise NotImplementedError
+
+    def body_geometry_targets(self) -> tuple[Widget, ...]:
+        raise NotImplementedError
+
+    @property
+    def body_capture_pending(self) -> bool:
+        raise NotImplementedError
+
+    def require_native_body(self) -> None:
+        """Visible or interactive demand ends an unfinished retirement."""
+        raise NotImplementedError
+
     def retire_body(self) -> Coroutine[None, None, bool]:
         raise NotImplementedError
 
     async def restore_body(self) -> bool:
         raise NotImplementedError
+
+    async def prepare_visible_source(self) -> bool:
+        """Admit source parts through this body's existing viewport worker."""
+        return False
+
+    @property
+    def has_newer_source(self) -> bool:
+        """Whether this body's mounted edge precedes its original source tail."""
+        return False
 
     @property
     def retained_source_bytes(self) -> int:
@@ -80,6 +105,8 @@ class ViewportBody:
 @dataclass(frozen=True)
 class BodyMeasurement(ABC):
     """One body's extent, native custody and prepared paint resource."""
+
+    capture_pending = False
 
     @property
     @abstractmethod
@@ -143,10 +170,10 @@ class BodyMeasurement(ABC):
                     if prepared.width != body._body_measurement.width:
                         prepared = prepared.invalidated()
                     body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))
-                await (body.materialize_native_body() if work is None else work())
+                result = await (body.materialize_native_body() if work is None else work())
                 if body.is_attached:
                     body._update_body_measurement(
-                        body._body_measurement.publication_finished(body, worker))
+                        body._body_measurement.publication_finished(body, worker, result))
             except BaseException:
                 body._update_body_measurement(
                     body._body_measurement.publication_failed(body, worker))
@@ -182,6 +209,15 @@ class BodyMeasurement(ABC):
         """Settled native content needs its box; retained extent does not."""
         return not self.dormant
 
+    def geometry_targets(self, body):
+        return (body,) if self.requires_geometry(body) else ()
+
+    def capture_requested(self):
+        return self
+
+    def required(self):
+        return self
+
     def publication_prepared(self, worker, paint):
         return self
 
@@ -191,7 +227,7 @@ class BodyMeasurement(ABC):
     def get_selection(self, body, selection, select_live):
         return select_live(selection)
 
-    def publication_finished(self, body, worker):
+    def publication_finished(self, body, worker, result):
         """A settled resource does not own this worker's publication."""
         return self
 
@@ -242,6 +278,9 @@ class MeasuredBody(BodyMeasurement):
 
 @dataclass(frozen=True)
 class LiveBody(MeasuredBody):
+    def capture_requested(self):
+        return CapturingBody(self.width, self.rows, self.widgets)
+
     def prepare_publication(self, body):
         # Borrow the original published scene synchronously, before a writer
         # or its byte measurement can change the native tree.
@@ -279,6 +318,31 @@ class LiveBody(MeasuredBody):
 
     def retire(self, body):
         return body.retire_native_body(self)
+
+
+@dataclass(frozen=True)
+class CapturingBody(LiveBody):
+    """A live body acquiring complete native rows for its own retirement.
+
+    Visible paint requires only exposed paragraphs. Complete capture needs
+    every admitted paragraph's assigned box and committed prepared resource.
+    Their original Resize/ExtentReady messages finish this acquisition; no
+    viewport worker waits on background preparation.
+    """
+
+    capture_pending = True
+
+    def capture_requested(self):
+        return self
+
+    def geometry_targets(self, body):
+        return (body, *walk_depth_first(body, PreparedPaintSource, with_root=False))
+
+    def required(self):
+        return LiveBody(self.width, self.rows, self.widgets)
+
+    def released(self):
+        return self.required()
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -402,14 +466,18 @@ class MaterializingBody(BodyMeasurement):
         else:
             await super().recompose(body, native_recompose)
 
-    def publication_finished(self, body, worker):
+    def publication_finished(self, body, worker, result):
         if self.worker is worker:
+            if result is False:
+                # A source owner refused its admission. Joining its worker
+                # does not publish new native content or revive old controls.
+                return self.previous
             if body._body_measurement is self:
                 # Only the current writer exposes its newly committed native
                 # tree. A newer writer still borrows the preceding pixels.
                 return LiveBody(self.width, self.rows, self.widgets)
             return self.previous
-        return self._updated(self.previous.publication_finished(body, worker))
+        return self._updated(self.previous.publication_finished(body, worker, result))
 
     def publication_failed(self, body, worker):
         if self.worker is worker:
@@ -503,6 +571,20 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.requires_geometry(self)
 
     @property
+    def body_retained_paint_ready(self):
+        return self._body_measurement.paint_ready(self)
+
+    def body_geometry_targets(self):
+        return self._body_measurement.geometry_targets(self)
+
+    @property
+    def body_capture_pending(self):
+        return self._body_measurement.capture_pending
+
+    def require_native_body(self):
+        self._update_body_measurement(self._body_measurement.required())
+
+    @property
     @height_dependency(INDEPENDENT_HEIGHT)
     def is_container(self):
         # Rendered and pending resources paint their whole original subtree.
@@ -594,7 +676,7 @@ class MeasuredViewportBody(ViewportBody):
             return
         await self._body_measurement.materialize(self)
 
-    def publish_body(self, work: Callable[[], Awaitable[None]], *, exit_on_error=False) -> AwaitComplete:
+    def publish_body(self, work: Callable[[], Awaitable[None | bool]], *, exit_on_error=False) -> AwaitComplete:
         """Source updates and reentry share the original materialization worker."""
         operation = self._body_measurement.start_materialization(self, work, exit_on_error=exit_on_error)
         return AwaitComplete(operation.materialize(self))
@@ -638,6 +720,9 @@ class MeasuredViewportBody(ViewportBody):
         if not children:
             return BodyMeasurement.retire(current, self)
         sources = self.prepared_paint_sources()
+        if not self.prepared_paint_is_current(sources):
+            self._update_body_measurement(current.capture_requested())
+            return BodyMeasurement.retire(current, self)
         paint = self.capture_native_paint(current, sources=sources)
         return self.finish_native_retirement(current, children, paint, sources)
 
@@ -753,6 +838,12 @@ class MeasuredViewportBody(ViewportBody):
                     self._body_viewport.register(self)
                     return
 
+    def on_worker_static_extent_ready(self, _event):
+        # The original prepared sender bubbles its committed extent. Nested
+        # body boundaries keep bubbling until the registered capture owner.
+        if self.body_capture_pending and self._body_viewport is not None:
+            self._body_viewport.request()
+
 
 class ViewportPresentation:
     """Own the selected screen's window membership and paint preparation."""
@@ -849,8 +940,8 @@ class ViewportPresentation:
         for anchor in self.anchors:
             if anchor not in displayed and anchor.document_viewport.membership.displayed():
                 displayed[anchor] = None
-        return tuple(window for window in displayed
-                     if window.is_attached and window.history_mutating())
+        return tuple(root for window in displayed if window.is_attached
+                     if (root := window.history_mutation_root) is not None)
 
     def prepare(self) -> tuple[Widget, ...]:
         screen = self.screen
@@ -860,12 +951,22 @@ class ViewportPresentation:
         # membership owner. Mutation, body readiness and follow checks don't
         # independently select the same windows again within the same frame.
         windows = tuple(self.frame_windows())
-        deferred = dict.fromkeys(self.mutation_roots(windows))
-        pending_windows = set(deferred)
+        mutations = self.mutation_roots(windows)
+        # A retained body is the original paint owner for its whole subtree.
+        # Its new source may keep changing while those exact strips publish.
+        # Native layout and callback custody still borrow every mutation root;
+        # only paint exclusion ends when that owner has valid retained pixels.
+        deferred = dict.fromkeys(root for root in mutations
+                                 if not any(isinstance(owner, ViewportBody)
+                                            and owner.body_retained_paint_ready
+                                            for owner in root.walk_ancestors(with_self=True)))
+        pending_windows = {window for window in windows
+                           if window.history_mutating()}
         # Each source owns its pending paint. Native publication derives the
         # blocked geometry; this owner neither masks regions nor stops chrome.
         for window, body in self.visible_bodies(windows):
-            if window in deferred:
+            if any(root is body or root in body.ancestors or body in root.ancestors
+                   for root in mutations):
                 continue
             if not body.body_ready:
                 window.document_viewport.request()
@@ -955,6 +1056,30 @@ class DocumentViewport:
         self._warm.pop(ref(owner), None)
         self.admitted_bodies.discard(owner)
 
+    @property
+    def source_tail(self) -> ViewportBody | None:
+        """The last document body owns this window's current source edge.
+
+        An older message can retain a partial range after a newer message is
+        published. That old range cannot revoke the newer message's tail.
+        Native document order already owns their relation; warm membership
+        and registration order do not supply another chronology.
+        """
+        return next(reversed(tuple(self.body_roots())), None)
+
+    @property
+    def source_tail_visible(self) -> bool:
+        last = self.source_tail
+        return last is None or not last.has_newer_source
+
+    def requires_body(self, owner, *, visible=None, protected=None) -> bool:
+        """Native exposure and current interaction own source admission."""
+        if visible is None:
+            visible = self.window.screen._compositor.visible_widgets
+        if protected is None:
+            protected = self.protected()
+        return owner in self.owners and (owner in visible or owner in protected)
+
     def body_roots(self):
         """Native document order, stopping at each registered body boundary.
 
@@ -973,17 +1098,11 @@ class DocumentViewport:
                 pending.extend(reversed(node.children))
 
     def geometry_targets(self) -> tuple[Widget, ...]:
-        """Live bodies retain assigned geometry until complete paint captures.
-
-        A root placement alone does not assign widths to its offscreen
-        children in visible-only layout. Their original native Resize must
-        supply preparation before this body can retain all its source rows.
-        Captured bodies have no live demand and release these paths.
-        """
+        """Each body's current resource owns its actual geometry demand."""
         return tuple(dict.fromkeys(
             target
-            for owner in self.owners if owner.body_requires_geometry
-            for target in (owner, *walk_depth_first(owner, PreparedPaintSource, with_root=False))
+            for owner in self.owners
+            for target in owner.body_geometry_targets()
         ))
 
     @property
@@ -1098,6 +1217,8 @@ class DocumentViewport:
                 await worker.wait()
             except WorkerCancelled:
                 pass
+        for owner in tuple(self.owners):
+            owner.require_native_body()
 
     def resume_source(self) -> None:
         self._suspended = False
@@ -1145,7 +1266,10 @@ class DocumentViewport:
                 visible = screen._compositor.visible_widgets
                 protected = self.protected()
                 owners = tuple(self.body_roots())
-                required = tuple(owner for owner in owners if owner in visible or owner in protected)
+                required = tuple(owner for owner in owners
+                                 if self.requires_body(owner, visible=visible, protected=protected))
+                for owner in required:
+                    owner.require_native_body()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
                 demand = self.lookahead.demand
@@ -1185,9 +1309,31 @@ class DocumentViewport:
                 # retiring or predicting from the preceding scene.
                 if self._pending:
                     continue
+                if any(not owner.body_ready for owner in required):
+                    # Exposed source owns this frame first. Its preparation
+                    # and native publication already request reconciliation;
+                    # do not fill their renderer with hidden capture work.
+                    return
+                # The same foreground worker admits message source ranges.
+                # Restore its whole visible cohort first; one range's reader
+                # compensation must not wait on an unstarted sibling restore.
+                async with asyncio.TaskGroup() as source_preparation:
+                    source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
+                                    for owner in required]
+                if any(task.result() for task in source_tasks):
+                    screen.frame_presentation.defer(self.window, self.request)
+                if self._pending:
+                    continue
                 retiring = tuple(owner for owner in owners
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)
+                # Complete geometry belongs only to the existing bounded
+                # retirement cohort. Keep its unfinished acquisitions ahead
+                # of new work; a missing resource must not cause every hidden
+                # body's paragraphs to start preparation in the same frame.
+                retiring = tuple(owner for owner in retiring if owner.body_capture_pending) + tuple(
+                    owner for owner in retiring if not owner.body_capture_pending)
+                retiring = retiring[:self.budget.admission_items]
                 retired_owners = []
                 for first in range(0, len(retiring), self.budget.admission_items):
                     # Each call captures its original rows now; tasks only

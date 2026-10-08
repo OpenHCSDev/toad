@@ -127,6 +127,11 @@ class WorkerStatic(PreparedPaintSource, Static):
     def _request_preparation(self, *, capture: bool = False) -> None:
         if self._closed or self._pruning or not self.is_attached:
             return
+        # Parent width is an auto-width constraint, not this source's layout
+        # admission. Mount/style callbacks may run before an offscreen child
+        # has any assigned box. Native Resize supplies that original fact.
+        if self.outer_size.width <= 0:
+            return
         app = self.app
         assert isinstance(app, ToadApp)
         auto_width = self.styles.is_auto_width
