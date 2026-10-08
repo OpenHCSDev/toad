@@ -517,7 +517,15 @@ class MeasuredViewportBody(ViewportBody):
         return self if self._body_measurement.paint_ready(self) else super()._render_widget
 
     def native_body_ready(self):
-        return self.is_mounted and not self._closing
+        if not self.is_mounted or self._closing:
+            return False
+        # Frame coverage is the native published visible cohort. Hidden
+        # descendants still require exact committed resources for capture,
+        # but their preparation cannot hold an unrelated visible frame.
+        visible = self.screen._compositor.visible_widgets
+        return all(source.presentation_ready
+                   for source in walk_depth_first(self, PreparedPaintSource, with_root=False)
+                   if source in visible)
 
     @property
     def measured_rows(self):
@@ -965,8 +973,18 @@ class DocumentViewport:
                 pending.extend(reversed(node.children))
 
     def geometry_targets(self) -> tuple[Widget, ...]:
-        """Native controls retain their box until their body captures its rows."""
-        return tuple(owner for owner in self.owners if owner.body_requires_geometry)
+        """Live bodies retain assigned geometry until complete paint captures.
+
+        A root placement alone does not assign widths to its offscreen
+        children in visible-only layout. Their original native Resize must
+        supply preparation before this body can retain all its source rows.
+        Captured bodies have no live demand and release these paths.
+        """
+        return tuple(dict.fromkeys(
+            target
+            for owner in self.owners if owner.body_requires_geometry
+            for target in (owner, *walk_depth_first(owner, PreparedPaintSource, with_root=False))
+        ))
 
     @property
     def materialized_widget_count(self) -> int:

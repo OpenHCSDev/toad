@@ -124,18 +124,18 @@ class WorkerStatic(PreparedPaintSource, Static):
             raise TypeError("WorkerStatic requires data-only Rich content or RichSource")
         self.set_source(cast(RenderableType | RichSource, content))
 
-    def _request_preparation(self, width: int | None = None, *, capture: bool = False) -> None:
+    def _request_preparation(self, *, capture: bool = False) -> None:
         if self._closed or self._pruning or not self.is_attached:
             return
         app = self.app
         assert isinstance(app, ToadApp)
         auto_width = self.styles.is_auto_width
         parent = self.parent
-        width = width if width is not None else (parent.scrollable_content_region.width
+        width = (parent.scrollable_content_region.width
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
         # A mounted node may not have its native box yet. App width is not
-        # this widget's wrapping width; measurement/Resize supplies the real
+        # this widget's wrapping width; native Resize supplies the real
         # answer. Preparing the guessed width would discard a whole CPU job.
         if width <= 0:
             return
@@ -285,13 +285,8 @@ class WorkerStatic(PreparedPaintSource, Static):
 
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        # Source/style notifications already own their new request. Native
-        # layout may ask for the same width hundreds of times; that is a
-        # measurement of this request, not another presentation acquisition.
-        if (width > 0 and self.is_attached
-                and (self._wanted is None
-                     or self._wanted.task.presentation.options.max_width != width)):
-            self._request_preparation(width)
+        # Tentative layout widths are measurements, not assigned geometry.
+        # Native Resize and auto-width layout own the preparation demand.
         return (len(self._prepared.lines) if self._prepared is not None
                 else super().get_content_height(container, viewport, width))
 
