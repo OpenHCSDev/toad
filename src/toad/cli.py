@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import os
 import sys
+from typing import TYPE_CHECKING
 
 import click
-from toad.app import ToadApp
-from toad.application_lifetime import ApplicationLifetime
-from toad.agent_schema import AgentDefinition
-from toad.render_backend import Renderer
 from toad.render_choices import RendererChoice
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+    from toad.agent_schema import AgentDefinition
+    from toad.render_backend import Renderer
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -181,6 +185,7 @@ def run(
     if serve:
         import shlex
 
+        from toad.application_lifetime import ApplicationLifetime
         from toad.web_server import ToadWebServer
 
         command_args = list(sys.argv)
@@ -202,6 +207,8 @@ def run(
         ApplicationLifetime.set_process_title("toad --serve")
         server.serve()
     else:
+        from toad.app import ToadApp
+
         app = ToadApp(
             mode=None if agent_data else "store",
             agent_data=agent_data,
@@ -286,6 +293,7 @@ def acp(
     if serve:
         import shlex
 
+        from toad.application_lifetime import ApplicationLifetime
         from toad.web_server import ToadWebServer
 
         command_components = [sys.argv[0], "acp", command]
@@ -307,6 +315,8 @@ def acp(
         server.serve()
 
     else:
+        from toad.app import ToadApp
+
         app = ToadApp(
             agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
             renderer=renderer_from_cli(renderer),
@@ -363,6 +373,7 @@ def replay(path: str) -> None:
 )
 def serve(port: int, host: str, public_url: str | None = None) -> None:
     """Serve Toad as a web application."""
+    from toad.application_lifetime import ApplicationLifetime
     from toad.web_server import ToadWebServer
 
     server = ToadWebServer(
@@ -377,6 +388,7 @@ def about() -> None:
     """Show about information."""
 
     from toad import about
+    from toad.app import ToadApp
 
     app = ToadApp()
 

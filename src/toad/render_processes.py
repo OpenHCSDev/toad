@@ -24,9 +24,15 @@ Result = TypeVar("Result")
 
 
 def _initialize_worker() -> None:
-    """CPU workers have no agent identity and do not manage external owners."""
+    """Acquire typed ingress declarations without borrowing an agent identity.
+
+    These application workers serve both rendering and ACP validation. Finish
+    the required SDK imports during their own startup, before the first ordered
+    notification lends them a task. No notification or rendering job is made.
+    """
     os.environ.pop("PI_AGENT_ID", None)
     os.environ.pop("AGENT_COMMS_THREAD", None)
+    from toad.acp import sdk_boundary  # noqa: F401 -- declare worker ingress capabilities
 
 
 class RenderProcessPool(Renderer):
@@ -77,6 +83,19 @@ class RenderProcessPool(Renderer):
             future.exception()
         self._changed.set()
 
+    def start(self) -> None:
+        """Acquire real workers when the application selects this renderer."""
+        if self._closed:
+            raise RuntimeError("RenderProcessPool is closed")
+        if self._executor is None:
+            self.prepare_spawn()
+            self._executor = ProcessPoolExecutor(
+                max_workers=self._max_workers,
+                mp_context=multiprocessing.get_context("spawn"),
+                initializer=_initialize_worker,
+            )
+            self.start_workers(self._executor)
+
     async def run(self, function: Callable[..., Result], *args: Any) -> Result:
         """Execute a data-only function in a child, propagating its result/error."""
         loop = self._bind_loop()
@@ -85,12 +104,7 @@ class RenderProcessPool(Renderer):
             await self._changed.wait()
         if self._closed:
             raise RuntimeError("RenderProcessPool is closed")
-        if self._executor is None:
-            self._executor = ProcessPoolExecutor(
-                max_workers=self._max_workers,
-                mp_context=multiprocessing.get_context("spawn"),
-                initializer=_initialize_worker,
-            )
+        self.start()
         # No await between admission and registration: admission is atomic on
         # the owning loop. Waiting never propagates caller cancellation to the
         # underlying future (or logs an abandoned exception via shield).
