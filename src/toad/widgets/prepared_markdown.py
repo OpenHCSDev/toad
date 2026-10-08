@@ -21,6 +21,7 @@ from textual.widgets._markdown import Markdown, MarkdownBlock
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
 from toad.markdown_preparation import PreparedMarkdown
+from toad.block_content import MarkdownBlockContent
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
@@ -180,7 +181,7 @@ class PreparedH6(ConversationMarkdown.BLOCKS["h6"], PreparedMarkdownContent):
     pass
 
 
-class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
+class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, ConversationMarkdown):
     DEFAULT_CSS = """
     PreparedConversationMarkdown.-message-fragment {
         min-height: 1;

@@ -57,6 +57,11 @@ class ViewportBody:
         return False
 
     @property
+    def has_newer_source(self) -> bool:
+        """Whether this body's mounted edge precedes its original source tail."""
+        return False
+
+    @property
     def retained_source_bytes(self) -> int:
         return 0
 
@@ -961,6 +966,11 @@ class DocumentViewport:
         self.owners.discard(owner)
         self._warm.pop(ref(owner), None)
         self.admitted_bodies.discard(owner)
+
+    @property
+    def source_tail_visible(self) -> bool:
+        """Registered source owners distinguish a mounted edge from the tail."""
+        return all(not owner.has_newer_source for owner in self.owners)
 
     def body_roots(self):
         """Native document order, stopping at each registered body boundary.

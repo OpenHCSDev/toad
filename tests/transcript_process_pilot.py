@@ -247,7 +247,9 @@ async def main():
                 assert response.source == text
                 # Cursor controls require an actual transcript page, not an
                 # individual message's native rendering range.
-                history = TranscriptHistory(page(text), fragments=actual)
+                transcript_page = page(text)
+                page_fragments = await prepare_transcript_fragments(transcript_page.events, pool)
+                history = TranscriptHistory(transcript_page, fragments=page_fragments)
                 await conversation.contents.mount(history)
                 await pilot.pause()
                 with patch(
