@@ -190,3 +190,25 @@ Build, installed checks and publication logs are in
 `/home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007/captured-table-*.log`.
 Installed runtime and original publication result are in
 `.artifacts/captured-table-geometry-delivery-20261008`.
+
+## Auto-width preparation uses its parent assigned box
+
+WorkerStatic now reads its parent's native-assigned inner width minus the
+original scrollbar gutter. It no longer asks for screen position merely to
+acquire width. Compositor owns that inner size and Screen supplies it through
+the existing size/Resize publication. The child's own container_size is a
+different box and is not substituted. Markdown, IRC and tool content inherit
+the same implementation. Source/style/selection and resize reacquisition stay.
+
+All 288 production modules parsed without omissions. The existing real App
+geometry/source/style/selection control passed across three native resizes.
+Matched 108-event raw-wheel headless profiles on the 3588-character source
+measured request preparation 0.874s before and 0.066s after; native arrangements
+fell from 259 to 160. These profiled runs include first-use lazy expansion and
+have different frame/cohort counts. They do not establish physical latency or
+identical steady-state paint workloads.
+
+Profiles are in `wheel-owner-profile-20261008` and
+`wheel-owner-assigned-width-20261008` under the existing sidebar scratch root.
+Two diagnostic setup negatives (subclass CSS path and multiprocessing main
+guard) remain recorded; they are not rendering or provider failures.
