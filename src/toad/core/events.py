@@ -89,6 +89,12 @@ class SessionSelected(CoreEvent):
 class OpenTabsChanged(CoreEvent):
     """Read the original session admissions and tab order again."""
 
+    def can_replace(self, event: CoreEvent) -> bool:
+        # No transition payload belongs to this invalidation. Its receivers
+        # read the current admissions; adjacent identical requests need one
+        # publication, not another traversal for each busy recipient.
+        return self == event
+
 
 @dataclass(frozen=True)
 class TabHistoryChanged(CoreEvent):
@@ -108,6 +114,12 @@ class SidebarLayoutChanged(CoreEvent):
 @dataclass(frozen=True)
 class CoordinationObserved(CoreEvent):
     """The original route/revision observer permits another guarded read."""
+
+    def can_replace(self, event: CoreEvent) -> bool:
+        # The acquired source, not this empty notice, owns revision/currentness.
+        # The native carrier additionally requires the same subscription and
+        # never replaces an intervening input or ordered Comms receipt.
+        return self == event
 
 
 @dataclass(frozen=True)
