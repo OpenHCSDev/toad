@@ -137,3 +137,31 @@ processes were preserved. Installed App checks do not establish physical frame
 pacing or the software loaded in an already-open user window. Raw build,
 installed and publication logs are cold-body-build.log, dm-cold-installed.log
 and cold-body-publication.log in the same scratch directory.
+
+## Installed physical wheel observation (incomplete)
+
+The new private native seed produced a real saved response in isolated st, with
+no provider errors. The first recorder composition exhausted its original
+budget on unrelated sidebar resizing before wheel input. WheelCadenceJourney
+now supplies shared history commands, and WheelWarmJourney reuses those commands
+without recursively rerunning opening/chrome work. The original deadline and
+input semantics remain; no product/package change was made by this correction.
+
+The next new private capture completed upward scrolling, then exhausted that
+same recording budget during the following gesture. The completed upward
+segment has79 native writer intervals: median26.74ms, p9597.73ms, max317.44ms.
+These are writer acknowledgments within checked driver-command bounds, not
+monitor FPS or input-to-pixel latency. The driver trace has no semantic body
+output events, so it cannot establish complete viewport readiness. The film also
+shows table outlines disappearing while text remains; its source cause is not
+proved. The native owner is tracing layout/capture and Parent owns body/source
+currentness. No full scrolling acceptance or latency improvement is claimed.
+
+Both original attempts are terminal; recorder and capture cleanup report no
+remaining owned processes/errors. Each used one localhost request; the second
+owner-usability input was unreached. Raw native journals and failures remain in
+/home/ts/.cache/agent-scratch/dm-installed-wheel-20261008 and
+/home/ts/.cache/agent-scratch/dm-installed-wheel-only-20261008. The second
+unprofiled directory retains frame-delivery.json, scroll-travel.jsonl,
+terminal.mp4 and wheel-up-partial-film.png. Existing user processes/defaults
+were not changed by either measurement.
