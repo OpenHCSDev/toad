@@ -980,3 +980,22 @@ not a performance pass. Current wheel is published for new launches through
 the reviewed original publication owner; existing windows retain loaded code.
 Exact checks/publication live under visible-retirement-delivery-20261008 and
 retirement-installed.log/retirement-sidebar-drag.log in existing scratch.
+
+## Tail demand uses reverse native traversal
+
+Toad580 ac60b1cf: source_tail stops the existing body-root traversal at the
+first reverse-order native boundary instead of acquiring and reversing every
+body root. Default forward traversal remains unchanged. requires_body first
+rejects unregistered bodies and admits actual visible bodies before acquiring
+interaction ancestry. No order catalog or protection cache was added.
+
+Native source and exact installed Apps passed tail/reverse order after actual
+native reorder and removal.705 source/test modules parsed without omissions.
+No broad performance measurement or frame-time improvement is claimed.
+The builder finished wheels then refused a relative output URI before prefix
+creation; original negative retained. Installation/verification continued with
+the original completed wheel and absolute path, without rebuilding. The same
+builder now resolves its output path before acquisition.954 assets/full69 and
+native package verification passed. Reviewed cohort published for new launches;
+backend and existing loaded windows preserved. Raw tail-source.log,
+tail-installed.log and tail-build.log remain in existing scratch.
