@@ -87,6 +87,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     def coordination_root(self) -> str | None:
         return self.wire_root
 
+    @property
+    def navigation_target_name(self) -> str:
+        return self.target
+
     def relationship_context(self) -> tuple[str, str | None]:
         return self.me, self.recovery_root
 
@@ -114,6 +118,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
 
     def channels_context(self) -> tuple[str, str]:
         return self.me, self.target
+
+    def sidebars(self):
+        sidebar = self.query_one_optional("#thread-sidebar", ThreadSidebar)
+        return (sidebar,) if sidebar is not None else ()
 
     def compose(self) -> ComposeResult:
         with containers.Center():

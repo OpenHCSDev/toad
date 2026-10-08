@@ -231,6 +231,12 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         if self._project_panel is not None:
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
+    def sidebars(self):
+        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
+
+        sidebar = self.query_one_optional("#thread-sidebar", SessionThreadSidebar)
+        return (sidebar,) if sidebar is not None else ()
+
     def compose(self) -> ComposeResult:
         from toad.widgets.channels_sidebar import ChannelsSlot
 
@@ -340,6 +346,10 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def _session_thread(self) -> str:
         """Project the identity published by this session, without reacquiring it."""
         return self._comms_thread
+
+    @property
+    def navigation_target_name(self) -> str:
+        return self._session_thread
 
     def _resolve_comms_thread(self) -> str:
         resolved: str | None

@@ -179,10 +179,10 @@ async def select_rows(app, pilot, rows, evidence):
         with (evidence / 'selection-transitions.log').open('a') as stream:
             stream.write(json.dumps({
                 'step': step,
-                'input': FieldCodec.encode(sidebar.navigation.selection_for(row)),
-                'expected': FieldCodec.encode(tuple(sidebar.navigation.selection_for(item) for item in rows)),
+                'input': FieldCodec.encode(sidebar.selection_for(row)),
+                'expected': FieldCodec.encode(tuple(sidebar.selection_for(item) for item in rows)),
                 'state': FieldCodec.encode(app.sidebar_state),
-                'projection': FieldCodec.encode(tuple(sidebar.navigation.selection_for(item) for item in sidebar.projection.rows)),
+                'projection': FieldCodec.encode(tuple(sidebar.selection_for(item) for item in sidebar.projection.rows)),
                 'navigation_restoring': sidebar.navigation.restoring,
                 'observation_pending': sidebar.observation.pending,
                 'input_attached': row.is_attached,
@@ -196,9 +196,9 @@ async def select_rows(app, pilot, rows, evidence):
     await pilot.pause()
     record('after-menu-dismiss', rows[0])
     for identity in tuple(app.sidebar_state.selected_targets):
-        if identity != sidebar.navigation.selection_for(rows[0]):
+        if identity != sidebar.selection_for(rows[0]):
             previous = next(row for row in sidebar.projection.rows
-                            if sidebar.navigation.selection_for(row) == identity)
+                            if sidebar.selection_for(row) == identity)
             previous.scroll_visible(animate=False, immediate=True)
             await pilot.pause()
             record('before-remove', previous)
@@ -317,7 +317,7 @@ async def selected_target_actions(app, pilot, comms, project, base, checks):
     endpoint = await reveal_thread_row(app, pilot, range_names[-1], '#range')
     assert anchor not in app.screen._compositor.visible_widgets and endpoint in app.screen._compositor.visible_widgets
     ordered_range = tuple(row.target_name for row in sidebar.projection.rows
-                          if sidebar.navigation.selection_for(row).channel == '#range'
+                          if sidebar.selection_for(row).channel == '#range'
                           and row.target_name in range_names)
     assert len(ordered_range) == len(range_names) and set(ordered_range) == set(range_names)
     assert await pilot.click(endpoint, shift=True)

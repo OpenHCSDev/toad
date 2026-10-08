@@ -38,8 +38,17 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
     def sidebar_focus_target(self) -> Widget | None:
         return None
 
+    def sidebars(self):
+        """Supply this view's native sidebar resources through its declaration."""
+        return ()
+
     def channels_context(self) -> tuple[str, str]:
         return "", ""
+
+    @property
+    def navigation_target_name(self) -> str | None:
+        """The displayed destination, independent of sidebar click intent."""
+        return None
 
     def relationship_context(self) -> tuple[str, str | None]:
         return self.channels_context()[0], self.coordination_root
@@ -49,10 +58,10 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
 
     async def prepare_navigation(self) -> bool:
         """Reconcile only this logical source's sidebar navigation and observers."""
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
+        from toad.widgets.side_bar import SideBarCollapsible
 
         changed = False
-        for sidebar in self.query(SideBar):
+        for sidebar in self.sidebars():
             panels = tuple(sidebar.query(SideBarCollapsible))
             before = tuple(panel.collapsed for panel in panels)
             changed |= sidebar.restore_navigation()

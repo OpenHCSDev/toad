@@ -107,13 +107,15 @@ class ThreadAction:
     def collect(cls, ctx, definition):
         from toad.widgets.comms_command_dialog import CommandDialog
 
-        def accepted(arguments):
+        async def accepted(arguments):
             if arguments is None:
                 return
             try:
-                ctx.current()
-                request = TargetEdit(declaration=definition.declaration, target=definition.targets if ctx.targets else ctx.subject,
-                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation), channel=ctx.channel)
+                def prepare():
+                    ctx.current()
+                    return TargetEdit(declaration=definition.declaration, target=definition.targets if ctx.targets else ctx.subject,
+                        arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation), channel=ctx.channel)
+                request = await ctx.app.preparation.run_thread(prepare)
                 ctx.app.thread_actions.invoke(cls(definition, request), ctx.subject,
                                              source_root=ctx.comms.root)
             except (OSError, ValueError) as error:
@@ -122,4 +124,6 @@ class ThreadAction:
         if definition.editable_fields or definition.confirmation:
             ctx.app.push_screen(CommandDialog(definition, ctx.title), accepted)
         else:
-            accepted({})
+            async def prepare():
+                await accepted({})
+            ctx.app.run_worker(prepare, exit_on_error=False)

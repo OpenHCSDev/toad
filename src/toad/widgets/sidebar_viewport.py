@@ -29,14 +29,14 @@ class SidebarViewport(VerticalScroll):
         # and scrollbar policy. Publish before arranging the headers, rather
         # than borrowing the previous committed size in a later Resize event.
         for header in self.query(SidebarHeader):
-            header.set_styles(width=size.width)
+            header.styles.width = size.width
         return super().arrange(size, optimal=optimal)
 
     def align_header(self, header: SidebarHeader) -> None:
         # The content still owns its full intrinsic width. Counter only its
         # horizontal scroll for these one-line headers, without pinning y or
         # creating a second read/presentation authority.
-        header.set_styles(offset=(int(self.scroll_x), 0))
+        header.styles.offset = (int(self.scroll_x), 0)
 
     def _align_headers(self) -> None:
         if self.is_mounted:

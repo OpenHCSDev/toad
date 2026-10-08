@@ -336,7 +336,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             self.state = self.state.receive_inspection(acquired)
             status.update(self.state.status)
             self.state.present(lambda current: self._inspection_acquired(previous, current, force))
-            await self.state.refresh_contributors(self._contributors_acquired)
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -353,12 +352,6 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             if force or source_changed or not self._working("context-native"):
                 self.query_one(".context-status", Static).update(current.status)
                 current.prepare_native(self._read_native)
-
-    def _contributors_acquired(self, expected, native):
-        updated = self.state.with_contributors(expected, native)
-        if updated is not self.state:
-            self.state = updated
-            updated.present(self._present)
 
     @work(group="context-native", exclusive=True, exit_on_error=False)
     async def _read_native(self, captured: HoldingInspection):
