@@ -46,6 +46,11 @@ class ViewportBody:
     def body_requires_geometry(self) -> bool:
         raise NotImplementedError
 
+    @property
+    def body_retained_paint_ready(self) -> bool:
+        """The body supplies complete pixels without reading mutable children."""
+        raise NotImplementedError
+
     def retire_body(self) -> Coroutine[None, None, bool]:
         raise NotImplementedError
 
@@ -503,6 +508,10 @@ class MeasuredViewportBody(ViewportBody):
         return self._body_measurement.requires_geometry(self)
 
     @property
+    def body_retained_paint_ready(self):
+        return self._body_measurement.paint_ready(self)
+
+    @property
     @height_dependency(INDEPENDENT_HEIGHT)
     def is_container(self):
         # Rendered and pending resources paint their whole original subtree.
@@ -861,7 +870,14 @@ class ViewportPresentation:
         # independently select the same windows again within the same frame.
         windows = tuple(self.frame_windows())
         mutations = self.mutation_roots(windows)
-        deferred = dict.fromkeys(mutations)
+        # A retained body is the original paint owner for its whole subtree.
+        # Its new source may keep changing while those exact strips publish.
+        # Native layout and callback custody still borrow every mutation root;
+        # only paint exclusion ends when that owner has valid retained pixels.
+        deferred = dict.fromkeys(root for root in mutations
+                                 if not any(isinstance(owner, ViewportBody)
+                                            and owner.body_retained_paint_ready
+                                            for owner in root.walk_ancestors(with_self=True)))
         pending_windows = {window for window in windows
                            if window.history_mutating()}
         # Each source owns its pending paint. Native publication derives the

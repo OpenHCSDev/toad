@@ -284,6 +284,13 @@ async def main():
                     assert not member.is_container and member._render_widget is member
                     assert not member.body_requires_geometry
                     assert member not in viewport.geometry_targets()
+                    async with window.preserve_history(None, root=member):
+                        assert member in app.screen._layout_mutation_roots()
+                        assert member not in app.screen._prepare_compositor_refresh()
+                        app.screen._refresh_layout(app.size)
+                        assert not any(member in child.ancestors
+                                       for child in app.screen._compositor.visible_widgets)
+                        assert tuple(line.text for line in member.render_lines(member.outer_size.region)) == captured_rows
                     scene.reflow(app.screen, app.size)
                     assert not any(member in child.ancestors for child in scene.visible_widgets)
                     member.get_content_height(member.container_size, member.size, resource.width)
@@ -295,6 +302,8 @@ async def main():
                     # custody of the already admitted native writer.
                     member.styles.color = "red"
                     assert not member.body_ready
+                    async with window.preserve_history(None, root=member):
+                        assert member in app.screen._prepare_compositor_refresh()
                     assert member._body_measurement.worker is writer
                     member.release_paint()
                     assert not member.retained_paint_bytes
@@ -366,7 +375,17 @@ async def main():
                     await second
                 assert member.body_ready and not member.body_dormant
                 scene.reflow(app.screen, app.size)
-                assert await member.retire_body()
+                # Visible-frame readiness does not prove that a replacement's
+                # hidden paragraphs have committed complete capture resources.
+                async with asyncio.timeout(10):
+                    while not member.prepared_paint_is_current(member.prepared_paint_sources()):
+                        await pilot.pause(.02)
+                assert await member.retire_body(), (type(member).__name__,
+                    type(member._body_measurement).__name__, member.body_ready,
+                    member.lock.is_locked, member in viewport.protected(),
+                    [(type(source).__name__, source.presentation_ready,
+                      source.prepared_content is not None, tuple(source.size))
+                     for source, _ in member.prepared_paint_sources()])
                 await pilot.pause()
                 family_receipts[-1]['settled_preceding_writer_released_without_replacing_current_paint'] = True
             receipt['rendered_family_reentry'] = family_receipts
