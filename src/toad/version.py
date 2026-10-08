@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import asyncio
-from typing import NamedTuple
+from collections.abc import Awaitable, Callable
+from typing import Any, NamedTuple, TYPE_CHECKING
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+
+if TYPE_CHECKING:
+    from packaging.version import Version
 
 
 VERSION_TOML_URL = "https://www.batrachian.ai/toad.toml"
@@ -46,67 +52,80 @@ class VersionMonitor:
     def __init__(self) -> None:
         self.status: VersionStatus = CurrentVersion()
 
-    async def check(self) -> None:
+    async def check(
+        self, run_thread: Callable[..., Awaitable[Any]] = asyncio.to_thread,
+    ) -> None:
         try:
-            self.status = await check_version()
+            self.status = await self.check_version(run_thread)
         except VersionCheckFailed:
             return
 
+    @staticmethod
+    def prepare_version() -> Version:
+        """Acquire cold dependencies and installed metadata outside UI work."""
+        import httpx  # noqa: F401 - acquired before the UI consumes the module
+        import packaging.version
+        import tomllib  # noqa: F401 - acquired before the UI decodes the response
 
-async def check_version() -> VersionStatus:
-    """Check for a new version of Toad.
+        from toad import get_version
 
-    The outcome owns whether an upgrade notice exists.
-    """
-    import httpx
-    import packaging.version
-    import tomllib
+        try:
+            return packaging.version.parse(get_version())
+        except packaging.version.InvalidVersion as error:
+            raise VersionCheckFailed(f"Invalid version;{error}")
 
-    from toad import get_version
+    @classmethod
+    async def check_version(
+        cls, run_thread: Callable[..., Awaitable[Any]] = asyncio.to_thread,
+    ) -> VersionStatus:
+        """Check for a new version of Toad.
 
-    try:
-        current_version = packaging.version.parse(get_version())
-    except packaging.version.InvalidVersion as error:
-        raise VersionCheckFailed(f"Invalid version;{error}")
+        The outcome owns whether an upgrade notice exists.
+        """
+        current_version = await run_thread(cls.prepare_version)
+        # These modules were acquired by the preparation worker above.
+        import httpx
+        import packaging.version
+        import tomllib
 
-    try:
-        client = await asyncio.to_thread(httpx.AsyncClient)
-        async with client:
-            response = await client.get(VERSION_TOML_URL)
-            version_toml_bytes = await response.aread()
-    except Exception as error:
-        raise VersionCheckFailed(f"Failed to retrieve version;{error}")
+        try:
+            client = await run_thread(httpx.AsyncClient)
+            async with client:
+                response = await client.get(VERSION_TOML_URL)
+                version_toml_bytes = await response.aread()
+        except Exception as error:
+            raise VersionCheckFailed(f"Failed to retrieve version;{error}")
 
-    try:
-        version_toml = version_toml_bytes.decode("utf-8", "replace")
-        version_meta = tomllib.loads(version_toml)
-    except Exception as error:
-        raise VersionCheckFailed(f"Failed to decode version TOML;{error}")
+        try:
+            version_toml = version_toml_bytes.decode("utf-8", "replace")
+            version_meta = tomllib.loads(version_toml)
+        except Exception as error:
+            raise VersionCheckFailed(f"Failed to decode version TOML;{error}")
 
-    if not isinstance(version_meta, dict):
-        raise VersionCheckFailed("Response isn't TOML")
+        if not isinstance(version_meta, dict):
+            raise VersionCheckFailed("Response isn't TOML")
 
-    toad_version = str(version_meta.get("version", "0"))
-    version_message = str(version_meta.get("upgrade_message", ""))
-    version_message = version_message.replace("$VERSION", toad_version)
-    verison_meta = VersionMeta(
-        version=toad_version,
-        upgrade_message=version_message,
-        visit_url=str(version_meta.get("visit_url", "")),
-    )
+        toad_version = str(version_meta.get("version", "0"))
+        version_message = str(version_meta.get("upgrade_message", ""))
+        version_message = version_message.replace("$VERSION", toad_version)
+        verison_meta = VersionMeta(
+            version=toad_version,
+            upgrade_message=version_message,
+            visit_url=str(version_meta.get("visit_url", "")),
+        )
 
-    try:
-        new_version = packaging.version.parse(verison_meta.version)
-    except packaging.version.InvalidVersion as error:
-        raise VersionCheckFailed(f"Invalid remote version;{error}")
+        try:
+            new_version = packaging.version.parse(verison_meta.version)
+        except packaging.version.InvalidVersion as error:
+            raise VersionCheckFailed(f"Invalid remote version;{error}")
 
-    return AvailableVersion(verison_meta) if new_version > current_version else CurrentVersion()
+        return AvailableVersion(verison_meta) if new_version > current_version else CurrentVersion()
 
 
 if __name__ == "__main__":
 
     async def run() -> None:
-        result = await check_version()
+        result = await VersionMonitor.check_version()
         from rich import print
 
         print(result)

@@ -980,3 +980,41 @@ not a performance pass. Current wheel is published for new launches through
 the reviewed original publication owner; existing windows retain loaded code.
 Exact checks/publication live under visible-retirement-delivery-20261008 and
 retirement-installed.log/retirement-sidebar-drag.log in existing scratch.
+
+## Tail demand uses reverse native traversal
+
+Toad580 ac60b1cf: source_tail stops the existing body-root traversal at the
+first reverse-order native boundary instead of acquiring and reversing every
+body root. Default forward traversal remains unchanged. requires_body first
+rejects unregistered bodies and admits actual visible bodies before acquiring
+interaction ancestry. No order catalog or protection cache was added.
+
+Native source and exact installed Apps passed tail/reverse order after actual
+native reorder and removal.705 source/test modules parsed without omissions.
+No broad performance measurement or frame-time improvement is claimed.
+The builder finished wheels then refused a relative output URI before prefix
+creation; original negative retained. Installation/verification continued with
+the original completed wheel and absolute path, without rebuilding. The same
+builder now resolves its output path before acquisition.954 assets/full69 and
+native package verification passed. Reviewed cohort published for new launches;
+backend and existing loaded windows preserved. Raw tail-source.log,
+tail-installed.log and tail-build.log remain in existing scratch.
+
+## Current installed pacing remains unqualified
+
+Current document-tail cohort160-wheel/20incoming private native-driver burst
+completed ordered/no App error/provider0. Wheel median84.4/p95345.7ms;
+frame median13.0/p95114.5/max291.6ms. Single run under actual host conditions;
+no causal regression/improvement claim. UI-thread CPU spans: full reflow25
+calls/425.2ms/worst50.6; visible62/231.2/worst32.1; paint160/266.5/worst6.1.
+WorkerStatic preparation122/7.6ms total and row render69/2.2ms total do not
+explain this layout cost. Direct thread-time records retained in tail-wheel;
+cProfile is not used for these measurements. Native compositional geometry
+migration remains open, including held publication loans and explicit reader
+demand. Matched installed application comparison follows its final checkpoint.
+
+Fresh privileged283-process census without gaps or borrowers and executable
+symlink checks permitted removal of two superseded runtime directories,
+110389417bytes. Current document-tail, visible-retirement rollback and backend
+remain. Source/wheels/proofs/raw are preserved; original removal evidence in
+Parent-tail-superseded-runtime-retired-20261008.json.
