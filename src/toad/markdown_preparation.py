@@ -125,6 +125,11 @@ class PreparedMarkdown:
     def inline_content(self, token: Token) -> Content:
         return token.meta[PreparedMarkdown]
 
+    def fence_content(self, code: str, language: str, ansi: bool, dark: bool) -> Content | None:
+        """The acquired theme/source cohort owns highlighted fence content."""
+        prepared = self.fences.get((code, language, ansi, dark))
+        return None if prepared is None else prepared.content
+
 
 def prepare_tokens(tokens: list[Token], ansi: bool, dark: bool) -> PreparedMarkdown:
     fences: dict[FenceKey, PreparedFence] = {}

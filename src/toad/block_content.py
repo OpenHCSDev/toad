@@ -1,6 +1,8 @@
 """Nominal selection capabilities on the actual mounted block widgets."""
 from collections.abc import Iterable
 
+from textual.widgets import _markdown as native_markdown
+
 from toad.menus import MenuItem
 
 
@@ -30,13 +32,105 @@ class BlockContent:
 
 
 class MarkdownBlockContent(BlockContent):
-    """Textual's Markdown block factory admits these capabilities once."""
+    """Declared native blocks share source-copy and menu capabilities."""
 
     def get_clipboard_text(self) -> str:
         return self.source
 
     @classmethod
-    def declare(cls, external: type) -> type:
-        # Keep Textual's existing token catalog and concrete rendering classes.
-        # The mounted class itself owns the capability, without a widget wrapper.
-        return type(external.__name__, (cls, external), {"__module__": __name__})
+    def blocks_for(cls, catalog: dict[str, type]) -> dict[str, type]:
+        """Extend the original token catalog through declared inheritance.
+
+        The native owner decides which token selects which block. These
+        declarations add capabilities and stable Python identities; neither
+        token names nor a transport codec select an implementation here.
+        """
+        native = set(catalog.values())
+        implementations = {}
+        for declaration in cls.__subclasses__():
+            for base in declaration.__bases__:
+                if base in native:
+                    if base in implementations:
+                        raise TypeError(f"Multiple declared block extensions for {base.__name__}")
+                    implementations[base] = declaration
+        return {token: implementations[block] for token, block in catalog.items()}
+
+
+class MarkdownH1(MarkdownBlockContent, native_markdown.MarkdownH1):
+    pass
+
+
+class MarkdownH2(MarkdownBlockContent, native_markdown.MarkdownH2):
+    pass
+
+
+class MarkdownH3(MarkdownBlockContent, native_markdown.MarkdownH3):
+    pass
+
+
+class MarkdownH4(MarkdownBlockContent, native_markdown.MarkdownH4):
+    pass
+
+
+class MarkdownH5(MarkdownBlockContent, native_markdown.MarkdownH5):
+    pass
+
+
+class MarkdownH6(MarkdownBlockContent, native_markdown.MarkdownH6):
+    pass
+
+
+class MarkdownHorizontalRule(MarkdownBlockContent, native_markdown.MarkdownHorizontalRule):
+    pass
+
+
+class MarkdownParagraph(MarkdownBlockContent, native_markdown.MarkdownParagraph):
+    pass
+
+
+class MarkdownBlockQuote(MarkdownBlockContent, native_markdown.MarkdownBlockQuote):
+    pass
+
+
+class MarkdownBulletList(MarkdownBlockContent, native_markdown.MarkdownBulletList):
+    pass
+
+
+class MarkdownOrderedList(MarkdownBlockContent, native_markdown.MarkdownOrderedList):
+    pass
+
+
+class MarkdownOrderedListItem(MarkdownBlockContent, native_markdown.MarkdownOrderedListItem):
+    pass
+
+
+class MarkdownUnorderedListItem(MarkdownBlockContent, native_markdown.MarkdownUnorderedListItem):
+    pass
+
+
+class MarkdownTable(MarkdownBlockContent, native_markdown.MarkdownTable):
+    pass
+
+
+class MarkdownTBody(MarkdownBlockContent, native_markdown.MarkdownTBody):
+    pass
+
+
+class MarkdownTHead(MarkdownBlockContent, native_markdown.MarkdownTHead):
+    pass
+
+
+class MarkdownTR(MarkdownBlockContent, native_markdown.MarkdownTR):
+    pass
+
+
+class MarkdownTH(MarkdownBlockContent, native_markdown.MarkdownTH):
+    pass
+
+
+class MarkdownTD(MarkdownBlockContent, native_markdown.MarkdownTD):
+    pass
+
+
+class MarkdownFence(MarkdownBlockContent, native_markdown.MarkdownFence):
+    pass
