@@ -23,8 +23,35 @@ class MessageNotifications(Collapsible):
     def __init__(self) -> None:
         self._notifications: tuple[MessageNotification, ...] | None = None
         self._error: str | None = None
-        self.details = Static("Not checked yet", markup=False)
-        super().__init__(self.details, title="Notification status not checked", collapsed=True)
+        self._details: Static | None = None
+        super().__init__(title="Notification status not checked", collapsed=True)
+
+    @property
+    def details(self) -> Static:
+        """Acquire the original disclosure body only when it is requested."""
+        if self._details is None:
+            self._details = Static(markup=False)
+            if self.is_mounted:
+                self.query_one(self.Contents).mount(self._details)
+            else:
+                self._contents_list.append(self._details)
+        self._details.update(self._detail_text())
+        return self._details
+
+    def _detail_text(self) -> str:
+        if self._error is not None:
+            return f"Could not check notification status: {self._error}"
+        if self._notifications is None:
+            return "Not checked yet"
+        return "\n".join(
+            f"{item.recipient}: {item.state}"
+            + (f" — {item.detail}" if item.detail else "")
+            for item in sorted(self._notifications, key=lambda item: (item.priority, item.recipient.casefold()))
+        ) or "No notification result is recorded for this message. This does not confirm receipt."
+
+    def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
+        if event.collapsible is self:
+            _ = self.details
 
     def show_result(self, notifications: tuple[MessageNotification, ...]) -> None:
         if self._error is None and self._notifications == notifications:
@@ -37,11 +64,8 @@ class MessageNotifications(Collapsible):
         if len(states) > 3:
             summary += f" · {sum(counts[state] for state in states[3:])} others"
         self.title = Content(summary or "No recorded notification result")
-        self.details.update("\n".join(
-            f"{item.recipient}: {item.state}"
-            + (f" — {item.detail}" if item.detail else "")
-            for item in ordered
-        ) or "No notification result is recorded for this message. This does not confirm receipt.")
+        if not self.collapsed:
+            _ = self.details
         self.set_class(any(item.busy for item in notifications), "-working")
         self.remove_class("-unavailable")
 
@@ -51,6 +75,7 @@ class MessageNotifications(Collapsible):
             return
         self._notifications, self._error = None, detail
         self.title = Content("Notification status unavailable")
-        self.details.update(f"Could not check notification status: {detail}")
+        if not self.collapsed:
+            _ = self.details
         self.remove_class("-working")
         self.add_class("-unavailable")
