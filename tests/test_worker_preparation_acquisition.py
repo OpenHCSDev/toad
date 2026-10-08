@@ -555,6 +555,8 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             from toad.widgets.transcript_history import TranscriptHistory
             assert not tuple(walk_depth_first(document, TranscriptHistory, with_root=False))
             assert not tuple(walk_depth_first(document, AgentResponse, with_root=False))
+            assert all(part.get_clipboard_text() == part.source and part.get_prompt_text() == part.source
+                       for part in document.fragment_views)
             window = view.window
             window.release_anchor()
             window.scroll_home(animate=False, immediate=True)
@@ -594,6 +596,8 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             before = window.scroll_y
             for _ in range(16):
                 await pilot._post_mouse_events([events.MouseScrollDown], offset=offset)
+                if document.has_newer_source:
+                    assert not window.follows_tail
             await pilot.wait_for_scheduled_animations()
             down = window.scroll_y
             for _ in range(8):

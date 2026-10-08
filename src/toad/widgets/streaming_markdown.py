@@ -51,6 +51,10 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
     def capture_admission(self):
         return self._content_generation, self.start, self.stop
 
+    @property
+    def has_newer_source(self) -> bool:
+        return self.stop < len(self.fragments)
+
     async def _prepare_parts(self, parts, current: Callable[[], bool]) -> bool:
         for first in range(0, len(parts), self.batch_size):
             if not current():
@@ -159,7 +163,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                     return
                 if selected.start <= index < selected.stop and child.source != fragments[index].text:
                     await child.update(fragments[index].text)
-            async with window.preserve_history(None):
+            async with window.preserve_history(None, root=self):
                 if not is_current():
                     return
                 if not self.fragments:
@@ -211,7 +215,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                         else self.extension_slice(older))
             if not await self._prepare_parts(self.fragments[selected], current):
                 return
-            async with window.preserve_history(None):
+            async with window.preserve_history(None, root=self):
                 if not current():
                     return
                 if latest:
