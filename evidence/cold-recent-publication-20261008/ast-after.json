@@ -1,0 +1,56 @@
+{
+  "modules": 862,
+  "omissions": [],
+  "sites": [
+    [
+      "src/toad/tool_output.py",
+      195,
+      "from toad.render_tasks import PatchRenderTask"
+    ],
+    [
+      "src/toad/render_choices.py",
+      24,
+      "from toad.render_processes import RenderProcessPool"
+    ],
+    [
+      "src/toad/render_service.py",
+      12,
+      "from toad.render_processes import _initialize_worker"
+    ],
+    [
+      "src/toad/widgets/worker_static.py",
+      26,
+      "from toad.render_tasks import RichRenderTask"
+    ],
+    [
+      "src/toad/widgets/prepared_markdown.py",
+      25,
+      "from toad.render_tasks import MarkdownRenderTask"
+    ],
+    [
+      "src/toad/widgets/transcript_fragments.py",
+      49,
+      "from toad.render_processes import RenderProcessPool"
+    ],
+    [
+      "src/toad/widgets/transcript_fragments.py",
+      275,
+      "from toad.render_tasks import MarkdownRenderTask"
+    ],
+    [
+      "src/toad/widgets/tool_content.py",
+      16,
+      "from toad.render_tasks import PatchRenderTask"
+    ],
+    [
+      "src/toad/widgets/streaming_markdown.py",
+      21,
+      "from toad.render_tasks import MarkdownPartsTask, MarkdownRenderTask"
+    ],
+    [
+      "src/toad/widgets/context_explorer.py",
+      223,
+      "from toad.render_tasks import ReadOnlyDocumentRenderTask"
+    ]
+  ]
+}
