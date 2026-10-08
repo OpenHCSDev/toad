@@ -743,13 +743,23 @@ class MeasuredViewportBody(ViewportBody):
         self._update_body_measurement(self._body_measurement.invalidated())
 
     def _update_body_measurement(self, measurement):
-        if measurement is self._body_measurement:
+        previous = self._body_measurement
+        if measurement is previous:
             return
+        # State/resource publication is not itself a new layout. Native extent,
+        # descendant participation and geometry demand own that decision. Byte
+        # accounting and writer identity still repaint/request reconciliation
+        # without arranging every unchanged body in the window again.
+        layout = (
+            (measurement.width, measurement.rows) != (previous.width, previous.rows)
+            or measurement.paint_ready(self) != previous.paint_ready(self)
+            or measurement.geometry_targets(self) != previous.geometry_targets(self)
+        )
         self._body_measurement = measurement
         # The resource owns descendant participation and cover selection as
         # well as extent. Publish that change before any native prune awaits;
         # NodeList removal happens later and cannot invalidate it for us.
-        self.refresh(layout=True)
+        self.refresh(layout=layout)
         if self._body_viewport is not None:
             if measurement.capture_pending:
                 self.screen.frame_presentation.defer(
