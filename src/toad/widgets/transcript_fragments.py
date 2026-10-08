@@ -14,6 +14,7 @@ from agent_comms.transcript_events import (
 from markdown_it import MarkdownIt
 
 from toad.render_backend import ReusableRenderTask
+from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import event_category
 
@@ -146,6 +147,14 @@ class TranscriptFragment:
     continuation: bool = False
     starts_agent_activity: bool = False
 
+    def blocks(self, *, fragment: bool = False, show_divider: bool = True):
+        from toad.widgets.transcript_history import TranscriptBlockConsumer
+
+        consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider)
+        for event in self.events:
+            consumer.dispatch_sync(event)
+        return consumer.blocks
+
     @cached_property
     def retained_bytes(self) -> int:
         """Measure this immutable source resource once, before native admission."""
@@ -154,13 +163,27 @@ class TranscriptFragment:
         return retained_bytes(self)
 
 
+@dataclass(frozen=True, kw_only=True)
+class ToolTranscriptFragment(TranscriptFragment):
+    """One original grouped tool and its worker-acquired ACP presentation."""
+
+    tool_call: ToolCallStatus
+
+    def blocks(self, *, fragment: bool = False, show_divider: bool = True):
+        from toad.acp.encode_tool_call_id import encode_tool_call_id
+        from toad.widgets.tool_call import ToolCall
+
+        return [ToolCall(self.tool_call, id=encode_tool_call_id(self.tool_call.call.tool_call_id))]
+
+
 class TranscriptFragmentConsumer(MroDispatch):
-    def __init__(self, *, continuation: bool = False):
+    def __init__(self, *, continuation: bool = False, split_text: bool = True):
         self.fragments: list[TranscriptFragment] = []
         self.tools: dict[str, int] = {}
         self.budget = RenderBudget()
         self.boundary = AgentActivityBoundary()
         self.continuation = continuation
+        self.split_text = split_text
 
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript):
@@ -173,7 +196,7 @@ class TranscriptFragmentConsumer(MroDispatch):
         self.fragments.extend(
             TranscriptFragment((replace(event, text=part),), continuation=self.continuation or index > 0,
                                starts_agent_activity=starts_activity and index == 0)
-            for index, part in enumerate(self.budget.split(event.text))
+            for index, part in enumerate(self.budget.split(event.text) if self.split_text else (event.text,))
         )
 
     @handles(ToolTranscript)
@@ -190,11 +213,20 @@ class TranscriptFragmentConsumer(MroDispatch):
 
 
 def transcript_fragments(
-    events: tuple[TranscriptEvent, ...], *, continuation: bool = False,
+    events: tuple[TranscriptEvent, ...], *, continuation: bool = False, split_text: bool = True,
 ) -> tuple[TranscriptFragment, ...]:
-    consumer = TranscriptFragmentConsumer(continuation=continuation)
+    consumer = TranscriptFragmentConsumer(continuation=continuation, split_text=split_text)
     for event in events:
         consumer.dispatch_sync(event)
+    # Grouping belongs to this producer. Decode once after the final event,
+    # before storage/byte accounting and before any native reconstruction.
+    for index in consumer.tools.values():
+        source = consumer.fragments[index]
+        consumer.fragments[index] = ToolTranscriptFragment(
+            source.events, continuation=source.continuation,
+            starts_agent_activity=source.starts_agent_activity,
+            tool_call=ToolCallStatus.from_transcript(source.events),
+        )
     # This producer runs in the existing renderer for saved and paged sources.
     # Deliver the measured resource with its source rather than walking nested
     # tool inputs again in every native fragment constructor or publication.
