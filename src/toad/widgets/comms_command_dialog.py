@@ -15,7 +15,8 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
         background: $surface; border: solid $primary; padding: 1 2; }
     CommandDialog #command-body { height: 1fr; }
-    CommandDialog #command-buttons { height: 3; }
+    CommandDialog #command-buttons { height: 3; align-horizontal: center; }
+    CommandDialog #command-buttons Button { width: auto; min-width: 12; margin: 0 1; }
     CommandDialog #command-fields { height: auto; }
     CommandDialog #command-title { max-height: 3; text-overflow: ellipsis; }
     CommandDialog TextArea { height: 5; }
