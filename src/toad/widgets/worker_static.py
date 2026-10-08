@@ -243,6 +243,14 @@ class WorkerStatic(PreparedPaintSource, Static):
         yield
 
     @property
+    def presentation_ready(self) -> bool:
+        # Existing render_line and measurement retain preceding rows while a
+        # replacement request prepares. A settled error also needs its first
+        # frame before the after-refresh extent callback can complete.
+        return (self._prepared is not None
+                or (self._ready_request is not None and self._ready_request == self._wanted))
+
+    @property
     def paint_ready(self) -> bool:
         """A placeholder or failed preview is not rendered source evidence."""
         return (self._prepared is not None and self._ready_request is not None

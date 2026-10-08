@@ -33,7 +33,7 @@ from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.widgets.viewport_body import MeasuredViewportBody
-from toad.widgets.worker_static import WorkerStatic
+from toad.rich_preparation import PreparedPaintSource
 from textual.await_complete import AwaitComplete
 
 class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
@@ -47,8 +47,8 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
 
     def native_body_ready(self) -> bool:
         return (super().native_body_ready()
-                and all(worker.paint_ready for worker in
-                        walk_depth_first(self, WorkerStatic, with_root=False)))
+                and all(worker.presentation_ready for worker in
+                        walk_depth_first(self, PreparedPaintSource, with_root=False)))
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
