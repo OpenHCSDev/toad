@@ -12,24 +12,37 @@ import time
 from toad.acp.agent_process import AgentProcess
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
-from toad.acp.wire_message import IncomingWireMessage, ReadAgentWireTask, WireInputFailure, WireResponse
+from toad.acp import wire_message
+from toad.acp.wire_message import IncomingWireMessage, WireResponse
 from toad.render_processes import RenderProcessPool
+
+ReadAgentWireTask = getattr(wire_message, "ReadAgentWireTask", ())
+WireInputFailure = getattr(wire_message, "WireInputFailure", ())
 
 
 def observed_wire_capture(function):
     """Run the actual declared acquisition; record its executing process."""
-    return os.getpid(), function()
+    wall, cpu = time.perf_counter(), time.process_time()
+    result = function()
+    return os.getpid(), result, time.perf_counter() - wall, time.process_time() - cpu
 
 
 class ObservedWirePool(RenderProcessPool):
     def __init__(self):
         super().__init__()
         self.wire_pids = []
+        self.executions = []
 
     async def run(self, function, *args):
-        if isinstance(getattr(function, "__self__", None), ReadAgentWireTask):
-            pid, result = await super().run(observed_wire_capture, function)
-            self.wire_pids.append(pid)
+        from toad.acp.sdk_boundary import ValidateSessionUpdateTask
+
+        task = getattr(function, "__self__", None)
+        if isinstance(task, (ValidateSessionUpdateTask,)) or isinstance(task, ReadAgentWireTask):
+            pid, result, wall, cpu = await super().run(observed_wire_capture, function)
+            if isinstance(task, ReadAgentWireTask):
+                self.wire_pids.append(pid)
+            self.executions.append({"task": type(task).__name__, "pid": pid,
+                                    "wall_ms": wall * 1000, "cpu_ms": cpu * 1000})
             return result
         return await super().run(function, *args)
 
@@ -73,8 +86,26 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
         ui_thread = threading.get_ident()
         counts = {"ui_wire_json": 0, "worker_wire_json": 0, "ui_wire_utf8": 0}
         loads_code = json.loads.__code__
+        from toad.work_preparation import CopiedValue
+        from toad.acp.agent import Agent
+        from toad.jsonrpc import Server
+        timing_codes = {loads_code: "json", CopiedValue.materialize.__code__: "result_copy",
+                        Agent._log.__code__: "log_schedule", Server._dispatch_object_call.__code__: "rpc_dispatch"}
+        timings, active = {}, {}
 
         def profile(frame, event, arg):
+            code = frame.f_code
+            key = (threading.get_ident(), id(frame))
+            if code in timing_codes:
+                if event == "call":
+                    active[key] = time.thread_time()
+                elif event == "return" and key in active:
+                    name = timing_codes[code]
+                    row = timings.setdefault(name, {"calls": 0, "cpu_ms": 0, "max_cpu_ms": 0})
+                    elapsed = (time.thread_time() - active.pop(key)) * 1000
+                    row["calls"] += 1
+                    row["cpu_ms"] += elapsed
+                    row["max_cpu_ms"] = max(row["max_cpu_ms"], elapsed)
             if event == "call" and frame.f_code is loads_code:
                 source = frame.f_locals.get("s")
                 if isinstance(source, str) and '"jsonrpc"' in source:
@@ -88,6 +119,7 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
         pool = ObservedWirePool()
         app = ToadApp(project_dir=str(tmp_path), agent_data=definition, renderer=pool)
         old_ui, old_threads = sys.getprofile(), threading.getprofile()
+        old_trace = sys.gettrace()
         threading.setprofile_all_threads(profile)
         try:
             async with app.run_test(size=(110, 35)) as pilot:
@@ -105,35 +137,56 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
                 try:
                     editor = view.prompt.prompt_text_area
                     editor.focus(scroll_visible=False)
-                    started = time.perf_counter()
                     from textual.events import Key
 
-                    # Measure driver delivery through paint. Pilot.press waits
-                    # for whole-thread idleness twice per key, conflating input
-                    # latency with concurrent response/preparation completion.
-                    for key in "draft":
-                        app._driver.send_message(Key(key, key))
+                    # Both versions start at the same original raw stdout read,
+                    # before UTF8/JSON acquisition. Enqueue native driver input
+                    # there, so UI decoding cannot run before the clock starts.
+                    started = None
+                    stream_arrived = asyncio.Event()
+                    def trace(frame, event, arg):
+                        nonlocal started
+                        if frame.f_code is not AgentProcess.communicate.__code__:
+                            return None
+                        if event == "line" and started is None:
+                            line = frame.f_locals.get("line")
+                            if isinstance(line, bytes) and b"agent_message_chunk" in line:
+                                started = time.perf_counter()
+                                for key in "draft":
+                                    app._driver.send_message(Key(key, key))
+                                stream_arrived.set()
+                        return trace
+                    sys.settrace(trace)
                     async with asyncio.timeout(20):
+                        await stream_arrived.wait()
                         while editor.text != "draft":
                             await asyncio.sleep(0)
                         painted = asyncio.Event()
                         editor.call_after_refresh(painted.set)
                         await painted.wait()
                     typing_ms = (time.perf_counter() - started) * 1000
+                    sys.settrace(old_trace)
                     await asyncio.wait_for(request, 20)
                     async with asyncio.timeout(20):
                         while "Original ACP active response" not in viewport_text(view.window):
                             await pilot.pause()
                     assert editor.text == "draft"
-                    assert counts["ui_wire_json"] == counts["ui_wire_utf8"] == 0
-                    assert counts["worker_wire_json"] == 0
-                    assert len(pool.wire_pids) >= 4 and all(pid != os.getpid() for pid in pool.wire_pids)
+                    if ReadAgentWireTask:
+                        assert counts["ui_wire_json"] == counts["ui_wire_utf8"] == 0
+                        assert counts["worker_wire_json"] == 0
+                        assert len(pool.wire_pids) >= 4 and all(pid != os.getpid() for pid in pool.wire_pids)
+                    else:
+                        assert counts["ui_wire_json"] >= 4 and not pool.wire_pids
                     recorded = [json.loads(line) for line in (tmp_path / "completion-wire.jsonl").read_text().splitlines()]
                     assert recorded == [{"prompt": original}]
                     assert app._exception is None
-                    print({**counts, "process_wire_reads": len(pool.wire_pids),
+                    result = {**counts, "process_wire_reads": len(pool.wire_pids),
                            "draft_ms": round(typing_ms, 1), "local_acp_requests": 1,
-                           "provider_inputs": 0, "physical_terminal": False}, flush=True)
+                           "provider_inputs": 0, "physical_terminal": False,
+                           "cpu_scopes_overlap": True, "timings": timings,
+                           "worker_executions": pool.executions}
+                    (tmp_path / "wire-comparison.json").write_text(json.dumps(result, indent=2) + "\n")
+                    print(result, flush=True)
                 finally:
                     if not request.done():
                         request.cancel()
@@ -144,6 +197,7 @@ def test_original_sdk_stdio_decode_and_joined_app_input(tmp_path, monkeypatch):
                                for task in asyncio.all_tasks() if not task.done())
             assert all(not Path(f"/proc/{pid}").exists() for pid in pool.wire_pids)
         finally:
+            sys.settrace(old_trace)
             threading.setprofile_all_threads(old_threads)
             sys.setprofile(old_ui)
 
