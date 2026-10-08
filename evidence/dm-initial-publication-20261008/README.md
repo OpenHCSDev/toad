@@ -125,3 +125,114 @@ Removing the parser prewarm barrier was also rejected: warm preparation was
 1.99 seconds versus 1.80 in the baseline, with more live widgets at readiness.
 Prewarming and native publication have distinct lifetimes; the original code
 was restored. Raw: `dm-single-acquisition-profile-20261008`.
+
+Installed delivery is complete for new launches. The build selects Toad
+bc06324c6fbc2c6949a6293be8d490dc220d05a4, unchanged Native117 and retained
+Core4baa; all954 assets/full69 distributions/2857 RECORD entries and native
+package resources matched. The same lifecycle helper imported installed
+packages with only tests on PYTHONPATH and exited zero. The original reviewed
+frontend publisher changed only the toad default to
+.artifacts/cold-body-delivery-20261008/runtime; backend defaults and existing
+processes were preserved. Installed App checks do not establish physical frame
+pacing or the software loaded in an already-open user window. Raw build,
+installed and publication logs are cold-body-build.log, dm-cold-installed.log
+and cold-body-publication.log in the same scratch directory.
+
+## Installed physical wheel observation (incomplete)
+
+The new private native seed produced a real saved response in isolated st, with
+no provider errors. The first recorder composition exhausted its original
+budget on unrelated sidebar resizing before wheel input. WheelCadenceJourney
+now supplies shared history commands, and WheelWarmJourney reuses those commands
+without recursively rerunning opening/chrome work. The original deadline and
+input semantics remain; no product/package change was made by this correction.
+
+The next new private capture completed upward scrolling, then exhausted that
+same recording budget during the following gesture. The completed upward
+segment has79 native writer intervals: median26.74ms, p9597.73ms, max317.44ms.
+These are writer acknowledgments within checked driver-command bounds, not
+monitor FPS or input-to-pixel latency. The driver trace has no semantic body
+output events, so it cannot establish complete viewport readiness. The film also
+shows table outlines disappearing while text remains; its source cause is not
+proved. The native owner is tracing layout/capture and Parent owns body/source
+currentness. No full scrolling acceptance or latency improvement is claimed.
+
+Both original attempts are terminal; recorder and capture cleanup report no
+remaining owned processes/errors. Each used one localhost request; the second
+owner-usability input was unreached. Raw native journals and failures remain in
+/home/ts/.cache/agent-scratch/dm-installed-wheel-20261008 and
+/home/ts/.cache/agent-scratch/dm-installed-wheel-only-20261008. The second
+unprofiled directory retains frame-delivery.json, scroll-travel.jsonl,
+terminal.mp4 and wheel-up-partial-film.png. Existing user processes/defaults
+were not changed by either measurement.
+
+## Captured table geometry installed
+
+The native layout now paints table keylines using the same acquired geometry
+as its child cells. Offscreen capture previously combined new cell placements
+with the last Resize size, which could be zero. Native held-root geometry
+discovery also shares the original ancestry answers during each traversal;
+it adds no persistent cache. Textual #118 and #119 are merged.
+
+The candidate reuses the qualified cold-body Toad wheel and retained backend.
+All 954 source/wheel assets, 69 distributions and 2857 installed RECORD rows
+passed verification. The installed original retained-fragment App passed source,
+style, resize, writer custody, warm reentry and disposal checks. The installed
+native twelve-table App retained every offscreen table keyline without changing
+published geometry or Resize state.
+
+New Toad launches now use this candidate; running sessions remain unchanged.
+The earlier physical upward-wheel measurement still has p95 writer intervals
+of 97.73 ms and a 317.44 ms maximum. This publication does not claim those
+stalls are resolved or that the incomplete physical journey passed.
+
+Build, installed checks and publication logs are in
+`/home/ts/.cache/agent-scratch/sidebar-drag-hotpath-20261007/captured-table-*.log`.
+Installed runtime and original publication result are in
+`.artifacts/captured-table-geometry-delivery-20261008`.
+
+## Auto-width preparation uses its parent assigned box
+
+WorkerStatic now reads its parent's native-assigned inner width minus the
+original scrollbar gutter. It no longer asks for screen position merely to
+acquire width. Compositor owns that inner size and Screen supplies it through
+the existing size/Resize publication. The child's own container_size is a
+different box and is not substituted. Markdown, IRC and tool content inherit
+the same implementation. Source/style/selection and resize reacquisition stay.
+
+All 288 production modules parsed without omissions. The existing real App
+geometry/source/style/selection control passed across three native resizes.
+Matched 108-event raw-wheel headless profiles on the 3588-character source
+measured request preparation 0.874s before and 0.066s after; native arrangements
+fell from 259 to 160. These profiled runs include first-use lazy expansion and
+have different frame/cohort counts. They do not establish physical latency or
+identical steady-state paint workloads.
+
+Profiles are in `wheel-owner-profile-20261008` and
+`wheel-owner-assigned-width-20261008` under the existing sidebar scratch root.
+Two diagnostic setup negatives (subclass CSS path and multiprocessing main
+guard) remain recorded; they are not rendering or provider failures.
+
+### Installed candidate remains unpublished
+
+The candidate passed full installed asset/origin/RECORD verification and the
+three-resize source/style/selection check. Its paged-message journey timed out
+reconstructing the older offscreen message after posting a following response.
+The current installed predecessor fails the same check without the width
+change. This is not evidence that the width change caused the failure, nor
+proof that the affected paged path is qualified.
+
+Failure-only diagnostics now record the complete awaited task chains and the
+original native callback/mutation owners. The parent is waiting in
+replace_range/join_part_publications under its source mutation while nested
+Markdown workers await native mounting. Preparation callbacks remain held by
+that mutation. The exact cycle and repair still need source ownership analysis;
+the observed waits alone do not prove deadlock. No new package was published.
+
+Original negatives and diagnostics are retained in
+`assigned-parent-width-*.log`, `paged-body-wait.log` and
+`paged-publication-wait.log` under the same scratch root, with private fixture
+state in `dmnw3` through `dmnw8`. All those App attempts are terminal; none
+submitted provider input. Previous writer interval statistics include the
+100ms wheel input cadence and idle settlement; they do not alone prove a
+317ms input-to-pixel stall.
