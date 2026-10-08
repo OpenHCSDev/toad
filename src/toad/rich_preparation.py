@@ -34,6 +34,11 @@ class PreparedPaintSource:
     """
 
     @property
+    def presentation_ready(self) -> bool:
+        """The native frame can use preceding paint or a settled error."""
+        raise NotImplementedError
+
+    @property
     def prepared_content(self) -> PreparedRichContent | None:
         raise NotImplementedError
 

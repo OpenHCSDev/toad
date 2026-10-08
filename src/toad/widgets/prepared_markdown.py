@@ -15,12 +15,14 @@ from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
+from textual.walk import walk_depth_first
 from textual.widgets import Label
 from textual.widgets._markdown import Markdown, MarkdownBlock
 
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
 from toad.markdown_preparation import PreparedMarkdown
+from toad.rich_preparation import PreparedPaintSource
 from toad.render_tasks import MarkdownRenderTask
 from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.viewport_body import MeasuredViewportBody
@@ -86,7 +88,8 @@ class PreparedConversationMarkdown(MeasuredViewportBody, ConversationMarkdown):
 
     def native_body_ready(self) -> bool:
         return (super().native_body_ready() and not self.loading
-                and all(block.paint_ready for block in self.query(PreparedMarkdownContent)))
+                and all(block.presentation_ready for block in
+                        walk_depth_first(self, PreparedPaintSource, with_root=False)))
 
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately

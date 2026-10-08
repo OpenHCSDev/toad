@@ -91,6 +91,9 @@ def test_saved_page_acquires_tools_off_ui_and_reconstruction_borrows_them(tmp_pa
                 assert len(bodies) == sum(page.stop - page.start for page in history.pages)
                 for body in bodies:
                     recorded = body.fragment.tool_call
+                    # Offscreen fragments may have retained paint and retired
+                    # their controls. Reconstruction owns native child access.
+                    await body.materialize_body()
                     assert body.query_one(ToolCall).tool_call is recorded
                     await body.recompose()
                     assert body.query_one(ToolCall).tool_call is recorded
