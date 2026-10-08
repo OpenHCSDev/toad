@@ -143,7 +143,21 @@ class Renderer(RendererSpawn):
         await self.capture(task)
 
     async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
-        """Optional off-loop preparation after the application presents its UI."""
+        """Start matching workers and common parser/highlighter imports off-loop.
+
+        These small, data-only tasks use normal admission and cancellation. No
+        source files are opened, no user history is fetched and nothing is mounted.
+        """
+        from toad.render_tasks import MarkdownRenderTask, PatchRenderTask
+
+        await asyncio.gather(
+            self.prepare(MarkdownRenderTask(
+                "```python\npass\n```\n\n```json\n{}\n```\n", ansi, dark,
+            )),
+            self.prepare(PatchRenderTask(
+                "--- warmup.py\n+++ warmup.py\n@@ -1 +1 @@\n-pass\n+value = 1\n", ansi, dark,
+            )),
+        )
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
         """Deliver one independent result from the worker's captured value."""
