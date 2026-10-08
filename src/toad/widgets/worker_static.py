@@ -124,7 +124,11 @@ class WorkerStatic(Static):
         width = width if width is not None else (parent.scrollable_content_region.width
                  if auto_width and isinstance(parent, Widget)
                  else max(0, self.outer_size.width - self.styles.gutter.width))
-        width = max(1, width or app.size.width)
+        # A mounted node may not have its native box yet. App width is not
+        # this widget's wrapping width; measurement/Resize supplies the real
+        # answer. Preparing the guessed width would discard a whole CPU job.
+        if width <= 0:
+            return
         options = app.console_options.update(width=width, height=None, highlight=False)
         link_style = self.link_style if self.auto_links and not self.screen._selecting else None
         wanted = self._wanted
