@@ -631,12 +631,25 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
             window.release_anchor()
             window.scroll_end(animate=False, immediate=True)
             await settled(pilot, view)
-            async with asyncio.timeout(20):
-                # Pixels commit before native child removal finishes. Witness
-                # both halves of the original retirement, not just its paint.
-                while (not isinstance(document._body_measurement, RenderedBody)
-                       or tuple(walk_depth_first(document, PreparedPaintSource))):
-                    await pilot.pause(.02)
+            try:
+                async with asyncio.timeout(20):
+                    # Pixels commit before native child removal finishes. Witness
+                    # both halves of the original retirement, not just its paint.
+                    while (not isinstance(document._body_measurement, RenderedBody)
+                           or tuple(walk_depth_first(document, PreparedPaintSource))):
+                        await pilot.pause(.02)
+            except TimeoutError:
+                import traceback
+                receipt = {
+                    "measurement": type(document._body_measurement).__name__,
+                    "children": [(type(child).__name__, child._pruning, child._closing,
+                                  str(child._task)) for child in document.children],
+                    "fragments": [type(child).__name__ for child in document.fragment_views],
+                    "tasks": ["".join(traceback.format_stack(frame))
+                              for task in asyncio.all_tasks() for frame in task.get_stack()],
+                }
+                (tmp_path / "retirement-timeout.json").write_text(json.dumps(receipt, indent=2))
+                raise
             captured = document._body_measurement.content
             assert "Preparing preview" not in captured.text
             assert "Original parent" in captured.text and "Saved section" in captured.text
