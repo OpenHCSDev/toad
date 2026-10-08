@@ -958,3 +958,25 @@ worst39.9ms; visible53/170.1/worst6.71ms. No broad latency improvement claim.
 Exact raw checks: title-scroll-installed.log, title-scroll-wheel.log and
 title-scroll-wheel/ under existing dm-native-caption scratch. Published the
 reviewed combined cohort for new launches; backend and existing windows remain.
+
+## Visible demand revokes pending body retirement
+
+Toad579 fd5dfde01 derives retirement eligibility from the original
+DocumentViewport.requires_body at preflight, after asynchronous capture and
+inside original retirement custody. LiveBody keeps its identity when demanded;
+that identity alone therefore cannot authorize pruning a newly visible body.
+No new visibility field, cache or lifetime owner. The duplicate release guard
+is deleted because the same original currentness check now carries demand.
+
+Real native App source and exact installed controls passed: an acquired
+capture exposed by actual scrolling retains original reconstructible children;
+visible preflight refuses retirement; offscreen retirement still completes.
+An initial control incorrectly included the fixed header in the retireable
+cohort; negative retained, final control uses reconstructible_children.
+
+Installed sidebar drag completed with36 raw motions and no App error. Seven
+frames, frame gaps up to147ms and final width after745ms remain slow. This is
+not a performance pass. Current wheel is published for new launches through
+the reviewed original publication owner; existing windows retain loaded code.
+Exact checks/publication live under visible-retirement-delivery-20261008 and
+retirement-installed.log/retirement-sidebar-drag.log in existing scratch.
