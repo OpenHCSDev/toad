@@ -94,23 +94,6 @@ class PersistentRenderClient(Renderer):
             self._retire(pool)
             raise
 
-    async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
-        """Start matching workers and common parser/highlighter imports off-loop.
-
-        These small, data-only tasks use normal admission and cancellation. No
-        source files are opened, no user history is fetched and nothing is mounted.
-        """
-        from toad.render_tasks import MarkdownRenderTask, PatchRenderTask
-
-        await asyncio.gather(
-            self.prepare(MarkdownRenderTask(
-                "```python\npass\n```\n\n```json\n{}\n```\n", ansi, dark,
-            )),
-            self.prepare(PatchRenderTask(
-                "--- warmup.py\n+++ warmup.py\n@@ -1 +1 @@\n-pass\n+value = 1\n", ansi, dark,
-            )),
-        )
-
     async def aclose(self) -> None:
         self._bind_loop()
         self._closed = True

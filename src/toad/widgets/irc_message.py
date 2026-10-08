@@ -126,6 +126,11 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
 
         return self.query_one(AgentResponse)
 
+    @property
+    def native_extent_ready(self) -> bool:
+        """Paging borrows the body's real extent, not its loading placeholder."""
+        return self.read_ack_widget().body_ready
+
     def action_open_target(self, target: str):
         if isinstance(self.message, HistoricalMessage) and not target.startswith("#"):
             self.publish_core(SelectHistoricalIdentity(target, self.message.source.key))
@@ -165,6 +170,10 @@ class IRCMessage(WireMarkdownMessage, can_focus=True):
         """Only the text block can authorize a read, never its divider."""
         body = self.query_one(IRCMessageText)
         return body if body.paint_ready else None
+
+    @property
+    def native_extent_ready(self) -> bool:
+        return self.query_one(IRCMessageText).preparation_complete
 
     def get_clipboard_text(self) -> str:
         return f"{self.message.sender} → {self.message.target}: {self.message.body}"
