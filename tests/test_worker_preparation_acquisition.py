@@ -12,6 +12,59 @@ from toad.app import ToadApp
 from toad.widgets.worker_static import WorkerStatic
 
 
+def test_history_publication_scope_owns_native_fence_and_releases_on_cancel(tmp_path, monkeypatch):
+    from toad.widgets.note import Note
+
+    async def mounted():
+        project = tmp_path / "project"
+        project.mkdir()
+        service = Comms(tmp_path / "wire")
+        service.messaging.initialize_private_initial_protocol()
+        for key in tuple(os.environ):
+            if key.startswith("AGENT_COMMS_"):
+                monkeypatch.delenv(key)
+        for key, value in {"AGENT_COMMS_ROOT": service.root,
+                           "XDG_CONFIG_HOME": tmp_path / "config",
+                           "XDG_STATE_HOME": tmp_path / "state",
+                           "XDG_DATA_HOME": tmp_path / "data"}.items():
+            monkeypatch.setenv(key, str(value))
+        app = ToadApp(project_dir=str(project))
+        async with app.run_test(size=(100, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.conversation
+            window = view.window
+            first, second = Note("First original row"), Note("Second original row")
+            await view.contents.mount(first, second)
+            await pilot.pause()
+            async with window.preserve_history(None, root=first):
+                assert window.history_mutation_root is first
+                assert first in app.screen._layout_mutation_roots()
+                assert window not in app.screen._layout_mutation_roots()
+                async with window.preserve_history(None, root=second):
+                    assert window.history_mutation_root is view.contents
+                assert window.history_mutation_root is first
+            assert window.history_mutation_root is None
+
+            entered = asyncio.Event()
+            async def pending_publication():
+                async with window.preserve_history(None, root=first):
+                    entered.set()
+                    await asyncio.Event().wait()
+            publication = asyncio.create_task(pending_publication())
+            await entered.wait()
+            publication.cancel()
+            result = await asyncio.gather(publication, return_exceptions=True)
+            assert isinstance(result[0], asyncio.CancelledError)
+            assert window.history_mutation_root is None
+            assert not window.lock.is_locked
+            async with window.lock:
+                assert window.history_mutation_root is window
+            assert window.history_mutation_root is None
+            assert app._exception is None
+
+    asyncio.run(mounted())
+
+
 def test_prepared_measurement_ignores_parent_height_and_invalidates_source(tmp_path, monkeypatch):
     """Native measurement borrows rows; source publication changes their extent."""
     from textual._measurement import NATIVE_WIDGET_HEIGHT, NATIVE_WIDGET_WIDTH
