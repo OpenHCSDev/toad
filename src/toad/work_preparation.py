@@ -10,7 +10,6 @@ from copy import deepcopy
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum
 from hashlib import sha256
-from pathlib import Path
 import pickle
 from sys import getsizeof
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
@@ -410,9 +409,6 @@ class PreparedRenderer(Renderer):
 
     async def prepare(self, task: RenderTask[ResultT]) -> None:
         await self.runtime.prepare(RenderPreparation(task))
-
-    async def warm_up(self, *, project: Path, ansi: bool, dark: bool) -> None:
-        await self.runtime.renderer.warm_up(project=project, ansi=ansi, dark=dark)
 
     async def aclose(self) -> None:
         await self._close_submissions()

@@ -10,6 +10,7 @@ import time
 from uuid import UUID
 
 from toad.render_processes import _initialize_worker
+from toad.render_backend import RendererSpawn
 from toad.render_protocol import (
     AcknowledgeRender,
     CancelRender,
@@ -44,7 +45,7 @@ class RenderServiceConfig:
 
 
 def _initialize_render_worker(config: RenderServiceConfig, expected_build: str | None) -> None:
-    """Lazy-spawned workers must still match the service's advertised build."""
+    """Started workers must still match the service's advertised build."""
     _initialize_worker()
     if expected_build is not None:
         from toad.render_identity import RendererBuild
@@ -61,7 +62,7 @@ class PendingRender:
     abandoned: bool = False
 
 
-class RenderService:
+class RenderService(RendererSpawn):
     """One command-thread owner of admission and result retention.
 
     Cancellation never frees running work early. Completed results remain until
@@ -75,6 +76,7 @@ class RenderService:
             max_workers=config.max_workers, mp_context=multiprocessing.get_context("spawn"),
             initializer=_initialize_render_worker, initargs=(config, expected_build),
         )
+        self.start_workers(self._executor)
         self._jobs: dict[UUID, PendingRender] = {}
         self._clients: dict[UUID, float] = {}
         self._closed = False
