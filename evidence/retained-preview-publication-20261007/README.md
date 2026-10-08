@@ -76,3 +76,30 @@ provider inputs: left median 115.0 ms / p95 144.8 ms / worst 261.4 ms; right
 All 288 production and 417 test modules parsed without omissions; changed
 production modules compiled. Full69 source/RECORD verification matched 954 assets
 and 2857 RECORD entries.
+
+## Assigned geometry owns preparation
+
+The installed sidebar profile attributed 97 of 99 preparation acquisitions to
+height measurement, taking about 19 ms cumulatively. Removing that side effect
+alone passed measurement and resize controls but stalled initial paged history:
+visible-only layout had not assigned widths to hidden rows required by complete
+body retention. That incomplete deletion was restored and never published.
+Its negative is preserved in pure-worker-measurement-source.log in the scratch
+directory above (2 pass, 1 fail, 31.16 s).
+
+The original DocumentViewport geometry demand now includes prepared descendants
+of live bodies until capture. Native Resize assigns their geometry; height
+measurement only borrows rows. MeasuredViewportBody supplies frame readiness
+from the published visible source cohort, replacing the Markdown/tool copies.
+Full-body capture still requires every exact committed paint resource. No new
+state, cache, worker pool, queue or readiness waiver was added.
+
+Native114 separately corrects StreamLayout: horizontal TCSS margins are now
+subtracted from both assigned child width and measured wrapping width.
+
+The combined installed build passed the original measurement/source,
+resize/style/selection and paged native Markdown controls (3 pass, 18.44 s),
+including native wheel reversal/stop, text/link/copy, full retirement and warm
+paint identity. Log: assigned-worker-geometry-installed.log in scratch above.
+Package AST parsed 288 Toad production, 417 test and 250 native modules without
+omissions; changed production compiled. No provider inputs ran.
