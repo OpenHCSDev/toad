@@ -41,13 +41,40 @@ def response_geometry(conversation):
 
 
 def task_waiting(task):
+    import gc
     import inspect
     operation = task.get_coro() if task is not None else None
     chain = []
-    while inspect.iscoroutine(operation) or inspect.isgenerator(operation):
+    visited = set()
+    while operation is not None and id(operation) not in visited:
+        visited.add(id(operation))
+        if not (inspect.iscoroutine(operation) or inspect.isgenerator(operation)):
+            # __await__ returns a coroutine wrapper on current Python. Inspect
+            # its original operation rather than silently truncating the wait.
+            operation = next((item for item in gc.get_referents(operation)
+                              if inspect.iscoroutine(item) or inspect.isgenerator(item)), None)
+            continue
         frame = operation.cr_frame if inspect.iscoroutine(operation) else operation.gi_frame
         if frame is not None:
             chain.append(f"{Path(frame.f_code.co_filename).name}:{frame.f_code.co_name}:{frame.f_lineno}")
+            if frame.f_code.co_name == "await_mount":
+                receipt = frame.f_locals.get("self")
+                if receipt is not None:
+                    pending = [f"{type(child).__name__}@{id(child):x}:"
+                               f"closing={child._closing},pruning={child._pruning},"
+                               f"task={child._task}"
+                               for child in receipt._widgets if not child._mounted_event.is_set()]
+                    chain.append(f"mount parent={type(receipt._parent).__name__}@{id(receipt._parent):x} "
+                                 f"pending={pending}")
+            if frame.f_code.co_name == "_message_loop_exit" and "children" in frame.f_locals:
+                owner = frame.f_locals["self"]
+                pending = [f"{type(child).__name__}@{id(child):x}:"
+                           f"closing={child._closing},closed={child._closed},"
+                           f"mounted={child._mounted_event.is_set()},task={child._task}"
+                           for child in frame.f_locals["children"]
+                           if child._task is not None and not child._task.done()]
+                chain.append(f"exit parent={type(owner).__name__}@{id(owner):x} "
+                             f"task={task.get_name()} pending={pending}")
         operation = operation.cr_await if inspect.iscoroutine(operation) else operation.gi_yieldfrom
     return chain
 

@@ -175,6 +175,12 @@ class BodyMeasurement(ABC):
                         prepared = prepared.invalidated()
                     body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))
                 result = await (body.materialize_native_body() if work is None else work())
+                # Native membership is committed before nested source workers
+                # finish. Join their original publications here, after the
+                # source operation released its window mutation fence, rather
+                # than making a range's Mount wait on those same writers.
+                for child in walk_depth_first(body, ViewportBody, with_root=False):
+                    await child.restore_body()
                 if body.is_attached:
                     body._update_body_measurement(
                         body._body_measurement.publication_finished(body, worker, result))
@@ -1185,22 +1191,27 @@ class DocumentViewport:
                 if owner in self.owners and owner.measured_rows]
         return sum(rows) / len(rows) if rows else max(1, self.window.size.height)
 
-    def admission(self, *, required=(), ahead=()):
-        # Select the bounded materialized working set BEFORE restoring a body.
-        # A dormant body carries its last native cost with its measured extent.
-        # Restoring everything then evicting it causes its own layouts to repeat
-        # the same admission forever when the requested runway exceeds the bound.
+    def admission_candidates(self, *, required=(), ahead=()):
         candidates = dict.fromkeys((*required, *ahead, *(owner
             for key in reversed(self._warm.values()) if (owner := key()) is not None)))
         # Mount already admits only the outer body into this viewport. Native
         # membership owns that boundary; consumers don't rediscover its parents.
-        roots = tuple(owner for owner in candidates if owner in self.owners)
+        return tuple(owner for owner in candidates if owner in self.owners)
+
+    def admission(self, *, required=(), ahead=()):
+        # Native preparation prices the last actual tree BEFORE restoration.
+        # Retained paint is admitted independently below; retaining rows is
+        # not permission to recreate every hidden control in that resource.
         return self.budget.admit(
-            roots, required, self.window.size.height, self.window.app.preparation.max_bytes,
+            self.admission_candidates(required=required, ahead=ahead), required,
+            self.window.size.height, self.window.app.preparation.max_bytes,
         )
 
     def _trim_warm(self, *, required=(), ahead=()):
-        self.admitted_bodies = self.admission(required=required, ahead=ahead)
+        self.admitted_bodies = self.budget.admit_paint(
+            self.admission_candidates(required=required, ahead=ahead), required,
+            self.window.app.preparation.max_bytes,
+        )
         admitted = self.admitted_bodies
         for owner in tuple(self.owners):
             if owner in admitted:
@@ -1357,7 +1368,7 @@ class DocumentViewport:
                                   if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
                 restored = ()
                 if restoring:
-                    anchor = next((item for item in owners if item in visible and item.is_attached), restoring[0])
+                    anchor = self.window.reader_anchor(restoring[0])
                     started = monotonic()
                     restored = await self._restore_bodies(restoring, anchor, demand)
                     if any(owner in visible for owner in restored):
@@ -1437,7 +1448,9 @@ class DocumentViewport:
                     admitted = self._trim_warm(required=required, ahead=ahead_owners)
                 # Do not materialize a runway body that cannot be retained.
                 # The original demand owns incoming direction priority.
-                ahead_owners = [owner for owner in ahead_owners if owner in admitted]
+                native_admission = self.admission(required=required, ahead=ahead_owners)
+                ahead_owners = [owner for owner in ahead_owners
+                                if owner in admitted and owner in native_admission]
                 for first in range(0, len(ahead_owners), self.budget.admission_items):
                     if self._pending or not self.lookahead.accepts(demand):
                         break
@@ -1445,7 +1458,7 @@ class DocumentViewport:
                              if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
                     if not batch:
                         continue
-                    anchor = next((item for item in owners if item in visible and item.is_attached), batch[0])
+                    anchor = self.window.reader_anchor(batch[0])
                     restored = await self._restore_bodies(tuple(batch), anchor, demand)
                     # Live content or a width change can change actual cost.
                     # Re-admit the completed native batch before the next one.
