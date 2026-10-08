@@ -1128,7 +1128,7 @@ class DocumentViewport:
         Native document order already owns their relation; warm membership
         and registration order do not supply another chronology.
         """
-        return next(reversed(tuple(self.body_roots())), None)
+        return next(self.body_roots(reverse=True), None)
 
     @property
     def source_tail_visible(self) -> bool:
@@ -1137,13 +1137,17 @@ class DocumentViewport:
 
     def requires_body(self, owner, *, visible=None, protected=None) -> bool:
         """Native exposure and current interaction own source admission."""
+        if owner not in self.owners:
+            return False
         if visible is None:
             visible = self.window.screen._compositor.visible_widgets
+        if owner in visible:
+            return True
         if protected is None:
             protected = self.protected()
-        return owner in self.owners and (owner in visible or owner in protected)
+        return owner in protected
 
-    def body_roots(self):
+    def body_roots(self, *, reverse: bool = False):
         """Native document order, stopping at each registered body boundary.
 
         Descendants belong to that body's materialization, not to another
@@ -1152,13 +1156,13 @@ class DocumentViewport:
         """
         if not self.owners:
             return
-        pending = list(reversed(self.window.children))
+        pending = list(self.window.children if reverse else reversed(self.window.children))
         while pending:
             node = pending.pop()
             if node in self.owners:
                 yield node
             else:
-                pending.extend(reversed(node.children))
+                pending.extend(node.children if reverse else reversed(node.children))
 
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Each body's current resource owns its actual geometry demand."""

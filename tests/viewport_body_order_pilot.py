@@ -54,6 +54,18 @@ async def main():
             await settle()
             await viewport.suspend_source()
             assert tuple(viewport.body_roots()) == tuple(docs)
+            if '--tail-traversal' in sys.argv:
+                assert tuple(viewport.body_roots(reverse=True)) == tuple(reversed(docs))
+                assert viewport.source_tail is docs[-1]
+                view.contents.move_child(docs[-1], before=docs[0])
+                assert viewport.source_tail is docs[-2]
+                await docs[-2].remove()
+                assert viewport.source_tail is docs[-3]
+                assert tuple(viewport.body_roots(reverse=True)) == tuple(
+                    reversed((docs[-1], *docs[:-2])))
+                assert app._exception is None
+                print('PASS: current native reorder and removal determine tail and reverse body order')
+                return
             native_descendants = len(window.walk_children())
             assert native_descendants > 400
             originals = tuple(docs)
