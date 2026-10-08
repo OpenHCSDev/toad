@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from textual.document._document import DocumentBase
 from textual.document._wrapped_document import WrappedDocument
-from textual.widgets import PreparedTextArea
 
 from toad.render_backend import ReusableRenderTask
 
 from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart, prepare_tokens
-from toad.widgets.patch_diff import PreparedPatch, prepare_patch
 from toad.rich_preparation import (
     PreparedRichContent,
     RichPresentation,
     RichSource,
 )
+
+if TYPE_CHECKING:
+    from toad.widgets.patch_diff import PreparedPatch
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,8 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
     tab_width: int
 
     def execute(self) -> WrappedDocument:
+        from textual.widgets import PreparedTextArea
+
         return PreparedTextArea.prepare_document(self.source, self.width, self.tab_width)
 
     def accept_result(self, result: object) -> WrappedDocument:
@@ -35,15 +39,19 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
 
 
 @dataclass(frozen=True)
-class PatchRenderTask(ReusableRenderTask[PreparedPatch]):
+class PatchRenderTask(ReusableRenderTask["PreparedPatch"]):
     source: str
     ansi: bool
     dark: bool
 
     def execute(self) -> PreparedPatch:
+        from toad.widgets.patch_diff import prepare_patch
+
         return prepare_patch(self.source, self.ansi, self.dark)
 
     def accept_result(self, result: object) -> PreparedPatch:
+        from toad.widgets.patch_diff import PreparedPatch
+
         if not isinstance(result, PreparedPatch):
             raise TypeError("Patch renderer returned an invalid result")
         return result

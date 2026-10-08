@@ -1,0 +1,118 @@
+[
+  {
+    "run": "open",
+    "error": null,
+    "provider_inputs": 0,
+    "visible": {
+      "t": 6.3845499199815094,
+      "clock": 964735.799802173,
+      "name": "history.visible",
+      "cursor": 147260275,
+      "ready": true,
+      "loading": 0,
+      "bodies": 4
+    },
+    "AgentSession.initialize": 1.2663798689609393,
+    "AgentSession.load": 0.42861824901774526,
+    "TranscriptHistory.prepare_body": 0.4577785470755771,
+    "SnapshotPublication.publish_page": 0.5721763509791344,
+    "total_open": 3.86478916706983,
+    "draft": null,
+    "loop": null
+  },
+  {
+    "run": "candidate",
+    "error": null,
+    "provider_inputs": 0,
+    "visible": {
+      "t": 7.342997727100737,
+      "clock": 964825.753449441,
+      "name": "history.visible",
+      "cursor": 147260275,
+      "ready": true,
+      "loading": 0,
+      "bodies": 4
+    },
+    "AgentSession.initialize": 1.5278954609530047,
+    "AgentSession.load": 0.488658839953132,
+    "TranscriptHistory.prepare_body": 0.4616966719040647,
+    "SnapshotPublication.publish_page": 0.5901343850418925,
+    "total_open": 4.246359543991275,
+    "draft": null,
+    "loop": null
+  },
+  {
+    "run": "import-open",
+    "error": null,
+    "provider_inputs": 0,
+    "visible": {
+      "t": 4.979679779033177,
+      "clock": 964860.732974071,
+      "name": "history.visible",
+      "cursor": 147260275,
+      "ready": true,
+      "loading": 0,
+      "bodies": 4
+    },
+    "AgentSession.initialize": 1.2548370129661635,
+    "AgentSession.load": 0.5440245890058577,
+    "TranscriptHistory.prepare_body": 0.3945252359844744,
+    "SnapshotPublication.publish_page": 0.4920844399603084,
+    "total_open": 3.476080255000852,
+    "draft": null,
+    "loop": null
+  },
+  {
+    "run": "completed",
+    "error": null,
+    "provider_inputs": 0,
+    "visible": {
+      "t": 5.402098145917989,
+      "clock": 964909.985796074,
+      "name": "history.visible",
+      "cursor": 147260275,
+      "ready": true,
+      "loading": 0,
+      "bodies": 4
+    },
+    "AgentSession.initialize": 1.2629758981056511,
+    "AgentSession.load": 0.9341113039990887,
+    "TranscriptHistory.prepare_body": 0.038554170983843505,
+    "SnapshotPublication.publish_page": 0.0974126560613513,
+    "total_open": 3.5720663799438626,
+    "draft": null,
+    "loop": null
+  },
+  {
+    "run": "acceptance",
+    "error": null,
+    "provider_inputs": 0,
+    "visible": {
+      "t": 4.820359833072871,
+      "clock": 964982.313830981,
+      "name": "history.visible",
+      "cursor": 147260275,
+      "ready": true,
+      "loading": 0,
+      "bodies": 4
+    },
+    "AgentSession.initialize": 1.2548339229542762,
+    "AgentSession.load": 0.8665150220040232,
+    "TranscriptHistory.prepare_body": 0.04029429191723466,
+    "SnapshotPublication.publish_page": 0.11639040498994291,
+    "total_open": 3.3897179290652275,
+    "draft": {
+      "t": 2.27761263307184,
+      "clock": 964979.771083751,
+      "name": "draft.accepted",
+      "delay": 0.3012597889173776,
+      "accepted": true
+    },
+    "loop": {
+      "t": 4.820398346055299,
+      "clock": 964982.313869213,
+      "name": "loop.delivery",
+      "max_delay": 0.06403053203597665
+    }
+  }
+]
