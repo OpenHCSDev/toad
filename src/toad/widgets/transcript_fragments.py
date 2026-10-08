@@ -16,7 +16,7 @@ from markdown_it import MarkdownIt
 from toad.render_backend import ReusableRenderTask
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary
-from toad.widgets.message_filter import event_category
+from toad.widgets.message_filter import event_category, keep_events
 
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
@@ -246,8 +246,9 @@ def transcript_fragments(
 class TranscriptBodyPreparation(MroDispatch):
     """Pure body work for declared transcript cases, without native widgets."""
 
-    def __init__(self, renderer, ansi: bool, dark: bool):
+    def __init__(self, renderer, ansi: bool, dark: bool, *, selected=None):
         self.renderer, self.ansi, self.dark = renderer, ansi, dark
+        self.selected = selected
 
     async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:
         """Warm a bounded source range in shared workers, without native mounts.
@@ -260,6 +261,7 @@ class TranscriptBodyPreparation(MroDispatch):
                 return
             await asyncio.gather(*(self.dispatch(event)
                                    for fragment in fragments[first:first + batch_size]
+                                   if self.selected is None or keep_events(fragment.events, self.selected)
                                    for event in fragment.events))
 
     @handles(TranscriptEvent)

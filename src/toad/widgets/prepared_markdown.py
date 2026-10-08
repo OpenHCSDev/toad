@@ -86,40 +86,51 @@ class PreparedContentRange:
         stop = min(self.stop, len(fragments))
         return slice(min(self.start, stop), stop)
 
-    async def extend(self, older: bool, current: Callable[[], bool]) -> bool:
+    async def extend(self, older: bool, current: Callable[[], bool], *, prefix=()) -> bool:
         admission = self.capture_admission()
-        selected = self.extension_slice(older)
-        added = tuple(self._body(fragment) for fragment in self.fragments[selected])
-        previous = self.fragment_views
-        with ExitStack() as acquisition:
-            if added:
-                acquisition.callback(self.remove_children, added)
-                await self.mount_all(added, before=previous[0] if older and previous else None)
-            if not current() or self.capture_admission() != admission:
-                return False
-            self._fragment_views = (*added, *previous) if older else (*previous, *added)
-            if older:
-                self.start = selected.start
-            else:
-                self.stop = selected.stop
-            acquisition.pop_all()
-        return True
+        extension = self.extension_slice(older)
+        selected = slice(extension.start if older else self.start,
+                         self.stop if older else extension.stop)
+        previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
+        return await self.replace_range(
+            self.fragments, selected, previous,
+            lambda: current() and self.capture_admission() == admission,
+            prefix=prefix,
+        )
 
     async def replace_range(self, fragments, selected, previous, current, *, prefix=()) -> bool:
         """Publish ordered native parts inside their owner's source custody."""
-        ordered = tuple(previous[index] if index in previous else self._body(fragments[index])
-                        for index in range(selected.start, selected.stop))
-        added = tuple(child for child in ordered if child not in previous.values())
+        ordered = []
+        added = []
         with ExitStack() as acquisition:
-            if added:
-                acquisition.callback(self.remove_children, added)
-                await self.mount_all(added)
+            acquisition.callback(lambda: self.remove_children(added))
+            # Source demand may span a viewport. Native construction/mount
+            # remains a bounded burst, including after worker preparation.
+            # Keep the original admission until every batch has joined.
+            for first in range(selected.start, selected.stop, self.BATCH):
+                if not current():
+                    return False
+                batch = []
+                for index in range(first, min(selected.stop, first + self.BATCH)):
+                    if index in previous:
+                        child = previous[index]
+                    else:
+                        child = self._body(fragments[index])
+                        added.append(child)
+                        batch.append(child)
+                    ordered.append(child)
+                if batch:
+                    await self.mount_all(batch)
+                    if not current():
+                        return False
             if not current():
                 return False
-            self.fragments, self._fragment_views = fragments, ordered
+            self.fragments, self._fragment_views = fragments, tuple(ordered)
             self.start, self.stop = selected.start, selected.stop
-            rank = {child: index for index, child in enumerate((*prefix, *ordered))}
-            self.sort_children(key=lambda child: rank.get(child, len(rank)))
+            desired = (*prefix, *ordered)
+            if tuple(self.children) != desired:
+                rank = {child: index for index, child in enumerate(desired)}
+                self.sort_children(key=lambda child: rank.get(child, len(rank)))
             self.remove_children(tuple(child for child in previous.values() if child not in ordered))
             acquisition.pop_all()
         return True
