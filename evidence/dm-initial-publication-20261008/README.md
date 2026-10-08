@@ -531,3 +531,49 @@ passed an unsupported constructor id; it refused before widget mounting. Its
 original bytes are retained, then only that fixture call was corrected.
 Raw check: /home/ts/.cache/agent-scratch/dm-notification-disclosure-20261008/source-disclosure.log.
 This is disclosure behavior evidence, not a frame-time or full DM acceptance.
+
+Installed and delivered: PR569 merged. The original durable frontend publisher
+now selects `.artifacts/dm-notification-disclosure-delivery-20261008/runtime`
+for new Toad launches. Original Core09a/nativeb486 wheels reused byte-exact;
+954 source/wheel assets,69 packages and2857 RECORD entries verified. Backend
+defaults and running owners remain unchanged; existing windows keep their
+loaded code. Publication receipt: `live-publication.json` in that directory.
+The same native disclosure check passed using installed imports.
+Original private wire/native Driver workload passed ordered160 wheel packets,
+20 incoming messages and16 recipients with no provider inputs; all owned
+handles terminal. Pacing remains FAIL: wheel p95159.1ms/max229.2ms,
+UI-loop max125.9ms and published-frame p95104.9ms/max184.0ms. This noisy
+single run does not establish a speedup. Remaining synchronous native layout,
+measurement and publication cost must still be removed through its owners.
+Raw installed results/publication under
+`/home/ts/.cache/agent-scratch/dm-notification-disclosure-20261008/`.
+
+## Prepared dimensions and paint rules
+
+Original UI-thread clocks now separate native reflow, paint and layout signal
+subscribers. Worst observed reflow used30.16ms UI CPU; visible-only reflow4.33ms,
+paint3.86ms, subscribers1.64ms. This measures those synchronous scopes, not
+exclusive child costs or all wheel delay. Raw: existing scratch
+`wheel-ui-native-spans-20261008/{ui-cpu,native-spans,result}.json`.
+The earlier cProfile collectors still mix worker code into their timings, even
+after depth correction; their cumulative rankings cannot establish UI cost.
+
+WorkerStatic's acquired measurements read original prepared width/lines, not
+live paint styles. Its inherited Static rule sensitivity nevertheless treated
+it as an unknown live renderer and retired geometry on paint-only updates.
+The existing native rule hook now derives sensitivity from acquisition: keep
+the conservative Static path before acquisition; afterward the worker result
+owns dimension changes. notify_style_update still requests the styled result;
+its existing publication invalidates layout when width/line count changes.
+No second dimensions store or cache. Native box/layout rules remain native.
+
+Complete Toad/native production parse538 files,0 omissions;12 resolved worker
+family classes, including generated Markdown blocks, select original worker
+width/height methods. All745 Toad modules parse; both changed modules compile.
+Existing parent-height/source and geometry/style/selection controls passed
+2/7.82s, including real process preparation,3 resizes, painted color,selection
+and copy/source updates. The color change preserves the measured epoch.
+First harness used stdin, which process spawn cannot reopen; raw refusal is
+retained. Corrected only the runner to a persistent original main-guarded file.
+Unknown runtime replacement of declared methods remains outside this claim.
+Raw: `/home/ts/.cache/agent-scratch/prepared-style-measurement-20261008/`.

@@ -293,6 +293,13 @@ class WorkerStatic(PreparedPaintSource, Static):
         return (self._prepared.width if self._prepared is not None
                 else super().get_content_width(container, viewport))
 
+    def _render_styles_sensitive(self) -> bool:
+        # Acquired dimensions come from the original worker result. Style
+        # changes request its replacement through notify_style_update; that
+        # publication already invalidates geometry if the dimensions change.
+        # Until acquisition, preserve Static's conservative placeholder path.
+        return self._prepared is None and super()._render_styles_sensitive()
+
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         # Tentative layout widths are measurements, not assigned geometry.
