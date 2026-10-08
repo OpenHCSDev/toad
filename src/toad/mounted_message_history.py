@@ -397,6 +397,9 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     def mark_visible(self) -> None:
         if self.ack_inflight or not self.is_attached:
             return
+        if (self.tail_receipt is None and not self.channel_receipts
+                and not self.historical_receipts):
+            return
         self.ack_inflight = True
         self.view.run_worker(self.mark_painted(self.source_snapshot()), group="comms-painted-read")
 
