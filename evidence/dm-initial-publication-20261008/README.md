@@ -493,3 +493,21 @@ this run. The source retry defect is repaired, but the initiating cause of the
 earlier empty roster remains unrecorded; this single working path does not
 establish that cause or smooth active-scroll performance. Footage performance
 review remains separate from the observed channel/disclosure behavior.
+
+One targeted installed active-wheel measurement separated elapsed time from
+the UI thread's own CPU, using the unchanged original private workload. The
+worst Screen._refresh_layout call was46.69ms elapsed/45.90ms UI CPU; worst timer
+admission48.41/47.02ms. This call includes native reflow, resize watchers, paint,
+display/hit updates and synchronous layout-signal subscribers, not arrangement
+alone. The run still fails pacing: p95 wheel290.80ms/max319.31ms; largest loop
+gap85.77ms. All160 packets remained ordered and20 incoming updates completed,
+with no provider input and joined original fixture cleanup. Attribution raw:
+sidebar-drag-hotpath-20261007/wheel-ui-cpu-attribution-20261008/ui-cpu.json.
+
+This rules out treating worker-thread GIL contention as the complete explanation
+for these synchronous admissions. Existing channel reads capture live Comms and
+source objects on their joined thread lifetime; these cannot be moved by pickling
+live services/SQL handles into the pure renderer. Native source review confirms
+existing arrangement reuse and spatial culling; no further traversal deletion
+was justified. Remaining work is the original row measurement/publication and
+paint family; no speculative cache, process adapter or weaker readiness added.
