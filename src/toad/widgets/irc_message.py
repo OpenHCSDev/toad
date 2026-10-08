@@ -78,10 +78,14 @@ class IRCMessageText(WorkerStatic):
             async with super().preparation_publication(layout=layout):
                 yield
         else:
-            # Worker completion changes this original row's measured extent.
-            # The mounted history already owns compensation and held readers.
-            async with history.native_publication(tuple(history.rows)):
+            # Prepared text changes this body's extent, not the page's row
+            # membership. Borrow the window's original reader without acquiring
+            # page trimming/selection protection or fencing unrelated rows.
+            window = history.window
+            anchor = window.reader_anchor(self)
+            async with window.preserve_history(anchor, root=self):
                 yield
+            window.check_follow()
 
 
 class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
