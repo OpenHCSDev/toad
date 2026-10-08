@@ -10,6 +10,7 @@ from typing import cast
 from rich.console import RenderableType
 from rich.protocol import is_renderable
 from textual import events
+from textual._measurement import NATIVE_WIDGET_HEIGHT, NATIVE_WIDGET_WIDTH, height_dependency
 from textual.content import Content
 from textual.geometry import Region, Size
 from textual.screen import Screen
@@ -239,10 +240,12 @@ class WorkerStatic(Static):
             return None
         return self._source.selected_text(selection, self._prepared), "\n"
 
+    @height_dependency(NATIVE_WIDGET_WIDTH)
     def get_content_width(self, container: Size, viewport: Size) -> int:
         return (self._prepared.width if self._prepared is not None
                 else super().get_content_width(container, viewport))
 
+    @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         # Source/style notifications already own their new request. Native
         # layout may ask for the same width hundreds of times; that is a

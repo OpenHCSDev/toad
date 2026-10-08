@@ -12,6 +12,62 @@ from toad.app import ToadApp
 from toad.widgets.worker_static import WorkerStatic
 
 
+def test_prepared_measurement_ignores_parent_height_and_invalidates_source(tmp_path, monkeypatch):
+    """Native measurement borrows rows; source publication changes their extent."""
+    from textual._measurement import NATIVE_WIDGET_HEIGHT, NATIVE_WIDGET_WIDTH
+    from textual.geometry import Size
+    from toad.widgets.prepared_markdown import PreparedParagraph, PreparedH1
+    from toad.widgets.tool_content import TextContent
+    from toad.widgets.irc_message import IRCMessageText
+
+    async def mounted():
+        project = tmp_path / "project"
+        project.mkdir()
+        service = Comms(tmp_path / "wire")
+        service.messaging.initialize_private_initial_protocol()
+        for key in tuple(os.environ):
+            if key.startswith("AGENT_COMMS_"):
+                monkeypatch.delenv(key)
+        for key, value in {"AGENT_COMMS_ROOT": service.root,
+                           "XDG_CONFIG_HOME": tmp_path / "config",
+                           "XDG_STATE_HOME": tmp_path / "state",
+                           "XDG_DATA_HOME": tmp_path / "data"}.items():
+            monkeypatch.setenv(key, str(value))
+        app = ToadApp(project_dir=str(project))
+        async with app.run_test(size=(100, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            worker = WorkerStatic(Content("Original prepared row"))
+            worker.styles.width = 40
+            worker.styles.height = "auto"
+            await app.selected_session.mount(worker)
+            await asyncio.wait_for(worker.wait_ready(), 20)
+            await pilot.pause()
+            for cls in (WorkerStatic, PreparedParagraph, PreparedH1, TextContent, IRCMessageText):
+                assert cls._content_height_dependency is NATIVE_WIDGET_HEIGHT
+                assert cls._content_width_dependency is NATIVE_WIDGET_WIDTH
+            assert not worker._content_height_dependency.depends(worker)
+            assert not worker._content_width_dependency.depends(worker)
+            prepared = worker.prepared_content
+            request = worker._wanted
+            width = request.task.presentation.options.max_width
+            for height in (10, 100, 1000):
+                box = Size(width, height)
+                assert worker.get_content_height(box, box, width) == len(prepared.lines)
+                assert worker.get_content_width(box, box) == prepared.width
+                assert worker._wanted is request
+                assert worker.prepared_content is prepared
+            worker.update(Content("Changed row\n" * 30))
+            await asyncio.wait_for(worker.wait_ready(), 20)
+            await pilot.pause()
+            assert worker.prepared_content is not prepared
+            assert len(worker.prepared_content.lines) > len(prepared.lines)
+            assert worker.get_content_height(Size(width, 10), Size(width, 10), width) == len(worker.prepared_content.lines)
+            assert app._exception is None
+            print("Native worker measurements preserved rows across parent heights; source update changed extent.", flush=True)
+
+    asyncio.run(mounted())
+
+
 def test_geometry_and_independent_source_style_selection(tmp_path, monkeypatch):
     async def mounted():
         project = tmp_path / "project"
