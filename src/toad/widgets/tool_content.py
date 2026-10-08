@@ -15,6 +15,7 @@ from agent_comms.lifecycle import LifecycleState
 
 from toad.render_tasks import PatchRenderTask
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.worker_static import WorkerStatic
 
 if TYPE_CHECKING:
     from textual.signal import Signal
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from toad.tool_output import PatchPreparation
 
 
-class TextContent(Static):
+class TextContent(WorkerStatic):
     DEFAULT_CSS = """
     TextContent
     {

@@ -44,6 +44,10 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
     def output(self) -> ToolOutput:
         return self.query_ancestor(ToolCall).output
 
+    def native_body_ready(self) -> bool:
+        return (super().native_body_ready()
+                and all(worker.paint_ready for worker in self.query(WorkerStatic)))
+
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
 

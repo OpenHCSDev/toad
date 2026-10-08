@@ -61,11 +61,11 @@ async def main():
             assert not tool.expanded
             await pilot.click(tool.query_one(ToolCallHeader))
             await pilot.pause()
-            assert tool.expanded and tool.query_one(TextContent).render().plain == "Result"
+            assert tool.expanded and tool.query_one(TextContent)._source.materialize().plain == "Result"
             for status in ("in_progress", "completed"):
                 await tool.update_tool_call({**payload, "status": status})
                 await pilot.pause()
-                assert tool.expanded and tool.query_one(TextContent).render().plain == "Result"
+                assert tool.expanded and tool.query_one(TextContent)._source.materialize().plain == "Result"
             # Canonical model history can retire/remount the widget while the
             # output is the last thing in chat; that must keep explicit intent.
             await tool.remove()
