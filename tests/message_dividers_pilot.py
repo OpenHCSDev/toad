@@ -369,6 +369,9 @@ async def main() -> None:
                               if message.seq == sent.seq)
             assert isinstance(wire_block, WireMarkdownMessage)
             assert not wire_block.query(MessageDivider)
+            assert wire_block.styles.margin.top == 1
+            assert wire_block.styles.margin.right == 1
+            assert wire_block.styles.margin.bottom == 1
             assert len(wire_block.query(AgentResponse)) == 1
             assert len(wire_block.query(AgentResponse).first().query(MessageDivider)) == 0
             assert expected_time in wire_block.border_title

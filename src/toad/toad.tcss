@@ -2,6 +2,10 @@
     margin: 0 1 1 0;
 }
 
+WireMarkdownMessage.block {
+    margin: 1 1 1 0;
+}
+
 
 Markdown {
     layout: stream;    
