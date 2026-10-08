@@ -58,3 +58,13 @@ retirement and warm identity. Raw result is retained at
 `/home/ts/.cache/agent-scratch/dm-visible-publication-wakeup-corrected-20261008`.
 Two runner setup refusals occurred before App entry (missing pytest, then the
 host native package taking precedence); neither invoked an application attempt.
+
+The packaged successor at production head b6a0fe336 passed the same original
+App check in 15.60 seconds: posting 3.26 ms, readiness 2.70 seconds, original
+text/links/copy, wheel reversal and stop, native retirement and warm identity.
+The command imported Toad and Textual from the candidate installation, not the
+source checkouts. The helper receipt's historical source-scope label is unchanged;
+this is installed App evidence, not physical terminal or saved SDK acceptance.
+Raw result: `/home/ts/.cache/agent-scratch/dm-visible-installed-20261008`.
+All 954 package assets, full 69 distributions and 2857 RECORD entries match.
+The native wheel was reused exactly; only changed Toad was rebuilt.
