@@ -880,3 +880,30 @@ census with no gaps/references and checking all default symlinks:173008144bytes.
 Wheels/source/proofs/raw and current/immediate rollback/backend runtimes remain.
 Original cleanup evidence is under disk-cleanup-owner-20261002:
 `Parent-superseded-dm-runtimes-retired-20261008.json`.
+
+## Message-owned timestamp caption
+
+Compact and Markdown wire messages now paint their timestamp/direction on the
+original row border, deleting one MessageDivider child per message. MessageClock
+still owns dates; body paint alone owns read acknowledgment. Notification
+disclosure, links, clipboard and historical identity remain distinct contracts.
+Timestamp tooltip also appears over the row through native ancestor lookup.
+
+Actual private Apps passed compact/Markdown caption/direction, caption-only
+unread protection, wrapping/routing, and reader preservation under body growth
+and tail replacement. Final installed caption/spacing and reader checks passed.
+705 Python modules parsed without omissions. Review caught application .block
+margin precedence; the owning stylesheet preserves top/right/bottom spacing.
+Initial CSS color refusal and stale ToolCall fixture input remain in raw logs.
+
+An older reader fixture acquired startup predecessor rows before source page
+acceptance and waited on a retired body. The corrected acquisition waits the
+existing source_checkpoint_available; no production exemption was added.
+
+One installed private native-driver burst delivered160 wheel packets/3 reversals
+and20 incoming messages over48 rows in order, provider/public inputs zero.
+Frame p95 remained92.8ms and maximum225ms: pacing remains unacceptable.
+This removes48 widget lifetimes, not a broad performance pass. Raw checks and
+negatives: /home/ts/.cache/agent-scratch/dm-native-caption-20261008/.
+New-launch delivery uses the original reviewed frontend owner; existing user
+windows are not restarted.
