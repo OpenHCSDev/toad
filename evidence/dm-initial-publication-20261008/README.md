@@ -125,3 +125,15 @@ Removing the parser prewarm barrier was also rejected: warm preparation was
 1.99 seconds versus 1.80 in the baseline, with more live widgets at readiness.
 Prewarming and native publication have distinct lifetimes; the original code
 was restored. Raw: `dm-single-acquisition-profile-20261008`.
+
+Installed delivery is complete for new launches. The build selects Toad
+bc06324c6fbc2c6949a6293be8d490dc220d05a4, unchanged Native117 and retained
+Core4baa; all954 assets/full69 distributions/2857 RECORD entries and native
+package resources matched. The same lifecycle helper imported installed
+packages with only tests on PYTHONPATH and exited zero. The original reviewed
+frontend publisher changed only the toad default to
+.artifacts/cold-body-delivery-20261008/runtime; backend defaults and existing
+processes were preserved. Installed App checks do not establish physical frame
+pacing or the software loaded in an already-open user window. Raw build,
+installed and publication logs are cold-body-build.log, dm-cold-installed.log
+and cold-body-publication.log in the same scratch directory.
