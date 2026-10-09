@@ -33,6 +33,16 @@ class RenderExecution(ABC, Generic[ResultT]):
 class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
     """A nominal operation with an exact input and result contract."""
 
+    @property
+    def preparation_inputs(self) -> object:
+        """The task's captured inputs, independent of transport and storage.
+
+        A task with separately owned publication custody supplies its actual
+        preparation inputs here. The existing preparation runtime retains and
+        hashes that supply; it never infers it from a task's concrete type.
+        """
+        return self
+
     def capture_result(self) -> PreparedValue[ResultT]:
         """Validate and store the result in the worker which produced it.
 
