@@ -175,9 +175,9 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                     return False
                 self._markdown = content.requested_text
             self.loading = False
-            return
-        await self._update_content(content, generation, self.acquired_source(content.requested_text),
-                                   "", append=False)
+            return True
+        return await self._update_content(content, generation, self.acquired_source(content.requested_text),
+                                         "", append=False)
 
     async def materialize_interactive_body(self):
         # This source range owns real prefix/disclosure widgets. Its document
@@ -236,9 +236,9 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
         return tokens
 
     async def _update_content(self, content: PreparedContentRange, generation: int,
-                              source: str | PreparedMarkdownPart, text: str, *, append: bool) -> None:
+                              source: str | PreparedMarkdownPart, text: str, *, append: bool) -> None | bool:
         if self._closing:
-            return
+            return False
         parent = self.parent
 
         def is_current() -> bool:
@@ -246,14 +246,14 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                     and self.prepared_content is content and generation == content.generation)
 
         # Cancellation revokes this publisher, not the accepted source request.
-        await self._publish_content(source, text, append, is_current)
+        return await self._publish_content(source, text, append, is_current)
 
     async def _publish_content(self, acquired: str | PreparedMarkdownPart, text: str, append: bool,
-                               is_current: Callable[[], bool]) -> None:
+                               is_current: Callable[[], bool]) -> None | bool:
         source = acquired.text if isinstance(acquired, PreparedMarkdownPart) else acquired
         async with self._content_lock:
             if not is_current():
-                return
+                return False
             # MaterializingBody is dormant while publishing, even when its
             # previous native roots remain usable. Append needs reconstruction
             # only after those roots have actually been retired.
@@ -271,7 +271,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                     prepared.fragment_bytes = part.retained_bytes
                 fragments = prepared.fragments
             if not is_current():
-                return
+                return False
             if not self.partitionable_syntax:
                 if self.fragments:
                     await self.remove_children(self.fragment_views)
@@ -287,8 +287,11 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                     await ConversationMarkdown.append(self, text)
                 else:
                     await ConversationMarkdown.update(self, source)
-                if is_current():
-                    self._needs_full_markdown_update = False
+                if not is_current():
+                    return False
+                self._needs_full_markdown_update = False
+                # Keep native completion as a None publication result; only
+                # this source owner's revocation refuses its admission.
                 return
             from toad.widgets.history_anchor import HistoryWindow
 
@@ -304,12 +307,12 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             if not await prepared.prepare(self.app.render_processes, self.app.native_ansi_color,
                                           self.app.current_theme.dark, selected=selected, current=is_current,
                                           previous=self.prepared_content):
-                return
+                return False
             previous = {self.start + index: child
                         for index, child in enumerate(self.fragment_views)}
             for index, child in previous.items():
                 if not is_current():
-                    return
+                    return False
                 if (selected.start <= index < selected.stop
                         and (child._content_owner is not self.prepared_content
                              or child._markdown_part != fragments[index])):
@@ -317,15 +320,16 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                     await child.update_part(fragments[index], content_owner=self.prepared_content)
             async with window.preserve_history(None, root=self):
                 if not is_current():
-                    return
+                    return False
                 if not self.fragment_views:
                     await self.remove_children(child for child in self.children if child not in self._prefix)
                 if not await self.prepared_content.replace_range(
                     self, fragments, selected, previous, is_current, prefix=self._prefix, acquired=prepared,
                 ):
-                    return
+                    return False
                 self._markdown = source
                 self.loading = False
+                return True
 
     async def prepare_visible_source(self) -> bool:
         if (not self.prepared_content.input_ready or not self.fragments or not self.is_attached or self._closing
