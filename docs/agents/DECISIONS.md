@@ -153,3 +153,12 @@ It runs the fixed scenario with no crashes. Measured frame p99 was 22.6 ms again
 - **Toad references nothing from the fork's `textual.document._markdown` or `_paint`** (`f483186`).
 - **The fork deletion is delegated:** `document/_markdown.py`, `document/_paint.py`, the detached-document additions to `widgets/_markdown.py`, and the Screen and compositor presentation hooks Toad no longer overrides. It goes on fork branch `perf/line-history`, verified with one scenario run.
 - **Measurement hygiene:** runs that overlap the comms latency work's `#openhcs` test sends aren't comparable. Measure performance only on a quiet bus, back to back, two runs each.
+
+## 2026-10-09: Load, fallbacks and Core owners
+
+- **Every measurement runs under `#openhcs` reply load.** p99 under quiet conditions is not the target.
+- **Shared caches belong to the file, not the store object.** The decoded registry and the activity log's read state each belong to their file, shared per process (Core `b1e6ec85`, `f74c82b`). Each `Comms` used to rebuild its own copy, decoding up to 5 s of data on Toad's executor threads and starving the UI of the GIL.
+- **No fallbacks that hide defects** (Tristan). `_offset`'s `virtual_region` fallback had hidden that the off-screen anchor declaration was deleted along with the body machinery. The screen declares it again (`_layout_geometry_targets`), and unplaced anchors now raise. Core's masking handlers were removed (`78731e19`). That removal exposed a left-behind abstract hook that stopped ACP sessions starting; it is fixed at its owner (`46b3e8f`).
+- **Comms logic belongs in Core** (Tristan). Toad asks Core: `WireRevision.registrations_changed_since` drives view retirement. Prompt-send admission (`acp/maintenance_ingress.py`) is moving into Core with an API that does not block the UI thread.
+- **Thread deletion** is `agent-comms delete` on Core branch `feat/thread-delete`. Every per-thread store declares its removal, and append-only logs get a deletion record, never a rewrite. Hold further live deletes until a runtime that understands that record is installed.
+- **Open live defect, not caused here:** `openhcs-audit-merged-boundaries` and `openhcs-audit-merged-models` have stopped inbox drains ("Selected source requires reviewed raw-history coverage floor"; diagnostics under the live root's `diagnostics/drain-*.json`). This belongs to the compaction owner.
