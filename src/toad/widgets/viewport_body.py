@@ -1544,7 +1544,14 @@ class DocumentViewport:
                 owners = tuple(self.body_roots())
                 required = tuple(owner for owner in owners
                                  if self.requires_body(owner, visible=visible, protected=protected))
-                for owner in required:
+                # Warm admission and retirement belong to outer resources.
+                # Publication also needs nested bodies in the original visible
+                # cohort; a ready outer fragment cannot prepare their rows.
+                foreground = tuple(dict.fromkeys((
+                    *required,
+                    *(body for _window, body in screen.viewport_presentation.visible_bodies((self.window,))),
+                )))
+                for owner in foreground:
                     owner.require_native_body()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
@@ -1570,7 +1577,7 @@ class DocumentViewport:
                 # One foreground cohort produces readiness before frame
                 # admission. Per-body paint waits would hold this worker while
                 # the remaining visible dormant bodies reject that same frame.
-                restoring = tuple(owner for owner in required
+                restoring = tuple(owner for owner in foreground
                                   if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
                 restored = ()
                 if restoring:
@@ -1585,7 +1592,7 @@ class DocumentViewport:
                 # retiring or predicting from the preceding scene.
                 if self._pending:
                     continue
-                if any(not owner.body_ready for owner in required):
+                if any(not owner.body_ready for owner in foreground):
                     # Exposed source owns this frame first. Its preparation
                     # and native publication already request reconciliation;
                     # do not fill their renderer with hidden capture work.
@@ -1599,7 +1606,7 @@ class DocumentViewport:
                     # preparation needed to make the same frame publishable.
                     async with asyncio.TaskGroup() as source_preparation:
                         source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
-                                        for owner in required]
+                                        for owner in foreground]
                     if any(task.result() for task in source_tasks):
                         screen.frame_presentation.defer(self.window, self.request)
                         return
