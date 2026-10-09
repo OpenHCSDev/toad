@@ -14,15 +14,15 @@ from textual.await_complete import AwaitComplete
 from textual.widgets.markdown import MarkdownStream
 from textual.widget import Widget
 from textual.app import ComposeResult
+from textual.widgets import Markdown
+from toad.widgets.viewport_body import MaterializingBody, PreparedDocumentBody
 
 from toad.widgets.prepared_markdown import PreparedContentRange, PreparedConversationMarkdown
 from toad.widgets.committed_presentation import SnapshotPresentation
-from toad.conversation_markdown import _ThreadLocalPathParser
-from toad.render_tasks import MarkdownPartsTask, MarkdownRenderTask
+from toad.conversation_markdown import ConversationMarkdown, _ThreadLocalPathParser
+from toad.render_tasks import MarkdownPartsTask, MarkdownRenderTask, MarkdownSyntaxRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
-from toad.widgets.transcript_fragments import RenderBudget
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
-from toad.widgets.viewport_body import MaterializingBody
 
 class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConversationMarkdown):
 
@@ -52,6 +52,45 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
     def capture_admission(self):
         return self._content_generation, self.start, self.stop
 
+    def _heading_owners(self):
+        for part_index, child in enumerate(self.fragment_views, self.start):
+            for level, title, block_id in child.table_of_contents:
+                yield (level, title, f"part-{part_index}-{block_id}"), child, block_id
+
+    @property
+    def table_of_contents(self):
+        if not self.partitionable_syntax:
+            return super().table_of_contents
+        return [entry for entry, _child, _block_id in self._heading_owners()]
+
+    def goto_anchor(self, anchor: str) -> bool:
+        if not self.partitionable_syntax:
+            return super().goto_anchor(anchor)
+        headings = tuple(self._heading_owners())
+        selected = self.anchor_id_for([entry for entry, _child, _block_id in headings], anchor)
+        for entry, child, block_id in headings:
+            if entry[2] != selected:
+                continue
+            measurement = child._body_measurement
+            if isinstance(measurement, PreparedDocumentBody):
+                if not measurement.ready(child):
+                    return False
+                for heading in measurement.paint.headings:
+                    if heading.entry[2] == block_id and heading.placement is not None:
+                        child.scroll_to_region(heading.placement.region, top=True)
+                        return True
+                return False
+            for block in child.children:
+                if block.id == block_id:
+                    block.scroll_visible(top=True)
+                    return True
+        return False
+
+    def on_markdown_table_of_contents_updated(self, event: Markdown.TableOfContentsUpdated):
+        if event.markdown in self.fragment_views:
+            event.stop()
+            self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents))
+
     @property
     def has_newer_source(self) -> bool:
         return self.stop < len(self.fragments)
@@ -67,6 +106,13 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
 
     async def materialize_native_body(self) -> None:
         await self._update_content(self.source, append=False)
+
+    async def materialize_interactive_body(self):
+        # This source range owns real prefix/disclosure widgets. Its document
+        # children own native controls; do not flatten those roles into paint.
+        await self.materialize_body()
+        for child in self.fragment_views:
+            await child.materialize_interactive_body()
 
     @asynccontextmanager
     async def retirement_custody(self):
@@ -135,26 +181,28 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                 self._needs_full_markdown_update = True
             if self._markdown_part is not None and self._markdown_part.text != source:
                 self._markdown_part = None
-            fragments = (await self.app.render_processes.submit(MarkdownPartsTask(self.acquired_source(source)))
-                         if self._paginate and self.partitionable_syntax
-                         and not RenderBudget().fits(source) else ())
+            fragments = ()
+            if self.partitionable_syntax:
+                acquired = self.acquired_source(source)
+                fragments = (await self.app.render_processes.submit(MarkdownPartsTask(acquired))
+                             if self._paginate else
+                             (await self.app.render_processes.submit(MarkdownSyntaxRenderTask(acquired)),))
             if not is_current():
                 return
-            if len(fragments) <= 1:
-                if fragments:
-                    self._markdown_part = fragments[0]
+            if not self.partitionable_syntax:
                 if self.fragments:
                     await self.remove_children(self.fragment_views)
                     self.fragments, self._fragment_views = (), ()
                     self.start = self.stop = 0
-                    # Paged views replaced the native roots. Reconstruct the
-                    # body before native append can update its final block.
                     self._needs_full_markdown_update = True
+                # Custom grammar/factory behavior belongs to this original
+                # native owner, including its block callbacks and root prefix.
+                # It cannot be replaced by conversation-syntax source parts.
                 if (append and self.source + text == source
                         and not self._needs_full_markdown_update):
-                    await self._append_body_source(text)
+                    await ConversationMarkdown.append(self, text)
                 else:
-                    await self._update_body_source(source)
+                    await ConversationMarkdown.update(self, source)
                 if is_current():
                     self._needs_full_markdown_update = False
                 return

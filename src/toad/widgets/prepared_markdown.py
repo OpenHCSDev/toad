@@ -23,8 +23,9 @@ from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdo
 from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart
 from toad.block_content import MarkdownBlockContent
 from toad.layout import trim_trailing_margin
-from toad.render_tasks import MarkdownRenderTask
-from toad.widgets.viewport_body import MeasuredViewportBody
+from toad.render_tasks import MarkdownRenderTask, MarkdownDocumentRenderTask
+from toad.work_preparation import retained_bytes
+from toad.widgets.viewport_body import MeasuredViewportBody, MeasuredSourceBody, PreparedDocumentBody
 from toad.widgets.worker_static import WorkerStatic
 
 
@@ -150,6 +151,17 @@ class PreparedContentRange:
 class PreparedMarkdownContent(WorkerStatic):
     """Native blocks keep token/link custody; WorkerStatic owns their wrapping."""
 
+    @classmethod
+    def document_node(cls, block):
+        # WorkerStatic changes scene execution, not the native content/layout
+        # declaration. Custom scene behavior still needs its explicit supplier.
+        cls._require_native_document(
+            width=WorkerStatic.get_content_width, height=WorkerStatic.get_content_height,
+            selection=WorkerStatic.get_selection,
+        )
+        cls._require_document_methods({"render_line": WorkerStatic.render_line})
+        return cls.native_document_node(block)
+
     @asynccontextmanager
     async def preparation_publication(self, *, layout: bool):
         from toad.widgets.history_anchor import HistoryWindow
@@ -210,6 +222,17 @@ class PreparedCodeFence(ConversationCodeFence):
     def compose(self) -> ComposeResult:
         yield PreparedCodeLabel(self._highlighted_code, id="code-content", expand=True)
 
+    @classmethod
+    def document_node(cls, block):
+        cls._require_native_document(constructor=ConversationCodeFence.__init__,
+                                     set_content=PreparedCodeFence.set_content)
+        cls._require_document_methods({"compose": PreparedCodeFence.compose})
+        return block.fence_node(label_type=PreparedCodeLabel)
+
+    @classmethod
+    def document_declarations(cls):
+        return cls, PreparedCodeLabel
+
 
 class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, ConversationMarkdown):
     DEFAULT_CSS = """
@@ -246,6 +269,7 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         markdown_part: PreparedMarkdownPart | None = None,
     ) -> None:
         self._prepared_markdown: PreparedMarkdown | None = None
+        self.document = None
         self._markdown_part = markdown_part
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
@@ -284,9 +308,29 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def retire_body_resources(self) -> None:
         """Release reconstructible preparation with the native retirement."""
         self._prepared_markdown = None
+        self.document = None
 
-    async def materialize_native_body(self) -> None:
-        await self._update_body_source(self.source)
+    async def materialize_native_body(self):
+        if self.document is not None and self.document.source == self.source:
+            # Width/style demand changes presentation, not parser or resolved
+            # link acquisition. Borrow this original delivered source resource.
+            return await self._prepare_document(self.document.with_presentation(self))
+        return await self._update_body_source(self.source)
+
+    async def materialize_interactive_body(self):
+        # The original pointer owner acquires actual controls before choosing
+        # a receiver. It never dispatches a synthetic click against paint.
+        await self.publish_body(partial(ConversationMarkdown.update, self, self.source))
+
+    @classmethod
+    def document_root(cls, document, children):
+        cls._require_document_methods({
+            "render": Widget.render,
+            "get_content_width": MeasuredViewportBody.get_content_width,
+            "get_content_height": MeasuredViewportBody.get_content_height,
+            "process_layout": ConversationMarkdown.process_layout,
+        })
+        return cls.native_document_root(document, children)
 
     def update(self, markdown: str) -> AwaitComplete:
         return self.publish_body(partial(self._update_body_source, markdown))
@@ -294,18 +338,73 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def append(self, markdown: str) -> AwaitComplete:
         return self.publish_body(partial(self._append_body_source, markdown))
 
-    def _update_body_source(self, markdown: str) -> AwaitComplete:
+    async def _update_body_source(self, markdown: str):
         if self._markdown_part is not None and self._markdown_part.text != markdown:
             self._markdown_part = None
-        return super().update(markdown)
+        if not self.partitionable_syntax:
+            # An arbitrary parser/factory hasn't declared the conversation
+            # source contract. Its original scene producer still owns blocks,
+            # callbacks and any additional token behavior.
+            return await ConversationMarkdown.update(self, markdown)
+        self._markdown = markdown
+        parser = self._parser_factory()
+        async with self.lock:
+            tokens = await self._parse_tokens(parser, markdown, use_thread=True)
+            if tokens is None:
+                return False
+            document = self.acquire_document(markdown, tokens)
+            return await self._prepare_document(document)
 
-    def _append_body_source(self, markdown: str) -> AwaitComplete:
+    async def _prepare_document(self, document):
+        self.document = document
+        width = self._body_measurement.width + self.styles.gutter.width
+        if width <= 0:
+            return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
+                                      root_empty=self.is_empty)
+        app = self.app
+        task = MarkdownDocumentRenderTask(document, width)
+        paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
+                 else await asyncio.to_thread(task.execute))
+        cost = (await app.preparation.run_thread(retained_bytes, paint)
+                if isinstance(app, ToadApp) else await asyncio.to_thread(retained_bytes, paint))
+        if (not self.is_attached or self._closing or self._pruning
+                or self.document is not document or not paint.is_current(self, width)
+                or self._body_measurement.width + self.styles.gutter.width != width):
+            return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
+                                      root_empty=self.is_empty)
+        paint = paint.with_presentation(document)
+        self.loading = False
+        self._table_of_contents = paint.table_of_contents
+        self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
+        return PreparedDocumentBody(paint, cost)
+
+    def goto_anchor(self, anchor: str) -> bool:
+        measurement = self._body_measurement
+        if isinstance(measurement, PreparedDocumentBody) and measurement.ready(self):
+            region = measurement.paint.anchor_region(anchor)
+            if region is None:
+                return False
+            self.scroll_to_region(region, top=True)
+            return True
+        return super().goto_anchor(anchor)
+
+    async def _append_body_source(self, markdown: str):
         if self._markdown_part is not None and self._markdown_part.text != self.source + markdown:
             self._markdown_part = None
-        return super().append(markdown)
+        return await self._update_body_source(self.source + markdown)
 
     def on_unmount(self) -> None:
         self._prepared_markdown = None
+        self.document = None
+
+    def on_resize(self) -> None:
+        if self.document is not None and self._body_viewport is None:
+            self.call_later(self.restore_body)
+
+    def notify_style_update(self) -> None:
+        super().notify_style_update()
+        if self.is_attached and self.document is not None and self._body_viewport is None:
+            self.call_later(self.restore_body)
 
     async def _parse_tokens(
         self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str, *, use_thread: bool,
