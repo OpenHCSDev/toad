@@ -184,8 +184,8 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
 
 
     def viewport(self, projection):
-        return projection(self.rows, self.view.screen._compositor.visible_widgets,
-                          self.view.window.content_region)
+        return projection(self.rows, self.view.screen._compositor.published_widgets,
+                          self.view.window.published_content_region)
 
 
     @property

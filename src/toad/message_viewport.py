@@ -15,12 +15,14 @@ from toad.widgets.irc_message import WireMarkdownMessage
 class MessageViewport(ABC):
     history: Sequence[tuple[Message, Widget]]
     geometry: Mapping[Widget, tuple[Region, Region]]
-    viewport: Region
+    viewport: Region | None
 
     @abstractmethod
     def painted_widget(self, widget: Widget) -> Widget | None: ...
 
     def visible_rows(self) -> tuple[tuple[Message, Widget], ...]:
+        if self.viewport is None:
+            return ()
         rows = []
         for message, widget in self.history:
             painted = self.painted_widget(widget)

@@ -666,7 +666,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                         "stream": str(document._stream),
                         "children": len(document.reconstructible_children()),
                         "prepared_current": document.prepared_paint_is_current(document.prepared_paint_sources()),
-                        "published_placement": str(tuple(app.screen._compositor.published_geometry((document,)))),
+                        "arranged_placement": str(tuple(app.screen._compositor.arranged_geometry((document,)))),
                         "missing_paint": [str(owner) for owner, content in document.prepared_paint_sources()
                                           if content is None],
                         "nested_not_ready": [str(owner) for owner in walk_depth_first(document, MeasuredViewportBody)

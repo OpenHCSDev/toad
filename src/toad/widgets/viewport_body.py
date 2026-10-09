@@ -174,7 +174,7 @@ class BodyMeasurement(ABC):
         return (None if members is None else
                 next((member for member in members if self.same_source_block(member, source)), None))
 
-    def source_regions(self, body):
+    def source_regions(self, body, geometry):
         return ()
 
     def source_visible_region(self, body, source):
@@ -683,8 +683,8 @@ class MaterializingBody(BodyMeasurement):
     def source_blocks(self, body):
         return self.previous.source_blocks(body)
 
-    def source_regions(self, body):
-        return self.previous.source_regions(body)
+    def source_regions(self, body, geometry):
+        return self.previous.source_regions(body, geometry)
 
     def source_visible_region(self, body, source):
         return self.previous.source_visible_region(body, source)
@@ -922,14 +922,16 @@ class PreparedDocumentBody(DocumentSourceBody):
                 if self.owns_document(body) and self.paint.is_current(body, width,
                     admissions=body.document_admissions) else None)
 
-    def source_regions(self, body):
+    def source_regions(self, body, geometry):
         sources = self.source_blocks(body)
-        geometry = body.screen._compositor._published_map.get(body)
-        return (() if sources is None or geometry is None else
-                tuple((source, source.placement.region.translate(geometry.region.offset))
+        placement = geometry.get(body)
+        return (() if sources is None or placement is None else
+                tuple((source, source.placement.region.translate(placement.region.offset))
                       for source in sources))
 
     def source_visible_region(self, body, source):
+        # Cursor paint asks about the arrangement being rendered. Reader
+        # capture supplies accepted geometry explicitly to source_regions.
         member = self.source_member(body, source)
         geometry = body.screen._compositor.visible_widgets.get(body)
         if member is None or geometry is None:
@@ -1197,11 +1199,10 @@ class NativeDocumentBody(BodyMeasurement):
         roots = self.scene_roots(body)
         return None if roots is None else tuple(root.source_block for root in roots)
 
-    def source_regions(self, body):
+    def source_regions(self, body, geometry):
         roots = self.scene_roots(body)
-        placements = body.screen._compositor._published_map
         return () if roots is None else tuple((root.source_block, box.region) for root in roots
-                                             if (box := placements.get(root)) is not None)
+                                             if (box := geometry.get(root)) is not None)
 
     def source_visible_region(self, body, source):
         root = self.scene_block(body, source)
@@ -1212,7 +1213,7 @@ class NativeDocumentBody(BodyMeasurement):
         from textual._compositor import Compositor
 
         root = self.scene_block(body, source)
-        if root is None or root not in body.screen._compositor._published_map:
+        if root is None or root not in body.screen._compositor._layout_map:
             return None
         compositor = Compositor()
         compositor.reflow(root, root.outer_size)
@@ -1255,11 +1256,11 @@ class RenderedDocumentBody(NativeDocumentBody, RenderedBody):
         return (tuple(source for source, _region, _clip in self.captured_sources)
                 if self.resource.owns_document(body) and self.paint_ready(body) else None)
 
-    def source_regions(self, body):
-        geometry = body.screen._compositor._published_map.get(body)
-        if geometry is None or self.source_blocks(body) is None:
+    def source_regions(self, body, geometry):
+        placement = geometry.get(body)
+        if placement is None or self.source_blocks(body) is None:
             return ()
-        return tuple((source, region.translate(geometry.region.offset))
+        return tuple((source, region.translate(placement.region.offset))
                      for source, region, _clip in self.captured_sources)
 
     def source_visible_region(self, body, source):
@@ -1543,7 +1544,7 @@ class MeasuredViewportBody(ViewportBody):
                         if isinstance(child, ViewportBody)))
 
     def capture_native_paint(self, current, *, sources=None):
-        """Capture once for retirement and preceding-source publication."""
+        """Capture arranged source rows once for retirement and later reuse."""
         if sources is None:
             sources = self.prepared_paint_sources()
         unprepared = current.capture_unavailable()
@@ -1556,7 +1557,7 @@ class MeasuredViewportBody(ViewportBody):
         style_revision = self._subtree_style_revision
         paint_state = self._resolved_paint_state()
         root_empty = self.is_empty
-        captured = tuple(compositor.published_geometry((self,)))
+        captured = tuple(compositor.arranged_geometry((self,)))
         if not captured:
             return unprepared.prepare_publication(self)
         _body, placement = captured[0]
@@ -1987,7 +1988,7 @@ class DocumentViewport:
         # it as invisible would require paint before admitting that same paint.
         # Borrow committed geometry only, without arranging or inventing rows.
         compositor = self.window.screen._compositor
-        for _owner, placement in compositor.published_geometry((owner,)):
+        for _owner, placement in compositor.arranged_geometry((owner,)):
             region = placement.region
             clip = placement.clip.intersection(compositor.size.region)
             return (clip.y <= region.y < clip.bottom
@@ -2071,6 +2072,12 @@ class DocumentViewport:
 
     def _trim_warm(self, *, required=(), ahead=(), resources=None):
         resources = tuple(self.preparation_roots() if resources is None else resources)
+        published = self.window.screen._compositor.published_widgets
+        # Preparation follows the new arrangement, but pixels still on the
+        # terminal retain their source resource until a replacement is accepted.
+        required = tuple(dict.fromkeys((
+            *required, *(owner for owner in resources if owner in published),
+        )))
         self.admitted_bodies = self.budget.admit_paint(
             self.admission_candidates(required=required, ahead=ahead, resources=resources), required,
             self.window.app.preparation.max_bytes,
@@ -2246,7 +2253,7 @@ class DocumentViewport:
                 # not its live descendant tree. Offscreen warm bodies paint
                 # their retained rows on reentry; only visible or interaction
                 # protected bodies need their current native controls.
-                retained = protected | visible.keys()
+                retained = protected | visible.keys() | screen._compositor.published_widgets.keys()
                 # One foreground cohort produces readiness before frame
                 # admission. Per-body paint waits would hold this worker while
                 # the remaining visible dormant bodies reject that same frame.

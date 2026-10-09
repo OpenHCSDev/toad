@@ -513,13 +513,18 @@ class ValidationDriver(LinuxDriver):
             record("display_without_window", begin_ns=begin, displayed_ns=displayed,
                    mode=app.current_mode, update=type(update).__name__)
             return
-        visible = screen._compositor.visible_widgets
+        visible = screen._compositor.published_widgets
+        viewport = window.published_content_region
+        if viewport is None:
+            record("display_without_window_geometry", begin_ns=begin, displayed_ns=displayed,
+                   mode=app.current_mode, update=type(update).__name__)
+            return
         spans = tuple(cls.painted_spans(update))
         bodies = []
         for body, (region, clip) in visible.items():
             if not isinstance(body, MeasuredViewportBody) or window not in body.ancestors:
                 continue
-            crop = region.intersection(clip).intersection(window.scrollable_content_region)
+            crop = region.intersection(clip).intersection(viewport)
             text = []
             for y, x, strip in spans:
                 left, right = max(x, crop.x), min(x + strip.cell_length, crop.right)
@@ -798,7 +803,7 @@ class ValidationDriver(LinuxDriver):
                     slow_callback_ms=self._loop.slow_callback_duration * 1000)
             app.log(screen.tree)
         rows = []
-        for widget, (region, clip) in screen._compositor.visible_widgets.items():
+        for widget, (region, clip) in screen._compositor.published_widgets.items():
             if isinstance(widget, (SideBar, SideBarToggle, SidebarResizeHandle, SessionLabel, SessionsTabs, CommsRow, HistoryWindow, HistoryEdge, MarkdownParagraph, Checkbox, PromptTextArea, TranscriptFragmentView)):
                 visible = region.intersection(clip).intersection(app.size.region)
                 if not visible:
