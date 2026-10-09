@@ -17,7 +17,9 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
     """Observation never starts/settles an ACP turn or changes send admission."""
 
     DEFAULT_CSS = """
-    ObservedThreadActivity { height: auto; color: $text-muted; }
+    ObservedThreadActivity {
+        width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; color: $text-muted;
+    }
     ObservedThreadActivity.-working { color: $accent; }
     ObservedThreadActivity.-unavailable { color: $warning; }
     """

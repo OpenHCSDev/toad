@@ -36,7 +36,7 @@ class SessionDetails(CoreEventReceiver, Collapsible):
         background: transparent; color: $text-muted;
     }
     SessionDetails > CollapsibleTitle {
-        height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
+        width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
     SessionDetails.-attention > CollapsibleTitle { color: $warning; }
