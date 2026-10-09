@@ -162,9 +162,9 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             # Record that completed update instead of repeating it next resume.
             self._resume_style = self._style_revision()
 
-    def _on_frame_published(self, deferred: tuple[Widget, ...]) -> None:
+    def _on_frame_published(self) -> None:
         if self is self.app.screen:
-            self.frame_presentation.displayed(deferred)
+            self.frame_presentation.displayed()
 
     def release_frame_callback(self, owner, callback) -> bool:
         """Inactive native scenes retain their work for their next frame."""

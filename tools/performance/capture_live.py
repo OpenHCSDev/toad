@@ -1,9 +1,12 @@
-"""Save profiles and optional DTO/SVG state from an explicitly selected live PID."""
+"""Measure an explicitly selected live Toad process.
+
+--profile-seconds  record a py-spy speedscope profile.
+--frame-meter N    time UI work per frame and input-to-paint for N seconds (frame_meter.py).
+--targets          write where sidebar thread rows and session tabs are (frame_meter.targets).
+"""
 
 import argparse
 import json
-import os
-import math
 from pathlib import Path
 import subprocess
 import time
@@ -12,7 +15,7 @@ import psutil
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--pid", type=int, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--name", default="live-" + time.strftime("%Y%m%d-%H%M%S"))
@@ -22,50 +25,12 @@ def main():
     parser.add_argument("--gil", action="store_true")
     parser.add_argument("--idle", action="store_true", help="Include samples of threads blocked in calls")
     parser.add_argument("--native", action="store_true")
-    parser.add_argument("--state", action="store_true", help="Export loaded DTOs using CPython 3.14 remote_exec")
-    parser.add_argument("--runtime-only", action="store_true",
-                        help="Read original live module paths and sidebar settings without the widget/history export")
-    parser.add_argument("--wait-history-seconds", type=float, default=0,
-                        help="Before state export, await selected visible saved history and native writer receipt")
-    parser.add_argument("--wait-history-interval", type=float, default=.1,
-                        help="Bounded native diagnostic observation interval; no repeated attach/export")
-    parser.add_argument("--wait-history-thread", help="Intended selected thread for visible history observation")
-    parser.add_argument("--screen", action="store_true", help="Export through Textual's screenshot API")
-    parser.add_argument("--scroll-travel", action="store_true",
-                        help="Install bounded native scroll-travel observation in the owned UI")
-    parser.add_argument("--frame-trace", action="store_true",
-                        help="Export the existing driver frame enqueue/writer trace")
-    parser.add_argument("--install-frame-trace", action="store_true",
-                        help="Install that observer once on this capture's original driver")
-    parser.add_argument("--frames-only", action="store_true",
-                        help="Export frame events without the widget/DTO census")
-    parser.add_argument("--frame-meter", type=float, default=0,
-                        help="Seconds of total UI work per frame and input-to-paint timing (frame_meter.py)")
-    parser.add_argument("--targets", action="store_true",
-                        help="Write sidebar thread row and tab regions (frame_meter.targets)")
+    parser.add_argument("--frame-meter", type=float, default=0)
+    parser.add_argument("--targets", action="store_true")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
-    parser.add_argument("--completion-deadline", type=float,
-                        help="Borrow the caller's original monotonic deadline for export completion")
     args = parser.parse_args()
-    if args.completion_deadline is not None and (
-            not math.isfinite(args.completion_deadline)
-            or args.completion_deadline <= time.monotonic()):
-        parser.error("Export completion requires the caller's remaining original deadline")
-    if not (args.profile_seconds > 0 or args.state or args.screen or args.frame_meter > 0 or args.targets):
-        parser.error("Choose --profile-seconds, --state, --screen or --frame-meter")
-    if args.runtime_only and (not args.state or args.frames_only or args.install_frame_trace):
-        parser.error("Runtime-only requires --state without frame observation")
-    if (not math.isfinite(args.wait_history_seconds) or args.wait_history_seconds < 0
-            or not math.isfinite(args.wait_history_interval) or args.wait_history_interval <= 0):
-        parser.error("History wait budget must be nonnegative and observation interval positive")
-    if args.wait_history_seconds and not args.state:
-        parser.error("Visible history waiting requires --state")
-    if args.wait_history_seconds and not args.wait_history_thread:
-        parser.error("Visible history waiting requires --wait-history-thread")
-    if args.install_frame_trace and not args.frame_trace:
-        parser.error("Installing frame observation requires --frame-trace")
-    if args.frames_only and not (args.frame_trace and args.state):
-        parser.error("Frame-only capture requires --frame-trace and --state")
+    if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets):
+        parser.error("Choose --profile-seconds, --frame-meter or --targets")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
     args.output_dir = args.output_dir.expanduser().resolve()
@@ -76,116 +41,48 @@ def main():
         parser.error("Choose a fresh capture name")
     process = psutil.Process(args.pid)
     created = process.create_time()
-    executable = process.exe()
     privilege = ["sudo", "-n"] if args.sudo else []
-    manifest = {"pid": args.pid, "created": created, "executable": executable,
-                "rss_before": process.memory_info().rss, "started_ns": time.time_ns(),
-                "profile_seconds": args.profile_seconds, "gil_only": args.gil, "native": args.native}
+    manifest = {"pid": args.pid, "created": created, "executable": process.exe(), "started_ns": time.time_ns()}
     try:
         if args.profile_seconds:
             result = subprocess.run([*privilege, args.py_spy, "record", "--pid", str(args.pid),
                 "--duration", str(args.profile_seconds), "--rate", str(args.rate), "--format", "speedscope",
-                "--output", str(prefix) + ".speedscope.json", *(["--gil"] if args.gil else []), *(["--idle"] if args.idle else []),
-                *(["--native"] if args.native else [])], timeout=args.profile_seconds+30)
+                "--output", str(prefix) + ".speedscope.json", *(["--gil"] if args.gil else []),
+                *(["--idle"] if args.idle else []), *(["--native"] if args.native else [])],
+                timeout=args.profile_seconds + 30)
             manifest["profile_returncode"] = result.returncode
             result.check_returncode()
-        if args.state or args.screen or args.frame_meter > 0 or args.targets:
+        calls = []
+        if args.targets:
+            calls.append((str(prefix) + "-targets", "targets", ""))
+        if args.frame_meter > 0:
+            calls.append((str(prefix) + "-frames", "install", f", seconds={args.frame_meter!r}"))
+        if calls:
             assert process.is_running() and process.create_time() == created, "Target process identity changed"
-            tools = Path(__file__).resolve().parent
-            script = Path(str(prefix) + "-remote.py")
-            lines = ["import importlib.util as _capture_import"]
-            if args.frame_trace:
-                lines.extend((
-                    "import sys as _capture_sys",
-                    "if 'sidebar_validation_driver' not in _capture_sys.modules:",
-                    f"    _spec = _capture_import.spec_from_file_location('sidebar_validation_driver', {str(tools / 'sidebar_validation_driver.py')!r})",
-                    "    _module = _capture_import.module_from_spec(_spec)",
-                    "    _capture_sys.modules[_spec.name] = _module",
-                    "    _spec.loader.exec_module(_module)",
-                ))
-            receipts = []
-            for enabled, module, suffix, options in (
-                (args.state, "capture_state", "state",
-                 f", wait_history_seconds={args.wait_history_seconds!r}, wait_interval={args.wait_history_interval!r}"
-                 f", wait_history_thread={args.wait_history_thread!r}"
-                 f", frame_trace={args.frame_trace!r}, install_frame_trace={args.install_frame_trace!r}"
-                 f", scroll_travel_output={(str(args.output_dir / 'scroll-travel.jsonl') if args.scroll_travel else None)!r}"
-                 f", frames_only={args.frames_only!r}, runtime_only={args.runtime_only!r}"),
-                (args.screen, "capture_screen", "screen", ""),
-            ):
-                if not enabled:
-                    continue
-                output = str(prefix) + "-" + suffix
-                lines.extend((
-                    f"_spec = _capture_import.spec_from_file_location({module!r}, {str(tools / (module + '.py'))!r})",
-                    "_module = _capture_import.module_from_spec(_spec)",
-                    "_spec.loader.exec_module(_module)",
-                    f"_module.capture(expected_pid={args.pid}, output_prefix={output!r}{options})",
-                ))
-                receipts.append(output)
-            for enabled, call, suffix in ((args.targets, "targets", "targets"),):
-                if enabled:
-                    output = str(prefix) + "-" + suffix
-                    lines.extend((
-                        f"_spec = _capture_import.spec_from_file_location('frame_meter', {str(tools / 'frame_meter.py')!r})",
-                        "_module = _capture_import.module_from_spec(_spec)",
-                        "_spec.loader.exec_module(_module)",
-                        f"_module.{call}(expected_pid={args.pid}, output={output + '.json'!r})",
-                    ))
-                    receipts.append(output)
-            if args.frame_meter > 0:
-                output = str(prefix) + "-frames"
-                lines.extend((
-                    f"_spec = _capture_import.spec_from_file_location('frame_meter', {str(tools / 'frame_meter.py')!r})",
-                    "_module = _capture_import.module_from_spec(_spec)",
-                    "_spec.loader.exec_module(_module)",
-                    f"_module.install(expected_pid={args.pid}, seconds={args.frame_meter!r}, output={output + '.json'!r})",
-                ))
-                receipts.append(output)
-            # remote_exec acknowledges scheduling, not execution. Record entry
-            # before loading observers or exporters so a missing DTO doesn't
-            # imply that the application accepted the diagnostic request.
-            execution_receipt = str(prefix) + "-remote-entered.json"
+            meter = Path(__file__).resolve().with_name("frame_meter.py")
+            entered = str(prefix) + "-remote-entered.json"
             lines = [
-                "import os as _capture_os, json as _capture_json, time as _capture_time, traceback as _capture_traceback",
-                f"with _capture_os.fdopen(_capture_os.open({execution_receipt!r}, _capture_os.O_WRONLY | _capture_os.O_CREAT | _capture_os.O_EXCL, 0o600), 'w') as _capture_output:",
-                "    _capture_json.dump({'pid': _capture_os.getpid(), 'entered_ns': _capture_time.time_ns()}, _capture_output)",
-                "try:",
-                *["    " + line for line in lines],
-                "except BaseException:",
-                "    _capture_error = {'error': _capture_traceback.format_exc()}",
-                f"    for _capture_path in {receipts!r}:",
-                "        if _capture_os.path.exists(_capture_path + '.json'):",
-                "            continue",
-                "        try:",
-                "            _capture_fd = _capture_os.open(_capture_path + '-error.json', _capture_os.O_WRONLY | _capture_os.O_CREAT | _capture_os.O_EXCL, 0o600)",
-                "        except FileExistsError:",
-                "            continue",
-                "        with _capture_os.fdopen(_capture_fd, 'w') as _capture_output:",
-                "            _capture_json.dump(_capture_error, _capture_output)",
-                "    raise",
+                "import importlib.util as _spec_util, json as _json, os as _os, time as _time",
+                f"with open({entered!r}, 'w') as _out: _json.dump({{'pid': _os.getpid(), 'entered_ns': _time.time_ns()}}, _out)",
+                f"_spec = _spec_util.spec_from_file_location('frame_meter', {str(meter)!r})",
+                "_meter = _spec_util.module_from_spec(_spec)",
+                "_spec.loader.exec_module(_meter)",
+                *(f"_meter.{call}(expected_pid={args.pid}, output={output + '.json'!r}{extra})"
+                  for output, call, extra in calls),
             ]
-            fd = os.open(script, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-            with os.fdopen(fd, "w") as output:
-                output.write("\n".join(lines) + "\n")
-            subprocess.run([*privilege, executable, "-c",
+            script = Path(str(prefix) + "-remote.py")
+            script.write_text("\n".join(lines) + "\n")
+            subprocess.run([*privilege, process.exe(), "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = (args.completion_deadline if args.completion_deadline is not None
-                        else time.monotonic() + args.wait_history_seconds + args.frame_meter + 20)
-            while time.monotonic() < deadline and not all(
-                    Path(path + ".json").exists() or Path(path + "-error.json").exists() for path in receipts):
+            deadline = time.monotonic() + args.frame_meter + 20
+            outputs = [output + ".json" for output, _call, _extra in calls]
+            while time.monotonic() < deadline and not all(Path(path).exists() for path in outputs):
                 time.sleep(.1)
-            manifest["receipts"] = {path: ("complete" if Path(path + ".json").exists() else
-                "error" if Path(path + "-error.json").exists() else "pending") for path in receipts}
-            manifest["execution_receipt"] = {
-                "path": execution_receipt,
-                "status": "entered" if Path(execution_receipt).exists() else "unacknowledged",
-            }
+            manifest["outputs"] = {path: Path(path).exists() for path in outputs}
+            manifest["entered"] = Path(entered).exists()
     finally:
         manifest["finished_ns"] = time.time_ns()
-        fd = os.open(manifest_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w") as output:
-            json.dump(manifest, output, indent=2)
+        manifest_path.write_text(json.dumps(manifest, indent=2))
         print(manifest_path)
 
 

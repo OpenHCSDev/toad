@@ -18,8 +18,8 @@ class FrameState(DeclaredFamily, affix="Frame"):
     def scene(self):
         return self
 
-    def displayed(self, frame, deferred):
-        receipt = WritingFrame(self.scene, deferred)
+    def displayed(self, frame):
+        receipt = WritingFrame(self.scene)
         frame.state = receipt
         frame.screen.app._driver.call_after_flush(partial(frame.written, receipt))
 
@@ -47,9 +47,8 @@ class PendingFrame(FrameState):
 
 
 class WritingFrame(FrameState):
-    def __init__(self, scene: PendingFrame, deferred: tuple[Widget, ...]):
+    def __init__(self, scene: PendingFrame):
         self._scene = scene
-        self.deferred = deferred
 
     @property
     def scene(self):
@@ -70,7 +69,7 @@ class SuspendedFrame(FrameState):
     def suspend(self, frame):
         pass
 
-    def displayed(self, frame, deferred):
+    def displayed(self, frame):
         pass
 
 
@@ -87,12 +86,12 @@ class PresentedFrame(FrameState):
     def restore(self, frame):
         frame.present()
 
-    def displayed(self, frame, deferred):
+    def displayed(self, frame):
         pass
 
 
 class ClosedFrame(FrameState):
-    def displayed(self, frame, deferred):
+    def displayed(self, frame):
         pass
 
     def defer(self, frame, owner, callback):
@@ -153,14 +152,11 @@ class FramePresentation:
                 return
         del self.callbacks[key]
 
-    def displayed(self, deferred: tuple[Widget, ...]):
-        self.state.displayed(self, deferred)
+    def displayed(self):
+        self.state.displayed(self)
 
     def written(self, receipt: WritingFrame) -> None:
         if receipt is not self.state:
-            return
-        if receipt.deferred:
-            self.state = receipt.scene
             return
         self.present()
 
