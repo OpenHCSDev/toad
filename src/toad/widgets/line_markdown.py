@@ -15,6 +15,7 @@ from textual.geometry import Size
 from textual.selection import Selection
 from textual.strip import Strip
 from textual.widget import Widget
+from textual.worker import Worker
 
 from toad.line_blocks import Body, LineRole, TextRole
 from toad.widgets.transcript_lines import (
@@ -38,7 +39,7 @@ class LineMarkdown(Widget):
         self._styled: PreparedLines | None = None
         self._plain: PreparedLines | None = None
         self._width = 0
-        self._render: asyncio.Task[None] | None = None
+        self._render: Worker[None] | None = None
 
     @property
     def block(self) -> Body:
@@ -52,10 +53,6 @@ class LineMarkdown(Widget):
         self._styled, self._styled_text, self._plain = None, "", None
         self._request_render()
         self.refresh(layout=True)
-
-    def on_unmount(self) -> None:
-        if self._render is not None:
-            self._render.cancel()
 
     def update(self, text: str) -> None:
         """Replace the text; the drawn rows follow without blocking."""
@@ -114,17 +111,15 @@ class LineMarkdown(Widget):
     _plain_key: tuple | None = None
 
     def _request_render(self) -> None:
-        if self._width and self.is_attached and (self._render is None or self._render.done()):
-            self._render = asyncio.create_task(self._render_latest())
+        if self._width and self.is_attached and (self._render is None or self._render.is_finished):
+            # A widget worker: unmount cancels it and a failure is an app error.
+            self._render = self.run_worker(self._render_latest(), group="restyle")
 
     async def _render_latest(self) -> None:
         renderer = self.app.render_processes
         while self.is_attached:
             text, width, theme = self.text, self._width, self._line_theme()
-            try:
-                lines = await renderer.submit(TranscriptLinesRenderTask((self.block,), width, theme))
-            except Exception:
-                return  # Plain rows stay; the next update requests again.
+            lines = await renderer.submit(TranscriptLinesRenderTask((self.block,), width, theme))
             if not self.is_attached:
                 return
             if width == self._width and theme is self._line_theme():

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from typing import ClassVar
@@ -345,21 +344,15 @@ class TranscriptPageBuffer(PreparedPageSource):
         super().__init__()
         self.loader, self.through, self.runtime = loader, through, runtime
         self.scope = PreparationScope()
-        self._blocked: OrderedDict[PageRequest, None] = OrderedDict()
 
     @property
     def closed(self) -> bool:
         return self.scope.closed
 
-    def close(self) -> None:
-        super().close()
-        self._blocked.clear()
-
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         if self.loader is None:
             raise ValueError("This transcript has no saved-source reader")
         result = await self.runtime.submit(TranscriptPageWork(self.scope, self.loader, self.through, request))
-        self._blocked.pop(request, None)
         return result.admit()
 
     async def prefetch(
@@ -381,37 +374,21 @@ class TranscriptPageBuffer(PreparedPageSource):
                 if self.closed or not keep_going():
                     return
                 request = PageRequest(before=cursor) if older else PageRequest(after=cursor)
-                if request in self._blocked:
-                    if older:
-                        before = None
-                    else:
-                        after = None
-                    continue
                 try:
                     prepared = await self.get(request)
                 except (CoordinationReadUnavailable, StaleRevision):
                     # Busy or revoked source reads cannot poison page identity.
                     # Keep mounted coverage and terminate speculative work.
                     return
-                except (OSError, ValueError):
-                    # A foreground request can retry/report the error. Repeated
-                    # layout signals must not keep retrying speculative failures.
-                    self._blocked[request] = None
-                    if len(self._blocked) > self.runtime.max_entries:
-                        self._blocked.popitem(last=False)
-                    prepared = None
-                if prepared is not None:
-                    if self.closed or not keep_going():
-                        return
-                    yield prepared
+                if self.closed or not keep_going():
+                    return
+                yield prepared
                 if older:
-                    before = (prepared.page.before if prepared is not None
-                              and prepared.page.has_older and prepared.retained_bytes <= self.runtime.max_bytes
-                              else None)
+                    before = (prepared.page.before if prepared.page.has_older
+                              and prepared.retained_bytes <= self.runtime.max_bytes else None)
                 else:
-                    after = (prepared.page.after if prepared is not None
-                             and prepared.page.has_newer and prepared.retained_bytes <= self.runtime.max_bytes
-                             else None)
+                    after = (prepared.page.after if prepared.page.has_newer
+                             and prepared.retained_bytes <= self.runtime.max_bytes else None)
             if before is None and after is None:
                 break
 

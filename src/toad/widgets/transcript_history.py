@@ -251,7 +251,11 @@ class TranscriptPageView(Widget):
         """Admitted fragments overlapping the window's viewport."""
         from toad.widgets.history_anchor import HistoryAnchor
 
-        offset = HistoryAnchor._offset(self, window)
+        # A page the viewport layout did not place is off screen; computing
+        # its offset would rebuild the compositor's whole map.
+        offset = HistoryAnchor._placed_offset(self, window)
+        if offset is None:
+            return ()
         top = window.scroll_y - offset
         bottom = top + window.outer_size.height
         return tuple(self.fragments[index] for index, first, rows in self._layout
@@ -261,11 +265,14 @@ class TranscriptPageView(Widget):
         from toad.widgets.history_anchor import HistoryAnchor, HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
-        reader = window.scroll_y - HistoryAnchor._offset(self, window)
         rows = {index: first for index, first, _rows in self._layout}
         admitted = [index for index in self._pending if index in rows]
         self._pending.difference_update(set(self._pending) - set(admitted))
-        admitted.sort(key=lambda index: abs(rows[index] - reader))
+        # On screen, style the rows nearest the reader first. An off-screen
+        # page (prepared ahead) has no reader row; its order does not matter.
+        if (offset := HistoryAnchor._placed_offset(self, window)) is not None:
+            reader = window.scroll_y - offset
+            admitted.sort(key=lambda index: abs(rows[index] - reader))
         return admitted[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
@@ -469,21 +476,25 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
 
     def reader_position(self, window):
-        """The reader's row as a position that survives rows changing above it."""
+        """The reader's row as a position that survives rows changing above it.
+
+        On a page, the row inside its fragment; anywhere else, what the window
+        shows the reader (the window itself when following the tail).
+        """
         from toad.widgets.history_anchor import HistoryAnchor, LineAnchor
 
-        if window.follows_tail:
-            return HistoryAnchor.capture(self.newer, window)
-        for page in self.pages:
-            offset = HistoryAnchor._offset(page, window)
-            row = int(window.scroll_y - offset)
-            if row < 0:
-                return HistoryAnchor.capture(self.older, window)
-            if row < page.line_count and (found := page.fragment_at(row)) is not None:
-                fragment, _within = found
-                return LineAnchor(page, window.scroll_y, window.scroll_revision,
-                                  fragment=fragment, virtual_y=offset + page.fragment_line(fragment))
-        return HistoryAnchor.capture(self.newer, window)
+        if not window.follows_tail:
+            # The reader's row is on screen, so only placed pages can hold it.
+            for page in self.pages:
+                if (offset := HistoryAnchor._placed_offset(page, window)) is None:
+                    continue
+                row = int(window.scroll_y - offset)
+                if 0 <= row < page.line_count and (found := page.fragment_at(row)) is not None:
+                    fragment, _within = found
+                    return LineAnchor(page, window.scroll_y, window.scroll_revision,
+                                      fragment=fragment, virtual_y=offset + page.fragment_line(fragment))
+        anchor = window.reader_anchor()
+        return None if anchor is None else HistoryAnchor.capture(anchor, window)
 
     @property
     def source_identity(self):

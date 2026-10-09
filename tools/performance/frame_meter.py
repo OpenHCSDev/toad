@@ -47,6 +47,19 @@ def install(*, expected_pid, seconds, output):
             name = type(self).__name__
             layouts[name] = layouts.get(name, 0) + 1
         return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
+
+    from textual.screen import Screen
+    refresh_bindings = Screen.refresh_bindings
+    binding_refreshes = {}
+
+    def counted_bindings(self):
+        # Every binding refresh rebuilds the footer's binding state; count callers.
+        caller = sys._getframe(1)
+        if caller.f_code.co_name == "refresh_bindings":
+            caller = caller.f_back
+        name = f"{caller.f_code.co_qualname} {caller.f_code.co_filename.rsplit('/', 2)[-1]}"
+        binding_refreshes[name] = binding_refreshes.get(name, 0) + 1
+        return refresh_bindings(self)
     app_type = type(app)
     display = app_type._display
 
@@ -131,20 +144,27 @@ def install(*, expected_pid, seconds, output):
 
     def finish():
         Widget.refresh = refresh
+        Screen.refresh_bindings = refresh_bindings
         gc.callbacks.remove(collected)
         loop_events.Handle._run = run
         MessagePump.post_message = post
         MessagePump._dispatch_message = dispatch
         app_type._display = display
-        fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        # Readers wait for the file to appear: publish it complete, by rename.
+        partial = output + ".partial"
+        fd = os.open(partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs,
                        "slow_handlers": slow, "slow_frames": slow_frames,
-                       "layout_requests": layouts}, file)
+                       "layout_requests": layouts, "binding_refreshes": binding_refreshes,
+                       "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
+                              "stats": gc.get_stats(), "threshold": gc.get_threshold()}}, file)
+        os.rename(partial, output)
 
     gc.callbacks.append(collected)
     Widget.refresh = counted_refresh
+    Screen.refresh_bindings = counted_bindings
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
     MessagePump._dispatch_message = timed_dispatch
