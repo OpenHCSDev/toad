@@ -189,7 +189,7 @@ class ChannelGroup(SidebarGroup):
 
 
 def _comms_root() -> Path:
-    from toad.comms_root import current_root
+    from agent_comms.route_selection import current_root
 
     return current_root()
 

@@ -111,7 +111,7 @@ class SessionSort(SortControl[ThreadSort]):
         super().__init__(ThreadSort.CREATED, channel)
 
     async def persist_order(self, order: ThreadSort) -> ThreadSort:
-        from toad.comms_root import implicit_root, run_selected_write
+        from agent_comms.route_selection import implicit_root, run_selected_write
 
         comms = self.app.coordination_access.service
         source_root = self.screen.coordination_root
@@ -134,7 +134,7 @@ class ChannelListSort(SortControl[ChannelSort]):
         super().__init__(ChannelSort.NAME, "channels")
 
     async def persist_order(self, order: ChannelSort) -> ChannelSort:
-        from toad.comms_root import implicit_root, run_selected_write
+        from agent_comms.route_selection import implicit_root, run_selected_write
 
         comms = self.app.coordination_access.service
         source_root = self.screen.coordination_root

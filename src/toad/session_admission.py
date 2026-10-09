@@ -107,7 +107,7 @@ class NativeSessionAdmission(SessionAdmission):
         return sessions.app.workspace_sessions.views.get(self.mode)
 
     async def reconnect(self, sessions, selected, snapshot, targets):
-        from toad.comms_root import RouteSelection
+        from agent_comms.route_selection import RouteSelection
 
         if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
             return

@@ -354,7 +354,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def _resolve_comms_thread(self) -> str:
         resolved: str | None
         try:
-            from toad.comms_root import current_root
+            from agent_comms.route_selection import current_root
 
             root = current_root()
             source_root = self.coordination_root

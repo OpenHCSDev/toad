@@ -426,7 +426,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
 
     async def mark_historical(self, page: MessagePage, keys: set[tuple[str, int]], *,
                               snapshot: HistorySourceSnapshot) -> None:
-        from toad.comms_root import implicit_root, run_selected_write
+        from agent_comms.route_selection import implicit_root, run_selected_write
         try:
             if not await self.source_is_current(snapshot):
                 return

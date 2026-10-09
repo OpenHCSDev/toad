@@ -175,7 +175,7 @@ class ThreadOpening:
         return self.owner_mode, self.request.root, self.request.target
 
     async def run(self) -> str:
-        from toad.comms_root import root_is_current
+        from agent_comms.route_selection import root_is_current
 
         navigator = self.navigator
         try:

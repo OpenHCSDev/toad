@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
-from toad.comms_root import RouteSelection
+from agent_comms.route_selection import RouteSelection
 
 if TYPE_CHECKING:
     from toad.app import ToadApp

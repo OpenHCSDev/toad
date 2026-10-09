@@ -3,9 +3,11 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from contextlib import ExitStack
+from contextlib import ExitStack, asynccontextmanager
 from pathlib import Path
+from agent_comms.acp_ingress import AcpIngress
 from agent_comms.child_process import StreamingChildStdio, join_retirement
+from toad.acp.shell_command import ShellCommand
 from toad import jsonrpc
 from toad.core.events import LogAgentFail
 from toad.acp.wire_message import IncomingWireMessage
@@ -47,17 +49,14 @@ class AgentProcess:
                 agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)
         except OSError:
             pass
-        from toad.comms_root import RouteSelection
-        from .maintenance_ingress import preflight
+        from agent_comms.route_selection import RouteSelection
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
         selection = RouteSelection.for_child(env, cwd)
         with ExitStack() as acquisition:
             try:
                 acquisition.enter_context(selection.route.admit_client())
-                await asyncio.to_thread(preflight,
-                    agent.coordination.wire_root if agent.coordination else None,
-                    ingress_root=selection.root, cwd=cwd)
+                await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
             except Exception as error:
                 agent.session.failed()
                 agent.events.publish(LogAgentFail("Failed to start agent", details=str(error),
@@ -96,22 +95,27 @@ class AgentProcess:
         body = request.body
         agent.log(f"[client] {body}")
         if (stdin := self.process.stdin) is not None:
-            calls = body if isinstance(body, list) else [body]
-            if any(
-                isinstance(call, dict) and call.get("method") == "session/prompt"
-                for call in calls
-            ):
-                from .maintenance_ingress import admitted_prompt
+            stdin.write(b"%s\n" % request.body_json)
 
-                with admitted_prompt(
-                    (agent.coordination.wire_root if agent.coordination else None),
-                    ingress_root=self.route_selection.root,
-                    cwd=self.cwd,
-                    implicit=self.route_selection.implicit,
-                ):
-                    stdin.write(b"%s\n" % request.body_json)
-            else:
-                stdin.write(b"%s\n" % request.body_json)
+    @staticmethod
+    def attached_root(agent):
+        return agent.coordination.wire_root if agent.coordination else None
+
+    def ingress(self, agent):
+        return AcpIngress(self.route_selection, Path(self.cwd), self.attached_root(agent))
+
+    @asynccontextmanager
+    async def admitted_prompt(self, agent):
+        """Core ingress admission held through the prompt's stdin write.
+
+        Admission is acquired off this loop; the write stays on it. Without a
+        process there is nothing to admit, and send() reports that.
+        """
+        if self.process is None:
+            yield
+            return
+        async with self.ingress(agent).prompt():
+            yield
 
     async def retire(self):
         for session in tuple(self.sessions):
@@ -189,14 +193,8 @@ class AgentProcess:
             )
             return
         try:
-            from .maintenance_ingress import admitted_spawn
-
-            process = self.process = await admitted_spawn(
-                command,
-                root=agent.coordination.wire_root if agent.coordination else None,
-                env=env,
-                selection=self.route_selection,
-                cwd=self.cwd or str(agent.project_root_path.resolve()),
+            process = self.process = await self.ingress(agent).spawn(
+                ShellCommand.current().argv(command), env=env,
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
         except Exception as error:

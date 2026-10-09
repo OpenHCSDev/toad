@@ -21,8 +21,19 @@ from agent_comms.active_route import ActiveRoute, publish_active_route
 from default_route_pilot import private_root
 
 from toad.acp.agent import Agent
-from toad.acp.maintenance_ingress import admitted_spawn
-from toad.comms_root import current_root
+from agent_comms.route_selection import current_root
+from agent_comms.acp_ingress import AcpIngress
+from agent_comms.route_selection import RouteSelection
+from toad.acp.shell_command import ShellCommand
+
+
+def admitted_spawn(command, *, env=None, cwd=None, **options):
+    """Spawn one shell command through Core's ACP ingress admission."""
+    env = dict(os.environ if env is None else env)
+    cwd = Path(cwd if cwd is not None else os.getcwd()).resolve()
+    selection = RouteSelection.for_child(env, cwd)
+    return AcpIngress(selection, cwd).spawn(
+        ShellCommand.current().argv(command), env=env, **options)
 
 
 def live_members(group: int) -> list[int]:
@@ -80,9 +91,6 @@ async def main() -> None:
                     command,
                     cwd=str(sandbox),
                     env=dict(os.environ),
-
-
-
                 )
                 group = process.identity.pid  # Toad Agent._process_group_id and OS PGID
                 try:

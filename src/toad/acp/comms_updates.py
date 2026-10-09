@@ -127,12 +127,12 @@ class CommsUpdateConsumer(MroDispatch):
         from pathlib import Path
 
         from .context_measurement import ContextMeasurement
-        from .maintenance_ingress import configured_root
+        from agent_comms.route_selection import child_root
 
         agent = self.agent
         attached_env = (agent.process.env or os.environ).copy()
         attached_env["AGENT_COMMS_ROOT"] = update.wire_root
-        root = configured_root(
+        root = child_root(
             attached_env, agent.process.cwd or agent.project_root_path.resolve()
         )
         agent.coordination = replace(update, wire_root=str(root))

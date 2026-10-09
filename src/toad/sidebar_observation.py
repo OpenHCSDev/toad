@@ -187,7 +187,7 @@ class SidebarObservation:
     async def refresh_checked(self) -> None:
         service = self.service
         try:
-            from toad.comms_root import root_is_current
+            from agent_comms.route_selection import root_is_current
 
             if not await asyncio.to_thread(root_is_current, service.root):
                 if self.service is service:
@@ -247,7 +247,7 @@ class SidebarObservation:
                 return
             if SidebarReadIdentity(revision, actor, filters) != self.read_identity(revision):
                 return
-            from toad.comms_root import root_is_current
+            from agent_comms.route_selection import root_is_current
 
             if not await asyncio.to_thread(root_is_current, service.root):
                 if self.service is service:

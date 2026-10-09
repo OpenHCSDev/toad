@@ -260,7 +260,7 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     async def mark_painted(cls, comms, target, project, page):
-        from toad.comms_root import implicit_root, run_selected_write
+        from agent_comms.route_selection import implicit_root, run_selected_write
 
         assert page.display_scope is not None and page.newest_seq is not None
         await asyncio.to_thread(
@@ -374,7 +374,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def mark_painted(cls, comms, target, project, page):
-        from toad.comms_root import implicit_root, run_selected_write
+        from agent_comms.route_selection import implicit_root, run_selected_write
 
         assert page.display_basis is not None and page.newest_seq is not None
         await asyncio.to_thread(

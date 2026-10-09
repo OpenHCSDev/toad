@@ -24,14 +24,16 @@ from agent_comms.errors import HumanInitialUnknownError
 from agent_comms.comms import Comms, wire
 
 from toad import messages
-from toad.acp.maintenance_ingress import barrier_for, configured_root
-from toad.app import ToadApp
-from toad.comms_root import (
+from agent_comms.acp_ingress import AcpIngress
+from agent_comms.route_selection import (
+    RouteSelection,
+    child_root,
     current_root,
     implicit_root,
     root_is_current,
     run_selected_write,
 )
+from toad.app import ToadApp
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.comms_sidebar import CommsSidebar
 from runtime_fixture import refresh_comms
@@ -104,22 +106,22 @@ async def main() -> None:
             )  # absent route legacy default
             route_path = route(home, first, first_id)
             assert current_root() == first
-            assert configured_root(os.environ, sandbox) == first
-            assert barrier_for().registry_path == first / "registry.json"
+            assert child_root(os.environ, sandbox) == first
+            assert AcpIngress(RouteSelection.for_child(os.environ, sandbox), Path(sandbox))._registries() == [first / "registry.json"]
             changed_home = dict(os.environ, HOME=str(sandbox / "another-home"))
             try:
-                configured_root(changed_home, sandbox)
+                child_root(changed_home, sandbox)
             except ValueError as error:
                 assert "explicit child AGENT_COMMS_ROOT" in str(error)
             else:
                 raise AssertionError("different child HOME selected the parent route")
             with patch.dict(os.environ, {"AGENT_COMMS_ROOT": str(second)}):
                 assert current_root() == second
-                assert configured_root(os.environ, sandbox) == second
+                assert child_root(os.environ, sandbox) == second
                 child_without_override = dict(os.environ)
                 child_without_override.pop("AGENT_COMMS_ROOT")
                 try:
-                    configured_root(child_without_override, sandbox)
+                    child_root(child_without_override, sandbox)
                 except ValueError as error:
                     assert "explicit child AGENT_COMMS_ROOT" in str(error)
                 else:
