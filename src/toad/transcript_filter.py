@@ -127,12 +127,9 @@ class SeekingFilter(NoFilter):
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False
-                visible = snapshot.screen._compositor.published_widgets
-                viewport = snapshot.window.published_content_region
-                anchor = next((child for child in owner.fragment_views
-                               if viewport is not None and child in visible
-                               and visible[child][0].overlaps(viewport)), None)
-                async with snapshot.window.preserve_history(anchor, root=owner):
+                async with snapshot.window.preserve_history(
+                    None, root=owner, position=owner.reader_position(snapshot.window),
+                ):
                     with ExitStack() as acquisition:
                         filtering.state = admitted_state = Filtered(projection)
                         acquisition.callback(admitted_state.remove, filtering)
@@ -141,7 +138,7 @@ class SeekingFilter(NoFilter):
                         await projection.admit_initial()
                         filtering.require_projection(snapshot, projection)
                         acquisition.pop_all()
-                admitted = bool(projection.fragment_views)
+                admitted = bool(projection.admitted_fragments)
                 owner._update_edges()
                 if not admitted:
                     projection.request_older()
@@ -189,12 +186,7 @@ class Filtered(FilterState):
         return self.view.covers_incoming(sequence)
 
     def visible(self, owner):
-        visible = owner.screen._compositor.published_widgets
-        viewport = owner.window.published_content_region
-        if viewport is None:
-            return False
-        return any(child in visible and visible[child][0].overlaps(viewport)
-                   for child in self.view.fragment_views)
+        return bool(self.view.visible_fragments())
 
     def retire(self, filtering):
         self.view.display = False
@@ -215,9 +207,9 @@ class Filtered(FilterState):
         owner.invalidate_projection()
 
     async def advance(self, filtering, snapshot):
-        previous = set(self.view.fragment_views)
+        previous = {id(fragment) for fragment in self.view.admitted_fragments}
         await self.view.load_older()
-        return bool(set(self.view.fragment_views) - previous)
+        return any(id(fragment) not in previous for fragment in self.view.admitted_fragments)
 
 
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):

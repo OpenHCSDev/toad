@@ -34,7 +34,7 @@ def install(*, expected_pid, seconds, output):
     inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
     clock = time.monotonic_ns
     state = {"busy": 0, "current": None}
-    frames, inputs, slow = [], {}, []
+    frames, inputs, slow = [], [], []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     app_type = type(app)
     display = app_type._display
@@ -59,8 +59,10 @@ def install(*, expected_pid, seconds, output):
         return result
 
     def timed_post(self, message):
-        if self is app and isinstance(message, inputs_types) and id(message) not in inputs:
-            inputs[id(message)] = [clock(), None, type(message).__name__, []]
+        # The record travels with the message: ids are reused once objects die.
+        if self is app and isinstance(message, inputs_types) and "_frame_meter" not in vars(message):
+            message._frame_meter = entry = [clock(), None, type(message).__name__, []]
+            inputs.append(entry)
         return post(self, message)
 
     async def timed_dispatch(self, message):
@@ -69,7 +71,7 @@ def install(*, expected_pid, seconds, output):
             return await dispatch(self, message)
         finally:
             end = clock()
-            if (entry := inputs.get(id(message))) is not None:
+            if (entry := vars(message).get("_frame_meter")) is not None:
                 entry[1] = end
                 entry[3].append((type(self).__name__, begin, end))
             if end - begin > 50_000_000:
@@ -84,7 +86,7 @@ def install(*, expected_pid, seconds, output):
         fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
-                       "frames": frames, "inputs": list(inputs.values()),
+                       "frames": frames, "inputs": inputs,
                        "slow_handlers": slow}, file)
 
     loop_events.Handle._run = timed_run

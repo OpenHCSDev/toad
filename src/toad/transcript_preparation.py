@@ -66,6 +66,38 @@ class PreparedTranscriptPage(PreparedContentRange):
     def retained_source_bytes(self):
         return self.retained_bytes
 
+    # A page draws its admitted fragments as lines: admission moves a range,
+    # it never mounts or removes native members.
+    def compose(self, view):
+        return ()
+
+    async def extend(self, view, older: bool, current, *, prefix=()) -> bool:
+        extension = self.extension_slice(older)
+        selected = slice(extension.start if older else self.start,
+                         self.stop if older else extension.stop)
+        return await self.replace_range(view, self.fragments, selected, None, current)
+
+    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(),
+                            acquired=None, suppliers=None) -> bool:
+        if not current():
+            return False
+        self.publish_fragments(fragments)
+        self.select_admission(selected)
+        self.retain_sources(view)
+        view.admission_changed()
+        return True
+
+    def trim(self, view, count: int, *, older: bool) -> None:
+        if older:
+            self.start += count
+        else:
+            self.stop -= count
+        self.retain_sources(view)
+        view.admission_changed()
+
+    def retain_sources(self, view) -> None:
+        self.admitted = self.fragments[self.start:self.stop]
+
     def admit(self) -> PreparedTranscriptPage:
         """An independent view owns admission and resolved source acquisitions.
 

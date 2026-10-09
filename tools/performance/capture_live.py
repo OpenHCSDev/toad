@@ -20,6 +20,7 @@ def main():
     parser.add_argument("--rate", type=int, default=100)
     parser.add_argument("--py-spy", default="py-spy")
     parser.add_argument("--gil", action="store_true")
+    parser.add_argument("--idle", action="store_true", help="Include samples of threads blocked in calls")
     parser.add_argument("--native", action="store_true")
     parser.add_argument("--state", action="store_true", help="Export loaded DTOs using CPython 3.14 remote_exec")
     parser.add_argument("--runtime-only", action="store_true",
@@ -84,7 +85,7 @@ def main():
         if args.profile_seconds:
             result = subprocess.run([*privilege, args.py_spy, "record", "--pid", str(args.pid),
                 "--duration", str(args.profile_seconds), "--rate", str(args.rate), "--format", "speedscope",
-                "--output", str(prefix) + ".speedscope.json", *(["--gil"] if args.gil else []),
+                "--output", str(prefix) + ".speedscope.json", *(["--gil"] if args.gil else []), *(["--idle"] if args.idle else []),
                 *(["--native"] if args.native else [])], timeout=args.profile_seconds+30)
             manifest["profile_returncode"] = result.returncode
             result.check_returncode()

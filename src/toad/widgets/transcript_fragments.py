@@ -155,20 +155,24 @@ class TranscriptFragment:
     prepared_source: PreparedMarkdown | None = field(default=None, kw_only=True, compare=False, repr=False)
     prepared_content: PreparedContentRange | None = field(default=None, kw_only=True, compare=False, repr=False)
 
-    def blocks(self, *, fragment: bool = False, show_divider: bool = True):
-        from toad.widgets.transcript_history import TranscriptBlockConsumer
+    def line_blocks(self, styles, *, show_divider: bool = True):
+        """This fragment's committed-history lines, one block per visual part."""
+        from toad.widgets.transcript_lines import FragmentLineConsumer, Summary
 
-        consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider,
-                                           markdown_part=self.markdown_part,
-                                           prepared_source=self.prepared_source, prepared_content=self.prepared_content)
+        consumer = FragmentLineConsumer(styles, show_divider=show_divider)
+        if self.starts_agent_activity and not self.continuation:
+            consumer.blocks.append(Summary("· Agent activity", styles.muted))
         for event in self.events:
             consumer.dispatch_sync(event)
-        return consumer.blocks
+        return tuple(consumer.blocks)
 
-    def retain_source(self, view) -> None:
-        """The source slot takes its original semantic producer's acquisition."""
-        for block in view.children:
-            block.retain_transcript_source(self)
+    def lines_for(self, width: int, styles):
+        """Styled lines this fragment holds for a width and theme, if any."""
+        held = self.__dict__.get("_lines")
+        return held[1] if held is not None and held[0] == styles and held[1].width == width else None
+
+    def hold_lines(self, styles, lines) -> None:
+        self.__dict__["_lines"] = styles, lines
 
     def resolved_sources(self):
         return (() if self.prepared_source is None else self.prepared_source.resolved_sources()) + (
@@ -206,28 +210,16 @@ class ToolTranscriptFragment(TranscriptFragment):
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
-    def retain_source(self, view):
-        from toad.widgets.tool_call import ToolCall
+    def line_blocks(self, styles, *, show_divider: bool = True):
+        from toad.widgets.transcript_lines import Summary
 
-        # ToolCall owns the original decoded parts, each of which binds its
-        # own composition. There is no first-Markdown-descendant inference.
-        tool = next(iter(view.query_children(ToolCall)), None)
-        if tool is not None:
-            self.output_parts = tool.output.retain_sources()
+        return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}", styles.muted),)
 
     def resolved_sources(self):
         return tuple(source for part in self.output_parts for source in part.resolved_sources())
 
     def independent(self):
         return self._independent(output_parts=tuple(part.admit() for part in self.output_parts))
-
-    def blocks(self, *, fragment: bool = False, show_divider: bool = True):
-        from toad.acp.encode_tool_call_id import encode_tool_call_id
-        from toad.widgets.tool_call import ToolCall
-
-        return [ToolCall(self.tool_call, id=encode_tool_call_id(self.tool_call.call.tool_call_id),
-                         output_parts=self.output_parts)]
-
 
 @dataclass(kw_only=True)
 class ContextTranscriptFragment(TranscriptFragment):
@@ -240,10 +232,10 @@ class ContextTranscriptFragment(TranscriptFragment):
         # Returning a retained disclosure does not open either of its sources.
         return
 
-    def blocks(self, *, fragment=False, show_divider=True):
-        from toad.widgets.coordination_context import CoordinationContext
+    def line_blocks(self, styles, *, show_divider: bool = True):
+        from toad.widgets.transcript_lines import Summary
 
-        return [CoordinationContext(self.events[0].text, source=self)]
+        return (Summary("▶ Agent coordination context", styles.muted),)
 
     def resolved_sources(self):
         return super().resolved_sources() + (() if self.original_content is None else
@@ -314,27 +306,6 @@ def transcript_fragments(
     for fragment in consumer.fragments:
         fragment.retained_bytes
     return tuple(consumer.fragments)
-
-
-class TranscriptBodyPreparation:
-    """Pure body work for declared transcript cases, without native widgets."""
-
-    def __init__(self, renderer, ansi: bool, dark: bool, *, selected=None):
-        self.renderer, self.ansi, self.dark = renderer, ansi, dark
-        self.selected = selected
-
-    async def prepare_fragments(self, fragments, keep_going, *, batch_size: int) -> None:
-        """Warm a bounded source range in shared workers, without native mounts.
-
-        Reversal/retirement stops the next batch. Already admitted render work
-        keeps its existing runtime custody and resource limits.
-        """
-        for first in range(0, len(fragments), batch_size):
-            if not keep_going():
-                return
-            await asyncio.gather(*(fragment.prepare(self.renderer, self.ansi, self.dark)
-                                   for fragment in fragments[first:first + batch_size]
-                                   if self.selected is None or keep_events(fragment.events, self.selected)))
 
 
 @dataclass(frozen=True)

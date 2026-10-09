@@ -13,7 +13,7 @@ out=/home/ts/.cache/agent-scratch/scroll-series/$name
 fork=perf-$name
 project=/home/ts/wt/comms-post-feature-debt-audit-20260928
 meter_seconds=${METER_SECONDS:-45}
-export DISPLAY=:121
+export DISPLAY=${SCENARIO_DISPLAY:-:131}
 mkdir -p "$out"
 
 agent-comms fork --name "$fork" --parent perf-base-20261009 > "$out/fork.json"
@@ -46,8 +46,13 @@ sleep 15
 regions sidebar
 read -r row_x row_y < <(python3 -c "import json,sys; r=json.load(open(sys.argv[1]))['threads']['parent-real-ui-20261009']; print(r[0]+4, r[1])" "$out/sidebar-targets.json")
 cell "$row_x" "$row_y"
-sleep 5
-regions tabs
+for attempt in $(seq 15); do
+    sleep 2
+    regions "tabs-$attempt"
+    tabs=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['tabs']))" "$out/tabs-$attempt-targets.json")
+    [[ "$tabs" -ge 2 ]] && { cp "$out/tabs-$attempt-targets.json" "$out/tabs-targets.json"; break; }
+done
+[[ "$tabs" -ge 2 ]] || { echo "second tab did not open" >&2; exit 1; }
 read -r first_x second_x tab_y < <(python3 -c "import json,sys; t=json.load(open(sys.argv[1]))['tabs']; print(t[0][0]+8, t[1][0]+8, t[0][1])" "$out/tabs-targets.json")
 cell "$first_x" "$tab_y"
 sleep 3
@@ -63,7 +68,7 @@ done
 import -window "$window" "$out/loaded.png" 2>/dev/null || true
 
 if [[ -n "${PROFILE_SECONDS:-}" ]]; then
-    measure=(--profile-seconds "$PROFILE_SECONDS")
+    measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle})
 else
     measure=(--frame-meter "$meter_seconds")
 fi
@@ -79,6 +84,7 @@ xdotool key Return
 sleep 4
 # Held PageUp from the input box: 30 key repeats per second for 3 seconds.
 xdotool key --repeat 90 --delay 33 Prior
+import -window "$window" "$out/pageup.png" 2>/dev/null || true
 sleep 1
 # Wheel bursts with reversal over the history.
 xdotool mousemove --window "$window" 400 300
