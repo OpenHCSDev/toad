@@ -55,15 +55,19 @@ async def acceptance(app,pilot,agent,comms,entered,release,hold_next,requests):
     await until(pilot,lambda:len(group.member_rows)>=2)
     member=next(row for row in group.member_rows if row.target_name=='beta')
     member.focus();await until(pilot,lambda:member.has_focus)
-    await pilot.press('down','up')
-    assert member.has_focus
+    rows=sidebar.projection.rows
+    predecessor=rows[rows.index(member)-1]
+    await pilot.press('up')
+    await until(pilot,lambda:predecessor.has_focus)
+    await pilot.press('down')
+    await until(pilot,lambda:member.has_focus)
     assert sidebar.navigation.state.expanded['#team']
     retained.scroll_visible(animate=False,immediate=True);await pilot.pause()
     assert await pilot.click(retained)
     await until(pilot,lambda:isinstance(app.selected_session,CommsScreen))
     channel=app.selected_session
     await until(pilot,lambda:'SAVED_CHANNEL_MESSAGE' in screen_paint(app))
-    assert app.workspace_chrome.channels.widget.roster is sidebar
+    assert app.workspace_chrome.channels.roster is sidebar
     assert sidebar.projection.channels['#team'] is retained
     await click_tab(app,pilot,first.id)
     await until(pilot,lambda:'NATIVE_RESPONSE_2' in conversation_paint(app.screen))

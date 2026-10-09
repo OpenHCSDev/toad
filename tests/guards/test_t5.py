@@ -54,3 +54,22 @@ def test_single_thread_navigation_deletes_placeholder_sessions():
                 name = node.id if isinstance(node, ast.Name) else node.attr
                 assert name not in retired, (path, node.lineno)
     assert not (ROOT / 'screens/pending_thread.py').exists()
+
+
+def test_shared_sidebar_has_one_hierarchy_and_declared_menu_route():
+    assert not (ROOT / 'widgets/virtual_channel_list.py').exists()
+    retired = {'RowNavigation', 'VirtualChannelList', 'TargetChoice',
+               '_show_target_commands', '_show_thread_menu', '_show_channel_menu',
+               '_show_view_menu', 'present_cached_sessions', 'focus_current_session'}
+    for path in ROOT.rglob('*.py'):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, (ast.Name, ast.Attribute, ast.ClassDef,
+                                 ast.FunctionDef, ast.AsyncFunctionDef)):
+                name = (node.id if isinstance(node, ast.Name) else node.attr
+                        if isinstance(node, ast.Attribute) else node.name)
+                assert name not in retired, (path, node.lineno, name)
+    tree = ast.parse((ROOT / 'widgets/comms_sidebar.py').read_text())
+    sidebar = next(node for node in tree.body
+                   if isinstance(node, ast.ClassDef) and node.name == 'CommsSidebar')
+    assert all(not isinstance(node, ast.Attribute) or node.attr != '_row_map'
+               for node in ast.walk(sidebar))

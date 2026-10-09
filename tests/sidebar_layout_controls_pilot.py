@@ -6,12 +6,14 @@ from toad.navigation_target import channel_target
 import asyncio
 import os
 import tempfile
+import shlex
+import sys
 from pathlib import Path
 
 from agent_comms.threads import Thread
 from agent_comms.comms import wire
-from runtime_fixture import ToadApp
-from textual.content import Content
+from native_session_retention_pilot import InstalledApp as ToadApp
+from l0a_native_installed_pilot import until
 from textual.containers import VerticalScroll
 
 from toad.widgets.comms_sidebar import CommsSidebar
@@ -25,15 +27,24 @@ async def main() -> None:
         os.environ.update(XDG_CONFIG_HOME=str(root / "config"),
                           XDG_DATA_HOME=str(root / "data"),
                           XDG_STATE_HOME=str(root / "state"),
-                          AGENT_COMMS_ROOT=str(root / "wire"))
+                          AGENT_COMMS_ROOT=str(root / "wire"),
+                          TOAD_TEST_ATTEMPT=root.name)
         name = "very-long-thread-name-with-an-explanatory-suffix-that-exceeds-the-sidebar-width"
         comms = wire(root / "wire")
         comms.registry.declare(Thread(name, frozenset({"alpha"}), str(root)))
-        app = ToadApp(project_dir=str(root))
+        peer=Path(__file__).with_name("acp_completion_server.py")
+        data={"name":"Sidebar SDK peer","identity":"sidebar-sdk","short_name":"SDK","protocol":"acp",
+              "run_command":{"*":shlex.join([sys.executable,str(peer)])}}
+        app = ToadApp(project_dir=str(root), agent_data=data)
         async with app.run_test(size=(110, 34)) as pilot:
+            await until(pilot,lambda:app.selected_session.conversation.agent is not None
+                        and app.selected_session.conversation.agent.ready)
             await pilot.pause()
             left = app.screen.query_one("#channels-sidebar", SideBar)
             right = app.screen.query_one("#thread-sidebar", SideBar)
+            right.reveal()
+            await right.wait_content_ready()
+            await pilot.pause()
             content = app.screen.query_one("#session-content")
             tabs = app.screen.query_one(SessionsTabs)
             assert left.region.x == 0 and right.right
@@ -46,7 +57,7 @@ async def main() -> None:
             left.query_one("#sidebar-right", SidebarAction).action_activate()
             await pilot.pause()
             assert left.right and right.right
-            assert right.region.x > left.region.x, "New right bar belongs inside the existing outer one"
+            assert right.region.x > left.region.x, ("New right bar belongs inside the existing outer one",left.region,right.region,app.sidebar_layout.ordered())
             assert content.region.x == 0
             assert tabs.region.x == app.screen.query_one(TabHistoryControls).region.right
             left.query_one("#sidebar-right", SidebarAction).action_activate()
