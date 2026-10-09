@@ -70,3 +70,20 @@ Requirements carried by the design:
 - **The App's message pump waited on coordination re-reads.** Every `CoordinationObserved` event awaited a 200–550 ms registry and channel read inside the App's handler, 7.6 s of a 45 s run, and every key and wheel event queued behind it. It now runs as one background pass at a time.
 - **The UI thread is saturated, not waiting.** py-spy's default sampling hid it. With idle samples included, the thread is in `select` only 10% of the time. The largest inclusive costs are pull-based paint validation: the fork's `current_admission` (22%), CSS pseudo-class computation (16.5%), and body readiness checks (13–14%). Scrolling itself is cheap. This confirms the line view: its lines are rendered once with the theme's colors and invalidated only on a theme or width change, so nothing is re-proved per frame.
 - **Run-to-run noise** on this live system is about 3 ms of frame p95 and about 1 s of input-to-paint p95, because the comms bus traffic of about 20 running agents varies. Single captures within that band are not evidence either way.
+
+## 2026-10-09: State after publishing the line view
+
+**Published:** the five default commands point at `~/.local/share/agent-comms/runtimes/toad-lines-9eb0042` (Toad 9eb0042, Textual 66e91ec, Core bdb8df4 with `user-send`). Through the default `toad`: frame p95 9.8 ms, p99 20.2 ms; input-to-paint p95 28 ms, p99 40 ms. Under a real `#openhcs` load (nine agents replying during the run): frame p99 27.8 ms, input-to-paint p99 87 ms. Tristan's target is now **p99 at or under 16 ms**.
+
+**Finding the slowest frames:** `frame_meter.py` records, for each frame over 16 ms, the callbacks that filled it, labeled by owning timer, worker or widget.
+- The history lookahead read `page.size`, and in this fork reading `size` on stale layout forces `reflow_visible`. Fixed in the working tree: pages expose `line_width` and `line_count` from their own layout. Not yet committed, because its measurement was confounded by concurrent comms load tests.
+- `SessionAdmissions._retire_requested_views` re-reads the registry and channel catalog and resolves routes on every `CoordinationObserved`, which arrives on nearly every bus change. The durable fix: the coordination observer reads once per revision and publishes what it read, and consumers derive from that. That is a migration across every consumer of the event.
+
+**Next durable step (#60):** move the live tail onto the same line owner. `PreparedConversationMarkdown` (behind the streaming response, thinking and the user, incoming and outgoing bodies) and `ToolContent` are the only users left of `MeasuredViewportBody`, the body-state machine, `DocumentViewport`, the `WorkspaceScreen` frame hooks and the fork's per-frame paint admission. Once both draw prepared lines, delete that whole lattice in one change.
+
+**Durability for other frontends:** line blocks currently embed Rich `Style`s. They should carry semantic roles (divider, user body, agent body, tool summary, notice) mapped to styles by a frontend-owned theme, so another terminal backend renders the same blocks.
+
+**Known gaps in the line view (to restore, not to forget):**
+- Text selection and copy in committed history.
+- Expanding tool output and the agent coordination context from history (they draw as one-line summaries).
+- User messages draw as plain text, not Markdown.
