@@ -28,7 +28,7 @@ from toad.block_navigation import ChildBlockCursor, DocumentBlockCursor
 from toad.layout import trim_trailing_margin
 from toad.render_tasks import MarkdownRenderTask, MarkdownDocumentRenderTask
 from toad.work_preparation import retained_bytes
-from toad.widgets.viewport_body import MeasuredViewportBody, MeasuredSourceBody, PreparedDocumentBody
+from toad.widgets.viewport_body import MeasuredViewportBody, PreparedDocumentBody
 from toad.widgets.worker_static import WorkerStatic
 
 
@@ -378,33 +378,63 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         self.document = document
         source = self._prepared_markdown
         assert source is not None
-        width = self._body_measurement.width + self.styles.gutter.width
-        if width <= 0:
-            return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
-                                      root_empty=self.is_empty)
+        writer = get_current_worker()
+        parent = self.parent
+        screen = self.screen
+
+        def current():
+            if (not self.is_attached or self._closing or self._pruning
+                    or self.parent is not parent or self.screen is not screen
+                    or self.prepared_source is not source):
+                return False
+            if not self._body_measurement.publishes_from(writer):
+                raise RuntimeError("Accepted Markdown source lost its publication worker")
+            return True
+
         app = self.app
-        selection = self.text_selection
-        task = MarkdownDocumentRenderTask(
-            document, width, root_selection=selection,
-            selection_style=Visual.selection_style(self) if selection is not None else None,
-            selecting=self.screen._selecting,
-        )
-        paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
-                 else await asyncio.to_thread(task.execute))
-        paint = paint.with_presentation(
-            document, root_selection=task.root_selection,
-            selection_style=task.selection_style, selecting=task.selecting,
-        )
-        def resource_costs():
-            seen = set()
-            source_cost = retained_bytes(source, seen=seen)
-            return retained_bytes(paint, seen=seen), source_cost
-        cost, source_cost = (await app.preparation.run_thread(resource_costs)
-                             if isinstance(app, ToadApp) else await asyncio.to_thread(resource_costs))
-        source.retained_bytes = source_cost
-        if (not self.is_attached or self._closing or self._pruning
-                or self.document is not document or not paint.is_current(self, width)
-                or self._body_measurement.width + self.styles.gutter.width != width):
+        previous_task = None
+        while current():
+            # Padding is not source allocation. Keep the preceding resource
+            # unpublished until native measurement supplies usable columns.
+            if self._body_measurement.width <= 0:
+                return False
+            width = self._body_measurement.width + self.styles.gutter.width
+            selection = self.text_selection
+            task = MarkdownDocumentRenderTask(
+                document, width, root_selection=selection,
+                selection_style=Visual.selection_style(self) if selection is not None else None,
+                selecting=screen._selecting,
+            )
+            if (previous_task is not None
+                    and task.preparation_inputs == previous_task.preparation_inputs
+                    and document.presentation.admission == previous_task.document.presentation.admission):
+                raise RuntimeError("Markdown paint refused without changed native inputs")
+            paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
+                     else await asyncio.to_thread(task.execute))
+            if not current():
+                return False
+            paint = paint.with_presentation(
+                document, root_selection=task.root_selection,
+                selection_style=task.selection_style, selecting=task.selecting,
+            )
+
+            def resource_costs():
+                seen = set()
+                source_cost = retained_bytes(source, seen=seen)
+                return retained_bytes(paint, seen=seen), source_cost
+
+            cost, source_cost = (await app.preparation.run_thread(resource_costs)
+                                 if isinstance(app, ToadApp) else await asyncio.to_thread(resource_costs))
+            if not current():
+                return False
+            source.retained_bytes = source_cost
+            if (paint.is_current(self, width)
+                    and self._body_measurement.width + self.styles.gutter.width == width):
+                self.document = document
+                self.loading = False
+                self._table_of_contents = paint.table_of_contents
+                self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
+                return PreparedDocumentBody(paint, cost, source)
             if constants.LOG_FILE:
                 current_document = self.document
                 presentation = paint.document.presentation
@@ -424,12 +454,13 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                     presentation_current=presentation.current_for(self, admissions=admissions),
                     paint_current=paint.is_current(self, width, admissions=admissions),
                     participant_admission=presentation.admission, current_admission=admissions[self])
-            return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
-                                      root_empty=self.is_empty, source_bytes=source_cost)
-        self.loading = False
-        self._table_of_contents = paint.table_of_contents
-        self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
-        return PreparedDocumentBody(paint, cost, source)
+            # Sibling mounting, width and selection can change during worker
+            # delivery. The same accepted producer reacquires presentation;
+            # its original resolved tokens and source suppliers stay intact.
+            previous_task = task
+            document = document.with_presentation(self)
+            self.document = document
+        return False
 
     def goto_anchor(self, anchor: str) -> bool:
         measurement = self._body_measurement
