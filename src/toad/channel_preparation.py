@@ -111,7 +111,7 @@ class IncrementalHistoryReadRequest(HistoryReadRequest):
 
     def read_changed(self, revision: WireRevision, high_water: int, follow_tail: bool) -> HistoryReadResult:
         if high_water <= self.after:
-            if self.display_identity is not None and revision.files != self.revision.files:
+            if self.display_identity is not None and revision.stores_changed_since(self.revision):
                 probe = self.page(limit=1)
                 if self.kind.display_identity(probe) != self.display_identity:
                     return HistoryReadResult(self, revision, high_water,

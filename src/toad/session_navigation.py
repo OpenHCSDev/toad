@@ -31,6 +31,8 @@ class SessionAdmissions:
         self.initial_session_id = initial_session_id
         self._retire_task: asyncio.Task[None] | None = None
         self._retire_requested = False
+        # The Core revision the last retirement pass started from.
+        self._retired_at = None
 
     def bind_events(self) -> None:
         self.app.subscribe_core(self.events)
@@ -247,6 +249,13 @@ class SessionAdmissions:
                 await self.app.workspace_sessions.close(member.mode)
 
     def observed(self, event: core_events.CoordinationObserved) -> None:
+        # Open views retire only when a registration or channel changed; Core
+        # answers that from its own revision.
+        revision = event.revision
+        if (revision is not None and self._retired_at is not None
+                and not revision.registrations_changed_since(self._retired_at)):
+            return
+        self._retired_at = revision
         # The registry read takes hundreds of milliseconds; awaiting it here held
         # every input queued behind the App's message pump. One pass runs at a
         # time and observations arriving during it fold into one more pass.

@@ -203,7 +203,7 @@ class CoordinationAccess:
             # a change notification never certifies a presentation or a send.
             pass
         self.revision, self.route_stamp = revision, route_stamp
-        self.events.publish(CoordinationObserved())
+        self.events.publish(CoordinationObserved(revision))
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. The existing
