@@ -71,7 +71,7 @@ class ObservedPool(RenderProcessPool):
         if self.app is not None:
             window = self.app.selected_session.conversation.window
             assert not self.app._batch_count
-            assert window.history_anchor is None and (not window.history_lock.locked())
+            assert window.history_restoration is None and (not window.history_lock.locked())
         if isinstance(task, (TranscriptRenderTask, MarkdownPartsTask)):
             pid, started, finished, result = await super().run(observed_parse, function)
         else:

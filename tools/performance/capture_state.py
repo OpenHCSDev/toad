@@ -536,10 +536,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                         window["follows_tail"] = node.follows_tail
                         window["history_lock_held"] = node.history_lock.locked()
                         window["restoring"] = node._restoring
-                        window["anchor"] = (node_identity(node.history_anchor.widget)
-                                            if node.history_anchor is not None else None)
-                        window["layout_ready"] = (node.history_layout_ready.is_set()
-                                                  if node.history_layout_ready is not None else None)
+                        restoration = node.history_restoration
+                        window["restoration"] = (None if restoration is None else {
+                            "object_id": id(restoration),
+                            "position": type(restoration.position).__name__
+                            if restoration.position is not None else None,
+                            "required_bodies": [node_identity(body)
+                                                for body in restoration.required_bodies(node)],
+                            "layout_ready": restoration.layout_ready.is_set(),
+                        })
                         manager = data.get("document_viewport")
                         if manager is not None:
                             visible = visible_regions

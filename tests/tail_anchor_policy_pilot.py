@@ -101,7 +101,7 @@ async def main():
                         await contents.mount(Note("Latest tail record\nsecond line"))
                         await pilot.pause()
             assert window.follows_tail and window.scroll_y == window.max_scroll_y
-            assert window.history_anchor is None and not window.history_lock.locked()
+            assert window.history_restoration is None and not window.history_lock.locked()
             assert app._exception is None
         await asyncio.get_running_loop().shutdown_default_executor()
     print("tail anchor: no offscreen geometry; tail/reader transitions preserve painted intent")

@@ -184,38 +184,40 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return self.viewport_presentation.geometry_targets()
 
     def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
-        from toad.widgets.history_anchor import WindowRestoration
+        from toad.widgets.history_anchor import WindowPosition
 
         # Keep the last committed geometry: reading virtual_region here can
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
-        tracked = tuple(self.viewport_presentation.anchors)
+        tracked = tuple((window, restoration)
+                        for window in self.viewport_presentation.anchors
+                        if (restoration := window.history_restoration) is not None)
         anchors = [
-            (window, position)
-            for window in tracked
-            if (position := window.prepare_history_layout()) is not None
+            (window, restoration, position)
+            for window, restoration in tracked
+            if (position := restoration.prepare_layout(window)) is not None
         ]
-        with ExitStack() as restoration:
+        with ExitStack() as compensation:
             # Only an actual anchor transaction compensates source placement.
             # Native resize/clamping is owned by HistoryWindow._size_updated.
-            for window, _position in anchors:
-                restoration.enter_context(WindowRestoration.geometry(window))
+            for window, _restoration, _position in anchors:
+                compensation.enter_context(WindowPosition.geometry(window))
             if not anchors:
                 super()._refresh_layout(size, scroll)
-                for window in tracked:
-                    window.finish_history_layout()
+                for _window, restoration in tracked:
+                    restoration.finish_layout()
                 return
             # Screen normally paints from inside _refresh_layout. Do not expose
             # prepend/eviction coordinates before compensating for their height.
             with self.app.batch_update():
                 super()._refresh_layout(size, scroll)
                 changed = False
-                for window, position in anchors:
-                    changed |= window.restore_history_layout(position)
+                for window, restoration, position in anchors:
+                    changed |= restoration.restore_layout(window, position)
                 if changed:
                     super()._refresh_layout(size, scroll=True)
-                for window in tracked:
-                    window.finish_history_layout()
+                for _window, restoration in tracked:
+                    restoration.finish_layout()
 
     def _screen_resized(self, size: Size) -> None:
         if self._navigation_layout.reusable(self, size, include_scroll=False):

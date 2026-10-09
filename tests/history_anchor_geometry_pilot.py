@@ -11,7 +11,7 @@ from textual.containers import VerticalGroup
 from textual.widgets import Static
 
 from toad.widgets.history_anchor import (
-    HistoryAnchor, HistoryWindow, OffsetReaderPosition, TailReaderPosition, WindowRestoration,
+    HistoryAnchor, HistoryWindow, OffsetReaderPosition, TailReaderPosition, WindowPosition,
 )
 
 
@@ -35,7 +35,7 @@ async def exercise(app):
         key = id(window), "scroll_y"
         animation = app.animator._animations[key]
         revision = window.scroll_revision
-        with WindowRestoration.geometry(window):
+        with WindowPosition.geometry(window):
             window.scroll_y += 7
         assert app.animator._animations[key] is animation
         assert window.scroll_target_y == 207
