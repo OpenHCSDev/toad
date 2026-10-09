@@ -11,13 +11,10 @@ from toad.widgets.inline_message import inline_message
 
 
 def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
-    snapshot = app.coordination_access.sidebar_snapshot
-    if snapshot is None:
+    sidebar = app.coordination_access.sidebar
+    if sidebar is None:
         return ()
-    return tuple(
-        MentionCandidate(row.name, row.title)
-        for row in snapshot.row_inputs.rows
-    )
+    return tuple(MentionCandidate(row.name, row.title) for row in sidebar.threads.rows.values())
 
 
 class GoalText(CoreEventReceiver, Static):

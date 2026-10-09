@@ -71,7 +71,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def unread(cls, snapshot, target):
-        from toad.session_tracker import ExactUnread
+        from agent_comms.ui_model.unread import ExactUnread
         return ExactUnread(snapshot.channel_unread.get(target, 0)) if snapshot else ExactUnread()
 
     @classmethod
@@ -200,30 +200,27 @@ class ChannelConversation(ConversationKind):
     async def update_roster(cls, view, comms):
         from toad.widgets.channel_participants import ChannelParticipants
         from toad.widgets.channel_prompt import ChannelPrompt
-        from toad.sidebar_preparation import ThreadRowInput
 
         # The composer consumes membership and thread presentation, not the
-        # actor's inbox counts or channel activity clocks. Borrow the original
-        # viewer publication through its acquisition owner instead of reading
-        # the same registry/activity/catalog again after every channel page.
-        # Its original roster includes stopped owners and excludes archived
-        # owners, independently of the sidebar's user-selected filters.
+        # actor's inbox counts or channel activity clocks. Borrow the observed
+        # service's sidebar model rather than reading the same registry,
+        # activity and catalog again after every channel page.
         history = view.message_history
         source = history.source_snapshot()
         target = view.target
-        publication = await view.app.coordination_access.read_sidebar(
-            view.app, comms, (True, False))
-        snapshot = publication.wire
+        access = view.app.coordination_access
+        await access.current_sidebar()
+        observed = access.observation
+        if observed is None or observed.service is not comms:
+            raise ValueError("Channel roster belongs to another Comms service")
+        snapshot, rows = observed.sidebar.snapshot, observed.sidebar.threads.rows
+        if snapshot is None:
+            raise ValueError("Sidebar read was interrupted; the next page retries")
 
         def prepare():
-            # Membership remains the canonical snapshot's decision. Labels,
-            # status and click identity borrow that same acquired publication;
-            # rendering must not reacquire each person's presentation on UI.
-            rows = publication.row_inputs.for_rows({
-                person.thread.name: ThreadRowInput(person)
-                for person in snapshot.participants(target)
-            })
-            return (ChannelParticipants.prepare_participants(tuple(rows.values())),
+            people = tuple(rows[person.thread.name] for person in snapshot.participants(target)
+                           if person.thread.name in rows)
+            return (ChannelParticipants.prepare_participants(people),
                     snapshot.mention_candidates(target))
 
         participants, mentions = await view.app.preparation.run_thread(prepare)
@@ -290,7 +287,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def unread(cls, snapshot, target):
-        from toad.session_tracker import ExactUnread
+        from agent_comms.ui_model.unread import ExactUnread
         return ExactUnread(snapshot.unread.get(target, 0)) if snapshot else ExactUnread()
 
     @classmethod

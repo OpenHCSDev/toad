@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from textual.content import Content
 
+from agent_comms.ui_model.sidebar import ThreadRowModel
+
+from toad.widgets.activity_spinner import animated_label
 from toad.widgets.selection import HoverSelection
-from toad.sidebar_preparation import PreparedThreadRow, ThreadRowPresentation
 
 
 class ThreadStatusRow(HoverSelection):
@@ -46,63 +48,51 @@ class ThreadStatusRow(HoverSelection):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.thread_name: str | None = None
-        self._spinner_phase = 0
-        self._thread_presentation: PreparedThreadRow | None = None
+        self.thread_row: ThreadRowModel | None = None
+        self.pinned = False
+        self.action_status: str | None = None
 
     @property
     def busy(self) -> bool:
-        return self._thread_presentation is not None and self._thread_presentation.busy
+        return self.thread_row is not None and (self.action_status is not None or self.thread_row.busy)
 
-    def advance_spinner(self, phase: int) -> None:
-        if self._spinner_phase == phase or not self.busy:
+    def show(self, row: ThreadRowModel, *, pinned: bool = False, action_status: str | None = None) -> None:
+        """Render the model's row with this view's own decoration: pin and pending action."""
+        if (row, pinned, action_status) == (self.thread_row, self.pinned, self.action_status):
             return
-        self._spinner_phase = phase
-        if self._thread_presentation is not None:
-            self.paint_thread_frame(self._thread_presentation)
+        self.thread_row, self.pinned, self.action_status = row, pinned, action_status
+        summary = action_status if action_status is not None else row.summary
+        self.update_classes({"-wire-thread": True, "-busy": self.busy,
+                             "-unread": row.unread.highlighted, "-asking": False})
+        self.tooltip = Content("\n".join(str(value) for value in (
+            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
+        ) if value))
+        self.app.busy_rows.track(self, self.busy)
+        self.paint()
 
-    @property
-    def thread_incarnation(self):
-        prepared = self._thread_presentation
-        return prepared.source.incarnation if prepared is not None else None
-
-    def retained_thread_presentation(self, person) -> ThreadRowPresentation | None:
-        """Borrow captured inputs on an unchanged disclosure."""
-        prepared = self._thread_presentation
-        if prepared is not None and prepared.source.incarnation == person.thread.incarnation:
-            return prepared.source
-        return None
-
-    def thread_preparation(self, source: ThreadRowPresentation) -> PreparedThreadRow | None:
-        """Reuse this row's rendered resource for its exact authored inputs."""
-        prepared = self._thread_presentation
-        if prepared is not None and prepared.source == source:
-            return prepared
-        return None
-
-    def apply_thread_preparation(self, prepared: PreparedThreadRow) -> None:
-        if self._thread_presentation is prepared:
-            return
-        self._thread_presentation = prepared
-        source = prepared.source
-        self.thread_name = source.name
-        self.update_classes({"-wire-thread": True, "-busy": prepared.busy,
-                             "-unread": source.unread.highlighted, "-asking": False})
-        self.tooltip = prepared.tooltip
-        self.paint_thread_frame(prepared)
-
-    def retire_thread_preparation(self) -> None:
-        """Release row output when its source becomes unavailable."""
-        if self._thread_presentation is not None:
-            self.update_classes({"-wire-thread": False, "-busy": False,
-                                 "-unread": False, "-asking": False})
-        self._thread_presentation = None
-
-    def paint_thread_frame(self, prepared: PreparedThreadRow) -> None:
-        """Paint a prepared frame without repeating source publication."""
-        content = prepared.content(self._spinner_phase)
+    def paint(self) -> None:
+        """Paint the current spinner frame; the frame is a function of time."""
+        row = self.thread_row
+        assert row is not None
+        summary = self.action_status if self.action_status is not None else row.summary
+        badge = f"{row.unread.label} " if row.unread.label else ""
+        content = Content.assemble(
+            (badge, "bold"),
+            f"{'* ' if self.pinned else ''}"
+            f"{animated_label(row.label, busy=row.busy, phase=self.app.busy_rows.phase)}"
+            f"\n  {summary}",
+        )
         current = self.content
-        # Native Content owns text and span equality. Tooltip/source metadata
-        # isn't row damage, and Static already owns the displayed content.
         if not isinstance(current, Content) or not current.is_same(content):
             self.update(content, layout=False)
+
+    def retire_thread_row(self) -> None:
+        """This row no longer shows a thread."""
+        if self.thread_row is not None:
+            self.update_classes({"-wire-thread": False, "-busy": False,
+                                 "-unread": False, "-asking": False})
+            self.app.busy_rows.track(self, False)
+        self.thread_row = None
+
+    def on_unmount(self) -> None:
+        self.app.busy_rows.track(self, False)

@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.thread_execution import ConversationPreparation
-from agent_comms.presentation import ThreadView
+from agent_comms.thread_execution import ConversationPreparation, ThreadExecution
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -48,15 +47,11 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     def menu_context(self, sidebar, *, mode_name=None, channel=None):
         from toad.target_commands import TargetContext
-        return TargetContext(sidebar.app, sidebar.observation.service, self.name,
+        return TargetContext(sidebar.app, sidebar.service, self.name,
                              sidebar.session_thread, sidebar.app.project_dir, mode_name, channel)
 
     def show_menu(self, sidebar, offset, **kwargs) -> None:
         self.menu_context(sidebar, **kwargs).show_menu(sidebar, offset)
-
-    def unread(self, snapshot):
-        from toad.session_tracker import ExactUnread
-        return ExactUnread(snapshot.unread.get(self.name, 0))
 
     def selected(self, owner: NavigationOwner) -> None:
         """Apply view-specific selection intent before beginning navigation."""
@@ -75,14 +70,7 @@ class SessionTarget(NavigationTarget):
         return app.selected_mode
 
 
-class NativeUnread:
-    """Unread identity for destinations backed by a native owner journal."""
-
-    def unread(self, snapshot):
-        from toad.session_tracker import UnreadPresentation
-        return UnreadPresentation.for_thread(snapshot, self.name)
-
-class ThreadTarget(NativeUnread, NavigationTarget):
+class ThreadTarget(NavigationTarget):
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,
@@ -109,7 +97,7 @@ class ChannelLike:
 
     def menu_context(self, sidebar, **kwargs):
         from toad.target_commands import TargetContext
-        return TargetContext(sidebar.app, sidebar.observation.service, self.name,
+        return TargetContext(sidebar.app, sidebar.service, self.name,
                               sidebar.session_thread, sidebar.app.project_dir)
 
 
@@ -141,18 +129,18 @@ def linked_target(name: str) -> NavigationTarget:
     return channel_target(name) if name.startswith("#") else ThreadTarget(name)
 
 
-def person_target(person) -> NavigationTarget:
-    """The original receiving declaration selects session or canonical bus history."""
-    return person.thread.execution.prepare_conversation(PersonConversationPreparation(person))
+def thread_target(execution: type[ThreadExecution], name: str, active: bool) -> NavigationTarget:
+    """The thread's execution declaration selects its live session or its bus history."""
+    return execution.prepare_conversation(ThreadConversationPreparation(name, active))
 
 
 @dataclass(frozen=True)
-class PersonConversationPreparation(ConversationPreparation):
-    person: ThreadView
+class ThreadConversationPreparation(ConversationPreparation):
+    name: str
+    active: bool
 
     def external(self) -> NavigationTarget:
-        return DirectTarget(self.person.thread.name)
+        return DirectTarget(self.name)
 
     def native(self) -> NavigationTarget:
-        name = self.person.thread.name
-        return ThreadTarget(name) if self.person.status.active else DirectTarget(name)
+        return ThreadTarget(self.name) if self.active else DirectTarget(self.name)

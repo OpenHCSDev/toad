@@ -7,13 +7,12 @@ IRC semantics for fully-detailed agent threads:
 - **Right-click** -> context menu: fork, stop, acknowledge, copy name.
 - Compact live rows: name, unread badge, and authoritative thread activity.
 
-View, not authority: reads the wire (``AGENT_COMMS_ROOT``) directly and
-acts through ``agent_comms`` operations.
+View, not authority: renders Core's sidebar presentation model
+(``agent_comms.ui_model.sidebar``) and acts through ``agent_comms`` operations.
 """
 
 from __future__ import annotations
 from toad.core.input_events import SelectTarget
-from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 
@@ -22,30 +21,29 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.presentation import ChannelView
+from agent_comms.ui_model.changes import Changes
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from textual.binding import Binding
+from textual._cells import cell_len
 from textual.content import Content
 from textual.dom import DOMNode
-from textual.message import Message
 from textual.reactive import reactive
-from textual.widget import Widget
 from textual.widgets import Static
 
 
-from toad import messages
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import NavigationOwner
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
+from toad.navigation_target import NavigationOwner, channel_target, thread_target
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SidebarVisibilityObserver
-from toad.navigation_target import NavigationTarget, person_target
+from toad.navigation_target import NavigationTarget
 
 if TYPE_CHECKING:
+    from agent_comms.comms import Comms
     from toad.app import ToadApp
 
 
@@ -65,7 +63,7 @@ class ChannelUnread(Static):
 
 
 class ChannelGroup(SidebarGroup):
-    """A lazy rendering of model-provided membership, never a second thread owner."""
+    """A view of one channel row of the sidebar model and the thread rows it lists."""
     DEFAULT_CSS = """
     ChannelGroup { height: auto; }
     ChannelGroup > HorizontalGroup { height: 1; }
@@ -75,7 +73,8 @@ class ChannelGroup(SidebarGroup):
 
     def __init__(self, row: CommsRow, *, expanded: bool):
         row.add_class("channel-header")
-        self._members: dict[str, ThreadRow] = {}
+        self.members: dict[str, ThreadRow] = {}
+        self.channel: ChannelRowModel | None = None
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
         self.unread_badge.display = False
@@ -83,109 +82,71 @@ class ChannelGroup(SidebarGroup):
                          controls=(self.unread_badge, self.sort_control),
                          disclosure_type=ChannelDisclosure)
 
-    async def reveal_members(self) -> None:
-        if not self.expanded:
-            self.toggle_members()
-        await self._sync_members()
+    @property
+    def sidebar(self) -> CommsSidebar:
+        return self.query_ancestor(CommsSidebar)
 
-    async def _sync_members(self) -> None:
-        # Disclosure and route/source publication share the original snapshot
-        # lifetime. Keep that source until its prepared rows have been admitted.
-        if self.is_attached:
-            projection = self.query_ancestor(CommsSidebar).projection
-            async with projection.lock:
-                if self.expanded and projection.snapshot is not None:
-                    await self.reconcile_groups((self,), projection.snapshot.row_inputs)
+    def on_mount(self) -> None:
+        self.sync_members()
 
-    def update_unread(self, unread: int) -> None:
-        if unread != self.row.unread:
-            label = f"({unread})"
-            width_changed = len(label) != len(f"({self.row.unread})")
-            self.row.unread = unread
-            # ASCII digits have fixed cell widths. A count change within the
+    def present(self, channel: ChannelRowModel) -> None:
+        """Paint the channel header from its model row."""
+        previous, self.channel = self.channel, channel
+        row = self.row
+        if previous is None or previous.label != channel.label:
+            row.set_label(channel.label)
+        row.tooltip = channel.tooltip
+        row.set_class(channel.active, "-channel-active")
+        row.set_class(bool(channel.unread), "-unread")
+        if previous is None or previous.unread != channel.unread:
+            label = f"({channel.unread})"
+            # ASCII digits have fixed cell widths: a count change within the
             # same digit range is paint-only; visibility still owns its layout.
+            width_changed = previous is None or len(label) != len(f"({previous.unread})")
             self.unread_badge.update(label, layout=width_changed)
-            self.unread_badge.display = bool(unread)
-
-    def update_activity(self, channel_view: ChannelView, inputs: ThreadRowsWork) -> None:
-        """Paint the original captured member activity, not another turn rule."""
-        active = any(row.busy for row in inputs.rows if row.name in channel_view.members)
-        self.row.set_class(active, "-channel-active")
+            self.unread_badge.display = bool(channel.unread)
+        self.sort_control.update_order(channel.order)
 
     def toggle_members(self) -> None:
         super().toggle_members()
-        self.query_ancestor(CommsSidebar).navigation.state.expanded[self.row.target_name] = self.expanded
+        sidebar = self.sidebar
+        sidebar.navigation.state.expanded[self.row.target_name] = self.expanded
+        sidebar.navigation.apply()
 
-    async def _sync_and_select(self) -> None:
-        await self._sync_members()
-        if self.is_attached and not self._pruning and not self._closing:
-            self.query_ancestor(CommsSidebar).navigation.apply()
+    def reveal_members(self) -> None:
+        if not self.expanded:
+            self.toggle_members()
 
     def rows_changed(self) -> None:
-        sidebar = self.query_ancestor(CommsSidebar)
-        sidebar.navigation.rows_changed()
-        sidebar.projection.sync_spinner()
+        self.sidebar.navigation.rows_changed()
 
-    def thread_row_inputs(self):
-        sidebar = self.query_ancestor(CommsSidebar)
-        snapshot = sidebar.projection.snapshot
-        if not self.is_mounted or snapshot is None:
-            return {}, self._members, snapshot
-        view = next(view for view in snapshot.wire.channels
-                    if view.channel.name == self.row.target_name)
-        self.sort_control.update_order(view.channel.order)
-        wanted = tuple(name for name in view.members
-                       if name in snapshot.all_people
-                       and (self.expanded or name in self._members))
-        app = cast("ToadApp", self.app)
-        inputs = {name: ThreadRowInput(
-            snapshot.all_people[name],
-            unread=person_target(snapshot.all_people[name]).unread(snapshot.wire),
-            pinned=name in view.pinned_members,
-            action_status=app.thread_actions.pending.get(name),
-        ) for name in wanted}
-        return inputs, self._members, snapshot
+    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+        """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
+        channel = self.channel
+        if channel is None or not self.member_container.is_attached:
+            return  # A new group syncs its members once composed (on_mount).
+        sidebar = self.sidebar
+        threads = sidebar.model.threads.rows
+        wanted = tuple(name for name in channel.members
+                       if name in threads and (self.expanded or name in self.members))
+        actions = cast("ToadApp", self.app).thread_actions.pending
 
-    async def _reconcile_members(self, prepared_rows, source) -> None:
-        if not self.accepts_members():
-            return
-        sidebar = self.query_ancestor(CommsSidebar)
-        snapshot = sidebar.projection.snapshot
-        if not self.is_mounted or snapshot is None or snapshot is not source:
-            return
-        app = cast("ToadApp", self.app)
-        # A tab may close while immutable row text is being prepared. The
-        # shared roster survives that close; project live view routes only
-        # after the await, rather than restoring a retired mode from a DTO.
-        current = sidebar.observation.project(snapshot)
-        modes = {name: mode for mode, name in current.session_threads.items()}
+        def create(name: str) -> ThreadRow:
+            row = threads[name]
+            return ThreadRow(thread_target(row.execution, name, row.active), name)
 
-        def create(name):
-            person = snapshot.all_people[name]
-            return ThreadRow(person_target(person), name)
+        def update(name: str, view: ThreadRow) -> None:
+            if changed is not None and name not in changed and view.thread_row is not None:
+                return
+            row = threads[name]
+            view.mode_name = sidebar.open_views.get(name)
+            view.target = thread_target(row.execution, name, row.active)
+            view.show(row, pinned=name in channel.pinned_members, action_status=actions.get(name))
 
-        def update(name, row):
-            # The thread is the row identity. Opening/closing one of its
-            # views changes navigation, not its content widget or geometry.
-            row.mode_name = modes.get(name)
-            row.target = person_target(snapshot.all_people[name])
-            row.apply_thread_preparation(prepared_rows[name])
-
-        await self.reconcile_rows(
-            prepared_rows, self._members, create, update,
-            replace=lambda name, row: row.thread_incarnation != snapshot.all_people[name].thread.incarnation)
-
-
-    def present(self, view: ChannelView) -> None:
-        row = self.row
-        sidebar = self.query_ancestor(CommsSidebar)
-        if row.is_attached:
-            row.set_label(f"{'* ' if view.channel.pinned else ''}{view.channel.name} "
-                          f"{view.active_agents}/{view.registered_agents}")
-            row.tooltip = (f"{view.active_agents} running or idle / {view.registered_agents} registered agents"
-                           f" · tags: {', '.join(sorted(view.channel.tags)) or 'all'}")
-            self.expanded = sidebar.navigation.state.expanded.get(
-                row.target_name, row.target.expanded_by_default)
+        self.reconcile_rows(
+            wanted, self.members, create, update,
+            replace=lambda name, view: (view.thread_row is not None
+                                        and view.thread_row.incarnation != threads[name].incarnation))
 
 
 def _comms_root() -> Path:
@@ -249,10 +210,9 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         # Avoid restyling/repainting the departing transcript before Click runs.
         return False
 
-    def __init__(self, target: NavigationTarget, label: str, unread: int = 0) -> None:
+    def __init__(self, target: NavigationTarget, label: str) -> None:
         super().__init__(label)
         self.target = target
-        self.unread = unread
 
     def is_navigation_row(self) -> bool:
         if not self.is_attached or self._pruning or self._closing:
@@ -260,16 +220,13 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         group = next((node for node in self.ancestors if isinstance(node, SidebarGroup)), None)
         return group is None or group.admits_row(self)
 
-    def has_open_view(self) -> bool:
-        return self.mode_name is not None
-
     @property
     def selected(self) -> bool:
         sidebar = self.sidebar_owner()
         return sidebar is not None and sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
     def set_label(self, label: str) -> None:
-        self.retire_thread_preparation()
+        self.retire_thread_row()
         self.remove_class("-wire-thread")
         if self.content != label:
             self.update(label)
@@ -451,7 +408,12 @@ class CoordinationStatus(Static):
 
 
 class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
-    """One shared channel hierarchy; source, paint and reader intent have owners."""
+    """The view of the observed service's sidebar model: channel groups and their threads.
+
+    It mounts or removes groups and rows only for added and removed keys,
+    repaints only changed rows and reorders on a changed order. Which tab has a
+    thread open and pending thread actions are this view's own UI state.
+    """
     DEFAULT_CSS = """
     CommsSidebar { height: auto; padding: 0 0 1 0; }
     CommsSidebar .section { color: $text-muted; padding: 1 0 0 0; }
@@ -467,34 +429,197 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
                  observe: bool = True, **kwargs):
         super().__init__(**kwargs)
         from toad.sidebar_navigation import SidebarNavigation
-        from toad.sidebar_observation import SidebarObservation
-        from toad.sidebar_projection import SidebarProjection
         self.session_thread = session_thread
         self.can_focus = True
         self._cursor = 0
         self.navigation = SidebarNavigation(self)
-        self.observation = SidebarObservation(self, enabled=observe)
-        self.projection = SidebarProjection(self)
+        self.enabled = observe
+        self.service: Comms | None = None
+        self.model: SidebarModel | None = None
+        self.groups: dict[str, ChannelGroup] = {}
+        self.new_session: NewSessionButton | None = None
+        # Thread name -> the mode of the tab that has it open.
+        self.open_views: dict[str, str] = {}
+        # Model changes arrived while this view was hidden or disabled.
+        self.stale = False
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
         return (self.is_attached and not self._closing and not self._pruning
                 and self.app.is_running and self.screen.is_current)
 
-    def shows_rows(self) -> bool:
-        return self.screen.is_active and self.display and all(
-            node.display for node in self.ancestors if isinstance(node, Widget))
+    def accepts_observation(self) -> bool:
+        from toad.widgets.side_bar import SideBar
+
+        return (self.enabled and self.accepts_publication()
+                and not self.query_ancestor(SideBar).collapsed)
+
+    @property
+    def shows_model(self) -> bool:
+        return self.model is not None and self.model.snapshot is not None and not self.stale
 
     async def on_mount(self) -> None:
-        self.projection.mount()
-        await self.observation.mount()
+        from toad.screens.comms import CommsScreen
+        from toad.screens.workspace import WorkspaceScreen
 
-    async def on_unmount(self) -> None:
-        await self.observation.close()
+        app = self.app
+        try:
+            service = await app.preparation.run_thread(lambda: app.coordination_access.service)
+        except (OSError, ValueError, RuntimeError):
+            self.display = False
+            return
+        screen = self.screen
+        if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(service.root):
+            self.display = False
+            return
+        self.subscribe_core(app.session_tracker.events)
+        self.observe_core(app.events)
+        self.observe_core(app.coordination_access.events)
+        await self.navigation.prepare()
+        if isinstance(screen, WorkspaceScreen):
+            screen.frame_presentation.defer(self, self.navigation.start)
+        self.attach(service)
+
+    def on_unmount(self) -> None:
+        self.app.coordination_access.show_sidebar(self, False)
+        self.unsubscribe()
+
+    def unsubscribe(self) -> None:
+        if self.model is not None:
+            self.model.channels.unsubscribe(self.channels_changed)
+            self.model.threads.unsubscribe(self.threads_changed)
+
+    def attach(self, service: Comms) -> None:
+        """Render ``service``'s shared model; another service's rows are retired first."""
+        observed = self.app.coordination_access.observation
+        if observed is None or observed.service is not service or observed.sidebar is self.model:
+            return  # A newer observed service attaches on its CoordinationObserved.
+        self.unsubscribe()
+        self.service, self.model = service, observed.sidebar
+        self.model.channels.subscribe(self.channels_changed)
+        self.model.threads.subscribe(self.threads_changed)
+        self.display = False
+        self.navigation.reset()
+        if self.groups:
+            self.remove_children(list(self.groups.values()))
+            self.groups.clear()
+            self.navigation.rows_changed()
+        self.stale = True
+        self.present()
+
+    def set_enabled(self, enabled: bool) -> None:
+        self.enabled = enabled
+        self.present()
+
+    def channels_changed(self, changes: Changes[str]) -> None:
+        if self.accepts_observation() and not self.stale:
+            self.sync(channels=frozenset((*changes.added, *changes.changed)), threads=frozenset(),
+                      reorder=bool(changes.added or changes.removed or changes.order is not None))
+        else:
+            self.stale = True
+            self.present()
+
+    def threads_changed(self, changes: Changes[str]) -> None:
+        if self.accepts_observation() and not self.stale:
+            self.sync(channels=frozenset(),
+                      threads=frozenset((*changes.added, *changes.removed, *changes.changed)))
+        else:
+            self.stale = True
+            self.present()
+
+    def present(self) -> None:
+        """Reconcile everything with the model once this view shows it again."""
+        shown = self.model is not None and self.accepts_observation()
+        self.app.coordination_access.show_sidebar(self, shown)
+        if shown and self.stale and self.model.snapshot is not None:
+            self.stale = False
+            self.sync(channels=None, threads=None, reorder=True)
+
+    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+             reorder: bool = False) -> None:
+        """Apply model changes; ``None`` means every channel or thread changed."""
+        from toad.widgets.session_sort import ChannelListSort
+        from toad.widgets.side_bar import SideBarCollapsible
+
+        model = self.model
+        assert model is not None
+        rows = model.channels.rows
+        if threads is None or threads:
+            self.open_views = self.find_open_views()
+        if self.new_session is None:
+            self.new_session = NewSessionButton()
+            self.mount(self.new_session)
+        removed = [key for key in self.groups if key not in rows]
+        if removed:
+            self.remove_children([self.groups.pop(key) for key in removed])
+        added = []
+        for key, channel in rows.items():
+            group = self.groups.get(key)
+            if group is None:
+                row = CommsRow(channel_target(key), key)
+                group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
+                    key, row.target.expanded_by_default))
+                group.present(channel)  # Its members sync once it is mounted.
+                added.append(group)
+            elif channels is None or key in channels:
+                # Membership, pins or order changed: every member row is current.
+                group.present(channel)
+                group.sync_members()
+            elif threads is None or not threads.isdisjoint(channel.members):
+                group.sync_members(threads)
+        if added:
+            self.mount(*added)
+        if removed or added or reorder:
+            ordered = [self.new_session, *(self.groups[key] for key in rows)]
+            if [child for child in self.children if not child._pruning] != ordered:
+                positions = {widget: index for index, widget in enumerate(ordered)}
+                self.sort_children(key=lambda child: positions.get(child, len(positions)))
+            self.navigation.rows_changed()
+        panel = self.query_ancestor(SideBarCollapsible)
+        control = panel.header_control
+        assert isinstance(control, ChannelListSort)
+        control.update_order(model.channel_order)
+        self.navigation.apply()
+        self.sync_current()
+        # Full row text is retained; the panel grows to the widest content.
+        panel.styles.min_width = self.content_width()
+        self.display = True
+        if not self.navigation.ready.is_set() and self.screen.is_current:
+            self.call_after_refresh(self.navigation.finish, self.navigation.revision)
+
+    def content_width(self) -> int:
+        model = self.model
+        assert model is not None
+        widest = max((cell_len(name) + 12 for name in model.channels.rows), default=0)
+        widest = max(widest, max((cell_len(text) + 8 for row in model.threads.rows.values()
+                                  for text in (row.label, row.summary)), default=0))
+        return min(widest, 512)
+
+    def find_open_views(self) -> dict[str, str]:
+        """Which open tab shows each thread of this service; the first tab claims it."""
+        app = self.app
+        threads = self.model.threads.rows
+        views: dict[str, str] = {}
+        for details in app.session_tracker.ordered_sessions:
+            screen = app.session_navigation.source(details.mode_name)
+            if screen is None or not screen.belongs_to_wire(self.service.root):
+                continue  # A same-named thread on another wire is not this open view.
+            name = screen._comms_thread
+            if name not in threads and screen._agent_session_id in threads:
+                name = screen._agent_session_id
+            if name in threads and name not in views:
+                views[name] = details.mode_name
+        return views
 
     @handles(SessionChangedEvent)
     async def session_changed(self, event: CoreEventMessage) -> None:
-        await self.observation.session_updated(event.event)
+        if not self.shows_model:
+            return
+        self.open_views = self.find_open_views()
+        for group in self.groups.values():
+            for name, row in group.members.items():
+                row.mode_name = self.open_views.get(name)
+        self.sync_current()
 
     @handles(SessionSelected)
     async def session_selected(self, event: CoreEventMessage) -> None:
@@ -502,22 +627,27 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
 
     @handles(ThreadActionsChanged)
     async def thread_actions_changed(self, event: CoreEventMessage) -> None:
-        await self.observation.actions_changed(event.event)
+        if self.shows_model and self.accepts_observation():
+            for group in self.groups.values():
+                group.sync_members()
 
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
-        await self.observation.coordination_updated(event.event)
-
-    @handles(PreferenceChanged)
-    async def settings_changed(self, event: CoreEventMessage) -> None:
-        self.observation.settings_changed(event.event)
+        service = self.app.coordination_access.observed_service
+        if service is not None and service is not self.service:
+            self.attach(service)
 
     def sidebar_visibility_changed(self) -> None:
-        self.projection.sync_spinner()
-        self.observation.refresh()
+        self.present()
 
     def _ordered_rows(self):
-        return self.projection.rows
+        return self.rows
+
+    @property
+    def rows(self) -> list[CommsRow]:
+        return [row for group in self.children if isinstance(group, ChannelGroup)
+                for row in (group.row, *group.visible_members)
+                if row.is_navigation_row()]
 
     @property
     def selection_state(self):
@@ -536,11 +666,10 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
 
     @property
     def navigation_root(self):
-        service = self.observation.service
-        return service.root if service is not None else None
+        return self.service.root if self.service is not None else None
 
     def action_open_selected(self) -> None:
-        rows = self.projection.rows
+        rows = self.rows
         focused = self.app.focused if self.app else None
         if isinstance(focused, CommsRow) and focused in rows:
             target = focused

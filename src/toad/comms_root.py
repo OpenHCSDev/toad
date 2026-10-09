@@ -1,7 +1,8 @@
 """Toad's cached access to the Comms service of the current route.
 
 Core owns route selection and guarded writes (``agent_comms.route_selection``);
-this view only caches the service it opened for one selection.
+this view only caches the service it opened for one selection, and keeps that
+service's sidebar presentation model current for every view that renders it.
 """
 
 from __future__ import annotations
@@ -11,27 +12,43 @@ from dataclasses import dataclass
 from collections.abc import Callable
 from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
-from functools import partial
+from weakref import WeakSet
+from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, root_is_current, run_selected_write
+from agent_comms.ui_model.sidebar import SidebarModel
 from toad.core.events import CoreEventStream, CoordinationObserved, OpenTabsChanged
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
     from agent_comms.presentation import WireRevision
+    from toad.app import ToadApp
 
 T = TypeVar("T")
 
 
 @dataclass(frozen=True)
 class ObservedCommsService:
+    """One opened service and the sidebar model every view of it renders."""
+
     selection: RouteSelection
     service: Comms
+    sidebar: SidebarModel
+
+
+@dataclass(frozen=True)
+class SidebarRead:
+    """What the sidebar model was last derived from."""
+
+    observed: ObservedCommsService
+    revision: WireRevision
+    filters: tuple[bool, bool]
 
 
 class CoordinationAccess:
     """A validated core route owns cached access and guarded UI write admission."""
 
-    def __init__(self, preparation) -> None:
+    def __init__(self, app: ToadApp) -> None:
+        self.app = app
         self.observation: ObservedCommsService | None = None
         self.events = CoreEventStream(self)
         self.revision: WireRevision | None = None
@@ -39,16 +56,20 @@ class CoordinationAccess:
         self.task: asyncio.Task[None] | None = None
         self.timer = None
         self.custody = ExitStack()
-        self.preparation = preparation
-        # The application's existing retained sidebar publication lives with
-        # its acquired service. Native views borrow it; they do not reread or
-        # recapture the same worktree publication independently.
-        self.sidebar_snapshot = None
-        self.sidebar_lock = asyncio.Lock()
+        self.preparation = app.preparation
+        self.sidebar_read: SidebarRead | None = None
+        self.sidebar_task: asyncio.Task[None] | None = None
+        self.sidebar_requested = False
+        # Views showing the sidebar model now; observed changes are read only for them.
+        self.sidebar_views: WeakSet[object] = WeakSet()
 
     @property
     def observed_service(self) -> Comms | None:
         return self.observation.service if self.observation else None
+
+    @property
+    def sidebar(self) -> SidebarModel | None:
+        return self.observation.sidebar if self.observation else None
 
     @property
     def service(self) -> Comms:
@@ -68,62 +89,96 @@ class CoordinationAccess:
             if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                 raise RouteChanged("Comms route changed while opening the service")
             self.custody.enter_context(acquisition.pop_all())
-        self.observation = ObservedCommsService(selected, service)
+        # Textual runs the model's flush after the current message, before
+        # the next frame is composed.
+        self.observation = ObservedCommsService(selected, service, SidebarModel(self.app.call_next))
         self.revision = None
         self.route_stamp = None
-        self.sidebar_snapshot = None
         return service
 
-    async def read_sidebar(self, app, service: Comms, filters: tuple[bool, bool]):
-        """Acquire one original viewer publication for its native consumers.
+    def show_sidebar(self, view: object, shown: bool) -> None:
+        """A view started or stopped showing the sidebar model; a new viewer catches up."""
+        if not shown:
+            self.sidebar_views.discard(view)
+        elif view not in self.sidebar_views:
+            self.sidebar_views.add(view)
+            self.request_sidebar()
 
-        The service, revision, viewer worktree and declared filters are the
-        actual read scope. Sidebar rows and channel composers borrow this same
-        publication only with their own matching declared filters. A retained
-        view may borrow paint after activation,
-        but route replacement revokes this acquisition before delivery.
-        """
-        from toad.sidebar_snapshot import SidebarSnapshot
+    async def current_sidebar(self) -> None:
+        """Bring the sidebar model up to the current stores for a consumer that reads it now."""
+        self.request_sidebar()
+        await asyncio.shield(self.sidebar_task)
 
-        async with self.sidebar_lock:
-            if (service is not self.observed_service
-                    or not await self.preparation.run_thread(root_is_current, service.root)):
-                raise ValueError("Sidebar service changed before acquisition")
-            revision = await self.preparation.run_thread(service.views.revision)
-            if (service is not self.observed_service
-                    or not await self.preparation.run_thread(root_is_current, service.root)):
-                raise ValueError("Sidebar service changed while observing its revision")
-            if self.sidebar_snapshot is not None and self.sidebar_snapshot.matches(
-                    service, revision, app.project_dir, filters):
-                return self.sidebar_snapshot
-            state = await self.preparation.run_thread(partial(
-                service.views.viewer_snapshot, str(app.project_dir),
-                show_stopped=filters[0], show_archived=filters[1]))
-            snapshot = await SidebarSnapshot.capture(app, service, state, revision)
-            if (service is not self.observed_service
-                    or not await self.preparation.run_thread(root_is_current, service.root)):
-                raise ValueError("Sidebar service changed during acquisition")
-            previous_tabs = app.open_tabs
-            self.sidebar_snapshot = snapshot
-            # Only the acquired publication changes tab facts. Borrowers and
-            # local route reprojections must not broadcast that change again.
-            if app.open_tabs != previous_tabs:
+    def request_sidebar(self) -> None:
+        """Re-derive the sidebar model if its stores or filters changed; one read at a time."""
+        if self.sidebar_task is not None and not self.sidebar_task.done():
+            self.sidebar_requested = True
+            return
+        self.sidebar_task = asyncio.create_task(self.read_sidebar())
+
+    async def read_sidebar(self) -> None:
+        app = self.app
+        self.sidebar_requested = True
+        while self.sidebar_requested:
+            self.sidebar_requested = False
+            observed = self.observation
+            if observed is None:
+                return
+            service = observed.service
+            filters = (app.settings.sidebar.show_stopped, app.settings.sidebar.show_archived)
+            read = self.sidebar_read
+            worktree = str(app.project_dir)
+
+            def capture():
+                # One worker hop: snapshot and row derivation inspect process
+                # identity and stores, never on the UI thread.
+                revision = service.views.revision()
+                if (read is not None and read.observed is observed and read.filters == filters
+                        and not revision.stores_changed_since(read.revision)):
+                    return None
+                snapshot = service.views.viewer_snapshot(
+                    worktree, show_stopped=filters[0], show_archived=filters[1])
+                return revision, snapshot, SidebarModel.derive(snapshot), root_is_current(service.root)
+
+            try:
+                if self.sidebar_views:
+                    # A shown sidebar acknowledges the painted native cursor
+                    # first, so the counts read below already include it.
+                    await app.mark_visible_thread_read()
+                captured = await self.preparation.run_thread(capture)
+            except (OSError, ValueError, CoordinationReadUnavailable, StaleRevision) as error:
+                # An external writer is replacing or recovering the wire; the
+                # next observed revision reads again.
+                app.log.warning("Sidebar read interrupted", error)
+                return
+            if captured is None:
+                continue
+            revision, snapshot, derived, current = captured
+            if self.observation is not observed or not current:
+                continue
+            notice = observed.sidebar.read_marker_notice
+            tabs = app.open_tabs
+            observed.sidebar.apply(snapshot, derived)
+            self.sidebar_read = SidebarRead(observed, revision, filters)
+            if snapshot.read_marker_notice and snapshot.read_marker_notice != notice:
+                app.notify(snapshot.read_marker_notice, title="Read positions", severity="warning")
+            if app.open_tabs != tabs:
                 app.events.publish(OpenTabsChanged())
-            return snapshot
 
-    def start(self, app) -> None:
+    def start(self) -> None:
         """One application revision observer serves visible views and roster paint."""
         from toad.constants import COMMS_REFRESH_INTERVAL
 
-        self.timer = app.set_interval(COMMS_REFRESH_INTERVAL, self.refresh)
+        self.timer = self.app.set_interval(COMMS_REFRESH_INTERVAL, self.refresh)
         self.refresh()
 
     async def close(self) -> None:
         if self.timer is not None:
             self.timer.stop()
-        if self.task is not None:
-            self.task.cancel()
-            await asyncio.gather(self.task, return_exceptions=True)
+        for task in (self.task, self.sidebar_task):
+            if task is not None:
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
         self.custody.close()
 
     def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
@@ -172,6 +227,8 @@ class CoordinationAccess:
             pass
         self.revision, self.route_stamp = revision, route_stamp
         self.events.publish(CoordinationObserved(revision))
+        if self.sidebar_views:
+            self.request_sidebar()
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. The existing

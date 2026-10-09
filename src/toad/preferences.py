@@ -206,11 +206,13 @@ class SidebarSettings(SettingsGroup):
         title="Show stopped threads in Channels?",
         default=True,
         wire_name="show_stopped",
+        effect=effects.sidebar_filters,
     )
     show_archived = BooleanSetting(
         title="Show archived channels and threads?",
         default=False,
         wire_name="show_archived",
+        effect=effects.sidebar_filters,
     )
 
 

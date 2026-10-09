@@ -304,7 +304,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             lambda mode, index: self.select_session(mode, history_index=index)
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
-        self.coordination_access = CoordinationAccess(self.preparation)
+        self.coordination_access = CoordinationAccess(self)
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
@@ -479,6 +479,12 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         return WorkspaceChrome(self)
 
     @cached_property
+    def busy_rows(self):
+        from toad.widgets.activity_spinner import BusyRows
+
+        return BusyRows(self)
+
+    @cached_property
     def workspace_sessions(self):
         from toad.workspace_sessions import WorkspaceSessions
         return WorkspaceSessions(self)
@@ -525,14 +531,8 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         screen = self.selected_session
         if not isinstance(screen, MainScreen):
             return
-        from toad.widgets.comms_sidebar import CommsSidebar
-
-        sidebar = screen.query_one_optional(CommsSidebar)
-        observed_root = screen.coordination_root or (
-            sidebar.observation.service.root
-            if sidebar is not None and sidebar.observation.service is not None
-            else None
-        )
+        observed = self.coordination_access.observed_service
+        observed_root = screen.coordination_root or (observed.root if observed is not None else None)
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
@@ -577,7 +577,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
 
 
     async def on_mount(self) -> None:
-        self.coordination_access.start(self)
+        self.coordination_access.start()
         await self.application.start()
         # What exists now (modules, classes, ABC caches, the application
         # itself) lives for the whole process. Move it out of the collector's
