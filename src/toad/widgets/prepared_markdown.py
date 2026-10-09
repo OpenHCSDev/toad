@@ -408,25 +408,40 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                     and task.preparation_inputs == previous_task.preparation_inputs
                     and document.presentation.admission == previous_task.document.presentation.admission):
                 raise RuntimeError("Markdown paint refused without changed native inputs")
-            paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
-                     else await asyncio.to_thread(task.execute))
-            if not current():
-                return False
-            paint = paint.with_presentation(
-                document, root_selection=task.root_selection,
+            retained = self._body_measurement
+            paint = retained.document_paint
+            if paint is not None and paint.matches(
+                document, width, root_selection=task.root_selection,
                 selection_style=task.selection_style, selecting=task.selecting,
-            )
+            ):
+                # Reentry can change native admission without changing any
+                # rendered input. The original resource already owns these
+                # rows and their measured cost; consume them before workers.
+                paint = paint.with_presentation(
+                    document, root_selection=task.root_selection,
+                    selection_style=task.selection_style, selecting=task.selecting,
+                )
+                cost = retained.paint_bytes
+            else:
+                paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
+                         else await asyncio.to_thread(task.execute))
+                if not current():
+                    return False
+                paint = paint.with_presentation(
+                    document, root_selection=task.root_selection,
+                    selection_style=task.selection_style, selecting=task.selecting,
+                )
 
-            def resource_costs():
-                seen = set()
-                source_cost = retained_bytes(source, seen=seen)
-                return retained_bytes(paint, seen=seen), source_cost
+                def resource_costs():
+                    seen = set()
+                    source_cost = retained_bytes(source, seen=seen)
+                    return retained_bytes(paint, seen=seen), source_cost
 
-            cost, source_cost = (await app.preparation.run_thread(resource_costs)
-                                 if isinstance(app, ToadApp) else await asyncio.to_thread(resource_costs))
-            if not current():
-                return False
-            source.retained_bytes = source_cost
+                cost, source_cost = (await app.preparation.run_thread(resource_costs)
+                                     if isinstance(app, ToadApp) else await asyncio.to_thread(resource_costs))
+                if not current():
+                    return False
+                source.retained_bytes = source_cost
             if (paint.is_current(self, width)
                     and self._body_measurement.width + self.styles.gutter.width == width):
                 self.document = document
