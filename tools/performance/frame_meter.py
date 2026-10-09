@@ -42,12 +42,17 @@ def install(*, expected_pid, seconds, output):
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     refresh = Widget.refresh
     layouts = {}
+    repaints = {}
 
     def counted_refresh(self, *regions, repaint=True, layout=False, recompose=False):
         # Each layout request re-arranges the screen; count who asks.
+        name = type(self).__name__
         if layout:
-            name = type(self).__name__
             layouts[name] = layouts.get(name, 0) + 1
+        elif repaint:
+            # Repaints are cheaper than layouts but each repainted widget
+            # renders its lines again; count who asks.
+            repaints[name] = repaints.get(name, 0) + 1
         return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
 
     from textual.screen import Screen
@@ -180,7 +185,8 @@ def install(*, expected_pid, seconds, output):
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs,
                        "slow_handlers": slow, "slow_frames": slow_frames,
-                       "layout_requests": layouts, "binding_refreshes": binding_refreshes,
+                       "layout_requests": layouts, "repaint_requests": repaints,
+                       "binding_refreshes": binding_refreshes,
                        "stalls": sorted(stalls.items(), key=lambda item: -item[1])[:40],
                        "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
                               "stats": gc.get_stats(), "threshold": gc.get_threshold()}}, file)
