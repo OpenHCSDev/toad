@@ -42,7 +42,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
         self._prefetch_intent = None
-        self._check_pending = False
         super().__init__(*args, **kwargs)
 
     @property
@@ -83,10 +82,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def observe_source(self) -> None:
         self.window.histories.add(self)
-        self.watch(self.window, "scroll_y", self._scroll_changed, init=False)
-        self.screen.screen_layout_refresh_signal.subscribe(self, self._layout_changed)
-        self._scroll_changed()
-        self.prepare_scroll()
+        self.request_preparation()
 
     async def on_unmount(self) -> None:
         # Parked preparation belongs to the logical document. Unmount revokes
@@ -101,18 +97,25 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     async def close_source_reader(self) -> None:
         """Close independent source subscriptions, separately from page custody."""
 
-    def _layout_changed(self, _screen) -> None:
-        self._scroll_changed()
-        self.prepare_scroll()
+    def request_preparation(self) -> None:
+        """Borrow the original frame's admission for this independent source.
 
-    def on_resize(self) -> None:
-        if self.is_mounted:
-            self._scroll_changed()
+        The window supplies scroll/layout demand. A pager keeps its own native
+        callback scope so a held sibling cannot block its source publication.
+        The frame owns deduplication, including work requested during I/O.
+        """
+        if self.source_publication_available:
+            self.screen.frame_presentation.defer(self, self.prepare_viewport)
 
-    def _scroll_changed(self, _y: float = 0) -> None:
-        if self.state.accepts_source_work and not self._check_pending:
-            self._check_pending = True
-            self.call_after_refresh(self._check_edges)
+    def prepare_viewport(self) -> None:
+        """Consume committed geometry once, on this source's own pump."""
+        if self.source_publication_available:
+            self.prepare_scroll()
+            self._check_edges()
+
+    def _check_edges(self) -> None:
+        """The source declaration admits pages from its committed native box."""
+        raise NotImplementedError
 
     def _request_page(self, older: bool) -> None:
         self.schedule_source_work(partial(self._load_page, older))
@@ -179,7 +182,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 # The admitted operation owns source and reader progress.
                 # Native compensation and unchanged reads cannot rearm it.
                 if operation.progressed(self):
-                    self._scroll_changed()
+                    self.request_preparation()
                 self.publish_core(TranscriptSourceWorkFinished())
 
     async def retire_source(self, *, parked: bool = False) -> None:
@@ -204,13 +207,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.window.histories.add(self)
         self.report_source_coverage()
         self.window.check_follow()
-        self._scroll_changed()
-        self.prepare_scroll()
+        self.request_preparation()
 
 
     def prepare_scroll(self) -> None:
-        """Measured viewport demand admits source-specific edge reads."""
-        self._scroll_changed()
+        """Sources with data lookahead supply it independently of page reads."""
 
     def request_lookahead(self, intent) -> None:
         """One source worker consumes the latest measured preparation demand.

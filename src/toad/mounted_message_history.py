@@ -92,7 +92,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
     def projection_changed(self) -> None:
         for _, widget in self.rows:
             apply_block_filter(widget, self.view.visible_categories)
-        self._scroll_changed()
+        self.request_preparation()
 
 
     @property
@@ -174,7 +174,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             await self._mount_page(MessagePage((receipt,), self.has_older, False),
                                    older=False, retained=retained, style=self.style)
             self.window.anchor()
-        self._scroll_changed()
+        self.request_preparation()
 
     def painted_keys(self) -> tuple[tuple[str, int], ...]:
         if not self.is_attached or not self.current:
@@ -302,7 +302,6 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
 
 
     def _check_edges(self) -> None:
-        self._check_pending = False
         if not self.checkpoint_available or not self.current or not self.rows:
             return
         geometry = self.screen._compositor.visible_widgets.get(self)
@@ -332,7 +331,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
 
     @on(WorkerStatic.ExtentReady)
     def _row_extent_ready(self) -> None:
-        self._scroll_changed()
+        self.request_preparation()
 
     async def _load_page(self, older: bool) -> None:
         snapshot = self.source_snapshot()

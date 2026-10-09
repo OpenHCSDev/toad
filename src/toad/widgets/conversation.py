@@ -325,24 +325,16 @@ class CursorContainer(containers.Vertical):
         return strips
 
 
-class ConversationWindowSettings(CoreEventReceiver):
-    """Subscribe original tool hydration to its native window layout."""
-
-    def on_mount(self) -> None:
-        self.watch(self, "scroll_y", self.hydrate_visible_tools, init=False)
-        self.screen.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
-
-    def on_screen_layout_refresh(self, _screen) -> None:
-        self.hydrate_visible_tools()
-
+class Window(CoreEventReceiver, HistoryWindow):
     def rebind_screen(self, previous, destination) -> None:
-        """Move explicit screen-owned observers with a retained conversation."""
-        previous.screen_layout_refresh_signal.unsubscribe(self)
-        destination.screen_layout_refresh_signal.subscribe(self, self.on_screen_layout_refresh)
+        """Move the original window's layout admission with its conversation."""
         if viewport := self.__dict__.get("document_viewport"):
             viewport.membership.bind(destination.viewport_presentation)
 
-class Window(ConversationWindowSettings, HistoryWindow):
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        self.query_ancestor(Conversation).transcript.retry()
+
     @property
     def pending_reader_position(self):
         return self.query_ancestor(Conversation).transcript.reader_position
@@ -1698,7 +1690,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         """Initialize the agent view, separate from the framework mount event."""
         self.apply_layout_preferences()
         self.trap_focus()
-        self.watch(self.window, "scroll_y", self._history_scroll_changed, init=False)
         self.prompt.focus()
         self.update_slash_commands()
         self.call_after_refresh(self.post_welcome)
@@ -1712,9 +1703,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.start_native_session()
         self.update_title()
         self.window.anchor()
-
-    def _history_scroll_changed(self, _position: float) -> None:
-        self.call_after_refresh(self.transcript.retry)
 
     @property
     def unresolved_inputs(self) -> list[dict]:

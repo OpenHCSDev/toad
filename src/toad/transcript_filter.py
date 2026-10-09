@@ -295,7 +295,7 @@ class TranscriptFilter:
             async with self.owner.window.preserve_history(None, root=self.owner):
                 retired.remove(self)
         if self.owner.is_attached:
-            self.owner._scroll_changed()
+            self.owner.request_preparation()
 
     def changed(self) -> None:
         owner = self.owner
@@ -309,7 +309,7 @@ class TranscriptFilter:
         if self.scanning:
             self.worker.cancel()
         owner._update_edges()
-        owner._scroll_changed()
+        owner.request_preparation()
 
     def scan_needed(self) -> bool:
         return self.has_older and self.state.scan_needed(self.owner)

@@ -66,7 +66,7 @@ async def exercise(app, pilot, stage):
             return AwaitComplete(wait())
         return result
 
-    with patch.object(pager, "_scroll_changed"), patch.object(TranscriptHistory, "_check_edges"):
+    with patch.object(pager, "request_preparation"), patch.object(TranscriptHistory, "_check_edges"):
         await view.contents.mount(pager)
         await pilot.pause()
         view.visible_categories = frozenset((InboundCategory,))
@@ -129,7 +129,7 @@ async def exercise_batched_selection(app, pilot):
         threads.append(threading.get_ident())
         return prepare(work)
 
-    with patch.object(pager, "_scroll_changed"), patch.object(TranscriptHistory, "_check_edges"), \
+    with patch.object(pager, "request_preparation"), patch.object(TranscriptHistory, "_check_edges"), \
             patch.object(TranscriptFilterWork, "prepare", prepared):
         await view.contents.mount(pager)
         await pilot.pause()

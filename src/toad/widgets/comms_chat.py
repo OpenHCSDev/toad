@@ -418,7 +418,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if follow and self.window.follows_tail:
             self.window.anchor()
         if self.message_history.has_newer or (self.message_history.has_older and self.window.max_scroll_y == 0):
-            self.call_after_refresh(self.message_history._scroll_changed)
+            self.message_history.request_preparation()
 
     async def command_target_context(self):
         from toad.target_commands import TargetContext

@@ -349,6 +349,16 @@ class HistoryWindow(VerticalScroll):
         if self.history_layout_ready is not None:
             self.history_layout_ready.set()
 
+    def on_mount(self) -> None:
+        self.document_viewport.request_after_refresh()
+
+    def on_viewport_layout(self, _screen) -> None:
+        self.document_viewport.request_after_refresh()
+
+    def prepare_viewport(self) -> None:
+        """Native publication, rather than raw motion, owns visible tools."""
+        self.hydrate_visible_tools()
+
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
         if "document_viewport" in self.__dict__:

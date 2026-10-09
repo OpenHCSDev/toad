@@ -85,7 +85,7 @@ async def main(*, publication_only=False, projected_only=False, output=None):
                     except TimeoutError:
                         raise AssertionError((
                             position, [(p.page.before.offset, p.start, p.stop) for p in history.pages],
-                            (not history.state.accepts_source_work), history._check_pending, history.window.follows_tail,
+                            (not history.state.accepts_source_work), history.screen.frame_presentation.awaits_publication(history, history.prepare_viewport), history.window.follows_tail,
                             history.window.scroll_y, history.window.max_scroll_y,
                             history.region, history.window.content_region,
                         )) from None

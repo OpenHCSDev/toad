@@ -565,8 +565,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         """Acquire live-row ownership only after a provisional mount is accepted."""
         self._source_state = self._source_state.publish()
         self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
-        self._scroll_changed()
-        self.prepare_scroll()
+        self.request_preparation()
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
@@ -803,7 +802,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                         for page, admission in zip(pages, admissions)))
 
     def _check_edges(self) -> None:
-        self._check_pending = False
         if (not self.checkpoint_available
                 or not self.screen.is_active or not self.selected_categories):
             return
