@@ -1,5 +1,7 @@
 """Mounted goal projections, stable editing, mentions, and backend revision history."""
 
+from toad.goal_display import GoalDisplay
+
 import asyncio
 import os
 from dataclasses import replace
@@ -95,7 +97,7 @@ async def main():
             owner = GoalOwner()
             conversation.set_reactive(type(conversation).agent, owner)
             conversation.agent_ready = True
-            conversation.goal = owner.goal
+            conversation.goal_display = GoalDisplay.current(owner.goal)
             conversation.goal_execution = owner.execution
             conversation.prompt.text = "Composer draft stays"
             await pilot.pause()
@@ -157,7 +159,7 @@ async def main():
                     strip.text for strip in app.screen._compositor.render_strips()
                 ),
             )
-            assert conversation.goal.text == "Coordinate with @peer"
+            assert conversation.goal_display.snapshot.text == "Coordinate with @peer"
             assert editor.editor.text == "Ask @peer ", (
                 "Rejected edit keeps user's draft"
             )
@@ -171,8 +173,8 @@ async def main():
                 ),
             )
             assert (
-                conversation.goal.id == "stable-goal"
-                and conversation.goal.revision == 5
+                conversation.goal_display.snapshot.id == "stable-goal"
+                and conversation.goal_display.snapshot.revision == 5
             )
             assert owner.requests == [("stable-goal", 4, "Ask @peer")] * 2
             assert conversation.prompt.text == "Composer draft stays"
@@ -195,14 +197,14 @@ async def main():
             owner.goal = pushed
             conversation.post_message(GoalSnapshotUpdate(pushed, owner.execution))
             await pilot.pause()
-            assert conversation.goal == pushed
+            assert conversation.goal_display.snapshot == pushed
             assert "Backend edited the same goal" in str(
                 bar.query_one(".goal-summary", Static).render()
             ), str(bar.query_one(".goal-summary", Static).render())
             owner.goal, owner.execution = None, None
             conversation.post_message(GoalSnapshotUpdate(None, None))
             await pilot.pause()
-            assert conversation.goal is None and conversation.goal_execution is None
+            assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
             assert not bar.display
     print(
         "goal UI: authoritative standby through turn settlement, mention completion, same-ID edit, rejection draft, revision history"

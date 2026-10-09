@@ -84,10 +84,10 @@ async def main():
                     assert not isinstance(app.screen, GoalEdit)
                     current = comms.registry.require(session).goal
                     assert current.id == original.id and current.text == objective
-                    assert conversation.goal == current
+                    assert conversation.goal_display.snapshot == current
                     conversation.post_message(GoalSnapshotUpdate(original, None))
                     await pilot.pause()
-                    assert conversation.goal == current, (
+                    assert conversation.goal_display.snapshot == current, (
                         "Old notification must not overwrite the canonical snapshot"
                     )
                     summary = conversation.query_one(".goal-summary", GoalText)
@@ -148,10 +148,10 @@ async def main():
                 await asyncio.gather(first, pause, clear)
                 # Mutation preflights now also read the canonical owner snapshot.
                 assert reads >= 2, reads
-                assert conversation.goal is None and conversation.goal_execution is None
+                assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
                 conversation.post_message(GoalSnapshotUpdate(original, None))
                 await pilot.pause()
-                assert conversation.goal is None
+                assert conversation.goal_display.snapshot is None
         finally:
             await owner.shutdown()
     print(

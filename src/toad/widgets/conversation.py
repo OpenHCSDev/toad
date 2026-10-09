@@ -16,7 +16,6 @@ from typing import TYPE_CHECKING, Literal
 from pathlib import Path
 from time import monotonic, time
 from urllib.parse import quote
-from agent_comms.goals import Goal
 from agent_comms.goal_presentation import GoalExecution
 from agent_comms.routing import MessageRoute
 
@@ -62,6 +61,7 @@ from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber
+from toad.goal_display import GoalDisplay, GoalUnavailable, NoGoal
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -519,8 +519,7 @@ class Conversation(containers.Vertical):
     input_delivery: var[dict] = var(empty_delivery)
     input_delivery_error: var[str] = var("")
     native_history_status: var[CursorStatus | None] = var(None)
-    goal_unavailable = var(False)
-    goal: var[Goal | None] = var(None)
+    goal_display: var[GoalDisplay] = var(NoGoal())
     goal_execution: var[GoalExecution | None] = var(None)
     turn: var[Literal["agent", "client"] | None] = var(None, bindings=True)
     status: var[str | Content] = var("")
@@ -765,7 +764,7 @@ class Conversation(containers.Vertical):
                 ),
             )
             yield Throbber(id="throbber")
-            yield GoalBar().data_bind(goal=Conversation.goal, execution=Conversation.goal_execution, unavailable=Conversation.goal_unavailable)
+            yield GoalBar().data_bind(goal_display=Conversation.goal_display, execution=Conversation.goal_execution)
             yield Prompt(complete_callback=self.shell_complete).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -2639,13 +2638,13 @@ class Conversation(containers.Vertical):
             except (OSError, ValueError):
                 if revision != self._goal_refresh_revision:
                     continue
-                self.goal_unavailable = True
+                self.goal_display = GoalUnavailable(self.goal_display.snapshot)
                 return
             if revision != self._goal_refresh_revision or agent is not self.agent:
                 continue
             if self.is_attached:
-                self.goal, self.goal_execution = goal, execution
-                self.goal_unavailable = False
+                self.goal_display = GoalDisplay.current(goal)
+                self.goal_execution = execution
             return
 
     def on_goal_snapshot_update(self, event: acp_messages.GoalSnapshotUpdate) -> None:
@@ -2657,13 +2656,13 @@ class Conversation(containers.Vertical):
     @on(GoalControl.Activated)
     async def on_goal_control(self, event: GoalControl.Activated):
         event.stop()
-        if self.goal_unavailable:
+        if not self.goal_display.can_control:
             self.flash("Goal state unavailable; waiting for the owner", style="error")
             return
-        if event.action == "goal-history" and self.goal is not None:
+        if event.action == "goal-history" and self.goal_display.snapshot is not None:
             from toad.screens.goal_details import GoalDetails
 
-            goal = self.goal
+            goal = self.goal_display.snapshot
             history = ()
             if self.agent is not None and hasattr(self.agent, "get_goal_history"):
                 try:
@@ -2674,14 +2673,13 @@ class Conversation(containers.Vertical):
             details = GoalDetails(goal, history=history)
             self._goal_modal = details
             self.app.push_screen(details)
-            details.watch(self, "goal", lambda value: setattr(details, "goal", value))
-            details.watch(self, "goal_unavailable", lambda value: setattr(details, "unavailable", value))
+            details.watch(self, "goal_display", lambda value: setattr(details, "goal_display", value))
             details.watch(self, "goal_execution", lambda value: setattr(details, "execution", value))
         elif event.action == "goal-edit":
             from toad.screens.goal_edit import GoalEdit
             from toad.widgets.goal_text import goal_mention_candidates
 
-            goal = self.goal
+            goal = self.goal_display.snapshot
             if goal is None or self.agent is None or not hasattr(self.agent, "edit_goal"):
                 self.flash("Editing requires an agent-comms goal", style="error")
                 return
@@ -2696,7 +2694,7 @@ class Conversation(containers.Vertical):
         elif event.action == "goal-clear":
             await self.change_goal("clear")
         elif event.action == "goal-toggle":
-            action = self.goal.state.toggle if self.goal else None
+            action = self.goal_display.snapshot.state.toggle if self.goal_display.snapshot else None
             if action is not None:
                 await self.change_goal(action.declared_name)
             else:
