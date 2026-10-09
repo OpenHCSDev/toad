@@ -13,7 +13,6 @@ from textual.widgets import Static
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import ProjectTreeIntent
-from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.worker_static import WorkerStatic
 
 

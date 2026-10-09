@@ -206,8 +206,7 @@ class PreparedPageSource(ABC):
             readers = tuple(member for admission in admissions if admission.page() is page
                             for member in admission.members)
             page.retained_bytes = retained_bytes(
-                (page.page, page.fragments, page.resolved_sources(),
-                 readers, tuple(source for member in readers for source in member.resolved_sources())),
+                (page.page, page.fragments, readers),
                 seen=seen,
             )
         if projection is not None:

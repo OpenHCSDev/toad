@@ -13,8 +13,7 @@ from weakref import WeakSet
 from textual.widget import Widget
 from textual import events
 from textual.containers import VerticalScroll
-from toad.widgets.viewport_body import DocumentViewport, ViewportBody
-from toad.rich_preparation import PreparedPaintSource
+from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
@@ -58,7 +57,7 @@ class WindowPosition(ABC):
                 if not restoring:
                     compensation = window.scroll_y - previous
                     cls._translate_motion(window, destination, compensation)
-                    window.document_viewport.lookahead.relocated(compensation)
+                    window.lookahead.relocated(compensation)
             finally:
                 window._restoring = restoring
 
@@ -251,7 +250,7 @@ class HistoryWindow(VerticalScroll):
     def jump_to_latest(self) -> None:
         """Follow the source tail, including pages outside the mounted window."""
         self.anchor()
-        self.document_viewport.destination()
+        self.destination()
         for history in tuple(self.histories):
             if history.has_newer:
                 history.request_latest()
@@ -278,10 +277,10 @@ class HistoryWindow(VerticalScroll):
             restoration.finish_layout()
 
     def on_mount(self) -> None:
-        self.document_viewport.request_after_refresh()
+        self.request_preparation()
 
     def on_viewport_layout(self, _screen) -> None:
-        self.document_viewport.request_after_refresh()
+        self.request_preparation()
 
     def prepare_viewport(self) -> None:
         """Native publication, rather than raw motion, owns visible tools."""
@@ -289,12 +288,57 @@ class HistoryWindow(VerticalScroll):
 
     def on_unmount(self) -> None:
         self.retire_presentation_wait()
-        if "document_viewport" in self.__dict__:
-            self.document_viewport.membership.retire()
+        self.settle_preparation()
 
     @cached_property
-    def document_viewport(self):
-        return DocumentViewport(self)
+    def presentation_budget(self) -> PresentationBudget:
+        return PresentationBudget(buffer_viewports=self.app.settings.ui.history_buffer_viewports)
+
+    @cached_property
+    def lookahead(self) -> DirectionalPreparation:
+        """Measured scroll travel; it sizes how far ahead histories prepare."""
+        return DirectionalPreparation(self)
+
+    @property
+    def rows_per_fragment(self) -> float:
+        """Average drawn rows per admitted fragment, for converting rows to fragments."""
+        pages = [page for history in self.histories for page in history.pages if page.line_count]
+        fragments = sum(page.stop - page.start for page in pages)
+        return sum(page.line_count for page in pages) / fragments if fragments else max(1, self.outer_size.height)
+
+    def request_preparation(self) -> None:
+        """Histories prepare around the reader after the next published frame."""
+        if not self.is_attached or self._closing:
+            return
+        for history in tuple(self.histories):
+            history.request_preparation()
+        self.screen.frame_presentation.defer(self, self.prepare_viewport)
+
+    def destination(self) -> None:
+        """End: prepare the destination in one burst, not every page between."""
+        self.lookahead.observe(self.scroll_y)
+        self.lookahead.destination(self.outer_size.height)
+        self._schedule_settle()
+        self.request_preparation()
+
+    _settle_timer = None
+
+    def _schedule_settle(self) -> None:
+        if self._settle_timer is not None:
+            self._settle_timer.stop()
+        self._settle_timer = self.set_timer(self.lookahead.idle_seconds, self._settle)
+
+    def _settle(self) -> None:
+        self._settle_timer = None
+        self.lookahead.settle()
+        self.request_preparation()
+
+    def settle_preparation(self) -> None:
+        """A hidden or closing window stops predicting travel."""
+        if self._settle_timer is not None:
+            self._settle_timer.stop()
+            self._settle_timer = None
+        self.lookahead.settle()
 
     @cached_property
     def history_lock(self) -> asyncio.Lock:
@@ -341,12 +385,14 @@ class HistoryWindow(VerticalScroll):
         # too. The existing restoration scope excludes layout compensation.
         if new_value != old_value and not self._restoring:
             self.scroll_revision += 1
+            if self.lookahead.observe(new_value):
+                self._schedule_settle()
+            self.request_preparation()
         # Rejoin at the bottom after actual downward movement, including
         # keyboard, wheel and scrollbar input. Compensation uses the existing
         # restoration transaction and cannot choose a different reader policy.
         if (new_value > old_value and not self._restoring
-                and all(not history.has_newer for history in self.histories)
-                and self.document_viewport.source_tail_visible):
+                and all(not history.has_newer for history in self.histories)):
             # A lazy pager's mounted edge is not the source tail. Explicit End
             # still chooses follow through jump_to_latest; ordinary travel only
             # rejoins it once the current source has no unpublished newer rows.
@@ -358,7 +404,8 @@ class HistoryWindow(VerticalScroll):
         with WindowPosition.geometry(self):
             changed = super()._size_updated(size, virtual_size, container_size, layout)
         if changed:
-            self.document_viewport.request()
+            self.check_follow()
+            self.request_preparation()
         return changed
 
     def check_follow(self) -> bool:
@@ -415,7 +462,7 @@ class HistoryWindow(VerticalScroll):
                 yield node
                 if (projection := node.filter.state.overlay) is not None:
                     pending.append(projection)
-            elif not isinstance(node, ViewportBody):
+            else:
                 pending.extend(reversed(node.children))
 
     def reader_anchor(self, fallback: Widget) -> Widget:
@@ -426,24 +473,15 @@ class HistoryWindow(VerticalScroll):
                 return roots[0]
         if self.follows_tail:
             return fallback
+        from toad.block_navigation import ConversationBlock
+        from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
+
+        # The topmost visible message: a line-drawn page or a live block.
         visible = self.screen._compositor.published_widgets
-        # The reader's original message owns the position even while its
-        # paragraphs are preparing. A ready leaf in the next message cannot
-        # replace that source identity as the first message acquires height.
-        body = min(self.visible_history_items(self.document_viewport.owners),
-                   key=lambda node: visible[node][0].y, default=None)
-        # Source identity precedes paint readiness. Skipping an unprepared
-        # paragraph selects a later source point; wrapping earlier text then
-        # moves the reader to preserve a paragraph they never chose.
-        sources = (node for node in visible
-                   if (isinstance(node, PreparedPaintSource)
-                       or (isinstance(node, ViewportBody) and node.body_retained_paint_ready))
-                   if body is None or node is body or body in node.ancestors
-                   if next((parent for parent in node.ancestors
-                            if isinstance(parent, HistoryWindow)), None) is self)
-        painted = self.visible_history_items(sources)
-        return min(painted, key=lambda node: visible[node][0].y,
-                   default=fallback if body is None else body)
+        candidates = (*self.query(TranscriptPageView), *(
+            block for block in self.query(ConversationBlock) if not isinstance(block, TranscriptHistory)))
+        return min(self.visible_history_items(candidates),
+                   key=lambda node: visible[node][0].y, default=fallback)
 
     def protect_history(
         self, items, *, older: bool, fallback: Widget,
@@ -522,7 +560,7 @@ class HistoryWindow(VerticalScroll):
         # Native layout completes the acquisition, not the optional position.
         # Register before yielding so unanchored mutations have the same join.
         if isinstance(screen, WorkspaceScreen):
-            screen.viewport_presentation.anchors.add(self)
+            screen.history_anchors.add(self)
         geometry = self._geometry_revision
         try:
             try:
@@ -535,7 +573,7 @@ class HistoryWindow(VerticalScroll):
             if self._geometry_revision == geometry:
                 return
             if (widget is not None and widget.is_attached and self.is_attached
-                    and screen.is_current and self.document_viewport.accepts_frame()):
+                    and screen.is_current):
                 # A generic after-refresh callback can run before the pending
                 # mount's layout. Wait for an actual compensated reflow first.
                 await restoration.wait()
@@ -543,7 +581,7 @@ class HistoryWindow(VerticalScroll):
             # Only the acquiring scope may release this exact operation.
             if self.history_restoration is restoration:
                 if isinstance(screen, WorkspaceScreen):
-                    screen.viewport_presentation.anchors.discard(self)
+                    screen.history_anchors.discard(self)
                 self.history_restoration = None
 
 

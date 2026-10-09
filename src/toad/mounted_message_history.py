@@ -343,7 +343,7 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         # admission budget so one edge read cannot arrange and start rendering
         # an entire transport page before pointer input gets another frame.
         limit = min(HISTORY_PAGE_SIZE,
-                    self.window.document_viewport.budget.admission_items)
+                    self.window.presentation_budget.admission_items)
         if older and self.window.follows_tail:
             limit = min(limit, HISTORY_WINDOW_SIZE - len(self.rows))
         if limit <= 0:

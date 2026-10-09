@@ -152,8 +152,8 @@ class WireMarkdownMessage(CoreEventReceiver, ConversationBlock, VerticalGroup):
 
     @property
     def native_extent_ready(self) -> bool:
-        """Paging borrows the body's real extent, not its loading placeholder."""
-        return self.body is not None and self.body.is_attached and self.body.body_ready
+        """A line-drawn body has its real extent as soon as it is attached."""
+        return self.body is not None and self.body.is_attached
 
     def action_open_target(self, target: str):
         if isinstance(self.message, HistoricalMessage) and not target.startswith("#"):

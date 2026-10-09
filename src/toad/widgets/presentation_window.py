@@ -205,8 +205,8 @@ class DirectionalPreparation:
     presentation budget bounds how much of that prediction can be admitted.
     """
 
-    def __init__(self, viewport):
-        self.viewport = viewport
+    def __init__(self, window):
+        self.window = window
         self.position = 0.0
         self.sampled_at = monotonic()
         self.delivery_seconds = 0.0
@@ -214,7 +214,7 @@ class DirectionalPreparation:
 
     @property
     def budget(self) -> PresentationBudget:
-        return self.viewport.budget
+        return self.window.presentation_budget
 
     def observe(self, position: float) -> bool:
         now = monotonic()
@@ -259,7 +259,7 @@ class DirectionalPreparation:
     def ahead_rows(self, viewport_rows: int) -> int:
         # Travel is a demand, not a native retention limit. The existing worker
         # and presentation owners independently bound its prepared resources.
-        window = self.viewport.window
+        window = self.window
         destination = (window.scroll_target_y - window.scroll_y
                        if window.app.animator.is_being_animated(window, "scroll_y") else 0)
         return max(self.budget.runway_rows(viewport_rows),
@@ -268,9 +268,9 @@ class DirectionalPreparation:
     def preparation_count(self, viewport_rows: int) -> int:
         # Pure preparation can run beyond the smaller native widget working
         # set. Its retained entries/bytes and concurrent work stay runtime-owned.
-        return min(self.viewport.window.app.preparation.max_entries, max(
+        return min(self.window.app.preparation.max_entries, max(
             self.budget.admission_items,
-            ceil(self.ahead_rows(viewport_rows) / self.viewport.visible_body_rows),
+            ceil(self.ahead_rows(viewport_rows) / self.window.rows_per_fragment),
         ))
 
     def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:

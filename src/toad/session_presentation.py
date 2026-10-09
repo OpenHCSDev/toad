@@ -167,15 +167,15 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @property
     def retained_source_bytes(self) -> int:
-        return self.transcript.retained_source_bytes + (
-            self.widget.window.document_viewport.retained_source_bytes
-            if self.widget is not None else 0
-        )
+        return self.transcript.retained_source_bytes
 
     @property
     def retained_paint_bytes(self) -> int:
-        return (self.widget.window.document_viewport.retained_paint_bytes
-                if self.widget is not None else 0)
+        # Drawn history rows: about one cell of text and style per column.
+        if self.widget is None:
+            return 0
+        return sum(page.line_count * page.line_width * 8
+                   for history in self.widget.window.histories for page in history.pages)
 
     def compose_content(self, screen: "MainScreen") -> Widget:
         return SessionSurfaceSlot()
@@ -305,7 +305,7 @@ class NativeSessionSurface:
         editor/reader state through the presentation's existing lifetime.
         """
         app = self._app()
-        budget = selected.window.document_viewport.budget
+        budget = selected.window.presentation_budget
         candidates = {}
         for screen, owner in self._presentations():
             candidates.setdefault(screen.id, []).append(owner)

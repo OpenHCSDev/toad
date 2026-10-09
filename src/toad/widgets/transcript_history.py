@@ -728,7 +728,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         reader = self._reader()
         edges = (self.pages[0].page.before if self.pages[0].page.has_older else None,
                  self.pages[-1].page.after if self.pages[-1].page.has_newer else None)
-        lookahead = self.window.document_viewport.lookahead
+        lookahead = self.window.lookahead
         demand = lookahead.demand
         edges = demand.edges(*edges)
         rows = max(1, self.window.outer_size.height)
@@ -756,7 +756,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def lookahead_current(self, intent) -> bool:
         reader, _edges, _rounds, _count, demand, pages, admissions, snapshot = intent
         return (snapshot.current(self)
-                and snapshot.window.document_viewport.lookahead.accepts(demand)
+                and snapshot.window.lookahead.accepts(demand)
                 and all(page.capture_admission() == admission
                         for page, admission in zip(pages, admissions)))
 
@@ -810,7 +810,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _publish_latest(self, request: LatestViewportRequest) -> bool:
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
-        destination_admission = window.document_viewport.lookahead.admission(self.budget, window.outer_size.height)
+        destination_admission = window.lookahead.admission(self.budget, window.outer_size.height)
         view = self.pages[-1]
         if loader is None or view.page.after == self.through:
             # The original source already supplies the newest cut. End moves

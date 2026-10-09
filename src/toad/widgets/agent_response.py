@@ -4,24 +4,25 @@ from functools import cached_property
 
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
-from toad.widgets.streaming_markdown import StreamingMarkdown
+from textual.app import ComposeResult
+from textual.containers import VerticalGroup
+from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
 from toad.widgets.route_header import RouteHeader
 from toad import response_delivery
-from toad.markdown_preparation import PreparedContentRange, PreparedMarkdownPart
 from toad.widgets.message_filter import (
     CategorizedBlock,
     MessageCategory,
 )
 
-class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, StreamingMarkdown):
+class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, VerticalGroup):
+    """An agent's message: its headers, then its text drawn as prepared lines."""
+
     DEFAULT_CSS = """
     AgentResponse {
+        height: auto;
         min-height: 1;
         padding: 0 0 0 0;
-        overflow-x: auto;
-        scrollbar-size-horizontal: 0;
-        layout: stream;
     }
     """
 
@@ -33,18 +34,24 @@ class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, Streamin
 
     def __init__(self, markdown: str | None = None, *, delivery: response_delivery.ResponseDelivery = response_delivery.UnroutedResponse(),
                  category: type[MessageCategory] | None = None,
-                 markdown_part: PreparedMarkdownPart | None = None,
-                 prepared_content: PreparedContentRange | None = None,
-                 paginate: bool = True, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
+                 show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         self._message_category = category or delivery.category
-        super().__init__(
-            markdown,
-            markdown_part=markdown_part,
-            prepared_content=prepared_content,
-            paginate=paginate,
-            **self.dispatch_sync(delivery, clock, show_divider),
-        )
+        presentation = self.dispatch_sync(delivery, clock, show_divider)
+        super().__init__(classes=presentation.get("classes"))
+        self._prefix = presentation["prefix"]
+        self.body = LineMarkdown(markdown or "")
         self.delivery = delivery
+
+    def compose(self) -> ComposeResult:
+        yield from self._prefix
+        yield self.body
+
+    async def append_fragment(self, fragment: str) -> None:
+        self.loading = False
+        self.body.append(fragment)
+
+    async def finish_stream(self) -> None:
+        """Appends draw as they arrive; there is no stream to flush."""
 
     @handles(response_delivery.UnroutedResponse)
     def ordinary_prefix(self, delivery, clock, show_divider):

@@ -543,9 +543,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         through = conversation.transcript.displayed_cursor
         if through is None or window is None or not window.follows_tail:
             return
-        viewport = window.__dict__.get("document_viewport")
-        if viewport is not None and not viewport.visible_bodies_ready:
-            return
         if any(history.blocks_visible_read for history in window.histories):
             return
         # Capture only the selected view's painted intent on the UI loop. The
