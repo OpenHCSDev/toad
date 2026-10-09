@@ -7,6 +7,7 @@ pending; actual materialization workers, widgets and timers run.
 import asyncio
 import json
 import os
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -16,6 +17,63 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.presentation_window import MovingPreparation, StationaryPreparation
 from toad.widgets.transcript_fragments import TranscriptBodyPreparation
 from toad.widgets.viewport_body import MaterializingBody
+
+
+async def nested_runway():
+    """A live message range warms its independent text before exposure."""
+    scratch = Path(os.environ["CADENCE_SCRATCH"])
+    scratch.mkdir(parents=True, exist_ok=True)
+    with TemporaryDirectory(prefix="native-nested-runway-", dir=scratch) as directory:
+        root = Path(directory)
+        os.environ.update(AGENT_COMMS_ROOT=str(root / "wire"),
+                          XDG_CONFIG_HOME=str(root / "config"),
+                          XDG_STATE_HOME=str(root / "state"),
+                          XDG_DATA_HOME=str(root / "data"))
+        Comms(root / "wire").messaging.initialize_private_initial_protocol()
+        app = ToadApp(project_dir=str(root))
+        async with app.run_test(size=(110, 35)) as pilot:
+            await app.selected_session.wait_content_ready()
+            view = app.selected_session.conversation
+            docs = [AgentResponse(f"## Original range {index}\n\n" +
+                                  "Original source row.\n\n" * 12)
+                    for index in range(12)]
+            await view.contents.mount(*docs)
+            window = view.window
+            window.release_anchor()
+            window.scroll_to(y=0, animate=False, immediate=True)
+            await pilot.resize_terminal(90, 35)
+            viewport = window.document_viewport
+            async with asyncio.timeout(12):
+                while viewport._worker is not None or not viewport.visible_bodies_ready:
+                    await pilot.pause(.02)
+            visible = app.screen._compositor.visible_widgets
+            last = max(index for index, body in enumerate(docs) if body in visible)
+            incoming = docs[last + 1]
+            sources = incoming.body_preparation_targets()
+            assert incoming not in visible and not incoming.body_dormant
+            assert sources and all(source is not incoming for source in sources)
+            assert all(source.body_ready for source in sources), [
+                (type(source._body_measurement).__name__, source.body_ready)
+                for source in sources]
+            acquired = tuple(source.get_current_document() for source in sources)
+            window.scroll_to_widget(incoming, animate=False, immediate=True, top=True)
+            assert await window.wait_for_refresh()
+            async with asyncio.timeout(8):
+                while not viewport.visible_bodies_ready:
+                    await pilot.pause(.02)
+            assert all(source.get_current_document().same_source(original)
+                       for source, original in zip(sources, acquired))
+            region = window.scrollable_content_region
+            painted = "\n".join(strip.crop(region.x, region.right).text
+                                for strip in app.screen._compositor.render_strips()[region.y:region.bottom])
+            assert f"Original range {last + 1}" in painted
+            assert app._exception is None
+            (scratch / "nested-runway.json").write_text(json.dumps({
+                "live_container": True, "offscreen_text_ready_before_exposure": True,
+                "source_identity_preserved": True, "native_heading_painted": True,
+                "text_resources": len(sources), "provider_inputs": 0,
+            }, indent=2) + "\n")
+    print("Nested message text prepared before exposure; original source and native paint retained")
 
 
 async def main():
@@ -139,4 +197,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(nested_runway() if "--nested-runway" in sys.argv else main())
