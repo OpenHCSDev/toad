@@ -1,0 +1,9 @@
+## Scope
+
+Pair the existing Native6 frontend source with the corrected selected-source constructor in Core28401. Only pyproject.toml and uv.lock change: three matching pin lines, no frontend production changes.
+
+Einstein owns the end-to-end configured saved-fork/cancel/continue installed journey. The preceding receiving prefix is preserved as a negative operand; no defaults, original owners or native source change. Parent owns publication, Mendel owns historical proof carry.
+
+Normal69 candidate installation is source-byte/directURL/fulltrust/pipcheck verified. Actual configured 42MB savedfork → journaled compaction → first native/ACP reply → triage cancellation with original UNKNOWN retained → distinct new reply completed once, exit 0 in 198.515 seconds. All owned workers retired, original source/config hashes unchanged, zero public inputs/default changes.
+
+Canonical authored result: https://github.com/OpenHCSDev/agent-comms/pull/506 and evidence/selected-owner-preparation-20261002/native6-final/ready-receipt.json at Core checkpoint a13f67ac. Receiving artifact: /home/ts/wt/comms-retained-human-main-20261001/.artifacts/runtime-native6-wire-source-20261002. Historical stopped-copy proof carry remains Mendel510 release dependency; parent owns publication. Sanity mocks remain 12 stale-signature failures, honestly retained; no physical Toad/cancel-tool/latency claim. This metadata branch is based on the accepted receiving source, not a main release claim.
