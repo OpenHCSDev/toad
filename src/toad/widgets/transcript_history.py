@@ -46,7 +46,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
-from toad.widgets.transcript_lines import LineStyles, PreparedLines, TranscriptLinesRenderTask
+from toad.widgets.transcript_lines import LineTheme, PreparedLines, TranscriptLinesRenderTask
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
@@ -111,7 +111,7 @@ class TranscriptPageView(Widget):
         )
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
-        self._styles: LineStyles | None = None
+        self._theme: LineTheme | None = None
         self._pending: set[int] = set()
         self._render: asyncio.Task[None] | None = None
         self._width = 0
@@ -161,12 +161,21 @@ class TranscriptPageView(Widget):
     def admitted_fragments(self) -> tuple[TranscriptFragment, ...]:
         return self.fragments[self.start:self.stop]
 
+    @property
+    def line_width(self) -> int:
+        """The width this page last laid out at; reading it never forces layout."""
+        return self._width
+
+    @property
+    def line_count(self) -> int:
+        return self._height
+
     def on_mount(self) -> None:
         self.watch(self.app, "theme", self._theme_changed, init=False)
 
     def _theme_changed(self) -> None:
         # Lines hold resolved theme colors; a new theme draws new lines.
-        self._styles = None
+        self._theme = None
         self.admission_changed()
 
     def on_unmount(self) -> None:
@@ -178,23 +187,18 @@ class TranscriptPageView(Widget):
         self._relayout()
         self.refresh(layout=True)
 
-    def _line_styles(self) -> LineStyles:
-        if self._styles is None:
-            self._styles = LineStyles.from_app(self.app)
-        return self._styles
-
-    def _blocks_for(self, index: int) -> tuple:
-        fragment = self.fragments[index]
-        return fragment.line_blocks(self._line_styles(), show_divider=not fragment.continuation)
+    def _line_theme(self) -> LineTheme:
+        if self._theme is None:
+            self._theme = LineTheme.from_app(self.app)
+        return self._theme
 
     def _rows(self, index: int, width: int) -> tuple[Strip, ...]:
-        styled = self.fragments[index].lines_for(width, self._line_styles())
-        if styled is not None:
-            rows = styled.rows
-        else:
+        fragment, theme = self.fragments[index], self._line_theme()
+        lines = fragment.lines_for(width, theme)
+        if lines is None:
             self._pending.add(index)
-            rows = tuple(row for block in self._blocks_for(index) for row in block.plain_rows(width))
-        return tuple(Strip(row) for row in rows)
+            lines = fragment.plain_lines(width, theme)
+        return lines.strips
 
     def _relayout(self, width: int | None = None) -> None:
         width = self._width if width is None else width
@@ -219,9 +223,9 @@ class TranscriptPageView(Widget):
         return self._height
 
     def render_line(self, y: int) -> Strip:
-        width = self.size.width
-        if width != self._width:
-            self._relayout(width)
+        # Layout supplies the width through get_content_height; reading size
+        # here would look this widget up in the compositor for every row.
+        width = self._width
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
             return Strip.blank(width)
@@ -251,7 +255,7 @@ class TranscriptPageView(Widget):
 
         offset = HistoryAnchor._offset(self, window)
         top = window.scroll_y - offset
-        bottom = top + window.scrollable_content_region.height
+        bottom = top + window.outer_size.height
         return tuple(self.fragments[index] for index, first, rows in self._layout
                      if first < bottom and first + len(rows) > top)
 
@@ -273,9 +277,11 @@ class TranscriptPageView(Widget):
             if not batch:
                 return
             self._pending.difference_update(batch)
-            width = self._width
+            width, theme = self._width, self._line_theme()
             results = await asyncio.gather(*(
-                renderer.submit(TranscriptLinesRenderTask(self._blocks_for(index), width))
+                renderer.submit(TranscriptLinesRenderTask(
+                    self.fragments[index].line_blocks(show_divider=not self.fragments[index].continuation),
+                    width, theme))
                 for index in batch), return_exceptions=True)
             if not self.is_attached or width != self._width:
                 continue
@@ -290,9 +296,9 @@ class TranscriptPageView(Widget):
         window = self.query_ancestor(HistoryWindow)
         history = self.query_ancestor(TranscriptHistory)
         async with window.preserve_history(None, root=self, position=history.reader_position(window)):
-            styles = self._line_styles()
+            theme = self._line_theme()
             for index, lines in ready:
-                self.fragments[index].hold_lines(styles, lines)
+                self.fragments[index].hold_lines(theme, lines)
             self.admission_changed()
 
     def retain_sources(self) -> None:
@@ -427,10 +433,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         width = self.line_width
         if width <= 0:
             return
-        styles = LineStyles.from_app(self.app)
+        theme = LineTheme.from_app(self.app)
         selected = self.selected_categories if selected is None else selected
         todo = [fragment for fragment in fragments
-                if keep_events(fragment.events, selected) and fragment.lines_for(width, styles) is None]
+                if keep_events(fragment.events, selected) and fragment.lines_for(width, theme) is None]
         renderer = self.app.render_processes
         for first in range(0, len(todo), self.budget.admission_items):
             if not current():
@@ -438,17 +444,16 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             batch = todo[first:first + self.budget.admission_items]
             results = await asyncio.gather(*(
                 renderer.submit(TranscriptLinesRenderTask(
-                    fragment.line_blocks(styles, show_divider=not fragment.continuation), width))
+                    fragment.line_blocks(show_divider=not fragment.continuation), width, theme))
                 for fragment in batch), return_exceptions=True)
             for fragment, result in zip(batch, results):
                 if isinstance(result, PreparedLines):
-                    fragment.hold_lines(styles, result)
+                    fragment.hold_lines(theme, result)
 
     @property
     def line_width(self) -> int:
-        """The width pages draw at: an admitted page's, else this history's content."""
-        widths = [page.size.width for page in self.pages if page.size.width]
-        return widths[0] if widths else self.content_region.width
+        """The width pages draw at, as laid out; 0 before the first layout."""
+        return next((page.line_width for page in self.pages if page.line_width), 0)
 
     async def prepare_body(self, current: Callable[[], bool], *, selected=None) -> None:
         """Warm the actual page admissions, including a restored reader range."""
@@ -476,7 +481,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             row = int(window.scroll_y - offset)
             if row < 0:
                 return HistoryAnchor.capture(self.older, window)
-            if row < page.size.height and (found := page.fragment_at(row)) is not None:
+            if row < page.line_count and (found := page.fragment_at(row)) is not None:
                 fragment, _within = found
                 return LineAnchor(page, window.scroll_y, window.scroll_revision,
                                   fragment=fragment, virtual_y=offset + page.fragment_line(fragment))
@@ -726,7 +731,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         lookahead = self.window.document_viewport.lookahead
         demand = lookahead.demand
         edges = demand.edges(*edges)
-        rows = max(1, self.window.size.height)
+        rows = max(1, self.window.outer_size.height)
         pages = tuple(dict.fromkeys((self.pages[0], self.pages[-1])))
         count = lookahead.preparation_count(rows)
         # Source pages and terminal viewports are different units. Borrow the
@@ -766,7 +771,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if geometry is None:
             return
         region, _clip = geometry
-        viewport = self.window.content_region
+        window = self.screen._compositor.visible_widgets.get(self.window)
+        if window is None:
+            return
+        viewport = window[0]
         if not region.overlaps(viewport):
             return
         # Original published geometry admits source work, even while a body is
@@ -802,7 +810,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def _publish_latest(self, request: LatestViewportRequest) -> bool:
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
-        destination_admission = window.document_viewport.lookahead.admission(self.budget, window.size.height)
+        destination_admission = window.document_viewport.lookahead.admission(self.budget, window.outer_size.height)
         view = self.pages[-1]
         if loader is None or view.page.after == self.through:
             # The original source already supplies the newest cut. End moves
