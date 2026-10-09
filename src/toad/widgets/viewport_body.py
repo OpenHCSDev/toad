@@ -253,7 +253,10 @@ class BodyMeasurement(ABC):
         return not self.dormant
 
     def geometry_targets(self, body):
-        return (body,) if self.requires_geometry(body) else ()
+        # Native ownership supplies layout when exposed; it is not demand to
+        # place every hidden descendant. Reader restoration and capture own
+        # the explicit offscreen requests passed to the native compositor.
+        return ()
 
     def preparation_targets(self, body):
         """A source/paint resource owns its original materialization worker."""
@@ -442,8 +445,8 @@ class ChildBody(LiveBody):
         return self
 
     def geometry_targets(self, body):
-        return tuple(dict.fromkeys((body, *(target
-            for child in body.child_bodies() for target in child.body_geometry_targets()))))
+        return tuple(dict.fromkeys(target for child in body.child_bodies()
+                                   for target in child.body_geometry_targets()))
 
     def preparation_targets(self, body):
         # The range stays live while its independent text resources retire.
@@ -1126,9 +1129,14 @@ class MeasuredViewportBody(ViewportBody):
         children = self.reconstructible_children()
         if not children:
             return BodyMeasurement.retire(current, self)
+        # The bounded retirement cohort owns this acquisition. A live body
+        # may have no committed offscreen placement; request its complete
+        # geometry before capture instead of forcing it on every scroll.
+        capture = current.capture_requested()
+        self._update_body_measurement(capture)
+        current = capture
         sources = self.prepared_paint_sources()
         if not self.prepared_paint_is_current(sources):
-            self._update_body_measurement(current.capture_requested())
             return BodyMeasurement.retire(current, self)
         paint = self.capture_native_paint(current, sources=sources)
         return self.finish_native_retirement(current, children, paint, sources)
