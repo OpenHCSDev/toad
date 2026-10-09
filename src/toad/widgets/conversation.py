@@ -440,15 +440,17 @@ class ConversationSessionBinding(containers.Vertical):
         session_pk: int | None = None,
         session_title: str | None = None,
         initial_prompt: str | None = None,
+        transcript: TranscriptPresentation | None = None,
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
-                                 session_title, initial_prompt)
+                                 session_title, initial_prompt, transcript)
 
 
     def _initialize_session(self, project_path, agent=None, agent_session_id=None,
-                            session_pk=None, session_title=None, initial_prompt=None) -> None:
+                            session_pk=None, session_title=None, initial_prompt=None,
+                            transcript: TranscriptPresentation | None = None) -> None:
         project_path = project_path.resolve().absolute()
 
         self.set_reactive(ConversationSessionBinding.project_path, project_path)
@@ -500,14 +502,15 @@ class ConversationSessionBinding(containers.Vertical):
         self.goal_observation = GoalObservation(self)
         self.goal_controls = GoalSession(self)
         self.delivery_observation = InputDeliveryObservation(self)
-        self.transcript = TranscriptPresentation(self)
+        self.transcript = transcript if transcript is not None else TranscriptPresentation()
+        self.transcript.bind(self)
         self.tool_expansions: dict[str, bool] = {}
 
 
     async def _release_source_resources(self) -> None:
         """Join original publications for explicit release and native unmount."""
         self.goal_controls.close()
-        await self.transcript.close()
+        await self.transcript.detach(self)
         self.output.retire()
         await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
         if self._directory_watcher is not None:
@@ -692,9 +695,11 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                 not self.is_attached
                 or self.visible_categories != selected
                 or window.scroll_revision != revision
+                or not position.current(window)
             ):
                 return
-            position.restore(window)
+            if not position.restore(window):
+                self.call_after_refresh(restore_position)
 
         self.call_after_refresh(restore_position)
 
@@ -1808,7 +1813,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         """Post any welcome content."""
 
     def watch_agent(self, agent: AgentBase | None) -> None:
-        self.transcript.source_changed()
+        self.transcript.source_changed(self)
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.
