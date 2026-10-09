@@ -73,7 +73,11 @@ class WorkspaceChrome:
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
         roster.navigation.capture()
-        roster.attach(view.app.coordination_access.service)
+        # The roster renders the observed service's model; a switch must not
+        # capture the route again (file reads under a lock on the UI thread).
+        # Route changes are the access owner's once-a-second check.
+        if (service := view.app.coordination_access.observed_service) is not None:
+            roster.attach(service)
         actor, _ = view.channels_context()
         roster.session_thread = actor
         roster.set_enabled(view.shows_channels)

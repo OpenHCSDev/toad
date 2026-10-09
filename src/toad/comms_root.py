@@ -88,6 +88,18 @@ class CoordinationAccess(MroDispatch):
 
     @property
     def service(self) -> Comms:
+        """The observed service, opened on first use.
+
+        Reading it is cheap: a changed route is the route check's to detect
+        (``check_route``), so views do not capture the route (file reads
+        under a lock) whenever they need the service.
+        """
+        if self.observation is not None:
+            return self.observation.service
+        return self.open_current()
+
+    def open_current(self) -> Comms:
+        """Capture the current route and open (or keep) its service; file I/O."""
         return self.require(RouteSelection.capture())
 
     def require(self, selected: RouteSelection) -> Comms:
@@ -274,7 +286,7 @@ class CoordinationAccess(MroDispatch):
             stamp = await self.preparation.run_thread(self.current_route_stamp)
             if stamp == self.route_stamp:
                 return
-            await self.preparation.run_thread(lambda: self.service)
+            await self.preparation.run_thread(self.open_current)
             stamp = await self.preparation.run_thread(self.current_route_stamp)
         except (OSError, ValueError, RuntimeError):
             # A route publication may be replacing its marker. Views still
