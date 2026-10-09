@@ -151,22 +151,6 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             return self._document_block_cursor
         return self._native_block_cursor
 
-    @property
-    def block_document_paint(self):
-        """Borrow the body's original resource without extending paint custody.
-
-        Source-copy admission is distinct from selected-row/style readiness.
-        A preceding publication can still supply this source while its new
-        presentation prepares, but never a replacement source or detached view.
-        """
-        paint = self._body_measurement.document_paint
-        document = self.get_current_document()
-        if (not self.is_attached or self._closing or paint is None or document is None
-                or document.source != self.source
-                or not paint.document.same_source(document)):
-            return None
-        return paint
-
     def native_body_ready(self) -> bool:
         return super().native_body_ready() and not self.loading
 
@@ -295,7 +279,8 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             # The preceding writer may have delivered a newer source while
             # this publication joined it. Borrow that actual resource here,
             # rather than capturing its predecessor before the join.
-            paint = self._body_measurement.document_paint
+            resource = self._body_measurement.document_resource
+            paint = None if resource is None else resource.document_paint
             current = self.get_current_document()
             if current is None:
                 raise RuntimeError("Prepared Markdown interaction has no acquired source document")
@@ -303,10 +288,25 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                 raise RuntimeError("Prepared Markdown interaction has no completed document paint")
             if not current.same_source(paint.document):
                 raise RuntimeError("Prepared Markdown interaction paint belongs to a different source")
+            source = self.prepared_source
+            parent = self.parent
+            screen = self.screen
+            writer = get_current_worker()
             await self.materialize_document(paint)
             # The native producer checks source custody across its awaits.
             # A revoked acquisition must not be reported as live controls.
-            return None if self.is_current_document(paint.document) else False
+            if (not self.is_attached or self._closing or self.parent is not parent or self.screen is not screen
+                    or self.prepared_source is not source or not self.is_current_document(paint.document)):
+                return False
+            if not self._body_measurement.publishes_from(writer):
+                raise RuntimeError("Accepted Markdown controls lost their publication worker")
+            # Selection/resize and admission may have changed resource custody
+            # during native construction. Borrow its actual current member,
+            # rather than reviving pixels evicted while this writer awaited.
+            resource = self._body_measurement.document_resource
+            if resource is None or resource.source_resource is not source:
+                raise RuntimeError("Accepted Markdown controls lost their original document resource")
+            return resource.interactive(self)
 
         if (not self.is_attached or self._closing or not self.body_dormant
                 or not self.owns_requested_source()):
@@ -408,8 +408,8 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                     and task.preparation_inputs == previous_task.preparation_inputs
                     and document.presentation.admission == previous_task.document.presentation.admission):
                 raise RuntimeError("Markdown paint refused without changed native inputs")
-            retained = self._body_measurement
-            paint = retained.document_paint
+            retained = self._body_measurement.document_resource
+            paint = None if retained is None else retained.document_paint
             if paint is not None and paint.matches(
                 document, width, root_selection=task.root_selection,
                 selection_style=task.selection_style, selecting=task.selecting,
@@ -448,7 +448,7 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                 self.loading = False
                 self._table_of_contents = paint.table_of_contents
                 self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
-                return PreparedDocumentBody(paint, cost, source)
+                return PreparedDocumentBody(paint, cost, source_resource=source)
             # Sibling mounting, width and selection can change during worker
             # delivery. The same accepted producer reacquires presentation;
             # its original resolved tokens and source suppliers stay intact.
