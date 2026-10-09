@@ -793,7 +793,7 @@ async def main() -> None:
             anchor = long_chat.message_history.rows[0][1]
             anchor_y = anchor.region.y
             long_chat.message_history.finish_source_work(operation)
-            long_chat.message_history._scroll_changed(long_chat.window.scroll_y)
+            long_chat.message_history.request_preparation()
             for _ in range(10):
                 if long_chat.message_history.rows[0][0].seq < previous_oldest:
                     break

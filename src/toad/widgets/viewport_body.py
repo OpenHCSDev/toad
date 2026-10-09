@@ -1379,12 +1379,16 @@ class WindowMembership:
     def __init__(self, window):
         self.window = ref(window)
         self.presentation = window.screen.viewport_presentation
-        self.presentation.windows.add(window)
+        self.bind(self.presentation)
 
     def bind(self, presentation):
         self.retire()
         self.presentation = presentation
-        self.presentation.windows.add(self.window())
+        window = self.window()
+        self.presentation.windows.add(window)
+        self.presentation.screen.screen_layout_refresh_signal.subscribe(
+            window, window.on_viewport_layout,
+        )
 
     def displayed(self) -> bool:
         """Native ancestry owns visibility, including a window mounted late.
@@ -1401,6 +1405,7 @@ class WindowMembership:
         window = self.window()
         self.presentation.windows.discard(window)
         self.presentation.anchors.discard(window)
+        self.presentation.screen.screen_layout_refresh_signal.unsubscribe(window)
 
 
 class DocumentViewport:
@@ -1443,7 +1448,7 @@ class DocumentViewport:
         # tree whose geometry query would manufacture a full-scene layout.
         # The existing frame owner batches this window's initial callbacks and
         # the native message pump revokes them when the window is retired.
-        self.window.screen.frame_presentation.defer(self.window, self.request)
+        self.request_after_refresh()
 
     def discard(self, owner: ViewportBody) -> None:
         self.owners.discard(owner)
@@ -1576,6 +1581,25 @@ class DocumentViewport:
         if self._worker is None:
             self._worker = self.window.run_worker(partial(self._reconcile), group="viewport-bodies")
 
+    def request_after_refresh(self) -> None:
+        """Prepare the latest viewport after native geometry has committed.
+
+        Motion records demand immediately; it cannot reconcile bodies against
+        the preceding visible map. Source publishers retain distinct callback
+        scopes, while the window owns its one body admission and frame work.
+        """
+        window = self.window
+        if not self.accepts_frame() or not window.is_attached or window._closing:
+            return
+        for history in tuple(window.histories):
+            history.request_preparation()
+        window.screen.frame_presentation.defer(window, self.prepare_viewport)
+
+    def prepare_viewport(self) -> None:
+        if self.accepts_frame() and self.window.is_attached and not self.window._closing:
+            self.window.prepare_viewport()
+            self.request()
+
     def scroll_changed(self, *_args) -> None:
         # Native scroll is the demand producer. Screen-wide layout (including
         # this working set's own pruning) is not another scroll or admission.
@@ -1584,15 +1608,13 @@ class DocumentViewport:
             return
         if self.lookahead.observe(self.window.scroll_y):
             self._schedule_settle()
-            for history in tuple(self.window.histories):
-                history.prepare_scroll()
-        self.request()
+        self.request_after_refresh()
 
     def destination(self) -> None:
         self.lookahead.observe(self.window.scroll_y)
         self.lookahead.destination(self.window.size.height)
         self._schedule_settle()
-        self.request()
+        self.request_after_refresh()
 
     def _schedule_settle(self) -> None:
         if self._settle_timer is not None:
@@ -1602,9 +1624,7 @@ class DocumentViewport:
     def _settle(self) -> None:
         self._settle_timer = None
         self.lookahead.settle()
-        for history in tuple(self.window.histories):
-            history.prepare_scroll()
-        self.request()
+        self.request_after_refresh()
 
     async def suspend_source(self) -> None:
         """Finish the departing source's layout transactions before rebinding."""
@@ -1632,7 +1652,7 @@ class DocumentViewport:
         # not capture from the departing/parked scene or manufacture its boxes.
         if self.geometry_targets():
             self.window.refresh(layout=True)
-        self.window.screen.frame_presentation.defer(self.window, self.request)
+        self.request_after_refresh()
 
     async def close(self) -> None:
         """Release this working set before its window's final retirement."""
@@ -1730,7 +1750,7 @@ class DocumentViewport:
                 # The same foreground worker admits message source ranges.
                 # Restore its whole visible cohort first; one range's reader
                 # compensation must not wait on an unstarted sibling restore.
-                if not screen.frame_presentation.awaits_publication(self.window, self.request):
+                if not screen.frame_presentation.awaits_publication(self.window, self.prepare_viewport):
                     # The next source edge uses committed frame geometry.
                     # Waiting for that receipt does not stop retirement or
                     # preparation needed to make the same frame publishable.
@@ -1738,7 +1758,7 @@ class DocumentViewport:
                         source_tasks = [source_preparation.create_task(owner.prepare_visible_source())
                                         for owner in foreground]
                     if any(task.result() for task in source_tasks):
-                        screen.frame_presentation.defer(self.window, self.request)
+                        self.request_after_refresh()
                         return
                 if self._pending:
                     continue
@@ -1777,7 +1797,7 @@ class DocumentViewport:
                     if any(results):
                         # Pruning retires the old scene. Continue from the next
                         # published layout, never lazily arrange it for capture.
-                        screen.frame_presentation.defer(self.window, self.request)
+                        self.request_after_refresh()
                     # Finish the admitted capture/prune batch, then reacquire
                     # demand. Offscreen housekeeping must not delay newly
                     # visible source behind the rest of an obsolete cohort.
@@ -1837,5 +1857,5 @@ class DocumentViewport:
         if restored:
             # Native child composition and nested page publication produce
             # readiness. The same frame owns capture after compensated layout.
-            self.window.screen.frame_presentation.defer(self.window, self.request)
+            self.request_after_refresh()
         return restored
