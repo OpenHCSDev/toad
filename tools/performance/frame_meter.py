@@ -70,11 +70,11 @@ def install(*, expected_pid, seconds, output):
 
     def watch_stalls():
         # A sampled profile misses a rare long callback; sample the UI
-        # thread's stack while one callback has run past 20 ms.
+        # thread's stack while one callback has run past 8 ms.
         while not state.get("finished"):
-            time.sleep(0.01)
+            time.sleep(0.004)
             begin = state["current"]
-            if begin is None or clock() - begin < 20_000_000:
+            if begin is None or clock() - begin < 8_000_000:
                 continue
             frame = sys._current_frames().get(main_thread)
             if frame is None:
