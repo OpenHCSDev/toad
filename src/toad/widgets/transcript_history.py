@@ -38,8 +38,6 @@ from toad.transcript_preparation import (
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
-from toad.markdown_preparation import PreparedContentRange
-from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
@@ -103,11 +101,11 @@ class TranscriptPageView(Widget):
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
                  fragments: tuple[TranscriptFragment, ...] | None = None,
-                 batch_size: int = PreparedContentRange.BATCH,
+                 batch_size: int = PreparedTranscriptPage.BATCH,
                  prepared: PreparedTranscriptPage | None = None):
         self.prepared = prepared if prepared is not None else PreparedTranscriptPage(
             page, transcript_fragments(page.events) if fragments is None else
-            tuple(fragment.independent() for fragment in fragments), 0,
+            tuple(fragments), 0,
         )
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
@@ -315,7 +313,7 @@ class TranscriptPageView(Widget):
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire a page until its original source transfers native custody."""
         view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest)
-        view.prepared.select_admission(PreparedContentRange.initial_slice(view.fragments, batch_size, newest))
+        view.prepared.select_admission(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
         view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
         with ExitStack() as acquisition:
@@ -369,7 +367,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         super().__init__(source_state=LiveTranscript() if committed else ProvisionalTranscript())
         self.loader, self.through = loader, page.after
         self.budget = budget or PresentationBudget(
-            max_items=self.MAX_FRAGMENTS, admission_items=PreparedContentRange.BATCH,
+            max_items=self.MAX_FRAGMENTS, admission_items=PreparedTranscriptPage.BATCH,
         )
         self.pages = deque([TranscriptPageView(
             page, fragments=fragments, prepared=prepared, batch_size=self.budget.admission_items,
@@ -460,7 +458,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if (projection := self.filter.state.overlay) is not None:
             await projection.prepare_body(current)
         for page in self.pages:
-            await self.prepare_fragments(page.prepared.resources(slice(page.start, page.stop)),
+            await self.prepare_fragments(page.admitted_fragments,
                                          current, selected=selected)
 
     @property
@@ -819,9 +817,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         else:
             prepared = await self._reader().get(PageRequest(before=self.through))
         page, fragments = prepared.page, prepared.fragments
-        selected = PreparedContentRange.initial_slice(fragments, destination_admission, True)
+        selected = PreparedTranscriptPage.initial_slice(fragments, destination_admission, True)
         await self.prepare_fragments(
-            (prepared.resources(selected) if prepared is view.prepared else fragments[selected]),
+            fragments[selected],
             lambda: snapshot.current(self) and request.current(window),
         )
         async with window.history_lock:
@@ -877,7 +875,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 ))
                 page, fragments = prepared.page, prepared.fragments
             selected = (edge.prepared.extension_slice(older) if local
-                        else PreparedContentRange.initial_slice(fragments, self.budget.admission_items, older))
+                        else PreparedTranscriptPage.initial_slice(fragments, self.budget.admission_items, older))
             await self.prepare_fragments(
                 (edge.fragments if local else fragments)[selected], lambda: snapshot.current(self),
             )

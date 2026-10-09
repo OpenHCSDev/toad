@@ -12,7 +12,7 @@ from agent_comms.transcript_events import (
 )
 
 from toad.render_backend import ReusableRenderTask
-from toad.markdown_preparation import PreparedContentRange, PreparedMarkdown, PreparedMarkdownPart
+from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import event_category, keep_events
@@ -151,9 +151,6 @@ class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
     starts_agent_activity: bool = False
-    markdown_part: PreparedMarkdownPart | None = field(default=None, kw_only=True)
-    prepared_source: PreparedMarkdown | None = field(default=None, kw_only=True, compare=False, repr=False)
-    prepared_content: PreparedContentRange | None = field(default=None, kw_only=True, compare=False, repr=False)
 
     def line_blocks(self, *, show_divider: bool = True):
         """What this fragment shows in committed history, one block per visual part."""
@@ -186,23 +183,6 @@ class TranscriptFragment:
         return held[1]
 
 
-    async def prepare(self, renderer, ansi, dark):
-        # These are the source suppliers that reconstruction actually uses.
-        # Undisclosed metadata/tool sources have no eager Markdown supply.
-        source = self.prepared_source or self.prepared_content or self.markdown_part
-        if source is not None:
-            await source.prepare(renderer, ansi, dark)
-
-    def independent(self) -> "TranscriptFragment":
-        """A separate projection owns independently resolved source lifetimes."""
-        return self._independent(prepared_source=None, prepared_content=None)
-
-    def _independent(self, **changes):
-        source = replace(self, **changes)
-        # Measurement belongs to immutable input; acquisitions never enter it.
-        source.__dict__["retained_bytes"] = self.retained_bytes
-        return source
-
     @cached_property
     def retained_bytes(self) -> int:
         """Worker-owned immutable input cost, never an acquisition graph."""
@@ -224,28 +204,17 @@ class ToolTranscriptFragment(TranscriptFragment):
         return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}"),)
 
 
-    def independent(self):
-        return self._independent(output_parts=tuple(part.admit() for part in self.output_parts))
-
 @dataclass(kw_only=True)
 class ContextTranscriptFragment(TranscriptFragment):
     """One original lazy disclosure and its two distinct source ranges."""
 
     formatted: str | None = field(default=None, compare=False, repr=False)
-    original_content: PreparedContentRange | None = field(default=None, compare=False, repr=False)
-
-    async def prepare(self, renderer, ansi, dark):
-        # Returning a retained disclosure does not open either of its sources.
-        return
 
     def line_blocks(self, *, show_divider: bool = True):
         from toad.line_blocks import Summary
 
         return (Summary("▶ Agent coordination context"),)
 
-
-    def independent(self):
-        return self._independent(prepared_content=None, original_content=None)
 
 
 class TranscriptFragmentConsumer(MroDispatch):
@@ -268,7 +237,7 @@ class TranscriptFragmentConsumer(MroDispatch):
         source = PreparedMarkdownPart.capture(event.text)
         self.fragments.extend(
             TranscriptFragment((replace(event, text=part.text),), continuation=self.continuation or index > 0,
-                               starts_agent_activity=starts_activity and index == 0, markdown_part=part)
+                               starts_agent_activity=starts_activity and index == 0)
             for index, part in enumerate(self.budget.split(source) if self.split_text else (source,))
         )
 

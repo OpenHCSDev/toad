@@ -7,12 +7,12 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field, replace
+from typing import ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 
-from toad.markdown_preparation import PreparedContentRange
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.widgets.message_filter import MessageCategory, keep_events
@@ -31,32 +31,61 @@ from toad.work_preparation import (
 
 
 @dataclass
-class PreparedTranscriptPage(PreparedContentRange):
+class PreparedTranscriptPage:
+    """One transcript page's immutable fragments and the range a view draws."""
+
+    BATCH: ClassVar[int] = 4
+
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     retained_bytes: int
     admission: tuple[int, int] | None = None
-    batch_size: int = field(default=PreparedContentRange.BATCH, kw_only=True)
+    batch_size: int = field(default=BATCH, kw_only=True)
     admitted: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
 
-    # This page already owns prepared inputs. Markdown request acquisition is
-    # a different lifetime; pages share only the admission implementation.
-    input_ready = True
+    @staticmethod
+    def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
+        start = max(0, len(fragments) - batch_size) if newest else 0
+        return slice(start, min(len(fragments), start + batch_size))
+
+    def configure(self, *, batch_size, newest=True):
+        self.batch_size = batch_size
+        if self.admission is None:
+            self.select_admission(self.initial_slice(self.fragments, batch_size, newest))
+
+    @property
+    def start(self):
+        return self.admission[0]
+
+    @start.setter
+    def start(self, start):
+        self.admission = start, self.admission[1] if self.admission is not None else start
+
+    @property
+    def stop(self):
+        return self.admission[1]
+
+    @stop.setter
+    def stop(self, stop):
+        self.admission = self.start, stop
+
+    def extension_slice(self, older: bool) -> slice:
+        return (slice(max(0, self.start - self.batch_size), self.start) if older
+                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
+
+    def select_admission(self, selected: slice) -> None:
+        self.admission = selected.start, selected.stop
+        self.admitted = self.fragments[selected]
 
     def capture_admission(self) -> TranscriptPageAdmission:
-        return TranscriptPageAdmission(ref(self), self.start, self.stop,
-                                       self.resources(slice(self.start, self.stop)))
+        return TranscriptPageAdmission(ref(self), self.start, self.stop, self.fragments[self.start:self.stop])
 
     def restore_admission(self, admission: TranscriptPageAdmission) -> None:
         if admission.page() is not self:
             return
         if len(admission.members) != admission.stop - admission.start:
             raise RuntimeError("Original transcript suppliers do not cover their admission")
-        # This resource's inputs never change. The original bounded slots and
-        # their acquisitions remain valid even after native demand moved to a
-        # disjoint tail. A replacement page owns another source lifetime.
         self.select_admission(slice(admission.start, admission.stop))
-        self.admitted = admission.members
 
     def publish_fragments(self, fragments):
         if fragments is not self.fragments:
@@ -68,9 +97,6 @@ class PreparedTranscriptPage(PreparedContentRange):
 
     # A page draws its admitted fragments as lines: admission moves a range,
     # it never mounts or removes native members.
-    def compose(self, view):
-        return ()
-
     async def extend(self, view, older: bool, current, *, prefix=()) -> bool:
         extension = self.extension_slice(older)
         selected = slice(extension.start if older else self.start,
@@ -104,7 +130,7 @@ class PreparedTranscriptPage(PreparedContentRange):
         The worker's immutable source/syntax remains reusable. Its stored page
         never acquires a frontend document or another projection's lifetime.
         """
-        return replace(self, fragments=tuple(fragment.independent() for fragment in self.fragments),
+        return replace(self, fragments=self.fragments,
                        admission=None, admitted=())
 
 
@@ -261,7 +287,7 @@ class CategoryProjection(TranscriptPageProjection):
         matches = await runtime.submit(TranscriptFilterWork(
             page.fragments, self.selected, len(page.fragments), len(page.fragments),
         ))
-        return replace(page, fragments=tuple(fragment.independent() for fragment in matches.fragments),
+        return replace(page, fragments=matches.fragments,
                        admission=None, admitted=())
 
 

@@ -11,7 +11,6 @@ from toad.widgets.message_divider import MessageClock
 from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.wire_message_handling import WireMessageHandling
-from toad.markdown_preparation import PreparedContentRange, PreparedMarkdownPart
 
 
 class OutgoingMessage(WireMessageHandling, ConversationBlock, CategorizedBlock, VerticalGroup):
