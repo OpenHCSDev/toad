@@ -87,3 +87,38 @@ Requirements carried by the design:
 - Text selection and copy in committed history.
 - Expanding tool output and the agent coordination context from history (they draw as one-line summaries).
 - User messages draw as plain text, not Markdown.
+
+## 2026-10-09: Plan for moving the live tail onto the line model
+
+**How live messages paint today** (mapped from source):
+1. `PreparedConversationMarkdown._update_body_source` parses and acquires a fork `MarkdownDocument`.
+2. `_prepare_document` submits `MarkdownDocumentRenderTask` to the render workers.
+3. The widget becomes a dormant `PreparedDocumentBody`, and `render_lines` crops the worker's `DocumentPaint`.
+
+Real Markdown block widgets exist only for non-conversation parsers, or after a MouseDown (`App.prepare_input` → `materialize_document`). The per-frame admission (`using_document_inputs`, `acquire_admissions`) only caches the paint-validity check for one frame. Without it, `current_admission` is checked live, which is slower.
+
+**Consumers to migrate:**
+- `StreamingMarkdown`: `AgentResponse`, `AgentThought`.
+- `UserInput` (`user_input.py:69`).
+- `MarkdownContent` (`tool_content.py:37`).
+- `ToolContent` (`tool_call.py:38`): `MeasuredViewportBody`, used only for offscreen retire and restore.
+- `file_kind.py:58`, `project_panel.py`.
+- Readers of `document_viewport` and body readiness: `irc_message.py`, `session_view.py`, `transcript_source_preparation.py`, `mounted_message_history.py`, `transcript_state.py`, `session_presentation.py`, `setting_effects.py`, `app.py:546`, `conversation.py:331,524`, `history_anchor.py`.
+
+**Features to carry over, not drop:**
+- Per-block cursor and copy, including code fences (`block_navigation.py` `DocumentBlockCursor` / `ChildBlockCursor`).
+- Anchors and table of contents (`paint.anchor_region`, `paint.headings`).
+- Text selection.
+- Clicking links and project paths (parser features; click needs a hit target).
+- Custom grammar parsers.
+
+**Shape:**
+- **One line-drawn Markdown widget** replaces `PreparedConversationMarkdown`, used for live and committed text alike. It renders `Body` blocks through `RichLineRenderer` in the render workers and draws plain rows until the styled rows arrive. Streaming appends coalesce, with one render in flight. No paging is needed, because lines are cheap.
+- **Interaction lives on the line model.** Blocks know their row ranges, so cursor and copy, anchors, selection (`get_selection` from block source text) and links (style metadata mapped back to a block) are implemented once, for history and the live tail alike.
+- **Then delete, in one change:**
+  - `viewport_body.py` (`ViewportBody`, the `BodyMeasurement` family, `DocumentViewport`, `ViewportPresentation`);
+  - `presentation_window.py`;
+  - the `WorkspaceScreen` frame hooks;
+  - the fork's `document/_paint.py` admission, `document/_markdown.py` and the `widgets/_markdown.py` detached-document additions, plus the Screen and compositor hook call sites.
+
+  Two hooks have side effects that need a new owner first. `_prepare_compositor_refresh` calls `check_follow()` every frame, which should move to the window's own scroll/size owner. `_layout_mutation_roots` holds a `HistoryWindow` subtree during `preserve_history`; check whether line pages still need that hold.
