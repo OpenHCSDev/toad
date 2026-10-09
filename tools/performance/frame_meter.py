@@ -33,8 +33,8 @@ def install(*, expected_pid, seconds, output):
 
     inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
     clock = time.monotonic_ns
-    state = {"busy": 0, "current": None}
-    frames, inputs, slow = [], [], []
+    state = {"busy": 0, "current": None, "parts": []}
+    frames, inputs, slow, slow_frames = [], [], [], []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     app_type = type(app)
     display = app_type._display
@@ -44,15 +44,37 @@ def install(*, expected_pid, seconds, output):
         try:
             return run(handle)
         finally:
-            state["busy"] += clock() - begin
+            spent = clock() - begin
+            state["busy"] += spent
             state["current"] = None
+            if spent > 1_000_000:
+                callback = handle._callback
+                owner = getattr(callback, "__self__", None)
+                if isinstance(owner, asyncio.Task):
+                    coroutine = owner.get_coro()
+                    callback = getattr(coroutine, "__qualname__", None) or repr(coroutine)[:80]
+                    frame = getattr(coroutine, "cr_frame", None)
+                    target = frame.f_locals.get("self") if frame is not None else None
+                    if target is not None:
+                        work = getattr(target, "_work", None)
+                        work = getattr(work, "func", work)
+                        label = (getattr(work, "__qualname__", None) or getattr(target, "_name", None)
+                                 or getattr(target, "name", None))
+                        callback += f" [{type(target).__name__}{':' + str(label)[:40] if label else ''}]"
+                else:
+                    callback = getattr(callback, "__qualname__", None) or repr(callback)[:80]
+                state["parts"].append((callback, spent / 1e6))
 
     def timed_display(self, screen, renderable):
         result = display(self, screen, renderable)
         if renderable is not None and self is app:
             now = clock()
             running = 0 if state["current"] is None else now - state["current"]
-            frames.append((now, (state["busy"] + running) / 1e6))
+            work = (state["busy"] + running) / 1e6
+            frames.append((now, work))
+            if work > 16:
+                slow_frames.append((now, work, state["parts"]))
+            state["parts"] = []
             # The running callback adds its full duration when it returns;
             # the part already counted in this frame is subtracted here.
             state["busy"] = -running
@@ -87,7 +109,7 @@ def install(*, expected_pid, seconds, output):
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs,
-                       "slow_handlers": slow}, file)
+                       "slow_handlers": slow, "slow_frames": slow_frames}, file)
 
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
