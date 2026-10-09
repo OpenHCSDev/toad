@@ -9,6 +9,7 @@ from contextlib import AsyncExitStack, ExitStack, asynccontextmanager, contextma
 from collections.abc import Awaitable, Callable, Coroutine
 from collections import OrderedDict
 from functools import partial
+from itertools import islice
 from weakref import WeakSet, ref
 from time import monotonic
 from dataclasses import dataclass, replace
@@ -60,8 +61,21 @@ class ViewportBody:
     def body_geometry_targets(self) -> tuple[Widget, ...]:
         raise NotImplementedError
 
-    def body_preparation_targets(self) -> tuple["ViewportBody", ...]:
+    def body_preparation_root(self):
+        """This resource's independent preparation boundary, if it has one."""
+        raise NotImplementedError
+
+    @property
+    def body_preparation_requires_geometry(self):
+        """Whether the original source producer restores a native scene."""
+        raise NotImplementedError
+
+    def body_preparation_targets(self, *, reverse=False):
         """Original resources that supply this body's text, not its controls."""
+        raise NotImplementedError
+
+    def body_retirement_targets(self):
+        """Actual native controls whose lifetime can end independently of text."""
         raise NotImplementedError
 
     @property
@@ -236,13 +250,9 @@ class BodyMeasurement(ABC):
                         prepared = prepared.invalidated()
                     body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared, self))
                 result = await (body.materialize_native_body() if work is None else work())
-                # Native membership is committed before nested source workers
-                # finish. Join their original publications here, after the
-                # source operation released its window mutation fence, rather
-                # than making a range's Mount wait on those same writers.
-                for child in body.child_bodies():
-                    for source in child.body_preparation_targets():
-                        await source.restore_body()
+                # Membership and text publication have different owners. The
+                # viewport prepares exposed child sources; a range writer must
+                # not restore all hidden text before publishing its membership.
                 if body.is_attached:
                     body._update_body_measurement(
                         body._body_measurement.publication_finished(body, worker, result))
@@ -307,9 +317,17 @@ class BodyMeasurement(ABC):
                 or self.requires_geometry(body) != previous.requires_geometry(body)
                 or self.geometry_targets(body) != previous.geometry_targets(body))
 
-    def preparation_targets(self, body):
+    def preparation_root(self, body):
+        return body
+
+    def preparation_targets(self, body, *, reverse=False):
         """A source/paint resource owns its original materialization worker."""
-        return (body,)
+        root = self.preparation_root(body)
+        return () if root is None else (root,)
+
+    def retirement_targets(self, body):
+        if not self.dormant:
+            yield body
 
     def capture_requested(self):
         return self
@@ -531,11 +549,18 @@ class ChildBody(LiveBody):
         return tuple(dict.fromkeys(target for child in body.child_bodies()
                                    for target in child.body_geometry_targets()))
 
-    def preparation_targets(self, body):
+    def preparation_root(self, body):
+        return None
+
+    def preparation_targets(self, body, *, reverse=False):
         # The range stays live while its independent text resources retire.
         # Its own dormant flag cannot decide whether those rows need work.
-        return tuple(target for child in body.child_bodies()
-                     for target in child.body_preparation_targets())
+        for child in body.child_bodies(reverse=reverse):
+            yield from child.body_preparation_targets(reverse=reverse)
+
+    def retirement_targets(self, body):
+        for child in body.child_bodies():
+            yield from child.body_retirement_targets()
 
     async def retire(self, body):
         # Children retain their own source, measurement and paint. Only an
@@ -638,6 +663,17 @@ class MaterializingBody(BodyMeasurement):
 
     def geometry_targets(self, body):
         return self.previous.geometry_targets(body)
+
+    def preparation_root(self, body):
+        return self.previous.preparation_root(body)
+
+    def preparation_targets(self, body, *, reverse=False):
+        return self.previous.preparation_targets(body, reverse=reverse)
+
+    def retirement_targets(self, body):
+        # The current writer owns native mutation. Its settled predecessor is
+        # not a second control lifetime that retirement may prune underneath it.
+        return ()
 
     def publication_prepared(self, worker, paint, predecessor):
         # A later writer may already own this body while joining our worker.
@@ -785,9 +821,16 @@ class MaterializingBody(BodyMeasurement):
             if body._body_measurement is self:
                 # Only the current writer exposes its newly committed native
                 # tree. A newer writer still borrows the preceding pixels.
-                if isinstance(result, BodyMeasurement):
-                    return result
-                return body.live_body_measurement(self.width, self.rows, self.widgets)
+                measurement = (result if isinstance(result, BodyMeasurement) else
+                               body.live_body_measurement(self.width, self.rows, self.widgets))
+                viewport = body._body_viewport
+                if (measurement.preparation_root(body) is body and viewport is not None
+                        and not viewport.retains_body(body) and not viewport.requires_body(body)):
+                    # Hidden source/style/selection writers can complete after
+                    # eviction. Publication owns their new extent and source,
+                    # but cannot acquire pixels outside the original admission.
+                    measurement = measurement.release_paint(body)
+                return measurement
             return self.previous
         return self._updated(self.previous.publication_finished(body, worker, result))
 
@@ -1292,20 +1335,27 @@ class MeasuredViewportBody(ViewportBody):
         self._body_measurement = LiveBody()
         self._body_viewport = None
         super().__init__(*args, **kwargs)
+        # Native construction establishes parser/factory fields first. The
+        # declaration then supplies its original range or scene role, before
+        # Mount can acquire a writer or expose a competing preparation unit.
+        self._body_measurement = self.initial_body_measurement()
+
+    def initial_body_measurement(self):
+        return self.live_body_measurement()
 
     def live_body_measurement(self, width=0, rows=0, widgets=1):
         """The declaration supplies the role of its committed native content."""
         return LiveBody(width, rows, widgets)
 
-    def child_bodies(self):
+    def child_bodies(self, *, reverse=False):
         """Original DOM custody, stopping at each independent resource owner."""
-        pending = list(reversed(self.children))
+        pending = list(self.children if reverse else reversed(self.children))
         while pending:
             child = pending.pop()
             if isinstance(child, ViewportBody):
                 yield child
             else:
-                pending.extend(reversed(child.children))
+                pending.extend(child.children if reverse else reversed(child.children))
 
     @property
     def body_dormant(self):
@@ -1330,8 +1380,18 @@ class MeasuredViewportBody(ViewportBody):
     def body_geometry_targets(self):
         return self._body_measurement.geometry_targets(self)
 
-    def body_preparation_targets(self):
-        return self._body_measurement.preparation_targets(self)
+    def body_preparation_root(self):
+        return self._body_measurement.preparation_root(self)
+
+    @property
+    def body_preparation_requires_geometry(self):
+        return True
+
+    def body_preparation_targets(self, *, reverse=False):
+        return self._body_measurement.preparation_targets(self, reverse=reverse)
+
+    def body_retirement_targets(self):
+        return self._body_measurement.retirement_targets(self)
 
     @property
     def document_admissions(self):
@@ -1760,7 +1820,10 @@ class ViewportPresentation:
             # Rendering consumes clipped native bodies, not all text retained
             # by a visible message container. Mutation admission also asks its
             # retained ancestors about the preceding publication's pixels.
-            bodies = dict.fromkeys(body for _window, body in self.visible_bodies(self.windows))
+            visible = self.screen._compositor.visible_widgets
+            bodies = dict.fromkeys(body for window in self.frame_windows()
+                                  for body in window.document_viewport.exposed_bodies(
+                                      visible=visible, protected=window.document_viewport.protected()))
             for root in self.mutation_roots():
                 for owner in root.walk_ancestors(with_self=True):
                     if isinstance(owner, ViewportBody):
@@ -1843,18 +1906,21 @@ class ViewportPresentation:
                                if window.history_mutating()}
             # Each source owns its pending paint. Native publication derives the
             # blocked geometry; this owner neither masks regions nor stops chrome.
-            for window, body in self.visible_bodies(windows):
-                if any(root is body or root in body.ancestors or body in root.ancestors
-                       for root in mutations):
-                    continue
-                if not body.body_ready:
-                    window.document_viewport.request()
-                    # Scrolling relocates the window's whole source cohort.
-                    # Retaining one destination rectangle would leave old text
-                    # beside newly positioned headers. Native publication owns
-                    # the original window's geometry and pixels together.
-                    deferred[window] = None
-                    pending_windows.add(window)
+            visible = screen._compositor.visible_widgets
+            for window in windows:
+                for body in window.document_viewport.exposed_bodies(
+                    visible=visible, protected=window.document_viewport.protected(),
+                ):
+                    if any(root is body or root in body.ancestors or body in root.ancestors
+                           for root in mutations):
+                        continue
+                    if not body.body_ready:
+                        window.document_viewport.request()
+                        # Unknown extent still owns exposed source. Holding its
+                        # window joins only this cohort's relevant publication;
+                        # admitted old rows remain paintable while writers run.
+                        deferred[window] = None
+                        pending_windows.add(window)
             for window in windows:
                 if window not in pending_windows and window.check_follow():
                     # Native UpdateScroll owns reflow. Hold this source's old
@@ -1974,19 +2040,15 @@ class DocumentViewport:
         last = self.source_tail
         return last is None or not last.has_newer_source
 
-    def requires_body(self, owner, *, visible=None, protected=None) -> bool:
-        """Native exposure and current interaction own source admission."""
+    def exposes_body(self, owner, *, visible, protected) -> bool:
+        """Original placement supplies exposure, independently of paint readiness."""
         if owner._body_viewport is not self:
             return False
-        if visible is None:
-            visible = self.window.screen._compositor.visible_widgets
         if owner in visible:
             return True
-        if protected is None:
-            protected = self.protected()
         if owner in protected:
             return True
-        if owner.measured_rows or owner.body_ready:
+        if owner.measured_rows:
             return False
         # An unfinished intrinsic source has no paint rectangle yet. Its
         # assigned native position still owns preparation exposure; excluding
@@ -1999,6 +2061,15 @@ class DocumentViewport:
             return (clip.y <= region.y < clip.bottom
                     and max(region.x, clip.x) < min(region.right, clip.right))
         return False
+
+    def requires_body(self, owner, *, visible=None, protected=None) -> bool:
+        """Exposed unknown extent demands paint; actual ready empty source does not."""
+        if visible is None:
+            visible = self.window.screen._compositor.visible_widgets
+        if protected is None:
+            protected = self.protected()
+        return (self.exposes_body(owner, visible=visible, protected=protected)
+                and (owner in visible or owner in protected or not owner.body_ready))
 
     def body_roots(self, *, reverse: bool = False):
         """Native document order, stopping at each registered body boundary.
@@ -2017,17 +2088,84 @@ class DocumentViewport:
             else:
                 pending.extend(node.children if reverse else reversed(node.children))
 
-    def preparation_roots(self):
+    def preparation_roots(self, *, nodes=None, reverse=False):
         """Source boundaries lend independently positioned text resources.
 
         A message may span many screens. Its visible container neither admits
         all that text nor supplies a preparation unit or measured row density.
         Source chronology and paging still belong to body_roots().
         """
-        for owner in self.body_roots():
-            for source in owner.body_preparation_targets():
-                if source._body_viewport is self and source.is_attached and not source._closing:
+        if nodes is None:
+            nodes = reversed(self.window.children) if reverse else self.window.children
+        pending = [iter(nodes)]
+        while pending:
+            node = next(pending[-1], None)
+            if node is None:
+                pending.pop()
+                continue
+            if isinstance(node, ViewportBody):
+                for source in node.body_preparation_targets(reverse=reverse):
+                    if (source._body_viewport is self and source.is_attached
+                            and not source._closing):
+                        yield source
+            else:
+                pending.append(iter(reversed(node.children) if reverse else node.children))
+
+    def preparation_root(self, body):
+        """Resolve native exposure to its declared source boundary.
+
+        A scene owns its nested controls; a range lends independent documents.
+        Writer and control replacement preserve that original projection.
+        """
+        root = None
+        for owner in body.walk_ancestors(with_self=True):
+            if owner is self.window:
+                return root
+            if isinstance(owner, ViewportBody) and owner._body_viewport is self:
+                if (source := owner.body_preparation_root()) is not None:
+                    root = source
+        return None
+
+    def adjacent_preparation_roots(self, body, *, reverse=False):
+        """Walk only neighboring source branches in original native order."""
+        node = body
+        while node is not self.window and node.parent is not None:
+            parent = node.parent
+            siblings = parent.children
+            index = siblings.index(node)
+            adjacent = (islice(reversed(siblings), len(siblings) - index, None) if reverse
+                        else islice(siblings, index + 1, None))
+            for source in self.preparation_roots(nodes=adjacent, reverse=reverse):
+                if all(owner.display for owner in source.walk_ancestors(with_self=True)):
                     yield source
+            node = parent
+
+    def source_order(self, body):
+        """Native membership supplies order without a page identity scan."""
+        path = []
+        node = body
+        while node is not self.window:
+            parent = node.parent
+            path.append(parent.children.index(node))
+            node = parent
+        return tuple(reversed(path))
+
+    def exposed_bodies(self, *, visible, protected):
+        """Consume arranged paint and unfinished zero-row source exposure."""
+        bodies = dict.fromkeys((
+            *self.window.reader_bodies,
+            *(body for body in protected if isinstance(body, ViewportBody)),
+            *(body for body in self.window.screen._compositor._layout_map
+              if isinstance(body, ViewportBody) and self.exposes_body(
+                  body, visible=visible, protected=protected)),
+        ))
+        return tuple(body for body in bodies if isinstance(body, ViewportBody)
+                     and body._body_viewport is self and body.is_attached and not body._closing)
+
+    def retirement_roots(self):
+        """Native custody, independent of admitted immutable document rows."""
+        for owner in self.body_roots():
+            yield from owner.body_retirement_targets()
 
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Each body's current resource owns its actual geometry demand."""
@@ -2055,43 +2193,51 @@ class DocumentViewport:
     @property
     def visible_body_rows(self) -> float:
         """Measured native density, derived from the current viewport owners."""
-        visible = self.window.screen._compositor.visible_widgets
-        rows = [owner.measured_rows for owner in self.preparation_roots()
-                if owner in visible and owner.measured_rows]
+        bodies = dict.fromkeys(self.preparation_root(body) for _window, body in
+                              self.window.screen.viewport_presentation.visible_bodies((self.window,)))
+        rows = [owner.measured_rows for owner in bodies if owner is not None and owner.measured_rows]
         return sum(rows) / len(rows) if rows else max(1, self.window.size.height)
 
-    def admission_candidates(self, *, required=(), ahead=(), resources=None):
+    def admission_candidates(self, *, required=(), ahead=()):
         candidates = dict.fromkeys((*required, *ahead, *(owner
             for key in reversed(self._warm.values()) if (owner := key()) is not None)))
-        resources = set(self.preparation_roots() if resources is None else resources)
-        return tuple(owner for owner in candidates if owner in resources)
+        return tuple(owner for owner in candidates if owner._body_viewport is self
+                     and owner.is_attached and not owner._closing
+                     and owner.body_preparation_root() is owner)
 
-    def admission(self, *, required=(), ahead=(), resources=None):
+    def admission(self, *, required=(), ahead=()):
         # Native preparation prices the last actual tree BEFORE restoration.
         # Retained paint is admitted independently below; retaining rows is
         # not permission to recreate every hidden control in that resource.
         return self.budget.admit(
-            self.admission_candidates(required=required, ahead=ahead, resources=resources), required,
+            (body for body in self.admission_candidates(required=required, ahead=ahead)
+             if body.body_preparation_requires_geometry),
+            tuple(body for body in required if body.body_preparation_requires_geometry),
             self.window.size.height, self.window.app.preparation.max_bytes,
         )
 
-    def _trim_warm(self, *, required=(), ahead=(), resources=None):
-        resources = tuple(self.preparation_roots() if resources is None else resources)
+    def _trim_warm(self, *, required=(), ahead=()):
+        previous = self.admitted_bodies
         published = self.window.screen._compositor.published_widgets
         # Preparation follows the new arrangement, but pixels still on the
         # terminal retain their source resource until a replacement is accepted.
         required = tuple(dict.fromkeys((
-            *required, *(owner for owner in resources if owner in published),
+            *required, *(owner for owner in previous if owner in published),
         )))
+        candidates = self.admission_candidates(required=required, ahead=ahead)
         self.admitted_bodies = self.budget.admit_paint(
-            self.admission_candidates(required=required, ahead=ahead, resources=resources), required,
+            candidates, required,
             self.window.app.preparation.max_bytes,
         )
         admitted = self.admitted_bodies
-        for owner in resources:
-            if owner in admitted:
-                owner.retain_paint()
-            else:
+        for owner in admitted - previous:
+            owner.retain_paint()
+        for owner in previous - admitted:
+            owner.release_paint()
+        # An admitted speculative writer can deliver a more expensive resource.
+        # Price its actual result, including when the preceding pass evicted it.
+        for owner in candidates:
+            if owner not in admitted and owner.retained_paint_bytes:
                 owner.release_paint()
         for key in tuple(self._warm):
             if key() not in admitted:
@@ -2214,8 +2360,8 @@ class DocumentViewport:
         # A nested body still contributes even when its outer fragment owns
         # retirement; a nested window contributes to its own viewport only.
         window = self.window
-        return all(body.body_ready for _window, body in
-                   window.screen.viewport_presentation.visible_bodies((window,)))
+        return all(body.body_ready for body in self.exposed_bodies(
+            visible=window.screen._compositor.visible_widgets, protected=self.protected()))
 
     async def _reconcile(self) -> None:
         try:
@@ -2225,35 +2371,32 @@ class DocumentViewport:
                 screen = self.window.screen
                 visible = screen._compositor.visible_widgets
                 protected = self.protected()
-                owners = tuple(dict.fromkeys(self.preparation_roots()))
-                required = tuple(owner for owner in owners
-                                 if self.requires_body(owner, visible=visible, protected=protected))
-                # Warm admission and retirement belong to outer resources.
-                # Publication also needs nested bodies in the original visible
-                # cohort; a ready outer fragment cannot prepare their rows.
-                foreground = tuple(dict.fromkeys((
-                    *required,
-                    *self.window.reader_bodies,
-                    *(body for _window, body in screen.viewport_presentation.visible_bodies((self.window,))),
-                )))
+                foreground = tuple(body for body in self.exposed_bodies(visible=visible, protected=protected)
+                                   if self.requires_body(body, visible=visible, protected=protected))
+                required = tuple(dict.fromkeys(root for body in foreground
+                                               if (root := self.preparation_root(body)) is not None))
                 for owner in foreground:
                     owner.require_native_body()
                 # Reuse the same body admission and worker. Restore only the
                 # neighboring destination bodies, not every skipped record.
                 demand = self.lookahead.demand
                 ahead_owners = []
-                visible_indexes = [index for index, node in enumerate(owners) if node in visible]
-                if visible_indexes:
+                exposed = tuple(owner for owner in required if owner in visible)
+                if exposed:
+                    first = min(exposed, key=self.source_order)
+                    last = max(exposed, key=self.source_order)
                     count = self.lookahead.admission(self.budget, self.window.size.height)
                     runway = self.budget.runway(
-                        owners, min(visible_indexes), max(visible_indexes) + 1,
+                        self.adjacent_preparation_roots(first, reverse=True),
+                        self.adjacent_preparation_roots(last),
                         self.window.size.height,
                     )
                     predicted = demand.neighbors(
-                        owners, min(visible_indexes), max(visible_indexes) + 1, count,
+                        self.adjacent_preparation_roots(first, reverse=True),
+                        self.adjacent_preparation_roots(last), count,
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
-                admitted = self._trim_warm(required=required, ahead=ahead_owners, resources=owners)
+                admitted = self._trim_warm(required=required, ahead=ahead_owners)
                 # Admission retains a body's bounded presentation resource,
                 # not its live descendant tree. Offscreen warm bodies paint
                 # their retained rows on reentry; only visible or interaction
@@ -2294,7 +2437,7 @@ class DocumentViewport:
                         return
                 if self._pending:
                     continue
-                retiring = tuple(owner for owner in owners
+                retiring = tuple(owner for owner in self.retirement_roots()
                                  if owner.is_attached and not owner._closing
                                  and owner not in retained and not owner.body_dormant)
                 # Complete geometry belongs only to the existing bounded
@@ -2312,6 +2455,11 @@ class DocumentViewport:
                     with ExitStack() as captures:
                         operations = []
                         for owner in batch:
+                            if owner not in admitted:
+                                # Controls without a paint lease can retire
+                                # source/extent directly. Do not capture rows
+                                # merely to discard them at this same eviction.
+                                owner.release_paint()
                             operation = owner.retire_body()
                             captures.callback(operation.close)
                             operations.append(operation)
@@ -2345,7 +2493,8 @@ class DocumentViewport:
                 # The original demand owns incoming direction priority.
                 native_admission = self.admission(required=required, ahead=ahead_owners)
                 ahead_owners = [owner for owner in ahead_owners
-                                if owner in admitted and owner in native_admission]
+                                if owner in admitted and (not owner.body_preparation_requires_geometry
+                                                          or owner in native_admission)]
                 for first in range(0, len(ahead_owners), self.budget.admission_items):
                     if self._pending or not self.lookahead.accepts(demand):
                         break

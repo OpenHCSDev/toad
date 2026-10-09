@@ -99,6 +99,11 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             return ChildBody(width, rows, widgets)
         return super().live_body_measurement(width, rows, widgets)
 
+    def initial_body_measurement(self):
+        # This source range still owns prefix/disclosure membership. Its parts
+        # have independent intrinsic source and native interaction lifetimes.
+        return self.live_body_measurement()
+
     def _body(self, fragment, index, *, source=None) -> PreparedConversationMarkdown:
         if source is None:
             source = self.prepared_content.acquired(index, syntax=fragment)
@@ -167,7 +172,8 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                                and self.prepared_content is content and content.generation == generation)
             previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
             # Mount/sort/prune belong to the original document transaction.
-            # Child source joins happen in BodyMeasurement after it releases.
+            # The viewport admits exposed child sources after membership; this
+            # range writer does not join hidden document preparation.
             async with window.preserve_history(None, root=self):
                 if not await content.replace_range(
                     self, self.fragments, slice(self.start, self.stop), previous, current, prefix=self._prefix,

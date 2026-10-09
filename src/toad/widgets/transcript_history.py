@@ -10,6 +10,7 @@ from collections import deque
 from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
 from functools import partial
+from itertools import islice
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -155,7 +156,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
 
     def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()
-        self._body_measurement = self.live_body_measurement()
         self.fragment = fragment
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
@@ -324,7 +324,10 @@ class TranscriptPageView(VerticalGroup):
 
     async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:
         """Warm unmounted source leaves beside this page's actual admission."""
-        fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
+        fragments = demand.neighbors(
+            islice(reversed(self.fragments), len(self.fragments) - self.start, None),
+            islice(self.fragments, self.stop, None), count,
+        )
         await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
 
     async def select_range(
@@ -570,7 +573,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if not indexes:
             return self.budget.item_limit(0)
         runway = self.window.document_viewport.budget.runway(
-            sequence, min(indexes), max(indexes) + 1, self.window.size.height,
+            islice(reversed(sequence), len(sequence) - min(indexes), None),
+            islice(sequence, max(indexes) + 1, None), self.window.size.height,
         )
         return max(self.budget.item_limit(len(indexes)), len(indexes) + len(runway))
 
@@ -721,7 +725,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         for page in pages:
             await page.prepare_adjacent(preparation, demand, count, current)
         async for prepared in reader.prefetch(*edges, current, rounds=rounds):
-            fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
+            fragments = demand.neighbors(reversed(prepared.fragments), iter(prepared.fragments), count)
             await preparation.prepare_fragments(
                 fragments, current, batch_size=self.budget.admission_items,
             )

@@ -3,6 +3,7 @@
 import asyncio
 from dataclasses import dataclass, field, replace
 from functools import cached_property
+from itertools import batched
 from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
@@ -329,11 +330,11 @@ class TranscriptBodyPreparation:
         Reversal/retirement stops the next batch. Already admitted render work
         keeps its existing runtime custody and resource limits.
         """
-        for first in range(0, len(fragments), batch_size):
+        for batch in batched(fragments, batch_size):
             if not keep_going():
                 return
             await asyncio.gather(*(fragment.prepare(self.renderer, self.ansi, self.dark)
-                                   for fragment in fragments[first:first + batch_size]
+                                   for fragment in batch
                                    if self.selected is None or keep_events(fragment.events, self.selected)))
 
 

@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from itertools import zip_longest
+from itertools import chain, islice, zip_longest
 from math import ceil
 from time import monotonic, get_clock_info
 from typing import TYPE_CHECKING
@@ -102,18 +102,17 @@ class PresentationBudget:
             source_bytes += size
         return admitted
 
-    def runway(self, sequence, first: int, last: int, viewport_rows: int):
+    def runway(self, before, after, viewport_rows: int):
         """Native measured bodies on both sides, including stationary reversal."""
-        before, after = [], []
-        for candidates, selected in ((reversed(sequence[:first]), before),
-                                     (iter(sequence[last:]), after)):
+        before_rows, after_rows = [], []
+        for candidates, selected in ((before, before_rows), (after, after_rows)):
             rows = 0
             for owner in candidates:
                 selected.append(owner)
                 rows += max(1, owner.measured_rows)
                 if rows >= self.runway_rows(viewport_rows):
                     break
-        return [owner for pair in zip_longest(before, after)
+        return [owner for pair in zip_longest(before_rows, after_rows)
                 for owner in pair if owner is not None]
 
 
@@ -129,7 +128,7 @@ class PreparationDemand(ABC):
     def edges(self, before, after):
         return before, after
 
-    def neighbors(self, sequence, first: int, last: int, count: int):
+    def neighbors(self, before, after, count: int):
         return ()
 
     def body_order(self, runway, predicted):
@@ -140,11 +139,10 @@ class StationaryPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return 0
 
-    def neighbors(self, sequence, first: int, last: int, count: int):
+    def neighbors(self, before, after, count: int):
         # A small idle reserve belongs to the same page/worker resource, not
         # a second cache. Moving demand selects only its incoming direction.
-        return (tuple(reversed(sequence[max(0, first - count):first]))
-                + tuple(sequence[last:last + count]))
+        return chain(islice(before, count), islice(after, count))
 
 
 @dataclass
@@ -164,9 +162,8 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def neighbors(self, sequence, first: int, last: int, count: int):
-        return (tuple(reversed(sequence[max(0, first - count):first]))
-                if self.velocity < 0 else tuple(sequence[last:last + count]))
+    def neighbors(self, before, after, count: int):
+        return islice(before if self.velocity < 0 else after, count)
 
     def edges(self, before, after):
         return (before, None) if self.velocity < 0 else (None, after)

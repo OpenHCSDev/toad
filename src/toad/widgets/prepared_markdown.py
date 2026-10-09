@@ -27,7 +27,7 @@ from toad.block_navigation import ChildBlockCursor, DocumentBlockCursor
 from toad.layout import trim_trailing_margin
 from toad.render_tasks import MarkdownRenderTask, MarkdownDocumentRenderTask
 from toad.work_preparation import retained_bytes
-from toad.widgets.viewport_body import MeasuredViewportBody, PreparedDocumentBody
+from toad.widgets.viewport_body import MeasuredBody, MeasuredViewportBody, PreparedDocumentBody
 from toad.widgets.worker_static import WorkerStatic
 
 
@@ -154,6 +154,18 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def native_body_ready(self) -> bool:
         return super().native_body_ready() and not self.loading
 
+    def initial_body_measurement(self):
+        # Acquired syntax/source is not a native control tree. The source starts
+        # without published extent; original viewport allocation admits paint.
+        return MeasuredBody() if self.partitionable_syntax else super().initial_body_measurement()
+
+    @property
+    def body_preparation_requires_geometry(self):
+        # Custom factories retain their original scene producer/receipt. The
+        # conversation declaration supplies intrinsic text independently of
+        # whatever controls its interaction owner may currently have acquired.
+        return not self.partitionable_syntax
+
     @property
     def document(self):
         source = self._prepared_markdown
@@ -227,6 +239,14 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def update_part(self, part: PreparedMarkdownPart, *, content_owner: PreparedContentRange | None = None) -> AwaitComplete:
         self._content_owner = content_owner
         self._markdown_part = part
+        if self.partitionable_syntax and self._body_viewport is not None:
+            # Range admission accepts immutable syntax and its actual owner.
+            # It must not hold the parent's source mutation while every hidden
+            # part paints. Source replacement revokes the old acquisition now;
+            # valid predecessor pixels remain with their original resource.
+            self._request_source(part.text, append=False)
+            self.request_body_preparation()
+            return AwaitComplete.nothing()
         return self.update(part.text)
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
@@ -234,6 +254,16 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         return tuple(child for child in self.children if isinstance(child, MarkdownBlock))
 
     def _initialize_document(self, markdown: str | None) -> AwaitComplete:
+        from toad.widgets.history_anchor import HistoryWindow
+        from toad.screens.workspace import WorkspaceScreen
+
+        if (self.partitionable_syntax and isinstance(self.screen, WorkspaceScreen)
+                and any(isinstance(owner, HistoryWindow) for owner in self.ancestors)):
+            # Mount declares the pending source, not demand to paint hidden
+            # parts. The original body/viewport owner observes native allocation
+            # and acquires this document when exposed, protected or predicted.
+            # Its original producer delivers TOC and source readiness together.
+            return AwaitComplete.nothing()
         # Mount admits the body; its materialization worker owns prepared
         # content. Observe that original receipt after completion; waiting on
         # this pump would hold wheel delivery behind background preparation.
@@ -366,12 +396,14 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             return await ConversationMarkdown.update(self, markdown)
         self._markdown = markdown
         parser = self._parser_factory()
-        async with self.lock:
-            tokens = await self._parse_tokens(parser, source, use_thread=True)
-            if tokens is None:
-                return False
-            document = self.acquire_document(markdown, tokens)
-            return await self._prepare_document(document)
+        # The original body writer already orders source publication and fences
+        # stale delivery. Acquiring intrinsic source/paint does not mutate native
+        # controls, so its worker waits must not hold the native tree lock.
+        tokens = await self._parse_tokens(parser, source, use_thread=True)
+        if tokens is None:
+            return False
+        document = self.acquire_document(markdown, tokens)
+        return await self._prepare_document(document)
 
     async def _prepare_document(self, document):
         self.document = document
