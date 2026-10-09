@@ -73,7 +73,8 @@ def install(*, expected_pid, seconds, output):
                 entry[1] = end
                 entry[3].append((type(self).__name__, begin, end))
             if end - begin > 50_000_000:
-                slow.append((begin, (end - begin) / 1e6, type(self).__name__, type(message).__qualname__))
+                slow.append((begin, (end - begin) / 1e6, type(self).__name__, type(message).__qualname__,
+                             type(getattr(message, "event", None)).__qualname__))
 
     def finish():
         loop_events.Handle._run = run

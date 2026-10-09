@@ -1,5 +1,6 @@
 """App admission and close use the existing workspace's declared factories."""
 from __future__ import annotations
+import asyncio
 from toad.core import events as core_events
 from toad.core.events import CoreEventStream
 
@@ -28,6 +29,8 @@ class SessionAdmissions:
         self.events = CoreEventStream(self)
         self.identities = count(1)
         self.initial_session_id = initial_session_id
+        self._retire_task: asyncio.Task[None] | None = None
+        self._retire_requested = False
 
     def bind_events(self) -> None:
         self.app.subscribe_core(self.events)
@@ -243,8 +246,18 @@ class SessionAdmissions:
             for member in closing:
                 await self.app.workspace_sessions.close(member.mode)
 
-    async def observed(self, event: core_events.CoordinationObserved) -> None:
-        await self.retire_missing()
+    def observed(self, event: core_events.CoordinationObserved) -> None:
+        # The registry read takes hundreds of milliseconds; awaiting it here held
+        # every input queued behind the App's message pump. One pass runs at a
+        # time and observations arriving during it fold into one more pass.
+        self._retire_requested = True
+        if self._retire_task is None or self._retire_task.done():
+            self._retire_task = asyncio.create_task(self._retire_requested_views())
+
+    async def _retire_requested_views(self) -> None:
+        while self._retire_requested:
+            self._retire_requested = False
+            await self.retire_missing()
 
     async def retire_missing(self) -> None:
         from toad.comms_root import RouteSelection
