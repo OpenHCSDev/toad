@@ -79,7 +79,7 @@ capture=$!
 sleep 2
 # Optional load: a real channel message whose replies arrive during the scenario.
 if [[ -n "${CHANNEL:-}" && -n "${CHANNEL_MESSAGE:-}" ]]; then
-    "$bin/agent-comms" user-send --to "$CHANNEL" --body "$CHANNEL_MESSAGE" --worktree "$project" > "$out/channel-send.json"
+    "$HOME/.local/bin/agent-comms" user-send --to "$CHANNEL" --body "$CHANNEL_MESSAGE" --worktree "$project" > "$out/channel-send.json"
 fi
 
 # Active response: a real configured-provider turn that streams while we scroll.
