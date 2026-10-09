@@ -122,7 +122,6 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
-    from textual.document._markdown import MarkdownSourceBlock
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
@@ -944,7 +943,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         return self.navigation.current
 
     @property
-    def cursor_block_child(self) -> Widget | MarkdownSourceBlock | None:
+    def cursor_block_child(self) -> Widget | None:
         return self.navigation.selected
 
     async def _read_thread_activity(self):

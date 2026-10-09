@@ -52,22 +52,6 @@ class MarkdownBlockContent(BlockContent):
     def prompt_source(cls, markdown: str | None, code: str | None) -> str | None:
         return cls.clipboard_source(markdown, code)
 
-    @classmethod
-    def source_block_menu(cls, source) -> Iterable[MenuItem]:
-        # A scene menu may depend on actual controls. It must explicitly
-        # declare source behavior before detached consumers can supply it.
-        cls._require_document_methods({"get_block_menu": BlockContent.get_block_menu})
-        return ()
-
-    @classmethod
-    def source_copy(cls, source, *, prompt: bool = False) -> str | None:
-        cls._require_document_methods({
-            "get_clipboard_text": MarkdownBlockContent.get_clipboard_text,
-            "get_prompt_text": MarkdownBlockContent.get_prompt_text,
-        })
-        supply = cls.prompt_source if prompt else cls.clipboard_source
-        return supply(source.source_text(), source.code)
-
     def get_clipboard_text(self) -> str | None:
         return self.clipboard_source(self.source, self.code)
 
