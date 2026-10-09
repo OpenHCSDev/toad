@@ -235,7 +235,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 if self._prefetch_intent is intent:
                     return
 
-        self.run_worker(prepare, group=self.LOOKAHEAD_GROUP, exclusive=True, exit_on_error=False)
+        self.run_worker(prepare, group=self.LOOKAHEAD_GROUP, exclusive=True)
 
     def lookahead_workers(self):
         """Borrow current custody from the original native worker manager."""
