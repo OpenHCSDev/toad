@@ -82,7 +82,7 @@ async def notification_feedback(
             "title": str(notification.title),
             "details": str(notification.details.render()),
             "history": [(m.seq, m.body) for m, _ in channel.message_history.rows],
-            "visible": [m.seq for m, _ in channel._visible_notification_rows()],
+            "visible": [m.seq for m, _ in channel.message_history.notification_rows()],
         }
         try:
             detail["core"] = repr(

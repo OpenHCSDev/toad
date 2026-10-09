@@ -13,7 +13,6 @@ from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms.comms import Comms
-from toad.message_viewport import NotificationViewport
 from toad.constants import COMMS_REFRESH_INTERVAL
 from agent_comms.messages import Message as WireMessage
 from agent_comms.comms import wire
@@ -36,7 +35,6 @@ from toad.widgets.conversation import (
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.widgets.throbber import Throbber
-from toad.widgets.message_notifications import MessageNotifications
 from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
 
@@ -114,7 +112,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{kind}:{target}")
         self.message_history = MountedMessageHistory(self)
-        self._notification_task: asyncio.Task[None] | None = None
 
     @property
     def kind(self) -> str:
@@ -164,7 +161,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
         # remaining control mounts rather than waiting for another empty
-        # history frame. _refresh_lock still serializes page mutations.
+        # history frame. The mounted owner still serializes page mutations.
         self.run_worker(self._refresh(), group="comms-initial-history")
 
     def prepare_prompt(self) -> None:
@@ -221,19 +218,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
 
 
 
-    def _refresh_notifications(self) -> None:
-        """One bounded batch for the painted window; independent of bus revision."""
-        if (not self.is_attached or self.message_history.service is None
-                or not self.display
-                or self._notification_task is not None and not self._notification_task.done()):
-            return
-        rows = self._visible_notification_rows()
-        if rows:
-            self._notification_task = asyncio.create_task(self._read_notifications(rows))
-
-    def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
-        return self.message_history.viewport(NotificationViewport).visible_rows()
-
     async def _read_thread_activity(self):
         from toad.comms_root import root_is_current
 
@@ -247,34 +231,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
             raise ValueError("Comms route changed")
         return presentation
 
-    async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
-        from toad.comms_root import root_is_current
-
-        comms, target = self.message_history.service, self.target
-        if comms is None or not root_is_current(comms.root):
-            return
-        error = None
-        try:
-            results = await asyncio.to_thread(
-                comms.views.message_notifications, tuple(message for message, _ in rows),
-            )
-        except Exception as failure:
-            error, results = failure, {}
-        if (not self.is_attached or self.message_history.service is not comms or self.target != target
-                or not self.query_ancestor(SessionView).is_current
-                or not root_is_current(comms.root)):
-            return
-        visible = {widget for _, widget in self._visible_notification_rows()}
-        for message, widget in rows:
-            if widget in visible:
-                feedback = next(iter(widget.query(MessageNotifications)), None)
-                if feedback is None:
-                    continue  # Style replacement has unmounted this row's children.
-                if error is not None:
-                    feedback.show_error(error)
-                else:
-                    feedback.show_result(results.get((message.seq, message.message_id), ()))
-
     async def _refresh(self) -> None:
         if not self.is_attached or self.message_history.service is None:
             return
@@ -285,7 +241,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if not root_is_current(self.message_history.service.root):
             self.display = False
             return
-        self._refresh_notifications()
+        self.message_history.refresh_notifications()
         if self.message_history.lock.locked():
             return
         async with self.message_history.lock:

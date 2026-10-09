@@ -87,13 +87,13 @@ async def main():
                 await until(lambda: chat.message_history.initialized and not chat.message_history.lock.locked()
                             and not chat.message_history.edge_scheduled)
                 await pilot.pause()
-                chat._refresh_notifications()
-                await until(lambda: chat._notification_task is not None and chat._notification_task.done())
+                chat.message_history.refresh_notifications()
+                await until(lambda: chat.message_history.notification_worker is not None and chat.message_history.notification_worker.is_finished)
                 feedback = next(w.query_one(MessageNotifications) for m, w in reversed(chat.message_history.rows)
                                 if m.view_key in chat.message_history.painted_keys())
                 assert str(feedback.title).startswith("Checking relevance… (1)"), feedback.title
                 assert 0 < len(calls[-1]) <= len(chat.message_history.rows) <= 120
-                assert set(calls[-1]) <= {m.view_key for m, _ in chat._visible_notification_rows()}
+                assert set(calls[-1]) <= {m.view_key for m, _ in chat.message_history.notification_rows()}
                 await pilot.click(feedback.query_one("CollapsibleTitle"))
                 await pilot.pause()
                 assert not feedback.collapsed and "active: Checking relevance…" in str(feedback.details.render())
@@ -105,7 +105,7 @@ async def main():
                 try:
                     await until(lambda: "Responding…" in str(feedback.title))
                 except TimeoutError:
-                    print("DEBUG", {"title": str(feedback.title), "visible": chat.message_history.painted_keys(), "calls": calls[-4:], "lock": chat.message_history.lock.locked(), "task": repr(chat._notification_task), "scroll": (chat.window.scroll_y, chat.window.max_scroll_y), "attached": feedback.is_attached}, flush=True)
+                    print("DEBUG", {"title": str(feedback.title), "visible": chat.message_history.painted_keys(), "calls": calls[-4:], "lock": chat.message_history.lock.locked(), "task": repr(chat.message_history.notification_worker), "scroll": (chat.window.scroll_y, chat.window.max_scroll_y), "attached": feedback.is_attached}, flush=True)
                     raise
                 state, priority, busy = "Checked — no response", 2, False
                 await until(lambda: str(feedback.title).startswith("Checked — no response (1)"))
@@ -116,30 +116,58 @@ async def main():
                 await until(lambda: str(feedback.title).startswith("Responded (1)"))
                 # One in-flight batch; hiding during a read must discard its result and stop polls.
                 entered.clear(); gate.clear()
-                chat._refresh_notifications()
+                chat.message_history.refresh_notifications()
                 await until(entered.is_set)
                 count = len(calls)
-                chat._refresh_notifications(); chat._refresh_notifications()
+                chat.message_history.refresh_notifications(); chat.message_history.refresh_notifications()
                 assert len(calls) == count
                 await app.push_screen(Screen())
+                assert not chat.message_history.current
+                assert chat.message_history.painted_keys() == ()
+                assert chat.message_history.notification_rows() == ()
                 gate.set()
-                await until(lambda: chat._notification_task.done())
+                await until(lambda: chat.message_history.notification_worker.is_finished)
                 for _ in range(3):
-                    chat._refresh_notifications()
+                    chat.message_history.refresh_notifications()
                     await chat._refresh()
-                assert len(calls) == count
+                assert len(calls) == count, (count, len(calls), chat.message_history.current,
+                    chat.message_history.notification_worker.state, app.screen)
                 app.pop_screen()
                 await pilot.pause()
                 # Markdown uses the same feedback owner and retains its separate body read proof.
                 await chat.message_history.toggle_style()
                 await pilot.pause()
-                chat._refresh_notifications()
-                await until(lambda: chat._notification_task.done())
+                chat.message_history.refresh_notifications()
+                await until(lambda: chat.message_history.notification_worker.is_finished)
                 row = chat.message_history.rows[-1][1]
                 assert not isinstance(row.read_ack_widget(), MessageNotifications)
                 assert "Responded" in str(row.query_one(MessageNotifications).title)
                 row.query_one(MessageNotifications).show_result(())
                 assert "No recorded" in str(row.query_one(MessageNotifications).title)
+                # Retire an actual mounted source while its real reader thread
+                # is blocked. The widget worker owns cancellation, not a free task.
+                entered.clear(); gate.clear()
+                chat.message_history.refresh_notifications()
+                await until(entered.is_set)
+                pending = chat.message_history.notification_worker
+                old_feedback = row.query_one(MessageNotifications)
+                old_title = str(old_feedback.title)
+                try:
+                    async with asyncio.timeout(3):
+                        await chat.remove()
+                    assert pending.is_cancelled
+                    assert chat.message_history.service is None
+                    assert not chat.message_history.channel_receipts
+                    assert not chat.message_history.historical_receipts
+                    assert chat.message_history.tail_receipt is None
+                finally:
+                    gate.set()
+                await until(lambda: pending.is_finished)
+                assert str(old_feedback.title) == old_title
+                assert not old_feedback.is_attached
+                count = len(calls)
+                chat.message_history.refresh_notifications()
+                assert len(calls) == count
         await asyncio.get_running_loop().shutdown_default_executor()
         print("PASS: mounted IRC/Markdown, expanded details, live states without new messages, priority, batch/off-thread/visible bounds, errors/recovery, hidden/inflight guards, native Ready override, no fabricated ACP turn")
 

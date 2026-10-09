@@ -8,17 +8,17 @@ from agent_comms.messages import Message
 from textual.geometry import Region
 from textual.widget import Widget
 
-from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
+from toad.widgets.irc_message import WireMessageRow
 
 
 @dataclass(frozen=True)
 class MessageViewport(ABC):
-    history: Sequence[tuple[Message, Widget]]
+    history: Sequence[tuple[Message, WireMessageRow]]
     geometry: Mapping[Widget, tuple[Region, Region]]
     viewport: Region
 
     @abstractmethod
-    def painted_widget(self, widget: Widget) -> Widget | None: ...
+    def painted_widget(self, widget: WireMessageRow) -> Widget | None: ...
 
     def visible_rows(self) -> tuple[tuple[Message, Widget], ...]:
         rows = []
@@ -35,14 +35,10 @@ class MessageViewport(ABC):
 
 
 class AcknowledgementViewport(MessageViewport):
-    def painted_widget(self, widget: Widget) -> Widget:
-        if isinstance(widget, (IRCMessage, WireMarkdownMessage)):
-            return widget.read_ack_widget()
-        return widget
+    def painted_widget(self, widget: WireMessageRow) -> Widget:
+        return widget.read_ack_widget()
 
 
 class NotificationViewport(MessageViewport):
-    def painted_widget(self, widget: Widget) -> Widget | None:
-        if isinstance(widget, (IRCMessage, WireMarkdownMessage)) and widget.is_attached:
-            return widget
-        return None
+    def painted_widget(self, widget: WireMessageRow) -> Widget | None:
+        return widget.notification_widget()

@@ -1,3 +1,4 @@
+from abc import ABC, ABCMeta, abstractmethod
 from toad.block_navigation import ConversationBlock
 """Compact wire messages with keyboard- and pointer-accessible routing names."""
 
@@ -52,13 +53,55 @@ class ThreadLink(Static, can_focus=True):
             self.action_open_target()
 
 
-class MembershipNotice(ConversationBlock, Static):
+class _WireRowMeta(ABCMeta, type(Widget)):
+    """Compose abstract row contracts with Textual's existing message pump."""
+
+
+class WireMessageRow(ConversationBlock, ABC, metaclass=_WireRowMeta):
+    """A mounted wire row declares its paint and optional feedback surfaces."""
+
+    @abstractmethod
+    def read_ack_widget(self) -> Widget: ...
+
+    def notification_widget(self) -> MessageNotifications | None:
+        return None
+
+    def publish_notifications(self, notifications, error) -> None:
+        feedback = self.notification_widget()
+        if feedback is None:
+            return
+        if error is not None:
+            feedback.show_error(error)
+        else:
+            feedback.show_result(notifications)
+
+
+class NotifiedMessageRow(WireMessageRow):
+    """Message bodies share one original-message feedback child."""
+
+    def __init__(self, message: Message, *, direction: str = "Inbound"):
+        super().__init__()
+        self.message = message
+        self.direction = (
+            f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
+            if isinstance(message, HistoricalMessage) else direction
+        )
+        self.source = message.body
+
+    def notification_widget(self) -> MessageNotifications | None:
+        return self.query_one_optional(MessageNotifications)
+
+
+class MembershipNotice(WireMessageRow, Static):
     DEFAULT_CLASSES = "block"
     DEFAULT_CSS = "MembershipNotice { height: auto; color: $text-muted; margin: 0; }"
 
     def __init__(self, message: Message):
         super().__init__("— " + message.body, markup=False)
         self.message = message
+
+    def read_ack_widget(self) -> Widget:
+        return self
 
     def get_clipboard_text(self) -> str:
         return self.message.body
@@ -74,7 +117,7 @@ class IRCMessageText(Static):
         self.app.open_url(url)
 
 
-class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
+class IRCMessage(NotifiedMessageRow, VerticalGroup, can_focus=True):
     BINDINGS = [
         ("enter", "open_sender", "Open sender"),
         ("shift+enter", "open_destination", "Open destination"),
@@ -86,15 +129,6 @@ class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
         IRCMessageText { width: 1fr; height: auto; text-wrap: wrap; }
     }
     """
-
-    def __init__(self, message: Message, *, direction: str = "Inbound"):
-        super().__init__()
-        self.message = message
-        self.direction = (
-            f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
-            if isinstance(message, HistoricalMessage) else direction
-        )
-        self.source = message.body
 
     def compose(self) -> ComposeResult:
         message = self.message
@@ -143,17 +177,8 @@ class IRCMessage(ConversationBlock, VerticalGroup, can_focus=True):
         return f"{self.message.sender} → {self.message.target}: {self.message.body}"
 
 
-class WireMarkdownMessage(ConversationBlock, VerticalGroup):
+class WireMarkdownMessage(NotifiedMessageRow, VerticalGroup):
     DEFAULT_CLASSES = "block"
-
-    def __init__(self, message: Message, *, direction: str = "Inbound"):
-        super().__init__()
-        self.message = message
-        self.direction = (
-            f"History · {message.source.original_root} · @{message.sender} incarnation {message.sender_created_at}"
-            if isinstance(message, HistoricalMessage) else direction
-        )
-        self.source = message.body
 
     def compose(self) -> ComposeResult:
         from toad.widgets.agent_response import AgentResponse

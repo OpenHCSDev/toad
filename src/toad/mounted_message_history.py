@@ -3,15 +3,17 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from pathlib import Path
+from functools import partial
+from textual.worker import Worker
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message as WireMessage
 from textual import containers
 from textual.widget import Widget
-from toad.message_viewport import AcknowledgementViewport
+from toad.message_viewport import AcknowledgementViewport, NotificationViewport
 from toad.channel_preparation import HistoryReadRequest, HistoryReadResult
 from toad.screens.session_view import SessionView
-from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage
+from toad.widgets.irc_message import IRCMessage, WireMarkdownMessage, WireMessageRow
 
 HISTORY_PAGE_SIZE = 40
 INITIAL_HISTORY_PAGE_SIZE = 8
@@ -50,7 +52,7 @@ class MountedMessageHistory:
     """Own the real row window, asynchronous page publication and its paint witnesses."""
     def __init__(self, view):
         self.view = view
-        self.rows: list[tuple[WireMessage, Widget]] = []
+        self.rows: list[tuple[WireMessage, WireMessageRow]] = []
         self.has_older = False
         self.has_newer = False
         self.initialized = False
@@ -66,6 +68,7 @@ class MountedMessageHistory:
         self.historical_receipts = {}
         self.ack_inflight = False
         self.style = IrcMessageStyle()
+        self.notification_worker: Worker | None = None
 
     @property
     def attached(self):
@@ -73,12 +76,16 @@ class MountedMessageHistory:
 
     @property
     def current(self):
-        return self.attached and self.view.query_ancestor(SessionView).is_current
+        return (self.attached and self.view.screen is self.view.app.screen
+                and self.view.query_ancestor(SessionView).is_current)
 
     def block(self, message):
         return self.view.message_block(message)
 
     def retire(self):
+        self.service = None
+        if self.notification_worker is not None:
+            self.notification_worker.cancel()
         self.tail_receipt = None
         self.channel_receipts.clear()
         self.historical_receipts.clear()
@@ -344,6 +351,48 @@ class MountedMessageHistory:
         return follow
 
 
+    def notification_rows(self):
+        if not self.current:
+            return ()
+        return self.viewport(NotificationViewport).visible_rows()
+
+    def refresh_notifications(self) -> None:
+        """One Textual-owned batch for feedback actually painted in this source."""
+        if not self.current or self.service is None:
+            return
+        if self.notification_worker is not None:
+            if self.notification_worker.is_finished:
+                self.notification_worker = None
+            else:
+                return
+        rows = self.notification_rows()
+        if rows:
+            self.notification_worker = self.view.run_worker(
+                partial(self.read_notifications, rows), group="comms-notifications"
+            )
+
+    async def read_notifications(self, rows) -> None:
+        from toad.comms_root import root_is_current
+
+        if not self.current:
+            return
+        comms = self.service
+        if comms is None or not root_is_current(comms.root):
+            return
+        error = None
+        try:
+            results = await asyncio.to_thread(
+                comms.views.message_notifications, tuple(message for message, _ in rows)
+            )
+        except Exception as failure:
+            error, results = failure, {}
+        if not self.current or self.service is not comms or not root_is_current(comms.root):
+            return
+        visible = {widget for _, widget in self.notification_rows()}
+        for message, widget in rows:
+            if widget in visible:
+                widget.publish_notifications(results.get((message.seq, message.message_id), ()), error)
+
     def mark_visible(self) -> None:
         if self.ack_inflight or not self.attached:
             return
@@ -403,6 +452,8 @@ class MountedMessageHistory:
             project = str(self.view.project_path)
             target = self.view.target
             await self.view.conversation_kind.mark_painted(comms, target, project, page)
+            if self.service is not comms:
+                return
             if self.tail_receipt is page or self.tail_receipt is original_page:
                 self.tail_receipt = None
             if original_page is not None:
@@ -410,9 +461,11 @@ class MountedMessageHistory:
                     if self.channel_receipts.get(message.seq) is original_page:
                         del self.channel_receipts[message.seq]
         except ValueError:
+            if self.service is not comms:
+                return
             # The peer, viewer, channel scope, or bus changed after page
             # fetch. Discard mounted history and fetch the current projection.
-            if self.attached:
+            if self.attached and self.service is comms:
                 async with self.lock:
                     await self.view.contents.remove_children(widget for _, widget in self.rows)
                     self.rows.clear()
