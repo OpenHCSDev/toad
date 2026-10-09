@@ -174,6 +174,13 @@ class TranscriptFragment:
         return (() if self.prepared_source is None else self.prepared_source.resolved_sources()) + (
             () if self.prepared_content is None else self.prepared_content.resolved_sources())
 
+    async def prepare(self, renderer, ansi, dark):
+        # These are the source suppliers that reconstruction actually uses.
+        # Undisclosed metadata/tool sources have no eager Markdown supply.
+        source = self.prepared_source or self.prepared_content or self.markdown_part
+        if source is not None:
+            await source.prepare(renderer, ansi, dark)
+
     def independent(self) -> "TranscriptFragment":
         """A separate projection owns independently resolved source lifetimes."""
         return self._independent(prepared_source=None, prepared_content=None)
@@ -237,6 +244,10 @@ class ContextTranscriptFragment(TranscriptFragment):
 
     formatted: str | None = field(default=None, compare=False, repr=False)
     original_content: PreparedContentRange | None = field(default=None, compare=False, repr=False)
+
+    async def prepare(self, renderer, ansi, dark):
+        # Returning a retained disclosure does not open either of its sources.
+        return
 
     def blocks(self, *, fragment=False, show_divider=True):
         from toad.widgets.coordination_context import CoordinationContext
@@ -319,7 +330,7 @@ def transcript_fragments(
     return tuple(consumer.fragments)
 
 
-class TranscriptBodyPreparation(MroDispatch):
+class TranscriptBodyPreparation:
     """Pure body work for declared transcript cases, without native widgets."""
 
     def __init__(self, renderer, ansi: bool, dark: bool, *, selected=None):
@@ -335,23 +346,9 @@ class TranscriptBodyPreparation(MroDispatch):
         for first in range(0, len(fragments), batch_size):
             if not keep_going():
                 return
-            await asyncio.gather(*(self.dispatch(event, fragment.markdown_part)
+            await asyncio.gather(*(fragment.prepare(self.renderer, self.ansi, self.dark)
                                    for fragment in fragments[first:first + batch_size]
-                                   if self.selected is None or keep_events(fragment.events, self.selected)
-                                   for event in fragment.events))
-
-    @handles(TranscriptEvent)
-    async def undisclosed(self, event: TranscriptEvent, part: PreparedMarkdownPart | None) -> None:
-        # Metadata and tool disclosure contents retain their existing lazy
-        # owners. A viewport prediction does not open those disclosures.
-        pass
-
-    @handles(UserTranscript, MarkdownTranscript)
-    async def markdown(self, event: TextTranscript, part: PreparedMarkdownPart | None) -> None:
-        from toad.render_tasks import MarkdownRenderTask
-
-        await self.renderer.prepare(MarkdownRenderTask(part if part is not None else event.text,
-                                                      self.ansi, self.dark))
+                                   if self.selected is None or keep_events(fragment.events, self.selected)))
 
 
 @dataclass(frozen=True)

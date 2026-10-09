@@ -20,7 +20,7 @@ from toad.widgets.presentation_window import protected_presentations
 if TYPE_CHECKING:
     from textual.document._markdown import MarkdownSourceBlock
     from toad.widgets.tool_call import ToolCall
-    from toad.widgets.transcript_history import TranscriptPageAdmission
+    from toad.transcript_preparation import TranscriptPageAdmission
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
 

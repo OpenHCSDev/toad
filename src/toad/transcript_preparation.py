@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass, field, replace
+from weakref import ReferenceType, ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
@@ -37,6 +38,41 @@ class PreparedTranscriptPage(PreparedContentRange):
     admission: tuple[int, int] | None = None
     batch_size: int = field(default=PreparedContentRange.BATCH, kw_only=True)
     admitted: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
+    generation: int = field(default=0, init=False, compare=False, repr=False)
+
+    # This page already owns prepared inputs. Markdown request acquisition is
+    # a different lifetime; pages share only the admission implementation.
+    input_ready = True
+
+    def capture_admission(self) -> TranscriptPageAdmission:
+        return TranscriptPageAdmission(ref(self), self.generation, self.start, self.stop,
+                                       self.resources(slice(self.start, self.stop)))
+
+    def restore_admission(self, admission: TranscriptPageAdmission) -> None:
+        if admission.page() is not self:
+            return
+        if admission.generation == self.generation:
+            selected = slice(admission.start, admission.stop)
+        else:
+            # A preserved native member is the same source owner after a tail
+            # publication. Its position may move; cursor/data equality cannot
+            # establish that relation for a replaced or repartitioned member.
+            positions = [index for index in range(self.start, self.stop)
+                         if any(self.acquired(index) is member for member in admission.members)]
+            if not positions:
+                return
+            selected = slice(positions[0], positions[-1] + 1)
+        self.select_admission(selected)
+
+    def publish_fragments(self, fragments):
+        if fragments is not self.fragments:
+            self.fragments = fragments
+            self.generation += 1
+            self.retained_bytes = 0
+
+    @property
+    def retained_source_bytes(self):
+        return self.retained_bytes
 
     def admit(self) -> PreparedTranscriptPage:
         """An independent view owns admission and resolved source acquisitions.
@@ -46,6 +82,29 @@ class PreparedTranscriptPage(PreparedContentRange):
         """
         return replace(self, fragments=tuple(fragment.independent() for fragment in self.fragments),
                        admission=None, admitted=())
+
+
+@dataclass(frozen=True, eq=False)
+class TranscriptPageAdmission:
+    """Reading demand borrows this actual page's input publication.
+
+    Reader intent retains its bounded original members, never the whole page.
+    A new input publication revokes its indices; another projection never owns
+    them merely because its backend interval happens to be equal.
+    """
+
+    page: ReferenceType[PreparedTranscriptPage] = field(repr=False)
+    generation: int
+    start: int
+    stop: int
+    members: tuple[TranscriptFragment, ...] = field(repr=False)
+
+    def __eq__(self, other):
+        if not isinstance(other, TranscriptPageAdmission):
+            return NotImplemented
+        return ((page := self.page()) is not None and page is other.page()
+                and self.generation == other.generation
+                and self.start == other.start and self.stop == other.stop)
 
 
 @dataclass(frozen=True)

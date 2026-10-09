@@ -11,7 +11,7 @@ from textual.style import Style
 
 from toad.render_backend import ReusableRenderTask
 
-from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart, prepare_tokens
+from toad.markdown_preparation import PreparedContentRange, PreparedMarkdown, PreparedMarkdownPart, prepare_tokens
 from toad.rich_preparation import (
     PreparedRichContent,
     RichPresentation,
@@ -124,22 +124,30 @@ class MarkdownRenderTask(MarkdownSourcePreparation, ReusableRenderTask[PreparedM
 
 
 @dataclass(frozen=True)
-class MarkdownPartsTask(MarkdownSourcePreparation, ReusableRenderTask[tuple[PreparedMarkdownPart, ...]]):
+class MarkdownPartsTask(MarkdownSourcePreparation, ReusableRenderTask[PreparedContentRange]):
     """Partition one original message with the shared Markdown block budget."""
 
     source: str | PreparedMarkdownPart
 
-    def execute(self) -> tuple[PreparedMarkdownPart, ...]:
+    def execute(self) -> PreparedContentRange:
         from toad.widgets.transcript_fragments import RenderBudget
+        from toad.work_preparation import retained_bytes
 
-        part = self.acquire_source()
-        parts = tuple(RenderBudget().split(part))
+        source = self.acquire_source()
+        parts = tuple(RenderBudget().split(source))
         for part in parts:
             part.retained_bytes
-        return parts
+        # Keep the actual complete syntax acquisition, including empty source.
+        # Partitioning and final rendering consume descendants of this result.
+        result = PreparedContentRange(parts, source=source)
+        seen = set()
+        result.fragment_bytes = retained_bytes(parts, seen=seen)
+        result.source_bytes = retained_bytes(source, seen=seen)
+        return result
 
-    def accept_result(self, result: object) -> tuple[PreparedMarkdownPart, ...]:
-        if not isinstance(result, tuple) or not all(isinstance(part, PreparedMarkdownPart) for part in result):
+    def accept_result(self, result: object) -> PreparedContentRange:
+        if (not isinstance(result, PreparedContentRange) or not result.input_ready
+                or not all(isinstance(part, PreparedMarkdownPart) for part in result.fragments)):
             raise TypeError("Markdown renderer returned invalid source parts")
         return result
 
