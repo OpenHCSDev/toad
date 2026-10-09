@@ -159,3 +159,23 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
         if not isinstance(result, PreparedLines) or result.width != self.width:
             raise TypeError("Transcript line renderer returned rows for a different width")
         return result
+
+
+@dataclass(frozen=True)
+class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[PreparedLines, ...]]):
+    """Render several fragments' lines in one worker round trip.
+
+    History lookahead prepares fragments in batches; one task per fragment
+    cost a task, a process round trip and worker-thread hops each, flooding
+    the UI loop with callbacks while scrolling.
+    """
+
+    items: tuple[TranscriptLinesRenderTask, ...]
+
+    def execute(self) -> tuple[PreparedLines, ...]:
+        return tuple(item.execute() for item in self.items)
+
+    def accept_result(self, result: object) -> tuple[PreparedLines, ...]:
+        if not isinstance(result, tuple) or len(result) != len(self.items):
+            raise TypeError("Transcript batch renderer returned a different number of fragments")
+        return tuple(item.accept_result(lines) for item, lines in zip(self.items, result))
