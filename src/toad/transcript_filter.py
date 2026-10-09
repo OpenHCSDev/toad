@@ -122,7 +122,7 @@ class SeekingFilter(NoFilter):
             projection = ProjectedTranscriptHistory(owner, source, prepared)
             page = projection.pages[0]
             await projection.prepare_fragments(
-                page.fragments[page.extension_slice(False)], lambda: snapshot.current(owner),
+                page.fragments[page.prepared.extension_slice(False)], lambda: snapshot.current(owner),
             )
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):

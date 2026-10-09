@@ -1,12 +1,14 @@
 """Process-safe conversation parsing and code-fence highlighting data."""
 
 from contextlib import ExitStack
+import asyncio
 from copy import deepcopy
 from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field
 from functools import cached_property
 from hashlib import sha256
 import pickle
+from sys import getsizeof
 from typing import TYPE_CHECKING
 
 from markdown_it.token import Token
@@ -225,15 +227,70 @@ class PreparedContentRange:
 
     BATCH = 4
 
-    def __init__(self, fragments=(), *, newest: bool = True, batch_size: int = BATCH):
+    def __init__(self, fragments=(), *, source: PreparedMarkdownPart | None = None,
+                 newest: bool = True, batch_size: int = BATCH):
         if type(batch_size) is not int or batch_size < 1:
             raise ValueError("batch_size must be a positive integer")
         self.batch_size = batch_size
         self.admission = None
         self.admitted = ()
         self.fragments = fragments
+        # A string is an accepted request awaiting syntax; a part is the
+        # original acquired syntax that produced this range. Old partitions
+        # may remain during append, but cannot certify the pending request.
+        self.source: str | PreparedMarkdownPart | None = source
+        self.generation = 0
+        self.fragment_bytes = 0
+        self.source_bytes = 0
         selected = self.initial_slice(fragments, batch_size, newest)
         self.start, self.stop = selected.start, selected.stop
+
+    @property
+    def requested_text(self) -> str:
+        source = self.source
+        return source.text if isinstance(source, PreparedMarkdownPart) else source or ""
+
+    @property
+    def input_ready(self) -> bool:
+        return isinstance(self.source, PreparedMarkdownPart)
+
+    def request_text(self, text: str) -> None:
+        if self.source is None or text != self.requested_text:
+            self.source = text
+            self.source_bytes = getsizeof(text)
+            self.generation += 1
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return self.fragment_bytes + self.source_bytes
+
+    def capture_admission(self):
+        return self, self.generation, self.start, self.stop
+
+    def publish_fragments(self, fragments):
+        self.fragments = fragments
+
+    def resources(self, selected: slice):
+        return tuple(self.fragments[index] if (source := self.acquired(index)) is None else source
+                     for index in range(selected.start, selected.stop))
+
+    async def prepare(self, renderer, ansi, dark, *, selected=None, current=lambda: True,
+                      previous=None):
+        """Prepare actual suppliers; resolved documents need no syntax warm-up."""
+        if not self.input_ready:
+            return current()
+        selected = slice(self.start, self.stop) if selected is None else selected
+        if previous is not None:
+            self.select_admission(selected)
+            self.admitted = tuple(previous.acquired(index, syntax=self.fragments[index])
+                                  for index in range(selected.start, selected.stop))
+        resources = self.resources(selected)
+        for first in range(0, len(resources), self.batch_size):
+            if not current():
+                return False
+            await asyncio.gather(*(resource.prepare(renderer, ansi, dark)
+                                   for resource in resources[first:first + self.batch_size]))
+        return current()
 
     @property
     def start(self):
@@ -261,12 +318,22 @@ class PreparedContentRange:
         return tuple(source for resource in self.admitted if resource is not None
                      for source in resource.resolved_sources())
 
-    def acquired(self, index):
+    def acquired(self, index, *, syntax=None):
         if not self.start <= index < self.stop or not self.admitted:
             return None
         if len(self.admitted) != self.stop - self.start:
             raise RuntimeError("Retained source suppliers do not cover their admission")
-        return self.admitted[index - self.start]
+        source = self.admitted[index - self.start]
+        return source if source is None or syntax is None or source.syntax == syntax else None
+
+    def revoke_source(self, index):
+        """A replacement part cannot borrow its predecessor's acquisition."""
+        source = self.acquired(index)
+        if source is not None:
+            admitted = list(self.admitted)
+            admitted[index - self.start] = None
+            self.admitted = tuple(admitted)
+            source.release_source()
 
     def select_admission(self, selected: slice) -> None:
         """Move demand within this source, retaining its actual common members.
@@ -283,13 +350,11 @@ class PreparedContentRange:
         self.admission = selected.start, selected.stop
         self.admitted = admitted
 
-    def independent(self):
-        source = PreparedContentRange(tuple(fragment.independent() for fragment in self.fragments),
-                                      batch_size=self.batch_size)
-        source.admission = self.admission
-        return source
-
     def retain_sources(self, view):
+        if not self.input_ready and not self.fragments:
+            # A replacement request has no acquired source members yet. Native
+            # predecessor controls belong to its preceding paint, not to it.
+            return
         fragments = self.fragments[self.start:self.stop]
         if len(fragments) != len(view.fragment_views):
             raise RuntimeError("Admitted source range lost native members before transfer")
@@ -334,7 +399,7 @@ class PreparedContentRange:
             prefix=prefix,
         )
 
-    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=()) -> bool:
+    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(), acquired=None) -> bool:
         """Publish ordered native parts inside their owner's source custody."""
         ordered = []
         added = []
@@ -361,8 +426,12 @@ class PreparedContentRange:
                         return False
             if not current():
                 return False
-            self.fragments, view._fragment_views = fragments, tuple(ordered)
+            self.publish_fragments(fragments)
+            view._fragment_views = tuple(ordered)
             self.start, self.stop = selected.start, selected.stop
+            if acquired is not None:
+                self.source = acquired.source
+                self.fragment_bytes, self.source_bytes = acquired.fragment_bytes, acquired.source_bytes
             self.retain_sources(view)
             desired = (*prefix, *ordered)
             if tuple(view.children) != desired:

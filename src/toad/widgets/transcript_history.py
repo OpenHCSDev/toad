@@ -8,7 +8,7 @@ from toad.widgets.message_filter import OtherCategory
 import asyncio
 from collections import deque
 from contextlib import ExitStack, asynccontextmanager
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from functools import partial
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
@@ -32,7 +32,7 @@ from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from toad.transcript_preparation import (
-    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageBuffer,
+    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageAdmission, TranscriptPageBuffer,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -231,17 +231,11 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
                      (len(self.children) == 2 and isinstance(self.children[0], AgentActivityDivider)))):
             leaf = self.children[-1]
             if isinstance(leaf, (AgentResponse, AgentThought)):
-                await leaf.update(new_events[0].text)
+                if fragment.markdown_part is None:
+                    raise RuntimeError("Transcript Markdown update has no acquired syntax")
+                await leaf.update_part(fragment.markdown_part)
                 return
         await self.recompose()
-
-@dataclass(frozen=True)
-class TranscriptPageAdmission:
-    """A measured page's admitted range, without retaining its rich widgets."""
-
-    interval: CommittedInterval
-    start: int
-    stop: int
 
 class TranscriptPageView(VerticalGroup):
     CACHE_SUBTREE_GEOMETRY = True
@@ -271,12 +265,6 @@ class TranscriptPageView(VerticalGroup):
     @property
     def fragments(self) -> tuple[TranscriptFragment, ...]:
         return self.prepared.fragments
-
-    @fragments.setter
-    def fragments(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        if self.prepared.fragments is not fragments:
-            self.prepared.fragments = fragments
-            self.prepared.retained_bytes = 0
 
     @property
     def start(self) -> int:
@@ -354,21 +342,12 @@ class TranscriptPageView(VerticalGroup):
             acquisition.pop_all()
 
     def capture_admission(self) -> TranscriptPageAdmission:
-        return TranscriptPageAdmission(
-            CommittedInterval(self.page.before, self.page.after), self.start, self.stop,
-        )
+        return self.prepared.capture_admission()
 
     def retain_sources(self) -> None:
         """Only the original admitted source range survives native disposal."""
         self.prepared.retain_sources(self)
         self.prepared.retained_bytes = 0
-
-    def restore_admission(self, admission: TranscriptPageAdmission) -> None:
-        # Positions refer to this immutable native interval, not to whatever
-        # newer snapshot happened to be published during an inactive turn.
-        if admission.interval != CommittedInterval(self.page.before, self.page.after):
-            return
-        self.prepared.select_admission(slice(admission.start, admission.stop))
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected
@@ -500,7 +479,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         if (projection := self.filter.state.overlay) is not None:
             await projection.prepare_body(current)
         for page in self.pages:
-            await self.prepare_fragments(page.fragments[page.start:page.stop], current, selected=selected)
+            await self.prepare_fragments(page.prepared.resources(slice(page.start, page.stop)),
+                                         current, selected=selected)
 
     @property
     def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
@@ -519,12 +499,12 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
         """Retain the original source ranges that a returning reader needs."""
-        return tuple(page.capture_admission() for page in self.pages)
+        return tuple(page.prepared.capture_admission() for page in self.pages)
 
     def restore_reader_admissions(self, admissions) -> None:
         for page in self.pages:
             for admission in admissions:
-                page.restore_admission(admission)
+                page.prepared.restore_admission(admission)
 
     def projection_changed(self) -> None:
         self.filter.changed()
@@ -718,11 +698,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     and generation == self._generation and self.pages[0] is view
                     and (is_current is None or is_current()))
 
-        # Preparation is detached. If reader intent changes while it runs,
-        # prepare the newly selected range before borrowing the native fence.
+        # The source producer already supplied syntax. Existing body writers
+        # prepare changed members; unchanged acquired documents need no eager
+        # render request from a fresh copy of their event inputs.
         while current():
             selected = view.prepared.update_slice(fragments, window.follows_tail)
-            await self.prepare_fragments(fragments[selected], current)
             async with window.history_lock:
                 if not current():
                     return
@@ -862,7 +842,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             if not snapshot.current(self) or not request.current(window):
                 return False
             view = self.pages[-1]
-        if view.capture_admission().interval == CommittedInterval(page.before, page.after):
+        if CommittedInterval(view.page.before, view.page.after) == CommittedInterval(page.before, page.after):
             # End changes the original admission, without locking the window
             # around pending body writers or replacing their paint resources.
             view.batch_size = destination_admission
@@ -875,7 +855,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 return False
             async with window.preserve_history(None, root=self):
                 previous = tuple(self.pages)
-                if view.capture_admission().interval == CommittedInterval(page.before, page.after):
+                if CommittedInterval(view.page.before, view.page.after) == CommittedInterval(page.before, page.after):
                     self.pages = deque([view])
                 else:
                     try:
