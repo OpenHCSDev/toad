@@ -854,25 +854,27 @@ class PreparedDocumentBody(BodyMeasurement):
         return text, "\n"
 
     def style_updated(self, body):
-        if self.paint_ready(body):
+        width = body._body_measurement.width + body.styles.gutter.width
+        if width == self.paint.width and self.paint_ready(body):
             return self
-        if self.paint.document is body.document:
+        document = body.document
+        if document is not None and self.paint.document.same_source(document):
             # Membership publication can rematch the host's :empty rules.
             # The worker already resolved those same source-dependent rules.
             # Reuse only after full acquired input equality, never by copying
             # the new participant's invalidation counter onto old pixels.
-            document = body.document.with_presentation(body)
+            document = document.with_presentation(body)
             selection = body.text_selection
             if self.paint.matches(
-                document, self.paint.width, root_selection=selection,
+                document, width, root_selection=selection,
                 selection_style=Visual.selection_style(body) if selection is not None else None,
                 selecting=body.screen._selecting,
             ):
                 body.document = document
-                return replace(self, paint=self.paint.with_presentation(
+                return PreparedDocumentBody(self.paint.with_presentation(
                     document, root_selection=self.paint.root_selection,
                     selection_style=self.paint.selection_style, selecting=self.paint.selecting,
-                ))
+                ), self.resource_bytes, self.source_resource)
         return self.invalidated()
 
     def invalidated(self, width=None):
@@ -890,7 +892,6 @@ class PreparedDocumentBody(BodyMeasurement):
 
     async def restore(self, body):
         if not self.ready(body):
-            body.invalidate_body()
             await body.materialize_body()
 
 
@@ -912,9 +913,6 @@ class PendingDocumentBody(PreparedDocumentBody):
 
     def invalidated(self, width=None):
         return self if width is None or width == self.width else replace(self, requested_width=width)
-
-    def style_updated(self, body):
-        return self
 
     def render(self, body, crop, render_live):
         return render_live(crop)
