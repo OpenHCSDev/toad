@@ -528,26 +528,34 @@ class HistoryWindow(VerticalScroll):
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None, *, root: Widget | None = None):
         """Fence a native source mutation inside its reader layout lifetime."""
+        screen = self.screen
         async with AsyncExitStack() as reader:
-            async with self.lock:
-                # Acquire the native mutation before borrowing an outstanding
-                # anchor. Its owner cannot finish layout while this mutation
-                # holds the tree fence. Release that fence before compensation.
-                previous = self._history_mutation_root
-                mutation = self if root is None else root
-                if mutation is not self and self not in mutation.ancestors:
-                    raise ValueError("History mutation must belong to its window")
-                if previous is not None:
-                    if previous is mutation or previous in mutation.ancestors:
-                        mutation = previous
-                    elif mutation not in previous.ancestors:
-                        mutation = Widget.get_common_ancestor(previous, mutation)
-                self._history_mutation_root = mutation
-                try:
-                    await reader.enter_async_context(self.preserve_reader(widget))
-                    yield
-                finally:
-                    self._history_mutation_root = previous
+            try:
+                async with self.lock:
+                    # Acquire the native mutation before borrowing an outstanding
+                    # anchor. Its owner cannot finish layout while this mutation
+                    # holds the tree fence. Release that fence before compensation.
+                    previous = self._history_mutation_root
+                    mutation = self if root is None else root
+                    if mutation is not self and self not in mutation.ancestors:
+                        raise ValueError("History mutation must belong to its window")
+                    if previous is not None:
+                        if previous is mutation or previous in mutation.ancestors:
+                            mutation = previous
+                        elif mutation not in previous.ancestors:
+                            mutation = Widget.get_common_ancestor(previous, mutation)
+                    self._history_mutation_root = mutation
+                    try:
+                        await reader.enter_async_context(self.preserve_reader(widget))
+                        yield
+                    finally:
+                        self._history_mutation_root = previous
+            finally:
+                # Held layout requests become actionable only after the actual
+                # outer native lock releases. Wake their original Screen before
+                # the reader scope can wait for that compensated layout.
+                if not self.lock.is_locked:
+                    screen.check_idle()
 
     @asynccontextmanager
     async def preserve_reader(self, widget: Widget | None):
