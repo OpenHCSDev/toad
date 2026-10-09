@@ -25,14 +25,14 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import TranscriptFragment
 
 
-class WindowRestoration(ABC):
+class WindowPosition(ABC):
     """Apply an owned layout intent without recording another user scroll."""
 
     def required_bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
         """The original intent supplies its preparation and placement roots."""
         return ()
 
-    def before_layout(self, window: "HistoryWindow") -> "WindowRestoration":
+    def before_layout(self, window: "HistoryWindow") -> "WindowPosition":
         return self
 
     def current(self, window: "HistoryWindow") -> bool:
@@ -75,7 +75,45 @@ class WindowRestoration(ABC):
     def _restore(self, window: "HistoryWindow") -> bool: ...
 
 
-class ReaderPosition(WindowRestoration):
+@dataclass(eq=False)
+class WindowRestoration:
+    """An acquired compensation lifetime, with or without a reading position."""
+
+    position: WindowPosition | None
+    layout_ready: asyncio.Event = field(default_factory=asyncio.Event, init=False, repr=False)
+
+    def required_bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+        return () if self.position is None else self.position.required_bodies(window)
+
+    def prepare_layout(self, window: "HistoryWindow") -> WindowPosition | None:
+        position = self.position
+        if position is not None and all(body.is_attached for body in position.required_bodies(window)):
+            self.position = position.before_layout(window)
+            return self.position
+        return None
+
+    def restore_layout(self, window: "HistoryWindow", position: WindowPosition) -> bool:
+        previous = window.scroll_y
+        position.restore(window)
+        # A held layout can clamp scroll before publishing the new source
+        # position. Keep the actual intent until this acquisition ends.
+        self.position = position
+        return window.scroll_y != previous
+
+    def request_layout(self, window: "HistoryWindow") -> None:
+        # Layouts during the mutation do not complete its final compensation.
+        # Arm the same acquired event before making that layout actionable.
+        self.layout_ready.clear()
+        window.refresh(layout=True)
+
+    def finish_layout(self) -> None:
+        self.layout_ready.set()
+
+    async def wait(self) -> None:
+        await self.layout_ready.wait()
+
+
+class ReaderPosition(WindowPosition):
     """Source-owned reader intent, independent of retired widget geometry."""
 
     admissions: tuple["TranscriptPageAdmission", ...] = ()
@@ -292,8 +330,7 @@ class HistoryWindow(VerticalScroll):
     CACHE_SUBTREE_GEOMETRY = True
     scroll_revision = 0
     _restoring = False
-    history_anchor: WindowRestoration | None = None
-    history_layout_ready: asyncio.Event | None = None
+    history_restoration: WindowRestoration | None = None
     _history_mutation_root: Widget | None = None
 
     def action_scroll_end(self) -> None:
@@ -307,15 +344,6 @@ class HistoryWindow(VerticalScroll):
             if history.has_newer:
                 history.request_latest()
 
-    def prepare_history_layout(self) -> WindowRestoration | None:
-        anchor = self.history_anchor
-        if anchor is None:
-            return None
-        if all(body.is_attached for body in anchor.required_bodies(self)):
-            self.history_anchor = anchor.before_layout(self)
-            return self.history_anchor
-        return None
-
     @property
     def pending_reader_position(self) -> ReaderPosition | None:
         """A source-owning window lends its actual pending restoration."""
@@ -327,27 +355,15 @@ class HistoryWindow(VerticalScroll):
         return () if position is None else position.required_bodies(self)
 
     def history_geometry_targets(self) -> tuple[Widget, ...]:
-        anchor = self.history_anchor
+        restoration = self.history_restoration
         return tuple(dict.fromkeys((*self.reader_bodies,
-                                    *(anchor.required_bodies(self) if anchor is not None else ()))))
-
-    def restore_history_layout(self, position: WindowRestoration) -> bool:
-        previous = self.scroll_y
-        position.restore(self)
-        # A held layout can clamp scroll before publishing the new source
-        # position. That clamp is not a new reader intent. Keep the acquired
-        # source/reader relation until this transaction finishes.
-        self.history_anchor = position
-        return self.scroll_y != previous
-
-    def finish_history_layout(self) -> None:
-        if self.history_layout_ready is not None:
-            self.history_layout_ready.set()
+                                    *(restoration.required_bodies(self)
+                                      if restoration is not None else ()))))
 
     def retire_presentation_wait(self) -> None:
         """Release a transaction whose scene no longer promises another frame."""
-        if self.history_layout_ready is not None:
-            self.history_layout_ready.set()
+        if (restoration := self.history_restoration) is not None:
+            restoration.finish_layout()
 
     def on_mount(self) -> None:
         self.document_viewport.request_after_refresh()
@@ -427,17 +443,17 @@ class HistoryWindow(VerticalScroll):
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement
         # here, without treating unrelated Screen layouts as reader restoration.
-        with WindowRestoration.geometry(self):
+        with WindowPosition.geometry(self):
             changed = super()._size_updated(size, virtual_size, container_size, layout)
         if changed:
             self.document_viewport.request()
         return changed
 
     def check_follow(self) -> bool:
-        if self.history_anchor is not None or not self.follows_tail:
+        if self.history_restoration is not None or not self.follows_tail:
             return False
         previous = self.scroll_y
-        with WindowRestoration.geometry(self):
+        with WindowPosition.geometry(self):
             self.scroll_y = self.max_scroll_y
         return previous != self.scroll_y
 
@@ -483,8 +499,8 @@ class HistoryWindow(VerticalScroll):
 
     def reader_anchor(self, fallback: Widget) -> Widget:
         """Extent publication preserves the reader, not the changed paragraph."""
-        if self.history_anchor is not None:
-            roots = self.history_anchor.required_bodies(self)
+        if self.history_restoration is not None:
+            roots = self.history_restoration.required_bodies(self)
             if roots:
                 return roots[0]
         if self.follows_tail:
@@ -564,22 +580,26 @@ class HistoryWindow(VerticalScroll):
         A body worker owns its native mutation. A nested pager may acquire
         history_lock while constructing that body, so the reader lifetime
         cannot hold that lock or the window's native tree lock around it.
-        Nested mutations use this original anchor; they cannot replace or
-        clear the reader's outstanding compensation.
+        Nested mutations borrow the acquired restoration even when it has no
+        position; they cannot replace or release its outstanding compensation.
         """
         from toad.screens.workspace import WorkspaceScreen
 
-        if self.history_anchor is not None:
+        if self.history_restoration is not None:
             yield
             return
         screen = self.screen
         # A returning source already owns its intended point. Capturing the
         # temporary native viewport here creates a competing position which
         # can overwrite that reader after its first placement succeeds.
-        self.history_anchor = self.pending_reader_position
-        if self.history_anchor is None and widget is not None:
-            self.history_anchor = HistoryAnchor.capture(widget, self)
-        if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
+        position = self.pending_reader_position
+        if position is None and widget is not None:
+            position = HistoryAnchor.capture(widget, self)
+        restoration = WindowRestoration(position)
+        self.history_restoration = restoration
+        # Native layout completes the acquisition, not the optional position.
+        # Register before yielding so unanchored mutations have the same join.
+        if isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
         geometry = self._geometry_revision
         try:
@@ -589,24 +609,24 @@ class HistoryWindow(VerticalScroll):
                 # The native source owns invalidation. An unchanged page or
                 # already-live body must not manufacture another reflow.
                 if self._geometry_revision != geometry:
-                    self.refresh(layout=True)
+                    restoration.request_layout(self)
             if self._geometry_revision == geometry:
                 return
             if (widget is not None and widget.is_attached and self.is_attached
                     and screen.is_current and self.document_viewport.accepts_frame()):
                 # A generic after-refresh callback can run before the pending
                 # mount's layout. Wait for an actual compensated reflow first.
-                self.history_layout_ready = asyncio.Event()
-                await self.history_layout_ready.wait()
+                await restoration.wait()
         finally:
-            if isinstance(screen, WorkspaceScreen):
-                screen.viewport_presentation.anchors.discard(self)
-            self.history_anchor = None
-            self.history_layout_ready = None
+            # Only the acquiring scope may release this exact operation.
+            if self.history_restoration is restoration:
+                if isinstance(screen, WorkspaceScreen):
+                    screen.viewport_presentation.anchors.discard(self)
+                self.history_restoration = None
 
 
 @dataclass(frozen=True)
-class HistoryAnchor(WindowRestoration):
+class HistoryAnchor(WindowPosition):
     widget: Widget
     scroll_y: float
     scroll_revision: int
