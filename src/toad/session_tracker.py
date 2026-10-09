@@ -195,14 +195,3 @@ class SessionTracker:
     def __iter__(self) -> Iterable[SessionDetails]:
         return iter(self.ordered_sessions)
 
-    def session_cursor_move(
-        self, mode_name: str, direction: Literal[-1, +1]
-    ) -> str | None:
-        mode_names = [session.mode_name for session in self.ordered_sessions]
-        try:
-            mode_index = mode_names.index(mode_name)
-        except ValueError:
-            return None
-        mode_index = (mode_index + direction) % len(mode_names)
-        new_mode_name = mode_names[mode_index]
-        return new_mode_name

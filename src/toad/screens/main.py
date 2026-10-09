@@ -275,9 +275,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self._content_ready.set()
         await self.presentation.close(self)
 
-    def run_prompt(self, prompt: str) -> None:
-        self.conversation
-
     def on_comms_session_named(self, thread_name: str) -> None:
         """Tell the sidebar which thread is this screen's session."""
         previous = self._comms_thread

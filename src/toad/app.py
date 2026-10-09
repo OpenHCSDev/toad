@@ -264,7 +264,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         project_dir: str | None = None,
         mode: str | None = None,
         agent_session_id: str | None = None,
-        renderer: Renderer | None = None,
     ) -> None:
         """Toad app.
 
@@ -273,14 +272,14 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
             project_dir: Project directory.
             mode: Initial mode.
             agent: Agent identity or shor name.
-            renderer: Optional renderer client; this app owns and closes it.
         """
+        from toad.render_processes import RenderProcessPool
         from toad.work_preparation import PreparationRuntime, PreparedRenderer
 
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
         self.settings = ToadSettings.open(self)
-        self.preparation = PreparationRuntime(self.settings.ui.renderer.start() if renderer is None else renderer)
+        self.preparation = PreparationRuntime(RenderProcessPool())
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
         self._background_render_tasks: set[asyncio.Task[object]] = set()

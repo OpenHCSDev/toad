@@ -43,9 +43,6 @@ class PreparedMarkdownPart:
 
         return cls(text, tuple(parse_markdown_syntax(text)))
 
-    def acquire_tokens(self) -> list[Token]:
-        return deepcopy(list(self.tokens))
-
     @property
     def syntax(self):
         return self
@@ -57,9 +54,6 @@ class PreparedMarkdownPart:
         from toad.render_tasks import MarkdownRenderTask
 
         await renderer.prepare(MarkdownRenderTask(self, ansi, dark))
-
-    def resolved_sources(self):
-        return ()
 
     def independent(self):
         return self
@@ -122,16 +116,5 @@ class PreparedMarkdownPart:
 
         return retained_bytes(self)
 
-
-def prepare_tokens(tokens: list[Token], ansi: bool, dark: bool, *, syntax: PreparedMarkdownPart | None = None) -> PreparedMarkdown:
-    fences: dict[FenceKey, PreparedFence] = {}
-    for token in tokens:
-        if token.type in {"fence", "code_block"}:
-            code = token.content.rstrip()
-            key = (code, token.info, ansi, dark)
-            if key not in fences:
-                content = MarkdownFence.highlight(code, token.info, ansi=ansi, dark=dark)
-                fences[key] = PreparedFence(content)
-    return PreparedMarkdown(tokens, fences, syntax=syntax)
 
 

@@ -48,10 +48,6 @@ class SidebarProjection:
             self.mount()
             self.sync_spinner()
 
-    def pause_spinner(self) -> None:
-        if self.timer is not None:
-            self.timer.pause()
-
     def has_snapshot(self) -> bool:
         return self.snapshot is not None
 

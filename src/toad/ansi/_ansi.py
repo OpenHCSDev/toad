@@ -1460,19 +1460,6 @@ class TerminalState:
         """
         return "\x1b"
 
-    def remove_trailing_blank_lines_from_scrollback(self) -> None:
-        """Remove blank lines at the end of the scrollback buffer.
-
-        A line is blank if it is whitespace with no color or style applied.
-
-        """
-        buffer = self.scrollback_buffer
-        while buffer.lines:
-            last_line_content = buffer.lines[-1].content
-            if last_line_content.spans or last_line_content.plain.rstrip():
-                break
-            buffer.remove_last_line()
-
     def _reflow(self) -> None:
         buffer = self.buffer
         if not buffer.lines:

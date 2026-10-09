@@ -12,7 +12,9 @@ import json
 import os
 import statistics
 import sys
+import threading
 import time
+import traceback
 
 
 def install(*, expected_pid, seconds, output):
@@ -62,6 +64,26 @@ def install(*, expected_pid, seconds, output):
         return refresh_bindings(self)
     app_type = type(app)
     display = app_type._display
+
+    stalls = {}
+    main_thread = threading.get_ident()
+
+    def watch_stalls():
+        # A sampled profile misses a rare long callback; sample the UI
+        # thread's stack while one callback has run past 20 ms.
+        while not state.get("finished"):
+            time.sleep(0.01)
+            begin = state["current"]
+            if begin is None or clock() - begin < 20_000_000:
+                continue
+            frame = sys._current_frames().get(main_thread)
+            if frame is None:
+                continue
+            stack = [f"{f.name} {f.filename.split('/src/')[-1].split('site-packages/')[-1]}:{f.lineno}"
+                     for f in traceback.extract_stack(frame)
+                     if "/src/" in f.filename or "site-packages" in f.filename][-12:]
+            key = " < ".join(reversed(stack))
+            stalls[key] = stalls.get(key, 0) + 1
 
     def timed_run(handle):
         state["current"] = begin = clock()
@@ -143,6 +165,7 @@ def install(*, expected_pid, seconds, output):
                              type(getattr(message, "event", None)).__qualname__))
 
     def finish():
+        state["finished"] = True
         Widget.refresh = refresh
         Screen.refresh_bindings = refresh_bindings
         gc.callbacks.remove(collected)
@@ -158,11 +181,13 @@ def install(*, expected_pid, seconds, output):
                        "frames": frames, "inputs": inputs,
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "binding_refreshes": binding_refreshes,
+                       "stalls": sorted(stalls.items(), key=lambda item: -item[1])[:40],
                        "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
                               "stats": gc.get_stats(), "threshold": gc.get_threshold()}}, file)
         os.rename(partial, output)
 
     gc.callbacks.append(collected)
+    threading.Thread(target=watch_stalls, name="frame-meter-stalls", daemon=True).start()
     Widget.refresh = counted_refresh
     Screen.refresh_bindings = counted_bindings
     loop_events.Handle._run = timed_run

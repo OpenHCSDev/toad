@@ -204,11 +204,6 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
             await self._mount_page(None, older=False, retained=(), style=style)
         self.window.scroll_end(animate=False)
 
-    async def mount_page(self, page: MessagePage, *, older: bool) -> None:
-        async with self.window.history_lock:
-            await self._mount_page(page, older=older,
-                                   retained=tuple(self.rows), style=self.style)
-
     async def _mount_page(
         self, page: MessagePage | None, *, older: bool,
         retained: tuple[tuple[WireMessage, Widget], ...], style: WireMessageStyle,

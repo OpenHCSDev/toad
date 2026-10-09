@@ -5,12 +5,10 @@ import sys
 from typing import TYPE_CHECKING
 
 import click
-from toad.render_choices import RendererChoice
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.agent_schema import AgentDefinition
-    from toad.render_backend import Renderer
 
 
 def persist_terminal_failure(error: Exception) -> None:
@@ -41,15 +39,6 @@ def run_terminal(app: ToadApp) -> None:
         persist_terminal_failure(app._exception)
         raise SystemExit(app.return_code or 1)
     app.application.version.status.print_notice()
-
-
-def renderer_from_cli(backend: str | None) -> Renderer | None:
-    if backend is None:
-        return None
-    try:
-        return RendererChoice.decode(backend).start()
-    except (RuntimeError, ValueError) as error:
-        raise click.ClickException(str(error)) from error
 
 
 def check_directory(path: str) -> None:
@@ -159,9 +148,6 @@ def main(ctx, version):
     help="Public URL to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-@click.option("--renderer", type=click.Choice(RendererChoice.names(), case_sensitive=False),
-              default=None, envvar="TOAD_RENDERER",
-              help="CPU rendering backend (persistent requires the optional extra).")
 def run(
     port: int,
     host: str,
@@ -169,7 +155,6 @@ def run(
     project_dir: str = ".",
     agent: str = "1",
     public_url: str | None = None,
-    renderer: str | None = None,
 ):
     """Run an installed agent (same as `toad PATH`)."""
 
@@ -213,7 +198,6 @@ def run(
             mode=None if agent_data else "store",
             agent_data=agent_data,
             project_dir=project_dir,
-            renderer=renderer_from_cli(renderer),
         )
         run_terminal(app)
 
@@ -251,9 +235,6 @@ def run(
     help="Host to use in conjunction with --serve",
 )
 @click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-@click.option("--renderer", type=click.Choice(RendererChoice.names(), case_sensitive=False),
-              default=None, envvar="TOAD_RENDERER",
-              help="CPU rendering backend (persistent requires the optional extra).")
 def acp(
     command: str,
     host: str,
@@ -262,7 +243,6 @@ def acp(
     project_dir: str | None,
     serve: bool = False,
     session_id: str | None = None,
-    renderer: str | None = None,
 ) -> None:
     """Run an ACP agent from a command."""
 
@@ -297,8 +277,6 @@ def acp(
         from toad.web_server import ToadWebServer
 
         command_components = [sys.argv[0], "acp", command]
-        if renderer is not None:
-            command_components.extend(["--renderer", renderer])
         if session_id:
             command_components.extend(["--session", session_id])
         if project_dir:
@@ -319,7 +297,6 @@ def acp(
 
         app = ToadApp(
             agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
-            renderer=renderer_from_cli(renderer),
         )
         run_terminal(app)
 

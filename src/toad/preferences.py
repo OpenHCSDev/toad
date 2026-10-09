@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, Any
 from toad import atomic, paths
 
 from toad import setting_effects as effects
-from toad.render_choices import RendererChoice, LocalRenderer
 from toad.setting_choices import (
     AlwaysSessionBar,
     AutoDiff,
@@ -50,16 +49,7 @@ def raise_save_error(error: atomic.AtomicWriteError) -> None:
     raise error
 
 
-class RendererSettings(SettingsGroup):
-    renderer = ChoiceSetting(
-        RendererChoice,
-        title="Rendering backend",
-        default=LocalRenderer,
-        help="CPU rendering backend for the next application launch. Persistent requires the optional extra.",
-    )
-
-
-class UiSettings(RendererSettings):
+class UiSettings(SettingsGroup):
     history_buffer_viewports = IntegerSetting(
         title="History buffer in message-area heights",
         default=PresentationBudget().buffer_viewports,

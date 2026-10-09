@@ -80,12 +80,6 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def region(self) -> Region | None:
         return None
 
-    def source_regions(self, geometry):
-        return ()
-
-    def region_for(self, source) -> Region | None:
-        return None
-
     def owns_source(self, source) -> bool:
         return False
 
