@@ -1,0 +1,37 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____ test_component_style_reuses_unchanged_node_but_tracks_css_and_ancestry ____
+
+    async def test_component_style_reuses_unchanged_node_but_tracks_css_and_ancestry():
+        class Badge(Static):
+            COMPONENT_CLASSES = {"badge--label"}
+    
+        class BadgeApp(App):
+            CSS = """
+            Badge > .badge--label { color: red; }
+            Badge.alert > .badge--label { color: blue; }
+            """
+    
+            def compose(self) -> ComposeResult:
+                yield Container(Badge("first"), id="unused-left")
+                yield Container(id="unused-right")
+    
+        app = BadgeApp()
+        async with app.run_test(size=(80, 20)) as pilot:
+            await pilot.pause()
+            badge = app.query_one(Badge)
+            stylesheet = app.stylesheet
+            original = badge._component_styles["badge--label"]
+            stylesheet.apply(badge)
+            assert badge._component_styles["badge--label"] is original
+            # Physical source custody may change an ID that no rule references.
+            # This must not replace an unchanged component's native style owner.
+            badge.reparent(app.query_one("#unused-right", Container))
+            await pilot.pause()
+>           assert badge._component_styles["badge--label"] is original
+E           AssertionError: assert _ComponentStyles(DOMNode(classes='badge--label'), auto_color=False, color=Color(255, 0, 0)) is _ComponentStyles(DOMNode(classes='badge--label'), auto_color=False, color=Color(255, 0, 0))
+
+tests/css/test_stylesheet.py:174: AssertionError
+=========================== short test summary info ============================
+FAILED tests/css/test_stylesheet.py::test_component_style_reuses_unchanged_node_but_tracks_css_and_ancestry
+1 failed, 58 deselected in 0.33s

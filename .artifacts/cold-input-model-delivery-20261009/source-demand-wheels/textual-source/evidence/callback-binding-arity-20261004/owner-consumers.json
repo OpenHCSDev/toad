@@ -1,0 +1,95 @@
+{
+  "scope": "Existing callback arity owner and all native syntactic consumers; dynamic external callable metadata not resolved by AST",
+  "snapshots": [
+    {
+      "head": "777232c8b960272cb3ddc445df04c9133e6dd6fa",
+      "parsed": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/_callback.py",
+          "line": 55,
+          "call": "count_parameters"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 20,
+          "expression": "func._param_count",
+          "operation": "Load"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 34,
+          "expression": "func._param_count",
+          "operation": "Store"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 24,
+          "call": "_count_parameters"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 32,
+          "call": "_count_parameters"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 30,
+          "call": "_count_parameters"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 162,
+          "call": "count_parameters"
+        }
+      ]
+    },
+    {
+      "head": "4a8304f355b0cf8be79cf82606a943639904ae2f",
+      "parsed": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/_callback.py",
+          "line": 56,
+          "call": "count_parameters"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 25,
+          "expression": "func._param_count",
+          "operation": "Load"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 33,
+          "call": "_count_parameters"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 35,
+          "expression": "func._param_count",
+          "operation": "Store"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 23,
+          "call": "count_parameters"
+        },
+        {
+          "path": "src/textual/_callback.py",
+          "line": 29,
+          "call": "count_parameters"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 162,
+          "call": "count_parameters"
+        }
+      ]
+    }
+  ],
+  "python_binding_source": "https://github.com/python/cpython/blob/v3.14.2/Objects/classobject.c",
+  "limitation": "No measurement that reflection dominates a frame gap; repeated-bound-reflection claim withdrawn."
+}

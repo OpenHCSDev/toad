@@ -1,0 +1,13 @@
+# Native custody cardinality owner
+
+Source reasoning before implementation; final sanity and installed qualification follow this code checkpoint. Existing-owner search covered NodeList, DOMNode, App._register_child/_register/_unregister, Widget.move_child/reparent/_message_loop_exit, composition and virtual cover widgets. No existing descendant-cardinality capability was found. NodeList already owns insertion, removal, clear, ordering, displayed-child projections and ancestor invalidation, so extend that owner rather than add a resource-count family or Toad catalog.
+
+The question is cardinality of the original native children tree, including children pending asynchronous removal, excluding pending composition and virtual widgets. NodeList mutations impose its aggregate and ancestor deltas. DOMNode.descendant_count derives that same owner; no second count field on DOMNode, Widget, Toad or a registry. Native parent links alone are insufficient: virtual widgets have a message parent without NodeList membership. Delta propagation follows the existing membership set; ordinary projection invalidation retains its original parent chain. Reorder and display/id mutations invalidate projections with zero cardinality delta. Duplicate-ID rejection precedes insertion, so a failed transaction cannot change custody without publishing its cardinality.
+
+All membership mutations are NodeList._append/_insert/_remove/_clear; full source search finds no direct production writes to its _nodes/_nodes_set outside that class. Widget reparent, move_child and final prune use these original methods. _register_child inserts before attach; original pending composition acquires native custody when registered. _add_children attaches before adding native descendants. Clear drops the whole retained subtree cost; descendant operations after detachment do not leak through a nonmember parent link.
+
+Toad admission, actual materialization, dormant reconstruction reservations and parked-session resource accounting will consume this capability. Remove Toad BodyMeasurement.nodes_revision and its independent live cost/recount branch in the paired change. Dormant reconstruction reservation is a distinct captured resource obligation; it is not a current-custody answer. No new type, cache, semantic state, timer or traversal order registry.
+
+Patterns: IDEN-1 (one declared native custody source), IMPL-13 (shared owner algorithm and caller closure). A new body subtype inherits native cardinality without a Toad cost branch. A new structural operation must use the existing NodeList mutations; no per-body count maintenance or invalidation callbacks.
+
+No native or physical validation claim at this source checkpoint; existing 284/19 failed captures stay preserved.

@@ -1,0 +1,13 @@
+{
+  "scope": "Source-native end sanity after coherent native order/custody implementation; installed affected qualification outstanding",
+  "source_hashes": {
+    "src/textual/_node_list.py": "8822f69c85ce569e1eb155d44c4bb5011b4bb471ef1ee9b45f0ce0aefe3b77f5",
+    "src/textual/dom.py": "7aa23d7b1d7d9434f1a94b2ebb17d7573807bda60ebe29fae70bee5507ba37ca",
+    "src/textual/widget.py": "53dab516a4394a13898ab2c577b75662f4a4e6112addf2e7ae6f4687380d3ca3"
+  },
+  "command": "PYTHONPATH=src:.artifacts/source-sanity-deps runtime-sidebar298/bin/python -m pytest tests/test_node_list.py tests/test_widget_child_moving.py -q",
+  "result": "....................................                                     [100%]\n36 passed in 0.97s\n",
+  "production_deleted": 20,
+  "production_added": 23,
+  "no_public_capture_during_cutover": true
+}

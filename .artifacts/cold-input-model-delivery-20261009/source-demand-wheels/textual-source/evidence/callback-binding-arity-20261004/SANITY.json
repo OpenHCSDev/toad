@@ -1,0 +1,20 @@
+{
+  "qualification": "Native source callable controls and actual native App watcher dispatch",
+  "production_head": "4a8304f355b0cf8be79cf82606a943639904ae2f",
+  "command": "PYTHONPATH=src python -m pytest -q tests/test_count_parameters.py",
+  "exit_code": 0,
+  "passed": 7,
+  "elapsed_seconds": 0.38,
+  "observed_stdout": ".......                                                                  [100%]\n7 passed in 0.38s\n",
+  "cases": [
+    "existing plain functions, methods and partials",
+    "bound-first and unbound-first discovery",
+    "partial of bound and unbound original method",
+    "uncacheable Python callable",
+    "actual native App reactive watcher followed by unbound and partial invoke"
+  ],
+  "installed_package_writes": false,
+  "physical_recording": false,
+  "provider_inputs": 0,
+  "measured_frame_gain": false
+}

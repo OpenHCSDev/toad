@@ -1,0 +1,22 @@
+{
+  "source": "cbeaf02dbe2a8a1bd84b2a3f845d12cb4a42a025",
+  "contract": "1 passed in 0.39s",
+  "app_exit": 0,
+  "app_widgets": 508,
+  "app_tabs": 10,
+  "providers": 0,
+  "stderr_bytes": 0,
+  "toad_source": "d7273c666ea04ff13c1a677bb5851637da273490",
+  "core_source": "37563f36f6c54a2a1272e90c7c90c2108b1026e6",
+  "limit": "Source App completed headless display only; no installed/live/physical acceptance or reliable overall performance improvement.",
+  "keepers": {
+    "evidence/full-damage-geometry-20261006/source.json": "d9ed028d10a4d44a6973ab2a702cb893a65ae48bd6ca282bf833ba024b5c7b3f",
+    "evidence/full-damage-geometry-20261006/geometry-control.log": "036bb9390fb408c39eb19a61d865bc4044aa29eeea8139e62a988a5a83930a4d",
+    "evidence/full-damage-geometry-20261006/original-after-publication-control-refusal.log": "5e5f39f7df94ab4772d1b0dc021facb9880d1d4461292fb55d5d523fbf9670f8",
+    "evidence/full-damage-geometry-20261006/unchanged-target-after-wrong-edit-refusal.log": "5e5f39f7df94ab4772d1b0dc021facb9880d1d4461292fb55d5d523fbf9670f8",
+    "/home/ts/.cache/agent-scratch/full-damage-geometry-20261006/app.stdout.log": "5ec6d51cba69af35fb3bc449e236531adda47283ed25cdedb12ef816c0b23f20",
+    "/home/ts/.cache/agent-scratch/full-damage-geometry-20261006/app.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ts/.cache/agent-scratch/full-damage-geometry-20261006/toggle-channels.pstats": "4ee1510a69f80ca1c2027353de43805b55ac331f4123a6879e453beb3db11921",
+    "/home/ts/.cache/agent-scratch/full-damage-geometry-20261006/toggle-thread.pstats": "dfb8aa7a5de3c27cefcf3d193bcccf7d4d9cdabd45c37b831a01fe8f34055a6a"
+  }
+}

@@ -1,0 +1,2137 @@
+{
+  "roots": [
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "c78c5b4ba63bb81e14be17389c01a2e7710bf659",
+      "root": "src/textual",
+      "parsed": 249,
+      "omitted": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "c78c5b4ba63bb81e14be17389c01a2e7710bf659",
+      "root": "tests",
+      "parsed": 460,
+      "omitted": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "6d46e34233851971840df8278e8613c2b46e0c1e",
+      "root": "src/toad",
+      "parsed": 288,
+      "omitted": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "6d46e34233851971840df8278e8613c2b46e0c1e",
+      "root": "tests",
+      "parsed": 397,
+      "omitted": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "6d46e34233851971840df8278e8613c2b46e0c1e",
+      "root": "tools",
+      "parsed": 41,
+      "omitted": []
+    },
+    {
+      "repository": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+      "head": "88d4b8e90185de84b523a49f14c179c0a1e91f35",
+      "root": "src/agent_comms",
+      "parsed": 324,
+      "omitted": []
+    }
+  ],
+  "sites": [
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 56,
+      "node": "ClassDef",
+      "name": "ReflowResult",
+      "source": "class ReflowResult(NamedTuple):"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 668,
+      "node": "FunctionDef",
+      "name": "reflow",
+      "source": "    def reflow("
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 725,
+      "node": "FunctionDef",
+      "name": "reflow_visible",
+      "source": "    def reflow_visible("
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 762,
+      "node": "FunctionDef",
+      "name": "_damage_geometry",
+      "source": "    def _damage_geometry("
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1374,
+      "node": "FunctionDef",
+      "name": "_get_geometry",
+      "source": "    def _get_geometry(self, widget: Widget) -> MapGeometry | None:"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1393,
+      "node": "FunctionDef",
+      "name": "_get_published_geometry",
+      "source": "    def _get_published_geometry(self, widget: Widget) -> MapGeometry | None:"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1408,
+      "node": "FunctionDef",
+      "name": "_using_geometry",
+      "source": "    def _using_geometry(self, root: Widget, geometry: CompositorMap) -> Iterator[None]:"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1613,
+      "node": "FunctionDef",
+      "name": "published_geometry",
+      "source": "    def published_geometry("
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 61,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 671,
+      "node": "Name",
+      "name": "ReflowResult",
+      "source": "ReflowResult"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 539,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 540,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 545,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 592,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 593,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 687,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 712,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 741,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 752,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 772,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 791,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 811,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 613,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 613,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 623,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 685,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 685,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 709,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 711,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 718,
+      "node": "Attribute",
+      "name": "_damage_geometry",
+      "source": "self._damage_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 719,
+      "node": "Name",
+      "name": "ReflowResult",
+      "source": "ReflowResult"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 746,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 758,
+      "node": "Attribute",
+      "name": "_damage_geometry",
+      "source": "self._damage_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 799,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 806,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 807,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 808,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1185,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1185,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1367,
+      "node": "Attribute",
+      "name": "_get_geometry",
+      "source": "self._get_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1391,
+      "node": "Attribute",
+      "name": "_get_published_geometry",
+      "source": "self._get_published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1397,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1401,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1747,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 591,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 804,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 804,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 805,
+      "node": "Attribute",
+      "name": "_damage_geometry",
+      "source": "self._damage_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1185,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1625,
+      "node": "Attribute",
+      "name": "_get_published_geometry",
+      "source": "self._get_published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1646,
+      "node": "Attribute",
+      "name": "_using_geometry",
+      "source": "self._using_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1744,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "self._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 685,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 804,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1202,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1202,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1398,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 1402,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/_compositor.py",
+      "line": 780,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1371,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "self._compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1411,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1398,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1398,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "self._compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1402,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1402,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "self._compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1423,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/screen.py",
+      "line": 1386,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/scroll_view.py",
+      "line": 86,
+      "node": "FunctionDef",
+      "name": "_size_updated",
+      "source": "    def _size_updated("
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/scroll_view.py",
+      "line": 111,
+      "node": "Attribute",
+      "name": "_scroll_update",
+      "source": "self._scroll_update"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/scroll_view.py",
+      "line": 107,
+      "node": "Attribute",
+      "name": "_scrollbar_changes",
+      "source": "self._scrollbar_changes"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4348,
+      "node": "FunctionDef",
+      "name": "_size_updated",
+      "source": "    def _size_updated("
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4393,
+      "node": "FunctionDef",
+      "name": "_scroll_update",
+      "source": "    def _scroll_update(self, virtual_size: Size) -> None:"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 552,
+      "node": "Attribute",
+      "name": "_scrollbar_changes",
+      "source": "self._scrollbar_changes"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 2313,
+      "node": "Attribute",
+      "name": "_scrollbar_changes",
+      "source": "self._scrollbar_changes"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 2329,
+      "node": "Attribute",
+      "name": "_scrollbar_changes",
+      "source": "self._scrollbar_changes"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 2331,
+      "node": "Attribute",
+      "name": "_scrollbar_changes",
+      "source": "self._scrollbar_changes"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widget.py",
+      "line": 4388,
+      "node": "Attribute",
+      "name": "_scroll_update",
+      "source": "self._scroll_update"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "src/textual",
+      "path": "src/textual/widgets/_option_list.py",
+      "line": 838,
+      "node": "Attribute",
+      "name": "_scroll_update",
+      "source": "self._scroll_update"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/frame_damage_installed_pilot.py",
+      "line": 15,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 160,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 193,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 204,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 157,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 161,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 190,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 199,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 208,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 163,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor.py",
+      "line": 195,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 270,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 16,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 51,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 222,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 223,
+      "node": "Attribute",
+      "name": "resized",
+      "source": "result.resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 228,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 230,
+      "node": "Attribute",
+      "name": "resized",
+      "source": "result.resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 235,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 237,
+      "node": "Attribute",
+      "name": "resized",
+      "source": "result.resized"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 269,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 272,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 287,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 303,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 176,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 187,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 278,
+      "node": "Attribute",
+      "name": "_using_geometry",
+      "source": "compositor._using_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 286,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_compositor_frame_damage.py",
+      "line": 294,
+      "node": "Attribute",
+      "name": "_using_geometry",
+      "source": "compositor._using_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_removed_scene_ownership.py",
+      "line": 113,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_removed_scene_ownership.py",
+      "line": 125,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_removed_scene_ownership.py",
+      "line": 126,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_reparent.py",
+      "line": 85,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "previous._compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 108,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 136,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 186,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "screen._compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 187,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "screen._compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 201,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 201,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 204,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 205,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 208,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 225,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 226,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 226,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 247,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 248,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 258,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 258,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 274,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 275,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 287,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 288,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 74,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 127,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 161,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 162,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 167,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 200,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 222,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 257,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 72,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 114,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 131,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 158,
+      "node": "Constant",
+      "name": "reflow_visible",
+      "source": "\"reflow_visible\""
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 163,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 188,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "screen._compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 73,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 158,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_geometry_targets.py",
+      "line": 203,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_layout.py",
+      "line": 56,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "screen._compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_layout.py",
+      "line": 61,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "screen._compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_viewport_layout.py",
+      "line": 40,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "screen._compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 157,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 37,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 41,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 88,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 99,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 115,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 129,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 142,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 160,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 171,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "group._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "root": "tests",
+      "path": "tests/test_widget_measurement_commit.py",
+      "line": 49,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "widget._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 2128,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 215,
+      "node": "FunctionDef",
+      "name": "_size_updated",
+      "source": "    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 355,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 356,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 219,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "super()._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/history_anchor.py",
+      "line": 355,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 208,
+      "node": "FunctionDef",
+      "name": "resized",
+      "source": "    def resized(self, size):"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 362,
+      "node": "FunctionDef",
+      "name": "resized",
+      "source": "    def resized(self, size):"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 450,
+      "node": "FunctionDef",
+      "name": "resized",
+      "source": "    def resized(self, size):"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 554,
+      "node": "FunctionDef",
+      "name": "_size_updated",
+      "source": "    def _size_updated(self, size, virtual_size, container_size, layout=True):"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 555,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "super()._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 363,
+      "node": "Attribute",
+      "name": "resized",
+      "source": "self.previous.resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 556,
+      "node": "Attribute",
+      "name": "resized",
+      "source": "self._body_measurement.resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "src/toad",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 644,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "compositor.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 163,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "screen._compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 165,
+      "node": "Attribute",
+      "name": "_size_updated",
+      "source": "Footer._size_updated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 255,
+      "node": "Name",
+      "name": "reflow",
+      "source": "reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 253,
+      "node": "Constant",
+      "name": "reflow",
+      "source": "\"reflow\""
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 264,
+      "node": "Constant",
+      "name": "_size_updated",
+      "source": "\"_size_updated\""
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/cold_thread_latency_pilot.py",
+      "line": 279,
+      "node": "Name",
+      "name": "reflow",
+      "source": "reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/goal_geometry_pilot.py",
+      "line": 31,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 57,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 58,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 61,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 67,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 76,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 65,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 64,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/history_anchor_geometry_pilot.py",
+      "line": 66,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "compositor.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 155,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 159,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/history_page_batch_mount_pilot.py",
+      "line": 161,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 81,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 135,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 103,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/native_goal_read_first_paint_pilot.py",
+      "line": 138,
+      "node": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 133,
+      "node": "Constant",
+      "name": "reflow",
+      "source": "\"reflow\""
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/native_loaded_return_cache_pilot.py",
+      "line": 250,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "app.screen._compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 173,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 377,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 209,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "scene._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 209,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "scene._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 213,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "scene._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 214,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "scene._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 257,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 312,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 324,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 368,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 70,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "current_scene._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 210,
+      "node": "Attribute",
+      "name": "published_geometry",
+      "source": "scene.published_geometry"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 287,
+      "node": "Attribute",
+      "name": "reflow",
+      "source": "scene.reflow"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 303,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "scene.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/retained_fragment_geometry_pilot.py",
+      "line": 305,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "scene._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 260,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "app.screen._compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/sidebar_preparation_boundary_pilot.py",
+      "line": 25,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/sidebar_preparation_boundary_pilot.py",
+      "line": 26,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 43,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/throbber_scroll_cost_pilot.py",
+      "line": 42,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "compositor.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tests",
+      "path": "tests/worker_native_size_pilot.py",
+      "line": 125,
+      "node": "Attribute",
+      "name": "reflow_visible",
+      "source": "scene.reflow_visible"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 191,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 229,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/capture_state.py",
+      "line": 229,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/replay_state.py",
+      "line": 164,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "node._compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/replay_state.py",
+      "line": 165,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "node._compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 108,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 109,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 124,
+      "node": "Attribute",
+      "name": "_full_map_invalidated",
+      "source": "compositor._full_map_invalidated"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/scroll_travel_observation.py",
+      "line": 108,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "compositor._visible_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 243,
+      "node": "Attribute",
+      "name": "_full_map",
+      "source": "self._compositor._full_map"
+    },
+    {
+      "repository": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "root": "tools",
+      "path": "tools/performance/sidebar_validation_driver.py",
+      "line": 242,
+      "node": "Attribute",
+      "name": "_visible_map",
+      "source": "self._compositor._visible_map"
+    }
+  ],
+  "limits": "AST records declarations, accesses, writes and calls by name. Unrelated BodyMeasurement.resized remains a distinct fact; names alone do not prove dynamic resolution. Runtime-created/rebound classes and undeclared external consumers remain unproved. No source checks or application execution."
+}

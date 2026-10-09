@@ -1,0 +1,300 @@
+from __future__ import annotations
+
+import sys
+import weakref
+from operator import attrgetter
+from typing import TYPE_CHECKING, Any, Callable, Iterator, Sequence, overload
+
+import rich.repr
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsRichComparison
+
+    from textual.dom import DOMNode
+    from textual.widget import Widget
+
+
+_display_getter = attrgetter("display")
+_visible_getter = attrgetter("visible")
+
+
+class DuplicateIds(Exception):
+    """Raised when attempting to add a widget with an id that already exists."""
+
+
+class ReadOnlyError(AttributeError):
+    """Raise if you try to mutate the list."""
+
+
+@rich.repr.auto(angular=True)
+class NodeList(Sequence["Widget"]):
+    """
+    A container for widgets that forms one level of hierarchy.
+
+    Although named a list, widgets may appear only once, making them more like a set.
+    """
+
+    def __init__(self, parent: DOMNode | None = None) -> None:
+        """Initialize a node list.
+
+        Args:
+            parent: The parent node which holds a reference to this object, or `None` if
+                there is no parent.
+        """
+        self._parent = None if parent is None else weakref.ref(parent)
+        # The nodes in the list
+        self._nodes: list[Widget] = []
+        self._nodes_set: set[Widget] = set()
+        self._displayed_nodes: tuple[int, list[Widget]] = (-1, [])
+        self._displayed_visible_nodes: tuple[int, bool, list[Widget]] = (-1, True, [])
+
+        # We cache widgets by their IDs too for a quick lookup
+        # Note that only widgets with IDs are cached like this, so
+        # this cache will likely hold fewer values than self._nodes.
+        self._nodes_by_id: dict[str, Widget] = {}
+
+        # Increments when list is updated (used for caching)
+        self._updates = 0
+        self._descendant_count = 0
+
+    def __bool__(self) -> bool:
+        return bool(self._nodes)
+
+    def __length_hint__(self) -> int:
+        return len(self._nodes)
+
+    def __rich_repr__(self) -> rich.repr.Result:
+        yield self._nodes
+
+    def __len__(self) -> int:
+        return len(self._nodes)
+
+    def __contains__(self, widget: object) -> bool:
+        return widget in self._nodes
+
+    @property
+    def descendant_count(self) -> int:
+        """Native child custody, including each child's descendants.
+
+        Pending composition and virtual widgets are not members of this list.
+        Structural mutations maintain this resource cardinality; style and
+        ordering invalidation do not require recounting the native tree.
+        """
+        return self._descendant_count
+
+    def updated(self, *, descendant_delta: int = 0) -> None:
+        """Invalidate projections and apply an original custody mutation."""
+        self._updates += 1
+        self._descendant_count += descendant_delta
+        node = None if self._parent is None else self._parent()
+        if node is not None:
+            node._query_one_cache.clear()
+        while node is not None and (parent := node._parent) is not None:
+            nodes = parent._nodes
+            # A virtual widget may share a message parent without native
+            # NodeList custody. Its changes invalidate the scene, but cannot
+            # contribute resources to a tree that does not contain it.
+            if node not in nodes._nodes_set:
+                descendant_delta = 0
+            nodes._descendant_count += descendant_delta
+            nodes._updates += 1
+            parent._query_one_cache.clear()
+            node = parent
+
+    def _sort(
+        self,
+        *,
+        key: Callable[[Widget], SupportsRichComparison] | None = None,
+        reverse: bool = False,
+    ) -> bool:
+        """Sort nodes.
+
+        Args:
+            key: A key function which accepts a widget, or `None` for no key function.
+            reverse: Sort in descending order.
+        """
+        ordered = sorted(self._nodes, key=attrgetter("sort_order") if key is None else key,
+                         reverse=reverse)
+        if all(before is after for before, after in zip(self._nodes, ordered)):
+            return False
+        self._nodes[:] = ordered
+        self.updated()
+        return True
+
+    def _move(self, child: Widget, target: Widget, *, before: bool) -> bool:
+        """Reorder native custody without releasing or reacquiring a child."""
+        source = self._nodes.index(child)
+        destination = self._nodes.index(target) + (not before)
+        if source < destination:
+            destination -= 1
+        if source == destination:
+            return False
+        self._nodes.insert(destination, self._nodes.pop(source))
+        self.updated()
+        return True
+
+    def index(self, widget: Any, start: int = 0, stop: int = sys.maxsize) -> int:
+        """Return the index of the given widget.
+
+        Args:
+            widget: The widget to find in the node list.
+
+        Returns:
+            The index of the widget in the node list.
+
+        Raises:
+            ValueError: If the widget is not in the node list.
+        """
+        return self._nodes.index(widget, start, stop)
+
+    def _get_by_id(self, widget_id: str) -> Widget | None:
+        """Get the widget for the given widget_id, or None if there's no matches in this list"""
+        return self._nodes_by_id.get(widget_id)
+
+    def _append(self, widget: Widget) -> None:
+        """Append a Widget.
+
+        Args:
+            widget: A widget.
+        """
+        if widget not in self._nodes_set:
+            widget_id = widget.id
+            if widget_id is not None:
+                self._ensure_unique_id(widget_id)
+            self._nodes.append(widget)
+            self._nodes_set.add(widget)
+            if widget_id is not None:
+                self._nodes_by_id[widget_id] = widget
+            self.updated(descendant_delta=1 + widget.descendant_count)
+
+    def _insert(self, index: int, widget: Widget) -> None:
+        """Insert a Widget.
+
+        Args:
+            widget: A widget.
+        """
+        if widget not in self._nodes_set:
+            widget_id = widget.id
+            if widget_id is not None:
+                self._ensure_unique_id(widget_id)
+            self._nodes.insert(index, widget)
+            self._nodes_set.add(widget)
+            if widget_id is not None:
+                self._nodes_by_id[widget_id] = widget
+            self.updated(descendant_delta=1 + widget.descendant_count)
+
+    def _ensure_unique_id(self, widget_id: str) -> None:
+        """Ensure a new widget ID would be unique.
+
+        Args:
+            widget_id: New widget ID.
+
+        Raises:
+            DuplicateIds: If the given ID is not unique.
+        """
+        if widget_id in self._nodes_by_id:
+            raise DuplicateIds(
+                f"Tried to insert a widget with ID {widget_id!r}, but a widget already exists with that ID ({self._nodes_by_id[widget_id]!r}); "
+                "ensure all child widgets have a unique ID."
+            )
+
+    def _remove(self, widget: Widget) -> None:
+        """Remove a widget from the list.
+
+        Removing a widget not in the list is a null-op.
+
+        Args:
+            widget: A Widget in the list.
+        """
+        if widget in self._nodes_set:
+            del self._nodes[self._nodes.index(widget)]
+            self._nodes_set.remove(widget)
+            widget_id = widget.id
+            if widget_id in self._nodes_by_id:
+                del self._nodes_by_id[widget_id]
+            self._release_cached_nodes()
+            self.updated(descendant_delta=-(1 + widget.descendant_count))
+
+    def _clear(self) -> None:
+        """Clear the node list."""
+        if self._nodes:
+            descendant_count = self._descendant_count
+            self._nodes.clear()
+            self._nodes_set.clear()
+            self._nodes_by_id.clear()
+            self._release_cached_nodes()
+            self.updated(descendant_delta=-descendant_count)
+
+    def _release_cached_nodes(self) -> None:
+        """Release removed children even if the projections are never read again."""
+        self._displayed_nodes = (-1, [])
+        self._displayed_visible_nodes = (-1, True, [])
+        parent = None if self._parent is None else self._parent()
+        if parent is not None:
+            parent._child_nodes_removed()
+
+    def __iter__(self) -> Iterator[Widget]:
+        return iter(self._nodes)
+
+    def __reversed__(self) -> Iterator[Widget]:
+        return reversed(self._nodes)
+
+    @property
+    def displayed(self) -> Sequence[Widget]:
+        """Just the nodes where `display==True`."""
+        if self._displayed_nodes[0] != self._updates:
+            self._displayed_nodes = (
+                self._updates,
+                list(filter(_display_getter, self._nodes)),
+            )
+        return self._displayed_nodes[1]
+
+    @property
+    def displayed_and_visible(self) -> Sequence[Widget]:
+        """Nodes with both `display==True` and `visible==True`."""
+        if not self._nodes:
+            return ()
+        parent = None if self._parent is None else self._parent()
+        parent_visible = parent is None or parent.visible
+        return self._get_displayed_and_visible(parent_visible)
+
+    def _get_displayed_and_visible(self, parent_visible: bool) -> Sequence[Widget]:
+        """Get visible children when a traversal already knows parent visibility."""
+        if not self._nodes:
+            return ()
+        updates, inherited_visibility, nodes = self._displayed_visible_nodes
+        if updates != self._updates or inherited_visibility != parent_visible:
+            nodes = list(filter(_visible_getter, self.displayed))
+            # Visibility is inherited, but descendants may explicitly override
+            # it. Track the parent's effective value as well as local mutations.
+            self._displayed_visible_nodes = (
+                self._updates,
+                parent_visible,
+                nodes,
+            )
+        return nodes
+
+    @property
+    def displayed_reverse(self) -> Iterator[Widget]:
+        """Just the nodes where `display==True`, in reverse order."""
+        return filter(_display_getter, reversed(self._nodes))
+
+    if TYPE_CHECKING:
+
+        @overload
+        def __getitem__(self, index: int) -> Widget: ...
+
+        @overload
+        def __getitem__(self, index: slice) -> list[Widget]: ...
+
+    def __getitem__(self, index: int | slice) -> Widget | list[Widget]:
+        return self._nodes[index]
+
+    if not TYPE_CHECKING:
+        # This confused the type checker for some reason
+        def __getattr__(self, key: str) -> object:
+            if key in {"clear", "append", "pop", "insert", "remove", "extend"}:
+                raise ReadOnlyError(
+                    "Widget.children is read-only: use Widget.mount(...) or Widget.remove(...) to add or remove widgets"
+                )
+            raise AttributeError(key)

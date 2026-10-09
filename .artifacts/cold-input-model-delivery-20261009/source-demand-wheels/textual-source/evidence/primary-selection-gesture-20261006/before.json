@@ -1,0 +1,617 @@
+{
+  "coverage": [
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "revision": "cb95661ee0b02d914fef9290658fed85b8f367c2",
+      "root": "src/textual",
+      "parsed": 249,
+      "omissions": []
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "revision": "cb95661ee0b02d914fef9290658fed85b8f367c2",
+      "root": "tests",
+      "parsed": 466,
+      "omissions": []
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "revision": "167a086731ec13736ee25e37de39685aa5a2da20",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "revision": "167a086731ec13736ee25e37de39685aa5a2da20",
+      "root": "tests",
+      "parsed": 403,
+      "omissions": []
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "revision": "167a086731ec13736ee25e37de39685aa5a2da20",
+      "root": "tools",
+      "parsed": 40,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/app.py",
+      "references": {
+        "clear_selection:FunctionDef:NoneType": [
+          4623
+        ],
+        "clear_selection:Attribute:Load": [
+          4626
+        ],
+        "_forward_event:Attribute:Load": [
+          4133,
+          4191,
+          4195,
+          4197,
+          4189,
+          4167
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/events.py",
+      "references": {
+        "TextSelected:ClassDef:NoneType": [
+          998
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/screen.py",
+      "references": {
+        "clear_selection:FunctionDef:NoneType": [
+          768
+        ],
+        "_retire_selection:FunctionDef:NoneType": [
+          1547
+        ],
+        "_on_screen_suspend:FunctionDef:NoneType": [
+          1637
+        ],
+        "_start_auto_scroll:FunctionDef:NoneType": [
+          1886
+        ],
+        "_stop_auto_scroll:FunctionDef:NoneType": [
+          1937
+        ],
+        "_check_auto_scroll:FunctionDef:NoneType": [
+          1943
+        ],
+        "_update_select:FunctionDef:NoneType": [
+          2004
+        ],
+        "_forward_event:FunctionDef:NoneType": [
+          2008
+        ],
+        "_watch__selecting:FunctionDef:NoneType": [
+          2153
+        ],
+        "_watch__select_state:FunctionDef:NoneType": [
+          2166
+        ],
+        "_flush_pending_selection:FunctionDef:NoneType": [
+          2198
+        ],
+        "_apply_selection_state:FunctionDef:NoneType": [
+          2204
+        ],
+        "_selecting:Name:Store": [
+          253
+        ],
+        "_select_state:Name:Store": [
+          259
+        ],
+        "_mouse_down_offset:Name:Store": [
+          262
+        ],
+        "_auto_select_scroll_timer:Attribute:Store": [
+          332,
+          1933,
+          1941
+        ],
+        "_selecting:Attribute:Load": [
+          599,
+          2021
+        ],
+        "_select_state:Attribute:Store": [
+          771,
+          1558,
+          2216,
+          2040,
+          2101,
+          2113
+        ],
+        "_selecting:Attribute:Store": [
+          2206,
+          2073
+        ],
+        "SelectState:Name:Load": [
+          259,
+          2166,
+          2204,
+          2101
+        ],
+        "_flush_pending_selection:Attribute:Load": [
+          983,
+          1292,
+          2057
+        ],
+        "_retire_selection:Attribute:Load": [
+          1544
+        ],
+        "_stop_auto_scroll:Attribute:Load": [
+          1921,
+          2002,
+          2155,
+          2052
+        ],
+        "_auto_select_scroll_timer:Attribute:Load": [
+          1939,
+          1963,
+          1940
+        ],
+        "_watch__select_state:Attribute:Load": [
+          2006
+        ],
+        "_select_state:Attribute:Load": [
+          2006,
+          2160,
+          1555,
+          1908,
+          2202,
+          1556,
+          2021,
+          2161,
+          2040
+        ],
+        "clear_selection:Attribute:Load": [
+          2151,
+          2070
+        ],
+        "_apply_selection_state:Attribute:Load": [
+          2196,
+          2202
+        ],
+        "_forward_event:Attribute:Load": [
+          1840,
+          2141
+        ],
+        "_update_select:Attribute:Load": [
+          1918
+        ],
+        "_mouse_down_offset:Attribute:Store": [
+          2072,
+          2077
+        ],
+        "_start_auto_scroll:Attribute:Load": [
+          1991,
+          1999
+        ],
+        "_check_auto_scroll:Attribute:Load": [
+          2046
+        ],
+        "_mouse_down_offset:Attribute:Load": [
+          2059,
+          2060
+        ],
+        "TextSelected:Attribute:Load": [
+          2074
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/scrollbar.py",
+      "references": {
+        "_on_mouse_down:AsyncFunctionDef:NoneType": [
+          352
+        ],
+        "_on_mouse_up:AsyncFunctionDef:NoneType": [
+          356
+        ],
+        "_on_mouse_move:AsyncFunctionDef:NoneType": [
+          378
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/selection.py",
+      "references": {
+        "SelectState:ClassDef:NoneType": [
+          161
+        ],
+        "SelectState:Name:Load": [
+          283,
+          294
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/visual.py",
+      "references": {
+        "_selecting:Attribute:Load": [
+          241
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/widget.py",
+      "references": {
+        "_forward_event:FunctionDef:NoneType": [
+          4550
+        ],
+        "_on_mouse_down:AsyncFunctionDef:NoneType": [
+          4971
+        ],
+        "_on_mouse_up:AsyncFunctionDef:NoneType": [
+          4974
+        ],
+        "_retire_selection:Attribute:Load": [
+          1804
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/widgets/_data_table.py",
+      "references": {
+        "_on_mouse_move:FunctionDef:NoneType": [
+          2555
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/widgets/_input.py",
+      "references": {
+        "_on_mouse_down:AsyncFunctionDef:NoneType": [
+          786
+        ],
+        "_end_selecting:FunctionDef:NoneType": [
+          793
+        ],
+        "_on_mouse_up:AsyncFunctionDef:NoneType": [
+          803
+        ],
+        "_on_mouse_move:AsyncFunctionDef:NoneType": [
+          806
+        ],
+        "_selecting:Attribute:Store": [
+          454,
+          790,
+          796
+        ],
+        "_selecting:Attribute:Load": [
+          795,
+          807
+        ],
+        "clear_selection:Attribute:Load": [
+          518
+        ],
+        "_end_selecting:Attribute:Load": [
+          801,
+          804
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/widgets/_option_list.py",
+      "references": {
+        "_on_mouse_move:FunctionDef:NoneType": [
+          740
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/widgets/_text_area.py",
+      "references": {
+        "_on_mouse_down:AsyncFunctionDef:NoneType": [
+          1997
+        ],
+        "_on_mouse_move:AsyncFunctionDef:NoneType": [
+          2008
+        ],
+        "_on_mouse_up:AsyncFunctionDef:NoneType": [
+          2023
+        ],
+        "_selecting:Attribute:Store": [
+          674,
+          2001,
+          2018
+        ],
+        "_selecting:Attribute:Load": [
+          2010,
+          2017
+        ],
+        "clear_selection:Attribute:Load": [
+          894
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "src/textual/widgets/_tree.py",
+      "references": {
+        "_on_mouse_move:FunctionDef:NoneType": [
+          1082
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "tests/test_pointer_capture_order.py",
+      "references": {
+        "_selecting:Attribute:Load": [
+          139
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "tests/test_removed_scene_ownership.py",
+      "references": {
+        "_select_state:Attribute:Load": [
+          71,
+          67,
+          78
+        ],
+        "_flush_pending_selection:Attribute:Load": [
+          83
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "file": "tests/test_selection.py",
+      "references": {
+        "_select_state:Attribute:Load": [
+          197,
+          216,
+          264,
+          403,
+          484
+        ],
+        "_select_state:Attribute:Store": [
+          488,
+          267
+        ],
+        "clear_selection:Attribute:Load": [
+          207,
+          490,
+          269
+        ],
+        "SelectState:Name:Load": [
+          201
+        ],
+        "_forward_event:Attribute:Load": [
+          254,
+          259
+        ],
+        "_apply_selection_state:Attribute:Load": [
+          470
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "src/toad/app.py",
+      "references": {
+        "TextSelected:Attribute:Load": [
+          592
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "src/toad/screens/mcp_decision.py",
+      "references": {
+        "_on_screen_suspend:FunctionDef:NoneType": [
+          66
+        ],
+        "_on_screen_suspend:Attribute:Load": [
+          67
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "src/toad/screens/workspace.py",
+      "references": {
+        "on_screen_suspend:FunctionDef:NoneType": [
+          119
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "src/toad/widgets/conversation.py",
+      "references": {
+        "_mouse_down_offset:Attribute:Store": [
+          476,
+          1823
+        ],
+        "clear_selection:Attribute:Load": [
+          681
+        ],
+        "_mouse_down_offset:Attribute:Load": [
+          1834,
+          1835
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "src/toad/widgets/patch_diff.py",
+      "references": {
+        "_selecting:Attribute:Load": [
+          327
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "src/toad/widgets/selection.py",
+      "references": {
+        "_on_mouse_move:FunctionDef:NoneType": [
+          44
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/history_mounted_budget_pilot.py",
+      "references": {
+        "clear_selection:Attribute:Load": [
+          72
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/off_tail_checkpoint_pilot.py",
+      "references": {
+        "clear_selection:Attribute:Load": [
+          148
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/projected_history_budget_pilot.py",
+      "references": {
+        "clear_selection:Attribute:Load": [
+          96
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/retained_tool_text_pilot.py",
+      "references": {
+        "_select_state:Attribute:Load": [
+          94,
+          103
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/scroll_select_latency_pilot.py",
+      "references": {
+        "_forward_event:Attribute:Load": [
+          65,
+          209,
+          317
+        ],
+        "_select_state:Attribute:Load": [
+          215
+        ],
+        "SelectState:Name:Load": [
+          301,
+          308
+        ],
+        "_stop_auto_scroll:Attribute:Load": [
+          323
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/selection_hover_pilot.py",
+      "references": {
+        "_forward_event:Attribute:Load": [
+          32,
+          39
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/sidebar_drag_resize_pilot.py",
+      "references": {
+        "_selecting:Attribute:Load": [
+          61,
+          63,
+          78
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "references": {
+        "_selecting:Attribute:Load": [
+          79,
+          81
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/stale_selection_pilot.py",
+      "references": {
+        "_forward_event:Attribute:Load": [
+          35
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/transcript_source_lifetime_pilot.py",
+      "references": {
+        "clear_selection:Attribute:Load": [
+          71
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/viewport_body_lifetime_pilot.py",
+      "references": {
+        "clear_selection:Attribute:Load": [
+          152
+        ]
+      }
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "file": "tests/viewport_selection_diff_pilot.py",
+      "references": {
+        "_select_state:Attribute:Load": [
+          55
+        ],
+        "_forward_event:Attribute:Load": [
+          50,
+          51,
+          79
+        ],
+        "_stop_auto_scroll:Attribute:Load": [
+          53
+        ],
+        "_update_select:Attribute:Load": [
+          74
+        ],
+        "SelectState:Name:Load": [
+          63
+        ]
+      }
+    }
+  ],
+  "limitations": "Lexical sites include distinct Input/TextArea selection owners. External subclasses/dynamic calls are unresolved; no parse omissions are treated as evidence of absence."
+}

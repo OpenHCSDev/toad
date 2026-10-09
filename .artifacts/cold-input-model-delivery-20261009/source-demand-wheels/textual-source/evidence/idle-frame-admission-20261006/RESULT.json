@@ -1,0 +1,43 @@
+{
+  "source": "9d9f55e6bbf672d12c7bb17ba2b62417df905956",
+  "controls": "7 passed in 0.79s",
+  "app_exit": 0,
+  "app_widgets": 508,
+  "app_tabs": 10,
+  "providers": 0,
+  "stderr_bytes": 0,
+  "metrics": {
+    "before": {
+      "channels": {
+        "calls": 3,
+        "inclusive_seconds": 0.001621484
+      },
+      "thread": {
+        "calls": 3,
+        "inclusive_seconds": 0.001407948
+      }
+    },
+    "after": {
+      "channels": {
+        "calls": 2,
+        "inclusive_seconds": 0.001502318
+      },
+      "thread": {
+        "calls": 2,
+        "inclusive_seconds": 0.000951152
+      }
+    }
+  },
+  "toad_source": "85eb8012c15229972269a38e3f505b9d480f5114",
+  "core_source": "0683ce64f7788d9f2db66ccb27e23de102c63ac4",
+  "keepers": {
+    "evidence/idle-frame-admission-20261006/before.json": "953e37b93c15951d6d69e65a86adf2725b9f3d90496d5f8b8bf60f932b268547",
+    "evidence/idle-frame-admission-20261006/after.json": "9c043511686ad161079c22000bdfef1f9499db76a72d8c32a588ec64410d6bf2",
+    "evidence/idle-frame-admission-20261006/controls.log": "b113dae2d14be4bc5bdc12a61ce44a1bf5882998a2a55d21b46bd14e16f72170",
+    "/home/ts/.cache/agent-scratch/idle-frame-admission-20261006/app.stdout.log": "85ec0f4b34609d41e0cb6acfe4d37ffd4d918ca15242ff3bb86f32f7ee250093",
+    "/home/ts/.cache/agent-scratch/idle-frame-admission-20261006/app.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ts/.cache/agent-scratch/idle-frame-admission-20261006/toggle-channels.pstats": "7510e1e19fc1669057727af9a770555d18f650fde4060090ac3950f0d5b94c01",
+    "/home/ts/.cache/agent-scratch/idle-frame-admission-20261006/toggle-thread.pstats": "d50ca260304e65deb5cd795d21af79d4284f8ace9187f78cd7b7bc00864d762c"
+  },
+  "limits": "Source headless App, not installed/live scrolling; variable timings do not establish overall gain."
+}

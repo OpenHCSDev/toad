@@ -1,0 +1,10 @@
+{
+  "padding_invalidated": true,
+  "relative_geometry_changed": true,
+  "membership_added": true,
+  "membership_retired": true,
+  "unknown_hook_dependent": true,
+  "textual_path": "/home/ts/wt/textual-native-width-contract-20261001/src/textual/__init__.py",
+  "agent_bound": false,
+  "app_exception": "None"
+}

@@ -1,0 +1,24 @@
+{
+  "original_batch": {
+    "log": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native58-final-app-batch.log",
+    "sha256": "5768f4d4374c9726d467778293e9676b8ad894b0f346c55bff5a904e94dcc76a",
+    "result": "28 passed; 1 test-assumption failure",
+    "seconds": 3.26
+  },
+  "contract_followup": {
+    "log": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native58-contract-correction.log",
+    "sha256": "964ca6b97369074902f81b50f7fcdd26ee2b9f5faca63de9e08fb47476e4254c",
+    "result": ".....                                                                    [100%]\n5 passed in 0.45s"
+  },
+  "concrete_risks": [
+    "unbuilt offscreen node selection and scroll",
+    "restoring same selected data into native replacement Tree",
+    "line navigation after source mutation rebases cursor",
+    "selection/reset events and original hidden/foreign contracts",
+    "DirectoryTree reload and path restoration"
+  ],
+  "installed_f3": "pending sole Einstein owner gate",
+  "physical_performance": "unqualified",
+  "new_environment": false,
+  "installed_writes": false
+}

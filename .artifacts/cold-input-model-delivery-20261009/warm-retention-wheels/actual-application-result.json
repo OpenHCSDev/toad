@@ -1,0 +1,93 @@
+{
+  "source_to_admission": "Original prepared text resources determine source boundary retention in both paging owners; exact retained native paint is reused through its original producer.",
+  "application": "Actual Toad ACP in isolated st; original 141MiB saved SDK fork; configured openai-codex/gpt-6.1-sol provider",
+  "message": "one new real input, admission received, native end_turn; never replayed",
+  "wheel_input": {
+    "first": "40 up/down then24 up/down at30ms",
+    "second": "120 up/down at15ms"
+  },
+  "observed": "Recorded older content and bottom text return. Settled visible text ready with no pending reader or preparation operation. Transient paint during movement is not a complete no-blank qualification.",
+  "limits": "16ms input/frame goal unmet. Enqueue-to-terminal flush is only writer latency, not full input-to-pixel latency. Fast source acquisition, controls, End and multi-tab warm return remain incompletely qualified.",
+  "writer_latency_ms": {
+    "count": 499,
+    "median": 16.66886,
+    "maximum": 146.977941
+  },
+  "original_app_joined": true,
+  "original_app_exit_code": 0,
+  "original_worker_stopped": true,
+  "processes": [
+    {
+      "pid": 2633050,
+      "birth": 101873092,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime/bin/python -m agent_comms.worker "
+    },
+    {
+      "pid": 2633404,
+      "birth": 101873784,
+      "argv": "st -g 145x50 -e /home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/toad acp /home/ts/.local/bin/agent-comms-acp --session parent-real-ui-20261009 --project-dir /home/ts/wt/comms-post-feature-debt-audit-20260928 --title Warm retention "
+    },
+    {
+      "pid": 2633414,
+      "birth": 101873792,
+      "argv": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                  "
+    },
+    {
+      "pid": 2633451,
+      "birth": 101873913,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    {
+      "pid": 2633452,
+      "birth": 101873914,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=17) --multiprocessing-fork "
+    },
+    {
+      "pid": 2633453,
+      "birth": 101873914,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=19) --multiprocessing-fork "
+    },
+    {
+      "pid": 2633502,
+      "birth": 101874037,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27) --multiprocessing-fork "
+    },
+    {
+      "pid": 2633509,
+      "birth": 101874056,
+      "owner": "actual ACP process from captured AgentProcess identity"
+    }
+  ],
+  "refs": [
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-real-wheel.mp4",
+      "sha256": "7518bf2d74bd4c0d0dd3f0cd700325722adb7fcafb0e6d963ce0104841a82a82",
+      "bytes": 3857217
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-deep-reversal.mp4",
+      "sha256": "ff7c7c8d34d81c9b9d1b9fd5882d41b34130b3a625997813647012592ecb86f0",
+      "bytes": 12448285
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-deep-state-state.json",
+      "sha256": "575807c1da46e901302900878eee80c9f5553a3aadfc5d1ff17c068a8814d2dc",
+      "bytes": 1376308
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-deep-state-state-frames.json",
+      "sha256": "43a52599f271c547aab5356c93be1cdae37867468f49bd3cb514a67cadcad999",
+      "bytes": 109523
+    },
+    {
+      "path": "/home/ts/.local/state/toad/logs/Warm_retention_2026-10-09T06_51_41_344157.txt",
+      "sha256": "407b2c6fbb46838fbc8ab53db0e37456d3d3ae31802f610e90348054551f17ca",
+      "bytes": 153660
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-app.stderr.log",
+      "sha256": "578cd7249ee237923e96875cb8a79b16214a805ea596c88ad3af3f65a59aa461",
+      "bytes": 174
+    }
+  ]
+}

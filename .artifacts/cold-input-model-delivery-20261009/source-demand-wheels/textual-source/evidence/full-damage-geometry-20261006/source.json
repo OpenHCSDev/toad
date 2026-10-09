@@ -1,0 +1,64 @@
+[
+  {
+    "revision": "7efdd92c37762cd963e02a51dfc5ef349342d045",
+    "parsed": 249,
+    "omissions": [],
+    "sites": [
+      [
+        "src/textual/_compositor.py",
+        782,
+        "declaration",
+        "def _damage_geometry(self, before: Mapping[Widget, MapGeometry], after: Mapping[Widget, MapGeometry], owner: Widget) -> None:\n    \"\"\"Retain both paint rectangles from the original scene change.\n\n        Compare each new placement with its previous one. Retain both clipped\n        rectangles without hashing complete geometry records into temporary\n        sets. Widget size publication owns resize notification separately.\n        \"\"\"\n    track_damage = self.size.region not in self._dirty_regions\n    for widget, geometry in after.items():\n        previous = before.get(widget)\n        if previous == geometry:\n            continue\n        if previous is not None:\n            if track_damage and (region := previous.visible_region):\n                self._dirty_regions.add(region)\n        if track_damage and (region := geometry.visible_region):\n            self._dirty_regions.add(region)\n    if track_damage:\n        for widget, geometry in before.items():\n            if widget not in after and (region := geometry.visible_region):\n                self._dirty_regions.add(region)\n    if self._dirty_regions:\n        owner.check_idle()"
+      ],
+      [
+        "src/textual/_compositor.py",
+        741,
+        "consumer",
+        "self._damage_geometry(previous_scene, map, parent)"
+      ],
+      [
+        "src/textual/_compositor.py",
+        778,
+        "consumer",
+        "self._damage_geometry(previous_scene, map, parent)"
+      ],
+      [
+        "src/textual/_compositor.py",
+        821,
+        "consumer",
+        "self._damage_geometry(previous, map, self.root)"
+      ]
+    ]
+  },
+  {
+    "revision": "cbeaf02dbe2a8a1bd84b2a3f845d12cb4a42a025",
+    "parsed": 249,
+    "omissions": [],
+    "sites": [
+      [
+        "src/textual/_compositor.py",
+        782,
+        "declaration",
+        "def _damage_geometry(self, before: Mapping[Widget, MapGeometry], after: Mapping[Widget, MapGeometry], owner: Widget) -> None:\n    \"\"\"Retain both paint rectangles from the original scene change.\n\n        Compare each new placement with its previous one. Retain both clipped\n        rectangles without hashing complete geometry records into temporary\n        sets. Widget size publication owns resize notification separately.\n        \"\"\"\n    if self.size.region in self._dirty_regions:\n        owner.check_idle()\n        return\n    for widget, geometry in after.items():\n        previous = before.get(widget)\n        if previous == geometry:\n            continue\n        if previous is not None:\n            if (region := previous.visible_region):\n                self._dirty_regions.add(region)\n        if (region := geometry.visible_region):\n            self._dirty_regions.add(region)\n    for widget, geometry in before.items():\n        if widget not in after and (region := geometry.visible_region):\n            self._dirty_regions.add(region)\n    if self._dirty_regions:\n        owner.check_idle()"
+      ],
+      [
+        "src/textual/_compositor.py",
+        741,
+        "consumer",
+        "self._damage_geometry(previous_scene, map, parent)"
+      ],
+      [
+        "src/textual/_compositor.py",
+        778,
+        "consumer",
+        "self._damage_geometry(previous_scene, map, parent)"
+      ],
+      [
+        "src/textual/_compositor.py",
+        822,
+        "consumer",
+        "self._damage_geometry(previous, map, self.root)"
+      ]
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "kind": "UndeclaredWidth",
+    "dependent": true,
+    "geometry_changed": true
+  },
+  {
+    "kind": "DeclaredWidth",
+    "dependent": false,
+    "geometry_changed": false
+  }
+]

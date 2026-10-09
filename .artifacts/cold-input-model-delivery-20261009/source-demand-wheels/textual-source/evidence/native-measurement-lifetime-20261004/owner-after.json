@@ -1,0 +1,319 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "3e3ac956ce00b3d8112e1a47aed3b8aab7d70813",
+      "root": "src/textual",
+      "modules": 249,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/textual/_compositor.py",
+          "line": 87,
+          "kind": "Load",
+          "source": "widget._geometry_revision"
+        },
+        {
+          "path": "src/textual/_measurement.py",
+          "line": 214,
+          "kind": "declaration",
+          "source": "_local_box_inputs"
+        },
+        {
+          "path": "src/textual/_measurement.py",
+          "line": 93,
+          "kind": "Load",
+          "source": "widget._arrangement_depends_on_available_height"
+        },
+        {
+          "path": "src/textual/_measurement.py",
+          "line": 134,
+          "kind": "Load",
+          "source": "child._box_depends_on_available_height"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 146,
+          "kind": "declaration",
+          "source": "_invalidate_subtree_geometry"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 152,
+          "kind": "declaration",
+          "source": "_style_geometry_updated"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 150,
+          "kind": "Store",
+          "source": "node._geometry_revision"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 154,
+          "kind": "Store",
+          "source": "self._geometry_revision"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 170,
+          "kind": "Load",
+          "source": "self._style_geometry_updated"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 184,
+          "kind": "Load",
+          "source": "node._style_geometry_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 335,
+          "kind": "declaration",
+          "source": "_style_geometry_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 344,
+          "kind": "declaration",
+          "source": "_measurement_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 351,
+          "kind": "declaration",
+          "source": "_invalidate_layout"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1894,
+          "kind": "declaration",
+          "source": "_arrangement_depends_on_available_height"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1913,
+          "kind": "declaration",
+          "source": "_box_depends_on_available_height"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4559,
+          "kind": "declaration",
+          "source": "_refresh_scroll"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4823,
+          "kind": "declaration",
+          "source": "_check_refresh"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 346,
+          "kind": "Store",
+          "source": "self._layout_updates"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 515,
+          "kind": "Store",
+          "source": "self._layout_updates"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 336,
+          "kind": "Load",
+          "source": "super()._style_geometry_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 358,
+          "kind": "Load",
+          "source": "self._invalidate_subtree_geometry"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 359,
+          "kind": "Load",
+          "source": "self._measurement_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1433,
+          "kind": "Load",
+          "source": "self._layout_updates"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1456,
+          "kind": "Load",
+          "source": "self._invalidate_layout"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1901,
+          "kind": "Load",
+          "source": "self._layout_updates"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1915,
+          "kind": "Load",
+          "source": "self._layout_updates"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1945,
+          "kind": "Load",
+          "source": "self._layout_updates"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4561,
+          "kind": "Load",
+          "source": "self._invalidate_subtree_geometry"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4821,
+          "kind": "Load",
+          "source": "self._check_refresh"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 341,
+          "kind": "Load",
+          "source": "self._measurement_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 363,
+          "kind": "Load",
+          "source": "ancestor._measurement_updated"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 2173,
+          "kind": "Load",
+          "source": "self._refresh_scroll"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 2181,
+          "kind": "Load",
+          "source": "self._refresh_scroll"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4596,
+          "kind": "Load",
+          "source": "self._invalidate_layout"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1435,
+          "kind": "Load",
+          "source": "self._arrangement_depends_on_available_height"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1948,
+          "kind": "Load",
+          "source": "self._box_depends_on_available_height"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "dfc916302b29cfce89455e85cd3da1ce7b1bbca3",
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 52,
+          "kind": "Load",
+          "source": "screen._geometry_revision"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 57,
+          "kind": "Load",
+          "source": "screen._geometry_revision"
+        },
+        {
+          "path": "src/toad/sidebar_navigation.py",
+          "line": 87,
+          "kind": "Load",
+          "source": "node._check_refresh"
+        },
+        {
+          "path": "src/toad/sidebar_navigation.py",
+          "line": 90,
+          "kind": "Load",
+          "source": "ancestor._check_refresh"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 996,
+          "kind": "Load",
+          "source": "parent._check_refresh"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 995,
+          "kind": "Load",
+          "source": "child._check_refresh"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 993,
+          "kind": "Load",
+          "source": "node._check_refresh"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 472,
+          "kind": "Load",
+          "source": "self._invalidate_layout"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "dfc916302b29cfce89455e85cd3da1ce7b1bbca3",
+      "root": "tools",
+      "modules": 41,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "tools/performance/sidebar_validation_driver.py",
+          "line": 38,
+          "kind": "Load",
+          "source": "self._layout_updates"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "AST records lexical ownership and call sites; it does not resolve dynamic plugin overrides or prove runtime dispatch.",
+    "Source-read native style/NodeList/content publication and the single Toad body transition supply semantic classification."
+  ],
+  "owned_facts": {
+    "scene": "DOMNode._geometry_revision / _invalidate_subtree_geometry",
+    "measurement": "Widget._layout_updates / _measurement_updated",
+    "local_scalar_dependency": "Styles._cache_key",
+    "structure": "NodeList._updates"
+  },
+  "production_delta": {
+    "files": [
+      "src/textual/widget.py",
+      "src/textual/_measurement.py"
+    ],
+    "added": 30,
+    "deleted": 19
+  }
+}

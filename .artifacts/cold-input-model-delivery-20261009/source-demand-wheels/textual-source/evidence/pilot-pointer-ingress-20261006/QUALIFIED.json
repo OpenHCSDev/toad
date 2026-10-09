@@ -1,0 +1,32 @@
+{
+  "scope": "Native source App/Pilot/driver/capture final-delivery contract, including real run_async. Not Batch05 causal identification, installed Toad, physical motion or latency.",
+  "sources": {
+    "src/textual/app.py": "0bb5b50ff4260453c72b2e189cd10ef1c8152c9cbf2eeb97dd42aba9b1e50ca9",
+    "src/textual/events.py": "dd039e7a82fa34b8e2057f624d800dda03d0271f631e56339ac177083448c6ce",
+    "src/textual/message.py": "e140b2018efa08c02d75aeddb29ab7d315d8ab2a48ad98a9db84cb21279653c6",
+    "src/textual/message_pump.py": "b4c732994a8203e7d6b274f60ecf073c1e0219d6fd3401275baa06c3da9ad089",
+    "src/textual/pilot.py": "b2054a216c3c6954dda68855171e2c047d23102e837d52be1ffea7f85e88d585",
+    "src/textual/screen.py": "8672e6e6c451148b7dcf724138389ce96b8824c2d72f5e121bde3a91b752d86f",
+    "tests/test_app.py": "b8abd10603eac0f6d0c16eb80bfaedc2821fb48f30cba27cbd563307a9b74c64",
+    "tests/test_selection.py": "9c808b55c2011bd87b96ab4c205eb28d9c0b72ed6996fb4c9ba11ab54ece57a6",
+    "tests/test_pilot_pointer_ingress.py": "5274eb5529df68d21d6f4c68a63b8e19cac618b1a5ac668e2ecd6bd4f9c8f5a9"
+  },
+  "keepers": {
+    "changed-path.log": "3ee2aa2b4c711d2da6cf28d1d0b397ca39bb4332b6abbca695712d823c5693ad",
+    "changed-path-final.log": "77ae39be709a48e9bfcae4df8ecbf81cd93293bc06ed5db6bdd054b90218db21",
+    "background-final.log": "2826a5e72c9f873a0370a41fe46a67989c4a682af951a8514eeb48dfd0b0e61b",
+    "overridden-consumer.log": "1d4a11fc90a7086c182cc06bc43bebeb59a36928082944ef103c86041aa4cf49",
+    "before.json": "26a0c05b07868e2f4f865463d871f1015c97c4c9e07ce19579a1db513e0659be",
+    "after.json": "3b8d68f02c9a132d49ceaeb9be89e68ec9afef754f9f3fbc4ab2a66f74f5e550"
+  },
+  "checks": {
+    "initial_batch": "160 passed, 1 fixture failure, 22 deselected in 27.62s",
+    "final_changed_paths": "5 passed, 1 Screen-id fixture failure in 1.31s",
+    "corrected_screen": "1 passed in .71s",
+    "overridden_consumer": "1 passed in .83s"
+  },
+  "provider_inputs": 0,
+  "physical_runs": 0,
+  "installed_changes": 0,
+  "competing_native_writer": "none; only this PR open at source completion"
+}

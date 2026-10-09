@@ -1,0 +1,124 @@
+[
+  {
+    "kind": "HorizontalGroup",
+    "width": 65,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "LineAnnotations",
+      "LineAnnotations",
+      "DiffScrollContainer",
+      "LineAnnotations",
+      "LineAnnotations",
+      "DiffScrollContainer"
+    ]
+  },
+  {
+    "kind": "DiffScrollContainer",
+    "width": 28,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "DiffCode"
+    ]
+  },
+  {
+    "kind": "DiffScrollContainer",
+    "width": 29,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "DiffCode"
+    ]
+  },
+  {
+    "kind": "DiffView",
+    "width": 65,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "Static",
+      "HorizontalGroup"
+    ]
+  },
+  {
+    "kind": "ToolContent",
+    "width": 63,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "ToolCallDiff"
+    ]
+  },
+  {
+    "kind": "ToolCallDiff",
+    "width": 63,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "PatchDiffView"
+    ]
+  },
+  {
+    "kind": "PatchDiffView",
+    "width": 62,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "Static",
+      "HorizontalGroup"
+    ]
+  },
+  {
+    "kind": "HorizontalGroup",
+    "width": 62,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "_PatchLineAnnotations",
+      "_PatchLineAnnotations",
+      "DiffScrollContainer",
+      "_PatchLineAnnotations",
+      "_PatchLineAnnotations",
+      "DiffScrollContainer"
+    ]
+  },
+  {
+    "kind": "DiffScrollContainer",
+    "width": 27,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "PatchDiffCode"
+    ]
+  },
+  {
+    "kind": "DiffScrollContainer",
+    "width": 27,
+    "dependent": false,
+    "native_flow_calls": 1,
+    "all_placements_equal": true,
+    "cache_policy": true,
+    "children": [
+      "PatchDiffCode"
+    ]
+  }
+]

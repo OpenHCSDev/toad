@@ -1,0 +1,1361 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "head": "2e8ce3336b7b2ff83eb98cc545c08265b2a70856",
+      "root": "src/textual",
+      "modules": 249,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/textual/app.py",
+          "line": 1069,
+          "kind": "declaration",
+          "source": "batch_update"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3802,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2664,
+          "kind": "call",
+          "source": "self.screen.refresh()"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2872,
+          "kind": "call",
+          "source": "self.screen.refresh()"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 2954,
+          "kind": "call",
+          "source": "mode_screen.refresh()"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3825,
+          "kind": "call",
+          "source": "self.screen.refresh(repaint=repaint, layout=layout)"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 4808,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 1105,
+          "kind": "call",
+          "source": "self.screen.refresh()"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3153,
+          "kind": "call",
+          "source": "self.batch_update()"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 3439,
+          "kind": "call",
+          "source": "self.batch_update()"
+        },
+        {
+          "path": "src/textual/app.py",
+          "line": 4447,
+          "kind": "call",
+          "source": "parent.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 154,
+          "kind": "call",
+          "source": "obj.refresh(layout=self.layout, children=self.refresh_children)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 260,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 307,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, children=self.refresh_children)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 657,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 688,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 741,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 890,
+          "kind": "call",
+          "source": "obj.refresh(layout=self._layout, children=self._refresh_children, parent=self._refresh_parent)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1217,
+          "kind": "call",
+          "source": "obj.refresh(children=self.children)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 150,
+          "kind": "call",
+          "source": "obj.refresh(layout=self.layout, children=self.refresh_children)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 224,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 288,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, children=self.refresh_children)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 363,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 493,
+          "kind": "call",
+          "source": "obj.refresh()"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 496,
+          "kind": "call",
+          "source": "obj.refresh(layout=layout)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 569,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 572,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 610,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 626,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 724,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 787,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, repaint=False)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 942,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 947,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 963,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1015,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1055,
+          "kind": "call",
+          "source": "widget.horizontal_scrollbar.refresh()"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1057,
+          "kind": "call",
+          "source": "widget.vertical_scrollbar.refresh()"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1097,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1204,
+          "kind": "call",
+          "source": "obj.refresh(children=self.children)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1259,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 387,
+          "kind": "call",
+          "source": "obj.refresh(layout=self.affects_geometry(current_value, new_value))"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 790,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, repaint=False)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 813,
+          "kind": "call",
+          "source": "obj.refresh(layout=True, repaint=False)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 968,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1018,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1100,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1124,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 971,
+          "kind": "call",
+          "source": "obj.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/_style_properties.py",
+          "line": 1041,
+          "kind": "call",
+          "source": "obj.refresh(children=True)"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 417,
+          "kind": "declaration",
+          "source": "set_styles"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 439,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 428,
+          "kind": "call",
+          "source": "node.set_styles(**update_styles)"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 453,
+          "kind": "call",
+          "source": "node.refresh(repaint=repaint, layout=layout, recompose=recompose)"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 436,
+          "kind": "call",
+          "source": "node.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 724,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 741,
+          "kind": "declaration",
+          "source": "batch_update"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 934,
+          "kind": "declaration",
+          "source": "replace_rules"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 961,
+          "kind": "declaration",
+          "source": "_update_rules"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1029,
+          "kind": "declaration",
+          "source": "batch_update"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1049,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1062,
+          "kind": "declaration",
+          "source": "_refresh"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1571,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1583,
+          "kind": "declaration",
+          "source": "batch_update"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1009,
+          "kind": "call",
+          "source": "self._update_rules((), (rule_name,))"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1026,
+          "kind": "call",
+          "source": "self._update_rules(((rule, value),))"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1072,
+          "kind": "call",
+          "source": "node.refresh(layout=any((layout for layout, _, _, _ in requests)))"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1083,
+          "kind": "call",
+          "source": "self._update_rules((), self._rules)"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1094,
+          "kind": "call",
+          "source": "self._update_rules(rules.items())"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1579,
+          "kind": "call",
+          "source": "self._inline_styles.refresh(layout=layout, children=children, parent=parent, repaint=repaint)"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1584,
+          "kind": "call",
+          "source": "self._inline_styles.batch_update()"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 944,
+          "kind": "call",
+          "source": "prepared.batch_update()"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 955,
+          "kind": "call",
+          "source": "self.batch_update()"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 956,
+          "kind": "call",
+          "source": "self._update_rules(new_rules.items(), old_rules.keys() - new_rules.keys())"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 995,
+          "kind": "call",
+          "source": "node._style_rules_updated(Styles._revision, geometry)"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1071,
+          "kind": "call",
+          "source": "node._parent.refresh(repaint=any(parent_requests))"
+        },
+        {
+          "path": "src/textual/css/styles.py",
+          "line": 1079,
+          "kind": "call",
+          "source": "child.refresh(layout=child_layout, repaint=child_repaint)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 817,
+          "kind": "declaration",
+          "source": "replace_rules"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 608,
+          "kind": "call",
+          "source": "node._css_styles.batch_update()"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 832,
+          "kind": "call",
+          "source": "base_styles.batch_update()"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 753,
+          "kind": "call",
+          "source": "self.replace_rules(node, node_rules, animate=animate)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 813,
+          "kind": "call",
+          "source": "node._css_styles.refresh()"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 892,
+          "kind": "call",
+          "source": "base_styles.replace_rules(immediate_rules)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 894,
+          "kind": "call",
+          "source": "base_styles.replace_rules(rules)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1023,
+          "kind": "call",
+          "source": "node._css_styles.batch_update()"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 656,
+          "kind": "call",
+          "source": "self.replace_rules(node, cached_result, animate=animate)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 677,
+          "kind": "call",
+          "source": "self.replace_rules(node, cached_result, animate=animate)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1025,
+          "kind": "call",
+          "source": "node._css_styles.refresh()"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 161,
+          "kind": "declaration",
+          "source": "_update_inherited_geometry"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 172,
+          "kind": "declaration",
+          "source": "_style_rules_updated"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 1813,
+          "kind": "declaration",
+          "source": "set_styles"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 2014,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 179,
+          "kind": "call",
+          "source": "self._update_inherited_geometry(geometry)"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 531,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 635,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 1045,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 1830,
+          "kind": "call",
+          "source": "self._inline_styles.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 1833,
+          "kind": "call",
+          "source": "styles.batch_update()"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 169,
+          "kind": "call",
+          "source": "child._update_inherited_geometry(False)"
+        },
+        {
+          "path": "src/textual/reactive.py",
+          "line": 432,
+          "kind": "call",
+          "source": "obj.refresh(repaint=self._repaint, layout=request_layout, recompose=self._recompose)"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1545,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1238,
+          "kind": "call",
+          "source": "app.screen.refresh(*self._compositor._dirty_regions)"
+        },
+        {
+          "path": "src/textual/screen.py",
+          "line": 1254,
+          "kind": "call",
+          "source": "app.screen.refresh(*self._compositor._dirty_regions)"
+        },
+        {
+          "path": "src/textual/scroll_view.py",
+          "line": 174,
+          "kind": "call",
+          "source": "self.refresh(Region(0, y - self.scroll_offset.y, max(self.virtual_size.width, self.size.width), 1))"
+        },
+        {
+          "path": "src/textual/scroll_view.py",
+          "line": 196,
+          "kind": "call",
+          "source": "self.refresh(refresh_region)"
+        },
+        {
+          "path": "src/textual/scroll_view.py",
+          "line": 50,
+          "kind": "call",
+          "source": "self.refresh(self.size.region)"
+        },
+        {
+          "path": "src/textual/scroll_view.py",
+          "line": 56,
+          "kind": "call",
+          "source": "self.refresh(self.size.region)"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4585,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 287,
+          "kind": "call",
+          "source": "obj.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 859,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1829,
+          "kind": "call",
+          "source": "previous.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1830,
+          "kind": "call",
+          "source": "parent.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4499,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4890,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 5069,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 5075,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 883,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1763,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4441,
+          "kind": "call",
+          "source": "self.vertical_scrollbar.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4445,
+          "kind": "call",
+          "source": "self.horizontal_scrollbar.refresh()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 4691,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 179,
+          "kind": "call",
+          "source": "self._parent.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 74,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 94,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/textual/widgets/_content_switcher.py",
+          "line": 127,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 913,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1131,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1604,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1830,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1868,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 1951,
+          "kind": "call",
+          "source": "self.refresh(region)"
+        },
+        {
+          "path": "src/textual/widgets/_data_table.py",
+          "line": 2631,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_digits.py",
+          "line": 75,
+          "kind": "call",
+          "source": "self.refresh(layout=layout_required)"
+        },
+        {
+          "path": "src/textual/widgets/_directory_tree.py",
+          "line": 229,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_footer.py",
+          "line": 424,
+          "kind": "call",
+          "source": "key.refresh(layout=changed_size)"
+        },
+        {
+          "path": "src/textual/widgets/_input.py",
+          "line": 550,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_log.py",
+          "line": 279,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_log.py",
+          "line": 248,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1537,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/textual/widgets/_markdown.py",
+          "line": 1460,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/textual/widgets/_masked_input.py",
+          "line": 524,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 338,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 498,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 706,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 709,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_option_list.py",
+          "line": 410,
+          "kind": "call",
+          "source": "self.refresh(layout=self.styles.auto_dimensions)"
+        },
+        {
+          "path": "src/textual/widgets/_placeholder.py",
+          "line": 186,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_pretty.py",
+          "line": 56,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_rich_log.py",
+          "line": 298,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_rich_log.py",
+          "line": 266,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_selection_list.py",
+          "line": 319,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_selection_list.py",
+          "line": 433,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_selection_list.py",
+          "line": 351,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_selection_list.py",
+          "line": 392,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_static.py",
+          "line": 77,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_static.py",
+          "line": 110,
+          "kind": "call",
+          "source": "self.refresh(layout=layout)"
+        },
+        {
+          "path": "src/textual/widgets/_toggle_button.py",
+          "line": 192,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 510,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 944,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 1079,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/textual/widgets/_tree.py",
+          "line": 1219,
+          "kind": "call",
+          "source": "self.refresh(region)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "4153f19702035e5454aee531620e0d82cf97d66f",
+      "root": "src/toad",
+      "modules": 288,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "src/toad/app.py",
+          "line": 504,
+          "kind": "call",
+          "source": "self.screen.refresh()"
+        },
+        {
+          "path": "src/toad/app.py",
+          "line": 488,
+          "kind": "call",
+          "source": "self.batch_update()"
+        },
+        {
+          "path": "src/toad/comms_root.py",
+          "line": 130,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/toad/comms_root.py",
+          "line": 109,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/frame_presentation.py",
+          "line": 81,
+          "kind": "call",
+          "source": "frame.screen.refresh()"
+        },
+        {
+          "path": "src/toad/goal_interaction.py",
+          "line": 164,
+          "kind": "call",
+          "source": "view.goal_observation.refresh()"
+        },
+        {
+          "path": "src/toad/goal_interaction.py",
+          "line": 202,
+          "kind": "call",
+          "source": "self.view.goal_observation.refresh()"
+        },
+        {
+          "path": "src/toad/mounted_message_history.py",
+          "line": 172,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/toad/screens/comms.py",
+          "line": 210,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/toad/screens/main.py",
+          "line": 298,
+          "kind": "call",
+          "source": "sidebar.observation.refresh()"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 182,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 220,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 33,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 154,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/session_observation.py",
+          "line": 139,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/sidebar_navigation.py",
+          "line": 85,
+          "kind": "call",
+          "source": "self.sidebar.app.batch_update()"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 179,
+          "kind": "declaration",
+          "source": "refresh"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 109,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 127,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 171,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/sidebar_observation.py",
+          "line": 150,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/slash_command.py",
+          "line": 202,
+          "kind": "call",
+          "source": "conversation.goal_observation.refresh()"
+        },
+        {
+          "path": "src/toad/thread_actions.py",
+          "line": 83,
+          "kind": "call",
+          "source": "app.coordination_access.refresh()"
+        },
+        {
+          "path": "src/toad/tool_output.py",
+          "line": 418,
+          "kind": "call",
+          "source": "view.app.batch_update()"
+        },
+        {
+          "path": "src/toad/widgets/comms_chat.py",
+          "line": 279,
+          "kind": "declaration",
+          "source": "_refresh"
+        },
+        {
+          "path": "src/toad/widgets/comms_sidebar.py",
+          "line": 510,
+          "kind": "call",
+          "source": "self.observation.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 242,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 536,
+          "kind": "call",
+          "source": "self.cursor.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1981,
+          "kind": "call",
+          "source": "self.cursor.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1982,
+          "kind": "call",
+          "source": "contents.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 2183,
+          "kind": "call",
+          "source": "self.cursor.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 307,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 1727,
+          "kind": "call",
+          "source": "self.delivery_observation.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 2098,
+          "kind": "call",
+          "source": "self.cursor.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/conversation.py",
+          "line": 173,
+          "kind": "call",
+          "source": "self.refresh(layout=False)"
+        },
+        {
+          "path": "src/toad/widgets/history_anchor.py",
+          "line": 298,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/mandelbrot.py",
+          "line": 201,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/prompt.py",
+          "line": 206,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/question.py",
+          "line": 202,
+          "kind": "call",
+          "source": "self.refresh(recompose=True, layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 398,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 423,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 433,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/side_bar.py",
+          "line": 773,
+          "kind": "call",
+          "source": "parent.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/terminal.py",
+          "line": 216,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/terminal.py",
+          "line": 175,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/terminal_projection.py",
+          "line": 37,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/terminal_projection.py",
+          "line": 42,
+          "kind": "call",
+          "source": "self.refresh(Region(0, 0, window_width, scrollback_height))"
+        },
+        {
+          "path": "src/toad/widgets/terminal_projection.py",
+          "line": 52,
+          "kind": "call",
+          "source": "self.refresh(Region(0, scrollback_height - scroll_y, window_width, scrollback_height + alternate_height))"
+        },
+        {
+          "path": "src/toad/widgets/terminal_projection.py",
+          "line": 49,
+          "kind": "call",
+          "source": "self.refresh(*refresh_lines)"
+        },
+        {
+          "path": "src/toad/widgets/terminal_projection.py",
+          "line": 69,
+          "kind": "call",
+          "source": "self.refresh(*refresh_lines)"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 388,
+          "kind": "declaration",
+          "source": "_refresh"
+        },
+        {
+          "path": "src/toad/widgets/thread_comms.py",
+          "line": 408,
+          "kind": "call",
+          "source": "self.app.batch_update()"
+        },
+        {
+          "path": "src/toad/widgets/throbber.py",
+          "line": 161,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/throbber.py",
+          "line": 133,
+          "kind": "call",
+          "source": "self.refresh()"
+        },
+        {
+          "path": "src/toad/widgets/tool_content.py",
+          "line": 222,
+          "kind": "call",
+          "source": "self.refresh(recompose=True)"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 552,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 639,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 985,
+          "kind": "call",
+          "source": "self.window.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/viewport_body.py",
+          "line": 335,
+          "kind": "call",
+          "source": "body.refresh(layout=True)"
+        },
+        {
+          "path": "src/toad/widgets/worker_static.py",
+          "line": 151,
+          "kind": "call",
+          "source": "self.refresh(layout=True)"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "head": "4153f19702035e5454aee531620e0d82cf97d66f",
+      "root": "tools",
+      "modules": 41,
+      "unparsed": [],
+      "sites": [
+        {
+          "path": "tools/performance/capture_screen.py",
+          "line": 33,
+          "kind": "call",
+          "source": "app.screen.refresh()"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "refresh calls include Widget and Styles boundaries; source reading identifies each behavior owner.",
+    "Dynamic external overrides/call targets are not resolved by AST."
+  ]
+}

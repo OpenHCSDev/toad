@@ -1,0 +1,110 @@
+{
+  "revision": "8f072ed8915fc3da6ed6a0f50ce4dc37ac33b3ae",
+  "modules": 249,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "src/textual/_doc.py",
+      "line": 190,
+      "kind": "Attribute",
+      "expression": "console.export_svg"
+    },
+    {
+      "path": "src/textual/_doc.py",
+      "line": 138,
+      "kind": "Attribute",
+      "expression": "app.export_screenshot"
+    },
+    {
+      "path": "src/textual/_styles_cache.py",
+      "line": 144,
+      "kind": "Attribute",
+      "expression": "app.ansi_theme"
+    },
+    {
+      "path": "src/textual/_styles_cache.py",
+      "line": 352,
+      "kind": "Attribute",
+      "expression": "app.ansi_theme"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1553,
+      "kind": "FunctionDef",
+      "expression": "@property"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1868,
+      "kind": "FunctionDef",
+      "expression": "def export_screenshot(self, *, title: str | None=None, simplify: bool=False) -> str:"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 618,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme_dark"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 618,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme_light"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1531,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1560,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme_dark"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1560,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme_light"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1900,
+      "kind": "Attribute",
+      "expression": "console.export_svg"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1926,
+      "kind": "Attribute",
+      "expression": "self.export_screenshot"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1957,
+      "kind": "Attribute",
+      "expression": "self.export_screenshot"
+    },
+    {
+      "path": "src/textual/content.py",
+      "line": 333,
+      "kind": "Attribute",
+      "expression": "active_app.get().ansi_theme"
+    },
+    {
+      "path": "src/textual/content.py",
+      "line": 355,
+      "kind": "Attribute",
+      "expression": "active_app.get().ansi_theme"
+    },
+    {
+      "path": "src/textual/renderables/text_opacity.py",
+      "line": 157,
+      "kind": "Attribute",
+      "expression": "app.ansi_theme"
+    }
+  ],
+  "limits": "AST references are not dynamic resolution proof; original App, Content, tint, visual/filter and Rich exporter source read"
+}

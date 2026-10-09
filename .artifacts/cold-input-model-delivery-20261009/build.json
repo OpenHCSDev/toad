@@ -1,0 +1,48 @@
+{
+  "purpose": "Actual configured application delivery: model publication and native statistics",
+  "commands": [
+    [
+      "uv",
+      "venv",
+      "--offline",
+      "--python",
+      "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/document-paint-input-owner-delivery-20261009/runtime/bin/python",
+      "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime"
+    ],
+    [
+      "uv",
+      "pip",
+      "install",
+      "--offline",
+      "--python",
+      "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime/bin/python",
+      "--no-deps",
+      "--link-mode",
+      "copy",
+      "-r",
+      "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/requirements.txt"
+    ]
+  ],
+  "baseline": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/document-paint-input-owner-delivery-20261009",
+  "core_source": "bc1f3a81b61f28db869f92af8dd462fd4bd393af",
+  "core_wheel": {
+    "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-input-config-admission-20261008/deployment/current-core-bc1f3a81/wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "sha256": "246964424af22fcc484f386ca6df67401f1621f16b4b9f577b07183eded739b0",
+    "bytes": 924459
+  },
+  "native": {
+    "package": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "669117c30ff9d3ba8e2bba77650f6c556339e36be8f8a1b96477c193a160e182",
+    "tree": "d6be482c6d66fe366ec437b69b2f321eb4bb5ba04ba311b477117bcaec84c8d7",
+    "pin_determining_commit": "b40f0f393b3ba76b4dd2c48e84dd42a7719c31bb",
+    "pin_source": "stack/pi-native.sha256",
+    "wheel_pin_member": "agent_comms/_native/pi-native.sha256",
+    "wheel_pin_sha256": "669117c30ff9d3ba8e2bba77650f6c556339e36be8f8a1b96477c193a160e182",
+    "retained_assembly_relation": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-input-config-admission-20261008/deployment/native-source-relation.json",
+    "new_native_assembly": false,
+    "tree_relation_is_from_original_assembly": true
+  },
+  "frontend": "Retained published Toad506/Textual3a73",
+  "runtime": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime",
+  "app_verification": "Pending real application and messages; defaults unchanged"
+}

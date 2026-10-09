@@ -1,0 +1,15 @@
+{
+  "main_loop_samples": 2387,
+  "median_ms": 6.166572915390134,
+  "p95_ms": 35.106428898870945,
+  "max_ms": 227.4037009337917,
+  "gaps_above_50ms": 61,
+  "mounted_rows": 88,
+  "oldest_sequence": 73,
+  "app_error": null,
+  "profiling": true,
+  "initial_scroll": 215,
+  "final_scroll": 803,
+  "initial_oldest": 113,
+  "older_page": 73
+}

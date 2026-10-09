@@ -1,0 +1,25 @@
+{
+  "scope": "Actual native scroll/reprojection counter; no installed Toad/CPU readiness claim",
+  "original_pose_native_geometry_identity_retained": true,
+  "scroll_before": 0.0,
+  "scroll_after": 20,
+  "same_resource": true,
+  "body_arrangement_calls_during_pagedown": 0,
+  "native_body_epoch_unchanged": true,
+  "changed_key_positions": [],
+  "changed_key_values": [],
+  "scene_checks": [
+    "PageDown reveals previously clipped descendants",
+    "Reverse restores nested clip",
+    "Culled to complete descendant resource transition",
+    "Nested native scrolling and fixed child",
+    "End clips final descendants",
+    "Repeated PageDown at bottom",
+    "Resize invalidates intrinsic dimensions",
+    "Native content mutation invalidates resource",
+    "Screen-dependent placement retains original coordinates",
+    "Overlay uses canonical screen clip and paint order"
+  ],
+  "complete_culled_native_coverage_distinct": true,
+  "result": "PASS"
+}

@@ -1,0 +1,19 @@
+{
+  "pid": 2802531,
+  "created": 1791547227.97,
+  "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+  "rss_before": 272048128,
+  "started_ns": 1791547893941660935,
+  "profile_seconds": 12,
+  "gil_only": false,
+  "native": false,
+  "profile_returncode": 0,
+  "receipts": {
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel-state": "complete"
+  },
+  "execution_receipt": {
+    "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel-remote-entered.json",
+    "status": "entered"
+  },
+  "finished_ns": 1791547906365511156
+}

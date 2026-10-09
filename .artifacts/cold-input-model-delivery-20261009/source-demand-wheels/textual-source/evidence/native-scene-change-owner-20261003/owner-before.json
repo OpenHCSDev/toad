@@ -1,0 +1,343 @@
+{
+  "rev": "10a323dc19cd0a8640afc21f2fdc070813f05ecd",
+  "modules": 249,
+  "unparsed": [],
+  "sites": [
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 55,
+      "kind": "ClassDef",
+      "name": "ReflowResult",
+      "source": "class ReflowResult(NamedTuple):"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 603,
+      "kind": "FunctionDef",
+      "name": "reflow",
+      "source": "def reflow("
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 678,
+      "kind": "FunctionDef",
+      "name": "reflow_visible",
+      "source": "def reflow_visible("
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 724,
+      "kind": "FunctionDef",
+      "name": "_damage_geometry",
+      "source": "def _damage_geometry(self, changes: Iterable[tuple[Widget, MapGeometry]], owner: Widget) -> None:"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 735,
+      "kind": "FunctionDef",
+      "name": "full_map",
+      "source": "def full_map(self) -> CompositorMap:"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 60,
+      "kind": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 170,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 232,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 606,
+      "kind": "Name",
+      "name": "ReflowResult",
+      "source": "ReflowResult"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1346,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 660,
+      "kind": "BinOp",
+      "name": "",
+      "source": "map.items() ^ old_map.items()"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 718,
+      "kind": "BinOp",
+      "name": "",
+      "source": "map.items() ^ old_map.items()"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1365,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1381,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 174,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 665,
+      "kind": "Attribute",
+      "name": "_damage_geometry",
+      "source": "self._damage_geometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 672,
+      "kind": "Name",
+      "name": "ReflowResult",
+      "source": "ReflowResult"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 720,
+      "kind": "Attribute",
+      "name": "_damage_geometry",
+      "source": "self._damage_geometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 862,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1483,
+      "kind": "Name",
+      "name": "visible_region",
+      "source": "visible_region"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1484,
+      "kind": "Name",
+      "name": "visible_region",
+      "source": "visible_region"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1630,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 746,
+      "kind": "Attribute",
+      "name": "_damage_geometry",
+      "source": "self._damage_geometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 746,
+      "kind": "BinOp",
+      "name": "",
+      "source": "map.items() ^ previous.items()"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 787,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 807,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 814,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1134,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1183,
+      "kind": "Attribute",
+      "name": "full_map",
+      "source": "self.full_map"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1615,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 775,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 862,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1360,
+      "kind": "Attribute",
+      "name": "full_map",
+      "source": "self.full_map"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 481,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 724,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1201,
+      "kind": "Attribute",
+      "name": "full_map",
+      "source": "self.full_map"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1486,
+      "kind": "Name",
+      "name": "visible_region",
+      "source": "visible_region"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1487,
+      "kind": "Name",
+      "name": "visible_region",
+      "source": "visible_region"
+    },
+    {
+      "path": "src/textual/map_geometry.py",
+      "line": 8,
+      "kind": "ClassDef",
+      "name": "MapGeometry",
+      "source": "class MapGeometry(NamedTuple):"
+    },
+    {
+      "path": "src/textual/map_geometry.py",
+      "line": 32,
+      "kind": "FunctionDef",
+      "name": "visible_region",
+      "source": "def visible_region(self) -> Region:"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 754,
+      "kind": "Name",
+      "name": "MapGeometry",
+      "source": "MapGeometry"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1099,
+      "kind": "BinOp",
+      "name": "",
+      "source": "entered ^ exited"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1372,
+      "kind": "Attribute",
+      "name": "reflow_visible",
+      "source": "self._compositor.reflow_visible"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1412,
+      "kind": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1399,
+      "kind": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1399,
+      "kind": "Attribute",
+      "name": "reflow",
+      "source": "self._compositor.reflow"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1403,
+      "kind": "Name",
+      "name": "resized",
+      "source": "resized"
+    },
+    {
+      "path": "src/textual/screen.py",
+      "line": 1403,
+      "kind": "Attribute",
+      "name": "reflow",
+      "source": "self._compositor.reflow"
+    }
+  ]
+}

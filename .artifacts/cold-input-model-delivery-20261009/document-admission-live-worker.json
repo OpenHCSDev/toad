@@ -1,0 +1,9 @@
+{
+  "pid": 2917772,
+  "birth": 102568856,
+  "argv": [
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+    "-m",
+    "agent_comms.worker"
+  ]
+}

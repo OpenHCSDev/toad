@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtime-native-custody-terminal-20260928/lib/python3.14/site-packages/textual/app.py", line 3857, in _display
+    terminal_sequence = renderable.render_segments(console)
+  File "/home/ts/.local/share/agent-comms/runtime-native-custody-terminal-20260928/lib/python3.14/site-packages/textual/_compositor.py", line 253, in render_segments
+    line = chops[y]
+           ~~~~~^^^
+IndexError: list index out of range

@@ -1,0 +1,222 @@
+{
+  "original_app_joined": true,
+  "original_app_exit_code": 0,
+  "original_worker_stopped": true,
+  "processes": [
+    {
+      "pid": 2884793,
+      "birth": 102484906,
+      "argv": [
+        "st",
+        "-g",
+        "145x50",
+        "-e",
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/toad",
+        "acp",
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/agent-comms-acp",
+        "--session",
+        "parent-real-ui-20261009",
+        "--project-dir",
+        "/home/ts/wt/comms-post-feature-debt-audit-20260928",
+        "--title",
+        "CSS admitted document"
+      ],
+      "parent": 140381
+    },
+    {
+      "pid": 2884803,
+      "birth": 102484913,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/toad",
+        "acp",
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/agent-comms-acp",
+        "--session",
+        "parent-real-ui-20261009",
+        "--project-dir",
+        "/home/ts/wt/comms-post-feature-debt-audit-20260928",
+        "--title",
+        "CSS admitted document"
+      ],
+      "parent": 2884793
+    },
+    {
+      "pid": 2883985,
+      "birth": 102482962,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "-m",
+        "agent_comms.worker"
+      ],
+      "parent": 1
+    },
+    {
+      "pid": 2884863,
+      "birth": 102485068,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "-c",
+        "from multiprocessing.resource_tracker import main;main(5)"
+      ],
+      "parent": 2884803
+    },
+    {
+      "pid": 2884864,
+      "birth": 102485070,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "-c",
+        "from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=17)",
+        "--multiprocessing-fork"
+      ],
+      "parent": 2884803
+    },
+    {
+      "pid": 2884865,
+      "birth": 102485070,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "-c",
+        "from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=19)",
+        "--multiprocessing-fork"
+      ],
+      "parent": 2884803
+    },
+    {
+      "pid": 2884912,
+      "birth": 102485192,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "-c",
+        "from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=27)",
+        "--multiprocessing-fork"
+      ],
+      "parent": 2884803
+    },
+    {
+      "pid": 2884919,
+      "birth": 102485213,
+      "argv": [
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/python",
+        "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime/bin/agent-comms-acp"
+      ],
+      "parent": 2884803
+    }
+  ],
+  "native_replies": [
+    {
+      "line": 2,
+      "id": 1,
+      "error": null,
+      "stop": null
+    },
+    {
+      "line": 8,
+      "id": 2,
+      "error": null,
+      "stop": null
+    },
+    {
+      "line": 33,
+      "id": 3,
+      "error": null,
+      "stop": "end_turn"
+    }
+  ],
+  "scope": "Actual isolated st App on original saved fork with configured provider and physical wheel reversal; no automated or synthetic test",
+  "observed_source_heads": {
+    "toad": "312ff428e693ca7ffac6590aa33609d1e0baed7d",
+    "textual": "31f6132db6e321eae6028f630e1a7ecec5dd2793",
+    "agent_comms": "1a45e9b552dcc6890f7eb090a73cb1f9a617f2a7"
+  },
+  "selected_native_followthrough": "73036ff8f1d179da54daee7648c33b2d189b734e",
+  "followthrough_relation": "Only signature capability check now inspects the actual bound Python method; arbitrary callable replacements use full original call without probing attributes. Original declared bound-method path is unchanged; no repeat profile. Published default check pending.",
+  "profile_comparison": {
+    "document-control-wheel": {
+      "sample_rate": 100,
+      "duration_seconds": 12,
+      "main_samples": 800,
+      "inclusive_samples": {
+        "current_admission": 272,
+        "get_pseudo_classes": 242,
+        "using_document_inputs": 223,
+        "_prepare_compositor_refresh": 210,
+        "_refresh_layout": 112,
+        "_render_chops": 35
+      },
+      "writer_enqueue_to_flush_ms": {
+        "frames": 937,
+        "median": 0.372476,
+        "p95": 31.484525,
+        "max": 261.020301
+      }
+    },
+    "document-admission-wheel": {
+      "sample_rate": 100,
+      "duration_seconds": 12,
+      "main_samples": 767,
+      "inclusive_samples": {
+        "current_admission": 194,
+        "get_pseudo_classes": 132,
+        "using_document_inputs": 113,
+        "_prepare_compositor_refresh": 96,
+        "_refresh_layout": 152,
+        "_render_chops": 52
+      },
+      "writer_enqueue_to_flush_ms": {
+        "frames": 2023,
+        "median": 2.243634,
+        "p95": 27.524545,
+        "max": 136.821538
+      }
+    }
+  },
+  "limits": [
+    "16ms total frame target unmet; writer metrics exclude input/layout/preparation and are not frame times",
+    "One same physical wheel sequence on growing real history, not controlled statistical latency acceptance",
+    "Mixed geometry/pixel publication source defect remains; no no-blank/reversal/End/multi-tab acceptance",
+    "Observed App used31f native; final730 bound-method followthrough reviewed from exact source diff and package proof; actual default check follows publication"
+  ],
+  "artifacts": [
+    {
+      "path": "/home/ts/.local/state/toad/logs/CSS_admitted_document_2026-10-09T08_33_32_898382.txt",
+      "bytes": 159146,
+      "sha256": "71bebf52647addbb588c5f7d7b03af849943c7f1f0ddfbf12ecf019af19a834c"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-reply.png",
+      "bytes": 72696,
+      "sha256": "b5f465aa6dbf7242793759595e0bdd671bbc43e91a41541093a7a1f1198ae86d"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-wheel-return.png",
+      "bytes": 82659,
+      "sha256": "ebf2ac0f783f2d36cefc9b054127da9d6bcde9b614f6d1e6e0f2b352cf8eb135"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-wheel.mp4",
+      "bytes": 12162341,
+      "sha256": "8f767538a28a159bba4faaf41978700801f335f5688a84f59d25ecc04ce78194"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-wheel.speedscope.json",
+      "bytes": 441313,
+      "sha256": "c74299ff4dc820ed7e20d7cbd6ff011c8bdc045d21a68db45d16827d88c62f94"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-wheel-state-frames.json",
+      "bytes": 445321,
+      "sha256": "7134747147aa6b991f3e45f57ea5ad32335cfd122ca329dceb3f466e52462b4b"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-wheel-manifest.json",
+      "bytes": 716,
+      "sha256": "1bb9768c11de31bba9cdb0865a46cb08b7e34c6fc1fe80080cfdac72e7c3c9ea"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-acquired-processes.json",
+      "bytes": 3489,
+      "sha256": "f40451055bb51772a358025d204090a32968104576270ea0242482b90f880e90"
+    }
+  ]
+}
