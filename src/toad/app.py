@@ -9,6 +9,7 @@ from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
 import gc
+import sys
 import json
 import os
 from functools import cached_property, partial
@@ -510,10 +511,11 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         try:
             registered = await self.preparation.run_thread(
                 lambda: tuple(self.coordination_access.service.registry.active_threads()))
-            local_threads = self.local_coordination_threads()
-            return [name for name in registered if name not in local_threads]
-        except Exception:
+        except (OSError, ValueError, RuntimeError) as error:
+            self.notify(str(error), title="Peers unavailable", severity="error")
             return []
+        local_threads = self.local_coordination_threads()
+        return [name for name in registered if name not in local_threads]
 
     async def mark_visible_thread_read(self) -> None:
         """Report the painted native cursor, never an executor's inbox cursor."""
@@ -581,6 +583,9 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         # itself) lives for the whole process. Move it out of the collector's
         # reach so collections only scan objects created while running.
         gc.freeze()
+        # Background threads (Core reads, preparation) give the GIL back to
+        # the UI thread within 1 ms instead of the default 5 ms.
+        sys.setswitchinterval(0.001)
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
