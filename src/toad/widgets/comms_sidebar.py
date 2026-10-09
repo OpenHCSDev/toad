@@ -1418,7 +1418,7 @@ class CommsSidebar(SidebarVisibilityObserver, TargetTree):
             menu_offset,
             name,
             actions,
-            
+
             pin_label="Unpin channel" if channel.pinned else "Pin channel",
             any_mode_label=any_mode_label,
         )

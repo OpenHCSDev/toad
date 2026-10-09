@@ -275,4 +275,3 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def action_close_session(self) -> None:
         if self.id is not None:
             await self.app.close_session_mode(self.id)
-

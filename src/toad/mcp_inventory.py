@@ -15,20 +15,14 @@ from pathlib import Path
 import re
 from typing import Any
 
+from toad.mcp_declarations import DeclarationStatus, InventoryScope, ProjectScope, UserScope
+
 
 MAX_INVENTORY_BYTES = 128_000
 INVENTORY_TIMEOUT_SECONDS = 5.0
 _ID = re.compile(r"[a-z][a-z0-9_-]{0,31}\Z")
 _DIGEST = re.compile(r"[a-f0-9]{64}\Z")
 _ENV = re.compile(r"[A-Z_][A-Z0-9_]*\Z")
-_STATUSES = {
-    "approved",
-    "disabled",
-    "denied",
-    "trust_required",
-    "unsupported_env",
-    "shadowed",
-}
 _POLICIES = {"allow", "ask", "unavailable"}
 
 
@@ -39,11 +33,11 @@ class UnsupportedInventory(ValueError):
 @dataclass(frozen=True)
 class Declaration:
     id: str
-    scope: str
+    scope: InventoryScope
     digest: str
     effective: bool
     enabled: bool
-    status: str
+    status: DeclarationStatus
     call_policy: str
     argument_count: int
     env_names: tuple[str, ...]
@@ -71,7 +65,7 @@ def _boolean(value: object) -> bool:
     return value
 
 
-def _rows(value: object, scope: str) -> tuple[Declaration, ...]:
+def _rows(value: object, scope: InventoryScope) -> tuple[Declaration, ...]:
     if not isinstance(value, list) or len(value) > 256:
         raise UnsupportedInventory("Invalid declarations")
     rows: list[Declaration] = []
@@ -85,21 +79,23 @@ def _rows(value: object, scope: str) -> tuple[Declaration, ...]:
             or identifier in seen
             or not isinstance(digest, str)
             or not _DIGEST.fullmatch(digest)
-            or row.get("scope") != scope
+            or row.get("scope") != scope.declared_name
         ):
             raise UnsupportedInventory("Invalid declaration identity")
         seen.add(identifier)
-        status, policy = row.get("status"), row.get("callPolicy")
-        if status not in _STATUSES or policy not in _POLICIES:
-            raise UnsupportedInventory("Unsupported declaration state")
+        try:
+            status = DeclarationStatus.decode(row.get("status"))()
+        except ValueError as error:
+            raise UnsupportedInventory(str(error)) from error
+        policy = row.get("callPolicy")
+        if policy not in _POLICIES:
+            raise UnsupportedInventory("Unsupported declaration call policy")
         effective = _boolean(row.get("effective"))
         enabled = _boolean(row.get("enabled"))
-        if (
-            (not effective and (status != "shadowed" or policy != "unavailable"))
-            or (effective and status == "shadowed")
-            or (status != "approved" and policy != "unavailable")
-        ):
-            raise UnsupportedInventory("Inconsistent declaration state")
+        try:
+            status.validate(effective, policy)
+        except ValueError as error:
+            raise UnsupportedInventory(str(error)) from error
         transport = _object(row.get("transport"))
         argument_count = transport.get("argumentCount")
         if (
@@ -180,9 +176,9 @@ def parse_inventory(data: bytes, expected_root: Path) -> Inventory:
         ):
             raise UnsupportedInventory("Unsupported live status")
         declarations = _object(doc.get("declarations"))
-        user = _rows(declarations.get("user"), "user")
-        project = _rows(declarations.get("project"), "project")
-        if not trusted and (project or any(row.status == "approved" for row in user)):
+        user = _rows(declarations.get("user"), UserScope())
+        project = _rows(declarations.get("project"), ProjectScope())
+        if not trusted and (project or any(row.status.allows_call_decision() for row in user)):
             raise UnsupportedInventory("Approval without saved project trust")
         effective_ids = [row.id for row in (*user, *project) if row.effective]
         if len(set(effective_ids)) != len(effective_ids):
