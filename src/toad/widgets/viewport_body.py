@@ -152,6 +152,40 @@ class BodyMeasurement(ABC):
     def document_paint(self):
         return None
 
+    @property
+    def document_resource(self):
+        return None
+
+    @property
+    def published_document_paint(self):
+        """Intrinsic pixels supplied by this role, not merely retained by it."""
+        return None
+
+    def source_blocks(self, body):
+        return None
+
+    @staticmethod
+    def same_source_block(left, right):
+        return (left.source_index == right.source_index
+                and left.document.same_source(right.document))
+
+    def source_member(self, body, source):
+        members = self.source_blocks(body)
+        return (None if members is None else
+                next((member for member in members if self.same_source_block(member, source)), None))
+
+    def source_regions(self, body):
+        return ()
+
+    def source_visible_region(self, body, source):
+        return None
+
+    def export_source(self, body, source):
+        return None
+
+    def scene_roots(self, body):
+        return None
+
     @abstractmethod
     def height(self, body, width, measure) -> int: ...
 
@@ -200,7 +234,7 @@ class BodyMeasurement(ABC):
                     # this original resource while byte preparation awaited.
                     if prepared.width != body._body_measurement.width:
                         prepared = prepared.invalidated()
-                    body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared))
+                    body._update_body_measurement(body._body_measurement.publication_prepared(worker, prepared, self))
                 result = await (body.materialize_native_body() if work is None else work())
                 # Native membership is committed before nested source workers
                 # finish. Join their original publications here, after the
@@ -283,7 +317,7 @@ class BodyMeasurement(ABC):
     def required(self):
         return self
 
-    def publication_prepared(self, worker, paint):
+    def publication_prepared(self, worker, paint, predecessor):
         return self
 
     def measured(self, width, rows):
@@ -299,6 +333,10 @@ class BodyMeasurement(ABC):
     def publication_failed(self, body, worker):
         """A replaced publication cannot invalidate another resource."""
         return self
+
+    def publication_aborted(self):
+        """A failed writer cannot certify the native tree it partly changed."""
+        return self.invalidated()
 
     def released(self):
         return self
@@ -365,10 +403,6 @@ class MeasuredSourceBody(MeasuredBody):
     """Committed source membership remains when its paint is released."""
 
     root_empty: bool
-    source_bytes: int = 0
-
-    def source_cost(self, body):
-        return self.source_bytes
 
     def source_empty(self, body, native_empty):
         return self.root_empty
@@ -387,10 +421,40 @@ class LiveBody(MeasuredBody):
         return select_live(selection) if self.ready(body) else None
 
     def released(self):
-        return ReleasedBody(self.width, self.rows, self.widgets)
+        return self.native_released()
 
     def capture_requested(self):
+        return self.native_capturing()
+
+    def native_live(self):
+        return LiveBody(self.width, self.rows, self.widgets)
+
+    def native_capturing(self):
         return CapturingBody(self.width, self.rows, self.widgets)
+
+    def native_released(self):
+        return ReleasedBody(self.width, self.rows, self.widgets)
+
+    def capture_unavailable(self):
+        return MeasuredBody(self.width, self.rows, self.widgets)
+
+    def captured(self, *, widgets, content, resource_bytes, style_revision, paint_state,
+                 root_empty, source_regions):
+        return RenderedBody(self.width, self.rows, widgets, content=content,
+                            resource_bytes=resource_bytes, style_revision=style_revision,
+                            paint_state=paint_state, root_empty=root_empty)
+
+    def capture_source_regions(self, body, placement, geometry):
+        return ()
+
+    def capture_cost(self, content, source_regions):
+        return retained_bytes(content)
+
+    def source_retired(self, body):
+        return MeasuredSourceBody(self.width, self.rows, self.widgets, root_empty=body.is_empty)
+
+    def publication_aborted(self):
+        return self.capture_unavailable()
 
     def prepare_publication(self, body):
         # Borrow the original published scene synchronously, before a writer
@@ -503,7 +567,7 @@ class CapturingBody(LiveBody):
         return (body, *walk_depth_first(body, PreparedPaintSource, with_root=False))
 
     def required(self):
-        return LiveBody(self.width, self.rows, self.widgets)
+        return self.native_live()
 
 
 @dataclass(frozen=True)
@@ -519,13 +583,13 @@ class ReleasedBody(LiveBody):
         return self
 
     def required(self):
-        return LiveBody(self.width, self.rows, self.widgets)
+        return self.native_live()
 
     def admitted(self):
         return self.required()
 
     def prepare_publication(self, body):
-        return MeasuredBody(self.width, self.rows, self.widgets).prepare_publication(body)
+        return self.capture_unavailable().prepare_publication(body)
 
     def retire(self, body):
         return body.release_native_body(self)
@@ -575,11 +639,14 @@ class MaterializingBody(BodyMeasurement):
     def geometry_targets(self, body):
         return self.previous.geometry_targets(body)
 
-    def publication_prepared(self, worker, paint):
+    def publication_prepared(self, worker, paint, predecessor):
         # A later writer may already own this body while joining our worker.
         # Update the resource in that original chain, never its writer identity.
-        previous = (paint if self.worker is worker
-                    else self.previous.publication_prepared(worker, paint))
+        if self.worker is worker:
+            # Width/style/selection and byte eviction may have changed custody
+            # while capture measured its rows. Do not revive that old resource.
+            return self._updated(paint) if self.previous is predecessor else self
+        previous = self.previous.publication_prepared(worker, paint, predecessor)
         return self._updated(previous)
 
     def cost(self, body):
@@ -604,6 +671,26 @@ class MaterializingBody(BodyMeasurement):
     @property
     def document_paint(self):
         return self.previous.document_paint
+
+    @property
+    def document_resource(self):
+        return self.previous.document_resource
+
+    @property
+    def published_document_paint(self):
+        return self.previous.published_document_paint
+
+    def source_blocks(self, body):
+        return self.previous.source_blocks(body)
+
+    def source_regions(self, body):
+        return self.previous.source_regions(body)
+
+    def source_visible_region(self, body, source):
+        return self.previous.source_visible_region(body, source)
+
+    def export_source(self, body, source):
+        return self.previous.export_source(body, source)
 
     def height(self, body, width, measure):
         return self.previous.height(body, width, measure)
@@ -706,9 +793,9 @@ class MaterializingBody(BodyMeasurement):
 
     def publication_failed(self, body, worker):
         if self.worker is worker:
-            if body._body_measurement is self:
-                return MeasuredBody(self.width, self.rows, self.widgets)
-            return self.previous
+            # Later writers borrow this same predecessor too. None may inherit
+            # a ready scene after its actual native writer failed midway.
+            return self.previous.publication_aborted()
         return self._updated(self.previous.publication_failed(body, worker))
 
 
@@ -721,7 +808,7 @@ class RenderedBody(MeasuredSourceBody):
 
     def invalidated(self):
         return MeasuredSourceBody(self.width, self.rows, self.widgets,
-                                  root_empty=self.root_empty, source_bytes=self.source_bytes)
+                                  root_empty=self.root_empty)
 
     @property
     def dormant(self):
@@ -778,20 +865,87 @@ class RenderedBody(MeasuredSourceBody):
             await body.materialize_body()
 
 
-@dataclass(frozen=True)
-class PreparedDocumentBody(BodyMeasurement):
-    """Worker-owned intrinsic paint, distinct from captured scene pixels."""
+@dataclass(frozen=True, kw_only=True)
+class DocumentSourceBody(BodyMeasurement):
+    """The acquired source is shared by paint and native control roles."""
 
-    paint: "DocumentPaint"
-    resource_bytes: int
     source_resource: "PreparedMarkdown"
 
     def source_cost(self, body):
         return self.source_resource.retained_bytes
 
     @property
+    def document_resource(self):
+        return self
+
+    def owns_document(self, body):
+        current = body.get_current_document()
+        document = self.source_resource.document
+        return (body.is_attached and not body._closing and current is not None
+                and document is not None and current.same_source(document))
+
+    def interactive(self, body):
+        measurement = body._body_measurement
+        return LiveDocumentBody(measurement.width, measurement.rows,
+                                body.materialized_widget_count, resource=self)
+
+    def source_retired(self, width, rows, widgets, *, root_empty):
+        # Source membership and native extent are the last committed answers.
+        # Pixel disposal drops references, not the original resolved supplier.
+        released = self.released()
+        return replace(released, width=width, rows=rows, widgets=widgets, root_empty=root_empty)
+
+
+@dataclass(frozen=True)
+class MeasuredDocumentBody(DocumentSourceBody, MeasuredSourceBody):
+    """Released pixels, retained source and its last committed extent."""
+
+
+@dataclass(frozen=True)
+class PreparedDocumentBody(DocumentSourceBody):
+    """Worker-owned intrinsic paint, distinct from captured scene pixels."""
+
+    paint: "DocumentPaint"
+    resource_bytes: int
+
+    @property
     def document_paint(self):
         return self.paint
+
+    @property
+    def published_document_paint(self):
+        return self.paint
+
+    def source_blocks(self, body):
+        width = body._body_measurement.width + body.styles.gutter.width
+        return (tuple(source for source in self.paint.roots if source.placement is not None)
+                if self.owns_document(body) and self.paint.is_current(body, width,
+                    admissions=body.document_admissions) else None)
+
+    def source_regions(self, body):
+        sources = self.source_blocks(body)
+        geometry = body.screen._compositor._published_map.get(body)
+        return (() if sources is None or geometry is None else
+                tuple((source, source.placement.region.translate(geometry.region.offset))
+                      for source in sources))
+
+    def source_visible_region(self, body, source):
+        member = self.source_member(body, source)
+        geometry = body.screen._compositor.visible_widgets.get(body)
+        if member is None or geometry is None:
+            return None
+        region, clip = geometry
+        placement = member.placement
+        return placement.region.intersection(placement.clip).translate(region.offset).intersection(clip)
+
+    def export_source(self, body, source):
+        from textual.strip import StripRenderable
+
+        member = self.source_member(body, source)
+        if member is None:
+            return None
+        region = member.placement.region.intersection(self.paint.size.region)
+        return (region.size, StripRenderable(self.paint.render_lines(region), region.width)) if region else None
 
     @property
     def width(self):
@@ -874,21 +1028,22 @@ class PreparedDocumentBody(BodyMeasurement):
                 return PreparedDocumentBody(self.paint.with_presentation(
                     document, root_selection=self.paint.root_selection,
                     selection_style=self.paint.selection_style, selecting=self.paint.selecting,
-                ), self.resource_bytes, self.source_resource)
+                ), self.resource_bytes, source_resource=self.source_resource)
         return self.invalidated()
 
     def invalidated(self, width=None):
-        return PendingDocumentBody(self.paint, self.resource_bytes, self.source_resource,
-                                   self.width if width is None else width)
+        return PendingDocumentBody(self.paint, self.resource_bytes,
+                                   self.width if width is None else width,
+                                   source_resource=self.source_resource)
 
     def resized(self, size):
         return (self if size.width == self.paint.width else
                 self.invalidated(size.width - self.paint.gutter.width))
 
     def released(self):
-        return MeasuredSourceBody(self.width, self.rows, self.widgets,
-                                  root_empty=self.paint.root_empty,
-                                  source_bytes=self.source_cost(None))
+        return MeasuredDocumentBody(self.width, self.rows, self.widgets,
+                                    root_empty=self.paint.root_empty,
+                                    source_resource=self.source_resource)
 
     async def restore(self, body):
         if not self.ready(body):
@@ -911,11 +1066,220 @@ class PendingDocumentBody(PreparedDocumentBody):
     def paint_ready(self, body):
         return False
 
+    @property
+    def published_document_paint(self):
+        return None
+
+    def source_blocks(self, body):
+        return None
+
     def invalidated(self, width=None):
         return self if width is None or width == self.width else replace(self, requested_width=width)
 
     def render(self, body, crop, render_live):
         return render_live(crop)
+
+
+@dataclass(frozen=True, kw_only=True)
+class NativeDocumentBody(BodyMeasurement):
+    """Native scene identity borrowing, not publishing, a document resource.
+
+    The scene still owns geometry, leaf styling and partial selection. The
+    intrinsic resource remains available for later exact-input preparation.
+    Actual capture supplies native pixels before that scene changes or retires.
+    """
+
+    resource: DocumentSourceBody
+
+    @property
+    def document_resource(self):
+        return self.resource
+
+    @property
+    def document_paint(self):
+        return self.resource.document_paint
+
+    @property
+    def paint_bytes(self):
+        return self.resource.paint_bytes + super().paint_bytes
+
+    def source_cost(self, body):
+        return self.resource.source_cost(body)
+
+    def native_live(self):
+        return LiveDocumentBody(self.width, self.rows, self.widgets, resource=self.resource)
+
+    def native_capturing(self):
+        return CapturingDocumentBody(self.width, self.rows, self.widgets, resource=self.resource)
+
+    def native_released(self):
+        return ReleasedDocumentBody(self.width, self.rows, self.widgets, resource=self.resource.released())
+
+    def capture_unavailable(self):
+        return self.resource.publication_aborted().allocated(self.width)
+
+    def publication_aborted(self):
+        # Native controls may be partly replaced. Source custody survives;
+        # neither the failed live scene nor its invalid rows become ready paint.
+        return self.capture_unavailable()
+
+    def captured(self, *, widgets, content, resource_bytes, style_revision, paint_state,
+                 root_empty, source_regions):
+        return RenderedDocumentBody(
+            self.width, self.rows, widgets, content=content, resource_bytes=resource_bytes,
+            style_revision=style_revision, paint_state=paint_state, root_empty=root_empty,
+            resource=self.resource, captured_sources=source_regions,
+        )
+
+    def capture_source_regions(self, body, placement, geometry):
+        offset = placement.region.offset
+        regions = []
+        roots = self.scene_roots(body)
+        if roots is None:
+            raise RuntimeError("Native document capture lost its acquired source controls")
+        for root in roots:
+            source = root.source_block
+            box = geometry.get(root)
+            if box is None:
+                raise RuntimeError("Native document capture omitted a displayed source block")
+            regions.append((source, box.region.translate(-offset), box.clip.translate(-offset)))
+        return tuple(regions)
+
+    def capture_cost(self, content, source_regions):
+        # This is the original preparation thread, not a UI graph walk. Charge
+        # captured rows/geometry once, excluding the resource already retained.
+        seen = set()
+        retained_bytes(self.resource.source_resource, seen=seen)
+        retained_bytes(self.resource.document_paint, seen=seen)
+        return retained_bytes((content, source_regions), seen=seen)
+
+    def source_retired(self, body):
+        return self.resource.source_retired(self.width, self.rows, self.widgets, root_empty=body.is_empty)
+
+    def invalidated(self):
+        return replace(self, resource=self.resource.invalidated())
+
+    def measured(self, width, rows):
+        native = super().measured(width, rows)
+        resource = native.resource.allocated(width)
+        return native if resource is native.resource else replace(native, resource=resource)
+
+    def style_updated(self, body):
+        native = super().style_updated(body)
+        if native is not self:
+            return native
+        resource = self.resource.style_updated(body)
+        return self if resource is self.resource else replace(self, resource=resource)
+
+    def resized(self, size):
+        native = super().resized(size)
+        if native is not self:
+            return native
+        resource = self.resource.resized(size)
+        return self if resource is self.resource else replace(self, resource=resource)
+
+    def scene_roots(self, body):
+        from textual.widgets._markdown import MarkdownBlock
+
+        if body._body_measurement.dormant or not self.ready(body) or not self.resource.owns_document(body):
+            return None
+        roots = tuple(child for child in body.displayed_children if isinstance(child, MarkdownBlock))
+        if any(child.source_block is None for child in roots):
+            raise RuntimeError("Native document controls lost their original source binding")
+        return roots
+
+    def scene_block(self, body, source):
+        roots = self.scene_roots(body)
+        return (None if roots is None else next((root for root in roots
+                if self.same_source_block(root.source_block, source)), None))
+
+    def source_blocks(self, body):
+        roots = self.scene_roots(body)
+        return None if roots is None else tuple(root.source_block for root in roots)
+
+    def source_regions(self, body):
+        roots = self.scene_roots(body)
+        placements = body.screen._compositor._published_map
+        return () if roots is None else tuple((root.source_block, box.region) for root in roots
+                                             if (box := placements.get(root)) is not None)
+
+    def source_visible_region(self, body, source):
+        root = self.scene_block(body, source)
+        geometry = body.screen._compositor.visible_widgets.get(root)
+        return None if geometry is None else geometry[0].intersection(geometry[1])
+
+    def export_source(self, body, source):
+        from textual._compositor import Compositor
+
+        root = self.scene_block(body, source)
+        if root is None or root not in body.screen._compositor._published_map:
+            return None
+        compositor = Compositor()
+        compositor.reflow(root, root.outer_size)
+        return root.outer_size, compositor.render_full_update()
+
+
+@dataclass(frozen=True)
+class LiveDocumentBody(NativeDocumentBody, LiveBody):
+    pass
+
+
+@dataclass(frozen=True)
+class CapturingDocumentBody(NativeDocumentBody, CapturingBody):
+    pass
+
+
+@dataclass(frozen=True)
+class ReleasedDocumentBody(NativeDocumentBody, ReleasedBody):
+    pass
+
+
+@dataclass(frozen=True, kw_only=True)
+class RenderedDocumentBody(NativeDocumentBody, RenderedBody):
+    """Actual scene rows/boxes, independently retained intrinsic preparation."""
+
+    captured_sources: tuple
+
+    def invalidated(self):
+        return self.capture_unavailable()
+
+    def released(self):
+        # Neither set of pixels survives byte eviction. The original acquired
+        # source, and the captured scene's membership/extent, still do.
+        return self.resource.source_retired(self.width, self.rows, self.widgets, root_empty=self.root_empty)
+
+    def scene_roots(self, body):
+        return None
+
+    def source_blocks(self, body):
+        return (tuple(source for source, _region, _clip in self.captured_sources)
+                if self.resource.owns_document(body) and self.paint_ready(body) else None)
+
+    def source_regions(self, body):
+        geometry = body.screen._compositor._published_map.get(body)
+        if geometry is None or self.source_blocks(body) is None:
+            return ()
+        return tuple((source, region.translate(geometry.region.offset))
+                     for source, region, _clip in self.captured_sources)
+
+    def source_visible_region(self, body, source):
+        member = self.source_member(body, source)
+        geometry = body.screen._compositor.visible_widgets.get(body)
+        if geometry is None or member is None:
+            return None
+        placement = next((region, clip) for original, region, clip in self.captured_sources if original is member)
+        region, clip = placement
+        return region.intersection(clip).translate(geometry[0].offset).intersection(geometry[1])
+
+    def export_source(self, body, source):
+        from textual.strip import StripRenderable
+
+        member = self.source_member(body, source)
+        if member is None:
+            return None
+        region = next(region for original, region, _clip in self.captured_sources if original is member)
+        region = region.intersection(Size(self.content.width, len(self.content.lines)).region)
+        return (region.size, StripRenderable(self.content.render_lines(region), region.width)) if region else None
 
 
 class MeasuredViewportBody(ViewportBody):
@@ -1182,7 +1546,7 @@ class MeasuredViewportBody(ViewportBody):
         """Capture once for retirement and preceding-source publication."""
         if sources is None:
             sources = self.prepared_paint_sources()
-        unprepared = MeasuredBody(current.width, current.rows, current.widgets)
+        unprepared = current.capture_unavailable()
         if (not current.ready(self) or not self.is_attached or self.lock.is_locked
                 or any(self in endpoint.walk_ancestors(with_self=True)
                        for endpoint in self.screen._interaction_widgets())
@@ -1192,16 +1556,19 @@ class MeasuredViewportBody(ViewportBody):
         style_revision = self._subtree_style_revision
         paint_state = self._resolved_paint_state()
         root_empty = self.is_empty
-        source_bytes = current.source_cost(self)
         captured = tuple(compositor.published_geometry((self,)))
         if not captured:
             return unprepared.prepare_publication(self)
         _body, placement = captured[0]
-        size, rows = compositor.render_subtree_strips(self, placement)
+        size, rows, geometry = compositor.render_subtree_strips(self, placement)
         # Arrangement may acquire a different width and start preparation.
         # Its provisional rows cannot become the source's retained resource.
         if not self.prepared_paint_is_current(sources):
             return unprepared.prepare_publication(self)
+        source_regions = current.capture_source_regions(self, placement, geometry)
+        # The native map belongs to the synchronous capture. Retain only its
+        # original source members and value geometry, never the widget graph.
+        del geometry
         # Native capture already owns final styled terminal rows. Retain those
         # rows directly; rendering them again in Rich workers duplicates work
         # and serializes a resource that never leaves this process.
@@ -1209,13 +1576,13 @@ class MeasuredViewportBody(ViewportBody):
         widgets = self.materialized_widget_count
 
         async def measured():
-            size_bytes = await self.app.preparation.run_thread(retained_bytes, content)
+            size_bytes = await self.app.preparation.run_thread(current.capture_cost, content, source_regions)
             if not self.prepared_paint_is_current(sources):
                 return unprepared
-            return RenderedBody(
-                current.width, current.rows, widgets, content=content,
+            return current.captured(
+                widgets=widgets, content=content,
                 resource_bytes=size_bytes, style_revision=style_revision, paint_state=paint_state,
-                root_empty=root_empty, source_bytes=source_bytes,
+                root_empty=root_empty, source_regions=source_regions,
             )
 
         return measured()
@@ -1235,10 +1602,7 @@ class MeasuredViewportBody(ViewportBody):
         async with self.retirement_custody() as can_commit:
             if not can_commit or not self.retirement_current(current):
                 return False
-            self._update_body_measurement(MeasuredSourceBody(
-                current.width, current.rows, current.widgets,
-                root_empty=self.is_empty, source_bytes=current.source_cost(self),
-            ))
+            self._update_body_measurement(current.source_retired(self))
             self.retire_body_resources()
             await self.remove_children(children)
         return True
@@ -1396,7 +1760,7 @@ class ViewportPresentation:
                 if isinstance(owner, ViewportBody):
                     bodies[owner] = None
         participants = tuple(body for body in bodies
-                             if body._body_measurement.document_paint is not None)
+                             if body._body_measurement.published_document_paint is not None)
         self.document_admissions = DocumentPresentation.acquire_admissions(participants)
         try:
             yield

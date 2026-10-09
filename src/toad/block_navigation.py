@@ -239,7 +239,7 @@ class DocumentBlockCursor(BlockCursor):
         if sources is None:
             return original
         for source in sources:
-            if self._same_member(source, original):
+            if self.block._body_measurement.same_source_block(source, original):
                 self._selection = source
                 return source
         self._selection = None
@@ -253,39 +253,11 @@ class DocumentBlockCursor(BlockCursor):
     def clear(self):
         self._selection = None
 
-    def _current_paint(self):
-        paint = self.block.block_document_paint
-        width = self.block._body_measurement.width + self.block.styles.gutter.width
-        return paint if paint is not None and paint.is_current(self.block, width) else None
-
-    @staticmethod
-    def _same_member(left, right):
-        return (left.source_index == right.source_index
-                and left.document.same_source(right.document))
-
     def _scene_roots(self):
-        from textual.widgets._markdown import MarkdownBlock
-
-        measurement = self.block._body_measurement
-        if (measurement.dormant or not measurement.ready(self.block)
-                or not self.block.is_attached or self.block._closing):
-            return None
-        return tuple(child for child in self.block.displayed_children
-                     if isinstance(child, MarkdownBlock) and child.source_block is not None)
+        return self.block._body_measurement.scene_roots(self.block)
 
     def _current_sources(self):
-        paint = self._current_paint()
-        if paint is not None:
-            return tuple(source for source in paint.roots if source.placement is not None)
-        roots = self._scene_roots()
-        return None if roots is None else tuple(root.source_block for root in roots)
-
-    def _scene_block(self):
-        source = self.selected
-        roots = self._scene_roots()
-        if source is not None and roots is not None:
-            return next((root for root in roots
-                         if self._same_member(root.source_block, source)), None)
+        return self.block._body_measurement.source_blocks(self.block)
 
     def _enter_from(self, sources, index, direction):
         if 0 <= index < len(sources):
@@ -315,7 +287,7 @@ class DocumentBlockCursor(BlockCursor):
             # prepares. It does not admit another root through stale geometry.
             return True
         index = next(index for index, member in enumerate(sources)
-                     if self._same_member(member, source)) + direction.step
+                     if self.block._body_measurement.same_source_block(member, source)) + direction.step
         return self._enter_from(sources, index, direction)
 
     def select(self, widget):
@@ -331,7 +303,7 @@ class DocumentBlockCursor(BlockCursor):
     def accepts(self, owner):
         source = self.selected
         return (source is not None and isinstance(owner, type(source))
-                and self._same_member(source, owner))
+                and self.block._body_measurement.same_source_block(source, owner))
 
     def get_clipboard_text(self):
         source = self.selected
@@ -345,13 +317,6 @@ class DocumentBlockCursor(BlockCursor):
         source = self.selected
         return () if source is None else source.declaration.source_block_menu(source)
 
-    def _placement(self):
-        source = self.selected
-        paint = self._current_paint()
-        if source is None or paint is None:
-            return None
-        return source.placement
-
     @property
     def region(self):
         source = self.selected
@@ -359,23 +324,11 @@ class DocumentBlockCursor(BlockCursor):
 
     def source_regions(self):
         """Original displayed source members and their current screen regions."""
-        compositor = self.block.screen._compositor
-        placements = compositor._published_map
-        paint = self._current_paint()
-        if paint is not None:
-            geometry = placements.get(self.block)
-            if geometry is None:
-                return ()
-            return tuple((source, source.placement.region.translate(geometry.region.offset))
-                         for source in paint.roots if source.placement is not None)
-        roots = self._scene_roots()
-        return () if roots is None else tuple((root.source_block, geometry.region)
-                                              for root in roots
-                                              if (geometry := placements.get(root)) is not None)
+        return self.block._body_measurement.source_regions(self.block)
 
     def region_for(self, source):
         return next((region for member, region in self.source_regions()
-                     if self._same_member(member, source)), None)
+                     if self.block._body_measurement.same_source_block(member, source)), None)
 
     def owns_source(self, source):
         document = self.block.get_current_document()
@@ -383,16 +336,9 @@ class DocumentBlockCursor(BlockCursor):
 
     @property
     def visible_region(self):
-        scene = self._scene_block()
-        if scene is not None:
-            geometry = scene.screen._compositor.visible_widgets.get(scene)
-            return None if geometry is None else geometry[0].intersection(geometry[1])
-        placement = self._placement()
-        geometry = self.block.screen._compositor.visible_widgets.get(self.block)
-        if placement is None or geometry is None:
-            return None
-        region, clip = geometry
-        return placement.region.intersection(placement.clip).translate(region.offset).intersection(clip)
+        source = self.selected
+        return (None if source is None else
+                self.block._body_measurement.source_visible_region(self.block, source))
 
     def scroll_to_center(self, window):
         region = self.region
@@ -403,25 +349,9 @@ class DocumentBlockCursor(BlockCursor):
             )
 
     def export_render(self):
-        from textual.strip import StripRenderable
-
-        scene = self._scene_block()
-        if scene is not None:
-            if self.region_for(scene.source_block) is None:
-                return None
-            from textual._compositor import Compositor
-
-            compositor = Compositor()
-            compositor.reflow(scene, scene.outer_size)
-            return scene.outer_size, compositor.render_full_update()
-        placement = self._placement()
-        if placement is None:
-            return None
-        paint = self.block.block_document_paint
-        region = placement.region.intersection(paint.size.region)
-        if not region:
-            return None
-        return region.size, StripRenderable(paint.render_lines(region), region.width)
+        source = self.selected
+        return (None if source is None else
+                self.block._body_measurement.export_source(self.block, source))
 
 
 class ConversationBlock(BlockContent):

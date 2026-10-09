@@ -73,7 +73,8 @@ class T4Tests(unittest.IsolatedAsyncioTestCase):
                 await part.restore_body()
                 await pilot.pause()
                 self.assertFalse(part.query(MarkdownBlock))
-                hidden, = (root for root in part.block_document_paint.roots if root.source_text() == "## Hidden\n")
+                hidden, = (root for root in part._body_measurement.document_resource.document_paint.roots
+                           if root.source_text() == "## Hidden\n")
                 self.assertIsNone(hidden.placement)
                 view.move_cursor(UpCursor())
                 self.assertIs(view.cursor_block_child, extra)
