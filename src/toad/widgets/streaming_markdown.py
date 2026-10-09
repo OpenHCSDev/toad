@@ -99,8 +99,9 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
             return ChildBody(width, rows, widgets)
         return super().live_body_measurement(width, rows, widgets)
 
-    def _body(self, fragment, index) -> PreparedConversationMarkdown:
-        source = self.prepared_content.acquired(index, syntax=fragment)
+    def _body(self, fragment, index, *, source=None) -> PreparedConversationMarkdown:
+        if source is None:
+            source = self.prepared_content.acquired(index, syntax=fragment)
         return (fragment if source is None else source).body(
             PreparedConversationMarkdown, content_owner=self.prepared_content,
             classes="-message-fragment")

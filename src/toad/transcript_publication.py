@@ -538,20 +538,25 @@ class TranscriptPresentation:
     async def restore_documents(self) -> None:
         """Transfer original prepared data back to native consumers, without a read."""
         from toad.widgets.transcript_history import TranscriptHistory
+        from toad.screens.session_view import SessionView
 
         view = self.view
         if view is None or not view.is_attached:
             return
-        generation, window, contents = self.generation, view.window, view.contents
+        generation, window, contents, screen = self.generation, view.window, view.contents, view.screen
+        source_view = view.query_ancestor(SessionView)
         def current():
             return (self.view is view and view.is_attached and not view._closing
                     and self.generation == generation
-                    and view.window is window and view.contents is contents)
+                    and view.window is window and view.contents is contents
+                    and view.screen is screen and screen.is_current
+                    and view.app.workspace_sessions.owns(source_view))
 
         for source in self.documents:
             if not current() or source.closed:
                 return
             history = TranscriptHistory.from_source(source)
+            self.prepare_reader(history)
             await history.prepare_body(current, selected=view.visible_categories)
             if not current():
                 return
@@ -611,13 +616,34 @@ class TranscriptPresentation:
         await self.restore_documents()
         history = next(iter(self.histories), None)
         source = view.query_ancestor(SessionView)
-        publication = self.capture(CanonicalSourcePublication)
+        generation, window, contents = self.generation, view.window, view.contents
+        position, revision, screen = self.reader_position, view.window.scroll_revision, view.screen
+
+        def current():
+            return (self.view is view and view.is_attached and not view._closing and not self.closed
+                    and self.generation == generation
+                    and view.window is window and view.contents is contents
+                    and window.is_attached and contents.is_attached
+                    and self.reader_position is position
+                    and window.scroll_revision == revision
+                    and view.screen is screen and screen.is_current
+                    and view.query_ancestor(SessionView) is source
+                    and view.app.workspace_sessions.owns(source))
+
+        if position is not None:
+            for retained in self.histories:
+                if not await retained.restore_reader_ranges(position.admissions, current):
+                    return
+        if not current():
+            return
         if history is not None:
             await self.reveal_retained(history)
         view.refresh_native_projection()
+        publication = self.capture(CanonicalSourcePublication)
 
         def refresh_after_paint() -> None:
             if (publication is not None and publication.agent is agent
+                    and publication.current()
                     and view.app.workspace_sessions.owns(source)):
                 view.run_worker(publication.publish(),
                                 group="retained-native-refresh", exclusive=True)

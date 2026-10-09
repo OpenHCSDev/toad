@@ -67,9 +67,6 @@ class PreparedMarkdownPart:
     def independent(self):
         return self
 
-    def release_source(self):
-        return self
-
     def select_blocks(self, text: str, first: int, tokens: slice) -> "PreparedMarkdownPart":
         """Select complete top-level blocks, retaining their closing tokens."""
         if text == self.text and first == 0 and tokens.start == 0 and tokens.stop == len(self.tokens):
@@ -177,9 +174,6 @@ class PreparedMarkdown:
     def independent(self):
         assert self.syntax is not None
         return self.syntax
-
-    def release_source(self):
-        return self.independent()
 
     def acquire_inline_content(self, tokens: list[Token], *, syntax: PreparedMarkdownPart | None = None) -> "PreparedMarkdown":
         """Bind native content to the actual delivered, link-resolved tokens.
@@ -333,7 +327,6 @@ class PreparedContentRange:
             admitted = list(self.admitted)
             admitted[index - self.start] = None
             self.admitted = tuple(admitted)
-            source.release_source()
 
     def select_admission(self, selected: slice) -> None:
         """Move demand within this source, retaining its actual common members.
@@ -343,10 +336,8 @@ class PreparedContentRange:
         demand cannot reinterpret them as suppliers for different source parts.
         """
         admitted = tuple(self.acquired(index) for index in range(selected.start, selected.stop)) if self.admitted else ()
-        retained = {id(resource) for resource in admitted}
-        for resource in self.admitted:
-            if resource is not None and id(resource) not in retained:
-                resource.release_source()
+        # Other holders may still own these original acquisitions. Retiring
+        # this range drops its custody, not the resources held by a reader.
         self.admission = selected.start, selected.stop
         self.admitted = admitted
 
@@ -360,10 +351,6 @@ class PreparedContentRange:
             raise RuntimeError("Admitted source range lost native members before transfer")
         admitted = tuple(view._retain_fragment_source(fragment, body)
                          for fragment, body in zip(fragments, view.fragment_views))
-        retained = {id(resource) for resource in admitted}
-        for resource in self.admitted:
-            if resource is not None and id(resource) not in retained:
-                resource.release_source()
         self.admitted = admitted
 
     @staticmethod
@@ -399,8 +386,11 @@ class PreparedContentRange:
             prefix=prefix,
         )
 
-    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(), acquired=None) -> bool:
+    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(), acquired=None,
+                            suppliers=None) -> bool:
         """Publish ordered native parts inside their owner's source custody."""
+        if suppliers is not None and len(suppliers) != selected.stop - selected.start:
+            raise RuntimeError("Original source suppliers do not cover the requested range")
         ordered = []
         added = []
         with ExitStack() as acquisition:
@@ -413,10 +403,14 @@ class PreparedContentRange:
                     return False
                 batch = []
                 for index in range(first, min(selected.stop, first + self.BATCH)):
-                    if index in previous:
+                    source = None if suppliers is None else suppliers[index - selected.start]
+                    if suppliers is not None and source is None:
+                        raise RuntimeError("Missing original source supplier for reconstruction")
+                    if index in previous and (suppliers is None or
+                            view._retain_fragment_source(fragments[index], previous[index]) is source):
                         child = previous[index]
                     else:
-                        child = view._body(fragments[index], index)
+                        child = view._body(fragments[index], index, source=source)
                         added.append(child)
                         batch.append(child)
                     ordered.append(child)
