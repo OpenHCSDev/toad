@@ -10,10 +10,11 @@ name=$1
 bin=${2:-$(dirname "$(readlink -f "$(command -v toad)")")}
 tools=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 out=/home/ts/.cache/agent-scratch/scroll-series/$name
-fork=perf-$name
+fork=perf-$name-$(date +%H%M%S)
 project=/home/ts/wt/comms-post-feature-debt-audit-20260928
 meter_seconds=${METER_SECONDS:-45}
 export DISPLAY=${SCENARIO_DISPLAY:-:131}
+rm -rf "$out"
 mkdir -p "$out"
 
 agent-comms fork --name "$fork" --parent perf-base-20261009 > "$out/fork.json"
@@ -76,6 +77,10 @@ python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run
     "${measure[@]}" --sudo > "$out/capture.log" 2>&1 &
 capture=$!
 sleep 2
+# Optional load: a real channel message whose replies arrive during the scenario.
+if [[ -n "${CHANNEL:-}" && -n "${CHANNEL_MESSAGE:-}" ]]; then
+    "$bin/agent-comms" user-send --to "$CHANNEL" --body "$CHANNEL_MESSAGE" --worktree "$project" > "$out/channel-send.json"
+fi
 
 # Active response: a real configured-provider turn that streams while we scroll.
 cell 40 47
