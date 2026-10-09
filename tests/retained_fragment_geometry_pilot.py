@@ -221,9 +221,9 @@ async def main():
                 # Retirement owns complete paint even when optional geometry
                 # has been evicted. It must not publish a body-local scene.
                 scene._subtree_geometry.clear()
-                scene.full_map  # Resolve original scene publication before capture.
+                scene.full_map  # Resolve the original arrangement before capture.
                 published_scene = scene._full_map, scene._visible_map
-                captured_member, placement = next(scene.published_geometry((member,)))
+                captured_member, placement = next(scene.arranged_geometry((member,)))
                 assert captured_member is member
                 scene.render_subtree_strips(member, placement)
                 assert scene._full_map is published_scene[0]

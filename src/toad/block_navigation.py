@@ -83,7 +83,7 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def region(self) -> Region | None:
         return None
 
-    def source_regions(self):
+    def source_regions(self, geometry):
         return ()
 
     def region_for(self, source) -> Region | None:
@@ -322,12 +322,13 @@ class DocumentBlockCursor(BlockCursor):
         source = self.selected
         return None if source is None else self.region_for(source)
 
-    def source_regions(self):
-        """Original displayed source members and their current screen regions."""
-        return self.block._body_measurement.source_regions(self.block)
+    def source_regions(self, geometry):
+        """Original source members placed in the caller's native acquisition."""
+        return self.block._body_measurement.source_regions(self.block, geometry)
 
     def region_for(self, source):
-        return next((region for member, region in self.source_regions()
+        return next((region for member, region in self.source_regions(
+                        self.block.screen._compositor._layout_map)
                      if self.block._body_measurement.same_source_block(member, source)), None)
 
     def owns_source(self, source):

@@ -127,10 +127,11 @@ class SeekingFilter(NoFilter):
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False
-                visible = snapshot.screen._compositor.visible_widgets
-                viewport = snapshot.window.content_region
+                visible = snapshot.screen._compositor.published_widgets
+                viewport = snapshot.window.published_content_region
                 anchor = next((child for child in owner.fragment_views
-                               if child in visible and visible[child][0].overlaps(viewport)), None)
+                               if viewport is not None and child in visible
+                               and visible[child][0].overlaps(viewport)), None)
                 async with snapshot.window.preserve_history(anchor, root=owner):
                     with ExitStack() as acquisition:
                         filtering.state = admitted_state = Filtered(projection)
@@ -188,8 +189,10 @@ class Filtered(FilterState):
         return self.view.covers_incoming(sequence)
 
     def visible(self, owner):
-        visible = owner.screen._compositor.visible_widgets
-        viewport = owner.window.content_region
+        visible = owner.screen._compositor.published_widgets
+        viewport = owner.window.published_content_region
+        if viewport is None:
+            return False
         return any(child in visible and visible[child][0].overlaps(viewport)
                    for child in self.view.fragment_views)
 

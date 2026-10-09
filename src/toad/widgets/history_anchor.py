@@ -135,29 +135,33 @@ class ReaderPosition(WindowPosition):
             admission for history in histories
             for admission in history.capture_reader_admissions()
         )
-        visible = window.screen._compositor.visible_widgets
+        compositor = window.screen._compositor
+        geometry = compositor._published_map
+        visible = compositor.published_widgets
         records = tuple(window.visible_history_items(
             fragment for history in histories for fragment in history.fragment_views
         ))
-        viewport = window.content_region.intersection(window.screen.region)
+        placement = geometry.get(window)
+        if placement is None:
+            return OffsetReaderPosition(window.scroll_y, admissions)
+        content = placement.content_region
+        viewport = content.intersection(placement.clip)
         sources = (
             (record, source, region)
             for record in records
-            for source, region in FragmentReaderPosition.source_regions(record)
+            for source, region in FragmentReaderPosition.source_regions(record, geometry)
             if region.overlaps(viewport)
         )
         first = min(sources, key=lambda item: max(item[2].y, viewport.y), default=None)
         if first is not None:
             record, source, region = first
-            placement = FragmentReaderPosition.source_offset(record, window, region)
-            if placement is not None:
-                return DocumentReaderPosition(
-                    record.fragment, window.scroll_y - placement, admissions, source=source,
-                )
+            return DocumentReaderPosition(
+                record.fragment, content.y - region.y, admissions, source=source,
+            )
         record = min(records, key=lambda fragment: visible[fragment][0].y, default=None)
         if record is not None:
             return FragmentReaderPosition(
-                record.fragment, window.scroll_y - HistoryAnchor._offset(record, window),
+                record.fragment, content.y - visible[record][0].y,
                 admissions,
             )
         return OffsetReaderPosition(window.scroll_y, admissions)
@@ -241,13 +245,13 @@ class FragmentReaderPosition(ReaderPosition):
             pending.extend(reversed(tuple(body.child_bodies())))
 
     @classmethod
-    def source_regions(cls, record):
+    def source_regions(cls, record, geometry):
         for body in cls.source_bodies(record):
-            yield from body.block_cursor.source_regions()
+            yield from body.block_cursor.source_regions(geometry)
 
     @staticmethod
     def source_offset(record, window, region) -> int | None:
-        geometry = window.screen._compositor._published_map.get(record)
+        geometry = window.screen._compositor._layout_map.get(record)
         if geometry is None:
             return None
         placed = HistoryAnchor._offset(record, window, require_placement=True)
@@ -292,7 +296,7 @@ class DocumentReaderPosition(FragmentReaderPosition):
         record = self.record(window)
         if record is None:
             return None
-        for source, region in self.source_regions(record):
+        for source, region in self.source_regions(record, window.screen._compositor._layout_map):
             if (source.source_index == self.source.source_index
                     and source.document.same_source(self.source.document)):
                 return self.source_offset(record, window, region)
@@ -474,14 +478,23 @@ class HistoryWindow(VerticalScroll):
 
     def visible_history_items(self, items):
         """Borrow this window's clipped cohort from the original native scene."""
-        visible = self.screen._compositor.visible_widgets
-        viewport = self.content_region
+        compositor = self.screen._compositor
+        visible = compositor.published_widgets
+        viewport = self.published_content_region
+        if viewport is None:
+            return
         for item in items:
             if item in visible:
                 region, clip = visible[item]
                 if (region.overlaps(viewport) and region.overlaps(clip)
                         and clip.overlaps(viewport)):
                     yield item
+
+    @property
+    def published_content_region(self):
+        """This window's actual displayed content, independent of pending layout."""
+        placement = self.screen._compositor._published_map.get(self)
+        return None if placement is None else placement.content_region.intersection(placement.clip)
 
     def transcript_histories(self):
         """Read original pager custody without walking rich native descendants."""
@@ -505,7 +518,7 @@ class HistoryWindow(VerticalScroll):
                 return roots[0]
         if self.follows_tail:
             return fallback
-        visible = self.screen._compositor.visible_widgets
+        visible = self.screen._compositor.published_widgets
         # The reader's original message owns the position even while its
         # paragraphs are preparing. A ready leaf in the next message cannot
         # replace that source identity as the first message acquires height.
@@ -661,11 +674,12 @@ class HistoryAnchor(WindowPosition):
         offset = 0
         node = widget
         compositor = widget.screen._compositor
-        # Use the committed layout, just like Compositor.layers. After a full
+        # Compensation consumes arranged layout, just like Compositor.layers.
+        # Reader capture consumes accepted display independently. After a full
         # reflow Textual may still flag its former scroll map as invalidated;
         # asking virtual_region then needlessly computes the entire tree again
         # merely to recover the anchor's already-measured coordinates.
-        geometry = compositor._published_map
+        geometry = compositor._layout_map
         while node is not window:
             placed = geometry.get(node)
             if placed is None and require_placement:

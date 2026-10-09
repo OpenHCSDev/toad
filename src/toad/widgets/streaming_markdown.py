@@ -389,7 +389,7 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                         return False
                 elif not await self.prepared_content.extend(self, older, current, prefix=self._prefix):
                     return False
-                visible = self.screen._compositor.visible_widgets
+                visible = self.screen._compositor.published_widgets
                 protected = protected_presentations(self.fragment_views, self.screen._interaction_widgets())
                 protected.update(child for child in self.fragment_views if child in visible)
                 limit = self.budget.item_limit(len(protected))

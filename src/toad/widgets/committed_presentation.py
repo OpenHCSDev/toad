@@ -291,8 +291,10 @@ class RetainViewportCheckpoint(CheckpointPlan):
         # (which could rebuild the whole scene) to decide retirement.
         if not view.screen.is_current:
             return True
-        visible = view.screen._compositor.visible_widgets
-        viewport = view.window.content_region
+        visible = view.screen._compositor.published_widgets
+        viewport = view.window.published_content_region
+        if viewport is None:
+            return True
         return not any(widget in visible and visible[widget][0].overlaps(viewport)
                        for widget in candidates)
 

@@ -249,7 +249,7 @@ async def main():
                     scroll=view.window.scroll_y, target=view.window.scroll_target_y,
                     anchor=repr(position), revision=view.window.scroll_revision,
                     source_geometry=[str(geometry) for owner, geometry in
-                                     app.screen._compositor.published_geometry((dormant,))],
+                                     app.screen._compositor.arranged_geometry((dormant,))],
                 ), indent=2))
             view.window.scroll_to_widget(dormant, animate=False, immediate=True)
             if output:
@@ -277,7 +277,7 @@ async def main():
                     region=str(dormant.region), virtual_region=str(dormant.virtual_region),
                     viewport=str(view.window.content_region),
                     source_geometry=[str(geometry) for owner, geometry in
-                                     compositor.published_geometry((dormant,))],
+                                     compositor.arranged_geometry((dormant,))],
                     frame_wait=app.screen.frame_presentation.awaits_publication(
                         view.window, manager.request)), indent=2))
             assert dormant.body_ready and dormant.query(MarkdownParagraph)
@@ -306,7 +306,7 @@ async def main():
                         rows=returned.measured_rows, scroll=view.window.scroll_y,
                         target=view.window.scroll_target_y, revision=view.window.scroll_revision,
                         source_geometry=[str(geometry) for owner, geometry in
-                                         app.screen._compositor.published_geometry((returned,))],
+                                         app.screen._compositor.arranged_geometry((returned,))],
                     ), indent=2))
                 assert returned in app.screen._compositor.visible_widgets
                 assert returned.body_ready, "Visible source was not restored"
