@@ -558,6 +558,12 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def get_document_process_layout(self):
         return trim_trailing_margin
 
+    def get_document_ancestor_pseudo_classes(self) -> frozenset[str]:
+        # Acquired inline/fence content and trailing-margin layout don't read
+        # ancestor pseudos. The actual prepared CSS owns those dependencies;
+        # root observations and custom pseudo producers remain native-owned.
+        return frozenset()
+
     def _get_token_content(self, token: Token, *, block: MarkdownBlock) -> Content:
         # The native document owns this token cohort. Content was acquired
         # with resolved links off-loop; no widget recomputes its source spans.

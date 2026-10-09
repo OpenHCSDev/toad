@@ -1759,9 +1759,11 @@ class ViewportPresentation:
             for owner in root.walk_ancestors(with_self=True):
                 if isinstance(owner, ViewportBody):
                     bodies[owner] = None
-        participants = tuple(body for body in bodies
-                             if body._body_measurement.published_document_paint is not None)
-        self.document_admissions = DocumentPresentation.acquire_admissions(participants)
+        paints = {
+            body: paint for body in bodies
+            if (paint := body._body_measurement.published_document_paint) is not None
+        }
+        self.document_admissions = DocumentPresentation.acquire_admissions(paints)
         try:
             yield
         finally:
@@ -1851,8 +1853,10 @@ class ViewportPresentation:
                     # Follow changes an original input synchronously. Custom
                     # native pseudos may derive from it; the same paint scope
                     # must consume the current acquisition after that change.
-                    self.document_admissions = DocumentPresentation.acquire_admissions(
-                        self.document_admissions)
+                    self.document_admissions = DocumentPresentation.acquire_admissions({
+                        body: paint for body, (paint, _admission)
+                        in self.document_admissions.items()
+                    })
             return tuple(deferred)
 
 
