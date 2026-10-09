@@ -1,0 +1,415 @@
+{
+  "qualification": "SCOPED READY: existing component-node resource rematch and actual saved-history lifetime/input workflow; NOT smoothness/144Hz or causal CPU improvement",
+  "installed": {
+    "core": "f10980921de6080e7a7e89f1959243c1d7666a0a",
+    "toad": "54778f918362f7ad95d2d0c49b4b41d38c277a90",
+    "textual": "9ec8b1eb132561d05b0f74810a611c5e87185c11",
+    "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+    "native": "/home/ts/wt/comms-task-aware-native-bundle-20261002/stack/.pi-native-915c78ab702bd8ea/node_modules/@earendil-works/pi-coding-agent",
+    "native_manifest": "915c78ab702bd8ea66500e64ee64d1d623e3e6ee0702831166e6b6be3788391b",
+    "holder": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/runtime-native-style22-20261002",
+    "public_install_changed": false,
+    "new_environment": false,
+    "new_native_copy": false,
+    "purpose": "Heisenberg378/Text36 component-node resource reuse; one changed public saved-history input-focused paging/A-B-A/motion/CPU journey",
+    "allocation_bound_mib": 256
+  },
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-component36-378-20261003/source-proof.json",
+  "source_proof_sha256": "0e65aba8166e92f697928b99472965c7d775eacfd70c63902e5f66b150914a5d",
+  "original_receipt": "/home/ts/.cache/agent-scratch/component36-public-input-warm-20261003-01/capture/receipt.json",
+  "original_receipt_sha256": "8244ab9d75327a63e75e4769f0f8e4570984ba051afd31784d9f433a2a62cb43",
+  "duration_seconds": 105.99324559397064,
+  "capture_completed": true,
+  "completed": true,
+  "operator_exit": {
+    "recorder_pid": 3149083,
+    "exit": 0
+  },
+  "checks": {
+    "warm": {
+      "original_saved_history_loaded": true,
+      "peer_saved_history_loaded": true,
+      "draft_typed": true,
+      "peer_selected": true,
+      "source_retained": true,
+      "editor_retained": true,
+      "history_window_retained": true,
+      "draft_retained": true,
+      "reader_position_retained": true,
+      "ready_body_resources_retained": true,
+      "undo_restored_original_draft": true,
+      "history_scroll_extent": true,
+      "scroll_keys_focus_history": true,
+      "held_page_up_destination_covered": true,
+      "held_page_down_destination_covered": true,
+      "reverse_page_up_destination_covered": true
+    },
+    "input": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    }
+  },
+  "retained_ready_body_count": 37,
+  "original_owner_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3030714,
+      "start_time": 48917359
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3030714,
+      "start_time": 48917359
+    },
+    "original_owner_alive": true
+  },
+  "original_owner_unchanged": true,
+  "runtime_unchanged": true,
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "custody": "installed ParentedProcess and Platform process groups; no descendant adoption"
+  },
+  "terminal_exit": {
+    "pid": 3149270,
+    "start_ticks": 49037572,
+    "custody": "verified launch identity transferred to installed ObservedProcess"
+  },
+  "explicit_ui_exit0_proven": false,
+  "key_windows": [
+    {
+      "action": "input-held-up",
+      "start_ns": 490398728624387,
+      "key": "Prior",
+      "end_ns": 490400487549217,
+      "start_video_seconds": 21.651594207,
+      "end_video_seconds": 23.410519037
+    },
+    {
+      "action": "input-held-down",
+      "start_ns": 490420526990515,
+      "key": "Next",
+      "end_ns": 490422304074355,
+      "start_video_seconds": 43.449960335,
+      "end_video_seconds": 45.227044175
+    },
+    {
+      "action": "history-up",
+      "start_ns": 490429439405083,
+      "key": "Prior",
+      "end_ns": 490431229177173,
+      "start_video_seconds": 52.362374903,
+      "end_video_seconds": 54.152146993
+    },
+    {
+      "action": "history-down",
+      "start_ns": 490434938536458,
+      "key": "Next",
+      "end_ns": 490436753675640,
+      "start_video_seconds": 57.861506278,
+      "end_video_seconds": 59.67664546
+    },
+    {
+      "action": "reverse",
+      "start_ns": 490440270362920,
+      "key": "Prior",
+      "end_ns": 490442042159509,
+      "start_video_seconds": 63.19333274,
+      "end_video_seconds": 64.965129329
+    }
+  ],
+  "key_writer_intervals": [
+    {
+      "action": "input-held-up",
+      "intervals": {
+        "count": 79,
+        "median_ms": 15.62,
+        "p95_ms": 43.8,
+        "p99_ms": 125.72,
+        "max_ms": 144.73
+      },
+      "writer_receipts": 80
+    },
+    {
+      "action": "input-held-down",
+      "intervals": {
+        "count": 94,
+        "median_ms": 16.71,
+        "p95_ms": 28.46,
+        "p99_ms": 68.65,
+        "max_ms": 104.14
+      },
+      "writer_receipts": 95
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 97,
+        "median_ms": 16.86,
+        "p95_ms": 31.54,
+        "p99_ms": 34.64,
+        "max_ms": 127.51
+      },
+      "writer_receipts": 98
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 97,
+        "median_ms": 16.86,
+        "p95_ms": 30.19,
+        "p99_ms": 61.36,
+        "max_ms": 108.41
+      },
+      "writer_receipts": 98
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 98,
+        "median_ms": 16.3,
+        "p95_ms": 26.69,
+        "p99_ms": 51.38,
+        "max_ms": 122.79
+      },
+      "writer_receipts": 99
+    }
+  ],
+  "writer_count": 944,
+  "unmatched_enqueues": 0,
+  "profile": {
+    "trace": "cpu-profile.json",
+    "sample_count": 1039,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.07843517100904138,
+    "trace_to_video_offset_seconds": -0.4367301590391435
+  },
+  "marker_cpu": [
+    {
+      "label": "warm-ready",
+      "video_start_seconds": 7.3596417519729584,
+      "video_end_seconds": 10.002928061003331,
+      "ui_average_cpu_percent": 97.60577169358594
+    },
+    {
+      "label": "sidebar-revealed",
+      "video_start_seconds": 10.002928061003331,
+      "video_end_seconds": 11.731523963971995,
+      "ui_average_cpu_percent": 34.13174814233576
+    },
+    {
+      "label": "warm-start",
+      "video_start_seconds": 11.731523963971995,
+      "video_end_seconds": 17.240279803983867,
+      "ui_average_cpu_percent": 25.59561615998144
+    },
+    {
+      "label": "draft",
+      "video_start_seconds": 17.240279803983867,
+      "video_end_seconds": 19.021414058981463,
+      "ui_average_cpu_percent": 20.211839674066965
+    },
+    {
+      "label": "travel-start",
+      "video_start_seconds": 19.021414058981463,
+      "video_end_seconds": 20.599738193966914,
+      "ui_average_cpu_percent": 29.77842064135523
+    },
+    {
+      "label": "input-held-up",
+      "video_start_seconds": 20.599738193966914,
+      "video_end_seconds": 24.08789543295279,
+      "ui_average_cpu_percent": 74.53792423520179
+    },
+    {
+      "label": "input-held-up-done",
+      "video_start_seconds": 24.08789543295279,
+      "video_end_seconds": 40.86950925295241,
+      "ui_average_cpu_percent": 21.332870833516065
+    },
+    {
+      "label": "input-mid-history-idle-done",
+      "video_start_seconds": 40.86950925295241,
+      "video_end_seconds": 42.4663592929719,
+      "ui_average_cpu_percent": 30.059178255344627
+    },
+    {
+      "label": "input-held-down",
+      "video_start_seconds": 42.4663592929719,
+      "video_end_seconds": 45.90567058097804,
+      "ui_average_cpu_percent": 54.08059475414021
+    },
+    {
+      "label": "input-held-down-done",
+      "video_start_seconds": 45.90567058097804,
+      "video_end_seconds": 48.50265377899632,
+      "ui_average_cpu_percent": 29.264725338998986
+    },
+    {
+      "label": "focused",
+      "video_start_seconds": 48.50265377899632,
+      "video_end_seconds": 51.33270610199543,
+      "ui_average_cpu_percent": 26.14792645302733
+    },
+    {
+      "label": "up",
+      "video_start_seconds": 51.33270610199543,
+      "video_end_seconds": 54.86075717100175,
+      "ui_average_cpu_percent": 62.9242592178595
+    },
+    {
+      "label": "up-done",
+      "video_start_seconds": 54.86075717100175,
+      "video_end_seconds": 56.777856900996994,
+      "ui_average_cpu_percent": 41.729701772060764
+    },
+    {
+      "label": "down",
+      "video_start_seconds": 56.777856900996994,
+      "video_end_seconds": 60.36720019497443,
+      "ui_average_cpu_percent": 64.07857403495436
+    },
+    {
+      "label": "down-done",
+      "video_start_seconds": 60.36720019497443,
+      "video_end_seconds": 62.07039511500625,
+      "ui_average_cpu_percent": 19.962483213233625
+    },
+    {
+      "label": "reverse",
+      "video_start_seconds": 62.07039511500625,
+      "video_end_seconds": 65.70925902196905,
+      "ui_average_cpu_percent": 60.733241377103134
+    },
+    {
+      "label": "reverse-done",
+      "video_start_seconds": 65.70925902196905,
+      "video_end_seconds": 67.32117083098274,
+      "ui_average_cpu_percent": 31.01906675067688
+    },
+    {
+      "label": "end",
+      "video_start_seconds": 67.32117083098274,
+      "video_end_seconds": 70.21645487798378,
+      "ui_average_cpu_percent": 25.904194124816737
+    },
+    {
+      "label": "idle",
+      "video_start_seconds": 70.21645487798378,
+      "video_end_seconds": 86.99840181396576,
+      "ui_average_cpu_percent": 22.40502853657718
+    },
+    {
+      "label": "idle-done",
+      "video_start_seconds": 86.99840181396576,
+      "video_end_seconds": 88.55583720898721,
+      "ui_average_cpu_percent": 28.251573157160443
+    },
+    {
+      "label": "switch-b",
+      "video_start_seconds": 88.55583720898721,
+      "video_end_seconds": 94.02547105995473,
+      "ui_average_cpu_percent": 51.37455406641064
+    },
+    {
+      "label": "b-open",
+      "video_start_seconds": 94.02547105995473,
+      "video_end_seconds": 95.42784678097814,
+      "ui_average_cpu_percent": 110.5267280917304
+    },
+    {
+      "label": "return-a",
+      "video_start_seconds": 95.42784678097814,
+      "video_end_seconds": 99.2491695189965,
+      "ui_average_cpu_percent": 42.393697446243394
+    },
+    {
+      "label": "a-return",
+      "video_start_seconds": 99.2491695189965,
+      "video_end_seconds": 103.17381949699484,
+      "ui_average_cpu_percent": 24.205980286795324
+    }
+  ],
+  "physical_review": {
+    "up": {
+      "capture_origin": 490377.07703018,
+      "held_start": 21.651594206981827,
+      "held_end": 23.410519036988262,
+      "band_start": 21.801594206981825,
+      "band_seconds": 0.8,
+      "encoded_monotonic": 490428.324279916,
+      "ui_pid": 3149271,
+      "ui_alive_after_encoding": true,
+      "sheet": "/home/ts/.cache/agent-scratch/component36-public-input-warm-20261003-01/capture/during-exact-input-up-frames.png",
+      "assessment": "Personally viewed 48 consecutive original frames while SAME UI alive: readable body advances upward in discrete steps with repeated positions; chrome/editor stable. Not smoothness/144Hz acceptance.",
+      "viewed_monotonic": 490466.813936419,
+      "ui_alive_after_view": true
+    },
+    "down": {
+      "capture_origin": 490377.07703018,
+      "held_start": 43.44996033498319,
+      "held_end": 45.227044174971525,
+      "band_start": 43.59996033498319,
+      "band_seconds": 0.8,
+      "encoded_monotonic": 490470.077010437,
+      "ui_pid": 3149271,
+      "ui_alive_after_encoding": true,
+      "assessment": "Opened48 consecutive original frames after UI-alive check at490478.252; body moves down in discrete steps with repeated positions; no disappearing viewport/chrome. UI missing at post-view check490492.889; not claiming lifetime verified throughout Down inspection. Up inspection has both live checks. No smoothness acceptance.",
+      "viewed_monotonic": 490492.889297337,
+      "ui_alive_after_view": false,
+      "ui_alive_before_view": true,
+      "before_view_monotonic": 490478.251987439
+    },
+    "reverse": {
+      "timing": "AFTER terminal",
+      "sheet": "/home/ts/.cache/agent-scratch/component36-public-input-warm-20261003-01/capture/after-exact-reverse-frames.png",
+      "band_start_seconds": 63.34333274,
+      "seconds": 0.8,
+      "assessment": "48 consecutive frames readable and move in discrete steps; repeated positions remain."
+    },
+    "a_return": {
+      "path": "/home/ts/.cache/agent-scratch/component36-public-input-warm-20261003-01/capture/phase-a-return.png",
+      "timing": "AFTER terminal",
+      "assessment": "Selected original nra-architecture and saved body/draft visible; footer NRA; sidebar roving highlight remains peer. No whole sidebar selected-row claim."
+    },
+    "end_idle": {
+      "path": "/home/ts/.cache/agent-scratch/component36-public-input-warm-20261003-01/capture/phase-idle-done.png",
+      "timing": "AFTER terminal",
+      "assessment": "Original saved transcript/chrome/editor remain readable at destination."
+    }
+  },
+  "source_batch": {
+    "owner": "existing _ComponentStyles RenderStyles owns original virtual component DOMNode; Stylesheet rematches it and creates only missing declared members",
+    "production_added": 26,
+    "production_deleted": 14,
+    "file": "src/textual/css/stylesheet.py",
+    "deleted_mechanisms": [
+      "whole component map copy and clear",
+      "fresh virtual DOMNode construction on every rematch",
+      "equality comparison only after independently invalidating tree/style epochs"
+    ],
+    "native_source_sanity": "102 checks passed 5.74s; behavior, not performance"
+  },
+  "limits": [
+    "Original raw recorder assessment/review remain untouched; this separate receipt records actual inspections.",
+    "Exact writer callbacks do not establish changed pixels, terminal FPS or key-to-pixel latency.",
+    "Marker CPU includes state exports/background threads and extends beyond exact held keys.",
+    "Core/live history/workload differs from prior375; no matched causal CPU/gain claim.",
+    "FirstUp personally inspected with same UI alive before and after; later Down opened after live precheck but UI closed before postcheck.",
+    "1039 reported GIL samples, no sampling errors; released-GIL/native work omitted; not exhaustive.",
+    "Cold tabs, IRC busy motion, compaction, full TC1/T9/T4/runway/velocity/growingEnd/void/focus/sidebar/animation and final144Hz remain active continuation."
+  ]
+}

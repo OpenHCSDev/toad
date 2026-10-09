@@ -1,0 +1,7 @@
+# Native Markdown URI producer and consumer closure
+
+Actual paired Toad288 left-click failure: Markdown.LinkClicked.__init__ unquotes the URI before its consumer, turning encoded # into a fragment delimiter and allowing percent components to be decoded twice. Preserve original encoded URI through this existing event. No ToAD double-encoding or fallback reader.
+
+Existing owner census: widgets/_markdown.py Markdown.LinkClicked, Markdown.sanitize_location/load, MarkdownViewer.go/back/forward/_on_markdown_link_clicked, and Navigator.go/location/stack own the relevant interpretation. Existing Link widget and validation.URL are unrelated link paint/validator behaviors. No existing decoded path+anchor navigation resource. All current source consumers are in this original module. OpenHCSDev/Textual19 _animator/_arrange/_compositor source scope is disjoint, explicitly granted by Heisen.
+
+Extend original owners: parse link URI at the existing Markdown boundary and carry filesystem Path and document anchor as one navigation resource to load/back/forward. Preserve literal Path filesystem API; do not convert Paths to URI strings and repartition delimiters. Browser consumer receives encoded URL unchanged. Delete repeated decode/repartition and encoded-path-as-filesystem ambiguity in the same change. One batched final sanity and actual source-qualified installed ToAD click/copy/preview/historical journey last. No provider/public inputs/defaults/restarts/viewport patch.

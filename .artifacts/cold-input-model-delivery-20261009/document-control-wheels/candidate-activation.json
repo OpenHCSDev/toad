@@ -1,0 +1,26 @@
+{
+  "stage": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime",
+  "pins": {
+    "agent_comms": "1a45e9b552dcc6890f7eb090a73cb1f9a617f2a7",
+    "textual": "09004210cdd5dff4bb4050b370fdbe2bda6c710c",
+    "toad": "45596c8b460842ec2d77830122bc7418db1392f0",
+    "refactor_audit": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10"
+  },
+  "sdk": "0.12.1",
+  "textual_diff_view": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+  "native_package": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+  "state": "Reviewed same-format paired successor",
+  "staging_receipt": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheels/source-proof.json",
+  "bins": {
+    "python": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python",
+    "toad": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/toad",
+    "agent-comms": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/agent-comms",
+    "agent-comms-acp": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/agent-comms-acp",
+    "agent-comms-agent": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/agent-comms-agent",
+    "pi-comms-native": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/pi-comms-native"
+  },
+  "native_cli": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent/dist/cli.js",
+  "native_manifest": "669117c30ff9d3ba8e2bba77650f6c556339e36be8f8a1b96477c193a160e182",
+  "native_tree": "d6be482c6d66fe366ec437b69b2f321eb4bb5ba04ba311b477117bcaec84c8d7",
+  "native_configuration_note": "Native669 and exact installed forced commitment derive from the original assembly relation in build.json. No new native build or source overlay. Toad506/Textual3a73 and DiffView/NRA keep their original reviewed source heads and wheels. This Parent-owned candidate is not a borrowed historical holder; no public defaults or original sessions were changed by this packaging handoff."
+}

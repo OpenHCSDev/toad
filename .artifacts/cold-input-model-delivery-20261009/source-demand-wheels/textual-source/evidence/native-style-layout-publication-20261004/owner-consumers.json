@@ -1,0 +1,922 @@
+{
+  "before": {
+    "revision": "c1c1ebe5c40499f75dc370c26a7818588114e71d",
+    "modules": 249,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/textual/app.py",
+        "line": 3825,
+        "call": "self.screen.refresh(repaint=repaint, layout=layout)"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 4808,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 3703,
+        "call": "widget.notify_style_update()"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 4447,
+        "call": "parent.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 154,
+        "call": "obj.refresh(layout=self.layout, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 260,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 307,
+        "call": "obj.refresh(layout=True, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 657,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 688,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 741,
+        "call": "obj.refresh(layout=True, children=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 890,
+        "call": "obj.refresh(layout=self._layout, children=self._refresh_children, parent=self._refresh_parent)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 150,
+        "call": "obj.refresh(layout=self.layout, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 224,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 288,
+        "call": "obj.refresh(layout=True, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 363,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 496,
+        "call": "obj.refresh(layout=layout)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 569,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 572,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 610,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 626,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 724,
+        "call": "obj.refresh(layout=True, children=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 787,
+        "call": "obj.refresh(layout=True, repaint=False)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 942,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 947,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 963,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 387,
+        "call": "obj.refresh(layout=self.affects_geometry(current_value, new_value))"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 790,
+        "call": "obj.refresh(layout=True, repaint=False)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 813,
+        "call": "obj.refresh(layout=True, repaint=False)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 968,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 971,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/query.py",
+        "line": 453,
+        "call": "node.refresh(repaint=repaint, layout=layout, recompose=recompose)"
+      },
+      {
+        "path": "src/textual/css/query.py",
+        "line": 436,
+        "call": "node.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1060,
+        "call": "node.notify_style_update()"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1064,
+        "call": "node.refresh(layout=any((layout for layout, _, _, _ in requests)), repaint=any((repaint for _, _, _, repaint in requests)))"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1574,
+        "call": "self._inline_styles.refresh(layout=layout, children=children, parent=parent, repaint=repaint)"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 990,
+        "call": "node._style_rules_updated(Styles._revision, geometry)"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1073,
+        "call": "child.notify_style_update()"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1074,
+        "call": "child.refresh(layout=child_layout, repaint=child_repaint)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 172,
+        "definition": "_style_rules_updated"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 705,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 531,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 1045,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 1413,
+        "write": "node._layout_required = True"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 1830,
+        "call": "self._inline_styles.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/reactive.py",
+        "line": 432,
+        "call": "obj.refresh(repaint=self._repaint, layout=request_layout, recompose=self._recompose)"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1604,
+        "write": "self._layout_required = True"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1479,
+        "write": "self._layout_required = True"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1274,
+        "write": "self._layout_required = False"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 344,
+        "definition": "_measurement_updated"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 351,
+        "definition": "_invalidate_layout"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4965,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 514,
+        "write": "self._layout_required = False"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 859,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1456,
+        "call": "self._invalidate_layout()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1829,
+        "call": "previous.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1830,
+        "call": "parent.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4598,
+        "write": "self._layout_required = True"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4969,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 883,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1763,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4596,
+        "call": "self._invalidate_layout()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4850,
+        "write": "self._layout_required = False"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 179,
+        "call": "self._parent.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1123,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1124,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1830,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1868,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_digits.py",
+        "line": 75,
+        "call": "self.refresh(layout=layout_required)"
+      },
+      {
+        "path": "src/textual/widgets/_footer.py",
+        "line": 424,
+        "call": "key.refresh(layout=changed_size)"
+      },
+      {
+        "path": "src/textual/widgets/_input.py",
+        "line": 550,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_log.py",
+        "line": 95,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_log.py",
+        "line": 97,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_markdown.py",
+        "line": 922,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_markdown.py",
+        "line": 926,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_option_list.py",
+        "line": 708,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_option_list.py",
+        "line": 710,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_option_list.py",
+        "line": 410,
+        "call": "self.refresh(layout=self.styles.auto_dimensions)"
+      },
+      {
+        "path": "src/textual/widgets/_pretty.py",
+        "line": 56,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_rich_log.py",
+        "line": 128,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_rich_log.py",
+        "line": 129,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_static.py",
+        "line": 77,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_static.py",
+        "line": 110,
+        "call": "self.refresh(layout=layout)"
+      },
+      {
+        "path": "src/textual/widgets/_text_area.py",
+        "line": 816,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_text_area.py",
+        "line": 818,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_toggle_button.py",
+        "line": 192,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_tree.py",
+        "line": 1467,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_tree.py",
+        "line": 1079,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_tree.py",
+        "line": 1468,
+        "call": "super().notify_style_update()"
+      }
+    ]
+  },
+  "after": {
+    "revision": "a3fe919a4fed230de0380f2587208f909849379f",
+    "modules": 249,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/textual/app.py",
+        "line": 3802,
+        "definition": "_request_layout"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 3804,
+        "call": "self.screen._request_layout(required)"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 3825,
+        "call": "self.screen.refresh(repaint=repaint, layout=layout)"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 4808,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 3703,
+        "call": "widget.notify_style_update()"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 4447,
+        "call": "parent.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 154,
+        "call": "obj.refresh(layout=self.layout, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 260,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 307,
+        "call": "obj.refresh(layout=True, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 657,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 688,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 741,
+        "call": "obj.refresh(layout=True, children=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 890,
+        "call": "obj.refresh(layout=self._layout, children=self._refresh_children, parent=self._refresh_parent)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 150,
+        "call": "obj.refresh(layout=self.layout, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 224,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 288,
+        "call": "obj.refresh(layout=True, children=self.refresh_children)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 363,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 496,
+        "call": "obj.refresh(layout=layout)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 569,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 572,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 610,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 626,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 724,
+        "call": "obj.refresh(layout=True, children=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 787,
+        "call": "obj.refresh(layout=True, repaint=False)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 942,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 947,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 963,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 387,
+        "call": "obj.refresh(layout=self.affects_geometry(current_value, new_value))"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 790,
+        "call": "obj.refresh(layout=True, repaint=False)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 813,
+        "call": "obj.refresh(layout=True, repaint=False)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 968,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/_style_properties.py",
+        "line": 971,
+        "call": "obj.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/query.py",
+        "line": 453,
+        "call": "node.refresh(repaint=repaint, layout=layout, recompose=recompose)"
+      },
+      {
+        "path": "src/textual/css/query.py",
+        "line": 436,
+        "call": "node.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1060,
+        "call": "node.notify_style_update()"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1064,
+        "call": "node._request_layout(any((layout for layout, _, _, _ in requests)))"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1573,
+        "call": "self._inline_styles.refresh(layout=layout, children=children, parent=parent, repaint=repaint)"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 990,
+        "call": "node._style_rules_updated(Styles._revision, geometry)"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1071,
+        "call": "child.notify_style_update()"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1072,
+        "call": "child._request_layout(child_layout)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 172,
+        "definition": "_style_rules_updated"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 705,
+        "definition": "_request_layout"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 708,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 531,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 1045,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 1830,
+        "call": "self._inline_styles.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 1413,
+        "call": "node._request_layout()"
+      },
+      {
+        "path": "src/textual/reactive.py",
+        "line": 432,
+        "call": "obj.refresh(repaint=self._repaint, layout=request_layout, recompose=self._recompose)"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1604,
+        "write": "self._layout_required = True"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1479,
+        "write": "self._layout_required = True"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1274,
+        "write": "self._layout_required = False"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 344,
+        "definition": "_measurement_updated"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 351,
+        "definition": "_invalidate_layout"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4962,
+        "definition": "_request_layout"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4965,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 512,
+        "write": "self._layout_required = False"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4963,
+        "write": "self._layout_required |= required"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 857,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1454,
+        "call": "self._invalidate_layout()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1827,
+        "call": "previous.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1828,
+        "call": "parent.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4969,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 881,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 1761,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4594,
+        "call": "self._invalidate_layout()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4595,
+        "call": "self._request_layout()"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4847,
+        "write": "self._layout_required = False"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 179,
+        "call": "self._parent.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1123,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1124,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1830,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_data_table.py",
+        "line": 1868,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_digits.py",
+        "line": 75,
+        "call": "self.refresh(layout=layout_required)"
+      },
+      {
+        "path": "src/textual/widgets/_footer.py",
+        "line": 424,
+        "call": "key.refresh(layout=changed_size)"
+      },
+      {
+        "path": "src/textual/widgets/_input.py",
+        "line": 550,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_log.py",
+        "line": 95,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_log.py",
+        "line": 97,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_markdown.py",
+        "line": 922,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_markdown.py",
+        "line": 926,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_option_list.py",
+        "line": 708,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_option_list.py",
+        "line": 710,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_option_list.py",
+        "line": 410,
+        "call": "self.refresh(layout=self.styles.auto_dimensions)"
+      },
+      {
+        "path": "src/textual/widgets/_pretty.py",
+        "line": 56,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_rich_log.py",
+        "line": 128,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_rich_log.py",
+        "line": 129,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_static.py",
+        "line": 77,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_static.py",
+        "line": 110,
+        "call": "self.refresh(layout=layout)"
+      },
+      {
+        "path": "src/textual/widgets/_text_area.py",
+        "line": 816,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_text_area.py",
+        "line": 818,
+        "call": "super().notify_style_update()"
+      },
+      {
+        "path": "src/textual/widgets/_toggle_button.py",
+        "line": 192,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_tree.py",
+        "line": 1467,
+        "definition": "notify_style_update"
+      },
+      {
+        "path": "src/textual/widgets/_tree.py",
+        "line": 1079,
+        "call": "self.refresh(layout=True)"
+      },
+      {
+        "path": "src/textual/widgets/_tree.py",
+        "line": 1468,
+        "call": "super().notify_style_update()"
+      }
+    ]
+  },
+  "limits": "AST shows syntax and declared inheritance; it does not resolve arbitrary dynamic method replacement. All native9/Toad8 style hooks retain their existing ABI and source-specific behavior. Screen consumes native reflow; Widget posts child Layout; App delegates current-screen style work."
+}

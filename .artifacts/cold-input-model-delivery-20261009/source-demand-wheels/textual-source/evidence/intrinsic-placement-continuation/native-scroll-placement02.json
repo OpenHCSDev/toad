@@ -1,0 +1,76 @@
+{
+  "scope": "Actual native scroll/reprojection counter; no installed Toad/CPU readiness claim",
+  "original_pose_native_geometry_identity_retained": true,
+  "scroll_before": 0.0,
+  "scroll_after": 20,
+  "same_resource": true,
+  "body_arrangement_calls_during_pagedown": 0,
+  "native_body_epoch_unchanged": true,
+  "changed_key_positions": [],
+  "changed_key_values": [],
+  "scene_checks": [
+    "PageDown reveals previously clipped descendants",
+    "Prepend changes root virtual placement",
+    "Sibling reorder changes native descendant paint rank",
+    "Sibling retirement preserves unrelated resource",
+    "Host placement projects nested clip and root coordinates",
+    "Returning host retains original native arrangement",
+    "Reverse restores nested clip",
+    "Culled to complete descendant resource transition",
+    "Nested native scrolling and fixed child",
+    "End clips final descendants",
+    "Repeated PageDown at bottom",
+    "Resize invalidates intrinsic dimensions",
+    "Native content mutation invalidates resource",
+    "Screen-dependent placement retains original coordinates",
+    "Overlay uses canonical screen clip and paint order"
+  ],
+  "placement_checks": [
+    {
+      "label": "Prepend changes root virtual placement",
+      "same_resource": true,
+      "body_arrangement_calls": 0,
+      "body_layout_executions": 0,
+      "arrangement_callers": [],
+      "current_geometry": "MapGeometry(region=Region(x=0, y=-10, width=78, height=75), order=((0, 0, 0), (0, 0, 0), (0, 0, -2)), clip=Region(x=0, y=0, width=78, height=20), virtual_size=Size(width=78, height=75), container_size=Size(width=78, height=75), virtual_region=Region(x=0, y=10, width=78, height=75), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))"
+    },
+    {
+      "label": "Sibling reorder changes native descendant paint rank",
+      "same_resource": true,
+      "body_arrangement_calls": 0,
+      "body_layout_executions": 0,
+      "arrangement_callers": [],
+      "current_geometry": "MapGeometry(region=Region(x=0, y=-20, width=78, height=75), order=((0, 0, 0), (0, 0, 0), (0, 0, -3)), clip=Region(x=0, y=0, width=78, height=20), virtual_size=Size(width=78, height=75), container_size=Size(width=78, height=75), virtual_region=Region(x=0, y=0, width=78, height=75), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))"
+    },
+    {
+      "label": "Sibling retirement preserves unrelated resource",
+      "same_resource": true,
+      "body_arrangement_calls": 0,
+      "body_layout_executions": 0,
+      "arrangement_callers": [],
+      "current_geometry": "MapGeometry(region=Region(x=0, y=-20, width=78, height=75), order=((0, 0, 0), (0, 0, 0), (0, 0, -2)), clip=Region(x=0, y=0, width=78, height=20), virtual_size=Size(width=78, height=75), container_size=Size(width=78, height=75), virtual_region=Region(x=0, y=0, width=78, height=75), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))"
+    },
+    {
+      "label": "Host placement projects nested clip and root coordinates",
+      "same_resource": true,
+      "body_arrangement_calls": 1,
+      "body_layout_executions": 0,
+      "arrangement_callers": [
+        "get_content_height"
+      ],
+      "current_geometry": "MapGeometry(region=Region(x=3, y=-19, width=78, height=75), order=((0, 0, 0), (0, 0, 0), (0, 0, -2)), clip=Region(x=3, y=1, width=77, height=20), virtual_size=Size(width=78, height=75), container_size=Size(width=78, height=75), virtual_region=Region(x=0, y=0, width=78, height=75), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))"
+    },
+    {
+      "label": "Returning host retains original native arrangement",
+      "same_resource": true,
+      "body_arrangement_calls": 1,
+      "body_layout_executions": 0,
+      "arrangement_callers": [
+        "get_content_height"
+      ],
+      "current_geometry": "MapGeometry(region=Region(x=0, y=-20, width=78, height=75), order=((0, 0, 0), (0, 0, 0), (0, 0, -2)), clip=Region(x=0, y=0, width=78, height=20), virtual_size=Size(width=78, height=75), container_size=Size(width=78, height=75), virtual_region=Region(x=0, y=0, width=78, height=75), dock_gutter=Spacing(top=0, right=0, bottom=0, left=0))"
+    }
+  ],
+  "complete_culled_native_coverage_distinct": true,
+  "result": "PASS"
+}

@@ -1,0 +1,857 @@
+{
+  "coverage": [
+    {
+      "repository": "/home/ts/wt/textual-frame-publication-20261006",
+      "root": "src/textual",
+      "parsed": 249,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/textual-frame-publication-20261006",
+      "root": "tests",
+      "parsed": 461,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    },
+    {
+      "repository": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "root": "tests",
+      "parsed": 400,
+      "omissions": []
+    }
+  ],
+  "sites": [
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/_types.py",
+      "line": 14,
+      "kind": "AsyncFunctionDef",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/_types.py",
+      "line": 20,
+      "kind": "AsyncFunctionDef",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3242,
+      "kind": "FunctionDef",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 656,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3255,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3027,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3234,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3251,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3253,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 2878,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 2951,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3235,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 3254,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4126,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4184,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4188,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4190,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4182,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4118,
+      "kind": "Attribute",
+      "name": "prepare_input"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/app.py",
+      "line": 4161,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/headless_driver.py",
+      "line": 55,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/linux_driver.py",
+      "line": 244,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/linux_driver.py",
+      "line": 317,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/linux_inline_driver.py",
+      "line": 197,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/web_driver.py",
+      "line": 165,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/web_driver.py",
+      "line": 147,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/drivers/win32.py",
+      "line": 304,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/message.py",
+      "line": 151,
+      "kind": "FunctionDef",
+      "name": "_bubble_to"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/message_pump.py",
+      "line": 905,
+      "kind": "AsyncFunctionDef",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/message_pump.py",
+      "line": 898,
+      "kind": "Attribute",
+      "name": "_bubble_to"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/pilot.py",
+      "line": 468,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 1805,
+      "kind": "FunctionDef",
+      "name": "_handle_mouse_move"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2000,
+      "kind": "FunctionDef",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 1808,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2146,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 1809,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 1833,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2010,
+      "kind": "Attribute",
+      "name": "_handle_mouse_move"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2106,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2107,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2066,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/screen.py",
+      "line": 2128,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/scrollbar.py",
+      "line": 352,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/scrollbar.py",
+      "line": 356,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/scrollbar.py",
+      "line": 350,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/scrollbar.py",
+      "line": 327,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/scrollbar.py",
+      "line": 358,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4549,
+      "kind": "FunctionDef",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4881,
+      "kind": "FunctionDef",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4891,
+      "kind": "FunctionDef",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4950,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_input"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4967,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4970,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 1795,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4889,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4896,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 2160,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widget.py",
+      "line": 4897,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_footer.py",
+      "line": 156,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_input.py",
+      "line": 786,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_input.py",
+      "line": 803,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_input.py",
+      "line": 791,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_input.py",
+      "line": 797,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_markdown.py",
+      "line": 1642,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 1997,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2023,
+      "kind": "AsyncFunctionDef",
+      "name": "_on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2004,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2019,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/input/test_input_messages.py",
+      "line": 73,
+      "kind": "Attribute",
+      "name": "_post_message"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_footer_projection_lifetime.py",
+      "line": 72,
+      "kind": "Attribute",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_footer_projection_lifetime.py",
+      "line": 77,
+      "kind": "Attribute",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_footer_projection_lifetime.py",
+      "line": 83,
+      "kind": "Attribute",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_footer_projection_lifetime.py",
+      "line": 130,
+      "kind": "Attribute",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_removed_scene_ownership.py",
+      "line": 75,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_removed_scene_ownership.py",
+      "line": 79,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_reparent.py",
+      "line": 145,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_reparent.py",
+      "line": 149,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_reparent.py",
+      "line": 150,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_selection.py",
+      "line": 254,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/textual-frame-publication-20261006",
+      "path": "tests/test_selection.py",
+      "line": 259,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 36,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/comms_menu.py",
+      "line": 41,
+      "kind": "FunctionDef",
+      "name": "on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/comms_sidebar.py",
+      "line": 362,
+      "kind": "FunctionDef",
+      "name": "on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/conversation.py",
+      "line": 1822,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 241,
+      "kind": "FunctionDef",
+      "name": "on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 220,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/goal_bar.py",
+      "line": 256,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 166,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 174,
+      "kind": "FunctionDef",
+      "name": "on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 172,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/mandelbrot.py",
+      "line": 175,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/prompt.py",
+      "line": 109,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 443,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 461,
+      "kind": "FunctionDef",
+      "name": "on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 553,
+      "kind": "FunctionDef",
+      "name": "on_mouse_down"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 566,
+      "kind": "FunctionDef",
+      "name": "on_mouse_up"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 453,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 466,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 559,
+      "kind": "Attribute",
+      "name": "capture_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/side_bar.py",
+      "line": 571,
+      "kind": "Attribute",
+      "name": "release_mouse"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "src/toad/widgets/viewport_body.py",
+      "line": 570,
+      "kind": "AsyncFunctionDef",
+      "name": "prepare_input"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 87,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 43,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 90,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/goal_resize_pilot.py",
+      "line": 47,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 65,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 209,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/scroll_select_latency_pilot.py",
+      "line": 317,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/selection_hover_pilot.py",
+      "line": 32,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/selection_hover_pilot.py",
+      "line": 39,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/shared_channels_pilot.py",
+      "line": 122,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/shared_channels_pilot.py",
+      "line": 126,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/sidebar_drag_resize_pilot.py",
+      "line": 68,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/sidebar_edge_anchor_installed_pilot.py",
+      "line": 87,
+      "kind": "Attribute",
+      "name": "mouse_captured"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/stale_selection_pilot.py",
+      "line": 35,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 50,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 51,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    },
+    {
+      "repo": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "path": "tests/viewport_selection_diff_pilot.py",
+      "line": 79,
+      "kind": "Attribute",
+      "name": "_forward_event"
+    }
+  ],
+  "limits": "Lexical references do not resolve dynamic handler dispatch or factories."
+}

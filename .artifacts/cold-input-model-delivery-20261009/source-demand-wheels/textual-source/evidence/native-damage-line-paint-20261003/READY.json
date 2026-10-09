@@ -1,0 +1,155 @@
+{
+  "state": "scoped Ready; full native performance remains active",
+  "installed_textual": "21011cf0be9a898160ec0ac80e7829eaf5330f97",
+  "production_textual": "0efe0803cc043a8155e367f63e2398738e1cf678",
+  "installed_toad": "1e84209684295c7f9b84807d53e064864c7009c8",
+  "core": "f4a5827955174d23ca6e6bcf96f2a3abc4af996d",
+  "native_manifest": "89b56aea0bb128c4bf3e2c979de8a5afa79ac88b1f51a74c49cc1cab46da60d2",
+  "native_tree": "4b7f66f396a342e523d631c753686789b61313c34c30d894ddf24b5a861caa26",
+  "sdk": "0.12.1",
+  "packaging": "normal 69 dependencies",
+  "recording": "/home/ts/.cache/agent-scratch/body-publication399-damage43-public-20261003-01/capture",
+  "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-body399-damage43-20261003/source-proof.json",
+  "duration_seconds": 111.56239508895669,
+  "completed": true,
+  "capture_completed": true,
+  "runtime_unchanged": true,
+  "warm_checks": {
+    "original_saved_history_loaded": true,
+    "peer_saved_history_loaded": true,
+    "draft_typed": true,
+    "peer_selected": true,
+    "source_retained": true,
+    "editor_retained": true,
+    "history_window_retained": true,
+    "draft_retained": true,
+    "reader_position_retained": true,
+    "ready_body_resources_retained": true,
+    "undo_restored_original_draft": true,
+    "history_scroll_extent": true,
+    "scroll_keys_focus_history": true,
+    "held_page_up_destination_covered": true,
+    "held_page_down_destination_covered": true,
+    "reverse_page_up_destination_covered": true
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "ready_retained_bodies": 22,
+  "original_owner_unchanged": true,
+  "cleanup_remaining": [],
+  "cleanup_errors": [],
+  "writer_phases": [
+    {
+      "action": "input-up",
+      "intervals": {
+        "count": 100,
+        "median_ms": 13.89,
+        "p95_ms": 35.25,
+        "p99_ms": 138.63,
+        "max_ms": 166.47
+      },
+      "writer_receipts": 101
+    },
+    {
+      "action": "input-down",
+      "intervals": {
+        "count": 154,
+        "median_ms": 11.54,
+        "p95_ms": 21.62,
+        "p99_ms": 43.02,
+        "max_ms": 102.2
+      },
+      "writer_receipts": 155
+    },
+    {
+      "action": "history-up",
+      "intervals": {
+        "count": 147,
+        "median_ms": 10.84,
+        "p95_ms": 24.28,
+        "p99_ms": 34.24,
+        "max_ms": 126.29
+      },
+      "writer_receipts": 148
+    },
+    {
+      "action": "history-down",
+      "intervals": {
+        "count": 121,
+        "median_ms": 11.0,
+        "p95_ms": 25.15,
+        "p99_ms": 30.12,
+        "max_ms": 370.87
+      },
+      "writer_receipts": 122
+    },
+    {
+      "action": "reverse",
+      "intervals": {
+        "count": 140,
+        "median_ms": 11.56,
+        "p95_ms": 24.78,
+        "p99_ms": 27.87,
+        "max_ms": 114.93
+      },
+      "writer_receipts": 141
+    }
+  ],
+  "kernel_cpu_phases_including_exports": [
+    {
+      "label": "input-held-up",
+      "start": 19.237088431953453,
+      "end": 22.840071146027185,
+      "ui_cpu_percent": 80.2113201573594
+    },
+    {
+      "label": "input-held-up-done",
+      "start": 22.840071146027185,
+      "end": 39.76427589496598,
+      "ui_cpu_percent": 22.45304908780587
+    },
+    {
+      "label": "input-held-down",
+      "start": 41.34646226395853,
+      "end": 44.94051741797011,
+      "ui_cpu_percent": 74.28934408588087
+    },
+    {
+      "label": "reverse",
+      "start": 60.55394954793155,
+      "end": 63.981959354016,
+      "ui_cpu_percent": 79.34633078272454
+    }
+  ],
+  "original_sha256": {
+    "receipt.json": "321cc8fe633a74ce75c483e8d186d0deb62c3da04786d66766548cdb5c0dd1ed",
+    "terminal.mp4": "1d28b506d100f92f4ac4442fe317e38115b3975fbb8cc3b6b6802944a3baa786",
+    "driver.log": "78351957553384fded967d8e7ed4c2066e1e7e849da5a90254b794b38c321eb9",
+    "cpu-profile.json": "d869c1b746e7e339f13601587a500f3337e4e2ab7d2aa43a56f151ab6f1a45a1",
+    "after-state-frames.json": "59978e2b5c578fa470ec5215895eb44153467b103826f940587505295b8d11c5",
+    "scroll-travel.jsonl": "99a528b11acb5d309203d48297681c1d889551ac3b47a630fe6e2130c68a54ee"
+  },
+  "native_sanity": {
+    "passed": 7,
+    "seconds": 0.69,
+    "exit_code": 0
+  },
+  "limits": [
+    "Writer completion is not pixelFPS/input-to-pixel latency.",
+    "Film remains chunky; no smoothness/CPUgain/144Hz claim.",
+    "Exact moving bands inspected AFTER; DURING lifetime verification missed. Raw assessment unchanged.",
+    "Transferred profiledUI has no explicitUI returncode0.",
+    "Core/native changed since396, so timingcomparison is descriptive, not causal.",
+    "Readonly path does not qualify fresh provider/compaction/source acknowledgment."
+  ],
+  "motion_review": "Original exact Down 48-frame sheet inspected after exit: preserved body/chrome and repeated positions/discrete advances; no during claim.",
+  "prior_raw_assessment": "unreviewed",
+  "changed_production": "src/textual/_compositor.py: 42 added /73 deleted versus main; registration42 already landed0246."
+}

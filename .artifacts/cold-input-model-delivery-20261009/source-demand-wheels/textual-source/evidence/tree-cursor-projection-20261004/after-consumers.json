@@ -1,0 +1,675 @@
+{
+  "head": "d0c11d918f59fbf9e71d1fb0fdb67975421479a2",
+  "modules": 249,
+  "omissions": [],
+  "sites": [
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 302,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 347,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 424,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/renderables/digits.py",
+      "line": 231,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/renderables/gradient.py",
+      "line": 75,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/renderables/sparkline.py",
+      "line": 77,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/renderables/sparkline.py",
+      "line": 136,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/renderables/sparkline.py",
+      "line": 86,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/scrollbar.py",
+      "line": 193,
+      "expression": "_Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/strip.py",
+      "line": 53,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2724,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2748,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2787,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_data_table.py",
+      "line": 2796,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 369,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 326,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 327,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 327,
+      "expression": "best_found.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_directory_tree.py",
+      "line": 558,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 622,
+      "expression": "self._template.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 626,
+      "expression": "self._template.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 630,
+      "expression": "self._template.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 674,
+      "expression": "self._template.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_masked_input.py",
+      "line": 601,
+      "expression": "self._template.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_rule.py",
+      "line": 106,
+      "expression": "Segment.line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 1205,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2157,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2205,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2272,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2303,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2323,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2343,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2359,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2375,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2403,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2431,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2471,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2485,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2036,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_text_area.py",
+      "line": 2716,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 129,
+      "expression": "self._line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 161,
+      "expression": "self._tree._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 162,
+      "expression": "self._line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 972,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 973,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 974,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1179,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1209,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1210,
+      "expression": "node._line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1317,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1476,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1477,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1482,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1483,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1488,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1491,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1499,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1504,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1513,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 514,
+      "expression": "self._line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 974,
+      "expression": "node._line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 995,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1004,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1010,
+      "expression": "Tree.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1236,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1252,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1267,
+      "expression": "node._line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1295,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1478,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1484,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1489,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1490,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1492,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1497,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1498,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1500,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1505,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1514,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1533,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1602,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 846,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 976,
+      "expression": "self.scroll_to_node",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 996,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1030,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1107,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1127,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1297,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1297,
+      "expression": "self.cursor_node._line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1298,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1299,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1426,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1483,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1519,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1519,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1536,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1536,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1547,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1553,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 992,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1062,
+      "expression": "self._tree_lines",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1466,
+      "expression": "self.cursor_line",
+      "context": "Store"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1561,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1563,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1575,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 1573,
+      "expression": "self.move_cursor",
+      "context": "Load"
+    },
+    {
+      "path": "src/textual/widgets/_tree.py",
+      "line": 978,
+      "expression": "self.cursor_line",
+      "context": "Load"
+    }
+  ],
+  "ownership": {
+    "projection": "Tree._tree_lines -> Tree._build",
+    "line_writes": "TreeNode.__init__ initial -1; Tree._build visible ordinal",
+    "selection": "Tree.cursor_node / watch_cursor_line",
+    "clamp": "Tree.validate_cursor_line unchanged",
+    "source_membership": "TreeNode child/expand/remove owners unchanged"
+  },
+  "changed_consumers": [
+    "TreeNode.line",
+    "Tree.move_cursor",
+    "Tree.move_cursor_to_line",
+    "Tree.scroll_to_node",
+    "Tree.action_cursor_up",
+    "Tree.action_cursor_down",
+    "Tree.action_page_up",
+    "Tree.action_page_down",
+    "DirectoryTree._reload"
+  ],
+  "unchanged_derived_consumers": [
+    "Tree.select_node",
+    "Tree.action_cursor_parent and sibling methods",
+    "DirectoryTree._loader move_cursor",
+    "DirectoryTree._reload restoration already acquires _tree_lines before assigning line",
+    "Toad ContextTree._restore_cursor -> move_cursor",
+    "Toad ProjectTreeIntent.restore -> selection.line, preserves separate saved viewport"
+  ],
+  "limits": [
+    "AST attribute matches include unrelated Segment/DataTable/TextArea/ANSI names; sites read semantically, not dynamic receiver proof.",
+    "Hidden or foreign node._line behavior retained; no new expansion/removal policy.",
+    "Node refresh/render caches read existing private metadata; no cursor-intent decision.",
+    "Explicit line APIs keep ordinal arguments; cursor navigation acquires before calculating those arguments."
+  ]
+}

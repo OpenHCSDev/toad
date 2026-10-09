@@ -1,0 +1,1927 @@
+[
+  {
+    "event": "frame_observer_attached",
+    "ns": 1018792728705768,
+    "driver": "LinuxDriver"
+  },
+  {
+    "event": "frame_trace_exported",
+    "ns": 1018792728910567,
+    "pid": 2633414,
+    "capacity": 100000
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018792935739620,
+    "frame": 1,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018792938941300,
+    "frame": 1,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018793436900739,
+    "frame": 2,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018793441755453,
+    "frame": 2,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018793937801294,
+    "frame": 3,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018793944814500,
+    "frame": 3,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018794437389312,
+    "frame": 4,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018794443941112,
+    "frame": 4,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018794935993443,
+    "frame": 5,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018794939130961,
+    "frame": 5,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018795440437877,
+    "frame": 6,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018795448054256,
+    "frame": 6,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018795937738688,
+    "frame": 7,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018795943745816,
+    "frame": 7,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018796438970892,
+    "frame": 8,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018796446080540,
+    "frame": 8,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018796940287055,
+    "frame": 9,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018796947239084,
+    "frame": 9,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018797436808238,
+    "frame": 10,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018797442259282,
+    "frame": 10,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018797940102621,
+    "frame": 11,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018797948280364,
+    "frame": 11,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018798437339201,
+    "frame": 12,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018798442763644,
+    "frame": 12,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018798938703916,
+    "frame": 13,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018798943777273,
+    "frame": 13,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018799439998307,
+    "frame": 14,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018799446231354,
+    "frame": 14,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018799937222633,
+    "frame": 15,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018799943257785,
+    "frame": 15,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800019868528,
+    "frame": 16,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800054820348,
+    "frame": 17,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800077443605,
+    "frame": 16,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800077844746,
+    "frame": 17,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800326789600,
+    "frame": 18,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800368472429,
+    "frame": 18,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800406895269,
+    "frame": 19,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800450313719,
+    "frame": 20,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800453379651,
+    "frame": 19,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800482728949,
+    "frame": 20,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800502281386,
+    "frame": 21,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800505815896,
+    "frame": 21,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800600515291,
+    "frame": 22,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800609359538,
+    "frame": 22,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800770738920,
+    "frame": 23,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800793379701,
+    "frame": 23,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018800856035560,
+    "frame": 24,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018800861995559,
+    "frame": 24,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801026383515,
+    "frame": 25,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801080423260,
+    "frame": 25,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801233277261,
+    "frame": 26,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801253811308,
+    "frame": 26,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801320780053,
+    "frame": 27,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801329057395,
+    "frame": 27,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801385361663,
+    "frame": 28,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801404918467,
+    "frame": 28,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801451509291,
+    "frame": 29,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801476068709,
+    "frame": 29,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801573900092,
+    "frame": 30,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801579389248,
+    "frame": 30,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801604319409,
+    "frame": 31,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801647641977,
+    "frame": 32,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801648098943,
+    "frame": 31,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801654800838,
+    "frame": 32,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801704608571,
+    "frame": 33,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801729042270,
+    "frame": 33,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801775543194,
+    "frame": 34,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801805611535,
+    "frame": 35,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801816491331,
+    "frame": 34,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801843065659,
+    "frame": 36,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801852749066,
+    "frame": 35,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801861483454,
+    "frame": 36,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801912894185,
+    "frame": 37,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801916840677,
+    "frame": 37,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801932838113,
+    "frame": 38,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018801961898033,
+    "frame": 39,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801965982847,
+    "frame": 38,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018801984322364,
+    "frame": 39,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802001302734,
+    "frame": 40,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802012678269,
+    "frame": 40,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802033873059,
+    "frame": 41,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802064346879,
+    "frame": 41,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802169896433,
+    "frame": 42,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802175991658,
+    "frame": 42,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802188820168,
+    "frame": 43,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802214931258,
+    "frame": 44,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802218381669,
+    "frame": 43,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802237345489,
+    "frame": 45,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802256733133,
+    "frame": 46,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802257728740,
+    "frame": 44,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802260030674,
+    "frame": 45,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802279484493,
+    "frame": 47,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802279704841,
+    "frame": 46,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802283815714,
+    "frame": 47,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802301325248,
+    "frame": 48,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802336949522,
+    "frame": 49,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802337194817,
+    "frame": 48,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802385010954,
+    "frame": 50,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802385276327,
+    "frame": 49,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802393199277,
+    "frame": 50,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802458796862,
+    "frame": 51,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802500291866,
+    "frame": 51,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802527169208,
+    "frame": 52,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802544237806,
+    "frame": 53,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802566256998,
+    "frame": 54,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802566628463,
+    "frame": 52,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802568332763,
+    "frame": 53,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802568336981,
+    "frame": 54,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802596639375,
+    "frame": 55,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802610405522,
+    "frame": 55,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802635359579,
+    "frame": 56,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802656892429,
+    "frame": 57,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802657019470,
+    "frame": 56,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802680914519,
+    "frame": 58,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802720048176,
+    "frame": 57,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802721299248,
+    "frame": 58,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802778542576,
+    "frame": 59,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802787546695,
+    "frame": 59,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802806236486,
+    "frame": 60,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802809114061,
+    "frame": 60,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802863995462,
+    "frame": 61,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802868523706,
+    "frame": 61,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802887669051,
+    "frame": 62,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802893760338,
+    "frame": 62,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018802950590834,
+    "frame": 63,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018802969853761,
+    "frame": 63,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803013508970,
+    "frame": 64,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803033070453,
+    "frame": 65,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803036316036,
+    "frame": 64,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803054852116,
+    "frame": 66,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803055775546,
+    "frame": 65,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803089403376,
+    "frame": 66,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803108063370,
+    "frame": 67,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803130672060,
+    "frame": 68,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803131405561,
+    "frame": 67,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803156908568,
+    "frame": 68,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803185942488,
+    "frame": 69,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803203148577,
+    "frame": 70,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803211479099,
+    "frame": 69,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803212504613,
+    "frame": 70,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803251608985,
+    "frame": 71,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803259163526,
+    "frame": 71,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803277479999,
+    "frame": 72,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803300645154,
+    "frame": 73,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803308180499,
+    "frame": 72,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803329673344,
+    "frame": 74,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803329870217,
+    "frame": 73,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803359284018,
+    "frame": 75,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803367446202,
+    "frame": 74,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803368022634,
+    "frame": 75,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803397318752,
+    "frame": 76,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803404730693,
+    "frame": 76,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803422415399,
+    "frame": 77,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803446369149,
+    "frame": 78,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803484877260,
+    "frame": 77,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803485480213,
+    "frame": 78,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803510900423,
+    "frame": 79,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803539106144,
+    "frame": 80,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803548601344,
+    "frame": 79,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803549497853,
+    "frame": 80,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803576697417,
+    "frame": 81,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803595307907,
+    "frame": 82,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803602093691,
+    "frame": 81,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803602178732,
+    "frame": 82,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803621300132,
+    "frame": 83,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803649098740,
+    "frame": 84,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803656650216,
+    "frame": 83,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803663467169,
+    "frame": 85,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803685841906,
+    "frame": 86,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803690235244,
+    "frame": 84,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803690351645,
+    "frame": 85,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803692812139,
+    "frame": 86,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803719564765,
+    "frame": 87,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803745418167,
+    "frame": 88,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803749585697,
+    "frame": 87,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803759865906,
+    "frame": 88,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803775625692,
+    "frame": 89,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803796836492,
+    "frame": 89,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803822346062,
+    "frame": 90,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803832790211,
+    "frame": 90,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803854780489,
+    "frame": 91,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803861922157,
+    "frame": 91,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803880064941,
+    "frame": 92,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803903804114,
+    "frame": 93,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803914702786,
+    "frame": 92,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803933878868,
+    "frame": 94,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803940085995,
+    "frame": 93,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803946381530,
+    "frame": 95,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803952285212,
+    "frame": 94,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803952622932,
+    "frame": 95,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018803968677698,
+    "frame": 96,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018803980526961,
+    "frame": 96,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804005217477,
+    "frame": 97,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804023064901,
+    "frame": 97,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804040937523,
+    "frame": 98,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804075042607,
+    "frame": 99,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804116128165,
+    "frame": 98,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804119196231,
+    "frame": 99,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804141784032,
+    "frame": 100,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804146283551,
+    "frame": 100,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804206251375,
+    "frame": 101,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804245573459,
+    "frame": 101,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804328410215,
+    "frame": 102,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804347405666,
+    "frame": 103,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804347889032,
+    "frame": 102,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804391243691,
+    "frame": 103,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804431303765,
+    "frame": 104,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804438636996,
+    "frame": 104,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804445241968,
+    "frame": 105,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804464448528,
+    "frame": 106,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804467567401,
+    "frame": 105,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804480699175,
+    "frame": 107,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804507114191,
+    "frame": 108,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804529062700,
+    "frame": 109,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804535159097,
+    "frame": 106,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804552585112,
+    "frame": 110,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804559120061,
+    "frame": 107,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804559123547,
+    "frame": 108,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804579117711,
+    "frame": 111,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804579368937,
+    "frame": 109,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804582354186,
+    "frame": 110,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804597075935,
+    "frame": 112,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804619152115,
+    "frame": 113,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804634530108,
+    "frame": 114,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804637527741,
+    "frame": 111,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804666665679,
+    "frame": 115,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804670199908,
+    "frame": 112,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804670215328,
+    "frame": 113,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804670246577,
+    "frame": 114,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804707843330,
+    "frame": 116,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804708273356,
+    "frame": 115,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804747237772,
+    "frame": 116,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804773444052,
+    "frame": 117,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804792333812,
+    "frame": 117,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804816829850,
+    "frame": 118,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804844497300,
+    "frame": 119,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804850731068,
+    "frame": 118,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804867191292,
+    "frame": 120,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804884197702,
+    "frame": 119,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804885100233,
+    "frame": 120,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804900200699,
+    "frame": 121,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804909392605,
+    "frame": 121,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804928686551,
+    "frame": 122,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018804941683810,
+    "frame": 122,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804952814451,
+    "frame": 123,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018804989513302,
+    "frame": 124,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805014015692,
+    "frame": 123,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805014019490,
+    "frame": 124,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805071604215,
+    "frame": 125,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805082422353,
+    "frame": 125,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805101325529,
+    "frame": 126,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805108880341,
+    "frame": 126,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805126913677,
+    "frame": 127,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805159431733,
+    "frame": 128,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805165895867,
+    "frame": 127,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805166311094,
+    "frame": 128,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805188626649,
+    "frame": 129,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805205441816,
+    "frame": 129,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805233470781,
+    "frame": 130,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805293724046,
+    "frame": 130,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805318478744,
+    "frame": 131,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805378095021,
+    "frame": 131,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805407962762,
+    "frame": 132,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805459453274,
+    "frame": 132,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805470178757,
+    "frame": 133,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805491800336,
+    "frame": 134,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805496404053,
+    "frame": 133,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805528535506,
+    "frame": 134,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805535423163,
+    "frame": 135,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805554579388,
+    "frame": 136,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805572906362,
+    "frame": 137,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805576291248,
+    "frame": 135,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805578121578,
+    "frame": 136,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805592772372,
+    "frame": 137,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805632024855,
+    "frame": 138,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805658437416,
+    "frame": 139,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805658677912,
+    "frame": 138,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805697841415,
+    "frame": 139,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805720477437,
+    "frame": 140,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805786923271,
+    "frame": 141,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805797897225,
+    "frame": 140,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805800403977,
+    "frame": 142,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805803592131,
+    "frame": 141,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805822608060,
+    "frame": 143,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805823252892,
+    "frame": 142,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805831712620,
+    "frame": 143,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805845630334,
+    "frame": 144,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805849445477,
+    "frame": 144,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805864463737,
+    "frame": 145,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805885788243,
+    "frame": 146,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805889943961,
+    "frame": 145,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805890259159,
+    "frame": 146,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805938644254,
+    "frame": 147,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805947642192,
+    "frame": 147,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805977287050,
+    "frame": 148,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018805995884546,
+    "frame": 149,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018805996126806,
+    "frame": 148,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018806020330960,
+    "frame": 149,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018806077949410,
+    "frame": 150,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018806083794030,
+    "frame": 150,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018806434726054,
+    "frame": 151,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018806438523703,
+    "frame": 151,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018806938482463,
+    "frame": 152,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018806944758050,
+    "frame": 152,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018807437125799,
+    "frame": 153,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018807443877118,
+    "frame": 153,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018807937172966,
+    "frame": 154,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018807943496795,
+    "frame": 154,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018808438940976,
+    "frame": 155,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018808445277959,
+    "frame": 155,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018808938262247,
+    "frame": 156,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018808945531348,
+    "frame": 156,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018809437320199,
+    "frame": 157,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018809441335060,
+    "frame": 157,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018809939667707,
+    "frame": 158,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018809947646774,
+    "frame": 158,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_enqueued",
+    "ns": 1018810436972215,
+    "frame": 159,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_flushed",
+    "ns": 1018810444126889,
+    "frame": 159,
+    "mode": "workspace"
+  },
+  {
+    "event": "frame_trace_exported",
+    "ns": 1018810714614802,
+    "pid": 2633414,
+    "capacity": 100000
+  }
+]

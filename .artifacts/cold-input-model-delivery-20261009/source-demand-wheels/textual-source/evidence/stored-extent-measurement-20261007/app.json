@@ -1,0 +1,78 @@
+{
+  "boundary": "completed headless _display; not terminal pixels",
+  "tabs": 10,
+  "pointer": true,
+  "active_widgets": 508,
+  "toggle_first_paint": {
+    "#channels-sidebar": {
+      "median_ms": 33.5,
+      "p95_ms": 37.9,
+      "max_ms": 100.9
+    },
+    "#thread-sidebar": {
+      "median_ms": 34.8,
+      "p95_ms": 40.9,
+      "max_ms": 65.0
+    }
+  },
+  "source_head": "8e1547f62",
+  "terminal_exit": 0,
+  "stderr_bytes": 0,
+  "profiles": {
+    "toggle-channels.pstats": {
+      "sha256": "a4a813bff7f97d0cfe300a566ec9af5fbc9c3431a1a821b284fd1dbf9d642091",
+      "rows": [
+        {
+          "function": "_update_inherited_geometry",
+          "primitive_calls": 6,
+          "total_calls": 147,
+          "self_seconds": 0.0006502750000000001,
+          "cumulative_seconds": 0.003998126
+        },
+        {
+          "function": "_measurement_updated",
+          "primitive_calls": 112,
+          "total_calls": 112,
+          "self_seconds": 0.000286123,
+          "cumulative_seconds": 0.0007214280000000001
+        },
+        {
+          "function": "_clear_arrangement_cache",
+          "primitive_calls": 112,
+          "total_calls": 112,
+          "self_seconds": 9.782800000000001e-05,
+          "cumulative_seconds": 0.000318223
+        }
+      ]
+    },
+    "toggle-thread.pstats": {
+      "sha256": "87142953a2fe34b365751bf6aa5b9c89cd017322df0ba344b16a01ecf04280c0",
+      "rows": [
+        {
+          "function": "_update_inherited_geometry",
+          "primitive_calls": 5,
+          "total_calls": 115,
+          "self_seconds": 0.00032926,
+          "cumulative_seconds": 0.0020039890000000003
+        },
+        {
+          "function": "_measurement_updated",
+          "primitive_calls": 105,
+          "total_calls": 105,
+          "self_seconds": 0.000170051,
+          "cumulative_seconds": 0.000500446
+        },
+        {
+          "function": "_clear_arrangement_cache",
+          "primitive_calls": 105,
+          "total_calls": 105,
+          "self_seconds": 5.8089000000000006e-05,
+          "cumulative_seconds": 0.00023768000000000001
+        }
+      ]
+    }
+  },
+  "inputs": 0,
+  "providers": 0,
+  "limits": "Source headless first-display measurements, not terminal pixels or an agent-switch comparison. Earlier prototype App and two authored assertion failures preserved separately."
+}

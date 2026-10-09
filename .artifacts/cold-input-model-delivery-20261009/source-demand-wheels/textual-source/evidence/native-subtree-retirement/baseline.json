@@ -1,0 +1,10 @@
+{
+  "textual": "/home/ts/wt/toad-foreground-resource-residency-continuation-20261001/.artifacts/runtime-native-width-271-20261001/lib/python3.14/site-packages/textual/__init__.py",
+  "scope": "Actual native scene/resource control; not installed Toad readiness",
+  "unrelated_entry_retained_before_reflow": false,
+  "affected_entry_evicted_before_reflow": true,
+  "unrelated_entry_retained_after_reflow": false,
+  "visible_retained_body": true,
+  "retired_body_absent_from_frame": true,
+  "no_retired_scene_custody": true
+}

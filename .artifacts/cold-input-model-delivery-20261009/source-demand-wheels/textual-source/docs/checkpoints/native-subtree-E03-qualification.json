@@ -1,0 +1,35 @@
+{
+  "original_receipt": "/home/ts/.cache/agent-scratch/native-retained-body-E-feedback-native6-public-20261002-03/capture/receipt.json",
+  "original_receipt_sha256": "61f9a24f66ef283f69ed1e1b7cc5c43164f66681a6fad32842b7a6db4b02056a",
+  "pins": {
+    "agent_comms": "48d408a46d73f9123b71a7ccdc81b86e8d8aa7c2",
+    "toad": "32cca305b531842008a56fb7a3b5db81d0b8d812",
+    "textual": "fc9be9e8720f334c8ac88c9d926d3817eec07e2f"
+  },
+  "duration_seconds": 88.35965753201162,
+  "capture_completed": true,
+  "completed": true,
+  "capture_returncode": 255,
+  "runtime_unchanged": true,
+  "journey_review": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "remaining_owned_pids": [],
+  "cleanup_errors": [],
+  "owner_review": "Heisenberg: idle body loop settled and paint retention engaged; fast scrolling not accepted",
+  "owner_qualified_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/retained-body-E/public03-feedback-qualified.json",
+  "owner_qualified_receipt_sha256": "5377907cf1d647a870e1dc53204f0be9029583f23ca9b3236381945a6ecac92e",
+  "owner_qualified_source_head": "139744cfd7554901d445cad3638c47c42d3456f2",
+  "timing_boundary": "Live-sheet 82\u201383 labels differ from finalized video timestamps; no exact timed-motion claim."
+}

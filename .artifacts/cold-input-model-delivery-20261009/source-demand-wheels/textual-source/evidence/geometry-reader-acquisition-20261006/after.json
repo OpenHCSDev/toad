@@ -1,0 +1,1459 @@
+{
+  "coverage": [
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "revision": "a7700ec794908d16781a8fc230370e39dc069180",
+      "root": "src/textual",
+      "parsed": 249,
+      "omissions": []
+    },
+    {
+      "checkout": "/home/ts/wt/textual-frame-publication-20261006",
+      "revision": "a7700ec794908d16781a8fc230370e39dc069180",
+      "root": "tests",
+      "parsed": 465,
+      "omissions": []
+    },
+    {
+      "checkout": "/home/ts/wt/toad-right-sidebar-latency-20261006",
+      "revision": "2f2ffc2098a3f9456b6ac6e8948990db43296429",
+      "root": "src/toad",
+      "parsed": 288,
+      "omissions": []
+    }
+  ],
+  "limits": "Lexical coordinates, not dynamic resolution; arbitrary external overrides unresolved. Toad dependency source read only.",
+  "sites": {
+    "src/textual:src/textual/_arrange.py::region::Attribute::Load": [
+      74,
+      76,
+      222
+    ],
+    "src/textual:src/textual/_arrange.py::region::Name::Load": [
+      142,
+      143
+    ],
+    "src/textual:src/textual/_compositor.py::_arrange_root::Attribute::Load": [
+      717,
+      767,
+      816,
+      1807
+    ],
+    "src/textual:src/textual/_compositor.py::_arrange_root::FunctionDef::declaration": [
+      855
+    ],
+    "src/textual:src/textual/_compositor.py::_full_map::Attribute::Load": [
+      608,
+      630,
+      688,
+      708,
+      827
+    ],
+    "src/textual:src/textual/_compositor.py::_full_map::Attribute::Store": [
+      552,
+      733,
+      822
+    ],
+    "src/textual:src/textual/_compositor.py::_full_map_invalidated::Attribute::Load": [
+      815,
+      1430,
+      1910
+    ],
+    "src/textual:src/textual/_compositor.py::_full_map_invalidated::Attribute::Store": [
+      553,
+      609,
+      640,
+      735,
+      761,
+      823,
+      1913
+    ],
+    "src/textual:src/textual/_compositor.py::_get_geometry::Attribute::Load": [
+      1428,
+      1438
+    ],
+    "src/textual:src/textual/_compositor.py::_get_geometry::FunctionDef::declaration": [
+      1447
+    ],
+    "src/textual:src/textual/_compositor.py::_get_published_geometry::Attribute::Load": [
+      1464,
+      1791
+    ],
+    "src/textual:src/textual/_compositor.py::_get_published_geometry::FunctionDef::declaration": [
+      1466
+    ],
+    "src/textual:src/textual/_compositor.py::_layout_mutation_roots::Attribute::Load": [
+      872,
+      1290,
+      1307
+    ],
+    "src/textual:src/textual/_compositor.py::_published_map::Attribute::Load": [
+      707,
+      760,
+      820,
+      873,
+      1229,
+      1436,
+      1473,
+      1581,
+      1591
+    ],
+    "src/textual:src/textual/_compositor.py::_published_map::FunctionDef::declaration": [
+      686
+    ],
+    "src/textual:src/textual/_compositor.py::_using_geometry::Attribute::Load": [
+      1812
+    ],
+    "src/textual:src/textual/_compositor.py::_using_geometry::FunctionDef::declaration": [
+      1476
+    ],
+    "src/textual:src/textual/_compositor.py::_visible_map::Attribute::Load": [
+      630,
+      688,
+      688,
+      766
+    ],
+    "src/textual:src/textual/_compositor.py::_visible_map::Attribute::Store": [
+      562,
+      610,
+      731,
+      734,
+      772,
+      824
+    ],
+    "src/textual:src/textual/_compositor.py::find_widget::Attribute::Load": [
+      1244,
+      1258
+    ],
+    "src/textual:src/textual/_compositor.py::find_widget::FunctionDef::declaration": [
+      1416
+    ],
+    "src/textual:src/textual/_compositor.py::full_map::Attribute::Load": [
+      1442
+    ],
+    "src/textual:src/textual/_compositor.py::full_map::FunctionDef::declaration": [
+      810
+    ],
+    "src/textual:src/textual/_compositor.py::get_offset::FunctionDef::declaration": [
+      1249
+    ],
+    "src/textual:src/textual/_compositor.py::get_widget_at::Attribute::Load": [
+      1323,
+      1359
+    ],
+    "src/textual:src/textual/_compositor.py::get_widget_at::FunctionDef::declaration": [
+      1260
+    ],
+    "src/textual:src/textual/_compositor.py::published_geometry::FunctionDef::declaration": [
+      1779
+    ],
+    "src/textual:src/textual/_compositor.py::reflow::FunctionDef::declaration": [
+      690
+    ],
+    "src/textual:src/textual/_compositor.py::reflow_visible::Attribute::Load": [
+      1434
+    ],
+    "src/textual:src/textual/_compositor.py::reflow_visible::FunctionDef::declaration": [
+      744
+    ],
+    "src/textual:src/textual/_compositor.py::region::Attribute::Load": [
+      99,
+      157,
+      178,
+      183,
+      184,
+      184,
+      187,
+      191,
+      191,
+      225,
+      253,
+      253,
+      268,
+      312,
+      356,
+      359,
+      378,
+      380,
+      388,
+      792,
+      838,
+      851,
+      897,
+      897,
+      898,
+      901,
+      1008,
+      1022,
+      1041,
+      1108,
+      1118,
+      1130,
+      1164,
+      1189,
+      1202,
+      1258,
+      1501,
+      1585,
+      1592,
+      1596,
+      1635,
+      1645,
+      1672,
+      1700,
+      1716,
+      1740,
+      1770,
+      1772,
+      1806
+    ],
+    "src/textual:src/textual/_compositor.py::region::Attribute::Store": [
+      351
+    ],
+    "src/textual:src/textual/_compositor.py::region::FunctionDef::declaration": [
+      118,
+      141,
+      156,
+      176
+    ],
+    "src/textual:src/textual/_compositor.py::region::Name::Load": [
+      91,
+      121,
+      351,
+      637,
+      799,
+      801,
+      805,
+      965,
+      1039,
+      1042,
+      1116,
+      1128,
+      1131,
+      1151,
+      1160,
+      1164,
+      1175,
+      1291,
+      1295,
+      1301,
+      1308,
+      1329,
+      1330,
+      1333,
+      1369,
+      1370,
+      1563,
+      1564,
+      1586,
+      1593,
+      1606,
+      1608,
+      1611,
+      1611,
+      1611,
+      1611,
+      1612,
+      1612,
+      1612,
+      1613,
+      1613,
+      1614,
+      1635,
+      1636,
+      1636,
+      1637,
+      1637,
+      1651,
+      1742,
+      1846,
+      1848,
+      1872,
+      1920
+    ],
+    "src/textual:src/textual/_compositor.py::region::Name::Store": [
+      73,
+      636,
+      798,
+      800,
+      804,
+      1291,
+      1294,
+      1308,
+      1323,
+      1359,
+      1544,
+      1585,
+      1592,
+      1605,
+      1634,
+      1635,
+      1651,
+      1742,
+      1919
+    ],
+    "src/textual:src/textual/_compositor.py::render_subtree_strips::FunctionDef::declaration": [
+      1795
+    ],
+    "src/textual:src/textual/_compositor.py::virtual_region::Attribute::Load": [
+      98,
+      186,
+      186,
+      188,
+      1201
+    ],
+    "src/textual:src/textual/_compositor.py::virtual_region::Name::Load": [
+      91,
+      188,
+      192,
+      1044,
+      1121,
+      1133,
+      1151,
+      1160,
+      1164,
+      1175
+    ],
+    "src/textual:src/textual/_compositor.py::virtual_region::Name::Store": [
+      72,
+      186
+    ],
+    "src/textual:src/textual/_spatial_map.py::region::Name::Load": [
+      49,
+      79,
+      80,
+      98
+    ],
+    "src/textual:src/textual/_spatial_map.py::region::Name::Store": [
+      74
+    ],
+    "src/textual:src/textual/_styles_cache.py::region::Attribute::Load": [
+      119,
+      208
+    ],
+    "src/textual:src/textual/_styles_cache.py::region::Name::Load": [
+      78
+    ],
+    "src/textual:src/textual/_styles_cache.py::region::Name::Store": [
+      77
+    ],
+    "src/textual:src/textual/app.py::_refresh_layout::Attribute::Load": [
+      3850
+    ],
+    "src/textual:src/textual/app.py::get_widget_at::Attribute::Load": [
+      3946,
+      4116,
+      4118,
+      4138
+    ],
+    "src/textual:src/textual/app.py::get_widget_at::FunctionDef::declaration": [
+      3936
+    ],
+    "src/textual:src/textual/command.py::get_widget_at::Attribute::Load": [
+      813
+    ],
+    "src/textual:src/textual/dom.py::region::Attribute::Load": [
+      1136
+    ],
+    "src/textual:src/textual/geometry.py::region::FunctionDef::declaration": [
+      224
+    ],
+    "src/textual:src/textual/geometry.py::region::Name::Load": [
+      431,
+      436,
+      437,
+      448,
+      462,
+      615,
+      616,
+      617,
+      618,
+      831,
+      855,
+      1086,
+      1113,
+      1119,
+      1378,
+      1469,
+      1480
+    ],
+    "src/textual:src/textual/geometry.py::region::Name::Store": [
+      436,
+      1062,
+      1086,
+      1113,
+      1378,
+      1480
+    ],
+    "src/textual:src/textual/layout.py::region::Attribute::Load": [
+      61,
+      102,
+      131,
+      188,
+      209,
+      223,
+      361
+    ],
+    "src/textual:src/textual/layout.py::region::Name::Load": [
+      94,
+      97,
+      98,
+      150,
+      152,
+      212,
+      216,
+      223,
+      227,
+      356,
+      357
+    ],
+    "src/textual:src/textual/layout.py::region::Name::Store": [
+      119,
+      162,
+      209,
+      212,
+      216,
+      225
+    ],
+    "src/textual:src/textual/layouts/grid.py::region::Name::Load": [
+      366
+    ],
+    "src/textual:src/textual/layouts/grid.py::region::Name::Store": [
+      346
+    ],
+    "src/textual:src/textual/layouts/horizontal.py::region::Name::Load": [
+      109
+    ],
+    "src/textual:src/textual/layouts/horizontal.py::region::Name::Store": [
+      100
+    ],
+    "src/textual:src/textual/layouts/stream.py::region::Attribute::Load": [
+      77
+    ],
+    "src/textual:src/textual/layouts/stream.py::scrollable_content_region::Attribute::Load": [
+      135
+    ],
+    "src/textual:src/textual/layouts/vertical.py::region::Name::Load": [
+      113
+    ],
+    "src/textual:src/textual/layouts/vertical.py::region::Name::Store": [
+      104
+    ],
+    "src/textual:src/textual/map_geometry.py::region::Attribute::Load": [
+      34
+    ],
+    "src/textual:src/textual/map_geometry.py::region::Name::Store": [
+      11
+    ],
+    "src/textual:src/textual/map_geometry.py::virtual_region::Name::Store": [
+      26
+    ],
+    "src/textual:src/textual/messages.py::region::Attribute::Store": [
+      88
+    ],
+    "src/textual:src/textual/messages.py::region::Name::Load": [
+      88
+    ],
+    "src/textual:src/textual/pilot.py::get_widget_at::Attribute::Load": [
+      461
+    ],
+    "src/textual:src/textual/pilot.py::region::Attribute::Load": [
+      33,
+      441
+    ],
+    "src/textual:src/textual/screen.py::_layout_geometry_targets::Attribute::Load": [
+      1419
+    ],
+    "src/textual:src/textual/screen.py::_layout_geometry_targets::FunctionDef::declaration": [
+      1403
+    ],
+    "src/textual:src/textual/screen.py::_layout_mutation_roots::Attribute::Load": [
+      1453
+    ],
+    "src/textual:src/textual/screen.py::_layout_mutation_roots::FunctionDef::declaration": [
+      1209
+    ],
+    "src/textual:src/textual/screen.py::_refresh_layout::Attribute::Load": [
+      1301,
+      1304,
+      1598,
+      1617
+    ],
+    "src/textual:src/textual/screen.py::_refresh_layout::FunctionDef::declaration": [
+      1407
+    ],
+    "src/textual:src/textual/screen.py::find_widget::Attribute::Load": [
+      766,
+      1813,
+      2113
+    ],
+    "src/textual:src/textual/screen.py::find_widget::FunctionDef::declaration": [
+      754
+    ],
+    "src/textual:src/textual/screen.py::get_offset::Attribute::Load": [
+      645
+    ],
+    "src/textual:src/textual/screen.py::get_offset::FunctionDef::declaration": [
+      636
+    ],
+    "src/textual:src/textual/screen.py::get_widget_at::Attribute::Load": [
+      660,
+      715,
+      1771,
+      2115
+    ],
+    "src/textual:src/textual/screen.py::get_widget_at::FunctionDef::declaration": [
+      647
+    ],
+    "src/textual:src/textual/screen.py::reflow::Attribute::Load": [
+      1448,
+      1452
+    ],
+    "src/textual:src/textual/screen.py::reflow_visible::Attribute::Load": [
+      1421
+    ],
+    "src/textual:src/textual/screen.py::region::Attribute::Load": [
+      1813,
+      2100,
+      2101,
+      2113,
+      2291,
+      2291,
+      2309,
+      2309
+    ],
+    "src/textual:src/textual/screen.py::region::Name::Load": [
+      685,
+      1198,
+      1236,
+      1437,
+      1477,
+      1834,
+      1869,
+      1870,
+      2134,
+      2134
+    ],
+    "src/textual:src/textual/screen.py::region::Name::Store": [
+      683,
+      1199,
+      1237,
+      1427,
+      1469,
+      1813,
+      1815,
+      2113,
+      2115
+    ],
+    "src/textual:src/textual/scroll_view.py::region::Attribute::Load": [
+      50,
+      56
+    ],
+    "src/textual:src/textual/selection.py::find_widget::Attribute::Load": [
+      413
+    ],
+    "src/textual:src/textual/selection.py::find_widget::Name::Load": [
+      419,
+      425
+    ],
+    "src/textual:src/textual/selection.py::find_widget::Name::Store": [
+      413,
+      415
+    ],
+    "src/textual:src/textual/selection.py::region::Attribute::Load": [
+      144,
+      266,
+      346,
+      352,
+      353,
+      365,
+      420,
+      425,
+      432,
+      432,
+      433
+    ],
+    "src/textual:src/textual/selection.py::region::Name::Load": [
+      352,
+      353,
+      354,
+      355,
+      428,
+      429,
+      445,
+      445
+    ],
+    "src/textual:src/textual/selection.py::region::Name::Store": [
+      351,
+      425,
+      427,
+      444
+    ],
+    "src/textual:src/textual/widget.py::find_widget::Attribute::Load": [
+      2490,
+      2503,
+      2515,
+      2541,
+      2664
+    ],
+    "src/textual:src/textual/widget.py::get_widget_at::Attribute::Load": [
+      4536
+    ],
+    "src/textual:src/textual/widget.py::region::Attribute::Load": [
+      2452,
+      2462,
+      2484,
+      2490,
+      2503,
+      2527,
+      2529,
+      2554,
+      2916,
+      2918,
+      2920,
+      4060,
+      4084,
+      4534,
+      4784,
+      5129
+    ],
+    "src/textual:src/textual/widget.py::region::FunctionDef::declaration": [
+      2496
+    ],
+    "src/textual:src/textual/widget.py::region::Name::Load": [
+      2905,
+      3780,
+      3786,
+      3795,
+      3816,
+      3876,
+      3891,
+      3900,
+      3902,
+      3906,
+      4064,
+      4088,
+      4174,
+      4179,
+      4181,
+      4182,
+      4211,
+      4212,
+      4213,
+      4229,
+      4230,
+      4238,
+      4239
+    ],
+    "src/textual:src/textual/widget.py::region::Name::Store": [
+      2905,
+      3777,
+      3814,
+      4060,
+      4084,
+      4174,
+      4179,
+      4181
+    ],
+    "src/textual:src/textual/widget.py::scroll_to_region::Attribute::Load": [
+      3794,
+      5129
+    ],
+    "src/textual:src/textual/widget.py::scroll_to_region::FunctionDef::declaration": [
+      3828
+    ],
+    "src/textual:src/textual/widget.py::scrollable_content_region::Attribute::Load": [
+      2425,
+      3628,
+      3661,
+      3696,
+      3731,
+      3872,
+      4064,
+      4088
+    ],
+    "src/textual:src/textual/widget.py::scrollable_content_region::FunctionDef::declaration": [
+      2456
+    ],
+    "src/textual:src/textual/widget.py::virtual_region::Attribute::Load": [
+      2541,
+      2565,
+      2591
+    ],
+    "src/textual:src/textual/widget.py::virtual_region::FunctionDef::declaration": [
+      2532
+    ],
+    "src/textual:src/textual/widgets/_data_table.py::region::Name::Load": [
+      1905,
+      1921,
+      1937,
+      1948,
+      1950,
+      1951,
+      2649
+    ],
+    "src/textual:src/textual/widgets/_data_table.py::region::Name::Store": [
+      1904,
+      1920,
+      1936,
+      1950,
+      2642,
+      2645,
+      2647
+    ],
+    "src/textual:src/textual/widgets/_data_table.py::scroll_to_region::Attribute::Load": [
+      2649
+    ],
+    "src/textual:src/textual/widgets/_data_table.py::scrollable_content_region::Attribute::Load": [
+      2708,
+      2732
+    ],
+    "src/textual:src/textual/widgets/_input.py::scroll_to_region::Attribute::Load": [
+      521
+    ],
+    "src/textual:src/textual/widgets/_input.py::scrollable_content_region::Attribute::Load": [
+      622
+    ],
+    "src/textual:src/textual/widgets/_list_view.py::region::Attribute::Load": [
+      211
+    ],
+    "src/textual:src/textual/widgets/_option_list.py::scroll_to_region::Attribute::Load": [
+      957
+    ],
+    "src/textual:src/textual/widgets/_option_list.py::scrollable_content_region::Attribute::Load": [
+      790,
+      812,
+      819,
+      891,
+      914,
+      958,
+      1000
+    ],
+    "src/textual:src/textual/widgets/_rich_log.py::scrollable_content_region::Attribute::Load": [
+      236,
+      304
+    ],
+    "src/textual:src/textual/widgets/_tabs.py::region::Attribute::Load": [
+      717
+    ],
+    "src/textual:src/textual/widgets/_tabs.py::virtual_region::Attribute::Load": [
+      660
+    ],
+    "src/textual:src/textual/widgets/_text_area.py::region::Attribute::Load": [
+      1656
+    ],
+    "src/textual:src/textual/widgets/_text_area.py::scroll_cursor_visible::Attribute::Load": [
+      898,
+      1000,
+      1005,
+      1010,
+      1015,
+      1271,
+      2130
+    ],
+    "src/textual:src/textual/widgets/_text_area.py::scroll_cursor_visible::FunctionDef::declaration": [
+      2075
+    ],
+    "src/textual:src/textual/widgets/_text_area.py::scroll_to_region::Attribute::Load": [
+      2092
+    ],
+    "src/textual:src/textual/widgets/_text_area.py::scrollable_content_region::Attribute::Load": [
+      1279,
+      1654
+    ],
+    "src/textual:src/textual/widgets/_tree.py::region::Name::Load": [
+      1190,
+      1192,
+      1221
+    ],
+    "src/textual:src/textual/widgets/_tree.py::region::Name::Store": [
+      1189,
+      1220
+    ],
+    "src/textual:src/textual/widgets/_tree.py::scroll_to_region::Attribute::Load": [
+      1191
+    ],
+    "src/textual:src/textual/widgets/_tree.py::scrollable_content_region::Attribute::Load": [
+      1491,
+      1499
+    ],
+    "src/toad:src/toad/message_viewport.py::region::Name::Load": [
+      31,
+      31
+    ],
+    "src/toad:src/toad/message_viewport.py::region::Name::Store": [
+      30
+    ],
+    "src/toad:src/toad/mounted_message_history.py::region::Name::Load": [
+      306,
+      310,
+      313
+    ],
+    "src/toad:src/toad/mounted_message_history.py::region::Name::Store": [
+      304
+    ],
+    "src/toad:src/toad/screens/workspace.py::_layout_geometry_targets::FunctionDef::declaration": [
+      176
+    ],
+    "src/toad:src/toad/screens/workspace.py::_layout_mutation_roots::FunctionDef::declaration": [
+      157
+    ],
+    "src/toad:src/toad/screens/workspace.py::_refresh_layout::Attribute::Load": [
+      197,
+      204,
+      209,
+      219,
+      263,
+      265,
+      267
+    ],
+    "src/toad:src/toad/screens/workspace.py::_refresh_layout::FunctionDef::declaration": [
+      179
+    ],
+    "src/toad:src/toad/widgets/command_pane.py::scrollable_content_region::Attribute::Load": [
+      40
+    ],
+    "src/toad:src/toad/widgets/comms_menu.py::get_widget_at::Attribute::Load": [
+      170
+    ],
+    "src/toad:src/toad/widgets/comms_sidebar.py::get_widget_at::Attribute::Load": [
+      529
+    ],
+    "src/toad:src/toad/widgets/context_explorer.py::region::Attribute::Load": [
+      383
+    ],
+    "src/toad:src/toad/widgets/conversation.py::reflow::Attribute::Load": [
+      2121
+    ],
+    "src/toad:src/toad/widgets/conversation.py::region::Attribute::Load": [
+      1109,
+      1110,
+      1189,
+      1190,
+      2089
+    ],
+    "src/toad:src/toad/widgets/conversation.py::region::Name::Load": [
+      323,
+      323
+    ],
+    "src/toad:src/toad/widgets/conversation.py::region::Name::Store": [
+      317
+    ],
+    "src/toad:src/toad/widgets/conversation.py::scrollable_content_region::Attribute::Load": [
+      1997
+    ],
+    "src/toad:src/toad/widgets/goal_bar.py::region::Attribute::Load": [
+      211,
+      214,
+      218,
+      237
+    ],
+    "src/toad:src/toad/widgets/history_anchor.py::_full_map::Attribute::Load": [
+      362
+    ],
+    "src/toad:src/toad/widgets/history_anchor.py::_visible_map::Attribute::Load": [
+      361,
+      361
+    ],
+    "src/toad:src/toad/widgets/history_anchor.py::region::Name::Load": [
+      258,
+      258
+    ],
+    "src/toad:src/toad/widgets/history_anchor.py::region::Name::Store": [
+      257
+    ],
+    "src/toad:src/toad/widgets/history_anchor.py::virtual_region::Attribute::Load": [
+      365,
+      365
+    ],
+    "src/toad:src/toad/widgets/session_sort.py::region::Attribute::Load": [
+      75,
+      75
+    ],
+    "src/toad:src/toad/widgets/session_tabs.py::region::Name::Load": [
+      150,
+      154,
+      156
+    ],
+    "src/toad:src/toad/widgets/session_tabs.py::virtual_region::Attribute::Load": [
+      214
+    ],
+    "src/toad:src/toad/widgets/side_bar.py::region::Attribute::Load": [
+      339,
+      339,
+      450
+    ],
+    "src/toad:src/toad/widgets/terminal.py::scrollable_content_region::Attribute::Load": [
+      201,
+      232
+    ],
+    "src/toad:src/toad/widgets/terminal_projection.py::region::Attribute::Load": [
+      39
+    ],
+    "src/toad:src/toad/widgets/thread_comms.py::region::Attribute::Load": [
+      166
+    ],
+    "src/toad:src/toad/widgets/tool_call.py::region::Name::Load": [
+      293
+    ],
+    "src/toad:src/toad/widgets/tool_call.py::region::Name::Store": [
+      292
+    ],
+    "src/toad:src/toad/widgets/transcript_history.py::region::Name::Load": [
+      791,
+      802,
+      807
+    ],
+    "src/toad:src/toad/widgets/transcript_history.py::region::Name::Store": [
+      789
+    ],
+    "src/toad:src/toad/widgets/viewport_body.py::published_geometry::Attribute::Load": [
+      644
+    ],
+    "src/toad:src/toad/widgets/viewport_body.py::render_subtree_strips::Attribute::Load": [
+      649
+    ],
+    "src/toad:src/toad/widgets/worker_static.py::scrollable_content_region::Attribute::Load": [
+      108
+    ],
+    "tests:tests/css/test_programmatic_style_changes.py::get_widget_at::Attribute::Load": [
+      199,
+      200
+    ],
+    "tests:tests/css/test_programmatic_style_changes.py::region::Attribute::Load": [
+      133,
+      133,
+      139,
+      139,
+      157,
+      172,
+      190,
+      195,
+      199,
+      199
+    ],
+    "tests:tests/frame_damage_installed_pilot.py::reflow::Attribute::Load": [
+      15
+    ],
+    "tests:tests/test_auto_scroll.py::region::Name::Load": [
+      40,
+      41
+    ],
+    "tests:tests/test_batch_paint_admission.py::_layout_mutation_roots::Attribute::Load": [
+      152
+    ],
+    "tests:tests/test_batch_paint_admission.py::_layout_mutation_roots::FunctionDef::declaration": [
+      148
+    ],
+    "tests:tests/test_batch_paint_admission.py::_refresh_layout::Attribute::Load": [
+      51
+    ],
+    "tests:tests/test_batch_paint_admission.py::find_widget::Attribute::Load": [
+      187,
+      188,
+      201,
+      202,
+      229
+    ],
+    "tests:tests/test_batch_paint_admission.py::get_widget_at::Attribute::Load": [
+      189,
+      203,
+      223
+    ],
+    "tests:tests/test_batch_paint_admission.py::region::Attribute::Load": [
+      120,
+      206,
+      229,
+      262,
+      268
+    ],
+    "tests:tests/test_box_model_cache_lifetime.py::region::Attribute::Load": [
+      80
+    ],
+    "tests:tests/test_closed_presentation_lifetime.py::full_map::Attribute::Load": [
+      25
+    ],
+    "tests:tests/test_compositor.py::_arrange_root::Attribute::Load": [
+      106,
+      162,
+      194,
+      251
+    ],
+    "tests:tests/test_compositor.py::_full_map::Attribute::Load": [
+      163
+    ],
+    "tests:tests/test_compositor.py::_full_map_invalidated::Attribute::Load": [
+      160,
+      193,
+      208
+    ],
+    "tests:tests/test_compositor.py::_full_map_invalidated::Attribute::Store": [
+      204
+    ],
+    "tests:tests/test_compositor.py::_layout_geometry_targets::Attribute::Load": [
+      158,
+      191
+    ],
+    "tests:tests/test_compositor.py::find_widget::Attribute::Load": [
+      38
+    ],
+    "tests:tests/test_compositor.py::full_map::Attribute::Load": [
+      79,
+      163,
+      197,
+      200,
+      207,
+      209,
+      236,
+      240,
+      250,
+      286
+    ],
+    "tests:tests/test_compositor.py::get_widget_at::Attribute::Load": [
+      39,
+      44,
+      45,
+      49,
+      54,
+      62,
+      63,
+      70,
+      81,
+      87
+    ],
+    "tests:tests/test_compositor.py::reflow::Attribute::Load": [
+      161,
+      195,
+      199
+    ],
+    "tests:tests/test_compositor.py::reflow_visible::Attribute::Load": [
+      157,
+      190
+    ],
+    "tests:tests/test_compositor.py::region::Attribute::Load": [
+      39,
+      174
+    ],
+    "tests:tests/test_compositor_frame_damage.py::_arrange_root::Attribute::Load": [
+      192,
+      279,
+      296
+    ],
+    "tests:tests/test_compositor_frame_damage.py::_full_map_invalidated::Attribute::Load": [
+      293,
+      311
+    ],
+    "tests:tests/test_compositor_frame_damage.py::_using_geometry::Attribute::Load": [
+      284,
+      300
+    ],
+    "tests:tests/test_compositor_frame_damage.py::_visible_map::Attribute::Load": [
+      51,
+      276,
+      292,
+      310
+    ],
+    "tests:tests/test_compositor_frame_damage.py::find_widget::Attribute::Load": [
+      223,
+      240,
+      285,
+      289,
+      301,
+      304,
+      309
+    ],
+    "tests:tests/test_compositor_frame_damage.py::full_map::Attribute::Load": [
+      56
+    ],
+    "tests:tests/test_compositor_frame_damage.py::get_offset::Attribute::Load": [
+      286,
+      288,
+      289,
+      302
+    ],
+    "tests:tests/test_compositor_frame_damage.py::published_geometry::Attribute::Load": [
+      176,
+      187,
+      278
+    ],
+    "tests:tests/test_compositor_frame_damage.py::reflow::Attribute::Load": [
+      16,
+      222,
+      231,
+      238
+    ],
+    "tests:tests/test_compositor_frame_damage.py::reflow_visible::Attribute::Load": [
+      275
+    ],
+    "tests:tests/test_compositor_frame_damage.py::region::Attribute::Load": [
+      50,
+      56,
+      148,
+      148,
+      177,
+      188,
+      190,
+      195,
+      196,
+      196,
+      197,
+      218,
+      225,
+      242,
+      286,
+      287,
+      287,
+      288,
+      302,
+      309,
+      309
+    ],
+    "tests:tests/test_compositor_frame_damage.py::region::Name::Load": [
+      143,
+      148
+    ],
+    "tests:tests/test_compositor_frame_damage.py::region::Name::Store": [
+      143,
+      149
+    ],
+    "tests:tests/test_compositor_frame_damage.py::render_subtree_strips::Attribute::Load": [
+      178,
+      198
+    ],
+    "tests:tests/test_display_constraints.py::region::Attribute::Load": [
+      34,
+      38,
+      43
+    ],
+    "tests:tests/test_driver.py::region::Attribute::Load": [
+      132,
+      172
+    ],
+    "tests:tests/test_geometry.py::region::Attribute::Load": [
+      9
+    ],
+    "tests:tests/test_geometry.py::region::Name::Load": [
+      168,
+      169,
+      274,
+      280,
+      582,
+      831
+    ],
+    "tests:tests/test_geometry.py::region::Name::Store": [
+      273,
+      279
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::_arrange_root::Attribute::Load": [
+      20
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::_arrange_root::FunctionDef::declaration": [
+      18
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::_full_map::Attribute::Load": [
+      66,
+      79
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::_full_map_invalidated::Attribute::Load": [
+      115
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::_refresh_layout::Attribute::Load": [
+      63
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::_visible_map::Attribute::Load": [
+      65,
+      68
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::find_widget::Attribute::Load": [
+      67,
+      81,
+      82,
+      110,
+      116,
+      122
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::full_map::Attribute::Load": [
+      84,
+      85,
+      86
+    ],
+    "tests:tests/test_geometry_reader_acquisition.py::published_geometry::Attribute::Load": [
+      117
+    ],
+    "tests:tests/test_height_independent_arrangement.py::region::Attribute::Load": [
+      94,
+      386,
+      396,
+      398
+    ],
+    "tests:tests/test_native_scene_size_publication.py::_published_map::Attribute::Load": [
+      143
+    ],
+    "tests:tests/test_native_scene_size_publication.py::_visible_map::Attribute::Load": [
+      104,
+      110,
+      121,
+      142,
+      143
+    ],
+    "tests:tests/test_native_scene_size_publication.py::full_map::Attribute::Load": [
+      105,
+      126
+    ],
+    "tests:tests/test_native_scene_size_publication.py::reflow::Attribute::Load": [
+      124,
+      145
+    ],
+    "tests:tests/test_native_scene_size_publication.py::reflow_visible::Attribute::Load": [
+      108,
+      141
+    ],
+    "tests:tests/test_native_scene_size_publication.py::region::Attribute::Load": [
+      112,
+      146
+    ],
+    "tests:tests/test_native_scene_size_publication.py::region::Name::Load": [
+      114
+    ],
+    "tests:tests/test_native_scene_size_publication.py::region::Name::Store": [
+      115
+    ],
+    "tests:tests/test_pointer_capture_order.py::region::Attribute::Load": [
+      58,
+      59,
+      110,
+      111,
+      112,
+      153,
+      174
+    ],
+    "tests:tests/test_real_app_pump_lifetime.py::region::Attribute::Load": [
+      68,
+      69
+    ],
+    "tests:tests/test_remove_transaction.py::full_map::Attribute::Load": [
+      43
+    ],
+    "tests:tests/test_removed_scene_ownership.py::_full_map::Attribute::Load": [
+      113,
+      125
+    ],
+    "tests:tests/test_removed_scene_ownership.py::_visible_map::Attribute::Load": [
+      126
+    ],
+    "tests:tests/test_removed_scene_ownership.py::full_map::Attribute::Load": [
+      39,
+      41,
+      107,
+      150
+    ],
+    "tests:tests/test_removed_scene_ownership.py::region::Attribute::Load": [
+      110,
+      135
+    ],
+    "tests:tests/test_reparent.py::_full_map::Attribute::Load": [
+      85
+    ],
+    "tests:tests/test_reparent.py::full_map::Attribute::Load": [
+      74
+    ],
+    "tests:tests/test_selection.py::find_widget::Attribute::Load": [
+      408
+    ],
+    "tests:tests/test_selection.py::region::Attribute::Load": [
+      213,
+      253,
+      253,
+      463,
+      463,
+      465,
+      465,
+      472,
+      472,
+      485,
+      485
+    ],
+    "tests:tests/test_spatial_map.py::region::Name::Load": [
+      39
+    ],
+    "tests:tests/test_subtree_geometry_cache.py::_arrange_root::Attribute::Load": [
+      24,
+      26,
+      40,
+      42,
+      47,
+      49
+    ],
+    "tests:tests/test_tabbed_content.py::region::Attribute::Load": [
+      31,
+      32,
+      33,
+      40,
+      41,
+      42,
+      49,
+      50,
+      51,
+      57,
+      58,
+      59,
+      65,
+      66,
+      67,
+      89,
+      90,
+      91,
+      96,
+      97,
+      98,
+      103,
+      104,
+      105,
+      159,
+      160,
+      161
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::_arrange_root::Attribute::Load": [
+      65,
+      233
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::_full_map::Attribute::Load": [
+      204,
+      207,
+      213,
+      232,
+      253,
+      264,
+      280,
+      293
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::_full_map_invalidated::Attribute::Load": [
+      133,
+      214
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::_layout_geometry_targets::FunctionDef::declaration": [
+      17
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::_refresh_layout::Attribute::Load": [
+      61,
+      107,
+      137,
+      157,
+      162,
+      187,
+      188,
+      201,
+      226,
+      262
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::_visible_map::Attribute::Load": [
+      72,
+      73,
+      74,
+      108,
+      127,
+      131,
+      132,
+      139,
+      164,
+      165,
+      166,
+      189,
+      190,
+      203,
+      204,
+      208,
+      211,
+      212,
+      231,
+      232,
+      254,
+      264,
+      281,
+      294
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::find_widget::Attribute::Load": [
+      130,
+      168,
+      171,
+      210,
+      269
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::full_map::Attribute::Load": [
+      134
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::published_geometry::Attribute::Load": [
+      114,
+      191,
+      206,
+      228,
+      263
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::reflow::Attribute::Load": [
+      170
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::reflow_visible::Attribute::Load": [
+      161
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::region::Attribute::Load": [
+      68,
+      115,
+      115,
+      115,
+      130,
+      172,
+      172,
+      210,
+      230,
+      242
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::region::Name::Load": [
+      252
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::region::Name::Store": [
+      252
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::render_subtree_strips::Attribute::Load": [
+      123,
+      246,
+      277,
+      287
+    ],
+    "tests:tests/test_viewport_geometry_targets.py::virtual_region::Attribute::Load": [
+      173,
+      173
+    ],
+    "tests:tests/test_viewport_layout.py::reflow::Attribute::Load": [
+      40,
+      56,
+      61
+    ],
+    "tests:tests/test_viewport_layout.py::region::Attribute::Load": [
+      49
+    ],
+    "tests:tests/test_viewport_layout.py::region::Name::Load": [
+      52
+    ],
+    "tests:tests/test_viewport_layout.py::region::Name::Store": [
+      49
+    ],
+    "tests:tests/test_widget_measurement_commit.py::_full_map_invalidated::Attribute::Store": [
+      157
+    ],
+    "tests:tests/test_widget_measurement_commit.py::region::Attribute::Load": [
+      161
+    ],
+    "tests:tests/toad_frame_damage_installed_pilot.py::region::Name::Load": [
+      33,
+      33,
+      33,
+      33
+    ],
+    "tests:tests/toad_frame_damage_installed_pilot.py::region::Name::Store": [
+      32
+    ],
+    "tests:tests/tree/test_tree_cursor.py::scrollable_content_region::Attribute::Load": [
+      143
+    ]
+  }
+}

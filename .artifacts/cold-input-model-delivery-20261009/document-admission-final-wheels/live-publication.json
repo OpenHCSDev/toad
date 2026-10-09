@@ -1,0 +1,31 @@
+{
+  "phase": "paired-runtime-defaults-published-live-check-pending",
+  "cohort": {
+    "kind": "reviewed_paired_runtime_cohort",
+    "target": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/publication-release-runtime",
+    "current_prefix": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime",
+    "original_route": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+      "native_package": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+      "version": 1
+    },
+    "native": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+    "activation": {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-final-wheels/candidate-activation.json",
+      "sha256": "9b01161a51982bf72b7970d6a9a33a4299f9f5af9cdcae217afd74e902832a59"
+    },
+    "source_proof": {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-final-wheels/source-proof.json",
+      "sha256": "1505679a318ece3354c0db6b540625229ecf226b96896ed9a1638e8a215de49e"
+    },
+    "actual_gates": [
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-admission-final-wheels/actual-application-result.json",
+        "sha256": "0a9bc2c9bec5825e41d66d850b19f4a6353cd001844e708965c327d433690ece"
+      }
+    ],
+    "frontend_prefix": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime"
+  },
+  "finished": 1791550017.9108062
+}

@@ -1,0 +1,36 @@
+{
+  "source_head": "3b138ec41ed7ef8a3fea7f0ad781118353d8f4b4",
+  "controls": "22 passed in 1.66s",
+  "app": {
+    "boundary": "source synchronous focused PromptTextArea.disabled watcher",
+    "disabled_seconds": 0.008106090012006462,
+    "calls": {
+      "_reset_focus": 1,
+      "_focus_sort_key": 1,
+      "acquire_geometry": 1,
+      "reflow_visible": 0,
+      "_arrange_root": 0
+    },
+    "tabs": 10,
+    "active_widgets": 565,
+    "inputs_submitted": 0,
+    "provider_calls": 0,
+    "draft_preserved": true
+  },
+  "app_exit": 0,
+  "stderr_bytes": 0,
+  "keepers": {
+    "src/textual/screen.py": "2579e6443bf554c39358dc086a6b5d16b2565f273f3c0a0d4d259ed5f71a8dde",
+    "src/textual/_compositor.py": "468e0303ea53acc17818bb809f8c6b07817f9f640b9b17109074a87d54033360",
+    "tests/test_geometry_reader_acquisition.py": "8548a4e4595012ae84195afa7eed112b47e711628a2b4c81844e5a99ef12a935",
+    "tests/focused_editor_disable_pilot.py": "05c99523c87dc7af056bbecfd514b7a9d65f3394debcc5eb339cf5a776ab5485",
+    "evidence/focus-geometry-demand-20261006/before.json": "0d3e26564bd7b6bf43343496549e90fed73398817bde175464f5a176ff0e58ab",
+    "evidence/focus-geometry-demand-20261006/after.json": "b2154e9902478d1861795382f6e3d494ea9dd249df031923b6ed2810460e78ca",
+    "evidence/focus-geometry-demand-20261006/controls.log": "d2a25651aafa6cce137d896aa47ff6d39c40666c916a57a74a3c28a713b57bc6",
+    "/home/ts/.cache/agent-scratch/focus-geometry-demand-20261006/app.stdout.log": "feab232e08191c811fedf2be2b8c36445154bd8ee9cbf18d46f8e3b358cc05da",
+    "/home/ts/.cache/agent-scratch/focus-geometry-demand-20261006/app.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ts/.cache/agent-scratch/focus-geometry-demand-20261006/app01/result.json": "feab232e08191c811fedf2be2b8c36445154bd8ee9cbf18d46f8e3b358cc05da",
+    "/home/ts/.cache/agent-scratch/focus-geometry-demand-20261006/app01/disable.pstats": "f6e21dd6c5b7826d34e3c13c761a26e7306580346b87a8be05f7a14cb16c3b62"
+  },
+  "installed": false
+}

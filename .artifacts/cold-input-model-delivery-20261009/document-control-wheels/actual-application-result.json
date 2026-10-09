@@ -1,0 +1,309 @@
+{
+  "scope": "Actual isolated st App, original saved SDK fork, configured provider/model, real replies and physical wheel reversals; no automated/synthetic tests.",
+  "source_heads": {
+    "toad": "45596c8b460842ec2d77830122bc7418db1392f0",
+    "textual": "09004210cdd5dff4bb4050b370fdbe2bda6c710c",
+    "agent_comms": "1a45e9b552dcc6890f7eb090a73cb1f9a617f2a7"
+  },
+  "original_app_joined": true,
+  "original_app_exit_code": 0,
+  "original_worker_stopped": true,
+  "processes": [
+    {
+      "pid": 2801733,
+      "parent": 1,
+      "group": 2801733,
+      "birth": 102284921,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python -m agent_comms.worker "
+    },
+    {
+      "pid": 2802519,
+      "parent": 140381,
+      "group": 2802519,
+      "birth": 102286790,
+      "argv": "st -g 145x50 -e /home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/toad acp /home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/agent-comms-acp --session parent-real-ui-20261009 --project-dir /home/ts/wt/comms-post-feature-debt-audit-20260928 --title Document controls "
+    },
+    {
+      "pid": 2802531,
+      "parent": 2802519,
+      "group": 2802531,
+      "birth": 102286797,
+      "argv": "toad                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              "
+    },
+    {
+      "pid": 2802586,
+      "parent": 2802531,
+      "group": 2802531,
+      "birth": 102286948,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+    },
+    {
+      "pid": 2802587,
+      "parent": 2802531,
+      "group": 2802531,
+      "birth": 102286950,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=17) --multiprocessing-fork "
+    },
+    {
+      "pid": 2802588,
+      "parent": 2802531,
+      "group": 2802531,
+      "birth": 102286950,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=19) --multiprocessing-fork "
+    },
+    {
+      "pid": 2802635,
+      "parent": 2802531,
+      "group": 2802531,
+      "birth": 102287071,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+    },
+    {
+      "pid": 2802642,
+      "parent": 2802531,
+      "group": 2802642,
+      "birth": 102287092,
+      "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/python /home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/current-ui-runtime/bin/agent-comms-acp "
+    }
+  ],
+  "native_rpc_replies": [
+    {
+      "line": 3,
+      "id": 1,
+      "error": null,
+      "stop": null,
+      "settings": []
+    },
+    {
+      "line": 8,
+      "id": 2,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "medium",
+          6
+        ]
+      ]
+    },
+    {
+      "line": 170,
+      "id": 3,
+      "error": null,
+      "stop": "end_turn",
+      "settings": []
+    },
+    {
+      "line": 173,
+      "id": 4,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "minimal",
+          6
+        ]
+      ]
+    },
+    {
+      "line": 176,
+      "id": 5,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "high",
+          6
+        ]
+      ]
+    },
+    {
+      "line": 179,
+      "id": 6,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "low",
+          6
+        ]
+      ]
+    },
+    {
+      "line": 182,
+      "id": 7,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "medium",
+          6
+        ]
+      ]
+    },
+    {
+      "line": 558,
+      "id": 8,
+      "error": null,
+      "stop": "end_turn",
+      "settings": []
+    },
+    {
+      "line": 560,
+      "id": 9,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "high",
+          6
+        ]
+      ]
+    },
+    {
+      "line": 563,
+      "id": 10,
+      "error": null,
+      "stop": null,
+      "settings": [
+        [
+          "model",
+          "openai-codex/gpt-6.1-sol",
+          437
+        ],
+        [
+          "thinking_level",
+          "medium",
+          6
+        ]
+      ]
+    }
+  ],
+  "observations": {
+    "saved_history_painted": true,
+    "real_replies": 2,
+    "model_choices": 437,
+    "real_thinking_changes_succeeded": true,
+    "last_thinking": "medium",
+    "paint_states": {
+      "PreparedDocumentBody": 26,
+      "LiveDocumentBody": 1
+    },
+    "body_pixel_evictions": 29,
+    "visible_prepared_paints_current": true
+  },
+  "writer_queue_to_flush_ms": {
+    "frames": 937,
+    "median": 0.372476,
+    "p95": 31.484525,
+    "max": 261.020301,
+    "limit": "all observed activity, not input/pixel/frame duration"
+  },
+  "limits": [
+    "16ms target unmet; rapid reversal still shows stalls/transient blanks or mispositioned content",
+    "Control lifecycle acquisition observed; captured retirement not fully qualified",
+    "Menu choices/settings succeeded; active request admission ordering not fully established by incoming-only ACP log",
+    "Second real input accidentally included xdotool command text; preserved original input/result, no resend",
+    "Final all-root state exporter encountered strict missing-member KeyError during frame admission borrow; diagnostic failure retained",
+    "st logs unsupported escape sequences; no Python application exception",
+    "End/multiple tabs/all source-consumer paths remain unqualified"
+  ],
+  "artifacts": [
+    {
+      "path": "/home/ts/.local/state/toad/logs/Document_controls_2026-10-09T08_00_31_703365.txt",
+      "bytes": 786615,
+      "sha256": "da3ef23e4bf419e19adee6613dad779d76ce46b60eb66f0df8858593036ae250"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-processes.json",
+      "bytes": 3131,
+      "sha256": "7732966b993140c0133b4f6b6b235d89459365ca16f48cc1d61cc47cb0700c20"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-initial.png",
+      "bytes": 52394,
+      "sha256": "97aa6736fe258a40bc7c946cbc5714c07661d97cbbe05c73568611059a639356"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-model-picker.png",
+      "bytes": 76758,
+      "sha256": "2a404aace3ceb7cfb1a384d84bbf40939ccd83cf57a3bb29b08a2959d899083d"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel-return.png",
+      "bytes": 69644,
+      "sha256": "9068507ae9439c2b1ab52568f4d6127bc950b7e4f72501f42f2d5a6698806dd5"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-second-response.png",
+      "bytes": 92434,
+      "sha256": "4c79d257a6dc646bc16f903e6ef414002ee46cd998a5e42b4a4a731c866de0a3"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel.mp4",
+      "bytes": 8037654,
+      "sha256": "a9a79111fa41638f8dad1b362cf87f17eb1cc3bad82a6006c4cfcf65bd087a90"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel.speedscope.json",
+      "bytes": 407898,
+      "sha256": "f46569f34da0be8fb857ed39a8b3163055c70ed25c6d547b560e8aa4b42e9a6d"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel-state.json",
+      "bytes": 1261936,
+      "sha256": "03c428b2335ba42f25f764e2ddc8aa33854748d2090eaf91bb0f9b992b9bde2a"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-wheel-state-frames.json",
+      "bytes": 205438,
+      "sha256": "2c5e5a174cdd6817e2e9d4b7929321c9285ff00b85938131b3819b1e995b2413"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-final-state-error.json",
+      "bytes": 2122,
+      "sha256": "95034f016095bf05d7b7bd8aac8b72b73b0e9ca69bb468bf1cbc0ac90c665ea9"
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/document-control-app.stderr.log",
+      "bytes": 957,
+      "sha256": "da0e0cdfaef6d92bb848ec243f69972f2af13fefeb0ea8b5005a9c39075416d0"
+    }
+  ]
+}

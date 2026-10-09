@@ -1,0 +1,14 @@
+{
+  "qualification": "native source App and geometry controls only",
+  "production_head": "9a686b19",
+  "command": "PYTHONPATH=src python -m pytest -q tests/test_subtree_geometry_cache.py tests/test_viewport_geometry_targets.py tests/test_compositor.py",
+  "exit_code": 0,
+  "passed": 26,
+  "elapsed_seconds": 4.25,
+  "observed_stdout": "..........................                                               [100%]\n26 passed in 4.25s\n",
+  "new_environment": false,
+  "installed_package_writes": false,
+  "physical_recording": false,
+  "provider_inputs": 0,
+  "remaining": "Affected installed Toad/native qualification under Heisenberg named purpose; no measured CPU/frame-time gain."
+}

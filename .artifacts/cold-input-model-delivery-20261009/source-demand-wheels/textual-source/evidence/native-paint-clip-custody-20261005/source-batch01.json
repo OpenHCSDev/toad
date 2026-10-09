@@ -1,0 +1,28 @@
+{
+  "source": "7e0ad94ca9f19506f9a1ed2b8bb2f2e3bd939569",
+  "argv": [
+    "/usr/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_compositor.py::test_point_hits_follow_layer_clip_visibility_and_scene_changes",
+    "tests/test_compositor.py::test_covered_widgets_skip_rendering_without_changing_output",
+    "tests/test_compositor.py::test_partial_redraw_requests_only_damaged_vertical_rows",
+    "tests/test_compositor.py::test_partly_covered_widgets_render_only_exposed_rows",
+    "tests/test_compositor_horizontal_damage.py",
+    "tests/test_compositor_frame_damage.py",
+    "tests/test_viewport_geometry_targets.py::test_body_capture_descendants_use_original_arrangement_and_screen_coordinates",
+    "tests/test_removed_scene_ownership.py::test_pending_removal_retires_each_original_scene_and_cover",
+    "tests/test_removed_scene_ownership.py::test_pending_removal_revokes_pointer_intent_but_keeps_surviving_selection",
+    "tests/test_selection.py::test_double_width"
+  ],
+  "interpreter": "/usr/bin/python",
+  "seconds": 3.7450953139923513,
+  "exit_code": 0,
+  "log": "evidence/native-paint-clip-custody-20261005/source-batch01.log",
+  "scope": "Actual native source App: original origin/paint clipping/capture bounds/damage/exposure/links/metadata/selection and pending scene retirement. No installed prefix, Toad, provider, SDK, recording or CPU/frame measurement.",
+  "log_sha256": "be411550c051a1d9ae9061a21e6d90a92680a381d5dbcc8cd78647462f4f4f46",
+  "result": "22 passed in 2.54s; controller3.7450953139923513s; exit0",
+  "production_source": "7934c06e0cbb03aa4e10fb53bc1a09f088f49e73",
+  "production_delta_from_qualified_controls": ""
+}

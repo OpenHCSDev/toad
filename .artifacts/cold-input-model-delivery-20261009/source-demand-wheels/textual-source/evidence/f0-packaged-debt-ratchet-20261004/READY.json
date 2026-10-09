@@ -1,0 +1,96 @@
+{
+  "scope": "Automatic main pull-request ratchet qualified; required-check settings remain Tristan-owned",
+  "workflow_source_head": "1170bc24a22622becb1573264ab765fac13976e3",
+  "core_pin": "d41601c16d74e9e3e4195b6527fb218b8fe14af9",
+  "toad_main_at_dispatch": "901771fc58b44996824c52711a1a352e3844dc3d",
+  "job_name": "Debt ratchet",
+  "run": {
+    "databaseId": 37175953862,
+    "event": "pull_request",
+    "conclusion": "success",
+    "url": "https://github.com/OpenHCSDev/textual/actions/runs/37175953862"
+  },
+  "job": {
+    "completedAt": "2026-10-04T04:05:48Z",
+    "conclusion": "success",
+    "databaseId": 111358477415,
+    "name": "Debt ratchet",
+    "startedAt": "2026-10-04T04:05:08Z",
+    "status": "completed",
+    "steps": [
+      {
+        "completedAt": "2026-10-04T04:05:10Z",
+        "conclusion": "success",
+        "name": "Set up job",
+        "number": 1,
+        "startedAt": "2026-10-04T04:05:09Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:29Z",
+        "conclusion": "success",
+        "name": "Run actions/checkout@v4",
+        "number": 2,
+        "startedAt": "2026-10-04T04:05:10Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:29Z",
+        "conclusion": "success",
+        "name": "Run actions/setup-python@v5",
+        "number": 3,
+        "startedAt": "2026-10-04T04:05:29Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:43Z",
+        "conclusion": "success",
+        "name": "Install the packaged ratchet pinned by Toad main",
+        "number": 4,
+        "startedAt": "2026-10-04T04:05:29Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:46Z",
+        "conclusion": "success",
+        "name": "Reject increases in production debt",
+        "number": 5,
+        "startedAt": "2026-10-04T04:05:43Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:46Z",
+        "conclusion": "success",
+        "name": "Post Run actions/setup-python@v5",
+        "number": 9,
+        "startedAt": "2026-10-04T04:05:46Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:46Z",
+        "conclusion": "success",
+        "name": "Post Run actions/checkout@v4",
+        "number": 10,
+        "startedAt": "2026-10-04T04:05:46Z",
+        "status": "completed"
+      },
+      {
+        "completedAt": "2026-10-04T04:05:46Z",
+        "conclusion": "success",
+        "name": "Complete job",
+        "number": 11,
+        "startedAt": "2026-10-04T04:05:46Z",
+        "status": "completed"
+      }
+    ],
+    "url": "https://github.com/OpenHCSDev/textual/actions/runs/37175953862/job/111358477415"
+  },
+  "source_changes": {
+    "production": 0,
+    "new_checkers": 0,
+    "workflow_lines_added": 34,
+    "deleted_lines": 0
+  },
+  "negative_control": "Original published style cohort change54f22384 vs2e8ce333: checker exit1; Styles and DOMNode GodClassExcess each+3. Preserved original evidence; no waiver or source alteration. This is checker failure evidence, not performance readiness.",
+  "remaining": "Tristan makes Debt ratchet required on main without administrator bypass. Performance52/53 remains separate and unqualified for installation."
+}

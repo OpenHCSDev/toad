@@ -1,0 +1,779 @@
+[
+  {
+    "root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "parsed": 249,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/textual/_work_decorator.py",
+        "line": 120,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/_work_decorator.py",
+        "line": 107,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/_work_decorator.py",
+        "line": 87,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/_work_decorator.py",
+        "line": 141,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 959,
+        "name": "WorkerManager",
+        "syntax": "WorkerManager",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 635,
+        "name": "WorkerManager",
+        "syntax": "WorkerManager",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/app.py",
+        "line": 2962,
+        "name": "get_current_worker",
+        "syntax": "get_current_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/command.py",
+        "line": 1084,
+        "name": "get_current_worker",
+        "syntax": "get_current_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/command.py",
+        "line": 1175,
+        "name": "cancel_group",
+        "syntax": "self.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 519,
+        "name": "WorkerManager",
+        "syntax": "WorkerManager",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 547,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 571,
+        "name": "_new_worker",
+        "syntax": "self.workers._new_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 572,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/dom.py",
+        "line": 569,
+        "name": "_new_worker",
+        "syntax": "self.workers._new_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 5093,
+        "name": "cancel_node",
+        "syntax": "self.workers.cancel_node",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/widgets/_directory_tree.py",
+        "line": 493,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/widgets/_directory_tree.py",
+        "line": 532,
+        "name": "get_current_worker",
+        "syntax": "get_current_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/widgets/_directory_tree.py",
+        "line": 525,
+        "name": "get_current_worker",
+        "syntax": "get_current_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/widgets/_input.py",
+        "line": 548,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 39,
+        "name": "active_worker",
+        "syntax": "active_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 67,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 39,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 77,
+        "name": "active_worker",
+        "syntax": "active_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 128,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 295,
+        "name": "active_worker",
+        "syntax": "active_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 299,
+        "name": "active_worker",
+        "syntax": "active_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 449,
+        "name": "active_worker",
+        "syntax": "active_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker.py",
+        "line": 405,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 93,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 139,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 158,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 39,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 48,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 51,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 66,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 109,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 109,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 118,
+        "name": "add_worker",
+        "syntax": "self.add_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 121,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 76,
+        "name": "cancel_group",
+        "syntax": "self.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/textual/worker_manager.py",
+        "line": 172,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      }
+    ]
+  },
+  {
+    "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "parsed": 287,
+    "omitted": [],
+    "sites": [
+      {
+        "path": "src/toad/application_actions.py",
+        "line": 84,
+        "name": "run_worker",
+        "syntax": "app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/application_actions.py",
+        "line": 169,
+        "name": "run_worker",
+        "syntax": "app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/application_lifetime.py",
+        "line": 23,
+        "name": "run_worker",
+        "syntax": "self.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/application_lifetime.py",
+        "line": 73,
+        "name": "run_worker",
+        "syntax": "app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/application_lifetime.py",
+        "line": 77,
+        "name": "run_worker",
+        "syntax": "self.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/conversation_submission.py",
+        "line": 110,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/conversation_submission.py",
+        "line": 287,
+        "name": "run_worker",
+        "syntax": "self.view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/conversation_submission.py",
+        "line": 78,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/conversation_submission.py",
+        "line": 114,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/core/session_requests.py",
+        "line": 50,
+        "name": "run_worker",
+        "syntax": "admission.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/core/session_requests.py",
+        "line": 98,
+        "name": "run_worker",
+        "syntax": "admission.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 357,
+        "name": "run_worker",
+        "syntax": "self.view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 349,
+        "name": "run_worker",
+        "syntax": "self.view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/project_link.py",
+        "line": 148,
+        "name": "run_worker",
+        "syntax": "widget.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/screens/historical_sessions.py",
+        "line": 93,
+        "name": "cancel_group",
+        "syntax": "self.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/screens/historical_sessions.py",
+        "line": 142,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/screens/main.py",
+        "line": 258,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/sidebar_navigation.py",
+        "line": 65,
+        "name": "run_worker",
+        "syntax": "self.sidebar.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/terminal_attention.py",
+        "line": 149,
+        "name": "run_worker",
+        "syntax": "self.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/thread_actions.py",
+        "line": 243,
+        "name": "run_worker",
+        "syntax": "app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/tool_output.py",
+        "line": 360,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/tool_output.py",
+        "line": 432,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/tool_output.py",
+        "line": 466,
+        "name": "run_worker",
+        "syntax": "self.view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 321,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 193,
+        "name": "run_worker",
+        "syntax": "filtering.owner.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 247,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 326,
+        "name": "run_worker",
+        "syntax": "self.owner.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 360,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 649,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 646,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 321,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 351,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 510,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 656,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 560,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 685,
+        "name": "cancel_group",
+        "syntax": "view.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 686,
+        "name": "cancel_group",
+        "syntax": "view.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 687,
+        "name": "cancel_group",
+        "syntax": "view.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 688,
+        "name": "cancel_group",
+        "syntax": "view.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_publication.py",
+        "line": 742,
+        "name": "run_worker",
+        "syntax": "view.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 71,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/transcript_source_preparation.py",
+        "line": 190,
+        "name": "cancel_node",
+        "syntax": "self.workers.cancel_node",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/transcript_state.py",
+        "line": 209,
+        "name": "run_worker",
+        "syntax": "owner.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/acp_log.py",
+        "line": 41,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/acp_log.py",
+        "line": 90,
+        "name": "get_current_worker",
+        "syntax": "get_current_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/comms_chat.py",
+        "line": 276,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/comms_chat.py",
+        "line": 480,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/comms_sidebar.py",
+        "line": 293,
+        "name": "run_worker",
+        "syntax": "self.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/comms_transfer.py",
+        "line": 112,
+        "name": "run_worker",
+        "syntax": "self.app.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 89,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 98,
+        "name": "cancel_node",
+        "syntax": "self.workers.cancel_node",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 284,
+        "name": "cancel_node",
+        "syntax": "self.workers.cancel_node",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 142,
+        "name": "cancel_group",
+        "syntax": "self.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/context_explorer.py",
+        "line": 113,
+        "name": "get_current_worker",
+        "syntax": "get_current_worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 96,
+        "name": "cancel_node",
+        "syntax": "self.workers.cancel_node",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/prepared_markdown.py",
+        "line": 120,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/retiring_sidebar.py",
+        "line": 29,
+        "name": "cancel_group",
+        "syntax": "self.workers.cancel_group",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/session_sort.py",
+        "line": 62,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/session_sort.py",
+        "line": 166,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/side_bar.py",
+        "line": 713,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/thread_comms.py",
+        "line": 495,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/tool_content.py",
+        "line": 191,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/tool_content.py",
+        "line": 142,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 727,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 199,
+        "name": "Worker",
+        "syntax": "Worker",
+        "kind": "Name"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 382,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 723,
+        "name": "run_worker",
+        "syntax": "self.window.run_worker",
+        "kind": "Attribute"
+      },
+      {
+        "path": "src/toad/widgets/worker_static.py",
+        "line": 126,
+        "name": "run_worker",
+        "syntax": "self.run_worker",
+        "kind": "Attribute"
+      }
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "pid": 2594458,
+  "created": 1791542146.46,
+  "executable": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/bin/python3.14",
+  "rss_before": 199790592,
+  "started_ns": 1791542175112587908,
+  "profile_seconds": 12,
+  "gil_only": false,
+  "native": false,
+  "profile_returncode": 0,
+  "finished_ns": 1791542188007235018
+}

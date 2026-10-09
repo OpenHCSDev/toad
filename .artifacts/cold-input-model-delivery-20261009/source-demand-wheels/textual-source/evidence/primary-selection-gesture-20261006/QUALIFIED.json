@@ -1,0 +1,23 @@
+{
+  "scope": "Primary Screen selection lifecycle and original auto-scroll, with real native source Apps/driver/menu. No sole physical/menu cause, installed Toad or latency claim.",
+  "source_sha256": {
+    "src/textual/screen.py": "b02f5b4849bbcc8ef911c727e66391fe8593c993a0aacdd31adf5059e7b424be",
+    "tests/test_primary_selection_gesture.py": "6f7985f2f3ac83b1519bc5d551435ea58c52ebfefa8fb5dba87c2724c2d88685"
+  },
+  "keeper_sha256": {
+    "before.json": "3541646b10b31f7393a22089b3a3a43733b94f9bf1f2f26a6b5995746a29102f",
+    "after.json": "5ee17648efcc8af82f65032c65301a02ddaf0c85a10e7b7d706d477f528e215b",
+    "changed-family.log": "a36a608e53a572ab92e218dafd903d58449b3c3809ea2a4afa80236961204da4",
+    "run-async-final.log": "070a0a1a384f8986bf91c5e6a28d1adb0cf8744a853fe1ce7e8ca4541698f8d4",
+    "suspension.log": "808dfae1ed8f9fdc74e04e9f4daf48a799b85ea62a74ce685b5f7c7368c58182"
+  },
+  "checks": {
+    "initial_batch": "24 passed, 1 authored startup fixture failure in 26.72s",
+    "corrected_original_run_async": "1 passed in 1.21s",
+    "changed_screen_suspension": "1 passed in 1.19s"
+  },
+  "preserved": "Frozen a59/2d wheels, menu02 prepared attempt and originals unchanged.",
+  "provider_inputs": 0,
+  "installed_changes": 0,
+  "physical_runs": 0
+}

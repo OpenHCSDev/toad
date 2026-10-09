@@ -1,0 +1,67 @@
+{
+  "source": "working App diff; all other native roots unchanged from palette-before",
+  "sites": [
+    {
+      "path": "src/textual/app.py",
+      "line": 1550,
+      "kind": "FunctionDef",
+      "expression": "@property"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1865,
+      "kind": "FunctionDef",
+      "expression": "def export_screenshot(self, *, title: str | None=None, simplify: bool=False) -> str:"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1528,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1557,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme_dark"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1557,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme_light"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1897,
+      "kind": "Attribute",
+      "expression": "console.export_svg"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1923,
+      "kind": "Attribute",
+      "expression": "self.export_screenshot"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1954,
+      "kind": "Attribute",
+      "expression": "self.export_screenshot"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 619,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme"
+    },
+    {
+      "path": "src/textual/app.py",
+      "line": 1897,
+      "kind": "Attribute",
+      "expression": "self.ansi_theme"
+    }
+  ],
+  "omissions": [],
+  "limits": "Reactive watches decide whether their changed input affects the active palette; only App.ansi_theme selects it. Standalone _doc.rich exports a different non-App owner."
+}

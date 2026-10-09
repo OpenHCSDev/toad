@@ -1,0 +1,290 @@
+[
+  {
+    "path": "src/textual/_measurement.py",
+    "before": {
+      "type_identity_check": 0,
+      "long_boolean_chain": 1,
+      "boolean_chain_terms": 4,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 13,
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "string_key_subscript": 0,
+      "literal_key_get": 1,
+      "string_equality": 6,
+      "none_identity": 8,
+      "isinstance_call": 0,
+      "attribute_by_name": 0,
+      "getattr_default": 0,
+      "broad_except": 0,
+      "json_loads": 0,
+      "long_function": 0,
+      "class_definition": 8,
+      "abstract_base": 1,
+      "enum_class": 0,
+      "code_lines": 163
+    },
+    "after": {
+      "type_identity_check": 0,
+      "long_boolean_chain": 1,
+      "boolean_chain_terms": 4,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 9,
+      "string_dispatch": 0,
+      "type_switch": 0,
+      "string_dispatch_arms": 0,
+      "type_switch_arms": 0,
+      "string_key_subscript": 0,
+      "literal_key_get": 1,
+      "string_equality": 6,
+      "none_identity": 8,
+      "isinstance_call": 0,
+      "attribute_by_name": 0,
+      "getattr_default": 0,
+      "broad_except": 0,
+      "json_loads": 0,
+      "long_function": 0,
+      "class_definition": 10,
+      "abstract_base": 1,
+      "enum_class": 0,
+      "code_lines": 162
+    },
+    "checked_candidate_functions": 21,
+    "changed_or_moved_functions": [
+      {
+        "qualified_function": "NativeWidgetMeasurementHeight.layout_dependency",
+        "origin": "NativeWidgetMeasurementHeight.layout_dependency",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      },
+      {
+        "qualified_function": "NativeWidgetMeasurementHeight.depends",
+        "origin": "NativeWidgetHeight.depends",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 2,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 2,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      },
+      {
+        "qualified_function": "NativeWidgetMeasurementHeight.box_depends",
+        "origin": "NativeWidgetHeight.box_depends",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 2,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 2,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      },
+      {
+        "qualified_function": "NativeWidgetHeight.layout_dependency",
+        "origin": "NativeWidgetHeight.layout_dependency",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      },
+      {
+        "qualified_function": "NativeWidgetWidth.layout_dependency",
+        "origin": "NativeWidgetWidth.layout_dependency",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      },
+      {
+        "qualified_function": "GridHeight.depends",
+        "origin": "GridHeight.depends",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 1,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 1,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      },
+      {
+        "qualified_function": "box_depends_on_available_height",
+        "origin": "box_depends_on_available_height",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 3,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 1,
+          "long_boolean_chain": 0,
+          "boolean_chain_terms": 0
+        }
+      }
+    ]
+  },
+  {
+    "path": "src/textual/widget.py",
+    "before": {
+      "type_identity_check": 1,
+      "long_boolean_chain": 6,
+      "boolean_chain_terms": 32,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 29,
+      "string_dispatch": 2,
+      "type_switch": 0,
+      "string_dispatch_arms": 6,
+      "type_switch_arms": 0,
+      "string_key_subscript": 1,
+      "literal_key_get": 4,
+      "string_equality": 25,
+      "none_identity": 123,
+      "isinstance_call": 39,
+      "attribute_by_name": 5,
+      "getattr_default": 3,
+      "broad_except": 2,
+      "json_loads": 0,
+      "long_function": 4,
+      "class_definition": 9,
+      "abstract_base": 0,
+      "enum_class": 0,
+      "code_lines": 4308
+    },
+    "after": {
+      "type_identity_check": 1,
+      "long_boolean_chain": 6,
+      "boolean_chain_terms": 32,
+      "codec_subclass": 0,
+      "foreign_absence_probe": 29,
+      "string_dispatch": 2,
+      "type_switch": 0,
+      "string_dispatch_arms": 6,
+      "type_switch_arms": 0,
+      "string_key_subscript": 1,
+      "literal_key_get": 4,
+      "string_equality": 25,
+      "none_identity": 123,
+      "isinstance_call": 39,
+      "attribute_by_name": 6,
+      "getattr_default": 4,
+      "broad_except": 2,
+      "json_loads": 0,
+      "long_function": 4,
+      "class_definition": 9,
+      "abstract_base": 0,
+      "enum_class": 0,
+      "code_lines": 4309
+    },
+    "checked_candidate_functions": 266,
+    "changed_or_moved_functions": [
+      {
+        "qualified_function": "Widget.__init_subclass__",
+        "origin": "Widget.__init_subclass__",
+        "before": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 1,
+          "boolean_chain_terms": 6
+        },
+        "after": {
+          "string_dispatch": 0,
+          "type_switch": 0,
+          "string_dispatch_arms": 0,
+          "type_switch_arms": 0,
+          "foreign_absence_probe": 0,
+          "long_boolean_chain": 1,
+          "boolean_chain_terms": 6
+        }
+      }
+    ]
+  }
+]

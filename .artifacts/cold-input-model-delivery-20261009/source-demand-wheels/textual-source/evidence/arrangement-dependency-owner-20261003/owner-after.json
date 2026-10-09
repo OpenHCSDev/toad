@@ -1,0 +1,40 @@
+{
+  "method": "existing Package/ParsedModule; dynamic receivers/MRO not proven by AST",
+  "roots": [
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "sites": [
+        {
+          "path": "src/textual/_measurement.py",
+          "line": 93,
+          "kind": "Attribute",
+          "expression": "widget._arrangement_depends_on_available_height"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1874,
+          "kind": "FunctionDef",
+          "expression": "def _arrangement_depends_on_available_height(self) -> bool:"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1891,
+          "kind": "Attribute",
+          "expression": "self._height_arrangement_cache"
+        },
+        {
+          "path": "src/textual/widget.py",
+          "line": 1415,
+          "kind": "Attribute",
+          "expression": "self._arrangement_depends_on_available_height"
+        }
+      ],
+      "omissions": []
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "sites": [],
+      "omissions": []
+    }
+  ]
+}

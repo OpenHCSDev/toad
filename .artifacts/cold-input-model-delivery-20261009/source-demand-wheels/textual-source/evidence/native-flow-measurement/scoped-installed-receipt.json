@@ -1,0 +1,27 @@
+{
+  "scope": "Installed native flow/diff consumer control only; not original41MB performance/live ready",
+  "source": "3fa7f13af6eca338201d73f31cbae57e8b2b2f47",
+  "native_source": "6e34622ce250a127e54d8bad9fa9a4abebd1368f",
+  "distribution_count": 69,
+  "result": "PASS",
+  "certified_diff_scrollers": 4,
+  "baseline_arrangements_each": 8,
+  "installed_arrangements_each": 1,
+  "conservative_ancestors": 6,
+  "native_flow_families": [
+    "VerticalGroup",
+    "HorizontalGroup"
+  ],
+  "unknown_hooks_rejected": true,
+  "relative_geometry_retained": true,
+  "padding_and_membership_invalidation": "PASS",
+  "wide_narrow_wide_diff_modes": "PASS",
+  "agent_bound": false,
+  "provider_calls": 0,
+  "public_effects": 0,
+  "original_input_replays": 0,
+  "failed_control": "installed01 observer closure shadowing; timeout/log retained; corrected control installed02",
+  "overall_cpu_claim": false,
+  "whole_warm_agent_readiness": false,
+  "residual": "Current-format agentA/B original capture still needs authorized native source fixture. p01 is saved archive only; no authenticity promotion."
+}

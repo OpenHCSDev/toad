@@ -1,0 +1,49 @@
+[
+  {
+    "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "rev": "fac099eb63d44c0e0bcda3435c43fbc76936e51f",
+    "root": "src/textual",
+    "parsed": 249,
+    "omitted": [],
+    "sites": [
+      [
+        "src/textual/screen.py",
+        2091,
+        "declaration",
+        "_collect_select_widgets"
+      ]
+    ]
+  },
+  {
+    "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "rev": "fac099eb63d44c0e0bcda3435c43fbc76936e51f",
+    "root": "tests",
+    "parsed": 460,
+    "omitted": [],
+    "sites": []
+  },
+  {
+    "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "rev": "7c3b6101af473c4638e4476d27207bf5b5196026",
+    "root": "src/toad",
+    "parsed": 288,
+    "omitted": [],
+    "sites": []
+  },
+  {
+    "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "rev": "7c3b6101af473c4638e4476d27207bf5b5196026",
+    "root": "tests",
+    "parsed": 394,
+    "omitted": [],
+    "sites": []
+  },
+  {
+    "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "rev": "7c3b6101af473c4638e4476d27207bf5b5196026",
+    "root": "tools",
+    "parsed": 41,
+    "omitted": [],
+    "sites": []
+  }
+]

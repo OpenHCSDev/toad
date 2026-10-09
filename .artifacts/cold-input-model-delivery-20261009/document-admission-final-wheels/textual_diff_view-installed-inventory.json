@@ -1,0 +1,22 @@
+{
+  "module": "textual_diff_view",
+  "assets": [
+    {
+      "member": "textual_diff_view/__init__.py",
+      "sha256": "544701e18e813800de5917e4ff1af619321a7ba97c09cc1dcd4c6e6fb841e09b",
+      "bytes": 92
+    },
+    {
+      "member": "textual_diff_view/_diff_view.py",
+      "sha256": "79779eb3ec11dd33482f110725ef1bc98b14a94e903f229685edecf06e778388",
+      "bytes": 55818
+    },
+    {
+      "member": "textual_diff_view/py.typed",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "byte_equal": true,
+  "missing_extra": []
+}

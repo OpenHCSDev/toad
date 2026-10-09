@@ -1,0 +1,44 @@
+{
+  "source": "6c5c0a055",
+  "controls": "7 passed in 1.09s",
+  "app_exit": 0,
+  "app_widgets": 508,
+  "app_tabs": 10,
+  "providers": 0,
+  "metrics": {
+    "before": {
+      "channels": {
+        "calls": 3,
+        "own_seconds": 0.006711723,
+        "inclusive_seconds": 0.018510871
+      },
+      "thread": {
+        "calls": 3,
+        "own_seconds": 0.007046747000000001,
+        "inclusive_seconds": 0.019031289
+      }
+    },
+    "after": {
+      "channels": {
+        "calls": 3,
+        "own_seconds": 0.00039156600000000004,
+        "inclusive_seconds": 0.007986836
+      },
+      "thread": {
+        "calls": 3,
+        "own_seconds": 0.00046633400000000005,
+        "inclusive_seconds": 0.011223700000000001
+      }
+    }
+  },
+  "scope": "Single source App completed headless first-display check, not installed/live/terminal-pixel latency. Whole-frame medians and tails vary; no reliable overall speedup.",
+  "keepers": {
+    "evidence/focus-rule-supply-20261006/before.json": "66889e3b9ba8f9bcb5b50e9c5d9bdfd0114f0b83a43897a89287bf99891d77bf",
+    "evidence/focus-rule-supply-20261006/after.json": "554f279fe1d0248212feea3dcbf0d3f69bb0ac2276fcdbd635676319dfd9312e",
+    "evidence/focus-rule-supply-20261006/controls.log": "c928e2b325450f4fe53ea38feef281d6c7aed611956284bd9706a12f60e5c96a",
+    "/home/ts/.cache/agent-scratch/focus-rule-supply-20261006/app.stdout.log": "5247e1d6a489d95bcead12039f0c6af7ada02fe1327cdf371d94b8a1a02f3c2d",
+    "/home/ts/.cache/agent-scratch/focus-rule-supply-20261006/app.stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/home/ts/.cache/agent-scratch/focus-rule-supply-20261006/toggle-channels.pstats": "187497551c23b99916e7083098982a659112bdf7dcba9f7ea08ea63fff617fc6",
+    "/home/ts/.cache/agent-scratch/focus-rule-supply-20261006/toggle-thread.pstats": "762601eab880b54be284c0412aab7b5787a8b40bcc284a4b9af5962401140b89"
+  }
+}

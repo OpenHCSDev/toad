@@ -1,0 +1,7 @@
+# Full remaining paint/worker/viewport performance
+
+Continue merged Text36/Toad378 in these existing checkouts. Existing Worker owns background task custody; App eager factory currently permits `_reconcile` retirement capture inline before `_task` is assigned. Current Native36 film records this at44.2896s; this is activation evidence, not duration/CPU dominance. Read all start/cancel/wait/context/decorator/manager consumers; place the execution boundary at the existing lifecycle owner without new scheduling state. Kepler owns disjoint read-only native layout/paint source help.
+
+Carry all unfinished144Hz6.944ms configurable target/mainCPU/worker pure preparation/raster/firstpaint/cold/warm/IRC+DM busy/sidebar/animation,3viewport adaptive velocity/reverse/idle/growingEnd/void,focus/draft/undo,TC1/T9/T4. No semantic mirrors, new pool/cache/controller/registry/clock or extra WT/env/nativecopy. Source first; coherent owner-and-all-consumer deletion batch, final proportionate checks and changed actual installed saved workload last.
+
+Latest installed36:105.993s16warm+7input,37retained bodies, originalowner unchanged/cleanupempty. First exactUp48frames personally during SAMEUI lifetime with before/after live checks; chunky. Up writer15.62/43.80/max144.73ms,Down16.71/28.46/max104.14,reverse16.3/26.69/max122.79. MarkerCPU74.54/54.08/60.73%; no matched overallCPU/smoothness gain. Preserve all prior rawnegative movies/profiles and unknowninputs. No unchangedfilm.

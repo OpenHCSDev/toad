@@ -1,0 +1,10 @@
+{
+  "scope": "real WebDriver framed pipe write and App-loop callback, not browser pixels",
+  "packet_bytes": 1100005,
+  "packet_sha256": "f3959b37f03b131bd2b599428d42846ce8b024c91d73618cc045424014735eeb",
+  "os_write_calls": 2,
+  "owner_loop_completion": true,
+  "reader_joined": true,
+  "inputs": 0,
+  "providers": 0
+}

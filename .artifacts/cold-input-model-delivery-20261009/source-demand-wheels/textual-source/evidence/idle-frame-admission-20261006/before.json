@@ -1,0 +1,187 @@
+[
+  {
+    "repo": "/home/ts/wt/textual-frame-publication-20261006",
+    "rev": "5a0c733349a33aff0826102ee40a92345a568361",
+    "root": "src/textual",
+    "parsed": 249,
+    "omissions": [],
+    "sites": [
+      [
+        "src/textual/app.py",
+        5031,
+        "FunctionDef",
+        "_on_idle"
+      ],
+      [
+        "src/textual/message_pump.py",
+        489,
+        "screen._refresh_pending",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1179,
+        "FunctionDef",
+        "_refresh_pending"
+      ],
+      [
+        "src/textual/screen.py",
+        1190,
+        "AsyncFunctionDef",
+        "_on_idle"
+      ],
+      [
+        "src/textual/screen.py",
+        1207,
+        "FunctionDef",
+        "_prepare_compositor_refresh"
+      ],
+      [
+        "src/textual/screen.py",
+        1218,
+        "FunctionDef",
+        "_prepare_visible_screens"
+      ],
+      [
+        "src/textual/screen.py",
+        1340,
+        "AsyncFunctionDef",
+        "_invoke_and_clear_callbacks"
+      ],
+      [
+        "src/textual/screen.py",
+        1194,
+        "self._refresh_pending",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1235,
+        "self._prepare_visible_screens",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1205,
+        "self._invoke_and_clear_callbacks",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1319,
+        "self._invoke_and_clear_callbacks",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1221,
+        "screen._prepare_compositor_refresh",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1346,
+        "self._prepare_visible_screens",
+        "Load"
+      ],
+      [
+        "src/textual/screen.py",
+        1195,
+        "self._prepare_visible_screens",
+        "Load"
+      ],
+      [
+        "src/textual/widget.py",
+        4812,
+        "AsyncFunctionDef",
+        "_on_idle"
+      ],
+      [
+        "src/textual/widgets/_data_table.py",
+        1870,
+        "AsyncFunctionDef",
+        "_on_idle"
+      ],
+      [
+        "src/textual/widgets/_tree.py",
+        1248,
+        "AsyncFunctionDef",
+        "_on_idle"
+      ]
+    ]
+  },
+  {
+    "repo": "/home/ts/wt/textual-frame-publication-20261006",
+    "rev": "5a0c733349a33aff0826102ee40a92345a568361",
+    "root": "tests",
+    "parsed": 467,
+    "omissions": [],
+    "sites": [
+      [
+        "tests/test_batch_paint_admission.py",
+        17,
+        "FunctionDef",
+        "_prepare_compositor_refresh"
+      ],
+      [
+        "tests/test_batch_paint_admission.py",
+        154,
+        "FunctionDef",
+        "_prepare_compositor_refresh"
+      ],
+      [
+        "tests/test_batch_paint_admission.py",
+        106,
+        "FunctionDef",
+        "_prepare_compositor_refresh"
+      ],
+      [
+        "tests/test_batch_paint_admission.py",
+        19,
+        "super()._prepare_compositor_refresh",
+        "Load"
+      ],
+      [
+        "tests/test_batch_paint_admission.py",
+        108,
+        "super()._prepare_compositor_refresh",
+        "Load"
+      ],
+      [
+        "tests/test_refresh_callback_owner.py",
+        75,
+        "FunctionDef",
+        "_prepare_compositor_refresh"
+      ],
+      [
+        "tests/test_refresh_callback_owner.py",
+        96,
+        "screen._prepare_compositor_refresh",
+        "Load"
+      ]
+    ]
+  },
+  {
+    "repo": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+    "rev": "85eb8012c15229972269a38e3f505b9d480f5114",
+    "root": "src/toad",
+    "parsed": 288,
+    "omissions": [],
+    "sites": [
+      [
+        "src/toad/screens/workspace.py",
+        160,
+        "FunctionDef",
+        "_prepare_compositor_refresh"
+      ]
+    ]
+  },
+  {
+    "repo": "/home/ts/wt/comms-cleanup-live-integration-20260929",
+    "rev": "0683ce64f7788d9f2db66ccb27e23de102c63ac4",
+    "root": "src/agent_comms",
+    "parsed": 324,
+    "omissions": [],
+    "sites": []
+  }
+]

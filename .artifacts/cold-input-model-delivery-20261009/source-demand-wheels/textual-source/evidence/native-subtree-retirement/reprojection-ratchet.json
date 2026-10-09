@@ -1,0 +1,659 @@
+{
+  "base": "ba65da3dfe04fd93a486156684584e8bb60d2dc9",
+  "files": [
+    {
+      "file": "src/textual/_compositor.py",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 8,
+        "boolean_chain_terms": 4
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 8,
+        "boolean_chain_terms": 4
+      },
+      "functions": [
+        {
+          "function": "SubtreeGeometryKey.intrinsic",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SceneClip.region",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SceneClip.intersect",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SceneClip.within",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SceneClip.relative_bounds",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "RootSceneClip.region",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "RootSceneClip.within",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "RootSceneClip.relative_bounds",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "NestedSceneClip.region",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "NestedSceneClip.within",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "NestedSceneClip.relative_bounds",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeMapGeometry.from_scene",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeMapGeometry.project",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeGeometry.complete_arrangement",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeGeometry.capture",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeGeometry.matches",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeGeometry.restore_into",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "SubtreeGeometry.project_into",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "PlacedSubtreeGeometry.matches",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "PlacedSubtreeGeometry.project_into",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "IntrinsicSubtreeGeometry.complete_arrangement",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "IntrinsicSubtreeGeometry.capture",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "IntrinsicSubtreeGeometry.matches",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "IntrinsicSubtreeGeometry.project_into",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "Compositor._arrange_root",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 7,
+            "boolean_chain_terms": 4
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 7,
+            "boolean_chain_terms": 4
+          }
+        },
+        {
+          "function": "Compositor._arrange_root.store_geometry",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "Compositor._arrange_root.arrange_widget",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 5,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 5,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "Compositor._arrange_root.add_widget",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 2,
+            "boolean_chain_terms": 4
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 2,
+            "boolean_chain_terms": 4
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/textual/layout.py",
+      "before": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 5,
+        "boolean_chain_terms": 0
+      },
+      "after": {
+        "string_dispatch": 0,
+        "type_switch": 0,
+        "string_dispatch_arms": 0,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 5,
+        "boolean_chain_terms": 0
+      },
+      "functions": [
+        {
+          "function": "WidgetPlacement.process_offset",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 2,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 2,
+            "boolean_chain_terms": 0
+          }
+        }
+      ]
+    },
+    {
+      "file": "src/textual/widget.py",
+      "before": {
+        "string_dispatch": 2,
+        "type_switch": 0,
+        "string_dispatch_arms": 6,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 29,
+        "boolean_chain_terms": 32
+      },
+      "after": {
+        "string_dispatch": 2,
+        "type_switch": 0,
+        "string_dispatch_arms": 6,
+        "type_switch_arms": 0,
+        "foreign_absence_probe": 29,
+        "boolean_chain_terms": 32
+      },
+      "functions": [
+        {
+          "function": "Widget.uses_screen_coordinates",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        },
+        {
+          "function": "Widget.subtree_geometry_resource",
+          "before": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          },
+          "after": {
+            "string_dispatch": 0,
+            "type_switch": 0,
+            "string_dispatch_arms": 0,
+            "type_switch_arms": 0,
+            "foreign_absence_probe": 0,
+            "boolean_chain_terms": 0
+          }
+        }
+      ]
+    }
+  ],
+  "growth": [],
+  "result": "PASS"
+}

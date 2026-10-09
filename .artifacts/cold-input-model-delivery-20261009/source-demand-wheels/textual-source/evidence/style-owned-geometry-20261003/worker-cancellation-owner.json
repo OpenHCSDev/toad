@@ -1,0 +1,749 @@
+{
+  "parser": "existing NRA/refactor-audit Package",
+  "roots": [
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "revision": "f02dacac6f6bf5043643fb7986a8adfb5ec11625",
+      "modules": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "file": "src/textual/_animator.py",
+          "line": 271,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/_win_sleep.py",
+          "line": 114,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/app.py",
+          "line": 3478,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/app.py",
+          "line": 2314,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/await_remove.py",
+          "line": 56,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1135,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1158,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1167,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1152,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 534,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 505,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 545,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 549,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 295,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 295,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/widgets/_markdown.py",
+          "line": 105,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 47,
+          "kind": "class",
+          "name": "WorkerError",
+          "bases": [
+            "Exception"
+          ]
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 63,
+          "kind": "class",
+          "name": "WorkerCancelled",
+          "bases": [
+            "WorkerError"
+          ]
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 121,
+          "kind": "class",
+          "name": "Worker",
+          "bases": [
+            "Generic[ResultType]"
+          ]
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 51,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 59,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 63,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 173,
+          "kind": "Store",
+          "expression": "self.cancelled_event"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 181,
+          "kind": "Store",
+          "expression": "self._cancelled"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 218,
+          "kind": "Load",
+          "expression": "self._cancelled"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 437,
+          "kind": "Store",
+          "expression": "self._cancelled"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 361,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 390,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 440,
+          "kind": "Load",
+          "expression": "self.cancelled_event"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 462,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 466,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 471,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 473,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 339,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 360,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 402,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/worker_manager.py",
+          "line": 180,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/wt/textual-native-subtree-strips-20261002/src/textual",
+      "revision": "95d3b99b8287af866290bc5398c869325d2d2913",
+      "modules": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "file": "src/textual/_animator.py",
+          "line": 271,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/_win_sleep.py",
+          "line": 114,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/app.py",
+          "line": 3478,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/app.py",
+          "line": 2314,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/await_remove.py",
+          "line": 56,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1135,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1158,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1167,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/command.py",
+          "line": 1152,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 534,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 505,
+          "kind": "Load",
+          "expression": "worker.is_cancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 545,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 549,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 295,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/textual/widgets/_directory_tree.py",
+          "line": 295,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/widgets/_markdown.py",
+          "line": 105,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 47,
+          "kind": "class",
+          "name": "WorkerError",
+          "bases": [
+            "Exception"
+          ]
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 63,
+          "kind": "class",
+          "name": "WorkerCancelled",
+          "bases": [
+            "WorkerError",
+            "asyncio.CancelledError"
+          ]
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 125,
+          "kind": "class",
+          "name": "Worker",
+          "bases": [
+            "Generic[ResultType]"
+          ]
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 51,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 59,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 63,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 63,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 177,
+          "kind": "Store",
+          "expression": "self.cancelled_event"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 364,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 221,
+          "kind": "Load",
+          "expression": "self.cancelled_event"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 393,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 440,
+          "kind": "Load",
+          "expression": "self.cancelled_event"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 464,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 468,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 473,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 475,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 342,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 363,
+          "kind": "Load",
+          "name": "WorkerError"
+        },
+        {
+          "file": "src/textual/worker.py",
+          "line": 405,
+          "kind": "Load",
+          "name": "WorkerFailed"
+        },
+        {
+          "file": "src/textual/worker_manager.py",
+          "line": 180,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        }
+      ]
+    },
+    {
+      "root": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/src/toad",
+      "revision": "b49c1c5419a6e78a824962815de5e8a9a15e9d05",
+      "modules": 288,
+      "omissions": [],
+      "sites": [
+        {
+          "file": "src/toad/acp/agent_process.py",
+          "line": 136,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/acp/agent_process.py",
+          "line": 133,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/acp/maintenance_ingress.py",
+          "line": 205,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/acp/maintenance_ingress.py",
+          "line": 126,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/render_protocol.py",
+          "line": 219,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/render_protocol.py",
+          "line": 114,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/render_zmq.py",
+          "line": 277,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/render_zmq.py",
+          "line": 292,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/screens/mcp_decision.py",
+          "line": 101,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/screens/mcp_inventory.py",
+          "line": 96,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/session_observation.py",
+          "line": 39,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 265,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/terminal_execution.py",
+          "line": 394,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_filter.py",
+          "line": 262,
+          "kind": "Load",
+          "expression": "self.worker.is_cancelled"
+        },
+        {
+          "file": "src/toad/transcript_preparation.py",
+          "line": 158,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_preparation.py",
+          "line": 276,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_preparation.py",
+          "line": 286,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_preparation.py",
+          "line": 280,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_preparation.py",
+          "line": 297,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_preparation.py",
+          "line": 300,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_publication.py",
+          "line": 777,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_publication.py",
+          "line": 695,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/toad/transcript_publication.py",
+          "line": 772,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/transcript_source_preparation.py",
+          "line": 193,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/toad/widgets/comms_chat.py",
+          "line": 414,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/comms_chat.py",
+          "line": 445,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/comms_chat.py",
+          "line": 447,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/context_explorer.py",
+          "line": 155,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/context_explorer.py",
+          "line": 167,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/context_explorer.py",
+          "line": 113,
+          "kind": "Load",
+          "expression": "get_current_worker().is_cancelled"
+        },
+        {
+          "file": "src/toad/widgets/prepared_markdown.py",
+          "line": 114,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/toad/widgets/prepared_markdown.py",
+          "line": 117,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/recovery_view.py",
+          "line": 127,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/retiring_sidebar.py",
+          "line": 32,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/toad/widgets/streaming_markdown.py",
+          "line": 120,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/thread_comms.py",
+          "line": 450,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/widgets/viewport_body.py",
+          "line": 758,
+          "kind": "Load",
+          "name": "WorkerCancelled"
+        },
+        {
+          "file": "src/toad/work_preparation.py",
+          "line": 249,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/work_preparation.py",
+          "line": 253,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/work_preparation.py",
+          "line": 276,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/work_preparation.py",
+          "line": 311,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/work_preparation.py",
+          "line": 314,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        },
+        {
+          "file": "src/toad/work_preparation.py",
+          "line": 280,
+          "kind": "Load",
+          "expression": "asyncio.CancelledError"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Attribute names on other types, such as Timer._cancelled, are distinct facts; AST does not resolve every receiver",
+    "All Worker._cancelled readers/writers were confined to the original Worker declaration, getter and cancel method",
+    "Generic except Exception still catches the hybrid WorkerError; this is not blanket MessagePump cancellation closure"
+  ]
+}

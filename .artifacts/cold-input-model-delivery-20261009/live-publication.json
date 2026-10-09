@@ -1,0 +1,64 @@
+{
+  "phase": "paired-runtime-defaults-published-live-check-pending",
+  "cohort": {
+    "kind": "reviewed_paired_runtime_cohort",
+    "target": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime",
+    "current_prefix": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/assigned-worker-geometry-delivery-20261008/runtime",
+    "original_route": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+      "native_package": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-062ef93941fde89e/node_modules/@earendil-works/pi-coding-agent",
+      "version": 1
+    },
+    "native": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+    "activation": {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-input-config-admission-20261008/deployment/current-core-bc1f3a81/candidate-activation.json",
+      "sha256": "9c771068c7e4bb949326bfa5b82bfbac46e91d93223aa67f9b1ca1ed626d2b68"
+    },
+    "source_proof": {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-input-config-admission-20261008/deployment/current-core-bc1f3a81/source-proof.json",
+      "sha256": "872efc49ffa39e811f51827c4f3da5a7464c1026c1d2b6a85f98205d04bf4cd9"
+    },
+    "actual_gates": [
+      {
+        "path": "/home/ts/.local/state/toad/logs/_home_ts_wt_toad-sidebar-context-pointer-20261006__artifacts_cold-input-model-delivery-20261009_runtime_bin_agent-comms-acp_2026-10-09T04_01_12_399085.txt",
+        "sha256": "5e5876351e2cac1624cbde27f341182c6729bb27b043a7fac36e8dc6b8f486d4"
+      },
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/model-open.png",
+        "sha256": "ae2993168e77e2a0dbd6a2912a99ff96d091e556db97cabbe7600f4173e7b6fc"
+      },
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/thinking-menu.png",
+        "sha256": "c63cb8aaed3c60f83e77c15d9d16f9d470dafd6bb0636de3aaf762cc686f8e79"
+      },
+      {
+        "path": "/home/ts/.pi/agent/sessions/--home-ts-wt-comms-post-feature-debt-audit-20260928--/2026-10-09T07-59-40-834Z_01a11fac-cd22-7376-aeba-85adaf3fe891.jsonl",
+        "sha256": "574a800749827874af100f9ca720629644ed65983cbc3e3d6552e6c47f13d4df"
+      },
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/stop.stdout.json",
+        "sha256": "ab338f077772379add41927c90a2302cbf69e550aa7c6015525654ec2d258f39"
+      }
+    ],
+    "frontend_prefix": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/document-paint-input-owner-delivery-20261009/runtime"
+  },
+  "finished": 1791533720.3788044,
+  "live_observation": {
+    "entrypoints": [
+      "/home/ts/.local/bin/toad",
+      "/home/ts/.local/bin/agent-comms-acp"
+    ],
+    "session": "parent-real-ui-20261009",
+    "model_choices": 437,
+    "original_input_id": "b8a946865a3445c3ba7221044395ca64",
+    "reply": "live received",
+    "stop_reason": "end_turn",
+    "screenshots": [
+      "default-models.png",
+      "default-message-completed.png"
+    ],
+    "frontend_rendering": "message bodies blank; no scrolling or whole UI pass",
+    "existing_owners_replaced": false
+  }
+}

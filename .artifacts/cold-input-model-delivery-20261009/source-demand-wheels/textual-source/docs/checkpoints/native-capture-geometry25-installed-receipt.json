@@ -1,0 +1,70 @@
+{
+  "qualification": "READY scoped whole-body native capture geometry/cache closure, not smoothness or fullCPU",
+  "production_source": "4344d7ec265cc7b05c7201cbbe3ea4bed4e17c6d",
+  "installed_textual": "a2f5f71f422def4a40032e4cfcd795b93d4dd3eb",
+  "raw": "/home/ts/.cache/agent-scratch/native-capture-lifetime322-public-20261002-01/capture",
+  "joined_owner_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/retained-body-E/capture-lifetime322-public-qualified.json",
+  "duration_seconds": 107.35262147895992,
+  "completed": true,
+  "capture_returncode": 255,
+  "runtime_unchanged": true,
+  "pins": {
+    "agent_comms": "87719d6fed318cf07c793c96ceabf9d54bd53c43",
+    "toad": "b54fb4c6f1b2f2c3daa71a986acc6f61c49722d3",
+    "textual": "a2f5f71f422def4a40032e4cfcd795b93d4dd3eb"
+  },
+  "input_checks": {
+    "input_remains_focused": true,
+    "original_editor_window_and_mode": true,
+    "draft_and_caret_preserved": true,
+    "input_pageup_moves_history": true,
+    "input_pagedown_moves_history": true,
+    "input_pageup_reaches_original_window": true,
+    "input_pagedown_reaches_original_window": true
+  },
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3857854,
+      "start_time": 41504646
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3857854,
+      "start_time": 41504646
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": []
+  },
+  "profile": {
+    "sample_count": 1474,
+    "sampling_errors": 0,
+    "sampling_quality": "no reported sampling errors",
+    "alignment_nominal_uncertainty_seconds": 0.0790120649826713
+  },
+  "physical_review": "Direct heldUpdone/first15idle/finalEnd PNGs readable. Original final DTO all bodies ready, pendingfalse, scroll105=max105, nativehistorylockfalse/restoringfalse. Heis watched busyUp/reverse/End; discrete sparse motion persists.",
+  "observed_source_paths": {
+    "strip_capture_full_scene_transition_groups": 0,
+    "retirement_full_scene_transition_groups": 23,
+    "other_full_scene_transition_groups": 2,
+    "limit": "Original ProfileTrace decoded changed stack groups; these are not calls, durations or CPUtime. No match does not proveabsence. Scope correctness also relies on original resource ownership, source closure and native/in-application checks."
+  },
+  "remaining": "Native retirement admission still queries fullscene. Source omission identified: Screen scroll fastpath/reflow_visible drops existing layout geometrytargets; next owner change coordinatedHeis. Sidebar/backend idle work separate.",
+  "limits": [
+    "Candidate installed path selected by runtime override, not default activation.",
+    "Raw capture_returncode255 remains distinct from completed observer/driver and cleanup.",
+    "Marked Up CPU78.86%, reverse66.41%; phasebounds/Core/workload differ from baseline, no causal or overall gain claim.",
+    "WriterUp median30.31ms/p95166.68; reverse31.31/242.57ms; reversep95 worse than earlier319run. Not terminalFPS or physicalinput-to-paint.",
+    "No new capture/environment/provider/publicownerrestart by contributor."
+  ]
+}

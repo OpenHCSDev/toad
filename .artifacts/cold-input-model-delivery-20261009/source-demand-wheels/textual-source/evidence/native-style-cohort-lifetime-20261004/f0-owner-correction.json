@@ -1,0 +1,37 @@
+{
+  "head": "a818dcfd4a4a874af085f705559e134a00b7d189",
+  "base": "919cbcd89bbeb55b4393537cc5b52c797f4b196b",
+  "roots": {
+    "src/textual": {
+      "parsed": 249,
+      "omissions": []
+    },
+    "tests": {
+      "parsed": 460,
+      "omissions": []
+    }
+  },
+  "sites": [
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 817,
+      "consumer": "root._get_layer_order"
+    },
+    {
+      "path": "src/textual/_compositor.py",
+      "line": 1053,
+      "consumer": "widget._get_layer_order"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 2835,
+      "definition": "_get_layer_order"
+    },
+    {
+      "path": "src/textual/widget.py",
+      "line": 2832,
+      "consumer": "self._get_layer_order"
+    }
+  ],
+  "ambiguity": "AST attribute names do not prove dynamic binding; custom layers properties remain original native dispatch."
+}

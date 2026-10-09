@@ -1,0 +1,1052 @@
+{
+  "packages": [
+    {
+      "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+      "revision": "cd81c620cb2eea4ee0533b7a8f060c810f9988e3",
+      "root": "src/textual",
+      "modules": 249,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/textual/_on.py",
+          "line": 65,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "parsed_selectors: dict[str, tuple[SelectorSet, ...]] = {}"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 24,
+          "kind": "FunctionDef",
+          "name": "_check_selectors",
+          "source": "def _check_selectors(selectors: list[Selector], css_path_nodes: list[DOMNode]) -> bool:"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 37,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "node = css_path_nodes[-1]"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 38,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "path_count = len(css_path_nodes)"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 39,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "selector_count = len(selectors)"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 11,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "def match(selector_sets: Iterable[SelectorSet], node: DOMNode) -> bool:"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 21,
+          "kind": "Attribute",
+          "name": "check",
+          "source": "return any(selector_set.check(node) for selector_set in selector_sets)"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 21,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "return any(selector_set.check(node) for selector_set in selector_sets)"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 52,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "path_node = css_path_nodes[node_index]"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 53,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "selector = selectors[selector_index]"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 21,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "return any(selector_set.check(node) for selector_set in selector_sets)"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 56,
+          "kind": "Attribute",
+          "name": "check",
+          "source": "if selector.check(path_node):"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 65,
+          "kind": "Attribute",
+          "name": "check",
+          "source": "if selector.check(path_node):"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 181,
+          "kind": "ClassDef",
+          "name": "SelectorSet",
+          "source": "class SelectorSet:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 256,
+          "kind": "ClassDef",
+          "name": "RuleSet",
+          "source": "class RuleSet:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 154,
+          "kind": "FunctionDef",
+          "name": "check",
+          "source": "def check(self, node: DOMNode) -> bool:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 192,
+          "kind": "FunctionDef",
+          "name": "check",
+          "source": "def check(self, node: DOMNode) -> bool:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 282,
+          "kind": "FunctionDef",
+          "name": "selectors",
+          "source": "def selectors(self):"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 125,
+          "kind": "Name",
+          "name": "specificity",
+          "source": "specificity: Specificity3 = field(default_factory=lambda: (0, 0, 0))"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 184,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "selectors: list[Selector] = field(default_factory=list)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 185,
+          "kind": "Name",
+          "name": "specificity",
+          "source": "specificity: Specificity3 = (0, 0, 0)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 257,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "selector_set: list[SelectorSet] = field(default_factory=list)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 151,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "specificity1, specificity2, specificity3 = self.specificity"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 152,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "self.specificity = (specificity1, specificity2 + 1, specificity3)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 199,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "selectors = self.selectors"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 199,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "selectors = self.selectors"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 224,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "selectors = RuleSet._selector_to_css(self.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 235,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector in self.selectors:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 240,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "self.specificity = (id_total, class_total, type_total)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 245,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "for selector_list in selectors:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 244,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "def from_selectors(cls, selectors: list[list[Selector]]) -> Iterable[SelectorSet]:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 257,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "selector_set: list[SelectorSet] = field(default_factory=list)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 272,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "for selector in selectors:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 311,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "for selector_set in self.selector_set:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 311,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for selector_set in self.selector_set:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 189,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector, next_selector in zip(self.selectors, self.selectors[1:]):"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 200,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "if selectors and selectors[0].combinator is CombinatorType.DESCENDENT:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 208,
+          "kind": "Name",
+          "name": "_check_selectors",
+          "source": "return _check_selectors(selectors, node.css_path_nodes)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 208,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "return _check_selectors(selectors, node.css_path_nodes)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 208,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "return _check_selectors(selectors, node.css_path_nodes)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 212,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "return RuleSet._selector_to_css(self.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 224,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "selectors = RuleSet._selector_to_css(self.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 225,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "yield selectors"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 236,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "_id, _class, _type = selector.specificity"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 312,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector in selector_set.selectors:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 189,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector, next_selector in zip(self.selectors, self.selectors[1:]):"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 212,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "return RuleSet._selector_to_css(self.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 224,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "selectors = RuleSet._selector_to_css(self.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 226,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "yield None, self.specificity"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 248,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "_id, _class, _type = selector.specificity"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 296,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "css = f\"{self.selectors} {{\\n{declarations}\\n}}\""
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 312,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "for selector in selector_set.selectors:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 315,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "selector = selector_set.selectors[-1]"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 201,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "if len(selectors) == 1:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 202,
+          "kind": "Attribute",
+          "name": "check",
+          "source": "return selectors[0].check(node)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 220,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector in self.selectors"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 252,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "yield SelectorSet(selector_list, (id_total, class_total, type_total))"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 284,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "self._selector_to_css(selector_set.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 285,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "for selector_set in self.selector_set"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 285,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for selector_set in self.selector_set"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 315,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "selector = selector_set.selectors[-1]"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 200,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "if selectors and selectors[0].combinator is CombinatorType.DESCENDENT:"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 284,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "self._selector_to_css(selector_set.selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 202,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "return selectors[0].check(node)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 203,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "if all(selector.combinator is CombinatorType.SAME for selector in selectors[1:]):"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 204,
+          "kind": "Attribute",
+          "name": "check",
+          "source": "return all(selector.check(node) for selector in selectors)"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 204,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "return all(selector.check(node) for selector in selectors)"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 136,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": ") -> Iterable[RuleSet]:"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 460,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": ") -> Iterable[RuleSet]:"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 78,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "def parse_selectors(css_selectors: str) -> tuple[SelectorSet, ...]:"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 191,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "nested_rules: list[RuleSet] = []"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 279,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "rule_set = RuleSet("
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 126,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "selector_set = tuple(SelectorSet.from_selectors(rule_selectors))"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 205,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "recursive_parse: list[RuleSet] = list("
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 280,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "list(SelectorSet.from_selectors(rule_selectors)),"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 246,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "nested_rule_set = RuleSet("
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 248,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "SelectorSet("
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 90,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "self._filters: list[tuple[SelectorSet, ...]] = ("
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 93,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "self._excludes: list[tuple[SelectorSet, ...]] = ("
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 502,
+          "kind": "FunctionDef",
+          "name": "_check_rule",
+          "source": "def _check_rule("
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 200,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "def rules(self) -> list[RuleSet]:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 283,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": ") -> list[RuleSet]:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 514,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "for selector_set in rule_set.selector_set:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 514,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for selector_set in rule_set.selector_set:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 587,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "selectors = frozenset(rules_map.keys() & selector_names)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 172,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "self._rules: list[RuleSet] = []"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 416,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "rules: list[RuleSet] = []"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 503,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "cls, rule_set: RuleSet, css_path_nodes: list[DOMNode]"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 588,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "candidates = self._candidate_rules.get(selectors)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 655,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "css_path_nodes: list[DOMNode] | None = None"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 699,
+          "kind": "Name",
+          "name": "_check_rule",
+          "source": "_check_rule = self._check_rule"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 699,
+          "kind": "Attribute",
+          "name": "_check_rule",
+          "source": "_check_rule = self._check_rule"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 932,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for group in rule.selector_set:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 73,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "def __init__(self, rules: list[RuleSet]) -> None:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 213,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "def rules_map(self) -> dict[str, list[RuleSet]]:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 451,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "selector.name for rule in rules for group in rule.selector_set"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 452,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector in group.selectors if selector.type == SelectorType.ID"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 457,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for group in rule.selector_set"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 458,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector in group.selectors"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 515,
+          "kind": "Name",
+          "name": "_check_selectors",
+          "source": "if _check_selectors(selector_set.selectors, css_path_nodes):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 515,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "if _check_selectors(selector_set.selectors, css_path_nodes):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 515,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "if _check_selectors(selector_set.selectors, css_path_nodes):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 603,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "self._candidate_rules[selectors] = candidates"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 578,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": ") -> tuple[list[RuleSet], frozenset[str], frozenset[str], tuple[RuleSet, ...]]:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 683,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "css_path_nodes = node.css_path_nodes"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 683,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "css_path_nodes = node.css_path_nodes"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 700,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "if css_path_nodes is None:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 701,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "css_path_nodes = node.css_path_nodes"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 701,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "css_path_nodes = node.css_path_nodes"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 179,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "self._parse_cache: LRUCache[tuple, list[RuleSet]] = LRUCache(64)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 515,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "if _check_selectors(selector_set.selectors, css_path_nodes):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 516,
+          "kind": "Attribute",
+          "name": "specificity",
+          "source": "yield selector_set.specificity"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 590,
+          "kind": "Name",
+          "name": "selectors",
+          "source": "limit_rules = {rule for name in selectors for rule in rules_map[name]}"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 578,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": ") -> tuple[list[RuleSet], frozenset[str], frozenset[str], tuple[RuleSet, ...]]:"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 711,
+          "kind": "Name",
+          "name": "_check_rule",
+          "source": "for base_specificity in _check_rule(rule, css_path_nodes):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 711,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "for base_specificity in _check_rule(rule, css_path_nodes):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 933,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for index, selector in enumerate(group.selectors):"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 173,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "self._rules_map: dict[str, list[RuleSet]] | None = None"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 220,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "rules_map: dict[str, list[RuleSet]] = defaultdict(list)"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 516,
+          "kind": "Name",
+          "name": "selector_set",
+          "source": "yield selector_set.specificity"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 598,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for group in rule.selector_set"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 599,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for selector in group.selectors"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 687,
+          "kind": "Name",
+          "name": "css_path_nodes",
+          "source": "self._css_path_key(css_path_nodes, rule_classes),"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 805,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "self._css_path_key(node.css_path_nodes, relevant_classes),"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 180,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "self._source_rules: dict[CSSLocation, tuple[CssSource, list[RuleSet]]] = {}"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 187,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "frozenset[str], tuple[list[RuleSet], frozenset[str], frozenset[str], tuple[RuleSet, ...]]"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 418,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "source_rules: dict[CSSLocation, tuple[CssSource, list[RuleSet]]] = {}"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1001,
+          "kind": "Attribute",
+          "name": "selector_set",
+          "source": "for group in rule.selector_set for selector in group.selectors"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 1001,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "for group in rule.selector_set for selector in group.selectors"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 187,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "frozenset[str], tuple[list[RuleSet], frozenset[str], frozenset[str], tuple[RuleSet, ...]]"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 938,
+          "kind": "Attribute",
+          "name": "selectors",
+          "source": "or any(part.advance for part in group.selectors[index:-1])):"
+        },
+        {
+          "path": "src/textual/dom.py",
+          "line": 952,
+          "kind": "FunctionDef",
+          "name": "css_path_nodes",
+          "source": "def css_path_nodes(self) -> list[DOMNode]:"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 88,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "type[Message], list[tuple[Callable, dict[str, tuple[SelectorSet, ...]]]]"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 96,
+          "kind": "Name",
+          "name": "SelectorSet",
+          "source": "tuple[type[Message], dict[str, tuple[SelectorSet, ...]]]"
+        }
+      ],
+      "imports": [
+        {
+          "path": "src/textual/_on.py",
+          "line": 5,
+          "source": "from textual.css.model import SelectorSet"
+        },
+        {
+          "path": "src/textual/css/match.py",
+          "line": 5,
+          "source": "from textual.css.model import CombinatorType, Selector, SelectorSet"
+        },
+        {
+          "path": "src/textual/css/model.py",
+          "line": 206,
+          "source": "from textual.css.match import _check_selectors"
+        },
+        {
+          "path": "src/textual/css/parse.py",
+          "line": 11,
+          "source": "from textual.css.model import CombinatorType, Declaration, RuleSet, Selector, SelectorSet, SelectorType"
+        },
+        {
+          "path": "src/textual/css/query.py",
+          "line": 24,
+          "source": "from textual.css.model import SelectorSet"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 20,
+          "source": "from textual.css.match import _check_selectors"
+        },
+        {
+          "path": "src/textual/css/stylesheet.py",
+          "line": 21,
+          "source": "from textual.css.model import RuleSet, SelectorType"
+        },
+        {
+          "path": "src/textual/message_pump.py",
+          "line": 53,
+          "source": "from textual.css.model import SelectorSet"
+        }
+      ]
+    },
+    {
+      "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+      "revision": "25480fb4b7b0e9364fe7059a0cca7a202ec96814",
+      "root": "src/toad",
+      "modules": 289,
+      "omissions": [],
+      "sites": [
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 355,
+          "kind": "Name",
+          "name": "RuleSet",
+          "source": "possible_rules: list[RuleSet] = []"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 350,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "if type(node).css_path_nodes is not DOMNode.css_path_nodes:"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 350,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "if type(node).css_path_nodes is not DOMNode.css_path_nodes:"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 351,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "for ancestor in node.css_path_nodes:"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 373,
+          "kind": "Attribute",
+          "name": "_check_rule",
+          "source": "and any(stylesheet._check_rule(rule, node.css_path_nodes)))):"
+        },
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 373,
+          "kind": "Attribute",
+          "name": "css_path_nodes",
+          "source": "and any(stylesheet._check_rule(rule, node.css_path_nodes)))):"
+        }
+      ],
+      "imports": [
+        {
+          "path": "src/toad/screens/workspace.py",
+          "line": 9,
+          "source": "from textual.css.model import RuleSet, SelectorType"
+        }
+      ]
+    }
+  ],
+  "limits": "Complete production roots. AST syntax does not resolve dynamic external class overrides or prove node/path custody; semantics read from original declarations and callers."
+}

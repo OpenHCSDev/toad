@@ -1,0 +1,102 @@
+{
+  "phase": "frontend-published-live-ui-pending",
+  "cohort": {
+    "kind": "reviewed_textual",
+    "target": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime",
+    "current_prefix": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime",
+    "original_route": {
+      "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+      "wire_root_id": "e206f3766e60451a989ca34df0e2a94b",
+      "native_package": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+      "version": 1
+    },
+    "native": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/stack/.pi-native-669117c30ff9d3ba/node_modules/@earendil-works/pi-coding-agent",
+    "activation": {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-wheels/candidate-activation.json",
+      "sha256": "9432f21844e40bc6f498944d46dc75106390e81fde946b38f09fb1af0294c665"
+    },
+    "source_proof": {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-wheels/source-proof.json",
+      "sha256": "3c7b6c993821abc0f932051f3611ca439a53390f16c2c21e17d475ec61cc7bd9"
+    },
+    "actual_gates": [
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-wheels/actual-application-result.json",
+        "sha256": "8396aaa85c9e84b478076a749d99aeca1e71e488b19535fe22cc5fe821732058"
+      }
+    ],
+    "current_source_proof": {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-input-config-admission-20261008/deployment/current-core-bc1f3a81/source-proof.json",
+      "sha256": "872efc49ffa39e811f51827c4f3da5a7464c1026c1d2b6a85f98205d04bf4cd9"
+    },
+    "backend_source_proof": {
+      "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/cold-input-config-admission-20261008/deployment/current-core-bc1f3a81/source-proof.json",
+      "sha256": "872efc49ffa39e811f51827c4f3da5a7464c1026c1d2b6a85f98205d04bf4cd9"
+    }
+  },
+  "finished": 1791543430.2187283,
+  "live_observation": {
+    "entrypoint": "/home/ts/.local/bin/toad",
+    "result": "Actual saved conversation painted; one new configured input returned publication received and native end_turn; recent text painted after wheel return. Original App terminal0 and worker stopped; recorded children absent.",
+    "performance_limit": "147ms maximum enqueue-to-terminal flush in prepublication real wheel trace; not total input/frame timing. Fast transient paint, End and multi-tab qualification remain incomplete;16ms unmet.",
+    "processes": [
+      {
+        "pid": 2664745,
+        "birth": 101951299,
+        "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/runtime/bin/python -m agent_comms.worker "
+      },
+      {
+        "pid": 2664746,
+        "birth": 101951306,
+        "argv": "st -g 145x50 -e /home/ts/.local/bin/toad acp /home/ts/.local/bin/agent-comms-acp --session parent-real-ui-20261009 --project-dir /home/ts/wt/comms-post-feature-debt-audit-20260928 --title Published history "
+      },
+      {
+        "pid": 2664762,
+        "birth": 101951315,
+        "argv": "toad                                                                                                                                                                                                                                                                                                                             "
+      },
+      {
+        "pid": 2664810,
+        "birth": 101951432,
+        "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.resource_tracker import main;main(5) "
+      },
+      {
+        "pid": 2664811,
+        "birth": 101951433,
+        "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=17) --multiprocessing-fork "
+      },
+      {
+        "pid": 2664812,
+        "birth": 101951433,
+        "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=19) --multiprocessing-fork "
+      },
+      {
+        "pid": 2664849,
+        "birth": 101951529,
+        "argv": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/body-diagnostic-runtime/bin/python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=6, pipe_handle=26) --multiprocessing-fork "
+      },
+      {
+        "pid": 2664858,
+        "owner": "original ACP child from proc children"
+      }
+    ],
+    "refs": [
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-live-initial.png",
+        "sha256": "a7ed6ce0213cef871a43208bbd08802422ddd7a2f0017c82c400ca5a3e0c508b"
+      },
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-live-bottom.png",
+        "sha256": "fb51bd24e55d7353280fbed2224771a8ec022330f257d615a20f0f7394a1d255"
+      },
+      {
+        "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/.artifacts/cold-input-model-delivery-20261009/warm-retention-live-state-state.json",
+        "sha256": "8766a2d04d713bf67d8b422e60625039dec6a523bb916448b0dbae5cabeeb183"
+      },
+      {
+        "path": "/home/ts/.local/state/toad/logs/Published_history_2026-10-09T07_04_36_236769.txt",
+        "sha256": "13f272ed7033491d96d39bfa1f91294ea12f32a23fb80301bb8c06648cd3bc82"
+      }
+    ]
+  }
+}

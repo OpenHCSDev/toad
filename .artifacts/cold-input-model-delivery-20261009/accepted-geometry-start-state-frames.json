@@ -1,0 +1,13 @@
+[
+  {
+    "event": "frame_observer_attached",
+    "ns": 1028545731051191,
+    "driver": "LinuxDriver"
+  },
+  {
+    "event": "frame_trace_exported",
+    "ns": 1028545731108700,
+    "pid": 3038368,
+    "capacity": 100000
+  }
+]

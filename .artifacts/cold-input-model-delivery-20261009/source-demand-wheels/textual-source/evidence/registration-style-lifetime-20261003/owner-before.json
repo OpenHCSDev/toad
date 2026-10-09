@@ -1,0 +1,249 @@
+{
+  "revision": "c4e5fd22e94e2d9c53502f7f80cd19757b1d80a0",
+  "parsed_modules": 249,
+  "omissions": [],
+  "sites": [
+    {
+      "file": "src/textual/app.py",
+      "line": 3589,
+      "kind": "declaration",
+      "name": "_register_child"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 3634,
+      "kind": "declaration",
+      "name": "_register"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 3714,
+      "kind": "declaration",
+      "name": "_start_widget"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 2631,
+      "kind": "call",
+      "name": "self._register"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 2823,
+      "kind": "call",
+      "name": "self._register"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 3632,
+      "kind": "call",
+      "name": "child._post_register"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 3680,
+      "kind": "call",
+      "name": "self._register_child"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 3689,
+      "kind": "call",
+      "name": "widget.notify_style_update"
+    },
+    {
+      "file": "src/textual/app.py",
+      "line": 3682,
+      "kind": "call",
+      "name": "self._register"
+    },
+    {
+      "file": "src/textual/css/styles.py",
+      "line": 1068,
+      "kind": "call",
+      "name": "node.notify_style_update"
+    },
+    {
+      "file": "src/textual/css/styles.py",
+      "line": 995,
+      "kind": "call",
+      "name": "node._style_rules_updated"
+    },
+    {
+      "file": "src/textual/css/styles.py",
+      "line": 1078,
+      "kind": "call",
+      "name": "child.notify_style_update"
+    },
+    {
+      "file": "src/textual/dom.py",
+      "line": 160,
+      "kind": "declaration",
+      "name": "_update_inherited_geometry"
+    },
+    {
+      "file": "src/textual/dom.py",
+      "line": 171,
+      "kind": "declaration",
+      "name": "_style_rules_updated"
+    },
+    {
+      "file": "src/textual/dom.py",
+      "line": 704,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/dom.py",
+      "line": 768,
+      "kind": "declaration",
+      "name": "_post_register"
+    },
+    {
+      "file": "src/textual/dom.py",
+      "line": 178,
+      "kind": "call",
+      "name": "self._update_inherited_geometry"
+    },
+    {
+      "file": "src/textual/dom.py",
+      "line": 168,
+      "kind": "call",
+      "name": "child._update_inherited_geometry"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 1856,
+      "kind": "declaration",
+      "name": "_post_register"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 4955,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 837,
+      "kind": "call",
+      "name": "widget._post_register"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 1561,
+      "kind": "call",
+      "name": "self.app._register"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 2230,
+      "kind": "call",
+      "name": "self.app._start_widget"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 2251,
+      "kind": "call",
+      "name": "self.app._start_widget"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 2273,
+      "kind": "call",
+      "name": "self.app._start_widget"
+    },
+    {
+      "file": "src/textual/widget.py",
+      "line": 4959,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_data_table.py",
+      "line": 1123,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_data_table.py",
+      "line": 1124,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_log.py",
+      "line": 95,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_log.py",
+      "line": 97,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_markdown.py",
+      "line": 922,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_markdown.py",
+      "line": 926,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_option_list.py",
+      "line": 708,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_option_list.py",
+      "line": 710,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_rich_log.py",
+      "line": 128,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_rich_log.py",
+      "line": 129,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_text_area.py",
+      "line": 816,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_text_area.py",
+      "line": 818,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1467,
+      "kind": "declaration",
+      "name": "notify_style_update"
+    },
+    {
+      "file": "src/textual/widgets/_tree.py",
+      "line": 1468,
+      "kind": "call",
+      "name": "super().notify_style_update"
+    }
+  ],
+  "original_owner_source": "def _register(\n        self,\n        parent: DOMNode,\n        *widgets: Widget,\n        before: int | None = None,\n        after: int | None = None,\n        cache: dict[tuple, RulesMap] | None = None,\n    ) -> list[Widget]:\n        \"\"\"Register widget(s) so they may receive events.\n\n        Args:\n            parent: Parent node.\n            *widgets: The widget(s) to register.\n            before: A location to mount before.\n            after: A location to mount after.\n            cache: Optional rules map cache.\n\n        Returns:\n            List of modified widgets.\n        \"\"\"\n\n        if not widgets:\n            return []\n\n        if cache is None:\n            cache = {}\n        widget_list: Iterable[Widget]\n        if before is not None or after is not None:\n            # There's a before or after, which means there's going to be an\n            # insertion, so make it easier to get the new things in the\n            # correct order.\n            widget_list = reversed(widgets)\n        else:\n            widget_list = widgets\n\n        apply_stylesheet = self.stylesheet.apply\n        new_widgets: list[Widget] = []\n        add_new_widget = new_widgets.append\n        for widget in widget_list:\n            widget._closing = False\n            widget._closed = False\n            widget._pruning = False\n            if not isinstance(widget, Widget):\n                raise AppError(f\"Can't register {widget!r}; expected a Widget instance\")\n            if widget not in self._registry:\n                add_new_widget(widget)\n                self._register_child(parent, widget, before, after)\n                if widget._nodes:\n                    self._register(widget, *widget._nodes, cache=cache)\n        for widget in new_widgets:\n            apply_stylesheet(widget, cache=cache)\n            # Initial styles precede Mount; constructor edits must not call\n            # subclass hooks on an incomplete widget. Registration publishes\n            # the completed style once before its message task starts.\n            if not widget._is_mounted:\n                widget.notify_style_update()\n            widget._start_messages()\n\n        if not self._running:\n            # If the app is not running, prevent awaiting of the widget tasks\n            return []\n\n        return list(widgets)",
+  "limit": "AST source names do not prove dynamic dispatch. App inherited hooks/registration, Styles mutation, DOM damage, and all three entrypoint kinds read semantically."
+}

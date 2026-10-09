@@ -1,0 +1,383 @@
+[
+  {
+    "repo": "/home/ts/wt/textual-native-subtree-strips-20261002",
+    "head": "7ccfcf6af55ac6e743220aa0d2286b9763ccee27",
+    "modules": 249,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 764,
+        "declaration": "visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 781,
+        "declaration": "_paint_regions"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1140,
+        "declaration": "layers"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1150,
+        "declaration": "layers_visible"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1397,
+        "declaration": "_using_geometry"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1412,
+        "declaration": "cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1444,
+        "declaration": "_get_renders"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1652,
+        "declaration": "_render_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 401,
+        "reference": "self.cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 409,
+        "reference": "self.cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1254,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1290,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1422,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1561,
+        "reference": "self._render_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1592,
+        "reference": "self._render_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1595,
+        "reference": "self.cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1608,
+        "reference": "self._render_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1645,
+        "reference": "self._paint_regions"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1717,
+        "reference": "self._get_renders"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1760,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 777,
+        "reference": "self._paint_regions"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1218,
+        "reference": "self.layers_visible"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1219,
+        "reference": "self.layers_visible"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1235,
+        "reference": "self.layers_visible"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1236,
+        "reference": "self.layers_visible"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1562,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1562,
+        "reference": "self.cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1593,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1593,
+        "reference": "self.cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1609,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1609,
+        "reference": "self.cuts"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1647,
+        "reference": "self._using_geometry"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1648,
+        "reference": "self._render_chops"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1166,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1761,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 956,
+        "reference": "type(widget).layers"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 956,
+        "reference": "Widget.layers"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 854,
+        "reference": "widget.styles.layers"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 1754,
+        "reference": "self.visible_widgets"
+      },
+      {
+        "path": "src/textual/_compositor.py",
+        "line": 963,
+        "reference": "widget.layers"
+      },
+      {
+        "path": "src/textual/css/styles.py",
+        "line": 1232,
+        "reference": "self.layers"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 360,
+        "declaration": "layers"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 389,
+        "reference": "self._compositor.visible_widgets"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 2265,
+        "reference": "self._compositor.visible_widgets"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 2283,
+        "reference": "self._compositor.visible_widgets"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 371,
+        "reference": "super().layers"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1414,
+        "reference": "self._compositor.layers"
+      },
+      {
+        "path": "src/textual/screen.py",
+        "line": 1376,
+        "reference": "self._compositor.layers"
+      },
+      {
+        "path": "src/textual/selection.py",
+        "line": 335,
+        "reference": "screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2811,
+        "declaration": "layers"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4043,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 2822,
+        "reference": "node.styles.layers"
+      },
+      {
+        "path": "src/textual/widget.py",
+        "line": 4067,
+        "reference": "self.screen._compositor.visible_widgets"
+      }
+    ]
+  },
+  {
+    "repo": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001",
+    "head": "0b523bde608b416a57bf1fe0cbf0510240574af0",
+    "modules": 288,
+    "omissions": [],
+    "sites": [
+      {
+        "path": "src/toad/goal_interaction.py",
+        "line": 214,
+        "reference": "view.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 158,
+        "reference": "self.view.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/mounted_message_history.py",
+        "line": 249,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/sidebar_projection.py",
+        "line": 40,
+        "reference": "self.sidebar.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 186,
+        "reference": "owner.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/transcript_filter.py",
+        "line": 128,
+        "reference": "snapshot.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/committed_presentation.py",
+        "line": 296,
+        "reference": "view.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 316,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/conversation.py",
+        "line": 172,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/goal_bar.py",
+        "line": 54,
+        "reference": "screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/history_anchor.py",
+        "line": 246,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/recovery_view.py",
+        "line": 112,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/thread_comms.py",
+        "line": 366,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/throbber.py",
+        "line": 132,
+        "reference": "screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/tool_call.py",
+        "line": 235,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 521,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/transcript_history.py",
+        "line": 757,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 744,
+        "reference": "self.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 884,
+        "reference": "self.window.screen._compositor.visible_widgets"
+      },
+      {
+        "path": "src/toad/widgets/viewport_body.py",
+        "line": 1025,
+        "reference": "screen._compositor.visible_widgets"
+      }
+    ]
+  }
+]

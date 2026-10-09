@@ -1,0 +1,153 @@
+{
+  "qualification": "READY scoped native geometry family; joined installed319/24 gate; not smooth scrolling or whole CPU closure",
+  "installed": {
+    "core": "155b00076312626e025861efc3ed14549adca5c0",
+    "toad": "222b8d320baa96c2c3db5cc1416a641fc998b72a",
+    "textual": "276e2ec8cfe8cce26d2d91b57fa685a0c9f3d0d0",
+    "sdk": "0.12.1",
+    "native": "5184",
+    "source_proof": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/.artifacts/staging-native-current-geometry319-20261002/source-proof.json",
+    "source_proof_sha256": "d074b1e8e9760b3e0ce2e78a57a9e4121c5f928ed730fbcbf40da2e73c8d5ae5"
+  },
+  "candidate_selection": "AGENT_COMMS_RUNTIME_ROOT",
+  "raw": "/home/ts/.cache/agent-scratch/native-current-body-geometry319-public-20261002-01/capture",
+  "qualified319_receipt": "/home/ts/wt/toad-viewport-raster-cpu-continuation-20261001/evidence/retained-body-E/current-geometry319-public-qualified.json",
+  "duration_seconds": 106.15330082498258,
+  "completed": true,
+  "capture_returncode": 255,
+  "input_checks": {
+    "checks": {
+      "input_remains_focused": true,
+      "original_editor_window_and_mode": true,
+      "draft_and_caret_preserved": true,
+      "input_pageup_moves_history": true,
+      "input_pagedown_moves_history": true,
+      "input_pageup_reaches_original_window": true,
+      "input_pagedown_reaches_original_window": true
+    },
+    "native_checks_passed": true,
+    "scope": "Installed canonical input paging only; not smooth-scroll or frozen-frame acceptance",
+    "physical_assessment": "unreviewed; inspect the busy video and correlated profile"
+  },
+  "runtime_unchanged": true,
+  "original_before": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3803280,
+      "start_time": 41311865
+    },
+    "original_owner_alive": true
+  },
+  "original_after": {
+    "root": "/var/tmp/agent-comms-live-20260927-wzjtqhza",
+    "mode": "existing_thread",
+    "name": "nra-architecture",
+    "identity": {
+      "pid": 3803280,
+      "start_time": 41311865
+    },
+    "original_owner_alive": true
+  },
+  "cleanup": {
+    "remaining_owned_pids": [],
+    "errors": [],
+    "candidate_prefix_process_scan": []
+  },
+  "resources": [
+    {
+      "phase": "phase-input-mid-history-idle-done-state.json",
+      "states": {
+        "RenderedBody": 39,
+        "LiveBody": 7
+      },
+      "rendered_all_ready": true,
+      "retained_paint_bytes": 255365,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "scroll_y": 101,
+      "maximum": 228,
+      "follows_tail": false
+    },
+    {
+      "phase": "phase-mid-history-idle-done-state.json",
+      "states": {
+        "LiveBody": 20,
+        "RenderedBody": 4
+      },
+      "rendered_all_ready": true,
+      "retained_paint_bytes": 215604,
+      "pending": true,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "scroll_y": 104,
+      "maximum": 270,
+      "follows_tail": false
+    },
+    {
+      "phase": "phase-end-done-state.json",
+      "states": {
+        "LiveBody": 4,
+        "RenderedBody": 18
+      },
+      "rendered_all_ready": true,
+      "retained_paint_bytes": 109520,
+      "pending": false,
+      "reconciling": false,
+      "visible_dormant": 0,
+      "scroll_y": 128,
+      "maximum": 128,
+      "follows_tail": true
+    }
+  ],
+  "profile": {
+    "samples": 1472,
+    "reported_errors": 1,
+    "sampling_quality": "partial; inspect errors and missing thread intervals",
+    "alignment_nominal_uncertainty_seconds": 0.06366390801034869
+  },
+  "comparison": {
+    "baseline_raw": "/home/ts/.cache/agent-scratch/native-retained-body-E-feedback-native6-public-20261002-03/capture",
+    "marked_ui_up_cpu": [
+      91.16,
+      78.88
+    ],
+    "native_input_up_writer_median_ms": [
+      44.725282,
+      38.2447615
+    ],
+    "native_input_up_writer_p95_ms": [
+      194.820233,
+      236.990023
+    ],
+    "native_reverse_writer_median_ms": [
+      50.0856825,
+      31.985534
+    ],
+    "native_reverse_writer_p95_ms": [
+      218.918943,
+      208.455453
+    ],
+    "limit": "Different marked/key-processing lengths, keycounts, state export costs, workload andCorepin. Observed lower CPU/medians do not establish a controlled causal overall gain; Up p95 worsened."
+  },
+  "raw_sha256": {
+    "receipt.json": "0a89fe0eba1334d7b9ad362f74697eb39a122c0d9bd23735734f46fb79919438",
+    "events.jsonl": "056d183b64e588cde92da0a5c42196fa7ed0ce37a8dd96247d919cded602a5e0",
+    "scroll-travel.jsonl": "9e4ca482cab059ef49901708c3af53abca17cfb206042bd75c3070823edff0c0",
+    "frame-delivery.json": "665ab07dc8f60fbf6942eea7bacb00c085506303cfaf475ad19bdcaa8ec1ed60",
+    "terminal.mp4": "a01b711db591c789144f1e37813fb6f5698e648043053e58505027eb325fa69e"
+  },
+  "physical_review": "Directly viewed input-held-up-done, input-mid-history-idle-done and after.png: body+chrome readable; final native scroll128=max128 and no pending/reconciling/visible-dormant bodies. Heis watched busy motion and records remaining sparse/discrete frames.",
+  "remaining_native_paths": [
+    "Early on_mount/register/request eager worker retirement may query root before viewport layout supplies geometry.",
+    "Subtree strip renderer -> StylesCache -> descendant region -> find_widget may still need full scene despite targeted body root."
+  ],
+  "limits": [
+    "Original capture process returncode255 preserved; recorder completed with no cleanup errors.",
+    "1472 profile samples with1 reported sampling error; observed changed stack groups are not calls, durations or CPU attribution.",
+    "Whole-phase kernel intervals include settling/export and differ from E03; Up p95 worsened; no controlled causal or overall smoothness claim.",
+    "No new capture, provider input, original owner restart or public/default activation by contributor."
+  ]
+}

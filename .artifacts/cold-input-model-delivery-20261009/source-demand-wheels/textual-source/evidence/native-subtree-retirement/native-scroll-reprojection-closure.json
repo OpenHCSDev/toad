@@ -1,0 +1,19 @@
+{
+  "scope": "Actual native scroll/reprojection counter; no installed Toad/CPU readiness claim",
+  "scroll_before": 0.0,
+  "scroll_after": 20,
+  "same_resource": true,
+  "native_body_epoch_unchanged": true,
+  "changed_key_positions": [],
+  "changed_key_values": [],
+  "scene_checks": [
+    "PageDown reveals previously clipped descendants",
+    "Reverse restores nested clip",
+    "End clips final descendants",
+    "Repeated PageDown at bottom",
+    "Resize invalidates intrinsic dimensions",
+    "Native content mutation invalidates resource",
+    "Screen-dependent placement retains original coordinates"
+  ],
+  "result": "PASS"
+}

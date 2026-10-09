@@ -1,0 +1,9 @@
+# Full-damage geometry comparison
+
+Compositor owns committed geometry and pending paint damage. Reflow, visible reflow and full-map acquisition commit the new placements before _damage_geometry. When the original damage set already contains the current full-screen rectangle, the old method disabled all additions but still compared every new placement. Those comparison results supplied no resize, placement or damage output. Return after the same original owner.check_idle instead; partial damage still retains both old/current clipped rectangles and removed placements. The renderer continues to exclude held cells from full damage and retain those cells until release.
+
+Source evidence parses 249 production modules before and after, zero omissions; one declaration and the same three consumers. No ancestry index, cached geometry, root-bounds shortcut, state or callback owner change. Arbitrary external dynamic callers are not resolved by lexical AST.
+
+The changed existing control commits real geometry under full damage while holding a mounted subtree. It checks exact damage retention, original placements/hits, excluded cut cells, unrelated paint, quiet held callbacks and release. PASS/.39s. First assertion incorrectly used Screen._refresh_layout, which also paints before returning; that valid publication consumed the full-screen region. A correction initially landed at the wrong method call, leaving the selected test unchanged; both refusals remain. The final control calls the existing Compositor.reflow before the original partial publisher; no assertion was relaxed.
+
+One original source sidebar App PASS/empty stderr, 508 widgets/10 tabs/no provider. Left/right first-display medians38.2/39.1ms and tails vary; no reliable overall speedup, installed, live or terminal-pixel claim. Prior CSS controls were not repeated. RESULT.json binds the actual source and original logs/profiles. New source result remains separate from the completed live cohort.
