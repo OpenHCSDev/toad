@@ -23,3 +23,15 @@ Re-measured on 2026-10-09 with the frame meter fixed (input records had been key
 | 2026-10-09 | Published: the five default commands now point at `~/.local/share/agent-comms/runtimes/toad-lines-9eb0042` (Toad 9eb0042, Textual 66e91ec, Core 1a45); measured through the default `toad` | 2.9 | 9.8 | 7.7 | 27.9 | 0/0 | Same as the line above. Frame p99 20.2 ms, input-to-paint p99 40.1 ms: the target is now p99 at or under 16 ms. |
 | 2026-10-09 | Line blocks become frontend-neutral (roles, no Rich styles; `toad/line_blocks.py`); strips built once per fragment; pages read their own laid-out width instead of `size` (which forced `reflow_visible` in the lookahead). Two runs; frame p99 16.5 and 19.4 ms | 2.9 | 8.8 / 10.0 | 7.7 | 22.7 / 36.4 | see commit | Same screens. Input-to-paint p99 43 and 63 ms. |
 | 2026-10-09 | Live tail drawn as lines (LineMarkdown); body machinery, old Markdown widgets and frame hooks deleted. Back to back with the line above on a quiet bus, two runs each: frame p99 18.8 / 19.4 ms against 17.8 / 18.9 ms | 3.0 | 12.5 / 12.7 | — | 14.2 / 28.0 | +329/−3735 | Same screens. Frame p95 is about 3 ms worse in both runs; input-to-paint p99 22 / 44 ms against 31 / 51 ms. Merged because p99 holds; the p95 cost is next. |
+
+From here every run sends a real `#openhcs` message asking agents to reply tersely, so agent replies stream in while the scenario scrolls (Tristan, 2026-10-09: smooth must hold during channel traffic). Single runs under live load vary by about 5 ms of frame p99 with the number of agents replying.
+
+| Date | Change | Frame p95 (ms) | Frame p99 (ms) | Input-to-paint p95 (ms) | Input-to-paint p99 (ms) | What the run showed |
+|---|---|---|---|---|---|---|
+| 2026-10-09 | Under load, before this series (Toad c4752c0-era, Core b1e6ec85 without per-path caches) | 15.4 | 31.2 | 43.6 | 57.4 | 4.4% of frames over 16 ms; 25% of slow-frame time was the UI thread waiting for the GIL behind executor threads decoding the registry. |
+| 2026-10-09 | Registry decoded once per revision per process (Core b1e6ec85); LineMarkdown lays out only when its height changes | 11.5 | 21.5 | 45.4 | 82.0 | Layout requests during streaming fell to about 170 per 45 s. |
+| 2026-10-09 | Turn consumers notified only on an actual owner change | 12.6 | 27.8 | 39.6 | 59.9 | Binding refreshes 754 → 27 per 45 s; p99 within load noise. |
+| 2026-10-09 | Reader-position fallbacks replaced with declared layout placement | 12.9 | 25.5 | 20.9 | 27.2 | Input-to-paint roughly halved: off-screen offsets no longer rebuild the compositor map. |
+| 2026-10-09 | Startup heap frozen after the application starts | 11.6 | 22.7 | 20.1 | 33.9 | Worst collector pause 105 → 13 ms; collections scan 299k instead of 519k objects. |
+| 2026-10-09 | Persistent renderer and dead definitions deleted (behaviour-neutral) | 10.1 | 21.8 | 20.5 | 29.5 | No crash. |
+| 2026-10-09 | Core with fallbacks removed and named WireRevision; activity log read state shared per file (Core f74c82b) | 9.0 | 19.5 | 19.8 | 26.3 | 44 of 3,086 frames over 16 ms (1.4%). The remaining stall sample is the prompt-send lock on the UI thread (being moved into Core). |
