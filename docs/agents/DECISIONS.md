@@ -162,3 +162,25 @@ It runs the fixed scenario with no crashes. Measured frame p99 was 22.6 ms again
 - **Comms logic belongs in Core** (Tristan). Toad asks Core: `WireRevision.registrations_changed_since` drives view retirement. Prompt-send admission (`acp/maintenance_ingress.py`) is moving into Core with an API that does not block the UI thread.
 - **Thread deletion** is `agent-comms delete` on Core branch `feat/thread-delete`. Every per-thread store declares its removal, and append-only logs get a deletion record, never a rewrite. Hold further live deletes until a runtime that understands that record is installed.
 - **Open live defect, not caused here:** `openhcs-audit-merged-boundaries` and `openhcs-audit-merged-models` have stopped inbox drains ("Selected source requires reviewed raw-history coverage floor"; diagnostics under the live root's `diagnostics/drain-*.json`). This belongs to the compaction owner.
+
+## 2026-10-09: Stopped. Frame p99 under load is not converging; what I learned
+
+Two consecutive increments (the throbber at 15 fps; fixed-size status lines) cut real work, about half the frames and about 35% of the layouts, without reducing slow frames. Under `#openhcs` load the fixed scenario still has about 65 frames over 16 ms per 45 s. Following the goal's rule, I stopped here.
+
+**What the measurements show**
+- **Bursts, not load.** The UI thread is busy only about 8.8 of 40 s under load (py-spy). Slow frames are bursts: everything queued since the last paint runs before the next one.
+- **What a typical slow frame contains** (about 21.5 ms):
+  - painting, about 4.4 ms;
+  - the footer, about 3.5 ms when bindings change;
+  - conversation and ACP message handling, about 3.5 ms;
+  - waiting for the GIL, about 1.4 ms;
+  - many sub-millisecond callbacks.
+- **No single owner dominates any more.** The stall sampler (8 ms threshold) finds no Toad stack repeating.
+- **Full-screen layout is the largest Toad-reachable cost:** `WorkspaceScreen._refresh_layout` is about 1.8 s of the 8.8 s. Textual can only lay out the whole screen, so each content-size change re-arranges everything.
+- **Per-frame percentiles are a misleading target.** They change with the frame mix: removing about 1,250 nearly empty animation frames raised p95/p99 while total work fell and input-to-paint improved. Use the count of frames over 16 ms per minute of the fixed scenario, or the UI thread's busy time per 16.7 ms wall-clock window. Those do not move when cheap frames are added or removed.
+
+**What I would change next, in order of expected effect**
+1. **Measure jank as the count of over-16 ms stalls per minute under load,** reported next to input-to-paint. The goal's p99 should be stated in those terms.
+2. **Incremental layout in the Textual fork.** When a widget's outer size is fixed (the window, a sidebar row, the status lines), a change inside it re-arranges only that subtree, not the screen. This is a compositor change in the fork with real risk, and it is the structural cut for about 20% of UI CPU.
+3. **Move Core reads out of Toad's process** (a Core read service in a worker process, like the render workers), so background Core work stops competing with the UI thread for the GIL.
+4. **Footer:** rebuild only the keys that changed instead of remounting the footer when bindings change.
