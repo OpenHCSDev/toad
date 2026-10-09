@@ -81,7 +81,7 @@ else
     measure=(--frame-meter "$meter_seconds")
 fi
 python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
-    "${measure[@]}" --sudo > "$out/capture.log" 2>&1 &
+    "${measure[@]}" ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} --sudo > "$out/capture.log" 2>&1 &
 capture=$!
 sleep 2
 # Optional load: a real channel message whose replies arrive during the scenario.

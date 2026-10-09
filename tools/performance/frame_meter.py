@@ -308,6 +308,53 @@ def profile_layout(*, expected_pid, output, calls=40):
     Screen._refresh_layout = profiled
 
 
+def trace_calls(*, expected_pid, output, targets, seconds=60):
+    """Time each call of the named methods ("module:Class.method", sync or async)."""
+    import asyncio
+    import functools
+    import importlib
+    import inspect
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    calls, restore = [], []
+    for target in targets:
+        module_name, _, path = target.partition(":")
+        owner = importlib.import_module(module_name)
+        *parents, name = path.split(".")
+        for parent in parents:
+            owner = getattr(owner, parent)
+        original = getattr(owner, name)
+        if inspect.iscoroutinefunction(original):
+            @functools.wraps(original)
+            async def timed(*args, __original=original, __target=target, **kwargs):
+                begin = time.monotonic_ns()
+                try:
+                    return await __original(*args, **kwargs)
+                finally:
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6))
+        else:
+            @functools.wraps(original)
+            def timed(*args, __original=original, __target=target, **kwargs):
+                begin = time.monotonic_ns()
+                try:
+                    return __original(*args, **kwargs)
+                finally:
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6))
+        setattr(owner, name, timed)
+        restore.append((owner, name, original))
+
+    def finish():
+        for owner, name, original in restore:
+            setattr(owner, name, original)
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(calls, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(seconds, finish)
+
+
 def percentile(values, fraction):
     ordered = sorted(values)
     return ordered[min(len(ordered) - 1, int(fraction * len(ordered)))] if ordered else float("nan")
