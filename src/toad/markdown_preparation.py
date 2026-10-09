@@ -9,14 +9,11 @@ from functools import cached_property
 from hashlib import sha256
 import pickle
 from sys import getsizeof
-from typing import TYPE_CHECKING
 
 from markdown_it.token import Token
 from textual.content import Content
 from textual.widgets._markdown import MarkdownBlock, MarkdownFence
 
-if TYPE_CHECKING:
-    from textual.document._markdown import MarkdownDocument
 
 
 FenceKey = tuple[str, str, bool, bool]

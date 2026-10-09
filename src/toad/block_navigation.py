@@ -3,14 +3,11 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
 from toad.block_content import BlockContent
 
-if TYPE_CHECKING:
-    from textual.document._markdown import MarkdownSourceBlock
 
 
 class CursorDirection(DeclaredFamily, affix="Cursor"):
@@ -42,7 +39,7 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
 
     @property
     @abstractmethod
-    def selected(self) -> Widget | MarkdownSourceBlock | None: ...
+    def selected(self) -> Widget | None: ...
 
     @abstractmethod
     def enter(self, direction: CursorDirection) -> bool: ...
