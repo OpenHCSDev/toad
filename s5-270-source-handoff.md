@@ -1,0 +1,9 @@
+## Additional S5 queue-owner closure; changed installed gate pending
+
+Paired source published: Core `104d6039` (production identical to `a83a23533ddb6564d4c2c277329ea6974aa8db9b`) and receiving Toad `25d8e60207c457cc480dff6ed1c5cf1e0fa77193`, normally integrated main271 `54692047`. No package/default mutation. Original270 pyproject/uv.lock bytes are preserved intentionally; Mendel owns the final coherent metadata and sole immutable build.
+
+Original QueueProjection members now own availability before any scope acquisition: Pending/Unavailable refuse without invoking the original scope acquirer; Available captures via original QueueScope.admission after the QueueAttachment's shared freshness relation. Malformed Available+Null is validated once at QueueChangedUpdate's original record boundary. Controller's foreign absent-scope branch/direct HumanInputOrigin capture are deleted. No copied origin state, new registry, mutable field, wire field, native change or fallback reader.
+
+Source evidence: prior21 controls plus two affected decoder/prebind/replacement checks pass; latest targeted pair 0.99s. These are source feedback, not installed readiness. Existing continuous39 runner's receiving-only case provides one real editor input plus original active-turn followup on SDK/native/ACP/Toad, two localhost POSTs and no repeated compaction. It waits for parent reviewed paired-build grant.
+
+Exact declaration/caller/serialization/lifecycle receipt: Core `evidence/turn-context-phase1-20261001/queue-human-producer-owner60.json`. Full receiving delta vs main546: Controller9+/1-, QueueAttachment18+/4-; Core acp_extension22+/2-. Frozen49 actual native/ACP/manual commit and later51 provider-free controls retain their original source pins and explicit continuous49 failure; black exported SVG is not readable physical acceptance.
