@@ -207,3 +207,31 @@ No owner left in Toad is worth more than a few milliseconds. The UI thread is bu
 1. **Restate the target as stutter rate,** for example frames over 16 ms per minute of the loaded scenario, with input-to-paint. Today's per-frame p99 moves when cheap frames are added or removed.
 2. **Take Core work out of Toad's process:** a Core read service in a worker process, as with rendering. This removes the GIL competition (11–18% of slow-frame time) and the executor threads' interleaving with UI callbacks.
 3. **Coalesce the per-update fan-out:** one coordination observation currently triggers sidebar, activity, goal bar, footer, session details and conversation work separately. A single per-frame presentation pass driven by Core's revision would turn many small callbacks into one bounded step per frame.
+
+## 2026-10-09: Decompose comms semantics out of Toad (Tristan)
+
+**Targets:**
+- Worst frame at or under 16 ms in the loaded scenario; measure it as the worst frame plus the counts over 16, 33 and 50 ms.
+- Toad becomes generic UI infrastructure, with comms UI semantics behind an interface a future PyQt reactive backend can implement.
+
+**OpenHCS precedent** (`external/ObjectState`, `external/pyqt-reactive`, `python_introspect`, `metaclass_registry`):
+- `ObjectState` owns state, independently of windows.
+- Views subscribe to changed dotted paths and flush once per event-loop turn.
+- Forms are derived from declarations.
+- Paint is derived from time.
+- Packages split by what they know.
+
+Not copied: pyqt_reactive's string action tables (`ACTION_REGISTRY`, `BUTTON_CONFIGS`); actions stay declared families.
+
+**Layers:**
+1. **Core (`agent_comms`):** comms meaning, plus revisions answering what changed.
+2. **`comms_ui`:** a new package in the agent-comms repo with no Textual or Qt imports. It holds typed presentation state per scope (thread, channel, session tab, sidebar, goal, queue), updated from Core revisions as changed-path sets, with per-path subscriptions and one flush per frame. Actions and forms come from Core's declarations.
+3. **Backends:** Textual (Toad: line rendering, history window, prompt, tabs, frame budget) and later PyQt.
+4. **Shared generic library:** `declared_family`, `mro_dispatch`, `field_codec`, reusing `metaclass-registry` and `python-introspect` where they cover the same meaning.
+
+**Order:** vertical slices, each measured in the real app and each deleting Toad's old path in the same change.
+1. Sidebar.
+2. Status bars (session details, goal bar, footer, queue).
+3. Conversation and transcript.
+4. Core reads in a worker process feeding `comms_ui`.
+5. Forms from declarations (goal edit, fork, settings, thread actions).
