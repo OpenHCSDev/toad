@@ -651,7 +651,7 @@ class MaterializingBody(BodyMeasurement):
         # width/style invalidation during this await cannot expose partial rows.
         from toad.screens.workspace import WorkspaceScreen
 
-        if self.rows > 0 and self.publishing and isinstance(body.screen, WorkspaceScreen):
+        if self.publishing and isinstance(body.screen, WorkspaceScreen):
             async with body.screen.viewport_presentation.batch(body, native_batch):
                 yield
             return
