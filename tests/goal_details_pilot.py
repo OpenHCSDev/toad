@@ -1,6 +1,6 @@
 """Long objectives and progress remain readable without disturbing the composer."""
 
-from toad.goal_display import GoalDisplay
+from agent_comms.ui_model.goal import GoalDisplay
 
 import asyncio
 import os

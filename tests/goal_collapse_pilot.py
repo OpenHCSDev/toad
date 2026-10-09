@@ -1,6 +1,6 @@
 """Goal collapse is local presentation; history and owner updates remain usable."""
 
-from toad.goal_display import GoalDisplay, GoalUnavailable
+from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
 
 import asyncio
 import os

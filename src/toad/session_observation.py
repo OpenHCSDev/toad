@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from weakref import ref
 
-from toad.goal_display import GoalDisplay, GoalUnavailable
+from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
 
 
 class SessionObservation(ABC):

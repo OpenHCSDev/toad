@@ -19,7 +19,7 @@ async def declared_case():
     from agent_comms.goals import Goal
     from agent_comms.goal_actions import PausedGoalAction
     from toad.app import ToadApp
-    from toad.goal_display import GoalDisplay
+    from agent_comms.ui_model.goal import GoalDisplay
     from toad.goal_interaction import GoalInteraction, GoalSession
     from toad.widgets.goal_bar import GoalBar, GoalControl
 
