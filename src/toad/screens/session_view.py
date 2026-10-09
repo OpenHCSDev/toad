@@ -165,6 +165,12 @@ class SessionView(SidebarFocusOwner, Screen):
             # screen after ending the transaction, including error paths.
             self._repaint_required = True
             return
+        if self._navigation_frame_pending and self._first_frame_presented:
+            for window in self.body_windows:
+                if not window.document_viewport.visible_bodies_ready:
+                    window.document_viewport.request()
+                    self._repaint_required = True
+                    return
         super()._compositor_refresh()
 
     def present_navigation(self) -> None:
@@ -203,12 +209,6 @@ class SessionView(SidebarFocusOwner, Screen):
             for window in tracked
             if window.history_anchor is not None and window.history_anchor.widget.is_attached
         ]
-        if not anchors:
-            super()._refresh_layout(size, scroll)
-            for window in tracked:
-                if window.history_layout_ready is not None:
-                    window.history_layout_ready.set()
-            return
         # Screen normally paints from inside _refresh_layout. Do not expose the
         # prepend/eviction coordinates before compensating for their height.
         with self.app.batch_update():
@@ -221,8 +221,12 @@ class SessionView(SidebarFocusOwner, Screen):
                 position.restore(window)
                 window.history_anchor = HistoryAnchor.capture(position.widget, window)
                 changed |= window.scroll_y != previous
-            if changed:
-                super()._refresh_layout(size, scroll=True)
+            follow_changed = False
+            if self.is_current:
+                for window in self.body_windows:
+                    follow_changed |= window.commit_follow()
+            if changed or follow_changed:
+                super()._refresh_layout(size, scroll=not follow_changed)
             for window in tracked:
                 if window.history_layout_ready is not None:
                     window.history_layout_ready.set()
@@ -320,6 +324,14 @@ class SessionView(SidebarFocusOwner, Screen):
                 self._refresh_layout(self.app.size, scroll=True)
         # The native resize handlers and sidebar hydration complete normally
         # after the shell is presented, rather than holding a global paint mask.
+        # Deliver the measured resize to the retained widgets while the caller
+        # still owns the navigation paint transaction. Their size watchers may
+        # change the tail geometry; commit that invalidation before first paint.
+        resized = asyncio.Event()
+        self.call_later(resized.set)
+        await resized.wait()
+        if self._layout_required or self._layout_widgets or self._scroll_required:
+            self._refresh_layout(self.app.size)
         self._layout_required = False
         self._scroll_required = False
         self._dirty_widgets.clear()

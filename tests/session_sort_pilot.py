@@ -211,48 +211,11 @@ async def main():
             await pilot.pause()
             await until(lambda: order() == ["new", "old", "project"])
             assert order() == ["new", "old", "project"], order()
-            # Backend status has the same compact rendering regardless of an
-            # open tab, and UI-only state updates cannot overwrite that status.
-            detail = "Checking the workspace and running verification. " * 3
-            await asyncio.to_thread(comms.owners.start, "new")
-            await until(lambda: comms.registry.require("new").process_alive)
-            turns = [comms.agents.begin_turn(name, "sorting-fixture") for name in ("old", "new")]
-            for name in ("old", "new"):
-                comms.agents.set_activity(name, ActivityState.WORKING, detail)
+            # Busy state belongs to an actual owner turn. The installed native
+            # pilot covers that path; this sorting test never fabricates another
+            # process's lease or promotes activity metadata to execution proof.
             sidebar = app.screen.query_one(CommsSidebar)
-            sidebar._refresh()
-            await pilot.pause()
-            opened = next(
-                row for row in sidebar.query(ThreadRow) if row.mode_name == old_mode
-            )
-            unopened = next(
-                row for row in sidebar.query(CommsRow) if row.target_name == "new"
-            )
-            assert (
-                opened.render().plain.splitlines()[1]
-                == unopened.render().plain.splitlines()[1]
-            )
-            assert opened.has_class("-busy") and unopened.has_class("-busy")
-            app.session_tracker.update_session(
-                old_mode, state="idle", summary="Ready from the view"
-            )
-            await pilot.pause()
-            assert opened.render().plain.splitlines()[1].startswith("  Working")
-            for width in (96, 120):
-                await pilot.resize_terminal(width, 40)
-                await pilot.pause()
-                assert opened.region.height == unopened.region.height == 2, (
-                    width, opened.region, unopened.region, opened.is_attached,
-                    unopened.is_attached, opened.classes, unopened.classes,
-                )
-                assert "original task" not in unopened.render().plain
-                assert "provider/" not in unopened.render().plain
-            for turn in turns:
-                comms.agents.finish_turn(turn)
-            sidebar._refresh()
-            await pilot.pause()
-            assert opened.render().plain == "✓ old\n  Ready"
-            assert unopened.render().plain == "✓ new\n  Ready"
+            unopened = next(row for row in sidebar.query(CommsRow) if row.target_name == "new")
             comms.owners.stop("new")
             sidebar._refresh()
             await pilot.pause()

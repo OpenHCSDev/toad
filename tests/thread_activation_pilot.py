@@ -33,6 +33,11 @@ class FrameApp(ToadApp):
                     strip.text[region.x:region.right]
                     for strip in screen._compositor.render_strips()[region.y:region.bottom]
                 )
+                if not self.frames:
+                    import traceback
+                    print("ACTIVATION", screen._navigation_frame_pending, screen._first_frame_presented,
+                          [(type(body).__name__, body.body_ready, body.body_dormant) for body in window.document_viewport.owners], flush=True)
+                    traceback.print_stack(limit=7)
                 self.frames.append((self.current_mode, window.scroll_y, window.max_scroll_y, text))
         return super()._display(screen, renderable)
 
