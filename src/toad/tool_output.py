@@ -29,6 +29,7 @@ from toad.widgets.tool_content import (
 )
 from toad.widgets.worker_static import WorkerStatic
 from toad.rich_preparation import AnsiContentSource, ContentSource, NativeContentSource
+from toad.markdown_preparation import PreparedContentRange, PreparedMarkdown
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -43,6 +44,12 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     def admit(self) -> ToolOutputPart:
         """Borrow immutable source; mutable preparation belongs to its view."""
         return self
+
+    def retain_source(self):
+        pass
+
+    def resolved_sources(self):
+        return ()
 
     @abstractmethod
     def compose(self, view: Widget) -> tuple[Widget, ...]: ...
@@ -145,6 +152,14 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
 
 
 class MarkdownToolOutputPart(SpecificTextToolOutputPart):
+    def __init__(self, text):
+        super().__init__(text)
+        self.prepared_source: PreparedMarkdown | None = None
+        self._body = None
+
+    def admit(self):
+        return type(self)(self.text)
+
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (
@@ -152,7 +167,18 @@ class MarkdownToolOutputPart(SpecificTextToolOutputPart):
         )
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
-        return (MarkdownContent(self.text),)
+        body = MarkdownContent(self.text, prepared_source=self.prepared_source)
+        self._body = ref(body)
+        return (body,)
+
+    def retain_source(self):
+        body = None if self._body is None else self._body()
+        if body is not None:
+            self.prepared_source = body.prepared_source
+        self._body = None
+
+    def resolved_sources(self):
+        return () if self.prepared_source is None else self.prepared_source.resolved_sources()
 
 
 @dataclass(frozen=True)
@@ -240,16 +266,32 @@ class PatchToolOutputPart(ToolOutputPart):
         return len(self.source), self.source.count("\n")
 
 
-@dataclass(frozen=True)
+@dataclass
 class SentMessageToolOutputPart(ToolOutputPart):
     """Render the send owner's original publication through the outgoing view."""
 
     message: SentTranscript
+    prepared_content: PreparedContentRange | None = field(default=None, compare=False, repr=False)
+    _body: object = field(default=None, compare=False, repr=False)
+
+    def admit(self):
+        return replace(self, prepared_content=None, _body=None)
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         from toad.widgets.outgoing_message import OutgoingMessage
 
-        return (OutgoingMessage(self.message),)
+        body = OutgoingMessage(self.message, prepared_content=self.prepared_content)
+        self._body = ref(body)
+        return (body,)
+
+    def retain_source(self):
+        body = None if self._body is None else self._body()
+        if body is not None:
+            self.prepared_content = body.retain_sources()
+        self._body = None
+
+    def resolved_sources(self):
+        return () if self.prepared_content is None else self.prepared_content.resolved_sources()
 
 
 @dataclass(frozen=True)
@@ -397,10 +439,15 @@ class ToolOutput:
 
     def replace(self, tool_call: schema.ToolCall, *, parts: tuple[ToolOutputPart, ...] | None = None) -> None:
         self.suppress_auto_expansion = tool_call.kind == "read"
-        parts = self.capture_parts(tool_call) if parts is None else parts
+        parts = tuple(part.admit() for part in self.capture_parts(tool_call)) if parts is None else parts
         if parts != self.parts:
             self.cancel_preparation()
-            self.parts = tuple(part.admit() for part in parts)
+            self.parts = parts
+
+    def retain_sources(self):
+        for part in self.parts:
+            part.retain_source()
+        return self.parts
 
     @property
     def has_content(self) -> bool:

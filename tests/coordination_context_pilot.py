@@ -91,7 +91,7 @@ async def main():
                        {"name": "peer-a", "status": "running", "activity": "working", "activity_detail": "Read | review"},
                        {"name": "peer-b", "status": "stopped", "activity": "idle", "activity_detail": "Done"},
                    ]) + "\n\nReview the changes.")
-            readable = await view.post(CoordinationContext(raw))
+            readable = await view.post(transcript_fragments((ContextTranscript(raw),))[0].blocks()[0])
             await pilot.pause()
             assert readable.collapsed and not readable.query(AgentResponse)
             readable.expand_block()

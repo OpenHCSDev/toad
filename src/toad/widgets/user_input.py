@@ -4,7 +4,7 @@ from toad.widgets.message_filter import UserCategory
 from textual.app import ComposeResult
 from textual import containers
 from toad.widgets.prepared_markdown import PreparedConversationMarkdown
-from toad.markdown_preparation import PreparedMarkdownPart
+from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart
 
 from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
@@ -47,10 +47,12 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
 
     def __init__(self, content: str, *, claim: CommitClaim = CAPTURED_CLAIM,
                  markdown_part: PreparedMarkdownPart | None = None,
+                 prepared_source: PreparedMarkdown | None = None,
                  show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         super().__init__()
         self.content = content
         self.markdown_part = markdown_part
+        self._source_transfer = prepared_source
         self.show_divider = show_divider
         self.clock = clock
         self.claim = claim
@@ -64,7 +66,16 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
             yield MessageDivider("User", clock=self.clock)
         with containers.HorizontalGroup(classes="user-input-body"):
             yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
-            yield PreparedConversationMarkdown(self.content, markdown_part=self.markdown_part, id="content")
+            yield PreparedConversationMarkdown(self.content, markdown_part=self.markdown_part,
+                                               prepared_source=self._source_transfer, id="content")
+
+    @property
+    def prepared_source(self):
+        body = self.query_one_optional("#content", PreparedConversationMarkdown)
+        return self._source_transfer if body is None else body.prepared_source
+
+    def retain_transcript_source(self, fragment):
+        fragment.prepared_source = self.prepared_source
 
     def get_clipboard_text(self) -> str | None:
         return self.content

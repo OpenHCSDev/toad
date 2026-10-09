@@ -2,6 +2,7 @@ from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ToolCategory
 from typing import Iterable
+from contextlib import asynccontextmanager
 
 from textual import on
 from textual import events
@@ -45,6 +46,13 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)
+
+    @asynccontextmanager
+    async def retirement_custody(self):
+        async with super().retirement_custody() as current:
+            if current:
+                self.output.retain_sources()
+            yield current
 
     def retire_body_resources(self) -> None:
         self.output.retire()

@@ -86,7 +86,9 @@ class MarkdownSyntaxRenderTask(MarkdownSourcePreparation, ReusableRenderTask[Pre
     source: str | PreparedMarkdownPart
 
     def execute(self) -> PreparedMarkdownPart:
-        return self.acquire_source()
+        part = self.acquire_source()
+        part.retained_bytes
+        return part
 
     def accept_result(self, result: object) -> PreparedMarkdownPart:
         if not isinstance(result, PreparedMarkdownPart):
@@ -113,7 +115,7 @@ class MarkdownRenderTask(MarkdownSourcePreparation, ReusableRenderTask[PreparedM
 
     def execute(self) -> PreparedMarkdown:
         part = self.acquire_source()
-        return prepare_tokens(part.acquire_tokens(), self.ansi, self.dark)
+        return prepare_tokens(part.acquire_tokens(), self.ansi, self.dark, syntax=part)
 
     def accept_result(self, result: object) -> PreparedMarkdown:
         if not isinstance(result, PreparedMarkdown):

@@ -17,18 +17,21 @@ from textual.app import ComposeResult
 from textual.widgets import Markdown
 from toad.widgets.viewport_body import ChildBody, MaterializingBody, PreparedDocumentBody
 
-from toad.widgets.prepared_markdown import PreparedContentRange, PreparedConversationMarkdown
+from toad.widgets.prepared_markdown import PreparedConversationMarkdown
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.conversation_markdown import ConversationMarkdown, _ThreadLocalPathParser
 from toad.render_tasks import MarkdownPartsTask, MarkdownRenderTask, MarkdownSyntaxRenderTask
-from toad.markdown_preparation import PreparedMarkdownPart
+from toad.markdown_preparation import PreparedContentRange, PreparedMarkdownPart
 from toad.widgets.presentation_window import PresentationBudget, protected_presentations
 
-class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConversationMarkdown):
+class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
 
     def __init__(self, markdown: str | None = None, *, paginate: bool = True,
-                 prefix: tuple[Widget, ...] = (), **kwargs) -> None:
+                 prefix: tuple[Widget, ...] = (),
+                 prepared_content: PreparedContentRange | None = None, **kwargs) -> None:
         self._paginate = paginate
+        self.prepared_content = prepared_content if prepared_content is not None else PreparedContentRange()
+        self._fragment_views = ()
         self._prefix = prefix
         super().__init__(markdown, **kwargs)
         self._stream: MarkdownStream | None = None
@@ -39,6 +42,43 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
 
     def compose(self) -> ComposeResult:
         yield from self._prefix
+        yield from self.prepared_content.compose(self)
+
+    @property
+    def fragments(self):
+        return self.prepared_content.fragments
+
+    @property
+    def start(self):
+        return self.prepared_content.start
+
+    @property
+    def stop(self):
+        return self.prepared_content.stop
+
+    @property
+    def batch_size(self):
+        return self.prepared_content.batch_size
+
+    @property
+    def fragment_views(self):
+        return self._fragment_views
+
+    def _retain_fragment_source(self, fragment, body):
+        return body.prepared_source
+
+    def retain_sources(self):
+        self.prepared_content.retain_sources(self)
+        return self.prepared_content
+
+    def retain_transcript_source(self, fragment):
+        fragment.prepared_content = self.retain_sources()
+
+    def _initialize_document(self, markdown):
+        if self.fragments:
+            self.publish_body(self.materialize_native_body).call_when_ready(self)
+            return AwaitComplete.nothing()
+        return super()._initialize_document(markdown)
 
     def live_body_measurement(self, width=0, rows=0, widgets=1):
         # Partitioned conversation syntax owns a range of original documents.
@@ -47,9 +87,11 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             return ChildBody(width, rows, widgets)
         return super().live_body_measurement(width, rows, widgets)
 
-    def _body(self, fragment: PreparedMarkdownPart) -> PreparedConversationMarkdown:
-        return PreparedConversationMarkdown(fragment.text, markdown_part=fragment,
-                                            classes="-message-fragment")
+    def _body(self, fragment, index) -> PreparedConversationMarkdown:
+        source = self.prepared_content.acquired(index)
+        return (fragment if source is None else source).body(
+            PreparedConversationMarkdown, content_owner=self.prepared_content,
+            classes="-message-fragment")
 
     @property
     def retained_source_bytes(self) -> int:
@@ -105,12 +147,20 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         for first in range(0, len(parts), self.batch_size):
             if not current():
                 return False
-            await asyncio.gather(*(self.app.render_processes.prepare(MarkdownRenderTask(
-                part, self.app.native_ansi_color, self.app.current_theme.dark,
-            )) for part in parts[first:first + self.batch_size]))
+            await asyncio.gather(*(part.prepare(self.app.render_processes, self.app.native_ansi_color,
+                                               self.app.current_theme.dark)
+                                   for part in parts[first:first + self.batch_size]))
         return current()
 
     async def materialize_native_body(self) -> None:
+        if self.partitionable_syntax and self.fragments:
+            current = lambda: self.is_attached and not self._closing
+            previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
+            await self.prepared_content.replace_range(
+                self, self.fragments, slice(self.start, self.stop), previous, current, prefix=self._prefix)
+            self._markdown = self._pending_source
+            self.loading = False
+            return
         await self._update_content(self.acquired_source(self._pending_source), "", append=False)
 
     async def materialize_interactive_body(self):
@@ -138,8 +188,13 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         super().retire_body_resources()
 
     def update(self, markdown: str) -> AwaitComplete:
+        # A whole-source request owns a fresh range even when text is equal.
+        # Existing controls keep their native lifetime, but cannot certify the
+        # new source. Append retains unchanged earlier part acquisitions.
+        self.prepared_content = self.prepared_content.independent()
         source = self._request_source(markdown, append=False)
-        return self.publish_body(partial(self._update_content, self.acquired_source(source), markdown, append=False))
+        return self.publish_body(partial(self._update_content, self.acquired_source(source), markdown,
+                                         append=False, replace_source=True))
 
     def append(self, markdown: str) -> AwaitComplete:
         source = self._request_source(markdown, append=True)
@@ -155,7 +210,8 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             return None
         return tokens
 
-    async def _update_content(self, source: str | PreparedMarkdownPart, text: str, *, append: bool) -> None:
+    async def _update_content(self, source: str | PreparedMarkdownPart, text: str, *, append: bool,
+                              replace_source: bool = False) -> None:
         if self._closing:
             return
         self._content_generation += 1
@@ -167,14 +223,14 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                     and generation == self._content_generation)
 
         try:
-            await self._publish_content(source, text, append, is_current)
+            await self._publish_content(source, text, append, is_current, replace_source=replace_source)
         except asyncio.CancelledError:
             if generation == self._content_generation:
                 self._content_generation += 1
             raise
 
     async def _publish_content(self, acquired: str | PreparedMarkdownPart, text: str, append: bool,
-                               is_current: Callable[[], bool]) -> None:
+                               is_current: Callable[[], bool], *, replace_source: bool = False) -> None:
         source = acquired.text if isinstance(acquired, PreparedMarkdownPart) else acquired
         async with self._content_lock:
             if not is_current():
@@ -188,14 +244,15 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             if self.partitionable_syntax:
                 fragments = (await self.app.render_processes.submit(MarkdownPartsTask(acquired))
                              if self._paginate else
+                             (acquired,) if isinstance(acquired, PreparedMarkdownPart) else
                              (await self.app.render_processes.submit(MarkdownSyntaxRenderTask(acquired)),))
             if not is_current():
                 return
             if not self.partitionable_syntax:
                 if self.fragments:
                     await self.remove_children(self.fragment_views)
-                    self.fragments, self._fragment_views = (), ()
-                    self.start = self.stop = 0
+                    self.prepared_content.fragments, self._fragment_views = (), ()
+                    self.prepared_content.select_admission(slice(0, 0))
                     self._needs_full_markdown_update = True
                 # Custom grammar/factory behavior belongs to this original
                 # native owner, including its block callbacks and root prefix.
@@ -214,9 +271,9 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             if self.fragments and source == self.source:
                 selected = slice(self.start, self.stop)
             elif self.fragments:
-                selected = self.update_slice(fragments, window.follows_tail)
+                selected = self.prepared_content.update_slice(fragments, window.follows_tail)
             else:
-                selected = self.initial_slice(fragments, self.batch_size, True)
+                selected = self.prepared_content.initial_slice(fragments, self.batch_size, True)
             if not await self._prepare_parts(fragments[selected], is_current):
                 return
             previous = {self.start + index: child
@@ -225,15 +282,15 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                 if not is_current():
                     return
                 if (selected.start <= index < selected.stop
-                        and child._markdown_part != fragments[index]):
-                    await child.update_part(fragments[index])
+                        and (replace_source or child._markdown_part != fragments[index])):
+                    await child.update_part(fragments[index], content_owner=self.prepared_content)
             async with window.preserve_history(None, root=self):
                 if not is_current():
                     return
                 if not self.fragments:
                     await self.remove_children(child for child in self.children if child not in self._prefix)
-                if not await self.replace_range(
-                    fragments, selected, previous, is_current, prefix=self._prefix,
+                if not await self.prepared_content.replace_range(
+                    self, fragments, selected, previous, is_current, prefix=self._prefix,
                 ):
                     return
                 self._markdown = source
@@ -278,8 +335,8 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                         and window.document_viewport.requires_body(self)
                         and (not latest or (window.follows_tail
                                             and window.document_viewport.source_tail is self)))
-            selected = (self.initial_slice(self.fragments, self.batch_size, True) if latest
-                        else self.extension_slice(older))
+            selected = (self.prepared_content.initial_slice(self.fragments, self.batch_size, True) if latest
+                        else self.prepared_content.extension_slice(older))
             if not await self._prepare_parts(self.fragments[selected], current):
                 return False
             async with window.preserve_history(None, root=self):
@@ -288,11 +345,11 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                 if latest:
                     previous = {self.start + index: child
                                 for index, child in enumerate(self.fragment_views)}
-                    if not await self.replace_range(
-                        self.fragments, selected, previous, current, prefix=self._prefix,
+                    if not await self.prepared_content.replace_range(
+                        self, self.fragments, selected, previous, current, prefix=self._prefix,
                     ):
                         return False
-                elif not await self.extend(older, current, prefix=self._prefix):
+                elif not await self.prepared_content.extend(self, older, current, prefix=self._prefix):
                     return False
                 visible = self.screen._compositor.visible_widgets
                 protected = protected_presentations(self.fragment_views, self.screen._interaction_widgets())
@@ -306,7 +363,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
                         break
                     removable += 1
                 if removable:
-                    self.trim(removable, older=not older)
+                    self.prepared_content.trim(self, removable, older=not older)
                 return True
 
     @property

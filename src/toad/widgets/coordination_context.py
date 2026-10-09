@@ -4,11 +4,15 @@ from toad.widgets.message_filter import OtherCategory
 from toad.block_navigation import ConversationBlock
 
 import asyncio
+from typing import TYPE_CHECKING
 
 from textual.widgets import Collapsible
 
 from toad.widgets.agent_response import AgentResponse
 from toad.coordination_context_format import format_coordination_context, literal_context
+
+if TYPE_CHECKING:
+    from toad.widgets.transcript_fragments import ContextTranscriptFragment
 
 
 
@@ -36,22 +40,28 @@ class ContextDisclosure(ConversationBlock, Collapsible):
 
 
 class OriginalCoordinationContext(ContextDisclosure):
-    def __init__(self, content: str) -> None:
+    def __init__(self, content: str, *, source: "ContextTranscriptFragment") -> None:
         super().__init__(content, title="Original payload")
         self._body: AgentResponse | None = None
+        self.source = source
 
     async def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
         if event.collapsible is self and self._body is None:
             self._body = AgentResponse(literal_context(self.content), show_divider=False,
-                                       category=OtherCategory)
+                                       category=OtherCategory, prepared_content=self.source.original_content)
             await self.query_one(Collapsible.Contents).mount(self._body)
+
+    def retain_transcript_source(self, fragment):
+        if self._body is not None:
+            self.source.original_content = self._body.retain_sources()
 
 
 class CoordinationContext(ContextDisclosure):
-    def __init__(self, content: str) -> None:
+    def __init__(self, content: str, *, source: "ContextTranscriptFragment") -> None:
         super().__init__(content, title="Agent coordination context")
         self._body: AgentResponse | None = None
-        self._formatted: str | None = None
+        self.source = source
+        self._original: OriginalCoordinationContext | None = None
         self._preparing = False
 
     async def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
@@ -61,14 +71,22 @@ class CoordinationContext(ContextDisclosure):
         try:
             # Neither JSON formatting nor Markdown preparation belongs in the
             # hidden transcript's paint path. Keep one lazy result per disclosure.
-            if self._formatted is None:
-                self._formatted = await asyncio.to_thread(format_coordination_context, self.content)
+            if self.source.formatted is None:
+                self.source.formatted = await asyncio.to_thread(format_coordination_context, self.content)
             if not self.is_attached or self.collapsed:
                 return
-            self._body = AgentResponse(self._formatted, show_divider=False, category=OtherCategory)
+            self._body = AgentResponse(self.source.formatted, show_divider=False, category=OtherCategory,
+                                       prepared_content=self.source.prepared_content)
             contents = self.query_one(Collapsible.Contents)
             await contents.mount(self._body)
-            if self._formatted != self.content:
-                await contents.mount(OriginalCoordinationContext(self.content))
+            if self.source.formatted != self.content:
+                self._original = OriginalCoordinationContext(self.content, source=self.source)
+                await contents.mount(self._original)
         finally:
             self._preparing = False
+
+    def retain_transcript_source(self, fragment):
+        if self._body is not None:
+            self.source.prepared_content = self._body.retain_sources()
+        if self._original is not None:
+            self._original.retain_transcript_source(fragment)

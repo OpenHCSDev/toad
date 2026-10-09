@@ -10,6 +10,9 @@ from toad.menus import MenuItem
 class BlockContent:
     """Non-interactive blocks inherit empty content and expansion behavior."""
 
+    def retain_transcript_source(self, fragment):
+        """Native content without acquired Markdown has no source to transfer."""
+
     @cached_property
     def block_cursor(self):
         from toad.block_navigation import AtomicBlockCursor

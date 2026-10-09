@@ -80,6 +80,11 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
         """Release rich presentation without stopping its operational sources."""
         from toad.widgets.history_anchor import HistoryWindow
 
+        # Specialized source owners capture their reader before entering this
+        # shared retirement. Clear its focus before hiding any native resource;
+        # shared chrome retains its independently owned focus.
+        if self.has_focus_within:
+            self.screen.set_focus(None)
         for window in self.query(HistoryWindow):
             await window.document_viewport.suspend_source()
 
