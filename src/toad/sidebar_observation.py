@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from agent_comms.comms import Comms
+from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 from agent_comms.presentation import WireRevision
 from toad.preferences import SidebarSettings
 from toad.core.preference_events import PreferenceChanged
@@ -27,13 +28,14 @@ class SidebarObservation:
     @property
     def pending(self) -> bool:
         task = self.task
-        return self.lock.locked() or (task is not None and not task.done())
+        return self.lock.locked() or (task is not None and not task.is_finished)
 
     async def close(self) -> None:
         task = self.task
         if task is not None:
             task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
+            # A failed observation was already raised to the app by its worker.
+            await asyncio.gather(task.wait(), return_exceptions=True)
 
     async def mount(self) -> None:
         from toad.screens.comms import CommsScreen
@@ -172,17 +174,20 @@ class SidebarObservation:
     def start_read(self) -> None:
         if not self.accepts_observation():
             return
+        from textual.app import ScreenStackError
+        from textual.dom import NoScreen
+
         try:
             # Retained inactive rosters reconcile on activation. Do not queue
-            # source reads for every hidden tab; stack lookup may fail during
-            # ordinary shutdown and belongs inside this existing error boundary.
-            if self.sidebar.screen is not self.sidebar.app.screen:
-                return
-            if self.pending:
-                return
-            self.task = asyncio.create_task(self.refresh_checked())
-        except Exception:
+            # source reads for every hidden tab.
+            current = self.sidebar.screen is self.sidebar.app.screen
+        except (NoScreen, ScreenStackError):
+            # Ordinary shutdown: this sidebar or the app no longer has a screen.
             self.sidebar.display = False
+            return
+        if not current or self.pending:
+            return
+        self.task = self.sidebar.run_worker(self.refresh_checked(), group="sidebar-observation")
 
     async def refresh_checked(self) -> None:
         service = self.service
@@ -211,8 +216,10 @@ class SidebarObservation:
                 self.sidebar.display = True
                 if not self.sidebar.navigation.ready.is_set():
                     self.sidebar.call_after_refresh(self.sidebar.navigation.finish, self.sidebar.navigation.revision)
-        except Exception as error:
-            self.sidebar.log.error("Sidebar observation or publication failed", error)
+        except (OSError, ValueError, CoordinationReadUnavailable, StaleRevision) as error:
+            # Same transient states as read(): an external writer is replacing
+            # or recovering the wire; the next observation retries.
+            self.sidebar.log.warning("Sidebar observation interrupted", error)
             return
 
     async def poll(self, revision: WireRevision) -> None:

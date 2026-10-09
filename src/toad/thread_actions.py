@@ -50,7 +50,9 @@ class ThreadActions:
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be
         # reported as absent because a UI task was cancelled during shutdown.
-        await asyncio.gather(*(request.task for request in set(self.requests.values())), return_exceptions=True)
+        # A failed action was already raised to the app by its worker.
+        await asyncio.gather(*(request.task.wait() for request in set(self.requests.values())),
+                             return_exceptions=True)
 
 
 class ThreadActionExecution:
@@ -58,7 +60,7 @@ class ThreadActionExecution:
     def __init__(self, owner, action, selected, subject):
         self.owner, self.action, self.selected = owner, action, selected
         self.subject = subject
-        self.task = asyncio.create_task(self.run(), name="thread-action")
+        self.task = owner.app.run_worker(self.run(), name="thread-action")
 
     def apply(self):
         access = self.owner.app.coordination_access
@@ -72,7 +74,7 @@ class ThreadActionExecution:
             # Original start result owns whether a connection changed. This is
             # native connection resource refresh, never backend status mutation.
             await self.action.completed(app, self.selected, result)
-        except Exception as error:
+        except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title=f"Session action: {self.subject}", severity="error")
         finally:
             self.owner.finished(self)
@@ -126,4 +128,4 @@ class ThreadAction:
         else:
             async def prepare():
                 await accepted({})
-            ctx.app.run_worker(prepare, exit_on_error=False)
+            ctx.app.run_worker(prepare)

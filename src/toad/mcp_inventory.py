@@ -65,9 +65,11 @@ def installed_mcp_command() -> tuple[str, str]:
 
 async def read_inventory(project_root: Path) -> mcp_declarations.Inventory | None:
     """Read the pinned package's static inventory without starting servers."""
+    from agent_comms.native_pi import NativePiUnavailable
+
     try:
         node, cli = await asyncio.to_thread(installed_mcp_command)
-    except (OSError, ValueError, RuntimeError):
+    except (OSError, ValueError, NativePiUnavailable):
         return None
     process: asyncio.subprocess.Process | None = None
     try:

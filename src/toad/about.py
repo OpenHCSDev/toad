@@ -85,7 +85,8 @@ def render(app: ToadApp) -> str:
 
     try:
         config: str | None = app.settings.file_path().read_text()
-    except Exception:
+    except FileNotFoundError:
+        # Settings are written on first change; until then there is no file.
         config = None
 
     template_data = {

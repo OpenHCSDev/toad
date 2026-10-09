@@ -37,10 +37,4 @@ def get_version() -> str:
     """
     from importlib.metadata import version
 
-    try:
-        return version("batrachian-toad")
-    except Exception:
-        try:
-            return version("toad")
-        except Exception:
-            return "0.1.0unknown"
+    return version("batrachian-toad")

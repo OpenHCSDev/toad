@@ -57,7 +57,7 @@ class AgentProcess:
             try:
                 acquisition.enter_context(selection.route.admit_client())
                 await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
-            except Exception as error:
+            except (OSError, ValueError, RuntimeError) as error:
                 agent.session.failed()
                 agent.events.publish(LogAgentFail("Failed to start agent", details=str(error),
                                                  log_path=agent.presentation.log_path))
@@ -197,7 +197,7 @@ class AgentProcess:
                 ShellCommand.current().argv(command), env=env,
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
-        except Exception as error:
+        except (OSError, ValueError, RuntimeError) as error:
             agent.session.failed()
             agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
             return
@@ -222,14 +222,14 @@ class AgentProcess:
                 continue
             try:
                 line_str = line.decode("utf-8")
-            except Exception as error:
+            except UnicodeDecodeError as error:
                 agent.log(f"[error] Unable to decode utf-8 from agent: {error}")
                 continue
             for session in tuple(self.sessions):
                 session.agent.log(f"[agent] {line_str}")
             try:
                 agent_data: jsonrpc.JSONType = json.loads(line_str)
-            except Exception as error:
+            except json.JSONDecodeError as error:
                 agent.log(f"[error] failed to decode JSON from agent: {error}")
                 continue
             try:

@@ -189,7 +189,7 @@ class ThreadOpening:
             if not self.origin.current(navigator, self.owner_mode):
                 return navigator.app.selected_mode
             return await prepared.open(self)
-        except Exception as error:
+        except (OSError, ValueError, RuntimeError) as error:
             navigator.app.notify(str(error), title="Thread unavailable", severity="error")
             return navigator.app.selected_mode
         finally:

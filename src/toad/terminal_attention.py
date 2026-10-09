@@ -146,8 +146,9 @@ class TerminalAttention:
     def notify(self, message: str, *, title: str = "", sound: str | None = None) -> None:
         """Dispatch the existing declared desktop policy on Textual's worker."""
         policy = self.app.settings.notifications.system
+        # notifypy reports platform delivery failure as its own False result.
         self.app.run_worker(partial(policy.deliver, self.app, message, title=title, sound=sound),
-                            thread=True, exit_on_error=False)
+                            thread=True)
 
     def notification(self, notification: Notification) -> None:
         settings = self.app.settings.notifications

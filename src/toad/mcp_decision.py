@@ -66,9 +66,11 @@ class LocalDecisionPTY:
                 return UnavailableOutcome()
             if not command.available(selection):
                 return UnsupportedOutcome()
+            from agent_comms.native_pi import NativePiUnavailable
+
             try:
                 node, cli = await asyncio.to_thread(installed_mcp_command)
-            except (OSError, ValueError, RuntimeError):
+            except (OSError, ValueError, NativePiUnavailable):
                 return UnavailableOutcome()
             fresh = await read_inventory(selection.inventory.root)
             if not self._controller_visible() or not selection.matches(fresh):

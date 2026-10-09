@@ -723,7 +723,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     def insert_path_into_prompt(self, path: Path) -> None:
         try:
             insert_path_text = str(path.relative_to(self.project_path))
-        except Exception:
+        except ValueError:
+            # Paths outside the project have no prompt reference.
             self.app.bell()
             return
 
@@ -1184,8 +1185,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             # Recent-model persistence is optional metadata, not a prerequisite
             # for opening the model's already advertised thinking choices.
             self.run_worker(DB().record_model_usage(self.model_history_scope, model.value,
-                                                   last_used=time_ns()),
-                            exit_on_error=False)
+                                                   last_used=time_ns()))
             levels = [choice.value for choice in agent.configuration.thinking.choices]
             if len(levels) > 1:
                 level = await self.app.push_screen_wait(
@@ -1239,8 +1239,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             # Complete visible turn settlement independently of recent-model
             # database contention. The native worker owns this optional write.
             self.run_worker(DB().record_model_usage(self.model_history_scope, model.value,
-                                                   last_used=time_ns()),
-                            exit_on_error=False)
+                                                   last_used=time_ns()))
         await self.output.settle()
         pending_loading, self._loading = self._loading, None
         if pending_loading is not None and pending_loading.is_attached:
@@ -1625,7 +1624,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             raise ValueError('Command view changed during discovery')
         return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
 
-    @work(group='command-catalog', exclusive=True, exit_on_error=False)
+    @work(group='command-catalog', exclusive=True)
     async def update_slash_commands(self) -> None:
         """Prepare choices only for the prompt that can actually paint them.
 

@@ -74,7 +74,8 @@ class History:
                     if (input := json.loads(line).get("input")) is not None:
                         inputs.append(input.split(" ", 1)[0])
                 self.complete.add_words(inputs)
-            except Exception:
+            except OSError:
+                # An unreadable history file leaves this session without recall.
                 return False
             return True
 
@@ -112,7 +113,7 @@ class History:
             try:
                 with self.path.open("a") as history_file:
                     history_file.write(f"{line}\n")
-            except Exception:
+            except OSError:
                 return False
             return True
 

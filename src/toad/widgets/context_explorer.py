@@ -320,7 +320,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         return any(worker.node is self and worker.group == group
                    and not worker.is_finished for worker in self.workers)
 
-    @work(group="context-read", exclusive=True, exit_on_error=False)
+    @work(group="context-read", exclusive=True)
     async def _read(self, *, force=False):
         status = self.query_one(".context-status", Static)
         access = self.app.coordination_access
@@ -353,7 +353,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 self.query_one(".context-status", Static).update(current.status)
                 current.prepare_native(self._read_native)
 
-    @work(group="context-native", exclusive=True, exit_on_error=False)
+    @work(group="context-native", exclusive=True)
     async def _read_native(self, captured: HoldingInspection):
         try:
             native = await captured.inspection.native()
@@ -395,7 +395,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             {answer.declared_name: partial(self._correct_annotation, model, answer)
              for answer in answers})
 
-    @work(group="context-correction", exclusive=True, exit_on_error=False)
+    @work(group="context-correction", exclusive=True)
     async def _correct_annotation(self, model, answer):
         if not self._selected(model):
             return
@@ -410,7 +410,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             self.notify("Original human correction recorded")
             self._read()
 
-    @work(group="context-presentation", exclusive=True, exit_on_error=False)
+    @work(group="context-presentation", exclusive=True)
     async def _present(self, captured: HoldingInspection):
         if self.intent.query:
             self._search(captured, self.intent.query, self.intent.selected)
@@ -438,7 +438,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         event.stop()
         self.state.present(self._present)
 
-    @work(group="context-search", exclusive=True, exit_on_error=False)
+    @work(group="context-search", exclusive=True)
     async def _search(self, captured: HoldingInspection, query, selected):
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
@@ -459,7 +459,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 and self.intent.search_current(query, selected))
 
     @on(Button.Pressed, "#context-read-full")
-    @work(group="context-full-read", exclusive=True, exit_on_error=False)
+    @work(group="context-full-read", exclusive=True)
     async def action_read_full(self):
         node = self.query_one(ContextTree).cursor_node
         if not self.query_one(ContextTree).owns_node(node):
@@ -476,7 +476,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         detail.focus()
 
     @on(Button.Pressed, "#context-copy")
-    @work(group="context-copy", exclusive=True, exit_on_error=False)
+    @work(group="context-copy", exclusive=True)
     async def action_copy(self):
         node = self.query_one(ContextTree).cursor_node
         if self.query_one(ContextTree).owns_node(node):
@@ -492,7 +492,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 self.notify("Complete selected public text and source copied")
 
     @on(Button.Pressed, "#context-export")
-    @work(group="context-export", exclusive=True, exit_on_error=False)
+    @work(group="context-export", exclusive=True)
     async def action_export(self):
         node = self.query_one(ContextTree).cursor_node
         if not self.query_one(ContextTree).owns_node(node):
@@ -523,7 +523,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def _selected(self, model):
         return self.query_one(ContextTree).selected(model) if self.is_attached else False
 
-    @work(group="context-detail", exclusive=True, exit_on_error=False)
+    @work(group="context-detail", exclusive=True)
     async def _show_detail(self, model):
         # Publication belongs to this exact selected original tree model, not
         # a reusable string key shared by another thread or context snapshot.

@@ -452,8 +452,7 @@ class ToolOutput:
         pending = tuple(part for part in self.parts if part.begin_preparation(theme))
         if pending:
             self._worker = view.run_worker(partial(self.prepare, self._generation, pending),
-                                          group="hidden-patch-warmup", exclusive=True,
-                                          exit_on_error=False)
+                                          group="hidden-patch-warmup", exclusive=True)
 
     async def prepare(self, generation: int, parts: tuple[ToolOutputPart, ...]) -> None:
         view = self.view
@@ -461,10 +460,7 @@ class ToolOutput:
             for part in parts:
                 if generation != self._generation or not view.is_attached:
                     return
-                try:
-                    await part.prepare(view)
-                except Exception as error:
-                    view.log.warning("Background tool preparation failed", error)
+                await part.prepare(view)
         finally:
             if generation == self._generation:
                 self._worker = None
