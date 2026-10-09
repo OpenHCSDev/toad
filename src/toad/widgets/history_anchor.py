@@ -28,6 +28,13 @@ if TYPE_CHECKING:
 class WindowRestoration(ABC):
     """Apply an owned layout intent without recording another user scroll."""
 
+    def required_bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
+        """The original intent supplies its preparation and placement roots."""
+        return ()
+
+    def before_layout(self, window: "HistoryWindow") -> "WindowRestoration":
+        return self
+
     def current(self, window: "HistoryWindow") -> bool:
         return True
 
@@ -120,10 +127,6 @@ class ReaderPosition(WindowRestoration):
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Restore admitted source ranges; tail readers have no older admission."""
         history.restore_reader_admissions(self.admissions)
-
-    def required_bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
-        """Source readers supply their preparation and native placement demand."""
-        return ()
 
     @staticmethod
     def _restore_row(window: "HistoryWindow", destination: float | None) -> bool:
@@ -289,7 +292,7 @@ class HistoryWindow(VerticalScroll):
     CACHE_SUBTREE_GEOMETRY = True
     scroll_revision = 0
     _restoring = False
-    history_anchor: HistoryAnchor | None = None
+    history_anchor: WindowRestoration | None = None
     history_layout_ready: asyncio.Event | None = None
     _history_mutation_root: Widget | None = None
 
@@ -304,11 +307,11 @@ class HistoryWindow(VerticalScroll):
             if history.has_newer:
                 history.request_latest()
 
-    def prepare_history_layout(self) -> HistoryAnchor | None:
+    def prepare_history_layout(self) -> WindowRestoration | None:
         anchor = self.history_anchor
         if anchor is None:
             return None
-        if anchor.widget.is_attached:
+        if all(body.is_attached for body in anchor.required_bodies(self)):
             self.history_anchor = anchor.before_layout(self)
             return self.history_anchor
         return None
@@ -326,9 +329,9 @@ class HistoryWindow(VerticalScroll):
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         anchor = self.history_anchor
         return tuple(dict.fromkeys((*self.reader_bodies,
-                                    *(anchor.geometry_targets if anchor is not None else ()))))
+                                    *(anchor.required_bodies(self) if anchor is not None else ()))))
 
-    def restore_history_layout(self, position: HistoryAnchor) -> bool:
+    def restore_history_layout(self, position: WindowRestoration) -> bool:
         previous = self.scroll_y
         position.restore(self)
         # A held layout can clamp scroll before publishing the new source
@@ -471,7 +474,9 @@ class HistoryWindow(VerticalScroll):
     def reader_anchor(self, fallback: Widget) -> Widget:
         """Extent publication preserves the reader, not the changed paragraph."""
         if self.history_anchor is not None:
-            return self.history_anchor.widget
+            roots = self.history_anchor.required_bodies(self)
+            if roots:
+                return roots[0]
         if self.follows_tail:
             return fallback
         visible = self.screen._compositor.visible_widgets
@@ -550,7 +555,12 @@ class HistoryWindow(VerticalScroll):
             yield
             return
         screen = self.screen
-        self.history_anchor = HistoryAnchor.capture(widget, self) if widget is not None else None
+        # A returning source already owns its intended point. Capturing the
+        # temporary native viewport here creates a competing position which
+        # can overwrite that reader after its first placement succeeds.
+        self.history_anchor = self.pending_reader_position
+        if self.history_anchor is None and widget is not None:
+            self.history_anchor = HistoryAnchor.capture(widget, self)
         if self.history_anchor is not None and isinstance(screen, WorkspaceScreen):
             screen.viewport_presentation.anchors.add(self)
         geometry = self._geometry_revision
@@ -600,8 +610,7 @@ class HistoryAnchor(WindowRestoration):
             return self.capture(self.widget, window)
         return self
 
-    @property
-    def geometry_targets(self) -> tuple[Widget, ...]:
+    def required_bodies(self, window: HistoryWindow) -> tuple[Widget, ...]:
         """Preserve the transaction's existing target mount/size lifecycle.
 
         Tail policy skips offset lookup, not native target publication during
