@@ -155,6 +155,10 @@ class BodyMeasurement(ABC):
     @abstractmethod
     def height(self, body, width, measure) -> int: ...
 
+    def allocated(self, width):
+        """Borrow native content width without replacing publication custody."""
+        return self
+
     def content_width(self, body, measure) -> int:
         """Retained resources supply extent without measuring scene children."""
         return self.width
@@ -341,11 +345,11 @@ class MeasuredBody(BodyMeasurement):
         return self.widgets
 
     def height(self, body, width, measure):
-        # This state owns no paint to relabel. Preserve preceding row extent
-        # while recording the original layout's new preparation demand.
-        if width != self.width:
-            body._update_body_measurement(replace(self, width=width))
         return self.rows
+
+    def allocated(self, width):
+        # The preceding extent survives while its current width prepares.
+        return self if width == self.width else replace(self, width=width)
 
     def render(self, body, crop, render_live):
         # This state has extent but no pixels; the original frame owner waits
@@ -375,6 +379,10 @@ class MeasuredSourceBody(MeasuredBody):
 
 @dataclass(frozen=True)
 class LiveBody(MeasuredBody):
+    def allocated(self, width):
+        # Native children supply both dimensions together through measured().
+        return self
+
     def get_selection(self, body, selection, select_live):
         return select_live(selection) if self.ready(body) else None
 
@@ -600,6 +608,9 @@ class MaterializingBody(BodyMeasurement):
     def height(self, body, width, measure):
         return self.previous.height(body, width, measure)
 
+    def allocated(self, width):
+        return self._updated(self.previous.allocated(width))
+
     def content_width(self, body, measure):
         return self.previous.content_width(body, measure)
 
@@ -744,9 +755,10 @@ class RenderedBody(MeasuredSourceBody):
         return self.resource_bytes
 
     def height(self, body, width, measure):
-        if width != self.width:
-            body._update_body_measurement(replace(self.invalidated(), width=width))
         return self.rows
+
+    def allocated(self, width):
+        return self if width == self.width else self.invalidated().allocated(width)
 
     def render(self, body, crop, render_live):
         selection = body.text_selection
@@ -819,9 +831,10 @@ class PreparedDocumentBody(BodyMeasurement):
         return self.resource_bytes
 
     def height(self, body, width, measure):
-        if width != self.width:
-            body._update_body_measurement(self.invalidated(width))
         return self.rows
+
+    def allocated(self, width):
+        return self if width == self.width else self.invalidated(width)
 
     def render(self, body, crop, render_live):
         return self.paint.render_lines(crop)
@@ -1257,6 +1270,9 @@ class MeasuredViewportBody(ViewportBody):
     @height_dependency(NATIVE_WIDGET_HEIGHT)
     def get_content_height(self, container, viewport, width):
         native_height = super().get_content_height
+        # Allocation changes the borrowed resource through its current owner.
+        # A preceding height supplier must never overwrite the worker chain.
+        self._update_body_measurement(self._body_measurement.allocated(width))
         measurement = self._body_measurement
         height = measurement.height(self, width, lambda: native_height(container, viewport, width))
         if self._body_measurement is measurement:
@@ -1583,7 +1599,21 @@ class DocumentViewport:
             return True
         if protected is None:
             protected = self.protected()
-        return owner in protected
+        if owner in protected:
+            return True
+        if owner.measured_rows or owner.body_ready:
+            return False
+        # An unfinished intrinsic source has no paint rectangle yet. Its
+        # assigned native position still owns preparation exposure; excluding
+        # it as invisible would require paint before admitting that same paint.
+        # Borrow committed geometry only, without arranging or inventing rows.
+        compositor = self.window.screen._compositor
+        for _owner, placement in compositor.published_geometry((owner,)):
+            region = placement.region
+            clip = placement.clip.intersection(compositor.size.region)
+            return (clip.y <= region.y < clip.bottom
+                    and max(region.x, clip.x) < min(region.right, clip.right))
+        return False
 
     def body_roots(self, *, reverse: bool = False):
         """Native document order, stopping at each registered body boundary.
