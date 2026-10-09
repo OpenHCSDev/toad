@@ -269,49 +269,41 @@ class SessionAdmissions:
             await self.retire_missing()
 
     async def retire_missing(self) -> None:
-        from agent_comms.route_selection import RouteSelection
+        from agent_comms.route_selection import RouteChanged, RouteSelection
 
-        # Borrow each actual admission, including hidden views. No widget or
-        # deletion roster is created in the metadata worker.
+        # Borrow each actual admission, including hidden views. Core decides
+        # which of their sources no longer exist; Toad only closes the views.
         originals = tuple((member, member.original_threads(self), member.original_channels())
                           for member in self.members)
-        roots = {root for _, threads, channels in originals for root, _ in (*threads, *channels)}
-        if not roots:
+        asked: dict[str, tuple[set, set]] = {}
+        for _member, threads, channels in originals:
+            for root, identity in threads:
+                asked.setdefault(root, (set(), set()))[0].add(identity)
+            for root, target in channels:
+                asked.setdefault(root, (set(), set()))[1].add(target)
+        if not asked:
             return
 
         def read():
-            result = {}
-            for root in roots:
+            answers = {}
+            for root, (threads, channels) in asked.items():
                 try:
                     selected = RouteSelection.capture(root)
                     service = self.app.coordination_access.require(selected)
-                    snapshot = service.registry.snapshot()
-                    channels = service.channels.catalog.read().views(snapshot.threads)
+                    retired = service.views.retired_views(threads, channels)
                     if RouteSelection.capture(root) != selected:
-                        raise ValueError('Comms route changed during view retirement')
-                    result[root] = selected, service, snapshot, channels
-                except (OSError, ValueError, RuntimeError):
-                    continue  # An unavailable root retains its original views.
-            return result
+                        continue  # Replaced while reading; the next observation reads it.
+                except RouteChanged:
+                    continue  # The next observation reads the replacement route.
+                answers[root] = service, retired
+            return answers
 
-        try:
-            cuts = await self.app.preparation.run_thread(read)
-        except (OSError, ValueError, RuntimeError):
-            return  # Unavailable observation never proves a deleted member.
-        # A route/service replacement while the original read joins revokes
-        # its result. Unavailable observations still retain hidden admissions.
-        current_cuts = {}
-        for root, (selected, service, snapshot, channels) in cuts.items():
-            try:
-                if (service is self.app.coordination_access.observed_service
-                        and RouteSelection.capture(root) == selected):
-                    current_cuts[root] = snapshot, channels
-            except (OSError, ValueError, RuntimeError):
-                continue
-        cuts = current_cuts
+        answers = await self.app.preparation.run_thread(read)
+        # A service replaced while the read joined revokes its answer.
+        observed = self.app.coordination_access.observed_service
+        retired = {root: answer for root, (service, answer) in answers.items() if service is observed}
         removed = tuple(member.mode for member, threads, channels in originals
                         if self.get(member.mode) is member and (
-                            any(root in cuts and not identity.current(cuts[root][0]) for root, identity in threads)
-                            or any(root in cuts and (target not in cuts[root][1] or cuts[root][1][target].archived)
-                                   for root, target in channels)))
+                            any(root in retired and identity in retired[root].threads for root, identity in threads)
+                            or any(root in retired and target in retired[root].channels for root, target in channels)))
         await self.close_many(removed)
