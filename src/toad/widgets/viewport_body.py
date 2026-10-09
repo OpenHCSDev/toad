@@ -240,7 +240,12 @@ class BodyMeasurement(ABC):
         return native_empty
 
     def requires_geometry(self, body) -> bool:
-        """Settled native content needs its box; retained extent does not."""
+        """Native content supplies descendant geometry; retained extent does not.
+
+        Paint currentness governs publication, not which layout owns this
+        resource. Colour or selection invalidation cannot revive retired
+        controls or replace intrinsic document measurement with their layout.
+        """
         return not self.dormant
 
     def geometry_targets(self, body):
@@ -534,9 +539,9 @@ class MaterializingBody(BodyMeasurement):
         return self.previous.source_empty(body, native_empty)
 
     def requires_geometry(self, body):
-        # Pending work without preceding pixels still lays out native children.
-        # Dormancy describes interaction, not that writer's layout demand.
-        return not self.paint_ready(body)
+        # The writer borrows its original resource until publication commits.
+        # A new paint demand doesn't change that resource's geometry supplier.
+        return self.previous.requires_geometry(body)
 
     def publication_prepared(self, worker, paint):
         # A later writer may already own this body while joining our worker.
@@ -945,16 +950,14 @@ class MeasuredViewportBody(ViewportBody):
     @property
     @height_dependency(INDEPENDENT_HEIGHT)
     def is_container(self):
-        # Rendered and pending resources paint their whole original subtree.
-        # Native children remain in custody for the worker and interaction,
-        # but must not overpaint the preceding rows while it is reconstructing.
-        # Selection follows resource/style lifetime, not an incoming layout
-        # height. Resource changes publish through _update_body_measurement.
-        return not self._body_measurement.paint_ready(self) and super().is_container
+        # Native geometry, intrinsic document extent and captured rows are
+        # supplied by their resource states. Readiness decides whether those
+        # pixels can publish, never whether to traverse an old native subtree.
+        return self.body_requires_geometry and super().is_container
 
     @property
     def _render_widget(self):
-        return self if self._body_measurement.paint_ready(self) else super()._render_widget
+        return super()._render_widget if self.body_requires_geometry else self
 
     def native_body_ready(self):
         if not self.is_mounted or self._closing:
