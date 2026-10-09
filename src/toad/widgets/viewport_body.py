@@ -1740,35 +1740,40 @@ class ViewportPresentation:
                 if window.document_viewport.membership.displayed())
 
     @contextmanager
-    def using_document_inputs(self):
+    def using_document_inputs(self, *, paints=None):
         """Lend one native acquisition to this synchronous preparation/paint.
 
         Bound resources own their original source and native CSS participant.
         Layout precedes this borrow; publication and pointer callbacks follow
         it. Neither a later frame nor an asynchronous writer inherits it.
+        An explicit paint cohort acquires its own inputs, including retained
+        resources inspected by diagnostics. Nested scopes restore the exact
+        preceding borrow; an ordinary frame call borrows the active scope.
         """
         from textual.document._paint import DocumentPresentation
 
-        if self.document_admissions is not None:
-            yield
+        previous = self.document_admissions
+        if paints is None and previous is not None:
+            yield previous
             return
-        # Rendering consumes clipped native bodies, not all text retained by a
-        # visible message container. Mutation admission also asks its original
-        # retained ancestors whether they can paint the preceding publication.
-        bodies = dict.fromkeys(body for _window, body in self.visible_bodies(self.windows))
-        for root in self.mutation_roots():
-            for owner in root.walk_ancestors(with_self=True):
-                if isinstance(owner, ViewportBody):
-                    bodies[owner] = None
-        paints = {
-            body: paint for body in bodies
-            if (paint := body._body_measurement.published_document_paint) is not None
-        }
+        if paints is None:
+            # Rendering consumes clipped native bodies, not all text retained
+            # by a visible message container. Mutation admission also asks its
+            # retained ancestors about the preceding publication's pixels.
+            bodies = dict.fromkeys(body for _window, body in self.visible_bodies(self.windows))
+            for root in self.mutation_roots():
+                for owner in root.walk_ancestors(with_self=True):
+                    if isinstance(owner, ViewportBody):
+                        bodies[owner] = None
+            paints = {
+                body: paint for body in bodies
+                if (paint := body._body_measurement.published_document_paint) is not None
+            }
         self.document_admissions = DocumentPresentation.acquire_admissions(paints)
         try:
-            yield
+            yield self.document_admissions
         finally:
-            self.document_admissions = None
+            self.document_admissions = previous
 
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Keep reader anchors and live body boxes in the same native layout.
