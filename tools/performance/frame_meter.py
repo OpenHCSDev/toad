@@ -48,11 +48,19 @@ def install(*, expected_pid, seconds, output):
         # Each layout request re-arranges the screen; count who asks.
         name = type(self).__name__
         if layout:
-            layouts[name] = layouts.get(name, 0) + 1
+            caller = sys._getframe(1)
+            while caller is not None and caller.f_code.co_name in ("refresh", "_refresh"):
+                caller = caller.f_back
+            key = f"{name} <- {caller.f_code.co_qualname if caller else '?'}"
+            layouts[key] = layouts.get(key, 0) + 1
         elif repaint:
             # Repaints are cheaper than layouts but each repainted widget
             # renders its lines again; count who asks.
-            repaints[name] = repaints.get(name, 0) + 1
+            caller = sys._getframe(1)
+            while caller is not None and caller.f_code.co_name in ("refresh", "_refresh"):
+                caller = caller.f_back
+            key = f"{name} <- {caller.f_code.co_qualname if caller else '?'}"
+            repaints[key] = repaints.get(key, 0) + 1
         return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
 
     from textual.screen import Screen
