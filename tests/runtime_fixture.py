@@ -129,15 +129,13 @@ async def reveal_project_tree(app, pilot):
 
 async def wait_channel_roster(app, pilot, *targets):
     """Wait for the first-frame asynchronous roster, not merely an idle queue."""
-    from toad.widgets.comms_sidebar import CommsSidebar
+    from toad.widgets.comms_sidebar import ChannelGroup, CommsSidebar
 
     async with asyncio.timeout(8):
         while True:
             sidebar = app.screen.query_one(CommsSidebar)
-            if (sidebar.navigation.ready.is_set() and sidebar.display
-                    and not sidebar.observation.pending
-                    and not sidebar.observation.lock.locked() and not sidebar.projection.lock.locked()
-                    and set(targets) <= {row.target_name for row in sidebar.projection.channels.values()}):
+            if (sidebar.navigation.ready.is_set() and sidebar.display and sidebar.shows_model
+                    and set(targets) <= {group.row.target_name for group in sidebar.query(ChannelGroup)}):
                 return sidebar
             await pilot.pause(.02)
 
