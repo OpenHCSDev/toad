@@ -15,7 +15,7 @@ from textual.widgets.markdown import MarkdownStream
 from textual.widget import Widget
 from textual.app import ComposeResult
 from textual.widgets import Markdown
-from toad.widgets.viewport_body import MaterializingBody, PreparedDocumentBody
+from toad.widgets.viewport_body import ChildBody, MaterializingBody, PreparedDocumentBody
 
 from toad.widgets.prepared_markdown import PreparedContentRange, PreparedConversationMarkdown
 from toad.widgets.committed_presentation import SnapshotPresentation
@@ -40,13 +40,20 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
     def compose(self) -> ComposeResult:
         yield from self._prefix
 
+    def live_body_measurement(self, width=0, rows=0, widgets=1):
+        # Partitioned conversation syntax owns a range of original documents.
+        # An arbitrary parser still owns its original native scene contract.
+        if self.partitionable_syntax:
+            return ChildBody(width, rows, widgets)
+        return super().live_body_measurement(width, rows, widgets)
+
     def _body(self, fragment: PreparedMarkdownPart) -> PreparedConversationMarkdown:
         return PreparedConversationMarkdown(fragment.text, markdown_part=fragment,
                                             classes="-message-fragment")
 
     @property
     def retained_source_bytes(self) -> int:
-        return sum(part.retained_bytes for part in self.fragments)
+        return sum(part.retained_bytes for part in self.fragments) + super().retained_source_bytes
 
     def capture_admission(self):
         return self._content_generation, self.start, self.stop

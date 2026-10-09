@@ -156,6 +156,11 @@ class BodyMeasurement(ABC):
     @abstractmethod
     async def restore(self, body) -> None: ...
 
+    def request_preparation(self, body):
+        """Admit detached preparation without waiting on a widget's input FIFO."""
+        if self.dormant and self.width > 0 and not self.ready(body):
+            self.start_materialization(body, exit_on_error=True)
+
     def invalidated(self):
         return MeasuredBody(self.width, self.rows, self.widgets)
 
@@ -264,6 +269,18 @@ class BodyMeasurement(ABC):
     def admitted(self):
         return self
 
+    def paint_cost(self, body):
+        return self.paint_bytes
+
+    def source_cost(self, body):
+        return 0
+
+    def release_paint(self, body):
+        return self.released()
+
+    def retain_paint(self, body):
+        return self.admitted()
+
     def style_updated(self, body):
         return self
 
@@ -311,6 +328,10 @@ class MeasuredSourceBody(MeasuredBody):
     """Committed source membership remains when its paint is released."""
 
     root_empty: bool
+    source_bytes: int = 0
+
+    def source_cost(self, body):
+        return self.source_bytes
 
     def source_empty(self, body, native_empty):
         return self.root_empty
@@ -367,6 +388,50 @@ class LiveBody(MeasuredBody):
 
     def retire(self, body):
         return body.retire_native_body(self)
+
+
+@dataclass(frozen=True)
+class ChildBody(LiveBody):
+    """A native range arranges child resources; it doesn't own their pixels.
+
+    Source admission and headers belong to this container. Each document or
+    disclosure owns its paint and native controls independently. Capturing
+    those rows again at the container would erase their source/selection
+    identity and force rebuilding the same document after every return.
+    """
+
+    async def prepare_publication(self, body):
+        return self
+
+    def paint_cost(self, body):
+        return sum(child.retained_paint_bytes for child in body.child_bodies())
+
+    def source_cost(self, body):
+        return sum(child.retained_source_bytes for child in body.child_bodies())
+
+    def release_paint(self, body):
+        for child in body.child_bodies():
+            child.release_paint()
+        return self
+
+    def retain_paint(self, body):
+        for child in body.child_bodies():
+            child.retain_paint()
+        return self
+
+    def geometry_targets(self, body):
+        return tuple(dict.fromkeys((body, *(target
+            for child in body.child_bodies() for target in child.body_geometry_targets()))))
+
+    async def retire(self, body):
+        # Children retain their own source, measurement and paint. Only an
+        # actual scene owner may prune its reconstructible native controls.
+        # Its original retirement checks reacquire exposure and source custody.
+        retired = False
+        for child in body.child_bodies():
+            if child.is_attached and not child._closing and not child.body_dormant:
+                retired = await child.retire_body() or retired
+        return retired
 
 
 @dataclass(frozen=True)
@@ -471,6 +536,18 @@ class MaterializingBody(BodyMeasurement):
     def paint_bytes(self):
         return self.previous.paint_bytes
 
+    def paint_cost(self, body):
+        return self.previous.paint_cost(body)
+
+    def source_cost(self, body):
+        return self.previous.source_cost(body)
+
+    def release_paint(self, body):
+        return self._updated(self.previous.release_paint(body))
+
+    def retain_paint(self, body):
+        return self._updated(self.previous.retain_paint(body))
+
     @property
     def document_paint(self):
         return self.previous.document_paint
@@ -509,6 +586,12 @@ class MaterializingBody(BodyMeasurement):
 
     async def restore(self, body):
         await self.before_publication()
+
+    def request_preparation(self, body):
+        # This resource already owns its actual writer. Layout, style and
+        # selection can invalidate its input, but cannot start a second writer
+        # or occupy the widget's message pump while the first one finishes.
+        return
 
     async def materialize(self, body):
         await self.before_publication()
@@ -558,7 +641,7 @@ class MaterializingBody(BodyMeasurement):
                 # tree. A newer writer still borrows the preceding pixels.
                 if isinstance(result, BodyMeasurement):
                     return result
-                return LiveBody(self.width, self.rows, self.widgets)
+                return body.live_body_measurement(self.width, self.rows, self.widgets)
             return self.previous
         return self._updated(self.previous.publication_finished(body, worker, result))
 
@@ -578,7 +661,8 @@ class RenderedBody(MeasuredSourceBody):
     paint_state: PaintState
 
     def invalidated(self):
-        return MeasuredSourceBody(self.width, self.rows, self.widgets, root_empty=self.root_empty)
+        return MeasuredSourceBody(self.width, self.rows, self.widgets,
+                                  root_empty=self.root_empty, source_bytes=self.source_bytes)
 
     @property
     def dormant(self):
@@ -640,6 +724,10 @@ class PreparedDocumentBody(BodyMeasurement):
 
     paint: "DocumentPaint"
     resource_bytes: int
+    source_bytes: int
+
+    def source_cost(self, body):
+        return self.source_bytes
 
     @property
     def document_paint(self):
@@ -726,7 +814,7 @@ class PreparedDocumentBody(BodyMeasurement):
         return self.invalidated()
 
     def invalidated(self, width=None):
-        return PendingDocumentBody(self.paint, self.resource_bytes,
+        return PendingDocumentBody(self.paint, self.resource_bytes, self.source_bytes,
                                    self.width if width is None else width)
 
     def resized(self, size):
@@ -735,7 +823,7 @@ class PreparedDocumentBody(BodyMeasurement):
 
     def released(self):
         return MeasuredSourceBody(self.width, self.rows, self.widgets,
-                                  root_empty=self.paint.root_empty)
+                                  root_empty=self.paint.root_empty, source_bytes=self.source_bytes)
 
     async def restore(self, body):
         if not self.ready(body):
@@ -778,6 +866,20 @@ class MeasuredViewportBody(ViewportBody):
         self._body_measurement = LiveBody()
         self._body_viewport = None
         super().__init__(*args, **kwargs)
+
+    def live_body_measurement(self, width=0, rows=0, widgets=1):
+        """The declaration supplies the role of its committed native content."""
+        return LiveBody(width, rows, widgets)
+
+    def child_bodies(self):
+        """Original DOM custody, stopping at each independent resource owner."""
+        pending = list(reversed(self.children))
+        while pending:
+            child = pending.pop()
+            if isinstance(child, ViewportBody):
+                yield child
+            else:
+                pending.extend(reversed(child.children))
 
     @property
     def body_dormant(self):
@@ -844,13 +946,17 @@ class MeasuredViewportBody(ViewportBody):
 
     @property
     def retained_paint_bytes(self):
-        return self._body_measurement.paint_bytes
+        return self._body_measurement.paint_cost(self)
+
+    @property
+    def retained_source_bytes(self):
+        return self._body_measurement.source_cost(self)
 
     def release_paint(self):
-        self._update_body_measurement(self._body_measurement.released())
+        self._update_body_measurement(self._body_measurement.release_paint(self))
 
     def retain_paint(self):
-        self._update_body_measurement(self._body_measurement.admitted())
+        self._update_body_measurement(self._body_measurement.retain_paint(self))
 
     def invalidate_body(self):
         self._update_body_measurement(self._body_measurement.invalidated())
@@ -869,13 +975,27 @@ class MeasuredViewportBody(ViewportBody):
         # well as extent. Publish that change before any native prune awaits;
         # NodeList removal happens later and cannot invalidate it for us.
         self.refresh(layout=True)
+        self.request_body_preparation()
+
+    def request_body_preparation(self):
+        """The window prepares its cohort; standalone bodies own their writer."""
+        if not self.is_attached or self._closing or self._pruning:
+            return
         if self._body_viewport is not None:
             self._body_viewport.request()
+        else:
+            self._body_measurement.request_preparation(self)
 
     def notify_style_update(self):
         super().notify_style_update()
         # Notification is not a rule mutation. Retained rows depend on the
         # original subtree rule epoch and inherited native paint values.
+        self._update_body_measurement(self._body_measurement.style_updated(self))
+
+    def selection_updated(self, selection):
+        super().selection_updated(selection)
+        # Selection belongs to Screen. The resource derives whether its paint
+        # changed; the same preparation owner handles style, size and selection.
         self._update_body_measurement(self._body_measurement.style_updated(self))
 
     def _size_updated(self, size, virtual_size, container_size, layout=True):
@@ -908,11 +1028,7 @@ class MeasuredViewportBody(ViewportBody):
     async def materialize_interactive_body(self):
         """Acquire actual native controls through their original body owners."""
         await self.materialize_body()
-        children = tuple(child for child in walk_depth_first(self, ViewportBody, with_root=False)
-                         if not any(isinstance(ancestor, ViewportBody)
-                                    for ancestor in child.ancestors
-                                    if ancestor is not self and self in ancestor.ancestors))
-        for child in children:
+        for child in self.child_bodies():
             await child.materialize_interactive_body()
 
     async def materialize_body(self):
@@ -998,6 +1114,7 @@ class MeasuredViewportBody(ViewportBody):
         style_revision = self._subtree_style_revision
         paint_state = self._resolved_paint_state()
         root_empty = self.is_empty
+        source_bytes = current.source_cost(self)
         captured = tuple(compositor.published_geometry((self,)))
         if not captured:
             return unprepared.prepare_publication(self)
@@ -1020,7 +1137,7 @@ class MeasuredViewportBody(ViewportBody):
             return RenderedBody(
                 current.width, current.rows, widgets, content=content,
                 resource_bytes=size_bytes, style_revision=style_revision, paint_state=paint_state,
-                root_empty=root_empty,
+                root_empty=root_empty, source_bytes=source_bytes,
             )
 
         return measured()
@@ -1040,7 +1157,10 @@ class MeasuredViewportBody(ViewportBody):
         async with self.retirement_custody() as can_commit:
             if not can_commit or not self.retirement_current(current):
                 return False
-            self._update_body_measurement(MeasuredBody(current.width, current.rows, current.widgets))
+            self._update_body_measurement(MeasuredSourceBody(
+                current.width, current.rows, current.widgets,
+                root_empty=self.is_empty, source_bytes=current.source_cost(self),
+            ))
             self.retire_body_resources()
             await self.remove_children(children)
         return True
@@ -1087,19 +1207,26 @@ class MeasuredViewportBody(ViewportBody):
         if self._body_viewport is not None:
             self._body_viewport.discard(self)
             self._body_viewport = None
-        self._update_body_measurement(LiveBody())
+        self._update_body_measurement(self.live_body_measurement())
 
     def on_mount(self):
         from toad.screens.workspace import WorkspaceScreen
         from toad.widgets.history_anchor import HistoryWindow
         if isinstance(self.screen, WorkspaceScreen):
+            outer_body = None
             for ancestor in self.walk_ancestors():
                 if isinstance(ancestor, ViewportBody):
-                    return
+                    outer_body = ancestor
                 if isinstance(ancestor, HistoryWindow):
                     self._body_viewport = ancestor.document_viewport
-                    self._body_viewport.register(self)
+                    # Native resource admission stays at the outer boundary.
+                    # Nested bodies use that SAME window's preparation worker,
+                    # rather than queuing worker waits on their own input FIFO.
+                    if outer_body is None:
+                        self._body_viewport.register(self)
+                    self.request_body_preparation()
                     return
+        self.request_body_preparation()
 
     def on_worker_static_extent_ready(self, _event):
         # The prepared sender commits readiness for visible publication as
@@ -1339,7 +1466,7 @@ class DocumentViewport:
 
     def requires_body(self, owner, *, visible=None, protected=None) -> bool:
         """Native exposure and current interaction own source admission."""
-        if owner not in self.owners:
+        if owner._body_viewport is not self:
             return False
         if visible is None:
             visible = self.window.screen._compositor.visible_widgets

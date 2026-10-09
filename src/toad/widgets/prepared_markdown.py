@@ -346,9 +346,12 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         return AwaitComplete.nothing()
 
     def retire_body_resources(self) -> None:
-        """Release reconstructible preparation with the native retirement."""
-        self._prepared_markdown = None
-        self.document = None
+        """Native controls retire; acquired source belongs to this document.
+
+        Selection, navigation and reflow still need the original resolved
+        tokens and document identity. Their lifetime ends at source replacement
+        or disposal, not when reconstructible controls leave the scene.
+        """
 
     async def materialize_native_body(self):
         source = self._pending_source
@@ -427,13 +430,16 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         )
         paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
                  else await asyncio.to_thread(task.execute))
-        cost = (await app.preparation.run_thread(retained_bytes, paint)
-                if isinstance(app, ToadApp) else await asyncio.to_thread(retained_bytes, paint))
+        source = document, self._prepared_markdown
+        def resource_costs():
+            return retained_bytes(paint), retained_bytes(source)
+        cost, source_cost = (await app.preparation.run_thread(resource_costs)
+                             if isinstance(app, ToadApp) else await asyncio.to_thread(resource_costs))
         if (not self.is_attached or self._closing or self._pruning
                 or self.document is not document or not paint.is_current(self, width)
                 or self._body_measurement.width + self.styles.gutter.width != width):
             return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
-                                      root_empty=self.is_empty)
+                                      root_empty=self.is_empty, source_bytes=source_cost)
         paint = paint.with_presentation(
             document, root_selection=task.root_selection,
             selection_style=task.selection_style, selecting=task.selecting,
@@ -441,7 +447,7 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         self.loading = False
         self._table_of_contents = paint.table_of_contents
         self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
-        return PreparedDocumentBody(paint, cost)
+        return PreparedDocumentBody(paint, cost, source_cost)
 
     def goto_anchor(self, anchor: str) -> bool:
         measurement = self._body_measurement
@@ -456,23 +462,6 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
     def on_unmount(self) -> None:
         self._prepared_markdown = None
         self.document = None
-
-    def on_resize(self) -> None:
-        if self.document is not None and self._body_viewport is None:
-            self.call_later(self.restore_body)
-
-    def notify_style_update(self) -> None:
-        super().notify_style_update()
-        if self.is_attached and self.document is not None and self._body_viewport is None:
-            self.call_later(self.restore_body)
-
-    def selection_updated(self, selection) -> None:
-        super().selection_updated(selection)
-        # Screen owns selection. Its change retires rows with different paint
-        # inputs, using the same body writer as source/style/width updates.
-        self._update_body_measurement(self._body_measurement.style_updated(self))
-        if self.is_attached and self.document is not None and self._body_viewport is None:
-            self.call_later(self.restore_body)
 
     async def _parse_tokens(
         self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str | PreparedMarkdownPart, *, use_thread: bool,
