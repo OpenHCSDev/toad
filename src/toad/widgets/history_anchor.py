@@ -135,7 +135,9 @@ class ReaderPosition(WindowPosition):
         )
         for history in histories:
             for page in history.pages:
-                offset = HistoryAnchor._offset(page, window)
+                # The reader's row is on screen: an unplaced page cannot hold it.
+                if (offset := HistoryAnchor._placed_offset(page, window)) is None:
+                    continue
                 row = int(window.scroll_y - offset)
                 if 0 <= row < page.line_count and (found := page.fragment_at(row)) is not None:
                     fragment, within = found
@@ -202,8 +204,8 @@ class FragmentReaderPosition(ReaderPosition):
         record = self.record(window)
         if record is None:
             return None
-        offset = HistoryAnchor._offset(record, window, require_placement=True)
-        return None if offset is None else offset + record.fragment_line(self.fragment)
+        # The record is a declared geometry target, so layout placed it.
+        return HistoryAnchor._offset(record, window) + record.fragment_line(self.fragment)
 
     def _restore(self, window: "HistoryWindow") -> bool:
         placed = self.placement(window)
@@ -277,6 +279,10 @@ class HistoryWindow(VerticalScroll):
             restoration.finish_layout()
 
     def on_mount(self) -> None:
+        from toad.screens.workspace import WorkspaceScreen
+
+        if isinstance(screen := self.screen, WorkspaceScreen):
+            screen.history_windows.add(self)
         self.request_preparation()
 
     def on_viewport_layout(self, _screen) -> None:
@@ -287,8 +293,12 @@ class HistoryWindow(VerticalScroll):
         self.hydrate_visible_tools()
 
     def on_unmount(self) -> None:
+        from toad.screens.workspace import WorkspaceScreen
+
         self.retire_presentation_wait()
         self.settle_preparation()
+        if isinstance(screen := self.screen, WorkspaceScreen):
+            screen.history_windows.discard(self)
 
     @cached_property
     def presentation_budget(self) -> PresentationBudget:
@@ -465,14 +475,19 @@ class HistoryWindow(VerticalScroll):
             else:
                 pending.extend(reversed(node.children))
 
-    def reader_anchor(self, fallback: Widget) -> Widget:
-        """Extent publication preserves the reader, not the changed paragraph."""
+    def reader_anchor(self) -> Widget | None:
+        """What the reader is looking at: extent changes preserve it.
+
+        A tail reader anchors to the window itself. Otherwise it is the
+        topmost displayed message, or None when nothing is displayed and there
+        is no reading position to keep.
+        """
         if self.history_restoration is not None:
             roots = self.history_restoration.required_bodies(self)
             if roots:
                 return roots[0]
         if self.follows_tail:
-            return fallback
+            return self
         from toad.block_navigation import ConversationBlock
         from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
 
@@ -481,11 +496,9 @@ class HistoryWindow(VerticalScroll):
         candidates = (*self.query(TranscriptPageView), *(
             block for block in self.query(ConversationBlock) if not isinstance(block, TranscriptHistory)))
         return min(self.visible_history_items(candidates),
-                   key=lambda node: visible[node][0].y, default=fallback)
+                   key=lambda node: visible[node][0].y, default=None)
 
-    def protect_history(
-        self, items, *, older: bool, fallback: Widget,
-    ) -> tuple[Widget, set[Widget]]:
+    def protect_history(self, items, *, older: bool) -> tuple[Widget | None, set[Widget]]:
         """Keep the reader's painted records and interaction owners during paging.
 
         Source leaves supply their mounted presentations, not another copy of
@@ -494,10 +507,13 @@ class HistoryWindow(VerticalScroll):
         """
         items = tuple(items)
         retained = tuple(self.visible_history_items(items))
-        anchor = retained[0 if older else -1] if retained else fallback
+        # Rows the reader can see anchor the change; otherwise the reader is
+        # elsewhere and that position is kept instead.
+        anchor = retained[0 if older else -1] if retained else self.reader_anchor()
         protected = protected_presentations(items, self.screen._interaction_widgets())
         protected.update(retained)
-        protected.add(anchor)
+        if anchor is not None:
+            protected.add(anchor)
         return anchor, protected
 
     @asynccontextmanager
@@ -543,7 +559,6 @@ class HistoryWindow(VerticalScroll):
         Nested mutations borrow the acquired restoration even when it has no
         position; they cannot replace or release its outstanding compensation.
         """
-        from toad.screens.workspace import WorkspaceScreen
 
         if self.history_restoration is not None:
             yield
@@ -557,10 +572,6 @@ class HistoryWindow(VerticalScroll):
             position = HistoryAnchor.capture(widget, self)
         restoration = WindowRestoration(position)
         self.history_restoration = restoration
-        # Native layout completes the acquisition, not the optional position.
-        # Register before yielding so unanchored mutations have the same join.
-        if isinstance(screen, WorkspaceScreen):
-            screen.history_anchors.add(self)
         geometry = self._geometry_revision
         try:
             try:
@@ -580,8 +591,6 @@ class HistoryWindow(VerticalScroll):
         finally:
             # Only the acquiring scope may release this exact operation.
             if self.history_restoration is restoration:
-                if isinstance(screen, WorkspaceScreen):
-                    screen.history_anchors.discard(self)
                 self.history_restoration = None
 
 
@@ -617,24 +626,30 @@ class HistoryAnchor(WindowPosition):
         return (self.widget,) if self.widget.is_attached else ()
 
     @staticmethod
-    def _offset(widget: Widget, window: Widget, *, require_placement: bool = False) -> int | None:
+    def _placed_offset(widget: Widget, window: Widget) -> int | None:
+        """The widget's row in the window's arranged layout, or None if unplaced.
+
+        Viewport layout places what is on screen plus the screen's declared
+        geometry targets, so None means the widget is off screen.
+        """
         offset = 0
         node = widget
-        compositor = widget.screen._compositor
-        # Compensation consumes arranged layout, just like Compositor.layers.
-        # Reader capture consumes accepted display independently. After a full
-        # reflow Textual may still flag its former scroll map as invalidated;
-        # asking virtual_region then needlessly computes the entire tree again
-        # merely to recover the anchor's already-measured coordinates.
-        geometry = compositor._layout_map
+        geometry = widget.screen._compositor._layout_map
         while node is not window:
-            placed = geometry.get(node)
-            if placed is None and require_placement:
+            if (placed := geometry.get(node)) is None:
                 return None
-            offset += placed.virtual_region.y if placed is not None else node.virtual_region.y
+            offset += placed.virtual_region.y
             if not isinstance(node.parent, Widget):
                 break
             node = node.parent
+        return offset
+
+    @classmethod
+    def _offset(cls, widget: Widget, window: Widget) -> int:
+        """The row of a widget that layout must have placed: an anchor or target."""
+        if (offset := cls._placed_offset(widget, window)) is None:
+            raise LookupError(f"{widget!r} is not placed in {window!r}'s layout; "
+                              "anchors must be visible or declared geometry targets")
         return offset
 
     def current(self, window: HistoryWindow) -> bool:

@@ -127,19 +127,23 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return FramePresentation(self)
 
     @cached_property
-    def history_anchors(self) -> set:
-        """History windows whose reader position is restored by the next layout."""
+    def history_windows(self) -> set:
+        """Mounted history windows; each registers itself for its lifetime."""
         return set()
+
+    def _layout_geometry_targets(self) -> tuple[Widget, ...]:
+        # Reader positions and restorations compensate against these widgets,
+        # so viewport layout places them even when they are off screen.
+        return tuple(target for window in self.history_windows
+                     for target in window.history_geometry_targets())
 
     def on_screen_suspend(self) -> None:
         self.frame_presentation.suspend()
-        for window in tuple(self.history_anchors):
+        for window in tuple(self.history_windows):
             window.retire_presentation_wait()
 
     def on_screen_resume(self) -> None:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        for window in self.query(HistoryWindow):
+        for window in tuple(self.history_windows):
             window.request_preparation()
 
     async def _message_loop_exit(self) -> None:
@@ -182,7 +186,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
         tracked = tuple((window, restoration)
-                        for window in self.history_anchors
+                        for window in self.history_windows
                         if (restoration := window.history_restoration) is not None)
         anchors = [
             (window, restoration, position)

@@ -258,14 +258,23 @@ class ConversationTurn:
         return self.owner.managed_id
 
     def changed(self, message):
+        before = self.owner
         if not self.binding.accepts(message):
             return False
-        self._changed(self.owner)
+        self._notify(before)
         return True
 
     def describe(self, activity):
+        before = self.owner
         self.binding.describe(activity)
-        self._changed(self.owner)
+        self._notify(before)
+
+    def _notify(self, before):
+        # Streaming describes the turn on every chunk and publications repeat
+        # unchanged leases; consumers re-sync prompt, footer bindings and
+        # details, so they hear only an actual change of owner.
+        if (owner := self.owner) != before:
+            self._changed(owner)
 
     def start_client(self):
         self.binding.start_client()

@@ -83,7 +83,7 @@ class IRCMessageText(WorkerStatic):
             # membership. Borrow the window's original reader without acquiring
             # page trimming/selection protection or fencing unrelated rows.
             window = history.window
-            anchor = window.reader_anchor(self)
+            anchor = window.reader_anchor()
             async with window.preserve_history(anchor, root=self):
                 yield
             window.check_follow()

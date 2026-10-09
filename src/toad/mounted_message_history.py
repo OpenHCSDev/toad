@@ -154,7 +154,6 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         if retained:
             anchor, protected = window.protect_history(
                 (widget for _, widget in retained), older=older,
-                fallback=retained[0 if older else -1][1],
             )
         else:
             anchor, protected = None, set()
