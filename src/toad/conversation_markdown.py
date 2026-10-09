@@ -19,11 +19,13 @@ from toad.project_link import ProjectLink
 
 
 class ConversationCodeFence(MarkdownFence):
-    def get_clipboard_text(self) -> str:
-        return self._content.plain
+    @classmethod
+    def clipboard_source(cls, markdown: str | None, code: str | None) -> str | None:
+        return code
 
-    def get_prompt_text(self) -> str:
-        return self.source
+    @classmethod
+    def prompt_source(cls, markdown: str | None, code: str | None) -> str | None:
+        return markdown
 
 
 _PATH_PATTERN = re.compile(

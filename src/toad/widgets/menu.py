@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from textual import on
 from textual.app import ComposeResult
@@ -13,6 +14,9 @@ from textual.widget import Widget
 
 from toad.menus import MenuItem
 from toad.widgets.selection import SelectionListItem
+
+if TYPE_CHECKING:
+    from textual.document._markdown import MarkdownSourceBlock
 
 
 class NonSelectableLabel(Label):
@@ -93,7 +97,7 @@ class Menu(ListView, can_focus=True):
         """The user selected on of the options."""
 
         menu: Menu
-        owner: Widget
+        owner: Widget | MarkdownSourceBlock
         action: str | None
 
     @dataclass
@@ -102,7 +106,7 @@ class Menu(ListView, can_focus=True):
 
         menu: Menu
 
-    def __init__(self, owner: Widget, options: list[MenuItem], *args, **kwargs) -> None:
+    def __init__(self, owner: Widget | MarkdownSourceBlock, options: list[MenuItem], *args, **kwargs) -> None:
         self._owner = owner
         self._options = options
         super().__init__(*args, **kwargs)
