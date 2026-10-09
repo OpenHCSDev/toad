@@ -25,15 +25,10 @@ cleanup() {
     xdotool key --window "$window" ctrl+q 2>/dev/null || true
     sleep 3
     kill "$st_pid" 2>/dev/null || true
-    # A fork is a full copy of the parent's 141 MB history. Core cannot delete
-    # a thread, so archive it and remove the session file this run created.
-    session=$(agent-comms thread --name "$fork" --no-pending 2>/dev/null \
-        | python3 -c 'import json,sys; print(json.load(sys.stdin).get("session_file") or "")' 2>/dev/null || true)
+    # A fork is a full copy of the parent's 141 MB history: delete it, which
+    # removes its registration, per-thread state and session files.
     agent-comms stop --name "$fork" > /dev/null 2>&1 || true
-    agent-comms archive --name "$fork" > /dev/null 2>&1 || true
-    case "$session" in
-        "$HOME"/.pi/agent/sessions/*.jsonl) rm -f -- "$session" "$session.input-proof" ;;
-    esac
+    agent-comms delete --name "$fork" > "$out/delete.json" 2>&1 || true
 }
 trap cleanup EXIT
 
