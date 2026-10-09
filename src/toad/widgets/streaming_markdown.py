@@ -397,7 +397,8 @@ class StreamingMarkdown(SnapshotPresentation, PreparedConversationMarkdown):
                 ordered = self.fragment_views if not older else tuple(reversed(self.fragment_views))
                 removable = 0
                 for child in ordered:
-                    if removable == max(0, excess) or child in protected:
+                    if (removable == max(0, excess) or child in protected
+                            or window.document_viewport.retains_body(child)):
                         break
                     removable += 1
                 if removable:
