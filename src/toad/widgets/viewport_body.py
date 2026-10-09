@@ -258,6 +258,17 @@ class BodyMeasurement(ABC):
         # the explicit offscreen requests passed to the native compositor.
         return ()
 
+    def changes_geometry(self, body, previous):
+        """Resource replacement changes layout only through its actual supply.
+
+        Paint and writer identities still change independently. Native child
+        membership and CSS retain their own layout invalidation; this resource
+        supplies retained extent, descendant participation and explicit boxes.
+        """
+        return ((self.width, self.rows) != (previous.width, previous.rows)
+                or self.requires_geometry(body) != previous.requires_geometry(body)
+                or self.geometry_targets(body) != previous.geometry_targets(body))
+
     def preparation_targets(self, body):
         """A source/paint resource owns its original materialization worker."""
         return (body,)
@@ -1014,6 +1025,7 @@ class MeasuredViewportBody(ViewportBody):
     def _update_body_measurement(self, measurement):
         if measurement is self._body_measurement:
             return
+        previous = self._body_measurement
         empty = self.is_empty
         self._body_measurement = measurement
         if self.is_empty != empty:
@@ -1021,10 +1033,10 @@ class MeasuredViewportBody(ViewportBody):
             # A membership pseudo can change the native admission even when
             # its stylesheet has no different rule values to notify about.
             self._body_measurement = self._body_measurement.style_updated(self)
-        # The resource owns descendant participation and cover selection as
-        # well as extent. Publish that change before any native prune awaits;
-        # NodeList removal happens later and cannot invalidate it for us.
-        self.refresh(layout=True)
+        # Resource custody, paint and native geometry are independent changes.
+        # Publish actual geometry supply before pruning, without arranging the
+        # whole scene again for a paint invalidation or a new writer alone.
+        self.refresh(layout=self._body_measurement.changes_geometry(self, previous))
         self.request_body_preparation()
 
     def request_body_preparation(self):
