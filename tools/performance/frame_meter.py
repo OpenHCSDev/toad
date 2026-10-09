@@ -133,8 +133,10 @@ def summarize(path):
         "frames": len(work), "inputs": len(data["inputs"]), "painted_inputs": len(latencies),
         "frame_median_ms": round(statistics.median(work), 1) if work else None,
         "frame_p95_ms": round(percentile(work, .95), 1),
+        "frame_p99_ms": round(percentile(work, .99), 1),
         "input_to_paint_median_ms": round(statistics.median(latencies), 1) if latencies else None,
         "input_to_paint_p95_ms": round(percentile(latencies, .95), 1),
+        "input_to_paint_p99_ms": round(percentile(latencies, .99), 1),
     }
 
 
