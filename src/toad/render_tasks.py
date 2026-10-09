@@ -154,6 +154,15 @@ class MarkdownDocumentRenderTask(ReusableRenderTask["DocumentPaint"]):
     selection_style: Style | None = None
     selecting: bool = False
 
+    @property
+    def preparation_inputs(self) -> object:
+        from textual.document._paint import DocumentPaint
+
+        return DocumentPaint.preparation_inputs(
+            self.document, self.width, root_selection=self.root_selection,
+            selection_style=self.selection_style, selecting=self.selecting,
+        )
+
     def execute(self) -> "DocumentPaint":
         return self.document.prepare(
             self.width, root_selection=self.root_selection,

@@ -203,7 +203,7 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
 
     @property
     def inputs(self) -> object:
-        return self.task
+        return (type(self.task), self.task.preparation_inputs)
 
     @property
     def render_task(self) -> RenderTask[ResultT]:
