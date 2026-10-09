@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
+from typing import Any
 
 from agent_comms.acp_extension import (
-    ContextAnnotatedUpdate,
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
     CompactionPublishedUpdate,
@@ -75,10 +76,6 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(TranscriptChangedUpdate)
     def transcript_changed(self, update: TranscriptChangedUpdate) -> None:
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
-
-    @handles(ContextAnnotatedUpdate)
-    def context_annotated(self, update: ContextAnnotatedUpdate) -> None:
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(TurnChangedUpdate)
@@ -228,3 +225,26 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
         if (root != coordination.wire_root or thread.incarnation != coordination.thread):
             raise ValueError('Turn snapshot belongs to another original thread source')
         self.turn_changed(TurnChangedUpdate(thread.turn_state))
+
+
+@dataclass(frozen=True)
+class ThreadRead:
+    """One presentation read of an agent's thread, captured before the read.
+
+    Whether the read ran here or in Core's observation process, its result
+    settles the turn only if the attachment and client session it was
+    requested for still hold.
+    """
+
+    agent: Any
+    thread: tuple[str, str]
+    authority: ClientSessionRequest
+    snapshot: OwnerSnapshotConsumer
+
+    def settle(self, presentation: ThreadPresentation | None) -> ThreadPresentation | None:
+        if self.agent.observed_thread() != self.thread:
+            raise ValueError("Thread attachment changed while reading status")
+        self.authority.require()
+        if presentation is not None:
+            self.snapshot.dispatch_sync(presentation)
+        return presentation

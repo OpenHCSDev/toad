@@ -77,8 +77,8 @@ class ThreadActionExecution:
         except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title=f"Session action: {self.subject}", severity="error")
         finally:
+            # The action's store writes reach views through Core's observation.
             self.owner.finished(self)
-            app.coordination_access.refresh()
 
 
 @dataclass(frozen=True)

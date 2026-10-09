@@ -165,11 +165,6 @@ class SessionPathChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
-class ThreadActivityChanged(CoreEvent):
-    """Invalidate feedback from the original observation resource."""
-
-
-@dataclass(frozen=True)
 class InputDispositionsChanged(CoreEvent):
     """Invalidate delivery display; the producer ledger owns its contents."""
 

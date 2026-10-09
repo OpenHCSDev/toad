@@ -169,6 +169,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         ))
         self.agent_info = Content(self._target_label())
         self.agent_ready = True
+        self.refresh_thread_status()
         self.prepare_prompt()
         self.window.anchor()
         # CommsScreen has already presented its route before mounting this
@@ -282,7 +283,13 @@ class CommsChatView(DeliveryFailureView, Conversation):
     def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
         return self.message_history.viewport(NotificationViewport).visible_rows()
 
-    async def _read_thread_activity(self):
+    def status_thread(self) -> tuple[str, str] | None:
+        """A direct conversation shows its peer thread's status."""
+        name = self.conversation_kind.historical_thread(self.target)
+        reader = self.message_history.reader
+        return (str(reader.comms.root), name) if name is not None and reader is not None else None
+
+    async def read_foreign_thread(self):
         history = self.message_history
         reader = history.reader
         if reader is None:

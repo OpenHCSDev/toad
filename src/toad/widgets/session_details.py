@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING
 
-from agent_comms.thread_presentation import ThreadPresentation
 from textual.reactive import var
 from textual.widgets import Collapsible
 
@@ -14,16 +12,13 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
 from toad.conversation_turn import ConversationTurn
-from agent_comms.mro_dispatch import handles
-from toad.core import events as core_events
-from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 
 
 if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(CoreEventReceiver, Collapsible):
+class SessionDetails(Collapsible):
     """Keep one summary row; native detail producers remain the state owners."""
 
     DETAIL_ROWS = 8
@@ -43,13 +38,13 @@ class SessionDetails(CoreEventReceiver, Collapsible):
     """
 
     def __init__(
-        self, read: Callable[[], Awaitable[ThreadPresentation | None]], *,
+        self, *,
         history: NativeHistory | None = None, delivery: InputDeliveryBar | None = None,
         transcript: TranscriptPresentation | None = None,
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
-        self.activity = ObservedThreadActivity(read)
+        self.activity = ObservedThreadActivity()
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
@@ -58,7 +53,7 @@ class SessionDetails(CoreEventReceiver, Collapsible):
 
     def on_mount(self) -> None:
         self.query_children(self.Contents).first().styles.max_height = self.DETAIL_ROWS
-        self.watch(self.activity, "display", self._refresh_summary)
+        self.watch(self.activity, "row", self._refresh_summary)
         if self.history is not None:
             self.watch(self.history, "status", self._refresh_summary)
         if self.delivery is not None:
@@ -66,33 +61,17 @@ class SessionDetails(CoreEventReceiver, Collapsible):
             self.watch(self.delivery, "error", self._refresh_summary)
         self._refresh_summary()
 
-    @handles(core_events.ThreadActivityChanged)
-    def observed_activity_changed(self, message: CoreEventMessage) -> None:
-        # The same event still reaches Conversation's activity/Ready policy.
-        if message.publisher is self.activity:
-            self._refresh_summary()
-
     def _refresh_summary(self, *_args) -> None:
-        activity = self.activity
-        presentation = activity.presentation
+        row = self.activity.row
+        shown = row is not None and row.shown
         parts = ["Session details"]
-        attention = activity.unavailable or bool(presentation and presentation.attention)
-        if activity.unavailable:
-            parts.append("Status unavailable")
+        attention = shown and row.attention
+        if shown and not row.available:
+            parts.extend(row.summary)
         elif self.turns is not None and self.turns.owner.busy:
             parts.append(self.turns.owner.activity)
-        elif presentation is not None:
-            parts.append(presentation.summary.partition("\n")[0] or "Ready")
-            if presentation.notifications:
-                latest = next(
-                    (notice for notice in presentation.notifications if notice.message is not None),
-                    None,
-                )
-                if latest is not None:
-                    source = latest.message
-                    parts.append(f"Latest inbound {source.target} from @{source.sender}: {latest.state}")
-                if len(presentation.notifications) > 1:
-                    parts.append(f"{len(presentation.notifications)} recent")
+        elif shown:
+            parts.extend(row.summary)
         parts.extend(self.history_details.summary)
         attention |= self.history_details.attention
         if self.delivery is not None:
@@ -115,7 +94,7 @@ class SessionDetails(CoreEventReceiver, Collapsible):
             self.title = title
         self.set_class(attention, "-attention")
         self.overview_text = self.history_details.overview(self.activity)
-        self.display = bool(presentation is not None or activity.unavailable
+        self.display = bool(shown
                             or self.history is not None and self.history.status is not None
                             or self.delivery is not None and self.delivery.display)
 

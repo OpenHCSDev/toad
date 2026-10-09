@@ -24,7 +24,6 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms import agent_events as comms_events
 from agent_comms.acp_extension import (
-    ContextAnnotatedUpdate,
     CompactionChangedUpdate,
     CompactionPublishedUpdate,
     CoordinationChangedUpdate,
@@ -87,7 +86,7 @@ from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.wire_message_handling import WireMessageHandling
-from toad.widgets.observed_thread_activity import ObservedThreadActivity
+from toad.widgets.observed_thread_activity import ThreadStatusOwner
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
@@ -616,9 +615,16 @@ from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
 
 
-class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSessionBinding):
+class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, ConversationSessionBinding):
     ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
+
+    thread_presentation = None
+    """The agent thread's latest settled presentation."""
+    _thread_read = None
+    """The capture the next observed presentation settles against (ThreadRead)."""
+    _unpublished_presentation = None
+    """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     BLANK = True
     MAX_LIVE_BLOCKS = 32
@@ -799,7 +805,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         with containers.Vertical(id="prompt-stack"):
             yield TurnActivity(self.turns)
             yield SessionDetails(
-                self._read_thread_activity,
                 turns=self.turns,
                 transcript=self.transcript,
                 history=NativeHistory().data_bind(
@@ -947,7 +952,28 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     def cursor_block_child(self) -> Widget | None:
         return self.navigation.selected
 
-    async def _read_thread_activity(self):
+    def status_thread(self) -> tuple[str, str] | None:
+        return self.agent.observed_thread() if self.agent is not None else None
+
+    def arm_thread_read(self) -> None:
+        """Capture turn token and client authority for the next observed presentation."""
+        self._thread_read = self.agent.thread_read() if self.agent is not None else None
+
+    def thread_observed(self, presentation) -> None:
+        """Settle the agent's turn from an observed presentation, as its own read would."""
+        read = self._thread_read
+        self.arm_thread_read()
+        if read is None:
+            return
+        try:
+            presentation = read.settle(presentation)
+        except ValueError as error:
+            # The attachment changed after the capture; the next observation settles.
+            self.log.warning("Observed thread presentation not settled", error)
+            return
+        self.thread_presented(presentation)
+
+    async def read_foreign_thread(self):
         agent = self.agent
         if agent is None:
             return None
@@ -956,17 +982,37 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             raise ValueError("Agent attachment changed")
         return presentation
 
-    @handles(core_events.ThreadActivityChanged)
-    async def on_observed_thread_activity(
-        self, event: CoreEventMessage
-    ) -> None:
-        event.stop()
-        observation = event.publisher
-        if observation.unavailable:
+    def foreign_thread_read(self, presentation) -> None:
+        self.thread_presented(presentation)
+
+    def thread_presented(self, presentation) -> None:
+        """A settled presentation refreshes the transcript source of the shown view."""
+        from toad.screens.session_view import SessionView
+
+        self.thread_presentation = presentation
+        if presentation is None or self.agent is None:
             return
-        if observation.presentation is not None:
+        if self.query_ancestor(SessionView).is_current:
             from toad.transcript_publication import ObservedSourcePublication
-            self.transcript.source_requests.request(ObservedSourcePublication, observation.presentation)
+            self._unpublished_presentation = None
+            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+        else:
+            self._unpublished_presentation = presentation
+
+    @handles(core_events.SessionSelected)
+    async def _thread_view_selected(self, event: CoreEventMessage) -> None:
+        from toad.screens.session_view import SessionView
+
+        presentation = self._unpublished_presentation
+        if presentation is not None and self.query_ancestor(SessionView).is_current:
+            from toad.transcript_publication import ObservedSourcePublication
+            self._unpublished_presentation = None
+            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+
+    @handles(core_events.CoordinationObserved)
+    async def _thread_route_observed(self, event: CoreEventMessage) -> None:
+        # The observed root can change; a foreign thread reads again.
+        self.refresh_thread_status()
 
 
     @handles(AgentReady)
@@ -984,7 +1030,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
         self.agent_ready = True
         self.prompt.sync_session()
-        self.query_one(ObservedThreadActivity).refresh_observation()
+        self.arm_thread_read()
+        self.refresh_thread_status()
         self.call_later(self.goal_observation.invalidate)
         self.call_later(self.delivery_observation.invalidate)
         self.transcript.request()
@@ -1026,6 +1073,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             await self.rename_session(message.event.title or "")
 
     async def on_unmount(self) -> None:
+        self.app.coordination_access.show_thread(self, None)
         await self._release_source_resources()
         if self.agent is not None:
             await self.agent.retire_surface(self)
@@ -1691,6 +1739,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.observe_core(self.app.settings.events)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
+        self.refresh_thread_status()
 
         self.input_histories.shell.complete.add_words(
             self.app.settings.shell.allow_commands.split()
@@ -1813,8 +1862,10 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
         self.submissions.reset()
-        if (observed := self.query_one_optional(ObservedThreadActivity)) is not None:
-            observed.bind(agent.get_thread_presentation if agent is not None else self._read_thread_activity)
+        self.thread_presentation = self._unpublished_presentation = None
+        self.arm_thread_read()
+        if self.is_attached:
+            self.refresh_thread_status()
         self.turns.bound()
         self.busy_count = 0
         if agent is None:
@@ -2192,17 +2243,12 @@ class ConversationCommsConsumer(MroDispatch):
         self.conversation = conversation
         self.message = message
 
-    @handles(ContextAnnotatedUpdate)
-    async def context_annotated(self, update):
-        # The existing route/revision observer already owns coordinator DB/WAL
-        # invalidation. Acquire its committed source, never copy event labels.
-        self.conversation.app.coordination_access.refresh()
-
     @handles(CoordinationChangedUpdate)
     async def coordination_changed(self, update: CoordinationChangedUpdate):
-        # Source binding is published independently of registry/activity changes.
-        # A fresh DM must acquire its original status even on an unchanged wire.
-        self.conversation.query_one(ObservedThreadActivity).refresh_observation()
+        # Source binding is published independently of registry/activity changes:
+        # a newly bound thread joins the observed threads (or reads as foreign).
+        self.conversation.arm_thread_read()
+        self.conversation.refresh_thread_status()
         self.conversation.prompt.sync_session()
         self.conversation.prompt.sync_queue()
 

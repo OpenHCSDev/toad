@@ -854,9 +854,7 @@ class TranscriptPresentation:
                 # A retained resume can reject an identical snapshot without any
                 # widget replacement; it still publishes canonical coverage here.
                 view.query_one(SessionDetails)._refresh_summary()
-                from toad.widgets.observed_thread_activity import ObservedThreadActivity
-                observed = view.query_one_optional(ObservedThreadActivity)
-                if observed is not None and observed.presentation is not None:
+                if view.thread_presentation is not None:
                     view.run_worker(partial(self.publish, HandlingPublication),
                                     group="transcript-handling", exclusive=True)
 

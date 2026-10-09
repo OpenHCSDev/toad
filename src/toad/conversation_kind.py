@@ -325,7 +325,7 @@ class DmConversation(ConversationKind):
     def activity_widget(cls, view):
         from toad.widgets.session_details import SessionDetails
 
-        return SessionDetails(view._read_thread_activity)
+        return SessionDetails()
 
     @classmethod
     def prompt(cls, target):
