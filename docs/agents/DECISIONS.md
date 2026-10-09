@@ -122,3 +122,26 @@ Real Markdown block widgets exist only for non-conversation parsers, or after a 
   - the fork's `document/_paint.py` admission, `document/_markdown.py` and the `widgets/_markdown.py` detached-document additions, plus the Screen and compositor hook call sites.
 
   Two hooks have side effects that need a new owner first. `_prepare_compositor_refresh` calls `check_follow()` every frame, which should move to the window's own scroll/size owner. `_layout_mutation_roots` holds a `HistoryWindow` subtree during `preserve_history`; check whether line pages still need that hold.
+
+## 2026-10-09: Live tail on lines: built, not yet merged
+
+The live-tail migration is on branch `wip/live-tail-lines` (`e37ae09`, +329/−3735).
+- **Messages now draw through `LineMarkdown`:** `AgentResponse`, `AgentThought`, `UserInput`, tool Markdown and the file preview.
+- **Deleted:**
+  - `viewport_body.py`: body states, `DocumentViewport`, `ViewportPresentation`;
+  - `prepared_markdown.py`, `streaming_markdown.py`;
+  - the dead `incoming_message.py`;
+  - the `WorkspaceScreen` frame hooks;
+  - the source-retention plumbing.
+- **The history window owns** its lookahead, budget, destination and preparation requests.
+
+It runs the fixed scenario with no crashes. Measured frame p99 was 22.6 ms against 16.5–19.4 ms on `perf/line-history`, and input-to-paint p99 41.6 ms. Those runs overlapped the latency subagent's `#openhcs` test traffic.
+
+**Next:**
+1. Compare both branches back to back on a quiet system: two runs each, same display.
+2. If the live tail is slower, attribute its slow frames. During streaming, each fragment relayouts the conversation, and styled restyles are paced at 0.25 s (`LineMarkdown.RESTYLE_INTERVAL`).
+3. Merge only if it holds.
+
+**Still open after the merge:**
+- Delete the fork's detached-document system (`document/_paint.py`, `document/_markdown.py`) and its Screen and compositor hooks.
+- Restore the features listed in the plan above: block cursor and copy, anchors, selection, links.
