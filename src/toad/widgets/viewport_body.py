@@ -1336,20 +1336,16 @@ class ViewportPresentation:
         if self.document_admissions is not None:
             yield
             return
-        visible = self.screen._compositor.visible_widgets
-        pending = [owner for window in self.windows
-                   if (window.document_viewport.membership.displayed() or window in visible)
-                   for owner in window.document_viewport.owners]
-        bodies = set()
-        participants = []
-        while pending:
-            body = pending.pop()
-            if body in bodies:
-                continue
-            bodies.add(body)
-            if body._body_measurement.document_paint is not None:
-                participants.append(body)
-            pending.extend(body.child_bodies())
+        # Rendering consumes clipped native bodies, not all text retained by a
+        # visible message container. Mutation admission also asks its original
+        # retained ancestors whether they can paint the preceding publication.
+        bodies = dict.fromkeys(body for _window, body in self.visible_bodies(self.windows))
+        for root in self.mutation_roots():
+            for owner in root.walk_ancestors(with_self=True):
+                if isinstance(owner, ViewportBody):
+                    bodies[owner] = None
+        participants = tuple(body for body in bodies
+                             if body._body_measurement.document_paint is not None)
         self.document_admissions = DocumentPresentation.acquire_admissions(participants)
         try:
             yield
@@ -1512,8 +1508,6 @@ class DocumentViewport:
 
     def register(self, owner: ViewportBody) -> None:
         self.owners.add(owner)
-        key = ref(owner)
-        self._warm[key] = key
         # Declare custody before layout so its live box is a geometry target.
         # Preparation consumes the committed frame, not a partially mounted
         # tree whose geometry query would manufacture a full-scene layout.
@@ -1571,6 +1565,18 @@ class DocumentViewport:
             else:
                 pending.extend(node.children if reverse else reversed(node.children))
 
+    def preparation_roots(self):
+        """Source boundaries lend independently positioned text resources.
+
+        A message may span many screens. Its visible container neither admits
+        all that text nor supplies a preparation unit or measured row density.
+        Source chronology and paging still belong to body_roots().
+        """
+        for owner in self.body_roots():
+            for source in owner.body_preparation_targets():
+                if source._body_viewport is self and source.is_attached and not source._closing:
+                    yield source
+
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Each body's current resource owns its actual geometry demand."""
         return tuple(dict.fromkeys(
@@ -1598,33 +1604,33 @@ class DocumentViewport:
     def visible_body_rows(self) -> float:
         """Measured native density, derived from the current viewport owners."""
         visible = self.window.screen._compositor.visible_widgets
-        rows = [owner.measured_rows for owner in visible
-                if owner in self.owners and owner.measured_rows]
+        rows = [owner.measured_rows for owner in self.preparation_roots()
+                if owner in visible and owner.measured_rows]
         return sum(rows) / len(rows) if rows else max(1, self.window.size.height)
 
-    def admission_candidates(self, *, required=(), ahead=()):
+    def admission_candidates(self, *, required=(), ahead=(), resources=None):
         candidates = dict.fromkeys((*required, *ahead, *(owner
             for key in reversed(self._warm.values()) if (owner := key()) is not None)))
-        # Mount already admits only the outer body into this viewport. Native
-        # membership owns that boundary; consumers don't rediscover its parents.
-        return tuple(owner for owner in candidates if owner in self.owners)
+        resources = set(self.preparation_roots() if resources is None else resources)
+        return tuple(owner for owner in candidates if owner in resources)
 
-    def admission(self, *, required=(), ahead=()):
+    def admission(self, *, required=(), ahead=(), resources=None):
         # Native preparation prices the last actual tree BEFORE restoration.
         # Retained paint is admitted independently below; retaining rows is
         # not permission to recreate every hidden control in that resource.
         return self.budget.admit(
-            self.admission_candidates(required=required, ahead=ahead), required,
+            self.admission_candidates(required=required, ahead=ahead, resources=resources), required,
             self.window.size.height, self.window.app.preparation.max_bytes,
         )
 
-    def _trim_warm(self, *, required=(), ahead=()):
+    def _trim_warm(self, *, required=(), ahead=(), resources=None):
+        resources = tuple(self.preparation_roots() if resources is None else resources)
         self.admitted_bodies = self.budget.admit_paint(
-            self.admission_candidates(required=required, ahead=ahead), required,
+            self.admission_candidates(required=required, ahead=ahead, resources=resources), required,
             self.window.app.preparation.max_bytes,
         )
         admitted = self.admitted_bodies
-        for owner in tuple(self.owners):
+        for owner in resources:
             if owner in admitted:
                 owner.retain_paint()
             else:
@@ -1761,7 +1767,7 @@ class DocumentViewport:
                 screen = self.window.screen
                 visible = screen._compositor.visible_widgets
                 protected = self.protected()
-                owners = tuple(self.body_roots())
+                owners = tuple(dict.fromkeys(self.preparation_roots()))
                 required = tuple(owner for owner in owners
                                  if self.requires_body(owner, visible=visible, protected=protected))
                 # Warm admission and retirement belong to outer resources.
@@ -1789,7 +1795,7 @@ class DocumentViewport:
                         owners, min(visible_indexes), max(visible_indexes) + 1, count,
                     )
                     ahead_owners = list(dict.fromkeys(demand.body_order(runway, predicted)))
-                admitted = self._trim_warm(required=required, ahead=ahead_owners)
+                admitted = self._trim_warm(required=required, ahead=ahead_owners, resources=owners)
                 # Admission retains a body's bounded presentation resource,
                 # not its live descendant tree. Offscreen warm bodies paint
                 # their retained rows on reentry; only visible or interaction
@@ -1904,11 +1910,11 @@ class DocumentViewport:
         if (not self.window.is_attached or not self.accepts_frame()
                 or not self.lookahead.accepts(demand)):
             return ()
-        owners = tuple(dict.fromkeys(
-            source for owner in owners for source in owner.body_preparation_targets()
-            if source.is_attached and not source._closing
-            and source.body_dormant and not source.body_ready
-        ))
+        # The caller lends explicit native resources in viewport order. Do not
+        # turn a visible container back into demand for its entire subtree.
+        owners = tuple(dict.fromkeys(owner for owner in owners
+                                     if owner.is_attached and not owner._closing
+                                     and owner.body_dormant and not owner.body_ready))
         if not owners:
             return ()
         if anchor is None:
