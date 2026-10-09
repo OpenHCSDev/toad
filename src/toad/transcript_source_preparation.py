@@ -89,16 +89,17 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.prepare_scroll()
 
     async def on_unmount(self) -> None:
+        # Parked preparation belongs to the logical document. Unmount revokes
+        # this publisher, not the original source scope transferred with it.
+        self._source_state.retire_preparation(self._page_buffer)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
         self._prefetch_intent = None
         self.window.histories.discard(self)
-        if self._page_buffer is not None:
-            self._page_buffer.close()
         await self.close_source_reader()
 
     async def close_source_reader(self) -> None:
-        """Native prepared-page scope is closed by the common lifetime."""
+        """Close independent source subscriptions, separately from page custody."""
 
     def _layout_changed(self, _screen) -> None:
         self._scroll_changed()

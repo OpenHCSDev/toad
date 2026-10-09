@@ -6,6 +6,7 @@ import select
 import subprocess
 import tempfile
 
+from agent_comms.transcript_events import ContextTranscript
 from textual.widgets import Static
 from toad.block_content import BlockContent
 from toad.block_navigation import ConversationBlock
@@ -14,7 +15,7 @@ from toad.widgets.agent_response import AgentResponse
 from toad.widgets.menu import Menu
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
-from toad.widgets.coordination_context import CoordinationContext
+from toad.widgets.transcript_fragments import transcript_fragments
 from runtime_fixture import ToadApp
 
 
@@ -129,7 +130,7 @@ async def main():
                 assert "DECLARED_ACTION_PAINT" in frame(app)
                 assert view.check_action("expand_block", ()) is None
                 assert view.check_action("collapse_block", ()) is False
-                context = CoordinationContext("CONTEXT_COPY_PAINT")
+                context = transcript_fragments((ContextTranscript("CONTEXT_COPY_PAINT"),))[0].blocks()[0]
                 await view.post(context)
                 await pilot.pause()
                 assert view.navigation.select(context)

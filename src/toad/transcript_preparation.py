@@ -6,11 +6,12 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections import OrderedDict
 from collections.abc import AsyncIterator, Awaitable, Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 
+from toad.markdown_preparation import PreparedContentRange
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import TranscriptRenderTask
 from toad.widgets.message_filter import MessageCategory, keep_events
@@ -28,11 +29,23 @@ from toad.work_preparation import (
 )
 
 
-@dataclass(frozen=True)
-class PreparedTranscriptPage:
+@dataclass
+class PreparedTranscriptPage(PreparedContentRange):
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     retained_bytes: int
+    admission: tuple[int, int] | None = None
+    batch_size: int = field(default=PreparedContentRange.BATCH, kw_only=True)
+    admitted: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
+
+    def admit(self) -> PreparedTranscriptPage:
+        """An independent view owns admission and resolved source acquisitions.
+
+        The worker's immutable source/syntax remains reusable. Its stored page
+        never acquires a frontend document or another projection's lifetime.
+        """
+        return replace(self, fragments=tuple(fragment.independent() for fragment in self.fragments),
+                       admission=None, admitted=())
 
 
 @dataclass(frozen=True)
@@ -90,6 +103,48 @@ class PreparedPageSource(ABC):
     through: TranscriptCursor
     loader: Callable[..., Awaitable[TranscriptPage]] | None
 
+    def __init__(self) -> None:
+        # Custody moves here when native membership is revoked. These are the
+        # original admitted resources, not another cache of transport pages.
+        self.admitted: tuple[PreparedTranscriptPage, ...] = ()
+        self.projection_source: ProjectedTranscriptSource | None = None
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return sum(page.retained_bytes for page in self.admitted) + (
+            self.projection_source.retained_source_bytes if self.projection_source is not None else 0
+        )
+
+    def measure_admission(self, pages: tuple[PreparedTranscriptPage, ...],
+                          projection: ProjectedTranscriptSource | None = None,
+                          *, seen: set[int] | None = None) -> None:
+        """Partition retained source custody in the existing preparation worker.
+
+        A tool's mutable acquisition need not be a field of its immutable
+        dataclass input. Include each owner's declared suppliers, rather than
+        assuming a graph walk of transport fields reaches every document.
+        Canonical and projected pages share immutable inputs; their independent
+        acquisitions remain distinct while this one traversal counts sharing.
+        """
+        if seen is None:
+            seen = set()
+        for page in pages:
+            page.retained_bytes = retained_bytes(
+                (page.page, page.fragments, page.resolved_sources()), seen=seen,
+            )
+        if projection is not None:
+            projection.measure_admission(projection.admitted, projection.projection_source, seen=seen)
+
+    def park(self, pages: tuple[PreparedTranscriptPage, ...],
+             projection: ProjectedTranscriptSource | None = None) -> None:
+        if self.closed:
+            raise ValueError("Cannot retain a revoked transcript source")
+        self.admitted, self.projection_source = pages, projection
+
+    def release_admission(self) -> None:
+        """Native acquisition takes these same resources, not materialized copies."""
+        self.admitted, self.projection_source = (), None
+
     @property
     def closed(self) -> bool:
         return self.scope.closed
@@ -105,9 +160,11 @@ class PreparedPageSource(ABC):
     ) -> AsyncIterator[PreparedTranscriptPage]:
         pass
 
-    @abstractmethod
     def close(self) -> None:
-        pass
+        self.runtime.discard_scope(self.scope)
+        if self.projection_source is not None:
+            self.projection_source.close()
+        self.release_admission()
 
 
 class TranscriptPageProjection(ABC):
@@ -126,7 +183,8 @@ class CategoryProjection(TranscriptPageProjection):
         matches = await runtime.submit(TranscriptFilterWork(
             page.fragments, self.selected, len(page.fragments), len(page.fragments),
         ))
-        return replace(page, fragments=matches.fragments)
+        return replace(page, fragments=tuple(fragment.independent() for fragment in matches.fragments),
+                       admission=None, admitted=())
 
 
 @dataclass(frozen=True)
@@ -177,9 +235,10 @@ class TranscriptPageBuffer(PreparedPageSource):
     """
 
     def __init__(
-        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
+        self, loader: Callable[..., Awaitable[TranscriptPage]] | None, through: TranscriptCursor,
         runtime: PreparationRuntime,
     ) -> None:
+        super().__init__()
         self.loader, self.through, self.runtime = loader, through, runtime
         self.scope = PreparationScope()
         self._blocked: OrderedDict[PageRequest, None] = OrderedDict()
@@ -189,13 +248,15 @@ class TranscriptPageBuffer(PreparedPageSource):
         return self.scope.closed
 
     def close(self) -> None:
-        self.runtime.discard_scope(self.scope)
+        super().close()
         self._blocked.clear()
 
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
+        if self.loader is None:
+            raise ValueError("This transcript has no saved-source reader")
         result = await self.runtime.submit(TranscriptPageWork(self.scope, self.loader, self.through, request))
         self._blocked.pop(request, None)
-        return result
+        return result.admit()
 
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,
@@ -266,6 +327,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         runtime: PreparationRuntime, projection: TranscriptPageProjection,
         upstream: PreparedPageSource | None = None,
     ) -> None:
+        super().__init__()
         self.loader, self.runtime, self.projection = loader, runtime, projection
         self._upstream = upstream
         self.through = boundary.page.after
@@ -366,10 +428,9 @@ class ProjectedTranscriptSource(PreparedPageSource):
             yield prepared
 
     def close(self) -> None:
+        super().close()
         if self._raw is not None:
             self._raw.close()
-        else:
-            self.runtime.discard_scope(self.scope)
         self._projected_boundary = None
         self._upstream = None
         self._raw = None

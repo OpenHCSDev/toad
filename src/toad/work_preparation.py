@@ -217,10 +217,16 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
         return self.task.preparation_storage.store_result(self, result)
 
 
-def retained_bytes(value: object) -> int:
-    """Bound retained model graphs, including nested tool inputs, off-loop."""
+def retained_bytes(value: object, *, seen: set[int] | None = None) -> int:
+    """Measure retained graphs off-loop, sharing custody within one traversal.
+
+    Related resource owners can partition their original graphs with the same
+    local visited set. Shared source data is then charged once, without keeping
+    another cache or walking those objects again for each resource.
+    """
     pending = [value]
-    seen: set[int] = set()
+    if seen is None:
+        seen = set()
     total = 0
     while pending:
         item = pending.pop()

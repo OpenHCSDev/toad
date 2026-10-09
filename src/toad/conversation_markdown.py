@@ -14,16 +14,18 @@ from textual.layout import WidgetPlacement
 from textual.widgets import Markdown
 
 from toad.layout import trim_trailing_margin
-from toad.block_content import MarkdownBlockContent
+from toad.block_content import MarkdownBlockContent, MarkdownFence
 from toad.project_link import ProjectLink
 
 
-class ConversationCodeFence(MarkdownBlockContent, Markdown.BLOCKS["fence"]):
-    def get_clipboard_text(self) -> str:
-        return self._content.plain
+class ConversationCodeFence(MarkdownFence):
+    @classmethod
+    def clipboard_source(cls, markdown: str | None, code: str | None) -> str | None:
+        return code
 
-    def get_prompt_text(self) -> str:
-        return self.source
+    @classmethod
+    def prompt_source(cls, markdown: str | None, code: str | None) -> str | None:
+        return markdown
 
 
 _PATH_PATTERN = re.compile(
@@ -201,7 +203,7 @@ class ConversationMarkdown(Markdown):
     """Markdown widget with custom blocks."""
 
     BLOCKS = {
-        **{name: MarkdownBlockContent.declare(block) for name, block in Markdown.BLOCKS.items()},
+        **MarkdownBlockContent.blocks_for(Markdown.BLOCKS),
         "fence": ConversationCodeFence,
     }
 
