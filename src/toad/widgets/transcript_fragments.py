@@ -155,24 +155,35 @@ class TranscriptFragment:
     prepared_source: PreparedMarkdown | None = field(default=None, kw_only=True, compare=False, repr=False)
     prepared_content: PreparedContentRange | None = field(default=None, kw_only=True, compare=False, repr=False)
 
-    def line_blocks(self, styles, *, show_divider: bool = True):
-        """This fragment's committed-history lines, one block per visual part."""
-        from toad.widgets.transcript_lines import FragmentLineConsumer, Summary
+    def line_blocks(self, *, show_divider: bool = True):
+        """What this fragment shows in committed history, one block per visual part."""
+        from toad.line_blocks import FragmentLineConsumer, Summary
 
-        consumer = FragmentLineConsumer(styles, show_divider=show_divider)
+        consumer = FragmentLineConsumer(show_divider=show_divider)
         if self.starts_agent_activity and not self.continuation:
-            consumer.blocks.append(Summary("· Agent activity", styles.muted))
+            consumer.blocks.append(Summary("· Agent activity"))
         for event in self.events:
             consumer.dispatch_sync(event)
         return tuple(consumer.blocks)
 
-    def lines_for(self, width: int, styles):
+    def lines_for(self, width: int, theme):
         """Styled lines this fragment holds for a width and theme, if any."""
         held = self.__dict__.get("_lines")
-        return held[1] if held is not None and held[0] == styles and held[1].width == width else None
+        return held[1] if held is not None and held[0] == theme and held[1].width == width else None
 
-    def hold_lines(self, styles, lines) -> None:
-        self.__dict__["_lines"] = styles, lines
+    def hold_lines(self, theme, lines) -> None:
+        self.__dict__["_lines"] = theme, lines
+
+    def plain_lines(self, width: int, theme):
+        """Plain wrapped lines drawn until styled lines arrive; built once per width."""
+        from toad.widgets.transcript_lines import PreparedLines, RichLineRenderer
+
+        held = self.__dict__.get("_plain")
+        if held is None or held[0] != theme or held[1].width != width:
+            blocks = self.line_blocks(show_divider=not self.continuation)
+            held = self.__dict__["_plain"] = theme, PreparedLines(
+                width, RichLineRenderer(theme, width, plain=True).rows(blocks))
+        return held[1]
 
     def resolved_sources(self):
         return (() if self.prepared_source is None else self.prepared_source.resolved_sources()) + (
@@ -210,10 +221,10 @@ class ToolTranscriptFragment(TranscriptFragment):
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
-    def line_blocks(self, styles, *, show_divider: bool = True):
-        from toad.widgets.transcript_lines import Summary
+    def line_blocks(self, *, show_divider: bool = True):
+        from toad.line_blocks import Summary
 
-        return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}", styles.muted),)
+        return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}"),)
 
     def resolved_sources(self):
         return tuple(source for part in self.output_parts for source in part.resolved_sources())
@@ -232,10 +243,10 @@ class ContextTranscriptFragment(TranscriptFragment):
         # Returning a retained disclosure does not open either of its sources.
         return
 
-    def line_blocks(self, styles, *, show_divider: bool = True):
-        from toad.widgets.transcript_lines import Summary
+    def line_blocks(self, *, show_divider: bool = True):
+        from toad.line_blocks import Summary
 
-        return (Summary("▶ Agent coordination context", styles.muted),)
+        return (Summary("▶ Agent coordination context"),)
 
     def resolved_sources(self):
         return super().resolved_sources() + (() if self.original_content is None else

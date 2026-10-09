@@ -138,7 +138,7 @@ class ReaderPosition(WindowPosition):
             for page in history.pages:
                 offset = HistoryAnchor._offset(page, window)
                 row = int(window.scroll_y - offset)
-                if 0 <= row < page.size.height and (found := page.fragment_at(row)) is not None:
+                if 0 <= row < page.line_count and (found := page.fragment_at(row)) is not None:
                     fragment, within = found
                     return FragmentReaderPosition(fragment, within, admissions)
         return OffsetReaderPosition(window.scroll_y, admissions)
