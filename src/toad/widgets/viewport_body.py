@@ -1650,7 +1650,7 @@ class DocumentViewport:
                     break
                 protected.add(node)
         if self.window.history_anchor is not None:
-            protected.add(self.window.history_anchor.widget)
+            protected.update(self.window.history_anchor.required_bodies(self.window))
         return protected
 
     @property
