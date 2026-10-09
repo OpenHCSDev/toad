@@ -11,7 +11,6 @@ from markdown_it.token import Token
 
 
 from textual.content import Content
-from textual import constants, log
 from textual.app import ComposeResult
 from textual.worker import WorkerCancelled, get_current_worker
 from textual.await_complete import AwaitComplete
@@ -435,25 +434,6 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                 self._table_of_contents = paint.table_of_contents
                 self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
                 return PreparedDocumentBody(paint, cost, source)
-            if constants.LOG_FILE:
-                current_document = self.document
-                presentation = paint.document.presentation
-                admissions = type(presentation).acquire_admissions((self,))
-                log("document-paint-refused", body=id(self), declaration=type(self).__name__,
-                    width=width, measurement=type(self._body_measurement).__name__,
-                    measurement_width=self._body_measurement.width, rows=self.measured_rows,
-                    gutter=self.styles.gutter, paint_width=paint.width, content_size=paint.content_size,
-                    attached=self.is_attached, closing=self._closing, pruning=self._pruning,
-                    document=id(document), source_identity=document.heading_namespace,
-                    current_document=None if current_document is None else id(current_document),
-                    same_source=(current_document is not None and document.same_source(current_document)),
-                    source_current=self.prepared_source is source, owns_source=self.owns_requested_source(),
-                    host_empty=self.is_empty, paint_root_empty=paint.root_empty,
-                    host_pseudo=frozenset(self.get_pseudo_classes()),
-                    source_root_pseudo=presentation.root.pseudo_classes,
-                    presentation_current=presentation.current_for(self, admissions=admissions),
-                    paint_current=paint.is_current(self, width, admissions=admissions),
-                    participant_admission=presentation.admission, current_admission=admissions[self])
             # Sibling mounting, width and selection can change during worker
             # delivery. The same accepted producer reacquires presentation;
             # its original resolved tokens and source suppliers stay intact.
