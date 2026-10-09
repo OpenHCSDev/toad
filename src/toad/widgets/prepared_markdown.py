@@ -149,7 +149,7 @@ class PreparedContentRange:
         self.remove_children(retired)
 
 
-class PreparedMarkdownContent(WorkerStatic):
+class PreparedMarkdownContent:
     """Native blocks keep token/link custody; WorkerStatic owns their wrapping."""
 
     @classmethod
@@ -181,35 +181,35 @@ class PreparedMarkdownContent(WorkerStatic):
                 yield
 
 
-class PreparedParagraph(ConversationMarkdown.BLOCKS["paragraph_open"], PreparedMarkdownContent):
+class PreparedParagraph(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["paragraph_open"], WorkerStatic):
     pass
 
 
-class PreparedH1(ConversationMarkdown.BLOCKS["h1"], PreparedMarkdownContent):
+class PreparedH1(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["h1"], WorkerStatic):
     pass
 
 
-class PreparedH2(ConversationMarkdown.BLOCKS["h2"], PreparedMarkdownContent):
+class PreparedH2(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["h2"], WorkerStatic):
     pass
 
 
-class PreparedH3(ConversationMarkdown.BLOCKS["h3"], PreparedMarkdownContent):
+class PreparedH3(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["h3"], WorkerStatic):
     pass
 
 
-class PreparedH4(ConversationMarkdown.BLOCKS["h4"], PreparedMarkdownContent):
+class PreparedH4(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["h4"], WorkerStatic):
     pass
 
 
-class PreparedH5(ConversationMarkdown.BLOCKS["h5"], PreparedMarkdownContent):
+class PreparedH5(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["h5"], WorkerStatic):
     pass
 
 
-class PreparedH6(ConversationMarkdown.BLOCKS["h6"], PreparedMarkdownContent):
+class PreparedH6(PreparedMarkdownContent, ConversationMarkdown.BLOCKS["h6"], WorkerStatic):
     pass
 
 
-class PreparedCodeLabel(Label, PreparedMarkdownContent):
+class PreparedCodeLabel(PreparedMarkdownContent, Label, WorkerStatic):
     """Code uses the same native Content worker and publication lifetime."""
 
 
