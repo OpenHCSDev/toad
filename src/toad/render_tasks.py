@@ -17,6 +17,8 @@ from toad.rich_preparation import (
 )
 
 if TYPE_CHECKING:
+    from textual.document._markdown import MarkdownDocument
+    from textual.document._paint import DocumentPaint
     from toad.widgets.patch_diff import PreparedPatch
     from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey
 
@@ -58,8 +60,40 @@ class PatchRenderTask(ReusableRenderTask["PreparedPatch"]):
         return result
 
 
+class MarkdownSourcePreparation:
+    """Shared acquisition/identity; source and partition results stay distinct."""
+
+    source: str | PreparedMarkdownPart
+
+    def acquire_source(self) -> PreparedMarkdownPart:
+        return (PreparedMarkdownPart.capture(self.source) if isinstance(self.source, str)
+                else self.source)
+
+    async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
+        if isinstance(self.source, PreparedMarkdownPart):
+            from toad.work_preparation import WorkKey
+
+            return WorkKey(type(work), (type(self), self.source.revision), work.scope)
+        return await super().preparation_identity(work, runtime)
+
+
 @dataclass(frozen=True)
-class MarkdownRenderTask(ReusableRenderTask[PreparedMarkdown]):
+class MarkdownSyntaxRenderTask(MarkdownSourcePreparation, ReusableRenderTask[PreparedMarkdownPart]):
+    """Acquire one complete syntax resource when the owner forbids paging."""
+
+    source: str | PreparedMarkdownPart
+
+    def execute(self) -> PreparedMarkdownPart:
+        return self.acquire_source()
+
+    def accept_result(self, result: object) -> PreparedMarkdownPart:
+        if not isinstance(result, PreparedMarkdownPart):
+            raise TypeError("Markdown renderer returned an invalid syntax resource")
+        return result
+
+
+@dataclass(frozen=True)
+class MarkdownRenderTask(MarkdownSourcePreparation, ReusableRenderTask[PreparedMarkdown]):
     """Acquire syntax once, then highlight before independent delivery."""
 
     source: str | PreparedMarkdownPart
@@ -76,8 +110,7 @@ class MarkdownRenderTask(ReusableRenderTask[PreparedMarkdown]):
         return await super().preparation_identity(work, runtime)
 
     def execute(self) -> PreparedMarkdown:
-        part = (PreparedMarkdownPart.capture(self.source)
-                if isinstance(self.source, str) else self.source)
+        part = self.acquire_source()
         return prepare_tokens(part.acquire_tokens(), self.ansi, self.dark)
 
     def accept_result(self, result: object) -> PreparedMarkdown:
@@ -87,23 +120,15 @@ class MarkdownRenderTask(ReusableRenderTask[PreparedMarkdown]):
 
 
 @dataclass(frozen=True)
-class MarkdownPartsTask(ReusableRenderTask[tuple[PreparedMarkdownPart, ...]]):
+class MarkdownPartsTask(MarkdownSourcePreparation, ReusableRenderTask[tuple[PreparedMarkdownPart, ...]]):
     """Partition one original message with the shared Markdown block budget."""
 
     source: str | PreparedMarkdownPart
 
-    async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
-        if isinstance(self.source, PreparedMarkdownPart):
-            from toad.work_preparation import WorkKey
-
-            return WorkKey(type(work), (type(self), self.source.revision), work.scope)
-        return await super().preparation_identity(work, runtime)
-
     def execute(self) -> tuple[PreparedMarkdownPart, ...]:
         from toad.widgets.transcript_fragments import RenderBudget
 
-        part = (PreparedMarkdownPart.capture(self.source)
-                if isinstance(self.source, str) else self.source)
+        part = self.acquire_source()
         parts = tuple(RenderBudget().split(part))
         for part in parts:
             part.retained_bytes
@@ -112,6 +137,24 @@ class MarkdownPartsTask(ReusableRenderTask[tuple[PreparedMarkdownPart, ...]]):
     def accept_result(self, result: object) -> tuple[PreparedMarkdownPart, ...]:
         if not isinstance(result, tuple) or not all(isinstance(part, PreparedMarkdownPart) for part in result):
             raise TypeError("Markdown renderer returned invalid source parts")
+        return result
+
+
+@dataclass(frozen=True)
+class MarkdownDocumentRenderTask(ReusableRenderTask["DocumentPaint"]):
+    """Original native layout/paint run on the existing rendering workers."""
+
+    document: "MarkdownDocument"
+    width: int
+
+    def execute(self) -> "DocumentPaint":
+        return self.document.prepare(self.width)
+
+    def accept_result(self, result: object) -> "DocumentPaint":
+        from textual.document._paint import DocumentPaint
+
+        if not isinstance(result, DocumentPaint) or not result.matches(self.document, self.width):
+            raise TypeError("Document renderer returned paint for a different acquisition")
         return result
 
 
