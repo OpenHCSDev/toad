@@ -1,1 +1,0 @@
-First old-compositor-dependent PTY recipe: outer timeout45 exit124, no success marker or emitted diagnostic. Owned child3368656 explicitly terminated/waited. Permanent controlled UI failure case subsequently passed on mergedPR9. Not claimed pass.
