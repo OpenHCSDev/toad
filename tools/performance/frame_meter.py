@@ -104,7 +104,10 @@ def install(*, expected_pid, seconds, output):
                 continue
             stack = [f"{f.name} {f.filename.split('/src/')[-1].split('site-packages/')[-1]}:{f.lineno}"
                      for f in traceback.extract_stack(frame)
-                     if "/src/" in f.filename or "site-packages" in f.filename][-12:]
+                     if "/src/" in f.filename or "site-packages" in f.filename]
+            # Innermost frames show the work; the outermost Toad frames show
+            # what started it.
+            stack = stack[:8] + ["..."] + stack[-8:] if len(stack) > 16 else stack
             key = " < ".join(reversed(stack))
             stalls[key] = stalls.get(key, 0) + 1
 
@@ -116,7 +119,7 @@ def install(*, expected_pid, seconds, output):
             spent = clock() - begin
             state["busy"] += spent
             state["current"] = None
-            if spent > 100_000:
+            if spent > 20_000:
                 callback = handle._callback
                 owner = getattr(callback, "__self__", None)
                 if isinstance(owner, asyncio.Task):
@@ -136,6 +139,8 @@ def install(*, expected_pid, seconds, output):
                 # frame is usually many small callbacks, not one long one.
                 parts = state["parts"]
                 parts[callback] = parts.get(callback, 0) + spent / 1e6
+                counts = state.setdefault("counts", {})
+                counts[callback] = counts.get(callback, 0) + 1
 
     def collected(phase, info):
         # Collector pauses land inside whichever callback allocated; record
@@ -158,10 +163,13 @@ def install(*, expected_pid, seconds, output):
             if work > 16:
                 # UI-thread CPU over the same interval: far below the work
                 # means the loop was waiting for the GIL, not computing.
-                parts = sorted(state["parts"].items(), key=lambda part: -part[1])
+                counts = state.get("counts", {})
+                parts = [(label, ms, counts.get(label, 0))
+                         for label, ms in sorted(state["parts"].items(), key=lambda part: -part[1])]
                 slow_frames.append((now, work, parts, (cpu - state["cpu"]) / 1e6, (now - state["shown"]) / 1e6,
                                     state.get("layout", 0), state.get("layouts", 0)))
             state["parts"] = {}
+            state["counts"] = {}
             state["cpu"], state["shown"] = cpu, now
             state["layout"] = state["layouts"] = 0
             # The running callback adds its full duration when it returns;

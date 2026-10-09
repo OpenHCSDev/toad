@@ -44,7 +44,9 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
-from toad.widgets.transcript_lines import LineTheme, PreparedLines, TranscriptLinesRenderTask
+from toad.widgets.transcript_lines import (
+    LineTheme, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+)
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
@@ -283,17 +285,14 @@ class TranscriptPageView(Widget):
                 return
             self._pending.difference_update(batch)
             width, theme = self._width, self._line_theme()
-            results = await asyncio.gather(*(
-                renderer.submit(TranscriptLinesRenderTask(
+            results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
+                TranscriptLinesRenderTask(
                     self.fragments[index].line_blocks(show_divider=not self.fragments[index].continuation),
-                    width, theme))
-                for index in batch), return_exceptions=True)
+                    width, theme)
+                for index in batch)))
             if not self.is_attached or width != self._width:
                 continue
-            ready = [(index, result) for index, result in zip(batch, results)
-                     if isinstance(result, PreparedLines)]
-            if ready:
-                await self._publish(ready)
+            await self._publish(list(zip(batch, results)))
 
     async def _publish(self, ready: list[tuple[int, PreparedLines]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
@@ -447,13 +446,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             if not current():
                 return
             batch = todo[first:first + self.budget.admission_items]
-            results = await asyncio.gather(*(
-                renderer.submit(TranscriptLinesRenderTask(
-                    fragment.line_blocks(show_divider=not fragment.continuation), width, theme))
-                for fragment in batch), return_exceptions=True)
-            for fragment, result in zip(batch, results):
-                if isinstance(result, PreparedLines):
-                    fragment.hold_lines(theme, result)
+            results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
+                TranscriptLinesRenderTask(fragment.line_blocks(show_divider=not fragment.continuation), width, theme)
+                for fragment in batch)))
+            for fragment, lines in zip(batch, results):
+                fragment.hold_lines(theme, lines)
 
     @property
     def line_width(self) -> int:
