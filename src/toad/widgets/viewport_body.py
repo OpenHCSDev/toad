@@ -1843,7 +1843,11 @@ class ViewportPresentation:
                     continue
                 if not body.body_ready:
                     window.document_viewport.request()
-                    deferred[body] = None
+                    # Scrolling relocates the window's whole source cohort.
+                    # Retaining one destination rectangle would leave old text
+                    # beside newly positioned headers. Native publication owns
+                    # the original window's geometry and pixels together.
+                    deferred[window] = None
                     pending_windows.add(window)
             for window in windows:
                 if window not in pending_windows and window.check_follow():
