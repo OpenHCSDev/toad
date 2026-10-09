@@ -12,7 +12,7 @@ from collections.abc import Callable
 from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
 from functools import partial
-from agent_comms.route_selection import RouteSelection, root_is_current, run_selected_write
+from agent_comms.route_selection import RouteChanged, RouteSelection, root_is_current, run_selected_write
 from toad.core.events import CoreEventStream, CoordinationObserved, OpenTabsChanged
 
 if TYPE_CHECKING:
@@ -58,7 +58,7 @@ class CoordinationAccess:
         from agent_comms.comms import wire
 
         if RouteSelection.capture() != selected:
-            raise ValueError("Comms route changed before the operation")
+            raise RouteChanged("Comms route changed before the operation")
         observed = self.observation
         if observed is not None and observed.selection == selected:
             return observed.service
@@ -66,7 +66,7 @@ class CoordinationAccess:
             acquisition.enter_context(selected.route.admit_client())
             service = wire(selected.route)
             if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-                raise ValueError("Comms route changed while opening the service")
+                raise RouteChanged("Comms route changed while opening the service")
             self.custody.enter_context(acquisition.pop_all())
         self.observation = ObservedCommsService(selected, service)
         self.revision = None
