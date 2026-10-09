@@ -124,6 +124,19 @@ sleep 1
 import -window "$window" "$out/tab-return.png" 2>/dev/null || true
 regions screen-tab-return
 
+# A retired thread closes its open tab: delete this run's fork (cleanup
+# would delete it anyway) and the observation service must close the tab.
+# Archiving keeps the incarnation current, so it does not retire the view.
+"$HOME/.local/bin/agent-comms" stop --name "$fork" > /dev/null 2>&1 || true
+"$HOME/.local/bin/agent-comms" delete --name "$fork" > "$out/delete-during-run.json" 2>&1 || true
+for attempt in $(seq 10); do
+    sleep 1
+    regions "retire-$attempt"
+    tabs=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['tabs']))" "$out/retire-$attempt-targets.json")
+    [[ "$tabs" -lt 2 ]] && break
+done
+echo "{\"tabs_after_delete\": $tabs}" > "$out/retire-check.json"
+
 wait "$capture"
 [[ -n "${PROFILE_SECONDS:-}" ]] || python3 "$tools/frame_meter.py" "$out/run-frames.json" | tee "$out/summary.json"
 # What the reader saw, from the screen text: no placeholders or blank runs in

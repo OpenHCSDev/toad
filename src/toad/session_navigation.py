@@ -33,6 +33,7 @@ class SessionAdmissions:
         self._retire_requested = False
         # The Core revision the last retirement pass started from.
         self._retired_at = None
+        self._closing_retired: set[asyncio.Future] = set()
 
     def bind_events(self) -> None:
         self.app.subscribe_core(self.events)
@@ -96,6 +97,30 @@ class SessionAdmissions:
     def publish(self) -> None:
         self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()
+        self.declare_views()
+
+    def declare_views(self) -> None:
+        """Tell the observation service which views are open on its root."""
+        access = self.app.coordination_access
+        if (service := access.observed_service) is None:
+            return
+        root = str(service.root)
+        threads, channels = set(), set()
+        for member in self.members:
+            threads.update(identity for owner, identity in member.original_threads(self) if owner == root)
+            channels.update(target for owner, target in member.original_channels() if owner == root)
+        access.show_views(frozenset(threads), frozenset(channels))
+
+    def views_retired(self, root, retired) -> None:
+        """Close the open views on ``root`` whose sources the observation service found retired."""
+        root = str(root)
+        removed = tuple(member.mode for member in self.members if (
+            any(owner == root and identity in retired.threads for owner, identity in member.original_threads(self))
+            or any(owner == root and target in retired.channels for owner, target in member.original_channels())))
+        if removed:
+            task = asyncio.ensure_future(self.close_many(removed))
+            self._closing_retired.add(task)
+            task.add_done_callback(self._closing_retired.discard)
 
     async def admit(self, admission: SessionAdmission, *, after: str | None = None) -> str:
         app = self.app
@@ -249,8 +274,15 @@ class SessionAdmissions:
                 await self.app.workspace_sessions.close(member.mode)
 
     def observed(self, event: core_events.CoordinationObserved) -> None:
-        # Open views retire only when a registration or channel changed; Core
-        # answers that from its own revision.
+        # Views on the observed root retire through the observation service
+        # (views_retired). Views on another root are read here, only when a
+        # registration or channel changed.
+        observed = self.app.coordination_access.observed_service
+        if observed is not None and not any(
+                owner != str(observed.root)
+                for member in self.members
+                for owner, _ in (*member.original_threads(self), *member.original_channels())):
+            return
         revision = event.revision
         if (revision is not None and self._retired_at is not None
                 and not revision.registrations_changed_since(self._retired_at)):
@@ -276,11 +308,16 @@ class SessionAdmissions:
         originals = tuple((member, member.original_threads(self), member.original_channels())
                           for member in self.members)
         asked: dict[str, tuple[set, set]] = {}
+        # The observation service retires views on its own root.
+        observed_root = (str(service.root) if (service := self.app.coordination_access.observed_service)
+                         is not None else None)
         for _member, threads, channels in originals:
             for root, identity in threads:
-                asked.setdefault(root, (set(), set()))[0].add(identity)
+                if root != observed_root:
+                    asked.setdefault(root, (set(), set()))[0].add(identity)
             for root, target in channels:
-                asked.setdefault(root, (set(), set()))[1].add(target)
+                if root != observed_root:
+                    asked.setdefault(root, (set(), set()))[1].add(target)
         if not asked:
             return
 
