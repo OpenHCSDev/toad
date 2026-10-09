@@ -8,26 +8,17 @@ from toad.core import events as core_events
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import UiSettings
 
-import asyncio
 from pathlib import Path
 
 from textual import events
 from textual.binding import Binding
 from textual.widgets import Static
+from textual.worker import Worker
 
 from toad.widgets.side_bar import SideBarCollapsible
 
 
 _UNAVAILABLE = "Recovery unavailable\n\n"
-
-
-async def _read_gateway(path: Path, thread: str) -> dict[str, object]:
-    """Optional client can be absent from older pinned agent-comms releases."""
-    try:
-        from agent_comms.recovery_gateway_client import read_gateway_projection
-    except ImportError:
-        return {"availability": "unavailable"}
-    return await read_gateway_projection(path, thread)
 
 
 class RecoveryView(CoreEventReceiver, Static):
@@ -43,7 +34,7 @@ class RecoveryView(CoreEventReceiver, Static):
         self._wire_root = Path(wire_root).expanduser() if wire_root is not None else None
         self._enabled = False
         self._generation = 0
-        self._read_task: asyncio.Task[None] | None = None
+        self._read_task: Worker[None] | None = None
         self.tooltip = "Read-only recovery status · click or press R to refresh"
 
     def on_mount(self) -> None:
@@ -114,22 +105,18 @@ class RecoveryView(CoreEventReceiver, Static):
         if self._wire_root is None:
             self.update(_UNAVAILABLE, layout=False)
             return
-        if self._read_task is not None and not self._read_task.done():
+        if self._read_task is not None and not self._read_task.is_finished:
             return
         self._generation += 1
-        self._read_task = asyncio.create_task(
+        self._read_task = self.run_worker(
             self._read(self._generation, self.thread, self._wire_root), name="read-recovery-view"
         )
 
     async def _read(self, generation: int, thread: str, root: Path) -> None:
-        try:
-            dto = await _read_gateway(root / ".recovery-viewer" / "gateway.sock", thread)
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            # This is a display-only optional view. Never fall back to private
-            # stores, leak an error detail or start a missing gateway service.
-            dto = {"availability": "unavailable"}
+        from agent_comms.recovery_gateway_client import read_gateway_projection
+
+        # Core owns the unavailable state for every transport/schema failure.
+        dto = await read_gateway_projection(root / ".recovery-viewer" / "gateway.sock", thread)
         if (generation != self._generation or not self.is_attached or not self._enabled
                 or self.screen is not self.app.screen):
             return

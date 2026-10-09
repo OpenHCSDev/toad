@@ -111,13 +111,13 @@ class Transfers:
     def submitted(self, selected: RouteSelection, request: TransferRequest | None) -> None:
         if request is not None:
             self.app.run_worker(partial(self.execute, selected, request),
-                                group=FieldCodec.encode(type(request)), exclusive=True, exit_on_error=False)
+                                group=FieldCodec.encode(type(request)), exclusive=True)
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
         try:
             comms = self.app.coordination_access.require(selected)
             receipt = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
-        except Exception as error:
+        except (OSError, ValueError) as error:
             self.app.notify(str(error), title=request.failure_title, severity="error")
         else:
             request.completed(self.app, receipt)

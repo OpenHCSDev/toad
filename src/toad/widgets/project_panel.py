@@ -184,7 +184,7 @@ class FilePreview(VerticalScroll):
     def on_unmount(self) -> None:
         self._ready.set()
 
-    @work(group="file-preview-load", exit_on_error=False)
+    @work(group="file-preview-load")
     async def _load_preview(self) -> None:
         try:
             try:

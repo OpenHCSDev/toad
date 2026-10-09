@@ -5,6 +5,7 @@ from os.path import abspath
 import pathspec
 import pathspec.patterns
 from pathspec import GitIgnoreSpec
+from pathspec.patterns.gitwildmatch import GitWildMatchPatternError
 
 import rich.repr
 
@@ -22,14 +23,14 @@ def load_path_spec(git_ignore_path: Path) -> GitIgnoreSpec | None:
         if git_ignore_path.is_file():
             try:
                 spec_text = git_ignore_path.read_text(encoding="utf-8")
-            except Exception:
-                # Permissions, encoding issue?
+            except UnicodeDecodeError:
                 return None
             try:
                 spec = GitIgnoreSpec.from_lines(
                     pathspec.patterns.GitWildMatchPattern, spec_text.splitlines()
                 )
-            except Exception:
+            except GitWildMatchPatternError:
+                # A project .gitignore Toad cannot parse filters nothing.
                 return None
             return spec
     except OSError:

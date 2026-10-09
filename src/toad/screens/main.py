@@ -219,14 +219,11 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def activate_session(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
 
-        try:
-            sidebar = self.query_one(CommsSidebar)
-            # The identity is updated by ACP's coordination notification and
-            # cached on this screen. Resolving it through the wire here can
-            # block the first frame of every navigation on store I/O.
+        # The identity is updated by ACP's coordination notification and
+        # cached on this screen. Resolving it through the wire here can
+        # block the first frame of every navigation on store I/O.
+        if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
             sidebar.session_thread = self._comms_thread
-        except Exception:
-            pass
         if conversation := self.query_one_optional(Conversation):
             if watcher := conversation._directory_watcher:
                 self.call_after_refresh(watcher.notify_if_visible)
@@ -279,12 +276,9 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         """Tell the sidebar which thread is this screen's session."""
         previous = self._comms_thread
         self._comms_thread = thread_name
-        try:
-            sidebar = self.query_one(CommsSidebar)
+        if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
             sidebar.session_thread = thread_name
             sidebar.observation.refresh()
-        except Exception:
-            pass
         if self.id is not None:
             self.app.session_navigation.sync_identity(self.id, previous, thread_name)
             self.app.session_tracker.bind_identity(self.id, previous, thread_name)
@@ -366,7 +360,8 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             resolved = resolve_session_thread(
                 service, self.project_path, self._comms_thread, source_root=source_root,
             )
-        except Exception:
+        except (OSError, ValueError, RuntimeError):
+            # Route changed or unavailable: keep this screen's retained identity.
             resolved = None
         if resolved is not None:
             self._comms_thread = resolved

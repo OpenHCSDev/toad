@@ -93,13 +93,14 @@ class VersionMonitor:
             async with client:
                 response = await client.get(VERSION_TOML_URL)
                 version_toml_bytes = await response.aread()
-        except Exception as error:
+        except httpx.HTTPError as error:
+            # The network check is optional; an unreachable server means no notice.
             raise VersionCheckFailed(f"Failed to retrieve version;{error}")
 
         try:
             version_toml = version_toml_bytes.decode("utf-8", "replace")
             version_meta = tomllib.loads(version_toml)
-        except Exception as error:
+        except tomllib.TOMLDecodeError as error:
             raise VersionCheckFailed(f"Failed to decode version TOML;{error}")
 
         if not isinstance(version_meta, dict):

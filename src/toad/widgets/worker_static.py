@@ -188,7 +188,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         self._ready.clear()
         if not self._preparing:
             self._preparing = True
-            self.run_worker(self._prepare(), group="rich-preparation", exit_on_error=False)
+            self.run_worker(self._prepare(), group="rich-preparation")
 
     async def _prepare(self) -> None:
         app = self.app
@@ -198,15 +198,7 @@ class WorkerStatic(PreparedPaintSource, Static):
                 request = self._wanted
                 if request is None or request == self._ready_request:
                     return
-                try:
-                    prepared = await app.render_processes.submit(request.task)
-                except Exception as error:
-                    if request == self._wanted and not self._closed and self.is_attached:
-                        self._prepared = None
-                        self._ready_request = request
-                        super().update(f"Unable to prepare preview: {error}")
-                        self.call_after_refresh(self._publish_ready, request)
-                    continue
+                prepared = await app.render_processes.submit(request.task)
                 if self._closed or self._pruning or not self.is_attached:
                     return
                 if request != self._wanted:

@@ -33,7 +33,7 @@ from toad.widgets.mandelbrot import Mandelbrot
 from toad.widgets.condensed_path import CondensedPath
 from toad.widgets.grid_select import GridSelect
 from toad.agent_schema import AgentDefinition
-from toad.agents import read_agents
+from toad.agents import AgentReadError, read_agents
 
 
 QR = """\
@@ -534,7 +534,7 @@ class StoreScreen(CoreEventReceiver, Screen):
         self.observe_core(self.app.settings.events)
         try:
             self._agents = await read_agents()
-        except Exception as error:
+        except AgentReadError as error:
             self.notify(
                 f"Failed to read agents data ({error})",
                 title="Agents data",
@@ -552,10 +552,7 @@ class StoreScreen(CoreEventReceiver, Screen):
             await self.launcher.recompose()
 
             def focus_screen():
-                try:
-                    self.screen.query(GridSelect).focus()
-                except Exception:
-                    pass
+                self.screen.query(GridSelect).focus()
 
             self.call_later(focus_screen)
 

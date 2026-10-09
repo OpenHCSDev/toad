@@ -71,8 +71,7 @@ class TargetContext:
                      for command in choices})
             except (OSError, ValueError) as error:
                 sidebar.notify(str(error), title='Target actions', severity='error')
-        sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True,
-                           exit_on_error=False)
+        sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
     async def command_choices(self):
         from toad.command_catalog import CommandCatalog

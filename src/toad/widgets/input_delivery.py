@@ -261,7 +261,7 @@ class InputDeliveryDetails(ModalScreen[None]):
             else:
                 await self._dismiss_history()
                 self._historical_inputs = None
-        except (OSError, ValueError, RuntimeError, TimeoutError, KeyError) as error:
+        except (OSError, ValueError, RuntimeError) as error:
             self.error = f"Delivery history unavailable: {error}"
         finally:
             self._busy = False

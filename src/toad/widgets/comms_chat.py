@@ -120,7 +120,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
         self.message_history = MountedMessageHistory(self)
-        self._notification_task: asyncio.Task[None] | None = None
+        self._notification_task: Worker[None] | None = None
 
     def compose(self) -> ComposeResult:
         with Window():
@@ -273,11 +273,11 @@ class CommsChatView(DeliveryFailureView, Conversation):
         """One bounded batch for the painted window; independent of bus revision."""
         if (not self.is_attached or self.message_history.reader is None
                 or not self.display
-                or self._notification_task is not None and not self._notification_task.done()):
+                or self._notification_task is not None and not self._notification_task.is_finished):
             return
         rows = self._visible_notification_rows()
         if rows:
-            self._notification_task = asyncio.create_task(self._read_notifications(rows))
+            self._notification_task = self.run_worker(self._read_notifications(rows))
 
     def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
         return self.message_history.viewport(NotificationViewport).visible_rows()
@@ -310,7 +310,8 @@ class CommsChatView(DeliveryFailureView, Conversation):
             results = await asyncio.to_thread(
                 comms.views.message_notifications, tuple(message for message, _ in rows),
             )
-        except Exception as failure:
+        except (OSError, ValueError, RuntimeError) as failure:
+            # Core read failure is shown on each visible row's feedback.
             error, results = failure, {}
         if not await history.source_is_current(snapshot) or self.target != target:
             return
@@ -388,7 +389,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self.call_after_refresh(self.message_history.mark_visible)
         except (CoordinationReadUnavailable, StaleRevision):
             raise
-        except Exception as error:
+        except (OSError, ValueError, RuntimeError) as error:
             message = f"Wire error: {error}"
             if message != self.status:
                 self.flash(message, style="error")

@@ -10,6 +10,7 @@ from toad.screens.session_view import SessionView
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.coordination_errors import CoordinationReadUnavailable
 from textual.widgets import Static
+from textual.worker import Worker
 
 
 class ObservedThreadActivity(CoreEventReceiver, Static):
@@ -27,7 +28,7 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
         self.read = read
         self.presentation: ThreadPresentation | None = None
         self.unavailable = False
-        self._read_task: asyncio.Task[None] | None = None
+        self._read_task: Worker[None] | None = None
         self._pending_reads: asyncio.Queue[
             Callable[[], Awaitable[ThreadPresentation | None]]
         ] = asyncio.Queue(maxsize=1)
@@ -67,8 +68,8 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
         if self._pending_reads.full():
             self._pending_reads.get_nowait()
         self._pending_reads.put_nowait(self.read)
-        if self._read_task is None or self._read_task.done():
-            self._read_task = asyncio.create_task(self._observe())
+        if self._read_task is None or self._read_task.is_finished:
+            self._read_task = self.run_worker(self._observe())
 
     async def _observe(self) -> None:
         while not self._pending_reads.empty():
@@ -83,7 +84,8 @@ class ObservedThreadActivity(CoreEventReceiver, Static):
                 # The original coordination observer resumes this same read;
                 # a busy snapshot supplies neither absence nor fresh status.
                 return
-            except Exception:
+            except (OSError, ValueError, RuntimeError):
+                # Core read families present as "Agent status unavailable".
                 presentation, unavailable = None, True
             if (read is not self.read or not self.is_attached
                     or not self.query_ancestor(SessionView).is_current):

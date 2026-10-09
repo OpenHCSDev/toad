@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import asyncio
+from textual.worker import Worker
 from pathlib import Path
 from typing import cast
 
@@ -45,7 +45,7 @@ class MCPInventoryScreen(ModalScreen[None]):
     def __init__(self, project_root: Path) -> None:
         super().__init__()
         self.project_root = project_root
-        self._read_task: asyncio.Task[None] | None = None
+        self._read_task: Worker[None] | None = None
         self._generation = 0
         self._inventory: Inventory | None = None
         self._selected: Declaration | None = None
@@ -86,18 +86,11 @@ class MCPInventoryScreen(ModalScreen[None]):
         self.query_one("#mcp-inventory-status", Static).update(
             "Loading read-only Pi MCP package inventory…"
         )
-        self._read_task = asyncio.create_task(self._fetch(self._generation))
+        self._read_task = self.run_worker(self._fetch(self._generation))
 
     async def _fetch(self, generation: int) -> None:
-        try:
-            inventory = await read_inventory(
-                self.project_root
-            )
-        except asyncio.CancelledError:
-            raise
-        except Exception:
-            # No partial data or error details from a configured executable.
-            inventory = None
+        # read_inventory owns the unavailable state (None) for its typed failures.
+        inventory = await read_inventory(self.project_root)
         if generation == self._generation and self.is_attached:
             self._inventory = inventory
             self.query_one("#mcp-inventory-status", Static).update(
