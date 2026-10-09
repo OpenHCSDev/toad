@@ -30,6 +30,14 @@ class AgentBase(ABC):
     async def retire_surface(self, surface):
         await self.stop()
 
+    def observed_thread(self) -> tuple[str, str] | None:
+        """The (wire root, thread name) whose status this agent shows; none without coordination."""
+        return None
+
+    def thread_read(self):
+        """Agents without a coordination identity read no thread presentation."""
+        return None
+
     async def get_thread_presentation(self) -> ThreadPresentation | None:
         """Agents without a coordination identity have no observed thread status."""
         return None

@@ -34,7 +34,7 @@ from toad import jsonrpc, paths
 from toad.core import events as core_events
 from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.acp.comms_updates import CommsUpdateConsumer
+from toad.acp.comms_updates import CommsUpdateConsumer, ThreadRead
 from toad.acp.projection_attachment import ProjectionAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.core.events import UnsupportedResumeAgentFail, AgentReady
@@ -323,32 +323,31 @@ class Agent(AgentBase):
             self.coordination.thread.name if self.coordination else None
         ) is not None
 
-    async def get_thread_presentation(self):
-        from toad.owner_preparation import read_thread_presentation
+    def observed_thread(self) -> tuple[str, str] | None:
+        coordination = self.coordination
+        if coordination is None or coordination.wire_root is None or coordination.thread.name is None:
+            return None
+        return coordination.wire_root, coordination.thread.name
+
+    def thread_read(self) -> ThreadRead | None:
+        """Capture, before a presentation read, what its result must still match."""
         from .comms_updates import OwnerSnapshotConsumer
 
-        root, thread = (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
-        )
-        if root is None or thread is None:
+        if (thread := self.observed_thread()) is None:
             return None
-        authority = ClientSessionRequest(self, self.session_id)
-        snapshot = OwnerSnapshotConsumer(self, self.session_id,
-                                         turn_token=self.presentation.turns.sequence)
+        return ThreadRead(self, thread, ClientSessionRequest(self, self.session_id),
+                          OwnerSnapshotConsumer(self, self.session_id,
+                                                turn_token=self.presentation.turns.sequence))
+
+    async def get_thread_presentation(self):
+        from toad.owner_preparation import read_thread_presentation
+
+        if (read := self.thread_read()) is None:
+            return None
+        root, thread = read.thread
         async with self.controller.transcripts.bind(root) as reader:
-            presentation = await asyncio.to_thread(
-                read_thread_presentation, reader, thread
-            )
-        if (root, thread) != (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
-        ):
-            raise ValueError("Thread attachment changed while reading status")
-        authority.require()
-        if presentation is not None:
-            snapshot.dispatch_sync(presentation)
-        return presentation
+            presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
+        return read.settle(presentation)
 
     async def get_message_notifications(self, references):
         coordination = self.coordination

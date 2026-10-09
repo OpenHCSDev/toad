@@ -33,7 +33,7 @@ def sidebar_spinner_frames_per_second(app: ToadApp, value: int) -> None:
 
 
 def sidebar_filters(app: ToadApp, value: bool) -> None:
-    app.coordination_access.request_sidebar()
+    app.coordination_access.update_sidebar_interest()
 
 
 def theme(app: ToadApp, value: str) -> None:

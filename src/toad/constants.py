@@ -60,5 +60,3 @@ DEBUG: Final[bool] = _get_environ_bool("DEBUG", False)
 ALL_COMMS_TARGET: Final[str] = "#any"
 """Virtual all-comms viewer, distinct from the #all broadcast channel."""
 
-COMMS_REFRESH_INTERVAL: Final[float] = 0.05
-"""Interval for observing local comms changes in mounted views."""
