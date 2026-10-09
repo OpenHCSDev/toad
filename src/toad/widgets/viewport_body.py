@@ -155,6 +155,10 @@ class BodyMeasurement(ABC):
     @abstractmethod
     def height(self, body, width, measure) -> int: ...
 
+    def content_width(self, body, measure) -> int:
+        """Retained resources supply extent without measuring scene children."""
+        return self.width
+
     @abstractmethod
     def render(self, body, crop, render_live) -> list[Strip]: ...
 
@@ -389,6 +393,9 @@ class LiveBody(MeasuredBody):
     def height(self, body, width, measure):
         return measure()
 
+    def content_width(self, body, measure):
+        return measure()
+
     def measured(self, width, rows):
         return self if (width, rows) == (self.width, self.rows) else replace(self, width=width, rows=rows)
 
@@ -543,6 +550,9 @@ class MaterializingBody(BodyMeasurement):
         # A new paint demand doesn't change that resource's geometry supplier.
         return self.previous.requires_geometry(body)
 
+    def geometry_targets(self, body):
+        return self.previous.geometry_targets(body)
+
     def publication_prepared(self, worker, paint):
         # A later writer may already own this body while joining our worker.
         # Update the resource in that original chain, never its writer identity.
@@ -575,6 +585,9 @@ class MaterializingBody(BodyMeasurement):
 
     def height(self, body, width, measure):
         return self.previous.height(body, width, measure)
+
+    def content_width(self, body, measure):
+        return self.previous.content_width(body, measure)
 
     def render(self, body, crop, render_live):
         return self.previous.render(body, crop, render_live)
@@ -1233,9 +1246,9 @@ class MeasuredViewportBody(ViewportBody):
         return height
 
     def get_content_width(self, container, viewport):
-        if self.body_dormant:
-            return self._body_measurement.width
-        return super().get_content_width(container, viewport)
+        native_width = super().get_content_width
+        return self._body_measurement.content_width(
+            self, lambda: native_width(container, viewport))
 
     def on_unmount(self):
         if self._body_viewport is not None:
@@ -1307,14 +1320,15 @@ class ViewportPresentation:
 
     @asynccontextmanager
     async def batch(self, body, native_batch):
-        """Bound native publication borrows this original frame membership."""
+        """Membership writes borrow the window's committed layout geometry."""
         from toad.widgets.history_anchor import HistoryWindow
 
         for ancestor in body.walk_ancestors():
             if isinstance(ancestor, HistoryWindow):
                 if ancestor in self.windows:
-                    async with body.lock:
-                        yield
+                    async with ancestor.preserve_history(None, root=body):
+                        async with body.lock:
+                            yield
                     return
                 break
         async with native_batch():
