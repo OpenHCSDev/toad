@@ -60,9 +60,21 @@ class LineMarkdown(Widget):
     def update(self, text: str) -> None:
         """Replace the text; the drawn rows follow without blocking."""
         if text != self.text:
+            rows = self._row_count()
             self.text = text
             self._request_render()
-            self.refresh(layout=True)
+            self._redraw(rows)
+
+    def _row_count(self) -> int | None:
+        return len(self._lines(self._width).rows) if self._width else None
+
+    def _redraw(self, rows: int | None) -> None:
+        """Repaint; lay out again only when the height changed.
+
+        Most streamed chunks extend the current row, and a layout request
+        re-arranges the whole screen.
+        """
+        self.refresh(layout=rows is None or rows != self._row_count())
 
     def append(self, text: str) -> None:
         self.update(self.text + text)
@@ -116,8 +128,9 @@ class LineMarkdown(Widget):
             if not self.is_attached:
                 return
             if width == self._width and theme is self._line_theme():
+                rows = self._row_count()
                 self._styled, self._styled_text = lines, text
-                self.refresh(layout=True)
+                self._redraw(rows)
             if (text, width) == (self.text, self._width):
                 return
             # Text is still arriving. The plain tail already shows it, so

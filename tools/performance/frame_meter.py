@@ -17,10 +17,12 @@ import time
 
 def install(*, expected_pid, seconds, output):
     import asyncio
+    import gc
     from asyncio import events as loop_events
     from textual import events
     from textual._context import active_app
     from textual.message_pump import MessagePump
+    from textual.widget import Widget
 
     if os.getpid() != expected_pid:
         raise RuntimeError("Unexpected capture process")
@@ -33,9 +35,18 @@ def install(*, expected_pid, seconds, output):
 
     inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
     clock = time.monotonic_ns
-    state = {"busy": 0, "current": None, "parts": []}
+    state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
     frames, inputs, slow, slow_frames = [], [], [], []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
+    refresh = Widget.refresh
+    layouts = {}
+
+    def counted_refresh(self, *regions, repaint=True, layout=False, recompose=False):
+        # Each layout request re-arranges the screen; count who asks.
+        if layout:
+            name = type(self).__name__
+            layouts[name] = layouts.get(name, 0) + 1
+        return refresh(self, *regions, repaint=repaint, layout=layout, recompose=recompose)
     app_type = type(app)
     display = app_type._display
 
@@ -47,7 +58,7 @@ def install(*, expected_pid, seconds, output):
             spent = clock() - begin
             state["busy"] += spent
             state["current"] = None
-            if spent > 1_000_000:
+            if spent > 100_000:
                 callback = handle._callback
                 owner = getattr(callback, "__self__", None)
                 if isinstance(owner, asyncio.Task):
@@ -63,7 +74,20 @@ def install(*, expected_pid, seconds, output):
                         callback += f" [{type(target).__name__}{':' + str(label)[:40] if label else ''}]"
                 else:
                     callback = getattr(callback, "__qualname__", None) or repr(callback)[:80]
-                state["parts"].append((callback, spent / 1e6))
+                # Callbacks are totalled per owner within a frame: a slow
+                # frame is usually many small callbacks, not one long one.
+                parts = state["parts"]
+                parts[callback] = parts.get(callback, 0) + spent / 1e6
+
+    def collected(phase, info):
+        # Collector pauses land inside whichever callback allocated; record
+        # them separately so they are not blamed on that owner.
+        if phase == "start":
+            state["gc"] = clock()
+        elif (began := state.pop("gc", None)) is not None:
+            parts = state["parts"]
+            label = f"gc generation {info['generation']}"
+            parts[label] = parts.get(label, 0) + (clock() - began) / 1e6
 
     def timed_display(self, screen, renderable):
         result = display(self, screen, renderable)
@@ -71,10 +95,15 @@ def install(*, expected_pid, seconds, output):
             now = clock()
             running = 0 if state["current"] is None else now - state["current"]
             work = (state["busy"] + running) / 1e6
+            cpu = time.thread_time_ns()
             frames.append((now, work))
             if work > 16:
-                slow_frames.append((now, work, state["parts"]))
-            state["parts"] = []
+                # UI-thread CPU over the same interval: far below the work
+                # means the loop was waiting for the GIL, not computing.
+                parts = sorted(state["parts"].items(), key=lambda part: -part[1])
+                slow_frames.append((now, work, parts, (cpu - state["cpu"]) / 1e6, (now - state["shown"]) / 1e6))
+            state["parts"] = {}
+            state["cpu"], state["shown"] = cpu, now
             # The running callback adds its full duration when it returns;
             # the part already counted in this frame is subtracted here.
             state["busy"] = -running
@@ -101,6 +130,8 @@ def install(*, expected_pid, seconds, output):
                              type(getattr(message, "event", None)).__qualname__))
 
     def finish():
+        Widget.refresh = refresh
+        gc.callbacks.remove(collected)
         loop_events.Handle._run = run
         MessagePump.post_message = post
         MessagePump._dispatch_message = dispatch
@@ -109,8 +140,11 @@ def install(*, expected_pid, seconds, output):
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs,
-                       "slow_handlers": slow, "slow_frames": slow_frames}, file)
+                       "slow_handlers": slow, "slow_frames": slow_frames,
+                       "layout_requests": layouts}, file)
 
+    gc.callbacks.append(collected)
+    Widget.refresh = counted_refresh
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
     MessagePump._dispatch_message = timed_dispatch
