@@ -121,12 +121,22 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 if window is None or window.history_mutating():
                     return False
                 screen = window.screen
-                visible = screen._compositor.visible_widgets
-                return (screen.is_current and window in visible
-                        and any(history in visible and history.pages for history in window.histories)
-                        and any(body in visible and body.body_ready for body in window.document_viewport.owners)
-                        and window.document_viewport.visible_bodies_ready
-                        and screen.frame_presentation.ready)
+                visible = screen._compositor.published_widgets
+                manager = window.document_viewport
+                presentation = manager.membership.presentation
+                owners = tuple(body for body in manager.owners if body in visible)
+                bodies = dict.fromkeys((*owners, *(body for _window, body
+                                                  in presentation.visible_bodies((window,)))))
+                paints = {
+                    body: paint for body in bodies
+                    if (paint := body._body_measurement.document_paint) is not None
+                }
+                with presentation.using_document_inputs(paints=paints):
+                    return (screen.is_current and window in visible
+                            and any(history in visible and history.pages for history in window.histories)
+                            and any(body.body_ready for body in owners)
+                            and manager.visible_bodies_ready
+                            and screen.frame_presentation.ready)
 
             async def wait_and_capture():
                 try:
@@ -321,14 +331,15 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             "maps": {},
         }
         metadata["navigation_targets"] = {"threads": [], "channels": [], "tabs": [], "widgets": []}
-        # The public owner handles full-layout and partial-layout publication.
-        # _visible_map alone is only the optional partial-layout representation.
-        visible_regions = compositor.visible_widgets
+        # Navigation and display observations consume accepted publication.
+        # Full/visible maps below remain observations of pending layout.
+        visible_regions = compositor.published_widgets
+        published_geometry = compositor._published_map
 
         def navigation_target(node, region, name):
             cell = Offset(*(int(value) for value in region.center))
             hit = app.screen.get_widget_at(*cell)[0]
-            if hit is None or node not in hit.ancestors_with_self:
+            if hit is None or (node is not hit and node not in published_geometry[hit].ancestors):
                 return None
             return {**node_identity(node), "name": name, "region": tuple(region),
                     "focus_target": {"widget": node_identity(node), "cell": tuple(cell)}}
@@ -350,11 +361,17 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             if isinstance(node, SessionLabel):
                 if target := navigation_target(node, region, node.id):
                     metadata["navigation_targets"]["tabs"].append(target)
-        for name, mapping in (("full", compositor._full_map), ("visible", compositor._visible_map)):
+        for name, mapping in (("published", published_geometry),
+                              ("full", compositor._full_map), ("visible", compositor._visible_map)):
             metadata["compositor"]["maps"][name] = None if mapping is None else {
                 "count": len(mapping), "truncated": len(mapping) > 50000,
                 "nodes": [{**node_identity(node),
-                           "geometry": {field: tuple(value) for field, value in geometry._asdict().items()}}
+                           "geometry": {
+                               **{field: tuple(value) for field, value in geometry._asdict().items()
+                                  if field != "ancestors"},
+                               "ancestors": [node_identity(ancestor) for ancestor in geometry.ancestors],
+                               "content_region": tuple(geometry.content_region),
+                           }}
                           for node, geometry in tuple(mapping.items())[:50000]],
             }
         payload["session_details"] = {mode: asdict(details) for mode, details in app.session_tracker.sessions.items()}
@@ -438,7 +455,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             geometry = visible_regions.get(tree)
                             if label_region is not None and geometry is not None:
                                 region = label_region.translate(
-                                    tree.content_region.offset - tree.scroll_offset
+                                    published_geometry[tree].content_region.offset - tree.scroll_offset
                                 ).intersection(geometry[1])
                                 if region:
                                     target = navigation_target(tree, region, model.data.key)
@@ -550,76 +567,87 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                             visible = visible_regions
                             owners = tuple(manager.owners)
                             roots = tuple(manager.body_roots())
-                            exposed = [index for index, body in enumerate(roots) if body in visible]
-                            ready_runway = {}
-                            if exposed:
-                                for side, neighbors in (
-                                    ("before", reversed(roots[:min(exposed)])),
-                                    ("after", iter(roots[max(exposed) + 1:])),
-                                ):
-                                    rows = 0
-                                    for body in neighbors:
-                                        if not body.body_ready:
-                                            break
-                                        rows += body.measured_rows
-                                    ready_runway[side] = rows
-                            outer = tuple(body for body in owners
-                                          if not any(parent in manager.owners for parent in body.ancestors))
-                            window["body_resources"] = {
-                                "budget": asdict(manager.budget),
-                                "runway": {
-                                    "requested_rows": manager.lookahead.ahead_rows(node.size.height),
-                                    "baseline_rows": manager.budget.runway_rows(node.size.height),
-                                    "measured_body_rows": manager.visible_body_rows,
-                                    "admitted_items": manager.lookahead.admission(manager.budget, node.size.height),
-                                    "ready_rows": ready_runway,
-                                    "demand": type(manager.lookahead.demand).__name__,
-                                    "travel_rows": manager.lookahead.travel_rows,
-                                    "foreground_delivery_seconds": manager.lookahead.delivery_seconds,
-                                },
-                                "widget_limit": manager.budget.widget_limit(node.size.height),
-                                "source_byte_limit": node.app.preparation.max_bytes,
-                                "body_evictions": manager.body_evictions,
-                                "pending": manager._pending,
-                                "outer_owner_count": len(outer),
-                                "outer_materialized_widgets": sum(body.materialized_widget_count
-                                                                   for body in outer),
-                                "outer_materialized_source_bytes": sum(body.retained_source_bytes
-                                                                        for body in outer if not body.body_dormant),
-                                "registered": len(owners),
-                                "dormant": sum(body.body_dormant for body in owners),
-                                "visible": sum(body in visible for body in owners),
-                                "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
-                                "reconciling": manager._worker is not None,
-                                "suspended": manager._suspended,
-                                "frame_admitted": manager.accepts_frame(),
-                                "paint_resources": [{
-                                    **node_identity(body),
-                                    "visible": body in visible,
-                                    "state": type(body._body_measurement).__name__,
-                                    "ready": body.body_ready,
-                                    "paint_ready": body.body_retained_paint_ready,
-                                    "requested_width": body._body_measurement.width,
-                                    "gutter": tuple(body.styles.gutter),
-                                    "paint_width": paint.width,
-                                    "paint_content_size": tuple(paint.content_size),
-                                    "participant_current": paint.document.presentation.current_for(body),
-                                } for body in manager.preparation_roots()
-                                    if (paint := body._body_measurement.document_paint) is not None],
-                                "owners": [{**node_identity(body), "ready": body.body_ready,
-                                            "dormant": body.body_dormant, "visible": body in visible,
-                                            "measured_rows": body.measured_rows,
-                                            "retained_widget_count": body.retained_widget_count,
-                                            "native_widget_count": body.materialized_widget_count,
-                                            "retained_source_bytes": body.retained_source_bytes,
-                                            "measurement": {
-                                                "state": type(body._body_measurement).__name__,
-                                                "width": body._body_measurement.width,
-                                                "rows": body._body_measurement.rows,
-                                                "widgets": body._body_measurement.widgets,
-                                                "paint_bytes": body.retained_paint_bytes}}
-                                           for body in owners],
+                            sources = tuple(manager.preparation_roots())
+                            # Inspect this actual retained cohort, including
+                            # hidden source resources. A frame borrow supplies
+                            # only its visible/mutation participants and cannot
+                            # answer these independent diagnostic reads.
+                            paints = {
+                                body: paint for body in dict.fromkeys((*owners, *roots, *sources))
+                                if (paint := body._body_measurement.document_paint) is not None
                             }
+                            with manager.membership.presentation.using_document_inputs(paints=paints) as admissions:
+                                exposed = [index for index, body in enumerate(roots) if body in visible]
+                                ready_runway = {}
+                                if exposed:
+                                    for side, neighbors in (
+                                        ("before", reversed(roots[:min(exposed)])),
+                                        ("after", iter(roots[max(exposed) + 1:])),
+                                    ):
+                                        rows = 0
+                                        for body in neighbors:
+                                            if not body.body_ready:
+                                                break
+                                            rows += body.measured_rows
+                                        ready_runway[side] = rows
+                                outer = tuple(body for body in owners
+                                              if not any(parent in manager.owners for parent in body.ancestors))
+                                window["body_resources"] = {
+                                    "budget": asdict(manager.budget),
+                                    "runway": {
+                                        "requested_rows": manager.lookahead.ahead_rows(node.size.height),
+                                        "baseline_rows": manager.budget.runway_rows(node.size.height),
+                                        "measured_body_rows": manager.visible_body_rows,
+                                        "admitted_items": manager.lookahead.admission(manager.budget, node.size.height),
+                                        "ready_rows": ready_runway,
+                                        "demand": type(manager.lookahead.demand).__name__,
+                                        "travel_rows": manager.lookahead.travel_rows,
+                                        "foreground_delivery_seconds": manager.lookahead.delivery_seconds,
+                                    },
+                                    "widget_limit": manager.budget.widget_limit(node.size.height),
+                                    "source_byte_limit": node.app.preparation.max_bytes,
+                                    "body_evictions": manager.body_evictions,
+                                    "pending": manager._pending,
+                                    "outer_owner_count": len(outer),
+                                    "outer_materialized_widgets": sum(body.materialized_widget_count
+                                                                       for body in outer),
+                                    "outer_materialized_source_bytes": sum(body.retained_source_bytes
+                                                                            for body in outer if not body.body_dormant),
+                                    "registered": len(owners),
+                                    "dormant": sum(body.body_dormant for body in owners),
+                                    "visible": sum(body in visible for body in owners),
+                                    "visible_dormant": sum(body.body_dormant for body in owners if body in visible),
+                                    "reconciling": manager._worker is not None,
+                                    "suspended": manager._suspended,
+                                    "frame_admitted": manager.accepts_frame(),
+                                    "paint_resources": [{
+                                        **node_identity(body),
+                                        "visible": body in visible,
+                                        "state": type(body._body_measurement).__name__,
+                                        "ready": body.body_ready,
+                                        "paint_ready": body.body_retained_paint_ready,
+                                        "requested_width": body._body_measurement.width,
+                                        "gutter": tuple(body.styles.gutter),
+                                        "paint_width": paint.width,
+                                        "paint_content_size": tuple(paint.content_size),
+                                        "participant_current": paint.document.presentation.current_for(
+                                            body, paint=paint, admissions=admissions),
+                                    } for body in sources if body in paints
+                                        for paint in (paints[body],)],
+                                    "owners": [{**node_identity(body), "ready": body.body_ready,
+                                                "dormant": body.body_dormant, "visible": body in visible,
+                                                "measured_rows": body.measured_rows,
+                                                "retained_widget_count": body.retained_widget_count,
+                                                "native_widget_count": body.materialized_widget_count,
+                                                "retained_source_bytes": body.retained_source_bytes,
+                                                "measurement": {
+                                                    "state": type(body._body_measurement).__name__,
+                                                    "width": body._body_measurement.width,
+                                                    "rows": body._body_measurement.rows,
+                                                    "widgets": body._body_measurement.widgets,
+                                                    "paint_bytes": body.retained_paint_bytes}}
+                                               for body in owners],
+                                }
                         view["history_windows"].append(window)
                     if data.get("_id") in {"channels-sidebar", "thread-sidebar"}:
                         view["bars"].append({"id": data["_id"], "collapsed": data.get("_reactive_collapsed"),
