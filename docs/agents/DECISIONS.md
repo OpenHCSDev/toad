@@ -235,3 +235,24 @@ Not copied: pyqt_reactive's string action tables (`ACTION_REGISTRY`, `BUTTON_CON
 3. Conversation and transcript.
 4. Core reads in a worker process feeding `comms_ui`.
 5. Forms from declarations (goal edit, fork, settings, thread actions).
+
+## Current goal (2026-10-09; for /goal)
+
+1. **Worst frame:** at or under 16 ms in the loaded scroll scenario, run through the `toad` on PATH with `#openhcs` replies arriving during it. Report the worst frame, the counts over 16, 33 and 50 ms, and input-to-paint p95.
+2. **Screen checks:** `tools/performance/screen_checks.py` passes.
+3. **Comms meaning:** comms meaning lives in Core. The comms UI semantics live in a frontend-neutral package with no Textual or Qt imports, and Toad only renders it. Each migrated slice deletes Toad's old path.
+4. **Publication:** published to the default runtime, with agents restarted, and recorded in `docs/performance/scroll-series.md`.
+
+**Order:**
+1. Sidebar.
+2. Status bars.
+3. Conversation and transcript.
+4. Core reads in a worker process.
+5. Forms from declarations.
+6. The remaining worst-frame owners.
+
+**Rules:**
+- No approval steps.
+- Fail loud.
+- Comms logic never lives in Toad.
+- An approach that does not improve its measure after three increments is reverted or replaced. Stop and write a page only after a second failed approach.
