@@ -7,6 +7,7 @@ from toad.comms_root import CoordinationAccess, RouteSelection
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
+import gc
 import json
 import os
 from functools import cached_property, partial
@@ -576,6 +577,10 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
     async def on_mount(self) -> None:
         self.coordination_access.start(self)
         await self.application.start()
+        # What exists now (modules, classes, ABC caches, the application
+        # itself) lives for the whole process. Move it out of the collector's
+        # reach so collections only scan objects created while running.
+        gc.freeze()
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
