@@ -64,6 +64,9 @@ def main(directory):
             failures.append(f"{name}: not at the tail (scroll {state['scroll_y']} of {state['max_scroll_y']})")
     if (state := seen.get("tab-return")) is not None and state["filled_rows"] < state["rows"] // 2:
         failures.append(f"tab-return: only {state['filled_rows']} of {state['rows']} rows drawn")
+    retire = out / "retire-check.json"
+    if retire.exists() and json.loads(retire.read_text())["tabs_after_delete"] >= 2:
+        failures.append("retire: deleting the open thread did not close its tab")
     print(json.dumps({"snapshots": seen, "failures": failures}, indent=2))
     return 1 if failures else 0
 

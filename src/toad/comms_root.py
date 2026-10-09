@@ -20,7 +20,8 @@ from weakref import WeakKeyDictionary, WeakSet
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
-    ObservationProcess, ObserveSidebar, ObserveThreads, RevisionObserved, SidebarObserved,
+    ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved, SidebarObserved,
+    ViewsRetired,
     StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel
@@ -77,6 +78,7 @@ class CoordinationAccess(MroDispatch):
         # Views showing an observed thread's status, by thread name.
         self.thread_owners: WeakKeyDictionary[ThreadStatusOwner, str] = WeakKeyDictionary()
         self.thread_interest: frozenset[str] = frozenset()
+        self.views_interest: ObserveViews | None = None
 
     @property
     def observed_service(self) -> Comms | None:
@@ -144,7 +146,9 @@ class CoordinationAccess(MroDispatch):
         self.thread_owners.clear()
         self.thread_interest = frozenset()
         self.thread_status.clear()
+        self.views_interest = None
         self.update_sidebar_interest()
+        self.app.session_navigation.declare_views()
 
     def retire(self, observed: ObservedCommsService) -> None:
         self.loop.remove_reader(observed.process.fileno())
@@ -200,6 +204,17 @@ class CoordinationAccess(MroDispatch):
         for owner, name in tuple(self.thread_owners.items()):
             if name in result.presentations:
                 owner.thread_observed(result.presentations[name])
+
+    @handles(ViewsRetired)
+    def views_retired(self, result: ViewsRetired, observed: ObservedCommsService) -> None:
+        self.app.session_navigation.views_retired(observed.service.root, result.retired)
+
+    def show_views(self, threads: frozenset, channels: frozenset[str]) -> None:
+        """The thread incarnations and channel views open on the observed root."""
+        request = ObserveViews(threads, channels)
+        if request != self.views_interest and self.observation is not None and self.loop is not None:
+            self.views_interest = request
+            self.observation.process.request(request)
 
     def sidebar_request(self) -> ObserveSidebar:
         settings = self.app.settings.sidebar
