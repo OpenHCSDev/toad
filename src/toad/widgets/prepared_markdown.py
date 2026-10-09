@@ -15,6 +15,7 @@ from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
+from textual.visual import Visual
 from textual.widgets import Label
 from textual.widgets._markdown import Markdown, MarkdownBlock
 
@@ -362,7 +363,12 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
                                       root_empty=self.is_empty)
         app = self.app
-        task = MarkdownDocumentRenderTask(document, width)
+        selection = self.text_selection
+        task = MarkdownDocumentRenderTask(
+            document, width, root_selection=selection,
+            selection_style=Visual.selection_style(self) if selection is not None else None,
+            selecting=self.screen._selecting,
+        )
         paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
                  else await asyncio.to_thread(task.execute))
         cost = (await app.preparation.run_thread(retained_bytes, paint)
@@ -372,7 +378,10 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                 or self._body_measurement.width + self.styles.gutter.width != width):
             return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
                                       root_empty=self.is_empty)
-        paint = paint.with_presentation(document)
+        paint = paint.with_presentation(
+            document, root_selection=task.root_selection,
+            selection_style=task.selection_style, selecting=task.selecting,
+        )
         self.loading = False
         self._table_of_contents = paint.table_of_contents
         self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
@@ -403,6 +412,14 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
 
     def notify_style_update(self) -> None:
         super().notify_style_update()
+        if self.is_attached and self.document is not None and self._body_viewport is None:
+            self.call_later(self.restore_body)
+
+    def selection_updated(self, selection) -> None:
+        super().selection_updated(selection)
+        # Screen owns selection. Its change retires rows with different paint
+        # inputs, using the same body writer as source/style/width updates.
+        self._update_body_measurement(self._body_measurement.style_updated(self))
         if self.is_attached and self.document is not None and self._body_viewport is None:
             self.call_later(self.restore_body)
 

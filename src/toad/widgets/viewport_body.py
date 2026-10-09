@@ -23,6 +23,7 @@ from toad.widgets.presentation_window import (
 )
 
 from textual.widget import Widget
+from textual.visual import Visual
 from textual.walk import walk_depth_first
 from textual._measurement import INDEPENDENT_HEIGHT, NATIVE_WIDGET_HEIGHT, height_dependency
 from textual.geometry import Size
@@ -243,7 +244,7 @@ class BodyMeasurement(ABC):
         return self
 
     def get_selection(self, body, selection, select_live):
-        return select_live(selection)
+        return None
 
     def publication_finished(self, body, worker, result):
         """A settled resource does not own this worker's publication."""
@@ -316,6 +317,9 @@ class MeasuredSourceBody(MeasuredBody):
 
 @dataclass(frozen=True)
 class LiveBody(MeasuredBody):
+    def get_selection(self, body, selection, select_live):
+        return select_live(selection) if self.ready(body) else None
+
     def released(self):
         return ReleasedBody(self.width, self.rows, self.widgets)
 
@@ -470,7 +474,7 @@ class MaterializingBody(BodyMeasurement):
         return self.previous.render(body, crop, render_live)
 
     def get_selection(self, body, selection, select_live):
-        return self.previous.get_selection(body, selection, select_live) if self.ready(body) else None
+        return self.previous.get_selection(body, selection, select_live)
 
     def _updated(self, previous):
         return self if previous is self.previous else replace(self, previous=previous)
@@ -676,7 +680,12 @@ class PreparedDocumentBody(BodyMeasurement):
     def get_selection(self, body, selection, select_live):
         # Pointer selection acquires original scene controls before native
         # targeting. Whole-document copy can borrow each original leaf owner.
-        if not self.paint_ready(body) or selection.start is not None or selection.end is not None:
+        # Selection styling may still be preparing; it doesn't replace text.
+        document = body.document
+        if (document is None or not self.paint.document.same_source(document)
+                or self.paint.presentation_key != document.presentation.key
+                or not document.presentation.current_for(body)
+                or selection.start is not None or selection.end is not None):
             return None
         parts = (leaf.selected_text(selection) for leaf in self.paint.leaves)
         text = "".join(value[0] + value[1] for value in parts if value is not None).rstrip("\n")
@@ -691,9 +700,17 @@ class PreparedDocumentBody(BodyMeasurement):
             # Reuse only after full acquired input equality, never by copying
             # the new participant's invalidation counter onto old pixels.
             document = body.document.with_presentation(body)
-            if self.paint.matches(document, self.paint.width):
+            selection = body.text_selection
+            if self.paint.matches(
+                document, self.paint.width, root_selection=selection,
+                selection_style=Visual.selection_style(body) if selection is not None else None,
+                selecting=body.screen._selecting,
+            ):
                 body.document = document
-                return replace(self, paint=self.paint.with_presentation(document))
+                return replace(self, paint=self.paint.with_presentation(
+                    document, root_selection=self.paint.root_selection,
+                    selection_style=self.paint.selection_style, selecting=self.paint.selecting,
+                ))
         return self.invalidated()
 
     def invalidated(self, width=None):
