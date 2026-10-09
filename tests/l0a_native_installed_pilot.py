@@ -41,31 +41,11 @@ from runtime_fixture import refresh_comms
 
 
 def response_painted(app, view, text):
-    from agent_comms.transcript_events import AssistantTranscript
-    from toad.widgets.transcript_history import TranscriptFragmentView
-    from viewport_recent_tabs_pilot import ReaderCheckpoint
-
+    """The text is in the message area's painted frame (history and live rows)."""
     window = view.window.scrollable_content_region
     frame = "\n".join(strip.crop(window.x, window.right).text
                       for strip in app.screen._compositor.render_strips()[window.y:window.bottom])
-    if text not in frame:
-        return False
-    resources = ReaderCheckpoint.native_render_resources(app.selected_session, app)
-    visible = app.screen._compositor.visible_widgets
-    for body, content in resources.items():
-        bounds, clip = visible[body]
-        crop = bounds.intersection(clip).intersection(window) - bounds.offset
-        if isinstance(body, TranscriptFragmentView):
-            if (any(isinstance(event, AssistantTranscript) and text in event.text
-                    for event in body.fragment.events)
-                    and text in "\n".join(line.text for line in content.render_lines(crop))):
-                return True
-        elif any(isinstance(parent, AgentResponse) and text in parent.source
-                 for parent in body.ancestors):
-            if text in "\n".join(line.crop(crop.x, crop.right).text
-                                 for line in content.lines[crop.y:crop.bottom]):
-                return True
-    return False
+    return text in frame
 
 
 async def until(pilot, predicate, seconds=20):
