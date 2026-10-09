@@ -143,6 +143,10 @@ class BodyMeasurement(ABC):
     def paint_bytes(self) -> int:
         return 0
 
+    @property
+    def document_paint(self):
+        return None
+
     @abstractmethod
     def height(self, body, width, measure) -> int: ...
 
@@ -467,6 +471,10 @@ class MaterializingBody(BodyMeasurement):
     def paint_bytes(self):
         return self.previous.paint_bytes
 
+    @property
+    def document_paint(self):
+        return self.previous.document_paint
+
     def height(self, body, width, measure):
         return self.previous.height(body, width, measure)
 
@@ -632,6 +640,10 @@ class PreparedDocumentBody(BodyMeasurement):
 
     paint: "DocumentPaint"
     resource_bytes: int
+
+    @property
+    def document_paint(self):
+        return self.paint
 
     @property
     def width(self):
