@@ -35,7 +35,6 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         self.budget = PresentationBudget()
         self._content_lock = asyncio.Lock()
         self._content_generation = 0
-        self._pending_source: str | None = None
         self._needs_full_markdown_update = False
 
     def compose(self) -> ComposeResult:
@@ -105,7 +104,7 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         return current()
 
     async def materialize_native_body(self) -> None:
-        await self._update_content(self.source, append=False)
+        await self._update_content(self.acquired_source(self._pending_source), "", append=False)
 
     async def materialize_interactive_body(self):
         # This source range owns real prefix/disclosure widgets. Its document
@@ -132,13 +131,15 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         super().retire_body_resources()
 
     def update(self, markdown: str) -> AwaitComplete:
-        return self.publish_body(partial(self._update_content, markdown, append=False))
+        source = self._request_source(markdown, append=False)
+        return self.publish_body(partial(self._update_content, self.acquired_source(source), markdown, append=False))
 
     def append(self, markdown: str) -> AwaitComplete:
-        return self.publish_body(partial(self._update_content, markdown, append=True))
+        source = self._request_source(markdown, append=True)
+        return self.publish_body(partial(self._update_content, self.acquired_source(source), markdown, append=True))
 
     async def _parse_tokens(
-        self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str, *, use_thread: bool,
+        self, parser: MarkdownIt | _ThreadLocalPathParser, markdown: str | PreparedMarkdownPart, *, use_thread: bool,
     ) -> list[Token] | None:
         generation = self._content_generation
         tokens = await super()._parse_tokens(parser, markdown, use_thread=use_thread)
@@ -147,14 +148,11 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             return None
         return tokens
 
-    async def _update_content(self, text: str, *, append: bool) -> None:
+    async def _update_content(self, source: str | PreparedMarkdownPart, text: str, *, append: bool) -> None:
         if self._closing:
             return
         self._content_generation += 1
         generation = self._content_generation
-        previous_source = self.source if self._pending_source is None else self._pending_source
-        source = previous_source + text if append else text
-        self._pending_source = source
         parent = self.parent
 
         def is_current() -> bool:
@@ -166,11 +164,11 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
         except asyncio.CancelledError:
             if generation == self._content_generation:
                 self._content_generation += 1
-                self._pending_source = self.source
             raise
 
-    async def _publish_content(self, source: str, text: str, append: bool,
+    async def _publish_content(self, acquired: str | PreparedMarkdownPart, text: str, append: bool,
                                is_current: Callable[[], bool]) -> None:
+        source = acquired.text if isinstance(acquired, PreparedMarkdownPart) else acquired
         async with self._content_lock:
             if not is_current():
                 return
@@ -179,11 +177,8 @@ class StreamingMarkdown(PreparedContentRange, SnapshotPresentation, PreparedConv
             # only after those roots have actually been retired.
             if not super().reconstructible_children():
                 self._needs_full_markdown_update = True
-            if self._markdown_part is not None and self._markdown_part.text != source:
-                self._markdown_part = None
             fragments = ()
             if self.partitionable_syntax:
-                acquired = self.acquired_source(source)
                 fragments = (await self.app.render_processes.submit(MarkdownPartsTask(acquired))
                              if self._paginate else
                              (await self.app.render_processes.submit(MarkdownSyntaxRenderTask(acquired)),))

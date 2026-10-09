@@ -57,7 +57,6 @@ from textual.reactive import var
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
-from textual.widgets.markdown import MarkdownBlock
 
 from toad import jsonrpc, messages, paths
 
@@ -123,6 +122,7 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
+    from textual.document._markdown import MarkdownSourceBlock
     from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
@@ -313,9 +313,8 @@ class CursorContainer(containers.Vertical):
         # Selection belongs to ContentNavigation. The published scene supplies
         # its current position, including nested and lazily replaced bodies.
         visible = self.screen._compositor.visible_widgets
-        selected = self.query_ancestor(Conversation).navigation.selected
-        if (geometry := visible.get(selected)) is not None:
-            region, _clip = geometry
+        cursor = self.query_ancestor(Conversation).navigation.cursor
+        if cursor is not None and (region := cursor.visible_region) is not None:
             origin = visible[self][0].y + crop.y
             style = self.get_component_rich_style(
                 "cursor--selected-blink" if self.blink else "cursor--selected"
@@ -387,7 +386,6 @@ class ConversationSessionBinding(containers.Vertical):
     working_directory: var[str] = var("")
 
 
-    _blocks: var[list[MarkdownBlock] | None] = var(None)
 
 
     _shell: var[Shell | None] = var(None)
@@ -682,7 +680,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         current = ReaderPosition.capture(window)
         self._filter_reader_positions[previous] = current
         position = self._filter_reader_positions.get(selected, current)
-        self.navigation.index = -1
+        self.navigation.clear()
         self.screen.clear_selection()
         for block in self.contents.children:
             apply_block_filter(block, selected)
@@ -861,7 +859,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
     async def on_shell_terminal_terminate(self, event: ShellTerminal.Terminate) -> None:
         if not event.teminal.is_finalized:
             await self.shell.interrupt()
-            self.navigation.index = -1
+            self.navigation.clear()
             self.flash("Command interrupted", style="success")
 
     @handles(DirectoryChanged)
@@ -953,7 +951,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         return self.navigation.current
 
     @property
-    def cursor_block_child(self) -> Widget | None:
+    def cursor_block_child(self) -> Widget | MarkdownSourceBlock | None:
         return self.navigation.selected
 
     async def _read_thread_activity(self):
@@ -1278,9 +1276,13 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     @on(Menu.OptionSelected)
     async def on_menu_option_selected(self, event: Menu.OptionSelected) -> None:
+        from toad.screens.session_view import SessionView
+
         event.stop()
         event.menu.display = False
-        if event.action is not None:
+        cursor = self.navigation.cursor
+        if (self.query_ancestor(SessionView).is_current and event.action is not None
+                and cursor is not None and cursor.accepts(event.owner)):
             await self.run_action(event.action, {"block": event.owner})
         if (cursor_block := self.cursor_block_child) is not None:
             self.call_after_refresh(self.cursor.refresh)
@@ -1972,7 +1974,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
                     break
                 prune_children.append(child)
 
-        self.navigation.index = -1
+        self.navigation.clear()
         self.cursor.refresh()
         contents.refresh(layout=True)
 
@@ -2089,7 +2091,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             scroll_end: Scroll t the end of the content.
         """
         if reset_cursor:
-            self.navigation.index = -1
+            self.navigation.clear()
             self.cursor.refresh()
         if scroll_end:
             self.jump_to_latest()
@@ -2100,7 +2102,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
         self.transcript.request()
 
     async def action_select_block(self) -> None:
-        if (block := self.cursor_block_child) is None:
+        cursor = self.navigation.cursor
+        if cursor is None or (block := cursor.selected) is None:
             return
 
         menu_options = [
@@ -2109,46 +2112,44 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             MenuItem("Open as S[u]V[/]G", "export_to_svg", "v"),
         ]
 
-        if block.allow_maximize:
+        if cursor.allow_maximize:
             menu_options.append(MenuItem("[u]M[/u]aximize", "maximize_block", "m"))
 
-        menu_options.extend(block.get_block_menu())
+        menu_options.extend(cursor.get_block_menu())
         menu = Menu(block, menu_options)
 
-        menu.offset = Offset(1, block.region.offset.y)
+        region = cursor.region
+        menu.offset = Offset(1, region.y if region is not None else self.window.region.y)
         await self.mount(menu)
         menu.focus()
 
     def action_copy_to_clipboard(self) -> None:
-        block = self.cursor_block_child
-        if block is not None and (text := block.get_clipboard_text()):
+        cursor = self.navigation.cursor
+        if cursor is not None and (text := cursor.get_clipboard_text()):
             self.app.copy_to_clipboard(text)
             self.flash("Copied to clipboard")
 
     def action_copy_to_prompt(self) -> None:
-        block = self.cursor_block_child
-        if block is not None and (text := block.get_prompt_text()):
+        cursor = self.navigation.cursor
+        if cursor is not None and (text := cursor.get_prompt_text()):
             self.prompt.append(text)
             self.flash("Copied to prompt")
             self.focus_prompt()
 
     def action_maximize_block(self) -> None:
-        if (block := self.cursor_block_child) is not None:
-            self.screen.maximize(block, container=False)
-            block.focus()
+        cursor = self.navigation.cursor
+        if cursor is not None and cursor.allow_maximize:
+            cursor.maximize(self.screen)
 
     def action_export_to_svg(self) -> None:
-        block = self.cursor_block_child
-        if block is None:
+        cursor = self.navigation.cursor
+        if cursor is None or (export := cursor.export_render()) is None:
             return
         import platformdirs
-        from textual._compositor import Compositor
         from textual._files import generate_datetime_filename
 
-        width, height = block.outer_size
-        compositor = Compositor()
-        compositor.reflow(block, block.outer_size)
-        render = compositor.render_full_update()
+        size, render = export
+        width, height = size
 
         import io
         import os.path
@@ -2176,16 +2177,28 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
 
     def refresh_block_cursor(self) -> None:
         self.cursor.refresh()
-        if (cursor_block := self.cursor_block_child) is not None:
+        if (cursor := self.navigation.cursor) is not None:
             # Resolve this navigation event before a later tab/editor event.
             self.screen.set_focus(self.window)
             self.call_after_refresh(
-                self.window.scroll_to_center, cursor_block, immediate=True
+                self._present_block_cursor, cursor
             )
         else:
             self.window.anchor()
             self.prompt.focus()
         self.refresh_bindings()
+
+    def _present_block_cursor(self, cursor) -> None:
+        from toad.screens.session_view import SessionView
+
+        # Original frame admission resolves pending source entry. A later
+        # prompt/tab/source event may already have revoked this cursor intent.
+        if (self.is_attached and not self._closing
+                and self.query_ancestor(SessionView).is_current
+                and self.navigation.cursor is cursor):
+            cursor.scroll_to_center(self.window)
+            self.cursor.refresh()
+            self.refresh_bindings()
 
 class ConversationCommsConsumer(MroDispatch):
     def __init__(self, conversation, message):

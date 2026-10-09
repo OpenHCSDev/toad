@@ -1,5 +1,6 @@
-"""Nominal selection capabilities on the actual mounted block widgets."""
+"""Declared block capabilities shared by scene and original source consumers."""
 from collections.abc import Iterable
+from functools import cached_property
 
 from textual.widgets import _markdown as native_markdown
 
@@ -8,6 +9,12 @@ from toad.menus import MenuItem
 
 class BlockContent:
     """Non-interactive blocks inherit empty content and expansion behavior."""
+
+    @cached_property
+    def block_cursor(self):
+        from toad.block_navigation import AtomicBlockCursor
+
+        return AtomicBlockCursor(self)
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         return ()
@@ -34,8 +41,37 @@ class BlockContent:
 class MarkdownBlockContent(BlockContent):
     """Declared native blocks share source-copy and menu capabilities."""
 
-    def get_clipboard_text(self) -> str:
-        return self.source
+    code: str | None = None
+
+    @classmethod
+    def clipboard_source(cls, markdown: str | None, code: str | None) -> str | None:
+        return markdown
+
+    @classmethod
+    def prompt_source(cls, markdown: str | None, code: str | None) -> str | None:
+        return cls.clipboard_source(markdown, code)
+
+    @classmethod
+    def source_block_menu(cls, source) -> Iterable[MenuItem]:
+        # A scene menu may depend on actual controls. It must explicitly
+        # declare source behavior before detached consumers can supply it.
+        cls._require_document_methods({"get_block_menu": BlockContent.get_block_menu})
+        return ()
+
+    @classmethod
+    def source_copy(cls, source, *, prompt: bool = False) -> str | None:
+        cls._require_document_methods({
+            "get_clipboard_text": MarkdownBlockContent.get_clipboard_text,
+            "get_prompt_text": MarkdownBlockContent.get_prompt_text,
+        })
+        supply = cls.prompt_source if prompt else cls.clipboard_source
+        return supply(source.source_text(), source.code)
+
+    def get_clipboard_text(self) -> str | None:
+        return self.clipboard_source(self.source, self.code)
+
+    def get_prompt_text(self) -> str | None:
+        return self.prompt_source(self.source, self.code)
 
     @classmethod
     def blocks_for(cls, catalog: dict[str, type]) -> dict[str, type]:
