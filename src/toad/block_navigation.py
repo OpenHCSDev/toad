@@ -83,6 +83,15 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def region(self) -> Region | None:
         return None
 
+    def source_regions(self):
+        return ()
+
+    def region_for(self, source) -> Region | None:
+        return None
+
+    def owns_source(self, source) -> bool:
+        return False
+
     @property
     def visible_region(self) -> Region | None:
         return None
@@ -201,29 +210,24 @@ class ChildBlockCursor(BlockCursor):
 
 
 class DocumentBlockCursor(BlockCursor):
-    """Select original grammar roots; native paint supplies their placement.
-
-    The ordinal is a position in that exact source cohort, not a token ID.
-    Source identity fences it before a new presentation's roots may supply
-    geometry. Neither paint nor a second root collection is retained here.
-    """
+    """One source selection across detached paint and actual native controls."""
 
     def __init__(self, block):
         super().__init__(block)
-        self._selection: tuple[int, MarkdownSourceBlock] | CursorDirection | None = None
+        self._selection: MarkdownSourceBlock | CursorDirection | None = None
 
     @property
     def selected(self):
         if self._selection is None or self.block._closing:
             return None
         if isinstance(self._selection, CursorDirection):
-            paint = self._current_paint()
-            if paint is None:
+            sources = self._current_sources()
+            if sources is None:
                 return None
             direction = self._selection
-            if not self._enter_from(paint, direction.entry(len(paint.roots)), direction):
+            if not self._enter_from(sources, direction.entry(len(sources)), direction):
                 return None
-        index, original = self._selection
+        original = self._selection
         document = self.block.document
         if (self.block._pending_source != original.document.source
                 or document is not None and not original.document.same_source(document)):
@@ -231,18 +235,15 @@ class DocumentBlockCursor(BlockCursor):
             return None
         # A selected source outlives rows and native controls. Reconstruction
         # may borrow it, but only admitted paint can replace its placement.
-        paint = self._current_paint()
-        if paint is None:
+        sources = self._current_sources()
+        if sources is None:
             return original
-        if not original.document.same_source(paint.document) or not 0 <= index < len(paint.roots):
-            self._selection = None
-            return None
-        source = paint.roots[index]
-        if source.source_index != original.source_index or source.placement is None:
-            self._selection = None
-            return None
-        self._selection = index, source
-        return source
+        for source in sources:
+            if self._same_member(source, original):
+                self._selection = source
+                return source
+        self._selection = None
+        return None
 
     @property
     def active(self):
@@ -257,51 +258,80 @@ class DocumentBlockCursor(BlockCursor):
         width = self.block._body_measurement.width + self.block.styles.gutter.width
         return paint if paint is not None and paint.is_current(self.block, width) else None
 
-    def _enter_from(self, paint, index, direction):
-        while 0 <= index < len(paint.roots):
-            source = paint.roots[index]
-            # Native displayed-child admission excludes CSS-hidden/unplaced
-            # roots. The original producer owns that answer, not paint leaves.
-            if source.placement is not None:
-                self._selection = index, source
-                return True
-            index += direction.step
+    @staticmethod
+    def _same_member(left, right):
+        return (left.source_index == right.source_index
+                and left.document.same_source(right.document))
+
+    def _scene_roots(self):
+        from textual.widgets._markdown import MarkdownBlock
+
+        measurement = self.block._body_measurement
+        if (measurement.dormant or not measurement.ready(self.block)
+                or not self.block.is_attached or self.block._closing):
+            return None
+        return tuple(child for child in self.block.displayed_children
+                     if isinstance(child, MarkdownBlock) and child.source_block is not None)
+
+    def _current_sources(self):
+        paint = self._current_paint()
+        if paint is not None:
+            return tuple(source for source in paint.roots if source.placement is not None)
+        roots = self._scene_roots()
+        return None if roots is None else tuple(root.source_block for root in roots)
+
+    def _scene_block(self):
+        source = self.selected
+        roots = self._scene_roots()
+        if source is not None and roots is not None:
+            return next((root for root in roots
+                         if self._same_member(root.source_block, source)), None)
+
+    def _enter_from(self, sources, index, direction):
+        if 0 <= index < len(sources):
+            self._selection = sources[index]
+            return True
         self._selection = None
         return False
 
     def enter(self, direction):
         if self.block._closing:
             return False
-        paint = self._current_paint()
-        if paint is None:
+        sources = self._current_sources()
+        if sources is None:
             # Retain the original entry, not a guessed root from stale paint.
             # Source requests revoke it through this cursor's clear().
             self._selection = direction
             return True
-        return self._enter_from(paint, direction.entry(len(paint.roots)), direction)
+        return self._enter_from(sources, direction.entry(len(sources)), direction)
 
     def move(self, direction):
         source = self.selected
         if source is None:
             return isinstance(self._selection, CursorDirection)
-        paint = self._current_paint()
-        if paint is None:
+        sources = self._current_sources()
+        if sources is None:
             # Copy retains the original selected source while new paint
             # prepares. It does not admit another root through stale geometry.
             return True
-        index = self._selection[0] + direction.step
-        return self._enter_from(paint, index, direction)
+        index = next(index for index, member in enumerate(sources)
+                     if self._same_member(member, source)) + direction.step
+        return self._enter_from(sources, index, direction)
 
     def select(self, widget):
-        # Pointer dispatch acquires actual native controls first. This source
-        # cursor never fabricates a widget or guesses a root from paint leaves.
+        roots = self._scene_roots()
+        if roots is None:
+            return False
+        for ancestor in (widget, *widget.ancestors):
+            if ancestor in roots:
+                self._selection = ancestor.source_block
+                return True
         return False
 
     def accepts(self, owner):
         source = self.selected
         return (source is not None and isinstance(owner, type(source))
-                and source.source_index == owner.source_index
-                and source.document.same_source(owner.document))
+                and self._same_member(source, owner))
 
     def get_clipboard_text(self):
         source = self.selected
@@ -324,11 +354,39 @@ class DocumentBlockCursor(BlockCursor):
 
     @property
     def region(self):
-        placement = self._placement()
-        return None if placement is None else placement.region.translate(self.block.region.offset)
+        source = self.selected
+        return None if source is None else self.region_for(source)
+
+    def source_regions(self):
+        """Original displayed source members and their current screen regions."""
+        compositor = self.block.screen._compositor
+        placements = compositor._published_map
+        paint = self._current_paint()
+        if paint is not None:
+            geometry = placements.get(self.block)
+            if geometry is None:
+                return ()
+            return tuple((source, source.placement.region.translate(geometry.region.offset))
+                         for source in paint.roots if source.placement is not None)
+        roots = self._scene_roots()
+        return () if roots is None else tuple((root.source_block, geometry.region)
+                                              for root in roots
+                                              if (geometry := placements.get(root)) is not None)
+
+    def region_for(self, source):
+        return next((region for member, region in self.source_regions()
+                     if self._same_member(member, source)), None)
+
+    def owns_source(self, source):
+        document = self.block.get_current_document()
+        return document is not None and document.same_source(source.document)
 
     @property
     def visible_region(self):
+        scene = self._scene_block()
+        if scene is not None:
+            geometry = scene.screen._compositor.visible_widgets.get(scene)
+            return None if geometry is None else geometry[0].intersection(geometry[1])
         placement = self._placement()
         geometry = self.block.screen._compositor.visible_widgets.get(self.block)
         if placement is None or geometry is None:
@@ -347,6 +405,15 @@ class DocumentBlockCursor(BlockCursor):
     def export_render(self):
         from textual.strip import StripRenderable
 
+        scene = self._scene_block()
+        if scene is not None:
+            if self.region_for(scene.source_block) is None:
+                return None
+            from textual._compositor import Compositor
+
+            compositor = Compositor()
+            compositor.reflow(scene, scene.outer_size)
+            return scene.outer_size, compositor.render_full_update()
         placement = self._placement()
         if placement is None:
             return None

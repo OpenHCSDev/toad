@@ -34,6 +34,7 @@ from textual.await_complete import AwaitComplete
 
 if TYPE_CHECKING:
     from textual.document._paint import DocumentPaint
+    from toad.markdown_preparation import PreparedMarkdown
 
 
 class ViewportBody:
@@ -724,10 +725,10 @@ class PreparedDocumentBody(BodyMeasurement):
 
     paint: "DocumentPaint"
     resource_bytes: int
-    source_bytes: int
+    source_resource: "PreparedMarkdown"
 
     def source_cost(self, body):
-        return self.source_bytes
+        return self.source_resource.retained_bytes
 
     @property
     def document_paint(self):
@@ -814,7 +815,7 @@ class PreparedDocumentBody(BodyMeasurement):
         return self.invalidated()
 
     def invalidated(self, width=None):
-        return PendingDocumentBody(self.paint, self.resource_bytes, self.source_bytes,
+        return PendingDocumentBody(self.paint, self.resource_bytes, self.source_resource,
                                    self.width if width is None else width)
 
     def resized(self, size):
@@ -823,7 +824,8 @@ class PreparedDocumentBody(BodyMeasurement):
 
     def released(self):
         return MeasuredSourceBody(self.width, self.rows, self.widgets,
-                                  root_empty=self.paint.root_empty, source_bytes=self.source_bytes)
+                                  root_empty=self.paint.root_empty,
+                                  source_bytes=self.source_cost(None))
 
     async def restore(self, body):
         if not self.ready(body):
@@ -1300,7 +1302,7 @@ class ViewportPresentation:
         """
         windows = tuple(self.frame_windows())
         return tuple(dict.fromkeys((
-            *(target for window in windows if window in self.anchors
+            *(target for window in windows
               for target in window.history_geometry_targets()),
             *(target for window in windows
               for target in window.document_viewport.geometry_targets()),
@@ -1642,7 +1644,7 @@ class DocumentViewport:
     def protected(self) -> set[Widget]:
         screen = self.window.screen
         protected = set()
-        for endpoint in screen._interaction_widgets():
+        for endpoint in (*screen._interaction_widgets(), *self.window.reader_bodies):
             for node in endpoint.walk_ancestors(with_self=True):
                 if not isinstance(node, Widget) or node is self.window:
                     break
@@ -1676,6 +1678,7 @@ class DocumentViewport:
                 # cohort; a ready outer fragment cannot prepare their rows.
                 foreground = tuple(dict.fromkeys((
                     *required,
+                    *self.window.reader_bodies,
                     *(body for _window, body in screen.viewport_presentation.visible_bodies((self.window,))),
                 )))
                 for owner in foreground:

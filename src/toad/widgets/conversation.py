@@ -343,6 +343,10 @@ class ConversationWindowSettings(CoreEventReceiver):
             viewport.membership.bind(destination.viewport_presentation)
 
 class Window(ConversationWindowSettings, HistoryWindow):
+    @property
+    def pending_reader_position(self):
+        return self.query_ancestor(Conversation).transcript.reader_position
+
     HELP = """\
 ## Conversation
 

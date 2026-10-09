@@ -6,13 +6,14 @@ import os
 from pathlib import Path
 
 from acp import schema
+from agent_comms.transcript_events import ContextTranscript
 from textual.binding import Binding
 from toad.answer import Answer
 from toad.application_actions import KeyboundAction
 from toad.question_actions import QuestionAction
 from toad.screens.permissions import PermissionsScreen
 from toad.widgets.question import Question, Option
-from toad.widgets.coordination_context import CoordinationContext
+from toad.widgets.transcript_fragments import transcript_fragments
 from toad.widgets.flash import Flash
 from runtime_fixture import ToadApp
 from l0a_native_installed_pilot import main, until, response_painted
@@ -55,7 +56,7 @@ async def acceptance(app, pilot, agent, comms, entered, release, hold_next, requ
     await pilot.press('escape')
     assert not comms.registry.require('beta').executing
 
-    disclosure = await view.post(CoordinationContext('ACTION_CONTEXT_VISIBLE'))
+    disclosure = await view.post(transcript_fragments((ContextTranscript('ACTION_CONTEXT_VISIBLE'),))[0].blocks()[0])
     await pilot.pause()
     # Native block-cursor key establishes the real history focus owner.
     view.focus_prompt(scroll_end=False)

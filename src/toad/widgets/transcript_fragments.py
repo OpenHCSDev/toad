@@ -12,7 +12,7 @@ from agent_comms.transcript_events import (
 )
 
 from toad.render_backend import ReusableRenderTask
-from toad.markdown_preparation import PreparedMarkdownPart
+from toad.markdown_preparation import PreparedContentRange, PreparedMarkdown, PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary
 from toad.widgets.message_filter import event_category, keep_events
@@ -146,36 +146,82 @@ class RenderBudget:
             yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
 
 
-@dataclass(frozen=True)
+@dataclass
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
     starts_agent_activity: bool = False
     markdown_part: PreparedMarkdownPart | None = field(default=None, kw_only=True)
+    prepared_source: PreparedMarkdown | None = field(default=None, kw_only=True, compare=False, repr=False)
+    prepared_content: PreparedContentRange | None = field(default=None, kw_only=True, compare=False, repr=False)
 
     def blocks(self, *, fragment: bool = False, show_divider: bool = True):
         from toad.widgets.transcript_history import TranscriptBlockConsumer
 
         consumer = TranscriptBlockConsumer(fragment=fragment, show_divider=show_divider,
-                                           markdown_part=self.markdown_part)
+                                           markdown_part=self.markdown_part,
+                                           prepared_source=self.prepared_source, prepared_content=self.prepared_content)
         for event in self.events:
             consumer.dispatch_sync(event)
         return consumer.blocks
 
+    def retain_source(self, view) -> None:
+        """The source slot takes its original semantic producer's acquisition."""
+        for block in view.children:
+            block.retain_transcript_source(self)
+
+    def resolved_sources(self):
+        return (() if self.prepared_source is None else self.prepared_source.resolved_sources()) + (
+            () if self.prepared_content is None else self.prepared_content.resolved_sources())
+
+    def independent(self) -> "TranscriptFragment":
+        """A separate projection owns independently resolved source lifetimes."""
+        return self._independent(prepared_source=None, prepared_content=None)
+
+    def release_source(self):
+        self.prepared_source = None
+        self.prepared_content = None
+        return self
+
+    def _independent(self, **changes):
+        source = replace(self, **changes)
+        # Measurement belongs to immutable input; acquisitions never enter it.
+        source.__dict__["retained_bytes"] = self.retained_bytes
+        return source
+
     @cached_property
     def retained_bytes(self) -> int:
-        """Measure this immutable source resource once, before native admission."""
+        """Worker-owned immutable input cost, never an acquisition graph."""
         from toad.work_preparation import retained_bytes
 
         return retained_bytes(self)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(kw_only=True)
 class ToolTranscriptFragment(TranscriptFragment):
     """One original grouped tool and its worker-acquired ACP presentation."""
 
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
+
+    def retain_source(self, view):
+        from toad.widgets.tool_call import ToolCall
+
+        # ToolCall owns the original decoded parts, each of which binds its
+        # own composition. There is no first-Markdown-descendant inference.
+        tool = next(iter(view.query_children(ToolCall)), None)
+        if tool is not None:
+            self.output_parts = tool.output.retain_sources()
+
+    def resolved_sources(self):
+        return tuple(source for part in self.output_parts for source in part.resolved_sources())
+
+    def independent(self):
+        return self._independent(output_parts=tuple(part.admit() for part in self.output_parts))
+
+    def release_source(self):
+        self.output_parts = tuple(part.admit() for part in self.output_parts)
+        return self
 
     def blocks(self, *, fragment: bool = False, show_divider: bool = True):
         from toad.acp.encode_tool_call_id import encode_tool_call_id
@@ -183,6 +229,31 @@ class ToolTranscriptFragment(TranscriptFragment):
 
         return [ToolCall(self.tool_call, id=encode_tool_call_id(self.tool_call.call.tool_call_id),
                          output_parts=self.output_parts)]
+
+
+@dataclass(kw_only=True)
+class ContextTranscriptFragment(TranscriptFragment):
+    """One original lazy disclosure and its two distinct source ranges."""
+
+    formatted: str | None = field(default=None, compare=False, repr=False)
+    original_content: PreparedContentRange | None = field(default=None, compare=False, repr=False)
+
+    def blocks(self, *, fragment=False, show_divider=True):
+        from toad.widgets.coordination_context import CoordinationContext
+
+        return [CoordinationContext(self.events[0].text, source=self)]
+
+    def resolved_sources(self):
+        return super().resolved_sources() + (() if self.original_content is None else
+                                             self.original_content.resolved_sources())
+
+    def independent(self):
+        return self._independent(prepared_content=None, original_content=None)
+
+    def release_source(self):
+        super().release_source()
+        self.original_content = None
+        return self
 
 
 class TranscriptFragmentConsumer(MroDispatch):
@@ -197,7 +268,7 @@ class TranscriptFragmentConsumer(MroDispatch):
     @handles(ContextTranscript)
     def context(self, event: ContextTranscript):
         # One lazy disclosure owns the full metadata source.
-        self.fragments.append(TranscriptFragment((event,), continuation=self.continuation))
+        self.fragments.append(ContextTranscriptFragment((event,), continuation=self.continuation))
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript):

@@ -1,7 +1,7 @@
 """Use the app-owned CPU pool for heavy conversation Markdown preparation."""
 
 import asyncio
-from contextlib import ExitStack, asynccontextmanager
+from contextlib import asynccontextmanager
 from collections.abc import Callable
 from functools import cached_property, partial
 from typing import cast
@@ -12,7 +12,7 @@ from markdown_it.token import Token
 
 from textual.content import Content
 from textual.app import ComposeResult
-from textual.worker import WorkerCancelled
+from textual.worker import WorkerCancelled, get_current_worker
 from textual.await_complete import AwaitComplete
 from textual.widget import Widget
 from textual.visual import Visual
@@ -21,7 +21,7 @@ from textual.widgets._markdown import Markdown, MarkdownBlock
 
 from toad.app import ToadApp
 from toad.conversation_markdown import ConversationCodeFence, ConversationMarkdown, _ThreadLocalPathParser
-from toad.markdown_preparation import PreparedMarkdown, PreparedMarkdownPart
+from toad.markdown_preparation import PreparedContentRange, PreparedMarkdown, PreparedMarkdownPart
 from toad.block_content import MarkdownBlockContent
 from toad.block_navigation import ChildBlockCursor, DocumentBlockCursor
 from toad.layout import trim_trailing_margin
@@ -29,125 +29,6 @@ from toad.render_tasks import MarkdownRenderTask, MarkdownDocumentRenderTask
 from toad.work_preparation import retained_bytes
 from toad.widgets.viewport_body import MeasuredViewportBody, MeasuredSourceBody, PreparedDocumentBody
 from toad.widgets.worker_static import WorkerStatic
-
-
-class PreparedContentRange:
-    """Bound native source parts without giving them transcript identity.
-
-    Transcript pages and individual Markdown messages share native admission,
-    not cursors, coverage, categories or source acquisition. Each owner supplies
-    its original admission identity and constructs its own part widgets.
-    Mount commits membership only. BodyMeasurement owns content publication;
-    the viewport's frame receipt admits paint and the next measured page edge.
-    Joining child writers here would hold their parent's mutation fence while
-    those writers need that same window to publish their content.
-    """
-
-    BATCH = 4
-
-    def __init__(self, *args, fragments=(), newest: bool = True,
-                 batch_size: int = BATCH, **kwargs):
-        if type(batch_size) is not int or batch_size < 1:
-            raise ValueError("batch_size must be a positive integer")
-        self.batch_size = batch_size
-        self.fragments = fragments
-        selected = self.initial_slice(fragments, batch_size, newest)
-        self.start, self.stop = selected.start, selected.stop
-        self._fragment_views = ()
-        super().__init__(*args, **kwargs)
-
-    @staticmethod
-    def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
-        start = max(0, len(fragments) - batch_size) if newest else 0
-        return slice(start, min(len(fragments), start + batch_size))
-
-    def _body(self, fragment):
-        raise NotImplementedError
-
-    def compose(self):
-        self._fragment_views = tuple(self._body(fragment)
-                                     for fragment in self.fragments[self.start:self.stop])
-        yield from self._fragment_views
-
-    @property
-    def fragment_views(self):
-        return self._fragment_views
-
-    def on_unmount(self) -> None:
-        self._fragment_views = ()
-
-    def capture_admission(self):
-        raise NotImplementedError
-
-    def extension_slice(self, older: bool) -> slice:
-        return (slice(max(0, self.start - self.batch_size), self.start) if older
-                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
-
-    def update_slice(self, fragments, follow: bool) -> slice:
-        if follow:
-            return self.initial_slice(fragments, self.batch_size, True)
-        stop = min(self.stop, len(fragments))
-        return slice(min(self.start, stop), stop)
-
-    async def extend(self, older: bool, current: Callable[[], bool], *, prefix=()) -> bool:
-        admission = self.capture_admission()
-        extension = self.extension_slice(older)
-        selected = slice(extension.start if older else self.start,
-                         self.stop if older else extension.stop)
-        previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
-        return await self.replace_range(
-            self.fragments, selected, previous,
-            lambda: current() and self.capture_admission() == admission,
-            prefix=prefix,
-        )
-
-    async def replace_range(self, fragments, selected, previous, current, *, prefix=()) -> bool:
-        """Publish ordered native parts inside their owner's source custody."""
-        ordered = []
-        added = []
-        with ExitStack() as acquisition:
-            acquisition.callback(lambda: self.remove_children(added))
-            # Source demand may span a viewport. Native construction/mount
-            # remains a bounded burst, including after worker preparation.
-            # Keep the original admission until every batch has joined.
-            for first in range(selected.start, selected.stop, self.BATCH):
-                if not current():
-                    return False
-                batch = []
-                for index in range(first, min(selected.stop, first + self.BATCH)):
-                    if index in previous:
-                        child = previous[index]
-                    else:
-                        child = self._body(fragments[index])
-                        added.append(child)
-                        batch.append(child)
-                    ordered.append(child)
-                if batch:
-                    await self.mount_all(batch)
-                    if not current():
-                        return False
-            if not current():
-                return False
-            self.fragments, self._fragment_views = fragments, tuple(ordered)
-            self.start, self.stop = selected.start, selected.stop
-            desired = (*prefix, *ordered)
-            if tuple(self.children) != desired:
-                rank = {child: index for index, child in enumerate(desired)}
-                self.sort_children(key=lambda child: rank.get(child, len(rank)))
-            self.remove_children(tuple(child for child in previous.values() if child not in ordered))
-            acquisition.pop_all()
-        return True
-
-    def trim(self, count: int, *, older: bool) -> None:
-        bodies = self.fragment_views
-        boundary = count if older else len(bodies) - count
-        retired = bodies[:boundary] if older else bodies[boundary:]
-        self._fragment_views = bodies[boundary:] if older else bodies[:boundary]
-        if older:
-            self.start += count
-        else:
-            self.stop -= count
-        self.remove_children(retired)
 
 
 class PreparedMarkdownContent:
@@ -279,7 +160,7 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         presentation prepares, but never a replacement source or detached view.
         """
         paint = self._body_measurement.document_paint
-        document = self.document
+        document = self.get_current_document()
         if (not self.is_attached or self._closing or paint is None or document is None
                 or document.source != self.source
                 or not paint.document.same_source(document)):
@@ -288,6 +169,30 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
 
     def native_body_ready(self) -> bool:
         return super().native_body_ready() and not self.loading
+
+    @property
+    def document(self):
+        source = self._prepared_markdown
+        return None if source is None else source.document
+
+    @document.setter
+    def document(self, document):
+        if document is None:
+            self._prepared_markdown = None
+        else:
+            assert self._prepared_markdown is not None
+            self._prepared_markdown.admit_document(document)
+
+    @property
+    def prepared_source(self):
+        """Actual acquired source, independent of its current paint receipt."""
+        source = self._prepared_markdown
+        return (source if self.owns_requested_source() and source is not None and source.document is not None
+                and source.document.source == self._pending_source else None)
+
+    def owns_requested_source(self):
+        owner = self._content_owner
+        return owner is None or getattr(self.parent, "prepared_content", None) is owner
 
     def _measured_virtual_size_requires_layout(self) -> bool:
         # Markdown extent comes from its arranged blocks, not a separately
@@ -301,13 +206,20 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         id: str | None = None, classes: str | None = None,
         parser_factory: Callable[[], MarkdownIt] | None = None, open_links: bool = False,
         markdown_part: PreparedMarkdownPart | None = None,
+        prepared_source: PreparedMarkdown | None = None,
+        content_owner: PreparedContentRange | None = None,
     ) -> None:
-        self._prepared_markdown: PreparedMarkdown | None = None
-        self.document = None
+        self._prepared_markdown = prepared_source
+        self._content_owner = content_owner
         self._markdown_part = markdown_part
         # Requested text survives pending publication, cancellation and scene
         # retirement. Native .source describes the text its scene consumed.
         self._pending_source = markdown or ""
+        if prepared_source is not None:
+            document = prepared_source.document
+            if (document is None or document.declaration is not type(self)
+                    or document.source != self._pending_source):
+                raise RuntimeError("Retained Markdown source does not supply this declaration and request")
         factory = self._make_parser if parser_factory is None else parser_factory
         super().__init__(markdown, name=name, id=id, classes=classes,
                          parser_factory=factory, open_links=open_links)
@@ -328,7 +240,8 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         part = self._markdown_part
         return part if part is not None and part.text == markdown else markdown
 
-    def update_part(self, part: PreparedMarkdownPart) -> AwaitComplete:
+    def update_part(self, part: PreparedMarkdownPart, *, content_owner: PreparedContentRange | None = None) -> AwaitComplete:
+        self._content_owner = content_owner
         self._markdown_part = part
         return self.update(part.text)
 
@@ -341,8 +254,13 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         # content. Observe that original receipt after completion; waiting on
         # this pump would hold wheel delivery behind background preparation.
         # Native source consumption and TOC completion remain unchanged.
-        initial = None if markdown is None and not self._pending_source else self._pending_source
-        super()._initialize_document(initial).call_when_ready(self)
+        if self._prepared_markdown is not None:
+            if self.prepared_source is None:
+                raise RuntimeError("Retained Markdown source lost its current native admission")
+            self.publish_body(self.materialize_native_body).call_when_ready(self)
+        else:
+            initial = None if markdown is None and not self._pending_source else self._pending_source
+            super()._initialize_document(initial).call_when_ready(self)
         return AwaitComplete.nothing()
 
     def retire_body_resources(self) -> None:
@@ -354,17 +272,54 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         """
 
     async def materialize_native_body(self):
+        if not self.owns_requested_source():
+            return False
         source = self._pending_source
-        if self.document is not None and self.document.source == source:
+        self._markdown = source
+        document = self.get_current_document()
+        if document is not None:
             # Width/style demand changes presentation, not parser or resolved
             # link acquisition. Borrow this original delivered source resource.
-            return await self._prepare_document(self.document.with_presentation(self))
+            return await self._prepare_document(document.with_presentation(self))
         return await self._update_body_source(self.acquired_source(source))
 
     async def materialize_interactive_body(self):
         # The original pointer owner acquires actual controls before choosing
         # a receiver. It never dispatches a synthetic click against paint.
-        await self.publish_body(partial(ConversationMarkdown.update, self, self._pending_source))
+        if not self.partitionable_syntax:
+            # A custom grammar still owns its original scene acquisition.
+            await self.publish_body(partial(ConversationMarkdown.update, self, self._pending_source))
+            return
+
+        async def acquire_controls():
+            # The preceding writer may have delivered a newer source while
+            # this publication joined it. Borrow that actual resource here,
+            # rather than capturing its predecessor before the join.
+            paint = self._body_measurement.document_paint
+            current = self.get_current_document()
+            if current is None:
+                raise RuntimeError("Prepared Markdown interaction has no acquired source document")
+            if paint is None:
+                raise RuntimeError("Prepared Markdown interaction has no completed document paint")
+            if not current.same_source(paint.document):
+                raise RuntimeError("Prepared Markdown interaction paint belongs to a different source")
+            await self.materialize_document(paint)
+            # The native producer checks source custody across its awaits.
+            # A revoked acquisition must not be reported as live controls.
+            return None if self.is_current_document(paint.document) else False
+
+        if (not self.is_attached or self._closing or not self.body_dormant
+                or not self.owns_requested_source()):
+            return
+        await self.restore_body()
+        if (not self.is_attached or self._closing or not self.body_dormant
+                or not self.owns_requested_source()):
+            return
+        await self.publish_body(acquire_controls)
+
+    def get_current_document(self):
+        source = self.prepared_source
+        return None if source is None else source.document
 
     @classmethod
     def document_root(cls, document, children):
@@ -395,6 +350,9 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             if not append:
                 self.block_cursor.clear()
             self._pending_source = self._pending_source + markdown if append else markdown
+            # Even an equal-text replacement is a new independent acquisition.
+            # Retained rows do not grant the preceding suppliers source custody.
+            self._prepared_markdown = None
             if self._markdown_part is not None and self._markdown_part.text != self._pending_source:
                 self._markdown_part = None
         return self._pending_source
@@ -417,6 +375,8 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
 
     async def _prepare_document(self, document):
         self.document = document
+        source = self._prepared_markdown
+        assert source is not None
         width = self._body_measurement.width + self.styles.gutter.width
         if width <= 0:
             return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
@@ -430,24 +390,26 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         )
         paint = (await app.render_processes.submit(task) if isinstance(app, ToadApp)
                  else await asyncio.to_thread(task.execute))
-        source = document, self._prepared_markdown
+        paint = paint.with_presentation(
+            document, root_selection=task.root_selection,
+            selection_style=task.selection_style, selecting=task.selecting,
+        )
         def resource_costs():
-            return retained_bytes(paint), retained_bytes(source)
+            seen = set()
+            source_cost = retained_bytes(source, seen=seen)
+            return retained_bytes(paint, seen=seen), source_cost
         cost, source_cost = (await app.preparation.run_thread(resource_costs)
                              if isinstance(app, ToadApp) else await asyncio.to_thread(resource_costs))
+        source.retained_bytes = source_cost
         if (not self.is_attached or self._closing or self._pruning
                 or self.document is not document or not paint.is_current(self, width)
                 or self._body_measurement.width + self.styles.gutter.width != width):
             return MeasuredSourceBody(self._body_measurement.width, self.measured_rows, 1,
                                       root_empty=self.is_empty, source_bytes=source_cost)
-        paint = paint.with_presentation(
-            document, root_selection=task.root_selection,
-            selection_style=task.selection_style, selecting=task.selecting,
-        )
         self.loading = False
         self._table_of_contents = paint.table_of_contents
         self.post_message(Markdown.TableOfContentsUpdated(self, self.table_of_contents).set_sender(self))
-        return PreparedDocumentBody(paint, cost, source_cost)
+        return PreparedDocumentBody(paint, cost, source)
 
     def goto_anchor(self, anchor: str) -> bool:
         measurement = self._body_measurement
@@ -469,6 +431,16 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
         # Custom parser factories retain their native semantics. This process
         # function implements the declaration-owned conversation/path parser.
         parent = self.parent
+        writer = get_current_worker()
+
+        def current():
+            # A preceding writer can remain in the publication chain while a
+            # later request joins it. Only the current writer may install source.
+            return (not self._closing and not self._pruning
+                    and self.parent is parent
+                    and self.owns_requested_source()
+                    and getattr(self._body_measurement, "worker", None) is writer)
+
         if type(parser) is not _ThreadLocalPathParser:
             markdown = markdown.text if isinstance(markdown, PreparedMarkdownPart) else markdown
             tokens = await super()._parse_tokens(parser, markdown, use_thread=use_thread)
@@ -476,7 +448,7 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                 prepared = await asyncio.to_thread(
                     PreparedMarkdown(tokens, {}).acquire_inline_content, tokens,
                 )
-                if self._closing or self._pruning or self.parent is not parent:
+                if not current():
                     return None
                 self._prepared_markdown = prepared
             return tokens
@@ -485,10 +457,11 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
             def acquire_local():
                 tokens = (parser.resolve_tokens(source.acquire_tokens())
                           if isinstance(source, PreparedMarkdownPart) else parser.parse(source))
-                return PreparedMarkdown(tokens, {}).acquire_inline_content(tokens)
+                return PreparedMarkdown(tokens, {}).acquire_inline_content(
+                    tokens, syntax=source if isinstance(source, PreparedMarkdownPart) else None)
 
             prepared = await asyncio.to_thread(acquire_local)
-            if self._closing or self._pruning or self.parent is not parent:
+            if not current():
                 return None
             self._prepared_markdown = prepared
             return prepared.tokens
@@ -506,17 +479,16 @@ class PreparedConversationMarkdown(MarkdownBlockContent, MeasuredViewportBody, C
                 if self._closing or self._pruning or not self.is_attached:
                     return None
                 raise asyncio.CancelledError
-            if (self._closing or not self.is_attached or self._pruning
-                    or self.parent is not parent):
+            if not self.is_attached or not current():
                 return None
             def acquire():
                 tokens = parser.resolve_tokens(prepared.tokens)
-                return prepared.acquire_inline_content(tokens)
+                return prepared.acquire_inline_content(
+                    tokens, syntax=markdown if isinstance(markdown, PreparedMarkdownPart) else None)
 
             prepared = await asyncio.to_thread(acquire)
             tokens = prepared.tokens
-            if (self._closing or not self.is_attached or self._pruning
-                    or self.parent is not parent):
+            if not self.is_attached or not current():
                 return None
             if theme != (self.app.native_ansi_color, self.app.current_theme.dark):
                 continue

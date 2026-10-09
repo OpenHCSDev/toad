@@ -8,7 +8,7 @@ from toad.widgets.streaming_markdown import StreamingMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
 from toad.widgets.route_header import RouteHeader
 from toad import response_delivery
-from toad.markdown_preparation import PreparedMarkdownPart
+from toad.markdown_preparation import PreparedContentRange, PreparedMarkdownPart
 from toad.widgets.message_filter import (
     CategorizedBlock,
     MessageCategory,
@@ -34,11 +34,13 @@ class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, Streamin
     def __init__(self, markdown: str | None = None, *, delivery: response_delivery.ResponseDelivery = response_delivery.UnroutedResponse(),
                  category: type[MessageCategory] | None = None,
                  markdown_part: PreparedMarkdownPart | None = None,
+                 prepared_content: PreparedContentRange | None = None,
                  paginate: bool = True, show_divider: bool = True, clock: MessageClock = LiveMessageClock()) -> None:
         self._message_category = category or delivery.category
         super().__init__(
             markdown,
             markdown_part=markdown_part,
+            prepared_content=prepared_content,
             paginate=paginate,
             **self.dispatch_sync(delivery, clock, show_divider),
         )
