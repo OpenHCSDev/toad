@@ -38,6 +38,10 @@ def main():
                         help="Install that observer once on this capture's original driver")
     parser.add_argument("--frames-only", action="store_true",
                         help="Export frame events without the widget/DTO census")
+    parser.add_argument("--frame-meter", type=float, default=0,
+                        help="Seconds of total UI work per frame and input-to-paint timing (frame_meter.py)")
+    parser.add_argument("--targets", action="store_true",
+                        help="Write sidebar thread row and tab regions (frame_meter.targets)")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     parser.add_argument("--completion-deadline", type=float,
                         help="Borrow the caller's original monotonic deadline for export completion")
@@ -46,8 +50,8 @@ def main():
             not math.isfinite(args.completion_deadline)
             or args.completion_deadline <= time.monotonic()):
         parser.error("Export completion requires the caller's remaining original deadline")
-    if not (args.profile_seconds > 0 or args.state or args.screen):
-        parser.error("Choose --profile-seconds, --state, or --screen")
+    if not (args.profile_seconds > 0 or args.state or args.screen or args.frame_meter > 0 or args.targets):
+        parser.error("Choose --profile-seconds, --state, --screen or --frame-meter")
     if args.runtime_only and (not args.state or args.frames_only or args.install_frame_trace):
         parser.error("Runtime-only requires --state without frame observation")
     if (not math.isfinite(args.wait_history_seconds) or args.wait_history_seconds < 0
@@ -84,7 +88,7 @@ def main():
                 *(["--native"] if args.native else [])], timeout=args.profile_seconds+30)
             manifest["profile_returncode"] = result.returncode
             result.check_returncode()
-        if args.state or args.screen:
+        if args.state or args.screen or args.frame_meter > 0 or args.targets:
             assert process.is_running() and process.create_time() == created, "Target process identity changed"
             tools = Path(__file__).resolve().parent
             script = Path(str(prefix) + "-remote.py")
@@ -118,6 +122,25 @@ def main():
                     f"_module.capture(expected_pid={args.pid}, output_prefix={output!r}{options})",
                 ))
                 receipts.append(output)
+            for enabled, call, suffix in ((args.targets, "targets", "targets"),):
+                if enabled:
+                    output = str(prefix) + "-" + suffix
+                    lines.extend((
+                        f"_spec = _capture_import.spec_from_file_location('frame_meter', {str(tools / 'frame_meter.py')!r})",
+                        "_module = _capture_import.module_from_spec(_spec)",
+                        "_spec.loader.exec_module(_module)",
+                        f"_module.{call}(expected_pid={args.pid}, output={output + '.json'!r})",
+                    ))
+                    receipts.append(output)
+            if args.frame_meter > 0:
+                output = str(prefix) + "-frames"
+                lines.extend((
+                    f"_spec = _capture_import.spec_from_file_location('frame_meter', {str(tools / 'frame_meter.py')!r})",
+                    "_module = _capture_import.module_from_spec(_spec)",
+                    "_spec.loader.exec_module(_module)",
+                    f"_module.install(expected_pid={args.pid}, seconds={args.frame_meter!r}, output={output + '.json'!r})",
+                ))
+                receipts.append(output)
             # remote_exec acknowledges scheduling, not execution. Record entry
             # before loading observers or exporters so a missing DTO doesn't
             # imply that the application accepted the diagnostic request.
@@ -147,7 +170,7 @@ def main():
             subprocess.run([*privilege, executable, "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
             deadline = (args.completion_deadline if args.completion_deadline is not None
-                        else time.monotonic() + args.wait_history_seconds + 20)
+                        else time.monotonic() + args.wait_history_seconds + args.frame_meter + 20)
             while time.monotonic() < deadline and not all(
                     Path(path + ".json").exists() or Path(path + "-error.json").exists() for path in receipts):
                 time.sleep(.1)
