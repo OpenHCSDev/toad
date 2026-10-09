@@ -73,6 +73,7 @@ for attempt in 1 2 3 4 5; do
 done
 [[ "$open_rows" == 0 ]] || { echo "sidebar did not close" >&2; exit 1; }
 import -window "$window" "$out/loaded.png" 2>/dev/null || true
+regions screen-loaded
 
 if [[ -n "${PROFILE_SECONDS:-}" ]]; then
     measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle})
@@ -94,8 +95,13 @@ xdotool type --delay 5 "Explain in about 300 words why a terminal chat history s
 xdotool key Return
 sleep 4
 # Held PageUp from the input box: 30 key repeats per second for 3 seconds.
+# Screen text is sampled during the hold, not only after it.
+( sleep 0.8; regions screen-pageup-hold-1; sleep 0.6; regions screen-pageup-hold-2 ) &
+holding=$!
 xdotool key --repeat 90 --delay 33 Prior
+wait "$holding"
 import -window "$window" "$out/pageup.png" 2>/dev/null || true
+regions screen-pageup
 sleep 1
 # Wheel bursts with reversal over the history.
 xdotool mousemove --window "$window" 400 300
@@ -109,12 +115,18 @@ xdotool click 1
 xdotool key End
 sleep 2
 import -window "$window" "$out/end.png" 2>/dev/null || true
+regions screen-end
 # Tab return: switch to the other open tab and back.
 cell "$second_x" "$tab_y"
 sleep 2
 cell "$first_x" "$tab_y"
 sleep 1
 import -window "$window" "$out/tab-return.png" 2>/dev/null || true
+regions screen-tab-return
 
 wait "$capture"
 [[ -n "${PROFILE_SECONDS:-}" ]] || python3 "$tools/frame_meter.py" "$out/run-frames.json" | tee "$out/summary.json"
+# What the reader saw, from the screen text: no placeholders or blank runs in
+# the message window, End at the tail, tab return filled and still at the tail.
+python3 "$tools/screen_checks.py" "$out" | tee "$out/screen-checks.json"
+
