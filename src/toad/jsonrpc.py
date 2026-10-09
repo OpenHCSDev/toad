@@ -295,11 +295,6 @@ class Server:
                 batch_results.append(result)
         return batch_results
 
-    def process_callable(
-        self, callable: Callable[[MethodType], MethodType]
-    ) -> Callable[[MethodType], MethodType]:
-        return callable
-
     def method[MethodT: Callable](
         self,
         name: str = "",

@@ -83,25 +83,6 @@ class PresentationBudget:
             source_bytes += size
         return admitted
 
-    def admit_paint(self, candidates, required, max_bytes: int):
-        """Retain message paint independently of its disposable native tree.
-
-        The native widget limit still governs lookahead materialization. Paint
-        admission bounds original message resources by their source/row bytes.
-        Native item counts price source slots and preparation, not immutable
-        paint; a live tree awaiting capture must not price its eventual rows.
-        """
-        admitted = set(required)
-        source_bytes = 0
-        for owner in candidates:
-            size = owner.retained_source_bytes + owner.retained_paint_bytes
-            if owner not in admitted:
-                if source_bytes + size > max_bytes:
-                    continue
-                admitted.add(owner)
-            source_bytes += size
-        return admitted
-
     def runway(self, sequence, first: int, last: int, viewport_rows: int):
         """Native measured bodies on both sides, including stationary reversal."""
         before, after = [], []

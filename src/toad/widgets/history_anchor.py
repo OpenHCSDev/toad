@@ -426,10 +426,6 @@ class HistoryWindow(VerticalScroll):
             self.scroll_y = self.max_scroll_y
         return previous != self.scroll_y
 
-    def history_mutating(self) -> bool:
-        """Native tree locking is the publication fence, not source status."""
-        return self.history_mutation_root is not None
-
     @property
     def history_mutation_root(self) -> Widget | None:
         """The subtree owned by the active native publication transaction.

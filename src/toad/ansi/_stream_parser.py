@@ -242,14 +242,6 @@ class StreamParser[ParseType]:
         """
         return ReadUntil(*characters)
 
-    def read_regex(self, regex: str) -> ReadRegex:
-        """Search for the matching regex.
-
-        Args:
-            regex: Regular expression.
-        """
-        return ReadRegex(regex)
-
     def read_patterns(self, start: str = "", **patterns) -> ReadPattern | ReadPatterns:
         """Read until a pattern matches, or the patterns have been exhausted.
 

@@ -33,9 +33,6 @@ dependencies = [
 [tool.uv.workspace]
 members = ["toad"]
 
-[project.optional-dependencies]
-persistent-renderer = ["zmqruntime==0.2.24"]
-
 [tool.uv.sources]
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "32917269ced9e4d95009e608e052a6c3e048fa3b" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "df60dab0004124ee491bc1b921a7d7351f85c127" }
