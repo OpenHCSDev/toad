@@ -3,7 +3,7 @@ from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 
 from toad.navigation_target import ThreadTarget
 
-from toad.sidebar_preparation import ThreadRowPresentation
+from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual.app import ComposeResult
 from textual.containers import VerticalScroll
 from textual.content import Content
@@ -34,7 +34,7 @@ class ChannelParticipants(VerticalScroll):
         yield self.names
 
     @staticmethod
-    def prepare_participants(people: tuple[ThreadRowPresentation, ...]) -> tuple[Content, Content]:
+    def prepare_participants(people: tuple[ThreadRowModel, ...]) -> tuple[Content, Content]:
         """Prepare paint from the publication's already acquired row answers."""
         names = []
         summaries = []

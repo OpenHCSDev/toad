@@ -1,56 +1,12 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
 from operator import attrgetter
 from typing import Iterable, Literal, Sequence
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
-from agent_comms.presentation import CoordinationSnapshot
+from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 from toad.conversation_kind import ConversationKind
 
-
-
-class UnreadPresentation(ABC):
-    """Only completed counts can be displayed as numbers."""
-
-    @classmethod
-    def for_thread(cls, snapshot: CoordinationSnapshot, name: str) -> "UnreadPresentation":
-        if name in snapshot.thread_unread_pending:
-            return IndexingUnread()
-        return ExactUnread(snapshot.thread_unread.get(name, 0))
-
-    @property
-    @abstractmethod
-    def label(self) -> str:
-        """The badge shown by row and tab presentation owners."""
-
-    @property
-    def highlighted(self) -> bool:
-        return bool(self.label)
-
-    @property
-    def detail(self) -> str:
-        return ""
-
-
-@dataclass(frozen=True)
-class ExactUnread(UnreadPresentation):
-    count: int = 0
-
-    @property
-    def label(self) -> str:
-        return f"({self.count})" if self.count else ""
-
-
-@dataclass(frozen=True)
-class IndexingUnread(UnreadPresentation):
-    @property
-    def label(self) -> str:
-        return "Indexing…"
-
-    @property
-    def detail(self) -> str:
-        return "Unread replies are still being indexed; the exact count is not yet known."
 
 
 @dataclass(frozen=True)

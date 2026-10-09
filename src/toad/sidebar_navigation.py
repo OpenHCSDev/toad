@@ -4,7 +4,7 @@ import asyncio
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
 from toad.widgets.sidebar_viewport import SidebarViewport
-from toad.widgets.comms_sidebar import CommsRow, ChannelGroup
+from toad.widgets.comms_sidebar import CommsRow
 
 class SidebarNavigation:
     def __init__(self, sidebar):
@@ -48,15 +48,14 @@ class SidebarNavigation:
         # Retained rows belong to their validated route. Hide a changed route
         # before its first frame; ordinary same-route tab switches keep the
         # already-rendered roster while the canonical refresh runs afterward.
-        if self.sidebar.observation.enabled and self.sidebar.projection.has_snapshot():
-            snapshot = self.sidebar.projection.snapshot
+        if self.sidebar.enabled and self.sidebar.shows_model:
+            model = self.sidebar.model
             try:
-                if (await self.sidebar.observation.route_changed()
-                        and self.revision == revision
-                        and self.sidebar.projection.snapshot is snapshot):
+                if (await self.sidebar.app.coordination_access.route_changed()
+                        and self.revision == revision and self.sidebar.model is model):
                     self.sidebar.display = False
             except (OSError, ValueError):
-                if self.revision == revision and self.sidebar.projection.snapshot is snapshot:
+                if self.revision == revision and self.sidebar.model is model:
                     self.sidebar.display = False
 
     def start(self) -> None:
@@ -71,7 +70,7 @@ class SidebarNavigation:
     async def hydrate(self) -> None:
         while self.sidebar.accepts_publication():
             revision = self.revision
-            await self.sidebar.observation.present_cached()
+            self.sidebar.present()
             if revision == self.revision:
                 self.sidebar.call_after_refresh(self.finish, revision)
                 return
@@ -79,7 +78,7 @@ class SidebarNavigation:
     def finish(self, revision: int) -> None:
         if revision != self.revision or not self.sidebar.accepts_publication():
             return
-        if (self.sidebar.display and self.sidebar.projection.has_snapshot()
+        if (self.sidebar.display and self.sidebar.shows_model
                 and not self.ready.is_set()):
             # The native sender barrier owns committed row geometry. Restore
             # this reader through its original scroll owner; a changed position
@@ -117,7 +116,7 @@ class SidebarNavigation:
     def apply(self) -> None:
         if self.selection_current():
             return
-        rows = self.sidebar.projection.rows
+        rows = self.sidebar.rows
         identities = {self.sidebar.selection_for(row) for row in rows}
         # Collapsed resources still exist, but are not admitted selection or
         # range endpoints. Keep the header as the surviving navigation anchor.
@@ -141,7 +140,7 @@ class SidebarNavigation:
         self.selection_applied = True
 
     def restore_scroll(self) -> bool:
-        if not self.sidebar.projection.has_snapshot():
+        if not self.sidebar.shows_model:
             return False
         if self.restoring and self.sidebar.is_attached and self.sidebar.screen is self.sidebar.app.screen:
             viewport = self.scroll_container
@@ -152,17 +151,16 @@ class SidebarNavigation:
 
     async def focus_current(self) -> None:
         """Focus the current session in this authoritative sessions view."""
-        await self.sidebar.observation.sync()
-        rows = self.sidebar.projection.rows
+        self.sidebar.present()
+        rows = self.sidebar.rows
         if not rows:
             return
         self.sidebar.sync_current()
         if not any(row.current for row in rows):
-            aggregate = self.sidebar.projection.channels.get(ALL_COMMS_TARGET)
-            if aggregate is not None:
-                group = aggregate.query_ancestor(ChannelGroup)
-                await group.reveal_members()
-                rows = self.sidebar.projection.rows
+            group = self.sidebar.groups.get(ALL_COMMS_TARGET)
+            if group is not None:
+                group.reveal_members()
+                rows = self.sidebar.rows
         target = next((row for row in rows if row.current), rows[0])
         self.sidebar._cursor = rows.index(target)
         self.sidebar._apply_cursor(rows)

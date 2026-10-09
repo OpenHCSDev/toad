@@ -29,7 +29,11 @@ def conversation_layout(app: ToadApp, value: object) -> None:
 
 
 def sidebar_spinner_frames_per_second(app: ToadApp, value: int) -> None:
-    app.workspace_chrome.channels.roster.projection.update_animation_cadence()
+    app.busy_rows.cadence_changed()
+
+
+def sidebar_filters(app: ToadApp, value: bool) -> None:
+    app.coordination_access.request_sidebar()
 
 
 def theme(app: ToadApp, value: str) -> None:

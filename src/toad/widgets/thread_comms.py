@@ -5,28 +5,39 @@ from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 
-from toad.navigation_target import NavigationTarget, person_target, linked_target
+from toad.navigation_target import NavigationTarget, linked_target, thread_target
 
 import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
+from agent_comms.presentation import CoordinationSnapshot
+from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
 from textual.widgets import Checkbox, Static
 
-from toad.session_tracker import ExactUnread, UnreadPresentation
-from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
-from toad.widgets.activity_spinner import FRAMES
 from toad.core.input_events import SelectTarget
-from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
+from toad.widgets.comms_sidebar import CommsRow
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
-from toad.widgets.thread_comms_model import RelationshipGroup, RelationshipSource, ThreadCommsSnapshot
+from toad.widgets.thread_comms_model import (
+    RelationshipEntry, RelationshipGroup, RelationshipSource, ThreadCommsSnapshot,
+)
+
+# Relationships on a wire other than the observed one have no unread counts here.
+NO_UNREAD = CoordinationSnapshot(threads=(), channels=(), unread={}, last_sent={})
+
+
+def entry_target(entry: RelationshipEntry) -> NavigationTarget:
+    person = entry.person
+    if person is None:
+        return linked_target(entry.target)
+    return thread_target(person.thread.execution, person.thread.name, person.status.active)
 
 
 def _update_content(widget: Static, content: Content) -> None:
@@ -133,40 +144,26 @@ class RelationshipRows(SidebarGroup):
             self.member_container.scroll_to(
                 y=state.scroll.get(self.model.key, 0), animate=False)
 
-    def rows_changed(self) -> None:
-        self.query_ancestor(ThreadCommsSidebar)._sync_spinner()
+    def on_mount(self) -> None:
+        self.sync_members()
 
-    def present(self, model: RelationshipGroup):
+    def present(self, model: RelationshipGroup) -> None:
         self.model = model
 
-    def thread_row_inputs(self):
-        tree = self.query_ancestor(ThreadCommsSidebar)
-        entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
-        row_keys = tuple(key for key, entry in entries.items()
-                         if entry.available and entry.person is not None
-                         and (self.expanded or key in self.rows))
-        inputs = {key: ThreadRowInput(
-            entries[key].person,
-            unread=tree.unread(person_target(entries[key].person)),
-            action_status=tree.app.thread_actions.pending.get(entries[key].target),
-        ) for key in row_keys}
-        return inputs, self.rows, (self.model, tree.owner, tree._generation)
-
-    async def _reconcile_members(self, prepared_rows, source) -> None:
-        if not self.is_mounted or not self.accepts_members():
+    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+        """Reconcile member rows from this group's entries and the tree's derived thread rows."""
+        if not self.member_container.is_attached or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
-        model, owner, generation = source
-        if (self.model is not model or tree.owner != owner
-                or tree._generation != generation):
-            return
+        rows = tree.thread_rows
+        actions = tree.app.thread_actions.pending
         container = self.member_container
         entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
         empty = container.query_one_optional(".relationship-empty")
         if entries and empty is not None:
-            await empty.remove()
+            empty.remove()
         if self.expanded and not entries and empty is None:
-            await container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
+            container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
         # Keep the top visible row stable when newer entries reorder a
         # scrolled list. Identity, rather than list index, owns selection.
         old_scroll = container.scroll_y
@@ -177,21 +174,22 @@ class RelationshipRows(SidebarGroup):
 
         def create(key):
             entry = entries[key]
-            target = person_target(entry.person) if entry.person else linked_target(entry.target)
-            return RelationshipRow(target, entry.target)
+            return RelationshipRow(entry_target(entry), entry.target)
 
         def update(key, row):
             entry = entries[key]
             row.entry = entry
             row.available = entry.available
-            row.target = person_target(entry.person) if entry.person else linked_target(entry.target)
+            row.target = entry_target(entry)
             if not entry.available:
-                row.retire_thread_preparation()
+                row.retire_thread_row()
                 row.remove_class("-busy", "-unread", "-current")
                 row.add_class("-wire-thread")
                 _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
             elif entry.person is not None:
-                row.apply_thread_preparation(prepared_rows[key])
+                name = entry.person.thread.name
+                if changed is None or name in changed or row.thread_row is None:
+                    row.show(rows[name], action_status=actions.get(entry.target))
             else:
                 row.set_label(entry.target)
                 row.tooltip = entry.target
@@ -199,7 +197,7 @@ class RelationshipRows(SidebarGroup):
                 row.tooltip = Content(f"{entry.target}\n{entry.detail}")
 
         wanted = tuple(key for key in entries if self.expanded or key in self.rows)
-        ordered = await self.reconcile_rows(
+        ordered = self.reconcile_rows(
             wanted, self.rows, create, update,
             replace=lambda key, row: row.thread_incarnation != (
                 entries[key].person.thread.incarnation if entries[key].person is not None else None))
@@ -237,8 +235,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
         self.groups: dict[str, RelationshipRows] = {}
-        self._spinner_phase = 0
-        self._spinner_timer = None
+        # Thread rows for this snapshot's people, keyed by thread name.
+        self.thread_rows: dict[str, ThreadRowModel] = {}
 
     @property
     def view_state(self):
@@ -260,7 +258,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             yield checkbox
 
     def on_mount(self):
-        self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.
         self.observe_core(self.app.coordination_access.events)
@@ -270,26 +267,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._sync_filter_control()
         self.refresh_relationships()
 
-    def _sync_spinner(self) -> None:
-        if self._spinner_timer is None:
-            return
-        sidebar = self.query_ancestor(SideBar)
-        if (sidebar.presentation_visible and not sidebar.collapsed
-                and any(row.busy for row in self._ordered_rows())):
-            self._spinner_timer.resume()
-        else:
-            self._spinner_timer.pause()
-
     def sidebar_visibility_changed(self) -> None:
-        self._sync_spinner()
-
-    def _animate_busy(self) -> None:
-        if not self.query_ancestor(SideBar).presentation_visible:
-            self._sync_spinner()
-            return
-        self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
-        for row in self.painted_rows():
-            row.advance_spinner(self._spinner_phase)
+        """Busy rows repaint from the app's spinner clock; a shown panel refreshes on_show."""
 
     def on_show(self):
         if not self.is_attached or self.screen is not self.app.screen:
@@ -331,12 +310,18 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             group.display = False
         self.refresh_relationships(force=True)
 
-    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.ThreadActionsChanged, core_events.CoordinationObserved)
+    @handles(core_events.ThreadActionsChanged)
+    async def _actions_changed(self, event: CoreEventMessage) -> None:
+        """Pending actions decorate rows; they are not a relationship read."""
+        if self.is_attached and self.screen is self.app.screen:
+            for group in self.groups.values():
+                group.sync_members()
+
+    @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.CoordinationObserved)
     async def _observed(self, event: CoreEventMessage) -> None:
         if not self.is_attached or self.screen is not self.app.screen:
             return
         if not self.query_ancestor(SideBar).presentation_visible:
-            self._sync_spinner()
             return
         if self._live:
             self._bind_screen_identity()
@@ -421,27 +406,29 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 await self.remove_children([self.groups.pop(key) for key in absent])
                 if generation != self._generation or not self.is_attached:
                     return
-            row_inputs = await ThreadRowsWork.capture(
-                self.app.preparation,
-                tuple(ThreadRowInput(person) for person in {
-                    entry.person.thread.name: entry.person for model in snapshot.groups
-                    for entry in model.entries if entry.person is not None
-                }.values()),
-            )
-            if generation != self._generation or not self.is_attached:
-                return
-            def measure_width() -> int:
+            observed = self.app.coordination_access.observation
+            unread = (observed.sidebar.snapshot
+                      if observed is not None and observed.sidebar.snapshot is not None
+                      and Path(self.wire_root).resolve() == observed.service.root.resolve()
+                      else NO_UNREAD)
+            people = {entry.person.thread.name: entry.person for model in snapshot.groups
+                      for entry in model.entries if entry.person is not None}
+
+            def derive() -> tuple[dict[str, ThreadRowModel], int]:
+                # ThreadView presentation may inspect process identity: off the UI thread.
+                rows = {name: ThreadRowModel.of(person, unread) for name, person in people.items()}
                 widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
                 for model in snapshot.groups:
                     for entry in model.entries:
                         widest = max(widest, Content(entry.target).cell_length + 8)
                         if entry.detail:
                             widest = max(widest, Content(entry.detail).cell_length + 8)
-                if row_inputs.rows:
-                    widest = max(widest, row_inputs.content_width + 8)
-                return min(widest, 512)
+                for row in rows.values():
+                    widest = max(widest, Content(row.label).cell_length + 8,
+                                 Content(row.summary).cell_length + 8)
+                return rows, min(widest, 512)
 
-            width = await self.app.preparation.run_thread(measure_width)
+            thread_rows, width = await self.app.preparation.run_thread(derive)
             if generation != self._generation or not self.is_attached:
                 return
             # Each group owns its prepared rows and native member fence.
@@ -453,32 +440,23 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
             if control is not None:
                 control.update_groups(snapshot.groups)
-            groups = {}
+            # From here to the end nothing awaits: rows, groups and models change together.
+            self.thread_rows = thread_rows
             for model in snapshot.groups:
-                if generation != self._generation:
-                    return
                 group = self.groups.get(model.key)
                 if group is None:
+                    # A new group reconciles its members once composed (on_mount).
                     group = self.groups[model.key] = RelationshipRows(
                         model, self.view_state.expanded.get(model.key, True))
-                    await self.mount(group)
-                    if generation != self._generation:
-                        group.display = False
-                        return
+                    self.mount(group)
                 group.display = True
                 group.expanded = self.view_state.expanded.get(model.key, True)
-                groups[group] = model
-            await RelationshipRows.reconcile_groups(groups, row_inputs, sources=groups)
-            for group in groups:
-                if generation != self._generation:
-                    group.display = False
-                    return
-            if generation != self._generation:
-                return
+                group.present(model)
+                group.sync_members()
+            self.sync_current()
             panel = self.query_ancestor(SideBarCollapsible)
             panel.styles.min_width = width
             self._snapshot, self._revision = snapshot, revision
-            self._sync_spinner()
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError) as error:
@@ -502,17 +480,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
     @property
     def navigation_root(self):
         return Path(self.wire_root).expanduser().resolve() if self.wire_root is not None else None
-
-    def unread(self, target: NavigationTarget):
-        access = self.app.coordination_access
-        snapshot = access.sidebar_snapshot
-        # These are paint answers from the acquired publication, not a fresh
-        # route selection or navigation admission for each individual row.
-        if (snapshot is None or self.wire_root is None
-                or snapshot.service is not access.observed_service
-                or Path(self.wire_root).resolve() != snapshot.service.root.resolve()):
-            return ExactUnread()
-        return target.unread(snapshot.wire)
 
     def open_target(self, target: NavigationTarget):
         if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve():
@@ -550,8 +517,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
                 self.refresh_relationships(force=True)
                 return
-            target = person_target(current.person) if current.person else linked_target(current.target)
-            self.open_target(target)
+            self.open_target(entry_target(current))
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
 

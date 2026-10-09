@@ -1,8 +1,5 @@
 """Shared disclosure, row navigation and keyed tree presentation mechanics."""
 
-import asyncio
-from contextlib import AsyncExitStack
-
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
@@ -45,7 +42,6 @@ class SidebarGroup(VerticalGroup):
     def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
-        self.member_lock = asyncio.Lock()
         self.row = row
         self.row.add_class("group-title")
         self.disclosure = disclosure_type()
@@ -63,14 +59,10 @@ class SidebarGroup(VerticalGroup):
 
     def toggle_members(self) -> None:
         self.expanded = not self.expanded
-        self.call_later(self._sync_and_select)
+        self.sync_members()
 
-    async def _sync_and_select(self) -> None:
-        await self._sync_members()
-
-    async def _sync_members(self) -> None:
-        if self.expanded:
-            await self.reconcile_groups((self,))
+    def sync_members(self) -> None:
+        """Specializations reconcile their model-owned member rows."""
 
     def watch_expanded(self, previous: bool, expanded: bool) -> None:
         self.disclosure.refresh(layout=False)
@@ -92,95 +84,13 @@ class SidebarGroup(VerticalGroup):
         """Native membership is valid until this group starts retirement."""
         return self.is_attached and not self._closing and not self._pruning
 
-    def thread_row_inputs(self):
-        """Return decorated inputs, retained rows and original source custody."""
-        raise NotImplementedError
-
-    def present(self, source):
-        """Apply this publication's original group source under member custody."""
-        raise NotImplementedError
-
-    async def _reconcile_members(self, prepared_rows, source) -> None:
-        """Specializations reconcile their model-owned members here."""
-
     def rows_changed(self) -> None:
         """Specializations invalidate navigation after native row changes."""
 
-    @classmethod
-    async def reconcile_groups(cls, groups, captured=None, *, sources=None):
-        """Prepare a publication once, then mutate its original keyed groups.
+    def reconcile_rows(self, keys, rows, create, update, *, replace=None):
+        """Retain rows by identity; mount, remove and reorder only what differs.
 
-        Member locks cover both preparation and native delivery. Identical
-        decorated inputs share one detached result within this publication;
-        retained rows still own reuse between publications.
-        """
-        from toad.sidebar_preparation import ThreadRowInput, ThreadRowsWork
-
-        async with AsyncExitStack() as custody:
-            admitted = []
-            for group in dict.fromkeys(groups):
-                await custody.enter_async_context(group.member_lock)
-                admitted.append(group)
-            admitted = [group for group in admitted if group.accepts_members()]
-            if not admitted:
-                return
-            if sources is not None:
-                for group in admitted:
-                    group.present(sources[group])
-            runtime = admitted[0].app.preparation
-            inputs, retained, witnesses = {}, {}, {}
-            for group in admitted:
-                rows, retained[group], witnesses[group] = group.thread_row_inputs()
-                inputs.update(((group, key), row) for key, row in rows.items())
-            if captured is None:
-                # Disclosure changes visibility, not the source publication.
-                # Borrow captured inputs from retained native rows; acquire
-                # presentation only for newly admitted people in this group.
-                people, presentations = {}, {}
-                for (group, key), row_input in inputs.items():
-                    name = row_input.person.thread.name
-                    people[name] = row_input.person
-                    row = retained[group].get(key)
-                    source = (row.retained_thread_presentation(row_input.person)
-                              if row is not None else None)
-                    if source is not None:
-                        presentations[name] = source
-                missing = await ThreadRowsWork.capture(runtime, tuple(
-                    ThreadRowInput(person) for name, person in people.items()
-                    if name not in presentations))
-                captured = ThreadRowsWork((*presentations.values(), *missing.rows))
-                admitted = [group for group in admitted if group.accepts_members()]
-                inputs = {key: row for key, row in inputs.items() if key[0] in admitted}
-            # ThreadRowsWork decorates the whole publication through one
-            # captured-person lookup, rather than rebuilding it per group.
-            prepared = {group: {} for group in admitted}
-            missing, pending = {}, {}
-            for (group, key), source in captured.for_rows(inputs).items():
-                row = retained[group].get(key)
-                current = row.thread_preparation(source) if row is not None else None
-                # Reserve each resource's original projected position. Reused
-                # rows and newly prepared rows finish at different times;
-                # completion order must not replace the source's roster order.
-                prepared[group][key] = current
-                if current is None:
-                    pending[source] = None
-                    missing[group, key] = source
-            if pending:
-                values = await runtime.submit(ThreadRowsWork(tuple(pending)))
-                pending.update(zip(pending, values))
-            for (group, key), source in missing.items():
-                prepared[group][key] = pending[source]
-            for group in admitted:
-                await group._reconcile_members(prepared[group], witnesses[group])
-            for tree in dict.fromkeys(group.query_ancestor(TargetTree) for group in admitted
-                                      if group.accepts_members()):
-                tree.sync_current()
-
-    async def reconcile_rows(self, keys, rows, create, update, *, replace=None):
-        """Retain rows by identity; specialize their construction and content only.
-
-        The caller serializes updates and owns empty-state rows. Neither a
-        title/status change nor a selection repaint remounts the list.
+        Neither a title/status change nor a selection repaint remounts the list.
         """
         if not self.accepts_members():
             return ()
@@ -189,12 +99,8 @@ class SidebarGroup(VerticalGroup):
         retired = [key for key, row in rows.items()
                    if key not in wanted or (replace is not None and replace(key, row))]
         if retired:
-            # A newly opened/closed tab can change several row kinds at once.
-            # Retire that exact set in one DOM operation, not an intermediate
-            # remove/layout/message-pump turn for every member of the roster.
-            await self.member_container.remove_children([rows.pop(key) for key in retired])
-            if not self.accepts_members():
-                return ()
+            # Retire the exact set in one DOM operation.
+            self.member_container.remove_children([rows.pop(key) for key in retired])
         mounted = []
         for key in keys:
             current = rows.get(key)
@@ -203,14 +109,13 @@ class SidebarGroup(VerticalGroup):
                 mounted.append(current)
             update(key, current)
         if mounted:
-            await self.member_container.mount(*mounted)
-            if not self.accepts_members():
-                return ()
+            self.member_container.mount(*mounted)
         ordered = tuple(rows[key] for key in keys)
-        reordered = bool(ordered) and tuple(self.member_container.children) != ordered
+        live = tuple(child for child in self.member_container.children if not child._pruning)
+        reordered = bool(ordered) and live != ordered
         if reordered:
             positions = {row: index for index, row in enumerate(ordered)}
-            self.member_container.sort_children(key=positions.__getitem__)
+            self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
         if retired or mounted or reordered:
             self.rows_changed()
         return ordered

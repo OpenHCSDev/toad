@@ -73,10 +73,10 @@ class WorkspaceChrome:
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
         roster.navigation.capture()
-        await roster.observation.bind(view.app.coordination_access.service)
+        roster.attach(view.app.coordination_access.service)
         actor, _ = view.channels_context()
         roster.session_thread = actor
-        roster.observation.set_enabled(view.shows_channels)
+        roster.set_enabled(view.shows_channels)
         self.channels.display = view.shows_channels
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)

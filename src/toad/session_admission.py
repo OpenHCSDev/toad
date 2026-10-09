@@ -15,14 +15,16 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import wire
 from agent_comms.thread_identity import ThreadIncarnation
 
+from agent_comms.ui_model.unread import UnreadPresentation
+
 from toad.conversation_kind import ConversationKind
-from toad.session_tracker import CommsViewKey, ExactUnread, OpenTab, SessionDetails, UnreadPresentation
+from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 
 if TYPE_CHECKING:
     from toad.session_navigation import SessionAdmissions
     from toad.screens.main import MainScreen
     from toad.screens.session_view import SessionView
-    from toad.sidebar_snapshot import SidebarSnapshot
+    from toad.comms_root import ObservedCommsService
 
 
 class SessionAdmission(DeclaredFamily, affix="Admission"):
@@ -33,7 +35,7 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
     def __call__(self) -> SessionView: ...
 
     @abstractmethod
-    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab: ...
+    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab: ...
 
     @property
     @abstractmethod
@@ -132,20 +134,20 @@ class NativeSessionAdmission(SessionAdmission):
         root = source.coordination_root
         return root is not None and wire(root).registry.canonical_name(session_id) == source._resolve_comms_thread()
 
-    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
+    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
         name = source._comms_thread if source else ""
-        if snapshot is not None and (source is None or not source.belongs_to_wire(snapshot.service.root)):
-            snapshot = None
-        presentation = snapshot.row_inputs.for_thread(name) if snapshot is not None else None
+        snapshot = observed.sidebar.snapshot if observed is not None else None
+        if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
+            return OpenTab(self.mode, self.details.title or "New Session")
+        row = observed.sidebar.threads.rows.get(name)
         originals = self.original_threads(sessions)
-        if presentation is not None and originals and not any(
-                Path(root).resolve() == snapshot.service.root and identity == presentation.incarnation
+        if row is not None and originals and not any(
+                Path(root).resolve() == observed.service.root and identity == row.incarnation
                 for root, identity in originals):
-            presentation = None
-            snapshot = None
-        return OpenTab(self.mode, presentation.label if presentation else self.details.title or "New Session",
-                       UnreadPresentation.for_thread(snapshot.wire, name) if snapshot is not None else ExactUnread())
+            return OpenTab(self.mode, self.details.title or "New Session")
+        return OpenTab(self.mode, row.label if row else self.details.title or "New Session",
+                       UnreadPresentation.for_thread(snapshot, name))
 
     async def return_to(self, sessions: SessionAdmissions) -> None:
         app = sessions.app
@@ -194,9 +196,10 @@ class HistorySessionAdmission(SessionAdmission):
     def source(self, sessions: SessionAdmissions) -> MainScreen | None:
         return sessions.source(self.key.owner_mode)
 
-    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
+    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab:
         return OpenTab(self.mode, self.key.title, self.kind.unread(
-            snapshot.wire if snapshot is not None and Path(self.key.root).resolve() == snapshot.service.root
+            observed.sidebar.snapshot
+            if observed is not None and Path(self.key.root).resolve() == observed.service.root
             else None, self.key.target))
 
     def depends_on(self, mode: str) -> bool:
@@ -243,7 +246,7 @@ class PreviewSessionAdmission(SessionAdmission):
     def address(self) -> Path:
         return self.path
 
-    def tab(self, sessions: SessionAdmissions, snapshot: SidebarSnapshot | None) -> OpenTab:
+    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab:
         return OpenTab(self.mode, self.path.name)
 
     def entered(self, previous: str) -> None:

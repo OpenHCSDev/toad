@@ -278,7 +278,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self._comms_thread = thread_name
         if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
             sidebar.session_thread = thread_name
-            sidebar.observation.refresh()
         if self.id is not None:
             self.app.session_navigation.sync_identity(self.id, previous, thread_name)
             self.app.session_tracker.bind_identity(self.id, previous, thread_name)
