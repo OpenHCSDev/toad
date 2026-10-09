@@ -760,9 +760,11 @@ class ValidationDriver(LinuxDriver):
                     "timer_error": (repr(task.exception()) if task is not None and task.done()
                                     and not task.cancelled() else None),
                     "history": [{"locked": window.history_lock.locked(),
-                                 "anchor": repr(window.history_anchor.widget) if window.history_anchor else None,
-                                 "anchor_attached": window.history_anchor.widget.is_attached if window.history_anchor else None,
-                                 "layout_ready": window.history_layout_ready.is_set() if window.history_layout_ready else None,
+                                 "restoration": repr(window.history_restoration),
+                                 "required_bodies": [repr(body) for body in window.history_restoration.required_bodies(window)]
+                                 if window.history_restoration is not None else [],
+                                 "layout_ready": window.history_restoration.layout_ready.is_set()
+                                 if window.history_restoration is not None else None,
                                  "managed_anchor": window in screen.viewport_presentation.anchors}
                                 for window in screen.query(HistoryWindow)]})
         Path(os.environ["TOAD_VALIDATION_TRACE"] + ".stalled.json").write_text(json.dumps({

@@ -89,8 +89,9 @@ class PublicationApp(ToadApp):
                                            if isinstance(node, Widget) and not node.is_mounted
                                            and window in node.ancestors],
                                 body_nonwhite=len("".join(text.split())),
-                                anchor=window.history_anchor is not None,
-                                layout_wait=window.history_layout_ready is not None,
+                                anchor=(window.history_restoration is not None
+                                        and window.history_restoration.position is not None),
+                                layout_wait=window.history_restoration is not None,
                                 y=window.scroll_y, maximum=window.max_scroll_y))
 
 

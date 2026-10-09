@@ -654,7 +654,7 @@ def test_paged_nested_markdown_publishes_visible_preparation(tmp_path, monkeypat
                                         for owner, callback in app.screen.frame_presentation.callbacks],
                     "scroll": {"y": window.scroll_y, "max_y": window.max_scroll_y,
                                "follows_tail": window.follows_tail,
-                               "anchor": str(window.history_anchor)},
+                               "anchor": str(window.history_restoration)},
                     "document_geometry": str(app.screen._compositor.visible_widgets.get(document)),
                     "following_geometry": str(app.screen._compositor.visible_widgets.get(following)),
                     "ranges": {"document": (document.start, document.stop, len(document.fragments)),

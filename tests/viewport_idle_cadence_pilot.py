@@ -143,7 +143,7 @@ async def main():
                     await pilot.pause(.01)
             assert all(body.body_ready for body in cohort)
             assert not window.history_lock.locked()
-            assert window.history_layout_ready is None
+            assert window.history_restoration is None
             foreground = cohort[0]
             slow_delivery = lookahead.delivery_seconds
             assert slow_delivery > lookahead.budget.scroll_idle_seconds

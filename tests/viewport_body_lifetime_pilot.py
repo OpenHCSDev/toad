@@ -242,7 +242,7 @@ async def main():
             view.window.release_anchor()
             output = os.environ.get("VIEWPORT_EVIDENCE")
             if output:
-                position = view.window.history_anchor
+                position = view.window.history_restoration
                 (Path(output) / "cold-navigation-acquired.json").write_text(json.dumps(dict(
                     measurement=type(dormant._body_measurement).__name__,
                     rows=dormant.measured_rows, source_bytes=len(dormant.source.encode()),
@@ -255,7 +255,7 @@ async def main():
             if output:
                 (Path(output) / "cold-navigation-selected.json").write_text(json.dumps(dict(
                     scroll=view.window.scroll_y, target=view.window.scroll_target_y,
-                    anchor=repr(view.window.history_anchor), revision=view.window.scroll_revision,
+                    anchor=repr(view.window.history_restoration), revision=view.window.scroll_revision,
                 ), indent=2))
             # Native scroll_to_widget supplies one placement, not a source
             # destination through subsequent worker/extent publication. Keep
@@ -350,7 +350,7 @@ async def main():
             with patch.object(app.screen, "_refresh_layout", lambda *args, **kwargs: None):
                 pending = asyncio.create_task(transaction())
                 async with asyncio.timeout(2):
-                    while view.window.history_layout_ready is None:
+                    while view.window.history_restoration is None:
                         await asyncio.sleep(.001)
                 await anchor.remove()
             app.screen._refresh_layout()
@@ -370,7 +370,7 @@ async def main():
             # created any frame waiter for the suspend hook to release.
             await asyncio.wait_for(switch_during_transaction(), 3)
             assert not view.window.history_lock.locked()
-            assert view.window.history_layout_ready is None
+            assert view.window.history_restoration is None
             await app.session_navigation.close(other.mode_name)
             for node in app._registry:
                 for watchers in vars(node).get("__watchers", {}).values():

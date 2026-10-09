@@ -1813,8 +1813,8 @@ class DocumentViewport:
                 if not isinstance(node, Widget) or node is self.window:
                     break
                 protected.add(node)
-        if self.window.history_anchor is not None:
-            protected.update(self.window.history_anchor.required_bodies(self.window))
+        if (restoration := self.window.history_restoration) is not None:
+            protected.update(restoration.required_bodies(self.window))
         return protected
 
     @property
