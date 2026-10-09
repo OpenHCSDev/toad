@@ -9,7 +9,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
 
 if TYPE_CHECKING:
-    from toad.goal_display import GoalDisplay
+    from agent_comms.ui_model.goal import GoalDisplay
     from toad.widgets.conversation import Conversation
 
 
@@ -138,7 +138,7 @@ class GoalSession:
 
     @property
     def display(self):
-        from toad.goal_display import NoGoal
+        from agent_comms.ui_model.goal import NoGoal
         return self.view.goal_display if self.view is not None else NoGoal()
 
     @property

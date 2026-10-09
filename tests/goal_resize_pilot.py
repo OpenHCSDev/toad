@@ -1,7 +1,7 @@
 from toad.conversation_turn import AgentTurn, ClientTurn
 """Drag the existing goal separator without changing goal or composer state."""
 
-from toad.goal_display import GoalDisplay
+from agent_comms.ui_model.goal import GoalDisplay
 
 import asyncio
 import os

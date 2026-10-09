@@ -2,7 +2,7 @@ from agent_comms.acp_extension import GoalChangedUpdate
 from toad.core.events import CommsUpdated
 from runtime_fixture import wait_channel_roster
 
-from toad.goal_display import GoalDisplay
+from agent_comms.ui_model.goal import GoalDisplay
 
 import asyncio
 import os

@@ -1,6 +1,6 @@
 """A blocked goal offers explicit Retry and reaches the executing owner."""
 
-from toad.goal_display import GoalDisplay
+from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.goal_actions import GoalAction, RetryGoalAction
 
 import asyncio

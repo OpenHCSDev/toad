@@ -1,6 +1,6 @@
 """Absent goal documents must not rebuild offscreen geometry during resize."""
 
-from toad.goal_display import GoalDisplay, GoalUnavailable
+from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
 
 import asyncio
 import os

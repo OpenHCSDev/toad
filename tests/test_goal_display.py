@@ -5,7 +5,7 @@ from pathlib import Path
 import unittest
 
 from agent_comms.goals import Goal
-from toad.goal_display import GoalDisplay, GoalUnavailable, NoGoal, ShowingGoal
+from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable, NoGoal, ShowingGoal
 
 
 class GoalDisplayTest(unittest.TestCase):
