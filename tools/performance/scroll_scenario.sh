@@ -60,7 +60,11 @@ for attempt in $(seq 15); do
     tabs=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['tabs']))" "$out/tabs-$attempt-targets.json")
     [[ "$tabs" -ge 2 ]] && { cp "$out/tabs-$attempt-targets.json" "$out/tabs-targets.json"; break; }
 done
-[[ "$tabs" -ge 2 ]] || { echo "second tab did not open" >&2; exit 1; }
+if [[ "$tabs" -lt 2 ]]; then
+    import -window "$window" "$out/tab-open-failed.png" 2>/dev/null || true
+    echo "second tab did not open; see $out/tab-open-failed.png" >&2
+    exit 1
+fi
 read -r first_x second_x tab_y < <(python3 -c "import json,sys; t=json.load(open(sys.argv[1]))['tabs']; print(t[0][0]+8, t[1][0]+8, t[0][1])" "$out/tabs-targets.json")
 cell "$first_x" "$tab_y"
 sleep 3

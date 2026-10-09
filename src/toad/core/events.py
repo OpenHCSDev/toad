@@ -11,6 +11,7 @@ from weakref import WeakMethod, WeakSet, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
+from agent_comms.presentation import WireRevision
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
@@ -113,13 +114,18 @@ class SidebarLayoutChanged(CoreEvent):
 
 @dataclass(frozen=True)
 class CoordinationObserved(CoreEvent):
-    """The original route/revision observer permits another guarded read."""
+    """Core's stores changed; the revision Core observed, None without a service.
+
+    Consumers ask the revision what changed (Core answers) instead of
+    re-reading every store on every observation.
+    """
+
+    revision: WireRevision | None
 
     def can_replace(self, event: CoreEvent) -> bool:
-        # The acquired source, not this empty notice, owns revision/currentness.
-        # The native carrier additionally requires the same subscription and
-        # never replaces an intervening input or ordered Comms receipt.
-        return self == event
+        # A newer observation supersedes a pending older one. The native
+        # carrier still never replaces an intervening input or Comms receipt.
+        return isinstance(event, CoordinationObserved)
 
 
 @dataclass(frozen=True)
