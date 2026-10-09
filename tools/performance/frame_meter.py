@@ -65,6 +65,16 @@ def install(*, expected_pid, seconds, output):
 
     from textual.screen import Screen
     refresh_bindings = Screen.refresh_bindings
+    refresh_layout = Screen._refresh_layout
+
+    def timed_layout(self, *args, **kwargs):
+        # Whole-screen layout inside a frame: how much of a slow frame it is.
+        begin = clock()
+        try:
+            return refresh_layout(self, *args, **kwargs)
+        finally:
+            state["layout"] = state.get("layout", 0) + (clock() - begin) / 1e6
+            state["layouts"] = state.get("layouts", 0) + 1
     binding_refreshes = {}
 
     def counted_bindings(self):
@@ -149,9 +159,11 @@ def install(*, expected_pid, seconds, output):
                 # UI-thread CPU over the same interval: far below the work
                 # means the loop was waiting for the GIL, not computing.
                 parts = sorted(state["parts"].items(), key=lambda part: -part[1])
-                slow_frames.append((now, work, parts, (cpu - state["cpu"]) / 1e6, (now - state["shown"]) / 1e6))
+                slow_frames.append((now, work, parts, (cpu - state["cpu"]) / 1e6, (now - state["shown"]) / 1e6,
+                                    state.get("layout", 0), state.get("layouts", 0)))
             state["parts"] = {}
             state["cpu"], state["shown"] = cpu, now
+            state["layout"] = state["layouts"] = 0
             # The running callback adds its full duration when it returns;
             # the part already counted in this frame is subtracted here.
             state["busy"] = -running
@@ -181,6 +193,7 @@ def install(*, expected_pid, seconds, output):
         state["finished"] = True
         Widget.refresh = refresh
         Screen.refresh_bindings = refresh_bindings
+        Screen._refresh_layout = refresh_layout
         gc.callbacks.remove(collected)
         loop_events.Handle._run = run
         MessagePump.post_message = post
@@ -204,6 +217,7 @@ def install(*, expected_pid, seconds, output):
     threading.Thread(target=watch_stalls, name="frame-meter-stalls", daemon=True).start()
     Widget.refresh = counted_refresh
     Screen.refresh_bindings = counted_bindings
+    Screen._refresh_layout = timed_layout
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
     MessagePump._dispatch_message = timed_dispatch
@@ -241,7 +255,49 @@ def targets(*, expected_pid, output):
                           "max_scroll_y": window.max_scroll_y, "follows_tail": window.follows_tail}
     fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w") as file:
-        json.dump({"threads": rows, "tabs": tabs, "text": text, "message_window": message_window}, file)
+        arranged = {}
+        for node in compositor._layout_map:
+            arranged[type(node).__name__] = arranged.get(type(node).__name__, 0) + 1
+        json.dump({"threads": rows, "tabs": tabs, "text": text, "message_window": message_window,
+                   "arranged": arranged}, file)
+
+
+def profile_layout(*, expected_pid, output, calls=40):
+    """Deterministically profile the next screen layouts and write the top costs."""
+    import cProfile
+    import pstats
+    import io
+    from textual.screen import Screen
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    original = Screen._refresh_layout
+    profiler = cProfile.Profile()
+    seen = {"calls": 0}
+
+    def profiled(self, *args, **kwargs):
+        if seen["calls"] >= calls:
+            return original(self, *args, **kwargs)
+        seen["calls"] += 1
+        profiler.enable()
+        try:
+            return original(self, *args, **kwargs)
+        finally:
+            profiler.disable()
+            if seen["calls"] == calls:
+                Screen._refresh_layout = original
+                text = io.StringIO()
+                stats = pstats.Stats(profiler, stream=text)
+                stats.sort_stats("cumulative").print_stats(45)
+                stats.sort_stats("tottime").print_stats(30)
+                # Comms reads must not run inside a layout: show who calls them.
+                stats.print_callers("locked_store|store_files|registration|history_views")
+                partial = output + ".partial"
+                with open(partial, "w") as file:
+                    file.write(text.getvalue())
+                os.rename(partial, output)
+
+    Screen._refresh_layout = profiled
 
 
 def percentile(values, fraction):

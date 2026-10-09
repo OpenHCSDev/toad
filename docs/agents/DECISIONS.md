@@ -184,3 +184,26 @@ Two consecutive increments (the throbber at 15 fps; fixed-size status lines) cut
 2. **Incremental layout in the Textual fork.** When a widget's outer size is fixed (the window, a sidebar row, the status lines), a change inside it re-arranges only that subtree, not the screen. This is a compositor change in the fork with real risk, and it is the structural cut for about 20% of UI CPU.
 3. **Move Core reads out of Toad's process** (a Core read service in a worker process, like the render workers), so background Core work stops competing with the UI thread for the GIL.
 4. **Footer:** rebuild only the keys that changed instead of remounting the footer when bindings change.
+
+## 2026-10-09: Second approach measured and stopped (Tristan's rule: two failed approaches, stop and write a page)
+
+**Approach 1: cut work at its owners.** Throbber cadence, fixed-size status lines, and the GIL switch interval. This reduced total frames by half, layout requests by 35% and GIL waiting by about 10 points, and improved input-to-paint, but did not reduce the roughly 60 frames over 16 ms per 45 s loaded run. The changes are kept because each removes real waste; reverting would bring the waste back. That is a deliberate departure from "revert".
+
+**Approach 2: structural layout and frame-rate changes,** measured before building:
+- **Layout:** 45 of 59 slow frames contain a full-screen layout, 25% of their time; without it, 30 of 59 would fall under 16 ms. But only about 45 widgets are placed per layout. A deterministic profile of 40 to 60 real layouts puts the layout's own CPU at a few milliseconds each. cProfile in Python 3.14 instruments every thread, so its larger numbers include background work. Partial (subtree) layout in the fork would save a few milliseconds per layout and is not worth a compositor rewrite. Not built.
+- **Frame cap at 60 instead of the fork's 144** (`TEXTUAL_FPS`): 56 and 64 slow frames over two runs, unchanged; percentiles rise as frames get fewer and fuller. Not adopted.
+
+**What a slow frame is under load:** about 21 ms made of many items of 0.5–4 ms:
+- painting, about 4.4 ms;
+- layout, 2–8 ms when present;
+- ACP stream and conversation messages;
+- the footer;
+- timers;
+- waiting for the GIL behind executor threads doing Core reads, 11–18%.
+
+No owner left in Toad is worth more than a few milliseconds. The UI thread is busy about 22% of the time; slow frames are bursts where several of these items land between two paints.
+
+**What would change the count** (needs Tristan's decision; none is a small step):
+1. **Restate the target as stutter rate,** for example frames over 16 ms per minute of the loaded scenario, with input-to-paint. Today's per-frame p99 moves when cheap frames are added or removed.
+2. **Take Core work out of Toad's process:** a Core read service in a worker process, as with rendering. This removes the GIL competition (11–18% of slow-frame time) and the executor threads' interleaving with UI callbacks.
+3. **Coalesce the per-update fan-out:** one coordination observation currently triggers sidebar, activity, goal bar, footer, session details and conversation work separately. A single per-frame presentation pass driven by Core's revision would turn many small callbacks into one bounded step per frame.

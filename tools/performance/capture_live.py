@@ -27,10 +27,11 @@ def main():
     parser.add_argument("--native", action="store_true")
     parser.add_argument("--frame-meter", type=float, default=0)
     parser.add_argument("--targets", action="store_true")
+    parser.add_argument("--profile-layout", type=int, default=0, help="Profile the next N screen layouts")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
-    if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets):
-        parser.error("Choose --profile-seconds, --frame-meter or --targets")
+    if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout):
+        parser.error("Choose --profile-seconds, --frame-meter, --targets or --profile-layout")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
     args.output_dir = args.output_dir.expanduser().resolve()
@@ -57,6 +58,8 @@ def main():
             calls.append((str(prefix) + "-targets", "targets", ""))
         if args.frame_meter > 0:
             calls.append((str(prefix) + "-frames", "install", f", seconds={args.frame_meter!r}"))
+        if args.profile_layout:
+            calls.append((str(prefix) + "-layout", "profile_layout", f", calls={args.profile_layout!r}"))
         if calls:
             assert process.is_running() and process.create_time() == created, "Target process identity changed"
             meter = Path(__file__).resolve().with_name("frame_meter.py")
@@ -74,7 +77,7 @@ def main():
             script.write_text("\n".join(lines) + "\n")
             subprocess.run([*privilege, process.exe(), "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = time.monotonic() + args.frame_meter + 20
+            deadline = time.monotonic() + max(args.frame_meter, 60 if args.profile_layout else 0) + 20
             outputs = [output + ".json" for output, _call, _extra in calls]
             while time.monotonic() < deadline and not all(Path(path).exists() for path in outputs):
                 time.sleep(.1)
