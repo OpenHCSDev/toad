@@ -2,7 +2,8 @@ from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from toad.comms_root import CoordinationAccess, RouteSelection
+from agent_comms.route_selection import RouteSelection
+from toad.comms_root import CoordinationAccess
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers

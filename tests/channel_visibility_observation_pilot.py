@@ -105,7 +105,7 @@ async def main():
             # Mark current page loaded before instrumenting the hidden reader.
             await until(lambda: chat.message_history.state.accepts_source_work and not chat.message_history.ack_inflight)
             comms.messaging.send('peer', '#one', 'ARRIVED-WHILE-HIDDEN')
-            with patch('toad.comms_root.root_is_current', side_effect=AssertionError('hidden route check')):
+            with patch('agent_comms.route_selection.root_is_current', side_effect=AssertionError('hidden route check')):
                 # Exercise the real hidden callback, not a mocked visibility test.
                 for _ in range(40):
                     await refresh_comms(chat)

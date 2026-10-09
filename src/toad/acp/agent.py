@@ -11,7 +11,7 @@ from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
 import os
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -177,6 +177,18 @@ class Agent(AgentBase):
     def request(self) -> jsonrpc.Request:
         """Create a request object."""
         return API.request(self.send)
+
+    @asynccontextmanager
+    async def prompt_request(self, require):
+        """A session/prompt request, written under Core ingress admission.
+
+        Acquiring admission awaits, so ``require`` re-decides the caller's
+        authority once admission is held, before any request is opened.
+        """
+        async with self.process.admitted_prompt(self):
+            require()
+            with self.request() as request:
+                yield request
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""

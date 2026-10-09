@@ -27,20 +27,21 @@ def publication_available():
 
 
 async def cancelled_start(root):
-    from toad.acp.maintenance_ingress import preflight
+    from agent_comms.acp_ingress import AcpIngress
 
     entered, release, finished = threading.Event(), threading.Event(), threading.Event()
+    preflight = AcpIngress.preflight
 
-    def held_preflight(*args, **kwargs):
+    async def held_preflight(ingress):
         entered.set()
         try:
-            assert release.wait(5), "controlled preflight was not released"
-            return preflight(*args, **kwargs)
+            assert await asyncio.to_thread(release.wait, 5), "controlled preflight was not released"
+            return await preflight(ingress)
         finally:
             finished.set()
 
     agent = Agent(root, AgentDefinition("cancelled-start", "Cancelled start", {"*": "true"}), None)
-    with patch("toad.acp.maintenance_ingress.preflight", held_preflight):
+    with patch("agent_comms.acp_ingress.AcpIngress.preflight", held_preflight):
         start = asyncio.create_task(agent.start())
         try:
             assert await asyncio.to_thread(entered.wait, 3)

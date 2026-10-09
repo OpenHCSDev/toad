@@ -9,8 +9,20 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import psutil
+from pathlib import Path
 
-from toad.acp.maintenance_ingress import admitted_spawn
+from agent_comms.acp_ingress import AcpIngress
+from agent_comms.route_selection import RouteSelection
+from toad.acp.shell_command import ShellCommand
+
+
+def admitted_spawn(command, *, env=None, cwd=None, **options):
+    """Spawn one shell command through Core's ACP ingress admission."""
+    env = dict(os.environ if env is None else env)
+    cwd = Path(cwd if cwd is not None else os.getcwd()).resolve()
+    selection = RouteSelection.for_child(env, cwd)
+    return AcpIngress(selection, cwd).spawn(
+        ShellCommand.current().argv(command), env=env, **options)
 
 
 async def main() -> None:
@@ -55,9 +67,6 @@ async def main() -> None:
                 attempt = asyncio.create_task(
                     admitted_spawn(
                         command, pass_fds=(write_fd,),
-
-
-
                         cwd=directory, env=os.environ.copy(),
                     )
                 )

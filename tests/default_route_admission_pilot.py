@@ -28,11 +28,22 @@ from agent_comms.comms import Comms
 from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
 from default_route_pilot import private_root
 
-from toad.acp.maintenance_ingress import admitted_prompt, admitted_spawn
 from toad.app import ToadApp
-from toad.comms_root import current_root, run_selected_write
+from agent_comms.route_selection import current_root, run_selected_write
+from agent_comms.acp_ingress import AcpIngress
+from agent_comms.route_selection import RouteSelection
+from toad.acp.shell_command import ShellCommand
 from toad.widgets.comms_chat import CommsChatView
 from runtime_fixture import refresh_comms
+
+
+def admitted_spawn(command, *, env=None, cwd=None, **options):
+    """Spawn one shell command through Core's ACP ingress admission."""
+    env = dict(os.environ if env is None else env)
+    cwd = Path(cwd if cwd is not None else os.getcwd()).resolve()
+    selection = RouteSelection.for_child(env, cwd)
+    return AcpIngress(selection, cwd).spawn(
+        ShellCommand.current().argv(command), env=env, **options)
 
 
 @asynccontextmanager
@@ -233,9 +244,9 @@ async def main() -> None:
                                 "contradictory explicit child launched"
                             )
                     assert not observed_env
-                    with admitted_prompt(
-                        ingress_root=legacy, cwd=sandbox, implicit=False
-                    ):
+                    explicit = RouteSelection.for_child(
+                        dict(os.environ, AGENT_COMMS_ROOT=str(legacy)), sandbox)
+                    async with AcpIngress(explicit, sandbox).prompt():
                         assert current_root() == private
 
 

@@ -266,10 +266,13 @@ class AgentController(OperationalTerminalOwner):
 
     async def _prompt(self, content, command, authority, queue_scope):
         agent = self.agent
-        authority.require()
-        if not agent.queue_attachment.accepts_request(queue_scope):
-            raise ValueError('The queued input owner changed before submission; inspect the current queue.')
-        with agent.request():
+
+        def require():
+            authority.require()
+            if not agent.queue_attachment.accepts_request(queue_scope):
+                raise ValueError('The queued input owner changed before submission; inspect the current queue.')
+
+        async with agent.prompt_request(require):
             pending = api.session_prompt(content, authority.session_id,
                 encode_request(command) if command is not None else {})
         try:
@@ -319,8 +322,7 @@ class AgentController(OperationalTerminalOwner):
 
     async def _compact_context(self, instructions, authority):
         agent = self.agent
-        authority.require()
-        with agent.request():
+        async with agent.prompt_request(authority.require):
             pending = api.session_prompt([{'type': 'text', 'text': ' '}],
                 authority.session_id, encode_request(CompactRequest(instructions)))
         try:

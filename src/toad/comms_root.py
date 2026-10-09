@@ -1,57 +1,25 @@
-"""Toad's view of the canonical Comms default root.
+"""Toad's cached access to the Comms service of the current route.
 
-The core route owner validates the current selection and private marker without
-constructing a service. Write admission remains separately guarded at its sink.
+Core owns route selection and guarded writes (``agent_comms.route_selection``);
+this view only caches the service it opened for one selection.
 """
 
 from __future__ import annotations
 
-import os
 import asyncio
 from dataclasses import dataclass
-from collections.abc import Callable, Iterator, Mapping
-from contextlib import ExitStack, contextmanager, nullcontext
-from pathlib import Path
+from collections.abc import Callable
+from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
 from functools import partial
+from agent_comms.route_selection import RouteSelection, root_is_current, run_selected_write
 from toad.core.events import CoreEventStream, CoordinationObserved, OpenTabsChanged
 
 if TYPE_CHECKING:
-    from agent_comms.active_route import CommsRoute
     from agent_comms.comms import Comms
     from agent_comms.presentation import WireRevision
 
 T = TypeVar("T")
-
-
-@dataclass(frozen=True)
-class RouteSelection:
-    route: CommsRoute
-    root: Path
-    implicit: bool
-
-    @classmethod
-    def capture(cls, source: str | Path | None = None) -> RouteSelection:
-        from agent_comms.active_route import resolve_comms_route
-
-        route = resolve_comms_route()
-        selection = cls(route, route.observe_root(), implicit_root())
-        if source is not None and Path(source).expanduser().resolve() != selection.root:
-            raise ValueError("Comms route changed; reopen this view")
-        return selection
-
-    @classmethod
-    def for_child(cls, env: Mapping[str, str], cwd: str | Path) -> RouteSelection:
-        """Capture selection before projecting a root into a child environment."""
-        from agent_comms.active_route import resolve_comms_route
-        from toad.acp.maintenance_ingress import configured_root
-
-        root = configured_root(env, cwd)
-        implicit = "AGENT_COMMS_ROOT" not in env
-        route = resolve_comms_route() if implicit else resolve_comms_route(root)
-        if route.observe_root() != root:
-            raise ValueError("ACP route changed while selecting its child")
-        return cls(route, root, implicit)
 
 
 @dataclass(frozen=True)
@@ -210,53 +178,3 @@ class CoordinationAccess:
         # core route lock is held through the operation; no second lock/store.
         return run_selected_write(selected.root, operation, *args, implicit=selected.implicit, **kwargs)
 
-
-def current_root() -> Path:
-    """Resolve the explicit override or the validated default Comms route."""
-    from agent_comms.active_route import resolve_comms_route
-
-    return resolve_comms_route().observe_root()
-
-
-def root_is_current(root: str | Path) -> bool:
-    """Fail closed if a mounted view's root is no longer the current route."""
-    try:
-        return current_root() == Path(root).expanduser().resolve()
-    except OSError, ValueError, RuntimeError:
-        return False
-
-
-def implicit_root() -> bool:
-    """Capture whether this UI request selected the managed default route."""
-    return "AGENT_COMMS_ROOT" not in os.environ
-
-
-@contextmanager
-def selected_write(root: str | Path, *, implicit: bool) -> Iterator[None]:
-    """Guard one default-root side effect through the actual synchronous sink.
-
-    The core owns the shared route-directory lock and publication protocol.
-    Explicit overrides retain their prior independent-root behavior.
-    """
-    if implicit:
-        from agent_comms.active_route import guard_default_route_write
-
-        scope = guard_default_route_write(Path(root))
-    else:
-        scope = nullcontext()
-    with scope:
-        if implicit and not root_is_current(root):
-            raise ValueError("default Comms route changed before write")
-        yield
-
-
-def run_selected_write(
-    root: str | Path,
-    operation: Callable[..., T],
-    *args: object,
-    implicit: bool,
-    **kwargs: object,
-) -> T:
-    """Enter route admission inside the worker that actually performs the write."""
-    with selected_write(root, implicit=implicit):
-        return operation(*args, **kwargs)

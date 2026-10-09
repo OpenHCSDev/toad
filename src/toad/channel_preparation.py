@@ -178,7 +178,7 @@ class ChannelHistoryReader:
 
     async def route_current(self) -> bool:
         """Read the route on this reader's joined I/O lifetime."""
-        from toad.comms_root import root_is_current
+        from agent_comms.route_selection import root_is_current
 
         return await self._run(partial(root_is_current, self.comms.root))
 

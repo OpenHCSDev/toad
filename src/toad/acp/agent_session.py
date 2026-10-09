@@ -219,18 +219,16 @@ class AgentSession:
         """Reattach the existing view after login or an explicit owner start."""
         if self.agent.controller.session.bound and not self.supports_load:
             raise ValueError("This agent cannot resume its session.")
-        from .maintenance_ingress import configured_root, preflight
+        from pathlib import Path
+        from agent_comms.acp_ingress import AcpIngress
+        from agent_comms.route_selection import RouteSelection
 
-        requested_env = os.environ.copy()
         requested_cwd = str(self.agent.project_root_path.resolve())
-        requested_root = configured_root(requested_env, requested_cwd)
         try:
-            await asyncio.to_thread(
-                preflight,
-                (self.agent.coordination.wire_root if self.agent.coordination else None),
-                ingress_root=requested_root,
-                cwd=requested_cwd,
-            )
+            selection = await asyncio.to_thread(
+                RouteSelection.for_child, os.environ.copy(), requested_cwd)
+            await AcpIngress(selection, Path(requested_cwd),
+                             self.agent.process.attached_root(self.agent)).preflight()
         except Exception as error:
             raise ValueError(
                 f"Reconnect not attempted: maintenance admission denied: {error}"

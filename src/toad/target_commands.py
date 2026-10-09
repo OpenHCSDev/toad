@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
 from toad import messages
-from toad.comms_root import root_is_current
+from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_commands import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
@@ -46,7 +46,7 @@ class TargetContext:
         return self
 
     def available_actions(self):
-        from toad.comms_root import RouteSelection
+        from agent_comms.route_selection import RouteSelection
         selected = RouteSelection.capture(self.comms.root)
         self.current()
         actions = CliCommand.target_catalog(self.comms, self.targets or self.subject, self.channel, project=str(self.project))

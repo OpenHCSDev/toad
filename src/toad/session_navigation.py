@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, cast
 from functools import partial
 
 
-from toad.comms_root import root_is_current
+from agent_comms.route_selection import root_is_current
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_admission import (HistorySessionAdmission, NativeSessionAdmission,
                                    PreviewSessionAdmission, SessionAdmission)
@@ -269,7 +269,7 @@ class SessionAdmissions:
             await self.retire_missing()
 
     async def retire_missing(self) -> None:
-        from toad.comms_root import RouteSelection
+        from agent_comms.route_selection import RouteSelection
 
         # Borrow each actual admission, including hidden views. No widget or
         # deletion roster is created in the metadata worker.

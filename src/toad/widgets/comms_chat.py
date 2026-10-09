@@ -44,7 +44,7 @@ from toad.command_catalog import CommandCatalog
 
 
 def _comms_root() -> Path:
-    from toad.comms_root import current_root
+    from agent_comms.route_selection import current_root
 
     return current_root()
 
@@ -436,7 +436,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self.flash("Send pending/UNKNOWN/blocked; inspect, do not retry", style="error")
             return
         try:
-            from toad.comms_root import implicit_root, root_is_current, run_selected_write
+            from agent_comms.route_selection import implicit_root, root_is_current, run_selected_write
 
             reader = self.message_history.reader
             if (reader is None
