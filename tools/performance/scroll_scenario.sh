@@ -51,12 +51,24 @@ regions tabs
 read -r first_x second_x tab_y < <(python3 -c "import json,sys; t=json.load(open(sys.argv[1]))['tabs']; print(t[0][0]+8, t[1][0]+8, t[0][1])" "$out/tabs-targets.json")
 cell "$first_x" "$tab_y"
 sleep 3
-cell 1 25
-sleep 3
+# Close the sidebar (its toggle sits on its right edge while open) and confirm.
+for attempt in 1 2 3 4 5; do
+    regions "closed-$attempt"
+    open_rows=$(python3 -c "import json,sys; print(len(json.load(open(sys.argv[1]))['threads']))" "$out/closed-$attempt-targets.json")
+    [[ "$open_rows" == 0 ]] && break
+    cell 54 25
+    sleep 5
+done
+[[ "$open_rows" == 0 ]] || { echo "sidebar did not close" >&2; exit 1; }
 import -window "$window" "$out/loaded.png" 2>/dev/null || true
 
+if [[ -n "${PROFILE_SECONDS:-}" ]]; then
+    measure=(--profile-seconds "$PROFILE_SECONDS")
+else
+    measure=(--frame-meter "$meter_seconds")
+fi
 python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
-    --frame-meter "$meter_seconds" --sudo > "$out/capture.log" 2>&1 &
+    "${measure[@]}" --sudo > "$out/capture.log" 2>&1 &
 capture=$!
 sleep 2
 
@@ -88,4 +100,4 @@ sleep 1
 import -window "$window" "$out/tab-return.png" 2>/dev/null || true
 
 wait "$capture"
-python3 "$tools/frame_meter.py" "$out/run-frames.json" | tee "$out/summary.json"
+[[ -n "${PROFILE_SECONDS:-}" ]] || python3 "$tools/frame_meter.py" "$out/run-frames.json" | tee "$out/summary.json"
