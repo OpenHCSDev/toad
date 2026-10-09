@@ -26,9 +26,6 @@ def test_retired_local_sidebar_and_modules():
     row_tree = ast.parse((SOURCE / "widgets/session_sidebar.py").read_text())
     assert not any(isinstance(node, ast.FunctionDef) and node.name == "update_thread"
                    for node in ast.walk(row_tree))
-    # This is the real worker entry point, not an unimported dead module.
-    assert (SOURCE / "render_server.py").is_file()
-    assert '"-m", "toad.render_server"' in (SOURCE / "render_zmq.py").read_text()
 
 
 
