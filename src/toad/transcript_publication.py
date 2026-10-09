@@ -577,9 +577,16 @@ class TranscriptPresentation:
         relation through provisional mount, replacement, park and disposal.
         """
         from toad.widgets.transcript_history import TranscriptHistory
+        from toad.widgets.conversation import Contents
 
         view = self.view
-        return tuple(view.contents.query_children(TranscriptHistory)) if view is not None else ()
+        if view is None:
+            return ()
+        # Mount and prune own the native container's lifetime. A logical source
+        # can bind before that mount and close after prune; neither state has a
+        # live pager. Required content access belongs to actual publication.
+        contents = view.query_one_optional(Contents)
+        return tuple(contents.query_children(TranscriptHistory)) if contents is not None else ()
 
     @property
     def reports_coverage(self) -> bool:

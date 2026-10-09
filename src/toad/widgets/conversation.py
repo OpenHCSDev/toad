@@ -331,14 +331,6 @@ class Window(CoreEventReceiver, HistoryWindow):
         if viewport := self.__dict__.get("document_viewport"):
             viewport.membership.bind(destination.viewport_presentation)
 
-    def prepare_viewport(self) -> None:
-        super().prepare_viewport()
-        self.query_ancestor(Conversation).transcript.retry()
-
-    @property
-    def pending_reader_position(self):
-        return self.query_ancestor(Conversation).transcript.reader_position
-
     HELP = """\
 ## Conversation
 
@@ -354,6 +346,17 @@ This is a view of your conversation with the agent.
     def action_focus_prompt(self) -> None:
         self.query_ancestor(Conversation).focus_prompt()
 
+
+class AgentWindow(Window):
+    """Agent source custody shares the native window, not wire semantics."""
+
+    @property
+    def pending_reader_position(self):
+        return self.query_ancestor(Conversation).transcript.reader_position
+
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        self.query_ancestor(Conversation).transcript.retry()
 
 
 
@@ -793,7 +796,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ConversationSession
             self.prompt.prompt_text_area.post_message(event)
 
     def compose(self) -> ComposeResult:
-        with Window():
+        with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
