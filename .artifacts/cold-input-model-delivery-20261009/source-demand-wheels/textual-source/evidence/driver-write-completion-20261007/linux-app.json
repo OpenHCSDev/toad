@@ -1,9 +1,0 @@
-{
-  "scope": "real source Linux App/PTY writer completion, not pixel presentation",
-  "driver": "LinuxDriver",
-  "callback_on_owner_loop": true,
-  "writer_joined": true,
-  "input_thread_joined": true,
-  "inputs": 0,
-  "providers": 0
-}

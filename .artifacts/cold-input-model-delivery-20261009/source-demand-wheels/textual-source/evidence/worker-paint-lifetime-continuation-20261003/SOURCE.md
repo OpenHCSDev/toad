@@ -1,9 +1,0 @@
-# Worker execution custody
-
-Existing Worker._run now suspends once within its original try/cancellation/context scope before calling work. Eager create_task therefore returns to Worker._start so the actual task and completion callback are published before async/thread/subclass work executes. Same WorkerManager add/start-all, DOMNode.run_worker and decorator consumers inherit this boundary; no viewport-only scheduler, duplicate task ownership or new timer/state. Existing state notifications, executor/context reset, cancellation/error handling remain original.
-
-Before source: 249 native +287 Toad modules parsed by existing refactor-audit Package.load, zero omissions;41 native +68 related Toad AST sites retained in worker-before.json. No application Worker subclass declares an alternate start algorithm in these roots. Dynamic external extensions not proven by this census. `_task` declaration/start/cancel/wait remain solely Worker; two manager start callers share it.
-
-Actual component36 profile at44.2896s during input-held-Down enters frame preparation→run_worker→Worker._start→eager create_task→_run→_reconcile→retire_native_body→native strip rendering synchronously before task assignment. Chrome stack transition is activation evidence, NOT duration/CPU dominance. This change removes that caller-owned execution path, not the underlying necessary capture/paint work. No speed claim before changed installed path.
-
-One existing get-current-worker check now also asserts the running task is the worker's published task; this detects eager ownership failure. Final whole worker state/cancel/context/manager/decorator batch:58 passed2.13s, including both default/eager task factories for actual task custody. This qualifies source behavior only; changed installed motion remains required, so not Ready. Actual recording36 remains frozen qualification of previous source.
