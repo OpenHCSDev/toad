@@ -145,3 +145,11 @@ It runs the fixed scenario with no crashes. Measured frame p99 was 22.6 ms again
 **Still open after the merge:**
 - Delete the fork's detached-document system (`document/_paint.py`, `document/_markdown.py`) and its Screen and compositor hooks.
 - Restore the features listed in the plan above: block cursor and copy, anchors, selection, links.
+
+## 2026-10-09: Deletion pass
+
+- **Merged the live tail on lines** (`c9af698`). Back to back on a quiet bus, frame p99 holds (18.8 / 19.4 ms against 17.8 / 18.9 ms), input-to-paint p99 improves, and frame p95 is about 3 ms worse. That p95 cost is unexplained, and is the first thing to attribute.
+- **Deleted the unreachable Markdown preparation chain** (`6de8363`): `PreparedMarkdown`, `PreparedFence`, `PreparedContentRange` (the page now owns its own admitted range), the Markdown render tasks, `DocumentBlockCursor`, and the fragments' preparation fields, `prepare()` and `independent()`. Fragments no longer carry parsed tokens back from the workers.
+- **Toad references nothing from the fork's `textual.document._markdown` or `_paint`** (`f483186`).
+- **The fork deletion is delegated:** `document/_markdown.py`, `document/_paint.py`, the detached-document additions to `widgets/_markdown.py`, and the Screen and compositor presentation hooks Toad no longer overrides. It goes on fork branch `perf/line-history`, verified with one scenario run.
+- **Measurement hygiene:** runs that overlap the comms latency work's `#openhcs` test sends aren't comparable. Measure performance only on a quiet bus, back to back, two runs each.
