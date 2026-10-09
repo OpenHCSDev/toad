@@ -222,12 +222,26 @@ def targets(*, expected_pid, output):
     for task in () if app is not None else asyncio.all_tasks():
         if (app := task.get_context().get(active_app, None)) is not None:
             break
+    from toad.widgets.history_anchor import HistoryWindow
+
     screen = app.screen
     rows = {row.target_name: tuple(row.region) for row in screen.query("ThreadRow") if row.region}
     tabs = [tuple(tab.region) for tab in screen.query("SessionLabel") if tab.region]
+    # What the screen actually shows, row by row, and the visible message
+    # window: the scenario checks blank runs, placeholders, End and tab return
+    # from this text rather than from screenshots.
+    compositor = screen._compositor
+    text = [strip.text for strip in compositor.render_strips()]
+    visible = compositor.visible_widgets
+    window = next((node for node in screen.query(HistoryWindow) if node in visible), None)
+    message_window = None
+    if window is not None:
+        region = window.scrollable_content_region
+        message_window = {"region": tuple(region), "scroll_y": window.scroll_y,
+                          "max_scroll_y": window.max_scroll_y, "follows_tail": window.follows_tail}
     fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w") as file:
-        json.dump({"threads": rows, "tabs": tabs}, file)
+        json.dump({"threads": rows, "tabs": tabs, "text": text, "message_window": message_window}, file)
 
 
 def percentile(values, fraction):
