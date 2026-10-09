@@ -6,6 +6,7 @@ from toad.block_navigation import ConversationBlock
 from toad.widgets.message_filter import OtherCategory
 
 import asyncio
+from bisect import bisect_right
 from collections import deque
 from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
@@ -26,6 +27,7 @@ from textual.containers import VerticalGroup
 from textual.message import Message
 from textual.widget import Widget
 from textual.walk import walk_depth_first
+from textual.strip import Strip
 from textual.widgets import Static
 
 from toad.transcript_filter import TranscriptFilter
@@ -44,11 +46,11 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
-from toad.widgets.viewport_body import ChildBody, MeasuredViewportBody, ViewportBody
+from toad.widgets.transcript_lines import LineStyles, PreparedLines, TranscriptLinesRenderTask
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
-    all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
+    all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category, keep_events,
 )
 from toad.widgets.transcript_fragments import (
     TranscriptFragment, transcript_fragments,
@@ -59,64 +61,6 @@ if TYPE_CHECKING:
 
 class _PublicationRetired(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
-
-class TranscriptBlockConsumer(MroDispatch):
-    def __init__(self, *, fragment: bool, show_divider: bool,
-                 markdown_part: PreparedMarkdownPart | None = None,
-                 prepared_source: PreparedMarkdown | None = None,
-                 prepared_content: PreparedContentRange | None = None):
-        self.blocks: list[Widget] = []
-        self.fragment = fragment
-        self.show_divider = show_divider
-        self.markdown_part = markdown_part
-        self.prepared_source = prepared_source
-        self.prepared_content = prepared_content
-
-    @handles(UserTranscript)
-    def user(self, event: UserTranscript):
-        self.blocks.append(UserInput(event.text, claim=TranscriptInputClaim(event),
-                                     markdown_part=self.markdown_part,
-                                     prepared_source=self.prepared_source,
-                                     show_divider=self.show_divider,
-                                     clock=MessageClock.recorded(event.timestamp)))
-
-    @handles(IncomingTranscript)
-    def incoming(self, event: IncomingTranscript):
-        from toad.widgets.incoming_message import IncomingMessage
-        self.blocks.append(IncomingMessage(event, show_header=self.show_divider,
-                                           markdown_part=self.markdown_part,
-                                           prepared_content=self.prepared_content,
-                                           paginate=not self.fragment))
-
-    @handles(SentTranscript)
-    def sent(self, event: SentTranscript):
-        from toad.widgets.outgoing_message import OutgoingMessage
-        self.blocks.append(OutgoingMessage(event, show_header=self.show_divider,
-                                           markdown_part=self.markdown_part,
-                                           prepared_content=self.prepared_content,
-                                           paginate=not self.fragment))
-
-    @handles(AgentTextTranscript)
-    def agent(self, event: AgentTextTranscript):
-        self.blocks.append(AgentResponse(
-            event.text, delivery=ResponseDelivery.from_route(event.routing.reply if event.routing else None),
-            category=event_category(event), paginate=not self.fragment,
-            markdown_part=self.markdown_part,
-            prepared_content=self.prepared_content,
-            show_divider=self.show_divider, clock=MessageClock.recorded(event.timestamp),
-        ))
-
-    @handles(ThinkingTranscript)
-    def thinking(self, event: ThinkingTranscript):
-        self.blocks.append(AgentThought(event.text, paginate=not self.fragment,
-                                       markdown_part=self.markdown_part,
-                                       prepared_content=self.prepared_content))
-
-def transcript_blocks(events: tuple[TranscriptEvent, ...], *, fragment: bool = False,
-                      show_divider: bool = True) -> list[Widget]:
-    """Standalone source callers use the same resource producer as page work."""
-    return [block for source in transcript_fragments(events, split_text=fragment)
-            for block in source.blocks(fragment=fragment, show_divider=show_divider)]
 
 class HistoryEdge(Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
@@ -147,64 +91,15 @@ class JumpToLatest(Static, can_focus=True):
         event.stop()
         self.action_jump()
 
-class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGroup):
-    # A sibling/page mutation invalidates the outer Window, but unchanged
-    # retained bodies still own the same native scene. Textual bounds and
-    # invalidates this geometry on content/style/size/pruning changes.
-    CACHE_SUBTREE_GEOMETRY = True
+class TranscriptPageView(Widget):
+    """One transcript page, drawn as its admitted fragments' prepared lines.
 
-    def __init__(self, fragment: TranscriptFragment, selected=None):
-        super().__init__()
-        self._body_measurement = self.live_body_measurement()
-        self.fragment = fragment
-        self._message_category = (event_category(fragment.events[0]) if fragment.events
-                                  else OtherCategory)
-        self.add_class(f"-message-{self._message_category.declared_name}")
-        self.set_class(not any(event.routed for event in fragment.events), "-unrouted")
-        self.set_categories(all_categories() if selected is None else selected)
+    Fragments never become widgets. Styled rows come from the render worker
+    processes; until they arrive a fragment draws its plain wrapped text.
+    """
 
-    def live_body_measurement(self, width=0, rows=0, widgets=1):
-        return ChildBody(width, rows, widgets)
-
-    @property
-    def retained_source_bytes(self) -> int:
-        return self.fragment.retained_bytes + super().retained_source_bytes
-
-    def reconstructible_children(self) -> tuple[Widget, ...]:
-        return tuple(self.children)
-
-    async def materialize_native_body(self) -> None:
-        await self.recompose()
-
-    @property
-    def message_category(self) -> type[MessageCategory]:
-        return self._message_category
-
-    def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
-        if getattr(self, "selected_categories", None) == selected:
-            return
-        visible = self.message_category in getattr(self, "selected_categories", ())
-        self.selected_categories = selected
-        apply_block_filter(self, selected)
-        if self.is_attached and not visible and self.message_category in selected and not self.children:
-            self.publish_body(self.materialize_native_body).call_when_ready(self)
-
-    def compose(self) -> ComposeResult:
-        # A filtered source slot retains identity/coverage, not hidden native
-        # bodies. Its existing body publisher materializes on first reveal.
-        if self.message_category not in self.selected_categories:
-            return
-        # A semantic fragment may be one oversized paragraph, list, or fence.
-        # It is already a page leaf: re-paging it would recursively remount the
-        # same indivisible block forever without producing visible Markdown.
-        if self.fragment.starts_agent_activity and not self.fragment.continuation:
-            yield AgentActivityDivider(self._message_category, clock=MessageClock.recorded(self.fragment.events[0].timestamp))
-        yield from self.fragment.blocks(
-            fragment=True, show_divider=not self.fragment.continuation,
-        )
-
-class TranscriptPageView(VerticalGroup):
-    CACHE_SUBTREE_GEOMETRY = True
+    DEFAULT_CSS = "TranscriptPageView { height: auto; }"
+    RENDER_BATCH = 8
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
                  fragments: tuple[TranscriptFragment, ...] | None = None,
@@ -215,8 +110,14 @@ class TranscriptPageView(VerticalGroup):
             tuple(fragment.independent() for fragment in fragments), 0,
         )
         self.visible_categories = all_categories()
-        self._fragment_views = ()
         self.prepared.configure(batch_size=batch_size, newest=newest)
+        self._styles: LineStyles | None = None
+        self._pending: set[int] = set()
+        self._render: asyncio.Task[None] | None = None
+        self._width = 0
+        self._layout: list[tuple[int, int, tuple[Strip, ...]]] = []
+        self._starts: list[int] = []
+        self._height = 0
         super().__init__()
 
     @property
@@ -257,27 +158,147 @@ class TranscriptPageView(VerticalGroup):
         self.prepared.batch_size = size
 
     @property
-    def fragment_views(self):
-        return self._fragment_views
+    def admitted_fragments(self) -> tuple[TranscriptFragment, ...]:
+        return self.fragments[self.start:self.stop]
 
-    def compose(self):
-        yield from self.prepared.compose(self)
+    def on_mount(self) -> None:
+        self.watch(self.app, "theme", self._theme_changed, init=False)
 
-    def on_unmount(self):
-        self._fragment_views = ()
+    def _theme_changed(self) -> None:
+        # Lines hold resolved theme colors; a new theme draws new lines.
+        self._styles = None
+        self.admission_changed()
 
-    def _retain_fragment_source(self, fragment, body):
-        # Immutable inputs never receive a frontend acquisition. This actual
-        # view-owned member can also be held by an independent reader.
-        source = body.fragment
-        source.retain_source(body)
-        return source
+    def on_unmount(self) -> None:
+        if self._render is not None:
+            self._render.cancel()
 
-    def _body(self, fragment: TranscriptFragment, index: int, *, source=None) -> TranscriptFragmentView:
-        if source is None:
-            source = self.prepared.acquired(index)
-        return TranscriptFragmentView(fragment.independent() if source is None else source,
-                                      self.visible_categories)
+    def admission_changed(self) -> None:
+        """The prepared range moved; draw the new range's rows."""
+        self._relayout()
+        self.refresh(layout=True)
+
+    def _line_styles(self) -> LineStyles:
+        if self._styles is None:
+            self._styles = LineStyles.from_app(self.app)
+        return self._styles
+
+    def _blocks_for(self, index: int) -> tuple:
+        fragment = self.fragments[index]
+        return fragment.line_blocks(self._line_styles(), show_divider=not fragment.continuation)
+
+    def _rows(self, index: int, width: int) -> tuple[Strip, ...]:
+        styled = self.fragments[index].lines_for(width, self._line_styles())
+        if styled is not None:
+            rows = styled.rows
+        else:
+            self._pending.add(index)
+            rows = tuple(row for block in self._blocks_for(index) for row in block.plain_rows(width))
+        return tuple(Strip(row) for row in rows)
+
+    def _relayout(self, width: int | None = None) -> None:
+        width = self._width if width is None else width
+        self._width = width
+        layout, starts, y = [], [], 0
+        if width > 0:
+            for index in range(self.start, self.stop):
+                fragment = self.fragments[index]
+                if not keep_events(fragment.events, self.visible_categories):
+                    continue
+                rows = self._rows(index, width)
+                layout.append((index, y, rows))
+                starts.append(y)
+                y += len(rows)
+        self._layout, self._starts, self._height = layout, starts, y
+        if self._pending and self.is_attached and (self._render is None or self._render.done()):
+            self._render = asyncio.create_task(self._render_pending())
+
+    def get_content_height(self, container, viewport, width: int) -> int:
+        if width != self._width:
+            self._relayout(width)
+        return self._height
+
+    def render_line(self, y: int) -> Strip:
+        width = self.size.width
+        if width != self._width:
+            self._relayout(width)
+        slot = bisect_right(self._starts, y) - 1
+        if slot < 0:
+            return Strip.blank(width)
+        _index, first, rows = self._layout[slot]
+        row = y - first
+        strip = rows[row] if row < len(rows) else Strip.blank(width)
+        return strip.extend_cell_length(width).crop(0, width)
+
+    def fragment_line(self, fragment: TranscriptFragment) -> int | None:
+        """The first row of an admitted fragment within this page."""
+        for index, first, _rows in self._layout:
+            if self.fragments[index] is fragment:
+                return first
+        return None
+
+    def fragment_at(self, row: int) -> tuple[TranscriptFragment, int] | None:
+        """The admitted fragment drawn at a row of this page, and the row within it."""
+        slot = bisect_right(self._starts, row) - 1
+        if slot < 0:
+            return None
+        index, first, _rows = self._layout[slot]
+        return self.fragments[index], row - first
+
+    def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
+        """Admitted fragments overlapping the window's viewport."""
+        from toad.widgets.history_anchor import HistoryAnchor
+
+        offset = HistoryAnchor._offset(self, window)
+        top = window.scroll_y - offset
+        bottom = top + window.scrollable_content_region.height
+        return tuple(self.fragments[index] for index, first, rows in self._layout
+                     if first < bottom and first + len(rows) > top)
+
+    def _nearest_pending(self) -> list[int]:
+        from toad.widgets.history_anchor import HistoryAnchor, HistoryWindow
+
+        window = self.query_ancestor(HistoryWindow)
+        reader = window.scroll_y - HistoryAnchor._offset(self, window)
+        rows = {index: first for index, first, _rows in self._layout}
+        admitted = [index for index in self._pending if index in rows]
+        self._pending.difference_update(set(self._pending) - set(admitted))
+        admitted.sort(key=lambda index: abs(rows[index] - reader))
+        return admitted[:self.RENDER_BATCH]
+
+    async def _render_pending(self) -> None:
+        renderer = self.app.render_processes
+        while self._pending and self.is_attached:
+            batch = self._nearest_pending()
+            if not batch:
+                return
+            self._pending.difference_update(batch)
+            width = self._width
+            results = await asyncio.gather(*(
+                renderer.submit(TranscriptLinesRenderTask(self._blocks_for(index), width))
+                for index in batch), return_exceptions=True)
+            if not self.is_attached or width != self._width:
+                continue
+            ready = [(index, result) for index, result in zip(batch, results)
+                     if isinstance(result, PreparedLines)]
+            if ready:
+                await self._publish(ready)
+
+    async def _publish(self, ready: list[tuple[int, PreparedLines]]) -> None:
+        from toad.widgets.history_anchor import HistoryWindow
+
+        window = self.query_ancestor(HistoryWindow)
+        history = self.query_ancestor(TranscriptHistory)
+        async with window.preserve_history(None, root=self, position=history.reader_position(window)):
+            styles = self._line_styles()
+            for index, lines in ready:
+                self.fragments[index].hold_lines(styles, lines)
+            self.admission_changed()
+
+    def retain_sources(self) -> None:
+        """Pages hold immutable fragments; nothing native to transfer."""
+        self.prepared.retain_sources(self)
+        self.prepared.retained_bytes = 0
 
     @classmethod
     @asynccontextmanager
@@ -287,45 +308,30 @@ class TranscriptPageView(VerticalGroup):
         prepared: PreparedTranscriptPage | None = None,
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire a page until its original source transfers native custody."""
-        view = cls(page, fragments=fragments, prepared=prepared,
-                   batch_size=min(batch_size, PreparedContentRange.BATCH), newest=newest)
-        # This is a new edge/End demand, not restoration of parked membership.
-        # A projected boundary can return the same original prepared resource;
-        # its preceding range must not override the explicitly requested edge.
-        selected = PreparedContentRange.initial_slice(view.fragments, view.batch_size, newest)
-        view.prepared.select_admission(selected)
+        view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest)
+        view.prepared.select_admission(PreparedContentRange.initial_slice(view.fragments, batch_size, newest))
+        view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
         with ExitStack() as acquisition:
             acquisition.callback(owner.remove_children, (view,))
             await owner.mount(view, before=before)
             if not current():
                 raise _PublicationRetired
-            selected = PreparedContentRange.initial_slice(view.fragments, batch_size, newest)
-            if selected != slice(view.start, view.stop):
-                previous = {view.start + index: child for index, child in enumerate(view.fragment_views)}
-                if not await view.prepared.replace_range(view, view.fragments, selected, previous, current):
-                    raise _PublicationRetired
-            view.batch_size = batch_size
             yield view
             acquisition.pop_all()
 
     def capture_admission(self) -> TranscriptPageAdmission:
         return self.prepared.capture_admission()
 
-    def retain_sources(self) -> None:
-        """Only the original admitted source range survives native disposal."""
-        self.prepared.retain_sources(self)
-        self.prepared.retained_bytes = 0
-
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected
-        for child in self.fragment_views:
-            child.set_categories(selected)
+        self.admission_changed()
 
     async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:
-        """Warm unmounted source leaves beside this page's actual admission."""
-        fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
-        await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
+        """Warm unadmitted fragments beside this page's admission."""
+        await preparation.prepare_fragments(
+            demand.neighbors(self.fragments, self.start, self.stop, count), keep_going,
+        )
 
     async def select_range(
         self, selected: slice, current: Callable[[], bool],
@@ -337,20 +343,14 @@ class TranscriptPageView(VerticalGroup):
         async with window.history_lock:
             if not current():
                 return False
-            admission = self.capture_admission()
-            previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
-            async with window.preserve_history(None, root=self):
-                if not await self.prepared.replace_range(
-                    self, self.fragments, selected, previous,
-                    lambda: current() and self.capture_admission() == admission,
-                    suppliers=suppliers,
-                ):
-                    return False
-            return True
+            history = self.query_ancestor(TranscriptHistory)
+            async with window.preserve_history(None, root=self, position=history.reader_position(window)):
+                return await self.prepared.replace_range(self, self.fragments, selected, None, current)
+
 
 class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
     CACHE_SUBTREE_GEOMETRY = True
-    MAX_FRAGMENTS = 24
+    MAX_FRAGMENTS = 240
 
     @property
     def message_category(self) -> None:
@@ -423,14 +423,32 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             projection.resume_source()
 
     async def prepare_fragments(self, fragments, current: Callable[[], bool], *, selected=None) -> None:
-        """Prepare this admitted source range before acquiring native custody."""
-        from toad.widgets.transcript_fragments import TranscriptBodyPreparation
+        """Render fragments' lines at the page width before they are admitted."""
+        width = self.line_width
+        if width <= 0:
+            return
+        styles = LineStyles.from_app(self.app)
+        selected = self.selected_categories if selected is None else selected
+        todo = [fragment for fragment in fragments
+                if keep_events(fragment.events, selected) and fragment.lines_for(width, styles) is None]
+        renderer = self.app.render_processes
+        for first in range(0, len(todo), self.budget.admission_items):
+            if not current():
+                return
+            batch = todo[first:first + self.budget.admission_items]
+            results = await asyncio.gather(*(
+                renderer.submit(TranscriptLinesRenderTask(
+                    fragment.line_blocks(styles, show_divider=not fragment.continuation), width))
+                for fragment in batch), return_exceptions=True)
+            for fragment, result in zip(batch, results):
+                if isinstance(result, PreparedLines):
+                    fragment.hold_lines(styles, result)
 
-        preparation = TranscriptBodyPreparation(
-            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
-            selected=self.selected_categories if selected is None else selected,
-        )
-        await preparation.prepare_fragments(fragments, current, batch_size=self.budget.admission_items)
+    @property
+    def line_width(self) -> int:
+        """The width pages draw at: an admitted page's, else this history's content."""
+        widths = [page.size.width for page in self.pages if page.size.width]
+        return widths[0] if widths else self.content_region.width
 
     async def prepare_body(self, current: Callable[[], bool], *, selected=None) -> None:
         """Warm the actual page admissions, including a restored reader range."""
@@ -441,8 +459,28 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                                          current, selected=selected)
 
     @property
-    def fragment_views(self) -> tuple[TranscriptFragmentView, ...]:
-        return tuple(child for page in self.pages for child in page.fragment_views)
+    def admitted_fragments(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for page in self.pages for fragment in page.admitted_fragments)
+
+    def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
+
+    def reader_position(self, window):
+        """The reader's row as a position that survives rows changing above it."""
+        from toad.widgets.history_anchor import HistoryAnchor, LineAnchor
+
+        if window.follows_tail:
+            return HistoryAnchor.capture(self.newer, window)
+        for page in self.pages:
+            offset = HistoryAnchor._offset(page, window)
+            row = int(window.scroll_y - offset)
+            if row < 0:
+                return HistoryAnchor.capture(self.older, window)
+            if row < page.size.height and (found := page.fragment_at(row)) is not None:
+                fragment, _within = found
+                return LineAnchor(page, window.scroll_y, window.scroll_revision,
+                                  fragment=fragment, virtual_y=offset + page.fragment_line(fragment))
+        return HistoryAnchor.capture(self.newer, window)
 
     @property
     def source_identity(self):
@@ -460,8 +498,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
         """Retain the original source ranges that a returning reader needs."""
         for page in self.pages:
-            if page.fragment_views:
-                page.retain_sources()
+            page.retain_sources()
         return tuple(page.prepared.capture_admission() for page in self.pages)
 
     def restore_reader_admissions(self, admissions) -> None:
@@ -485,9 +522,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 if not current():
                     return False
                 if (page.start == admission.start and page.stop == admission.stop
-                        and len(page.fragment_views) == len(admission.members)
-                        and all(body.fragment is member for body, member in
-                                zip(page.fragment_views, admission.members))):
+                        and len(page.admitted_fragments) == len(admission.members)
+                        and all(fragment is member for fragment, member in
+                                zip(page.admitted_fragments, admission.members))):
                     continue
                 await self.prepare_fragments(admission.members, current)
                 if not await page.select_range(slice(admission.start, admission.stop), current,
@@ -564,15 +601,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return max(self._fragment_budget, self._visible_fragment_budget())
 
     def _visible_fragment_budget(self) -> int:
-        visible = self.screen._compositor.visible_widgets
-        sequence = self.fragment_views
-        indexes = [index for index, child in enumerate(sequence) if child in visible]
-        if not indexes:
-            return self.budget.item_limit(0)
-        runway = self.window.document_viewport.budget.runway(
-            sequence, min(indexes), max(indexes) + 1, self.window.size.height,
-        )
-        return max(self.budget.item_limit(len(indexes)), len(indexes) + len(runway))
+        return self.budget.item_limit(len(self.visible_fragments()))
 
     @property
     def fragment_count(self) -> int:
@@ -580,8 +609,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     @property
     def retained_source_bytes(self) -> int:
-        return sum(owner.retained_source_bytes for owner in self.window.document_viewport.owners
-                   if self in owner.ancestors)
+        return sum(fragment.retained_bytes for fragment in self.admitted_fragments)
 
     def compose(self) -> ComposeResult:
         yield self.older
@@ -713,17 +741,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     async def prepare_lookahead(self, intent) -> None:
         reader, edges, rounds, count, demand, pages, admissions, snapshot = intent
         current = partial(self.lookahead_current, intent)
-        from toad.widgets.transcript_fragments import TranscriptBodyPreparation
-        preparation = TranscriptBodyPreparation(
-            self.app.render_processes, self.app.native_ansi_color, self.app.current_theme.dark,
-            selected=self.selected_categories,
-        )
         for page in pages:
-            await page.prepare_adjacent(preparation, demand, count, current)
+            await page.prepare_adjacent(self, demand, count, current)
         async for prepared in reader.prefetch(*edges, current, rounds=rounds):
-            fragments = demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count)
-            await preparation.prepare_fragments(
-                fragments, current, batch_size=self.budget.admission_items,
+            await self.prepare_fragments(
+                demand.neighbors(prepared.fragments, len(prepared.fragments), 0, count), current,
             )
 
     def lookahead_current(self, intent) -> bool:
@@ -858,13 +880,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     return
                 if edge.capture_admission() != admission:
                     return
-                # Source admission survives reader movement. Choose the current
-                # visible record after preparation, including a reversed reader.
-                anchor, protected = window.protect_history(
-                    self.fragment_views, older=older,
-                    fallback=edge.fragment_views[0 if older else -1] if edge.fragment_views else edge,
-                )
-                async with self.window.preserve_history(anchor, root=self):
+                # Source admission survives reader movement. Keep the reader's
+                # row and the visible fragments, chosen after preparation.
+                position = self.reader_position(window)
+                protected = {id(fragment) for fragment in self.visible_fragments()}
+                async with self.window.preserve_history(None, root=self, position=position):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
                     self._require_publication()
         except _PublicationRetired:
@@ -875,24 +895,30 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     async def _extend_and_trim(
         self, edge: TranscriptPageView, older: bool, local: bool,
-        page: TranscriptPage | None, protected: set[Widget],
+        page: TranscriptPage | None, protected: set[int],
         fragments: tuple[TranscriptFragment, ...] | None,
         prepared: PreparedTranscriptPage | None = None,
     ) -> None:
-        # HistoryWindow owns the mutation's native frame publication and
-        # compensated layout; this lock serializes the page's admission.
+        """Admit the next range and trim fragments the reader is not seeing.
+
+        protected holds ids of fragments that must stay admitted: the visible
+        ones and those just admitted for the reader's direction of travel.
+        """
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = self.filter.projection_visible()
-            snapshot, admission = self.source_snapshot(), edge.capture_admission()
+            snapshot = self.source_snapshot()
+            protected_pages: set[TranscriptPageView] = set()
             if local:
-                previous_children = set(edge.fragment_views)
+                previous = {id(fragment) for fragment in edge.admitted_fragments}
                 if not await edge.prepared.extend(edge, older, lambda: snapshot.current(self)):
                     raise _PublicationRetired
                 self._require_publication()
-                protected.update(child for child in edge.fragment_views if child not in previous_children)
+                protected.update(id(fragment) for fragment in edge.admitted_fragments
+                                 if id(fragment) not in previous)
             elif page is not None:
                 assert fragments is not None
+                admission = edge.capture_admission()
                 async with TranscriptPageView.acquire(
                     self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
                     prepared=prepared,
@@ -903,51 +929,40 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                         self.pages.appendleft(view)
                     else:
                         self.pages.append(view)
-                protected.update(view.fragment_views)
-                protected.add(view)
+                protected.update(id(fragment) for fragment in view.admitted_fragments)
+                protected_pages.add(view)
                 await self._report_coverage(page, fragments)
-            # Wire pages vary enormously in visible size. A fixed three
-            # page cap can evict the tail before even filling one screen,
-            # causing the edge loaders to ping-pong forever. Bound actual
-            # fragments (and empty page overhead), not transport batches.
             self._fragment_budget = limit = max(
-                self.budget.item_limit(len(set(self.fragment_views) & protected)),
-                self._visible_fragment_budget(),
-                self._resource_fragment_budget(),
+                self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
             )
             excess = self.fragment_count - limit
             trim_older = self._follow_source_tail or not older
-            # This owner bounds source fragment/page custody. Rich children
-            # belong to DocumentViewport's measured admission and retirement;
-            # deleting their source slots by the same widget cost changes the
-            # extent and exposes the opposite edge again on the next layout.
             while (excess > 0 or len(self.pages) > limit) and (self.fragment_count > 1 or len(self.pages) > 1):
                 selected = None
                 for side in (trim_older, not trim_older):
                     # A visible older projection protects the range between it
-                    # and the canonical pages, just like a visible page anchor.
+                    # and the canonical pages, just like a visible page.
                     if side and overlay_visible:
                         continue
                     candidate = self.pages[0] if side else self.pages[-1]
-                    if candidate in protected:
+                    if candidate in protected_pages:
                         continue
-                    children = list(candidate.fragment_views)
+                    members = list(candidate.admitted_fragments)
                     if not side:
-                        children.reverse()
-                    available = []
-                    for child in children:
-                        if child in protected or self.window.document_viewport.retains_body(child):
+                        members.reverse()
+                    available = 0
+                    for fragment in members:
+                        if id(fragment) in protected:
                             break
-                        available.append(child)
-                    if available or not children:
+                        available += 1
+                    if available or not members:
                         selected = candidate, side, available
                         break
                 if selected is None:
                     break
                 evicted, side, available = selected
                 count = evicted.stop - evicted.start
-                remove_count = max(0, excess)
-                remove_count = min(remove_count, len(available), self.fragment_count - 1)
+                remove_count = min(max(0, excess), available, self.fragment_count - 1)
                 if remove_count >= count and len(self.pages) > 1:
                     self.pages.popleft() if side else self.pages.pop()
                     evicted.remove()
@@ -959,11 +974,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     excess -= remove_count
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
-
-    def _resource_fragment_budget(self) -> int:
-        """Native fragments retain the same window-wide working-set lease."""
-        viewport = self.window.document_viewport
-        return sum(viewport.retains_body(fragment) for fragment in self.fragment_views)
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A source projection with the ordinary pager's admission and eviction policy."""

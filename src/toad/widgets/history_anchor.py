@@ -18,7 +18,6 @@ from toad.rich_preparation import PreparedPaintSource
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
-    from textual.document._markdown import MarkdownSourceBlock
     from toad.widgets.tool_call import ToolCall
     from toad.transcript_preparation import TranscriptPageAdmission
     from toad.transcript_source_preparation import TranscriptSourcePreparation
@@ -135,35 +134,13 @@ class ReaderPosition(WindowPosition):
             admission for history in histories
             for admission in history.capture_reader_admissions()
         )
-        compositor = window.screen._compositor
-        geometry = compositor._published_map
-        visible = compositor.published_widgets
-        records = tuple(window.visible_history_items(
-            fragment for history in histories for fragment in history.fragment_views
-        ))
-        placement = geometry.get(window)
-        if placement is None:
-            return OffsetReaderPosition(window.scroll_y, admissions)
-        content = placement.content_region
-        viewport = content.intersection(placement.clip)
-        sources = (
-            (record, source, region)
-            for record in records
-            for source, region in FragmentReaderPosition.source_regions(record, geometry)
-            if region.overlaps(viewport)
-        )
-        first = min(sources, key=lambda item: max(item[2].y, viewport.y), default=None)
-        if first is not None:
-            record, source, region = first
-            return DocumentReaderPosition(
-                record.fragment, content.y - region.y, admissions, source=source,
-            )
-        record = min(records, key=lambda fragment: visible[fragment][0].y, default=None)
-        if record is not None:
-            return FragmentReaderPosition(
-                record.fragment, content.y - visible[record][0].y,
-                admissions,
-            )
+        for history in histories:
+            for page in history.pages:
+                offset = HistoryAnchor._offset(page, window)
+                row = int(window.scroll_y - offset)
+                if 0 <= row < page.size.height and (found := page.fragment_at(row)) is not None:
+                    fragment, within = found
+                    return FragmentReaderPosition(fragment, within, admissions)
         return OffsetReaderPosition(window.scroll_y, admissions)
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
@@ -210,9 +187,9 @@ class FragmentReaderPosition(ReaderPosition):
     admissions: tuple["TranscriptPageAdmission", ...]
 
     def record(self, window: "HistoryWindow"):
-        return next((record for history in window.transcript_histories()
-                     for record in history.fragment_views
-                     if record.fragment is self.fragment), None)
+        """The page that draws this fragment, if it is admitted."""
+        return next((page for history in window.transcript_histories() for page in history.pages
+                     if page.fragment_line(self.fragment) is not None), None)
 
     def current(self, window: "HistoryWindow") -> bool:
         record = self.record(window)
@@ -224,83 +201,14 @@ class FragmentReaderPosition(ReaderPosition):
 
     def placement(self, window: "HistoryWindow") -> int | None:
         record = self.record(window)
-        if record is None or not record.body_ready:
+        if record is None:
             return None
-        return HistoryAnchor._offset(record, window, require_placement=True)
-
-    @staticmethod
-    def source_bodies(record):
-        """Borrow original body boundaries and each source cursor's geometry.
-
-        Containers own child resources; no reader walks prepared native blocks
-        or builds an alternate source/placement catalog.
-        """
-        from toad.block_content import BlockContent
-
-        pending = [record]
-        while pending:
-            body = pending.pop()
-            if isinstance(body, BlockContent):
-                yield body
-            pending.extend(reversed(tuple(body.child_bodies())))
-
-    @classmethod
-    def source_regions(cls, record, geometry):
-        for body in cls.source_bodies(record):
-            yield from body.block_cursor.source_regions(geometry)
-
-    @staticmethod
-    def source_offset(record, window, region) -> int | None:
-        geometry = window.screen._compositor._layout_map.get(record)
-        if geometry is None:
-            return None
-        placed = HistoryAnchor._offset(record, window, require_placement=True)
-        return None if placed is None else placed + region.y - geometry.region.y
+        offset = HistoryAnchor._offset(record, window, require_placement=True)
+        return None if offset is None else offset + record.fragment_line(self.fragment)
 
     def _restore(self, window: "HistoryWindow") -> bool:
         placed = self.placement(window)
         return self._restore_row(window, None if placed is None else placed + self.offset)
-
-
-@dataclass(frozen=True)
-class DocumentReaderPosition(FragmentReaderPosition):
-    """The actual Markdown member owns the reading row, not its headers.
-
-    Row offset is relative to that source block's committed placement. This
-    preserves the reader across scene eviction and changing preceding rows;
-    it does not claim a character position through a width-dependent rewrap.
-    """
-
-    source: MarkdownSourceBlock = field(kw_only=True)
-
-    def required_bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
-        record = self.record(window)
-        if record is None:
-            return ()
-        return (record, *(body for body in self.source_bodies(record)
-                          if body.block_cursor.owns_source(self.source)))
-
-    def current(self, window: "HistoryWindow") -> bool:
-        if not super().current(window):
-            return False
-        return (any(
-                    acquired.document is not None
-                    and self.source.document.same_source(acquired.document)
-                    for acquired in self.fragment.resolved_sources()
-                ) or any(
-                    body.block_cursor.owns_source(self.source)
-                    for body in self.source_bodies(self.record(window))
-                ))
-
-    def placement(self, window: "HistoryWindow") -> int | None:
-        record = self.record(window)
-        if record is None:
-            return None
-        for source, region in self.source_regions(record, window.screen._compositor._layout_map):
-            if (source.source_index == self.source.source_index
-                    and source.document.same_source(self.source.document)):
-                return self.source_offset(record, window, region)
-        return None
 
 
 class HistoryWindow(VerticalScroll):
@@ -555,7 +463,8 @@ class HistoryWindow(VerticalScroll):
         return anchor, protected
 
     @asynccontextmanager
-    async def preserve_history(self, widget: Widget | None, *, root: Widget | None = None):
+    async def preserve_history(self, widget: Widget | None, *, root: Widget | None = None,
+                               position: WindowPosition | None = None):
         """Fence a native source mutation inside its reader layout lifetime."""
         screen = self.screen
         async with AsyncExitStack() as reader:
@@ -575,7 +484,7 @@ class HistoryWindow(VerticalScroll):
                             mutation = Widget.get_common_ancestor(previous, mutation)
                     self._history_mutation_root = mutation
                     try:
-                        await reader.enter_async_context(self.preserve_reader(widget))
+                        await reader.enter_async_context(self.preserve_reader(widget, position=position))
                         yield
                     finally:
                         self._history_mutation_root = previous
@@ -587,7 +496,7 @@ class HistoryWindow(VerticalScroll):
                     screen.check_idle()
 
     @asynccontextmanager
-    async def preserve_reader(self, widget: Widget | None):
+    async def preserve_reader(self, widget: Widget | None, *, position: WindowPosition | None = None):
         """Compensate reconstruction without owning its child source locks.
 
         A body worker owns its native mutation. A nested pager may acquire
@@ -605,7 +514,7 @@ class HistoryWindow(VerticalScroll):
         # A returning source already owns its intended point. Capturing the
         # temporary native viewport here creates a competing position which
         # can overwrite that reader after its first placement succeeds.
-        position = self.pending_reader_position
+        position = self.pending_reader_position or position
         if position is None and widget is not None:
             position = HistoryAnchor.capture(widget, self)
         restoration = WindowRestoration(position)
@@ -724,3 +633,31 @@ class RecordAnchor(HistoryAnchor):
             window.scroll_y = self.scroll_y + self._offset(self.widget, window) - self.virtual_y
             return True
         return False
+
+
+@dataclass(frozen=True)
+class LineAnchor(HistoryAnchor):
+    """Keep the reader's row inside a fragment of a line-drawn transcript page.
+
+    virtual_y is the fragment's first row in window coordinates at capture;
+    rows changing above it, in this page or earlier ones, are compensated.
+    """
+
+    fragment: object = field(kw_only=True)
+    virtual_y: int = field(kw_only=True)
+    follow_tail: ClassVar[bool] = False
+
+    def before_layout(self, window: HistoryWindow) -> HistoryAnchor:
+        if window.follows_tail or window.scroll_revision != self.scroll_revision:
+            from toad.widgets.transcript_history import TranscriptHistory
+
+            return self.widget.query_ancestor(TranscriptHistory).reader_position(window)
+        return self
+
+    def _restore(self, window: HistoryWindow) -> bool:
+        page = self.widget
+        first = page.fragment_line(self.fragment) if page.is_attached else None
+        if first is None:
+            return False
+        window.scroll_y = self.scroll_y + self._offset(page, window) + first - self.virtual_y
+        return True
