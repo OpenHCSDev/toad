@@ -936,7 +936,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                         children.reverse()
                     available = []
                     for child in children:
-                        if child in protected:
+                        if child in protected or self.window.document_viewport.retains_body(child):
                             break
                         available.append(child)
                     if available or not children:
