@@ -92,12 +92,18 @@ class LineMarkdown(Widget):
         the appended tail draws plain until the next render replaces both.
         """
         styled, covered = self._styled, self._styled_text
-        if styled is not None and styled.width == width and self.text.startswith(covered):
-            if len(covered) == len(self.text):
+        tail = self.text[len(covered):] if self.text.startswith(covered) else None
+        # A styled prefix is drawn only whole or ending at a paragraph
+        # boundary; anything else would split the paragraph it ends in.
+        if styled is not None and styled.width == width and tail is not None and (
+                not tail or tail.startswith("\n\n")):
+            if not tail:
                 return styled
             key = (width, len(self.text), id(styled))
             if self._plain is None or self._plain_key != key:
-                self._plain = PreparedLines(width, styled.rows + self._plain_rows(
+                # Styled rows end at a paragraph boundary; the plain tail is
+                # the following paragraphs, after the blank row between them.
+                self._plain = PreparedLines(width, styled.rows + ((),) + self._plain_rows(
                     self.text[len(covered):].lstrip("\n"), width))
                 self._plain_key = key
             return self._plain
@@ -115,18 +121,33 @@ class LineMarkdown(Widget):
             # A widget worker: unmount cancels it and a failure is an app error.
             self._render = self.run_worker(self._render_latest(), group="restyle")
 
+    @staticmethod
+    def _complete_paragraphs(text: str) -> str:
+        """The text up to its last blank line: paragraphs no later chunk extends."""
+        end = text.rfind("\n\n")
+        return text[:end] if end > 0 else ""
+
     async def _render_latest(self) -> None:
         renderer = self.app.render_processes
+        seen = None
         while self.is_attached:
             text, width, theme = self.text, self._width, self._line_theme()
-            lines = await renderer.submit(TranscriptLinesRenderTask((self.block,), width, theme))
-            if not self.is_attached:
-                return
-            if width == self._width and theme is self._line_theme():
-                rows = self._row_count()
-                self._styled, self._styled_text = lines, text
-                self._redraw(rows)
-            if (text, width) == (self.text, self._width):
+            # While text keeps arriving, style only complete paragraphs, so
+            # the plain tail never splits one. Unchanged for an interval (or a
+            # one-shot update), style all of it.
+            target = text if seen is None or seen == text else self._complete_paragraphs(text)
+            seen = text
+            styled = self._styled
+            if target and (target != self._styled_text or styled is None or styled.width != width):
+                block = Body(target, role=self.role, bar=self.bar, markdown=self.markdown)
+                lines = await renderer.submit(TranscriptLinesRenderTask((block,), width, theme))
+                if not self.is_attached:
+                    return
+                if width == self._width and theme is self._line_theme() and self.text.startswith(target):
+                    rows = self._row_count()
+                    self._styled, self._styled_text = lines, target
+                    self._redraw(rows)
+            if (target, width) == (self.text, self._width):
                 return
             # Text is still arriving. The plain tail already shows it, so
             # restyle at a bounded rate instead of re-rendering the whole
