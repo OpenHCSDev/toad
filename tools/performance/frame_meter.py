@@ -7,6 +7,7 @@ the driver posts it to the App until the first frame handed over after its last
 handler returns. ``python frame_meter.py RESULT.json`` prints the series-table numbers.
 """
 
+import bisect
 import json
 import os
 import statistics
@@ -122,11 +123,8 @@ def summarize(path):
     work = [busy for _end, busy in frames]
     ends = [end for end, _busy in frames]
     latencies = []
-    position = 0
-    for arrived, handled, *_ in sorted((i for i in data["inputs"] if i[1] is not None), key=lambda i: i[0]):
-        while position < len(ends) and ends[position] < handled:
-            position += 1
-        if position < len(ends):
+    for arrived, handled, *_ in data["inputs"]:
+        if handled is not None and (position := bisect.bisect_left(ends, handled)) < len(ends):
             latencies.append((ends[position] - arrived) / 1e6)
     return {
         "frames": len(work), "inputs": len(data["inputs"]), "painted_inputs": len(latencies),
