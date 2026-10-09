@@ -244,15 +244,22 @@ Not copied: pyqt_reactive's string action tables (`ACTION_REGISTRY`, `BUTTON_CON
 4. **Publication:** published to the default runtime, with agents restarted, and recorded in `docs/performance/scroll-series.md`.
 
 **Order:**
-1. Sidebar.
-2. Status bars.
+1. Sidebar (done).
+2. A Core observation service out of process, carrying status bars, turn settlement, catalogs and goal state.
 3. Conversation and transcript.
-4. Core reads in a worker process.
-5. Forms from declarations.
-6. The remaining worst-frame owners.
+4. Forms from declarations.
+5. The remaining worst-frame owners.
 
 **Rules:**
 - No approval steps.
 - Fail loud.
 - Comms logic never lives in Toad.
 - An approach that does not improve its measure after three increments is reverted or replaced. Stop and write a page only after a second failed approach.
+
+## 2026-10-09: The sidebar slice landed; observation moves out of process next
+
+- **Sidebar slice:** the sidebar renders Core's `ui_model` (Toad `ecfa7de3f`, Core `f5277b8f0`). Toad lost 1,312 lines (four sidebar modules) and gained 641; 9,001 lines of tests for the deleted machinery were deleted; the shared helpers moved to the model API.
+- **Goal display:** moved to `agent_comms.ui_model.goal`.
+- **Status rows:** `ui_model.status` holds the status rows for open threads.
+- **Finding:** each view re-reads or recomputes on every 50 ms observer tick. That covers the status line, the turn settlement and transcript refresh that share its read, the slash-command catalog, and per-second goal polls. `CoordinationAccess.observe` itself makes two or three worker-thread round trips every 50 ms, even when nothing changed. These wake-ups and executor threads are the many small callbacks and GIL waits in slow frames.
+- **Decision:** the next slice is a Core observation service in its own process. It watches Core's stores (`wire_watch`), recomputes `ui_model` models only on real changes, and sends small typed change sets (sidebar rows, open-thread status rows, presentations for turn settlement). Toad applies them through one pipe reader with one flush per frame, and deletes its poll loop and per-view reads. The status wiring lands directly on this service instead of on the poll loop.
