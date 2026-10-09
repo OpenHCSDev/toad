@@ -185,9 +185,6 @@ class TranscriptFragment:
                 width, RichLineRenderer(theme, width, plain=True).rows(blocks))
         return held[1]
 
-    def resolved_sources(self):
-        return (() if self.prepared_source is None else self.prepared_source.resolved_sources()) + (
-            () if self.prepared_content is None else self.prepared_content.resolved_sources())
 
     async def prepare(self, renderer, ansi, dark):
         # These are the source suppliers that reconstruction actually uses.
@@ -226,8 +223,6 @@ class ToolTranscriptFragment(TranscriptFragment):
 
         return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}"),)
 
-    def resolved_sources(self):
-        return tuple(source for part in self.output_parts for source in part.resolved_sources())
 
     def independent(self):
         return self._independent(output_parts=tuple(part.admit() for part in self.output_parts))
@@ -248,9 +243,6 @@ class ContextTranscriptFragment(TranscriptFragment):
 
         return (Summary("▶ Agent coordination context"),)
 
-    def resolved_sources(self):
-        return super().resolved_sources() + (() if self.original_content is None else
-                                             self.original_content.resolved_sources())
 
     def independent(self):
         return self._independent(prepared_content=None, original_content=None)

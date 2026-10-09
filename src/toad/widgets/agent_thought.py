@@ -6,13 +6,15 @@ from toad.widgets.message_filter import ThinkingCategory
 from typing import ClassVar
 
 from textual.binding import Binding, BindingType
-from toad.widgets.streaming_markdown import StreamingMarkdown
+from textual.containers import VerticalGroup
+from toad.line_blocks import ThinkingRole
+from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
 
-class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_focus=True):
-    """The agent's 'thoughts'."""
+class AgentThought(ConversationBlock, CategorizedBlock, VerticalGroup, can_focus=True):
+    """The agent's 'thoughts', drawn as prepared lines."""
 
     DEFAULT_CSS = """
     AgentThought {
@@ -23,9 +25,7 @@ class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_f
         padding:  0 1 0 1;
         border: none;
         border-left: tall $primary;
-        overflow-x: auto;
-        scrollbar-size-horizontal: 0;
-        layout: stream;
+        height: auto;
 
         &.-loading {
             background: transparent !important;
@@ -33,10 +33,6 @@ class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_f
             margin: 0;
         }
         overflow-y: hidden;
-
-        MarkdownParagraph {
-            margin: 0;
-        }
 
         &.-maximized {
             max-height: 100h;
@@ -85,9 +81,16 @@ class AgentThought(ConversationBlock, CategorizedBlock, StreamingMarkdown, can_f
     def watch_loading(self, loading: bool) -> None:
         self.set_class(loading, "-loading")
 
-    def on_mount(self) -> None:
-        self.scroll_end()
+    def __init__(self, markdown: str | None = None) -> None:
+        super().__init__()
+        self.body = LineMarkdown(markdown or "", role=ThinkingRole)
+
+    def compose(self):
+        yield self.body
 
     async def append_fragment(self, fragment: str) -> None:
-        await super().append_fragment(fragment)
-        self.scroll_end()
+        self.loading = False
+        self.body.append(fragment)
+
+    async def finish_stream(self) -> None:
+        """Appends draw as they arrive; there is no stream to flush."""

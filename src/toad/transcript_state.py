@@ -216,7 +216,7 @@ class WorkingTranscript(SuspendedTranscript):
                     # Both wire and native transcript pages deliver through
                     # this admission. Measure their complete read/prepare/mount
                     # path, rather than teaching each leaf another horizon.
-                    owner.window.document_viewport.lookahead.delivered(monotonic() - started)
+                    owner.window.lookahead.delivered(monotonic() - started)
                 return result
             except CoordinationReadUnavailable:
                 # The same admission remains suspended until the existing

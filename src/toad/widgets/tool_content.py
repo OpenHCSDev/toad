@@ -14,7 +14,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 
 from toad.render_tasks import PatchRenderTask
-from toad.widgets.prepared_markdown import PreparedConversationMarkdown
+from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.worker_static import WorkerStatic
 
 if TYPE_CHECKING:
@@ -34,8 +34,8 @@ class TextContent(WorkerStatic):
     """
 
 
-class MarkdownContent(PreparedConversationMarkdown):
-    pass
+class MarkdownContent(LineMarkdown):
+    """Markdown tool output, drawn as prepared lines."""
 
 
 @dataclass(frozen=True)

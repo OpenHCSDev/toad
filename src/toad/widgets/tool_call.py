@@ -32,10 +32,11 @@ from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.layout import trim_trailing_margin
 from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from toad.widgets.viewport_body import MeasuredViewportBody
 from textual.await_complete import AwaitComplete
 
-class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
+class ToolContent(containers.VerticalGroup):
+    """The decoded output parts of one tool call."""
+
     def __init__(self, *args, **kwargs):
         self._mounted_parts: tuple[ToolOutputPart, ...] | None = None
         super().__init__(*args, **kwargs)
@@ -44,51 +45,32 @@ class ToolContent(MeasuredViewportBody, containers.VerticalGroup):
     def output(self) -> ToolOutput:
         return self.query_ancestor(ToolCall).output
 
-    def reconstructible_children(self) -> tuple[Widget, ...]:
-        return tuple(self.children)
-
-    @asynccontextmanager
-    async def retirement_custody(self):
-        async with super().retirement_custody() as current:
-            if current:
-                self.output.retain_sources()
-            yield current
-
-    def retire_body_resources(self) -> None:
-        self.output.retire()
-        self._mounted_parts = None
-
     def on_unmount(self) -> None:
         self._mounted_parts = None
 
     def sync(self) -> AwaitComplete:
-        if self._mounted_parts == self.output.displayed_parts and not self.body_dormant:
+        if self._mounted_parts == self.output.displayed_parts:
             return AwaitComplete()
-        return self.publish_body(self.materialize_native_body, exit_on_error=True)
+        return AwaitComplete(self._mount_parts())
 
     async def recompose(self) -> None:
-        # Preserve the native public recompose boundary before admitting work.
-        if not self.is_attached or self._pruning:
+        if not self.is_attached:
             return
-        # This body composes decoded parts, not VerticalGroup's empty compose.
-        # Revoke the native attestation only after preceding writers have joined.
-        async def rebuild():
-            async with self.lock:
-                self._mounted_parts = None
-                await self.materialize_native_body()
+        async with self.lock:
+            self._mounted_parts = None
+            await self._mount_parts()
 
-        await self._body_measurement.recompose(self, rebuild)
-
-    async def materialize_native_body(self) -> None:
-        async with self.batch():
-            output = self.output
-            parts = output.displayed_parts
-            if self._mounted_parts != parts:
-                retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
-                if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
-                    await self.remove_children()
-                    await self.mount_all(widget for part in parts for widget in part.compose(output.view))
-                self._mounted_parts = parts
+    async def _mount_parts(self) -> None:
+        output = self.output
+        parts = output.displayed_parts
+        if self._mounted_parts == parts:
+            return
+        with self.app.batch_update():
+            retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
+            if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
+                await self.remove_children()
+                await self.mount_all(widget for part in parts for widget in part.compose(output.view))
+            self._mounted_parts = parts
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:

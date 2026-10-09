@@ -48,12 +48,9 @@ class OriginalCoordinationContext(ContextDisclosure):
     async def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
         if event.collapsible is self and self._body is None:
             self._body = AgentResponse(literal_context(self.content), show_divider=False,
-                                       category=OtherCategory, prepared_content=self.source.original_content)
+                                       category=OtherCategory)
             await self.query_one(Collapsible.Contents).mount(self._body)
 
-    def retain_transcript_source(self, fragment):
-        if self._body is not None:
-            self.source.original_content = self._body.retain_sources()
 
 
 class CoordinationContext(ContextDisclosure):
@@ -75,8 +72,7 @@ class CoordinationContext(ContextDisclosure):
                 self.source.formatted = await asyncio.to_thread(format_coordination_context, self.content)
             if not self.is_attached or self.collapsed:
                 return
-            self._body = AgentResponse(self.source.formatted, show_divider=False, category=OtherCategory,
-                                       prepared_content=self.source.prepared_content)
+            self._body = AgentResponse(self.source.formatted, show_divider=False, category=OtherCategory)
             contents = self.query_one(Collapsible.Contents)
             await contents.mount(self._body)
             if self.source.formatted != self.content:
@@ -84,9 +80,3 @@ class CoordinationContext(ContextDisclosure):
                 await contents.mount(self._original)
         finally:
             self._preparing = False
-
-    def retain_transcript_source(self, fragment):
-        if self._body is not None:
-            self.source.prepared_content = self._body.retain_sources()
-        if self._original is not None:
-            self._original.retain_transcript_source(fragment)

@@ -74,7 +74,7 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
         from toad.widgets.history_anchor import HistoryWindow
 
         for window in self.query(HistoryWindow):
-            window.document_viewport.resume_source()
+            window.request_preparation()
 
     async def retire_presentation(self) -> None:
         """Release rich presentation without stopping its operational sources."""
@@ -86,7 +86,8 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
         if self.has_focus_within:
             self.screen.set_focus(None)
         for window in self.query(HistoryWindow):
-            await window.document_viewport.suspend_source()
+            window.retire_presentation_wait()
+            window.settle_preparation()
 
     async def close_presentation(self) -> None:
         """Views without retained operational sources need no domain finalization."""
@@ -98,6 +99,3 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
     async def wait_presented(self) -> bool:
         return await self.screen.frame_presentation.wait() and self.is_current
 
-    @property
-    def viewport_presentation(self):
-        return self.screen.viewport_presentation
