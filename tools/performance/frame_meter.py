@@ -33,7 +33,7 @@ def install(*, expected_pid, seconds, output):
     inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
     clock = time.monotonic_ns
     state = {"busy": 0, "current": None}
-    frames, inputs = [], {}
+    frames, inputs, slow = [], {}, []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     app_type = type(app)
     display = app_type._display
@@ -59,15 +59,20 @@ def install(*, expected_pid, seconds, output):
 
     def timed_post(self, message):
         if self is app and isinstance(message, inputs_types) and id(message) not in inputs:
-            inputs[id(message)] = [clock(), None, type(message).__name__]
+            inputs[id(message)] = [clock(), None, type(message).__name__, []]
         return post(self, message)
 
     async def timed_dispatch(self, message):
+        begin = clock()
         try:
             return await dispatch(self, message)
         finally:
+            end = clock()
             if (entry := inputs.get(id(message))) is not None:
-                entry[1] = clock()
+                entry[1] = end
+                entry[3].append((type(self).__name__, begin, end))
+            if end - begin > 50_000_000:
+                slow.append((begin, (end - begin) / 1e6, type(self).__name__, type(message).__qualname__))
 
     def finish():
         loop_events.Handle._run = run
@@ -77,7 +82,8 @@ def install(*, expected_pid, seconds, output):
         fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
-                       "frames": frames, "inputs": list(inputs.values())}, file)
+                       "frames": frames, "inputs": list(inputs.values()),
+                       "slow_handlers": slow}, file)
 
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
@@ -117,7 +123,7 @@ def summarize(path):
     ends = [end for end, _busy in frames]
     latencies = []
     position = 0
-    for arrived, handled, _kind in sorted(i for i in data["inputs"] if i[1] is not None):
+    for arrived, handled, *_ in sorted((i for i in data["inputs"] if i[1] is not None), key=lambda i: i[0]):
         while position < len(ends) and ends[position] < handled:
             position += 1
         if position < len(ends):

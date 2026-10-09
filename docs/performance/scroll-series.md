@@ -4,4 +4,5 @@ One line per change, from `tools/performance/scroll_scenario.sh` (real `toad` in
 
 | Date | Change | Total frame median (ms) | Total frame p95 (ms) | Input-to-paint median (ms) | Input-to-paint p95 (ms) | Scroll-path lines +/- | What the screen showed |
 |---|---|---|---|---|---|---|---|
-| 2026-10-09 | Baseline: published default runtime (Toad 312ff42, Textual 73036ff, Core 1a45) | 17.4 | 91.1 | 6116 | 13742 | 0/0 | Nothing moved for the whole run: no scroll, the typed message never appeared, End did not reach the tail. 132 frames in 45 s. The second tab's history stayed blank. |
+| 2026-10-09 | Baseline: published default runtime (Toad 312ff42, Textual 73036ff, Core 1a45) | 6.9 | 36.9 | 7502 | 16007 | 0/0 | Inputs are handled within milliseconds, but the frame gate withholds paint for seconds. The second tab's history stays blank. |
+| 2026-10-09 | Branch start: Toad f9b062d, Textual 66e91ec (last committed candidate) | 13.3 | 34.6 | 33147 | 36767 | 0/0 | Same. The history scrolls back eventually; End does not return to the tail. |
