@@ -31,7 +31,6 @@ from textual._paint_state import PaintState
 from textual.worker import WorkerCancelled, NoActiveWorker, get_current_worker
 from textual.worker import Worker
 from textual.await_complete import AwaitComplete
-from textual import constants, log
 
 if TYPE_CHECKING:
     from textual.document._paint import DocumentPaint
@@ -1038,15 +1037,6 @@ class MeasuredViewportBody(ViewportBody):
         # Publish actual geometry supply before pruning, without arranging the
         # whole scene again for a paint invalidation or a new writer alone.
         self.refresh(layout=self._body_measurement.changes_geometry(self, previous))
-        if constants.LOG_FILE:
-            source = getattr(self, "prepared_source", None)
-            log("body-resource", body=id(self), declaration=type(self).__name__,
-                previous=type(previous).__name__, current=type(self._body_measurement).__name__,
-                width=self._body_measurement.width, rows=self._body_measurement.rows,
-                loading=getattr(self, "loading", None), source_acquired=source is not None,
-                requested=len(getattr(self, "_pending_source", "")),
-                owns_source=(self.owns_requested_source() if hasattr(self, "owns_requested_source") else None),
-                visible=self.screen._compositor.visible_widgets.get(self))
         self.request_body_preparation()
 
     def request_body_preparation(self):
@@ -1825,13 +1815,6 @@ class DocumentViewport:
                     *self.window.reader_bodies,
                     *(body for _window, body in screen.viewport_presentation.visible_bodies((self.window,))),
                 )))
-                if constants.LOG_FILE:
-                    log("viewport-demand", window=id(self.window), pending=self._pending,
-                        source_members=len(owners), foreground=tuple(
-                            (id(owner), type(owner).__name__, type(owner._body_measurement).__name__,
-                             owner._body_measurement.width, owner._body_measurement.rows,
-                             owner.body_ready, getattr(owner, "loading", None),
-                             visible.get(owner)) for owner in foreground))
                 for owner in foreground:
                     owner.require_native_body()
                 # Reuse the same body admission and worker. Restore only the
