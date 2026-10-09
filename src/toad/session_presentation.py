@@ -43,18 +43,20 @@ class SessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
-            ReaderPosition.capture(conversation.window),
+            conversation.transcript.reader_position or ReaderPosition.capture(conversation.window),
             editor.shell_mode, conversation.input_histories, conversation.take_initial_prompt(),
         )
 
+    def prepare_transcript(self, conversation: Conversation) -> None:
+        conversation.visible_categories = self.visible_categories
+        conversation.transcript.reader_position = self.reader_position
+
     def restore(self, conversation: Conversation) -> None:
         conversation.input_histories = self.input_histories
-        conversation.visible_categories = self.visible_categories
         editor = conversation.prompt.prompt_text_area
         editor.restore_editor_state(self.editor)
         editor.shell_mode = self.shell_mode
         self.reader_position.restore(conversation.window)
-        conversation.transcript.reader_position = self.reader_position
 
 
 class SessionSurfaceLifetime(ABC):
@@ -144,10 +146,13 @@ class OperationalSessionSources:
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
-    """Own the actual mounted view; eviction retains only its existing editor state."""
+    """Own the editor and logical transcript independently of native membership."""
 
     def __init__(self) -> None:
         super().__init__()
+        from toad.transcript_publication import SessionTranscriptPresentation
+
+        self.transcript = SessionTranscriptPresentation()
         self.sources = OperationalSessionSources()
         self.widget: Conversation | None = None
 
@@ -162,8 +167,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @property
     def retained_source_bytes(self) -> int:
-        return (self.widget.window.document_viewport.retained_source_bytes
-                if self.widget is not None else 0)
+        return self.transcript.retained_source_bytes + (
+            self.widget.window.document_viewport.retained_source_bytes
+            if self.widget is not None else 0
+        )
 
     @property
     def retained_paint_bytes(self) -> int:
@@ -206,10 +213,13 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
                 conversation._initial_prompt = self.state.initial_prompt
             await content.mount(conversation, before=slot)
         yield conversation
-        await self.attach_binding(conversation)
+        if self.state is not None:
+            self.state.prepare_transcript(conversation)
+        await self.transcript.restore_documents()
         if self.state is not None:
             self.state.restore(conversation)
             self.state = None
+        await self.attach_binding(conversation)
         await conversation.prepare_retained_session()
         conversation.display = True
         if returning:
@@ -218,6 +228,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     async def close(self, screen: "MainScreen") -> None:
         await screen.app.workspace_chrome.native.dispose(screen)
+        await self.transcript.close()
         self.state = None
         await self.sources.close()
 
@@ -227,6 +238,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             return
         self.state = SessionViewState.capture(conversation)
         await self.remove_native_tree()
+
+    def capture_reader(self) -> None:
+        """Retain the source point before retirement can discard native placement."""
+        if (conversation := self.widget) is not None:
+            self.transcript.reader_position = ReaderPosition.capture(conversation.window)
 
     async def remove_native_tree(self) -> None:
         if (conversation := self.widget) is None:

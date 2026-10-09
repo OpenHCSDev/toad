@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
     from toad.widgets.transcript_history import TranscriptPageAdmission
     from toad.transcript_source_preparation import TranscriptSourcePreparation
+    from toad.widgets.transcript_fragments import TranscriptFragment
 
 
 class WindowRestoration(ABC):
@@ -29,11 +30,11 @@ class WindowRestoration(ABC):
     def current(self, window: "HistoryWindow") -> bool:
         return True
 
-    def restore(self, window: "HistoryWindow") -> None:
+    def restore(self, window: "HistoryWindow") -> bool:
         if not self.current(window):
-            return
+            return False
         with self.geometry(window):
-            self._restore(window)
+            return self._restore(window)
 
     @classmethod
     @contextmanager
@@ -63,11 +64,13 @@ class WindowRestoration(ABC):
             window.scroll_target_y = destination + compensation
 
     @abstractmethod
-    def _restore(self, window: "HistoryWindow") -> None: ...
+    def _restore(self, window: "HistoryWindow") -> bool: ...
 
 
 class ReaderPosition(WindowRestoration):
     """Source-owned reader intent, independent of retired widget geometry."""
+
+    admissions: tuple["TranscriptPageAdmission", ...] = ()
 
     @staticmethod
     def _translate_motion(window: "HistoryWindow", destination: float, compensation: float) -> None:
@@ -75,28 +78,38 @@ class ReaderPosition(WindowRestoration):
 
     @classmethod
     def capture(cls, window: "HistoryWindow") -> "ReaderPosition":
-        from toad.widgets.transcript_history import TranscriptHistory
-
         # Follow intent enters from Textual's native scroll boundary once.
         if window.follows_tail:
             return TailReaderPosition()
         # Parked pagers revoke source work and leave window.histories while
         # their original admitted pages remain in the native tree. Capture
         # those page ranges before eviction, including the parked resource.
-        return OffsetReaderPosition(window.scroll_y, tuple(
-            admission for history in window.query(TranscriptHistory)
-            if history.window is window
+        histories = tuple(window.transcript_histories())
+        admissions = tuple(
+            admission for history in histories
             for admission in history.capture_reader_admissions()
-        ))
+        )
+        visible = window.screen._compositor.visible_widgets
+        record = min(window.visible_history_items(
+            fragment for history in histories for fragment in history.fragment_views
+        ), key=lambda fragment: visible[fragment][0].y, default=None)
+        if record is not None:
+            return FragmentReaderPosition(
+                record.fragment, window.scroll_y - HistoryAnchor._offset(record, window),
+                admissions,
+            )
+        return OffsetReaderPosition(window.scroll_y, admissions)
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
-        """Tail readers use ordinary newest-page admission."""
+        """Restore admitted source ranges; tail readers have no older admission."""
+        history.restore_reader_admissions(self.admissions)
 
 
 @dataclass(frozen=True)
 class TailReaderPosition(ReaderPosition):
-    def _restore(self, window: "HistoryWindow") -> None:
+    def _restore(self, window: "HistoryWindow") -> bool:
         window.anchor()
+        return True
 
 
 @dataclass(frozen=True)
@@ -104,12 +117,43 @@ class OffsetReaderPosition(ReaderPosition):
     y: float
     admissions: tuple["TranscriptPageAdmission", ...]
 
-    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
-        history.restore_reader_admissions(self.admissions)
-
-    def _restore(self, window: "HistoryWindow") -> None:
+    def _restore(self, window: "HistoryWindow") -> bool:
         window.release_anchor()
         window.scroll_to(y=self.y, animate=False, immediate=True)
+        return True
+
+
+@dataclass(frozen=True)
+class FragmentReaderPosition(ReaderPosition):
+    """Original source record and its reading row, independent of preceding rows.
+
+    The source resource survives native eviction. No old widget, descendant
+    path or reconstructed content is retained to find its new presentation.
+    """
+
+    fragment: TranscriptFragment
+    offset: float
+    admissions: tuple["TranscriptPageAdmission", ...]
+
+    def record(self, window: "HistoryWindow"):
+        return next((record for history in window.transcript_histories()
+                     for record in history.fragment_views
+                     if record.fragment is self.fragment), None)
+
+    def current(self, window: "HistoryWindow") -> bool:
+        record = self.record(window)
+        return record is not None and record.display
+
+    def _restore(self, window: "HistoryWindow") -> bool:
+        window.release_anchor()
+        record = self.record(window)
+        if record is None or not record.body_ready:
+            return False
+        placed = HistoryAnchor._offset(record, window, require_placement=True)
+        if placed is None:
+            return False
+        window.scroll_to(y=placed + self.offset, animate=False, immediate=True)
+        return True
 
 
 class HistoryWindow(VerticalScroll):
@@ -297,6 +341,20 @@ class HistoryWindow(VerticalScroll):
                         and clip.overlaps(viewport)):
                     yield item
 
+    def transcript_histories(self):
+        """Read original pager custody without walking rich native descendants."""
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        pending = list(reversed(self.children))
+        while pending:
+            node = pending.pop()
+            if isinstance(node, TranscriptHistory):
+                yield node
+                if (projection := node.filter.state.overlay) is not None:
+                    pending.append(projection)
+            elif not isinstance(node, ViewportBody):
+                pending.extend(reversed(node.children))
+
     def reader_anchor(self, fallback: Widget) -> Widget:
         """Extent publication preserves the reader, not the changed paragraph."""
         if self.history_anchor is not None:
@@ -439,7 +497,7 @@ class HistoryAnchor(WindowRestoration):
         return (self.widget,) if self.widget.is_attached else ()
 
     @staticmethod
-    def _offset(widget: Widget, window: Widget) -> int:
+    def _offset(widget: Widget, window: Widget, *, require_placement: bool = False) -> int | None:
         offset = 0
         node = widget
         compositor = widget.screen._compositor
@@ -451,6 +509,8 @@ class HistoryAnchor(WindowRestoration):
                     else compositor._full_map)
         while node is not window:
             placed = geometry.get(node)
+            if placed is None and require_placement:
+                return None
             offset += placed.virtual_region.y if placed is not None else node.virtual_region.y
             if not isinstance(node.parent, Widget):
                 break
@@ -461,7 +521,7 @@ class HistoryAnchor(WindowRestoration):
         return window.scroll_revision == self.scroll_revision
 
     @abstractmethod
-    def _restore(self, window: HistoryWindow) -> None:
+    def _restore(self, window: HistoryWindow) -> bool:
         """Apply this policy to the newly committed layout."""
 
 
@@ -471,8 +531,9 @@ class TailAnchor(HistoryAnchor):
 
     follow_tail: ClassVar[bool] = True
 
-    def _restore(self, window: HistoryWindow) -> None:
+    def _restore(self, window: HistoryWindow) -> bool:
         window.scroll_y = window.max_scroll_y
+        return True
 
 
 @dataclass(frozen=True)
@@ -482,9 +543,11 @@ class RecordAnchor(HistoryAnchor):
     virtual_y: int
     follow_tail: ClassVar[bool] = False
 
-    def _restore(self, window: HistoryWindow) -> None:
+    def _restore(self, window: HistoryWindow) -> bool:
         if self.widget.is_attached:
             # This is document placement compensation, not a new user scroll.
             # scroll_to finishes the current animation even when the delta is
             # zero. The enclosing restoration translates its original curve.
             window.scroll_y = self.scroll_y + self._offset(self.widget, window) - self.virtual_y
+            return True
+        return False

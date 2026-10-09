@@ -194,6 +194,9 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     async def retire_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
+        # The departing scene is still committed here. Awaiting source/sidebar
+        # retirement can publish a new layout which no longer contains it.
+        self.presentation.capture_reader()
         await super().retire_presentation()
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.retire_presentation()
@@ -254,6 +257,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
                 self.project_path, self._agent, self._agent_session_id,
                 self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
                 initial_prompt=self._initial_prompt,
+                transcript=self.presentation.transcript,
             )
         self._initial_prompt = None
         return conversation

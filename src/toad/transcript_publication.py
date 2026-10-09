@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
     from toad.widgets.history_anchor import ReaderPosition
     from toad.widgets.transcript_history import TranscriptHistory
+    from toad.transcript_preparation import PreparedPageSource
 
 
 class TranscriptPublication(ABC):
@@ -339,6 +340,8 @@ class SourcePublicationRequests:
         if self.pending.empty():
             self.pending.put_nowait(publication)
         view = self.owner.view
+        if view is None:
+            return
         view.retire_core_observations(view.app.coordination_access.events)
         view.observe_core_callback(view.app.coordination_access.events, self.resume)
 
@@ -348,6 +351,8 @@ class SourcePublicationRequests:
             return False
         if self.worker is None or self.worker.is_finished:
             view = self.owner.view
+            if view is None or not view.is_attached:
+                return False
             view.retire_core_observations(view.app.coordination_access.events)
             self.worker = view.run_worker(self.publish, group="transcript-source")
         return True
@@ -500,10 +505,12 @@ class CheckpointPublication(CanonicalSourcePublication):
 
 
 class TranscriptPresentation:
-    """Owns projection frontier, invalidation and exclusive checkpoint lifetime."""
+    """Logical document custody; each attached native publisher is disposable."""
 
-    def __init__(self, view: Conversation) -> None:
-        self._view = weakref.ref(view)
+    def __init__(self, view: Conversation | None = None) -> None:
+        self._view = weakref.ref(view) if view is not None else lambda: None
+        self.documents: tuple[PreparedPageSource, ...] = ()
+        self.closed = False
         self.generation = 0
         self.dirty = False
         self.checkpoint_required = False
@@ -515,6 +522,50 @@ class TranscriptPresentation:
     @property
     def view(self) -> Conversation | None:
         return self._view()
+
+    def bind(self, view: Conversation) -> None:
+        if self.closed:
+            raise ValueError("Transcript lifetime has ended")
+        if self.view is not None and self.view is not view:
+            raise ValueError("Transcript already has a native publisher")
+        self.invalidate()
+        self._view = weakref.ref(view)
+
+    @property
+    def retained_source_bytes(self) -> int:
+        return sum(source.retained_source_bytes for source in self.documents)
+
+    async def restore_documents(self) -> None:
+        """Transfer original prepared data back to native consumers, without a read."""
+        from toad.widgets.transcript_history import TranscriptHistory
+
+        view = self.view
+        if view is None or not view.is_attached:
+            return
+        generation, window, contents = self.generation, view.window, view.contents
+        def current():
+            return (self.view is view and view.is_attached and not view._closing
+                    and self.generation == generation
+                    and view.window is window and view.contents is contents)
+
+        for source in self.documents:
+            if not current() or source.closed:
+                return
+            history = TranscriptHistory.from_source(source)
+            await history.prepare_body(current, selected=view.visible_categories)
+            if not current():
+                return
+            accepted = False
+            try:
+                await contents.mount(history)
+                if not current():
+                    return
+                history.acquire_document()
+                self.documents = tuple(document for document in self.documents if document is not source)
+                accepted = True
+            finally:
+                if not accepted and history.is_attached:
+                    await history.remove()
 
     @property
     def histories(self) -> tuple[TranscriptHistory, ...]:
@@ -548,6 +599,9 @@ class TranscriptPresentation:
         from toad.screens.session_view import SessionView
 
         view = self.view
+        if view is None:
+            return
+        await self.restore_documents()
         history = next(iter(self.histories), None)
         source = view.query_ancestor(SessionView)
         publication = self.capture(CanonicalSourcePublication)
@@ -571,8 +625,7 @@ class TranscriptPresentation:
         view = self.view
         if view is None or not view.is_attached:
             return
-        self.displayed_cursor = history.committed_cursor
-        self.reader_position = None
+        self.painted(history.committed_cursor, reader_revision=view.window.scroll_revision)
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
             await loading.remove()
         view.remove_class("-initial-loading")
@@ -615,14 +668,28 @@ class TranscriptPresentation:
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
                 if reader_revision is not None:
-                    position, self.reader_position = self.reader_position, None
-                    if position is not None and window.scroll_revision == reader_revision:
-                        position.restore(window)
+                    position = self.reader_position
+                    if position is not None:
+                        if (window.scroll_revision != reader_revision
+                                or not position.current(window)):
+                            self.reader_position = None
+                        elif position.restore(window):
+                            self.reader_position = None
+                        else:
+                            # Native membership may precede its first measured
+                            # frame. Keep the original reader until that source
+                            # has placement; a preview/clamp cannot consume it.
+                            view.call_after_refresh(record)
         view.call_after_refresh(record)
 
-    def source_changed(self) -> None:
+    def source_changed(self, view: Conversation) -> None:
+        # Construction and an old view's teardown cannot revoke the new
+        # publisher. Operational binding before mount is owned by the session.
+        if self.view is not view or not view.is_attached:
+            return
         self.source_requests.cancel()
         self.invalidate()
+        self._close_documents()
         self.dirty = self.checkpoint_required = False
         self.displayed_cursor = None
         self.reader_position = None
@@ -671,8 +738,25 @@ class TranscriptPresentation:
             self.retry()
 
     async def close(self) -> None:
+        self.closed = True
         await self.suspend()
+        self._close_documents()
+        for history in self.histories:
+            if history._page_buffer is not None:
+                history._page_buffer.close()
         self._view = lambda: None
+        self.displayed_cursor = None
+        self.reader_position = None
+
+    def _close_documents(self) -> None:
+        for source in self.documents:
+            source.close()
+        self.documents = ()
+
+    async def detach(self, view: Conversation) -> None:
+        """A view-owned transcript has no remaining consumer after detach."""
+        if self.view is view:
+            await self.close()
 
     async def suspend(self) -> None:
         """Revoke in-flight publications while retaining this source's mounted frontier."""
@@ -782,3 +866,27 @@ class TranscriptPresentation:
             await output.retire_presentations(candidates)
         finally:
             await contents.remove_children(candidates)
+
+
+class SessionTranscriptPresentation(TranscriptPresentation):
+    """The operational session retains its source after native view eviction."""
+
+    async def detach(self, view: Conversation) -> None:
+        if self.view is not view:
+            return
+        await self.suspend()
+        if self.closed or self.view is not view:
+            return
+        generation = self.generation
+        documents = []
+        for history in self.histories:
+            if history._source_state.retirement_source().reports_coverage:
+                documents.append(await history.park_document())
+                if self.closed or self.view is not view or self.generation != generation:
+                    for source in documents:
+                        source.close()
+                    return
+        self._close_documents()
+        self.documents = tuple(documents)
+        self._view = lambda: None
+        self.displayed_cursor = None
