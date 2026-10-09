@@ -38,37 +38,29 @@ class PreparedTranscriptPage(PreparedContentRange):
     admission: tuple[int, int] | None = None
     batch_size: int = field(default=PreparedContentRange.BATCH, kw_only=True)
     admitted: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
-    generation: int = field(default=0, init=False, compare=False, repr=False)
 
     # This page already owns prepared inputs. Markdown request acquisition is
     # a different lifetime; pages share only the admission implementation.
     input_ready = True
 
     def capture_admission(self) -> TranscriptPageAdmission:
-        return TranscriptPageAdmission(ref(self), self.generation, self.start, self.stop,
+        return TranscriptPageAdmission(ref(self), self.start, self.stop,
                                        self.resources(slice(self.start, self.stop)))
 
     def restore_admission(self, admission: TranscriptPageAdmission) -> None:
         if admission.page() is not self:
             return
-        if admission.generation == self.generation:
-            selected = slice(admission.start, admission.stop)
-        else:
-            # A preserved native member is the same source owner after a tail
-            # publication. Its position may move; cursor/data equality cannot
-            # establish that relation for a replaced or repartitioned member.
-            positions = [index for index in range(self.start, self.stop)
-                         if any(self.acquired(index) is member for member in admission.members)]
-            if not positions:
-                return
-            selected = slice(positions[0], positions[-1] + 1)
-        self.select_admission(selected)
+        if len(admission.members) != admission.stop - admission.start:
+            raise RuntimeError("Original transcript suppliers do not cover their admission")
+        # This resource's inputs never change. The original bounded slots and
+        # their acquisitions remain valid even after native demand moved to a
+        # disjoint tail. A replacement page owns another source lifetime.
+        self.select_admission(slice(admission.start, admission.stop))
+        self.admitted = admission.members
 
     def publish_fragments(self, fragments):
         if fragments is not self.fragments:
-            self.fragments = fragments
-            self.generation += 1
-            self.retained_bytes = 0
+            raise ValueError("Transcript input replacement requires a new prepared page")
 
     @property
     def retained_source_bytes(self):
@@ -86,15 +78,15 @@ class PreparedTranscriptPage(PreparedContentRange):
 
 @dataclass(frozen=True, eq=False)
 class TranscriptPageAdmission:
-    """Reading demand borrows this actual page's input publication.
+    """Reading demand holds this actual page's bounded source acquisitions.
 
     Reader intent retains its bounded original members, never the whole page.
-    A new input publication revokes its indices; another projection never owns
-    them merely because its backend interval happens to be equal.
+    Native admission can move independently of these original source slots.
+    Another page or projection never owns them merely because its backend
+    interval happens to be equal.
     """
 
     page: ReferenceType[PreparedTranscriptPage] = field(repr=False)
-    generation: int
     start: int
     stop: int
     members: tuple[TranscriptFragment, ...] = field(repr=False)
@@ -103,7 +95,6 @@ class TranscriptPageAdmission:
         if not isinstance(other, TranscriptPageAdmission):
             return NotImplemented
         return ((page := self.page()) is not None and page is other.page()
-                and self.generation == other.generation
                 and self.start == other.start and self.stop == other.stop)
 
 
@@ -111,15 +102,6 @@ class TranscriptPageAdmission:
 class PageRequest:
     before: TranscriptCursor | None = None
     after: TranscriptCursor | None = None
-
-
-@dataclass(frozen=True)
-class CommittedInterval:
-    """Bounded, data-only coverage reads; never prepare or mount unread bodies."""
-
-    before: TranscriptCursor
-    through: TranscriptCursor
-
 
 
 @dataclass(frozen=True)
@@ -176,6 +158,7 @@ class PreparedPageSource(ABC):
 
     def measure_admission(self, pages: tuple[PreparedTranscriptPage, ...],
                           projection: ProjectedTranscriptSource | None = None,
+                          admissions: tuple[TranscriptPageAdmission, ...] = (),
                           *, seen: set[int] | None = None) -> None:
         """Partition retained source custody in the existing preparation worker.
 
@@ -188,11 +171,16 @@ class PreparedPageSource(ABC):
         if seen is None:
             seen = set()
         for page in pages:
+            readers = tuple(member for admission in admissions if admission.page() is page
+                            for member in admission.members)
             page.retained_bytes = retained_bytes(
-                (page.page, page.fragments, page.resolved_sources()), seen=seen,
+                (page.page, page.fragments, page.resolved_sources(),
+                 readers, tuple(source for member in readers for source in member.resolved_sources())),
+                seen=seen,
             )
         if projection is not None:
-            projection.measure_admission(projection.admitted, projection.projection_source, seen=seen)
+            projection.measure_admission(projection.admitted, projection.projection_source,
+                                         admissions, seen=seen)
 
     def park(self, pages: tuple[PreparedTranscriptPage, ...],
              projection: ProjectedTranscriptSource | None = None) -> None:

@@ -185,11 +185,6 @@ class TranscriptFragment:
         """A separate projection owns independently resolved source lifetimes."""
         return self._independent(prepared_source=None, prepared_content=None)
 
-    def release_source(self):
-        self.prepared_source = None
-        self.prepared_content = None
-        return self
-
     def _independent(self, **changes):
         source = replace(self, **changes)
         # Measurement belongs to immutable input; acquisitions never enter it.
@@ -226,10 +221,6 @@ class ToolTranscriptFragment(TranscriptFragment):
     def independent(self):
         return self._independent(output_parts=tuple(part.admit() for part in self.output_parts))
 
-    def release_source(self):
-        self.output_parts = tuple(part.admit() for part in self.output_parts)
-        return self
-
     def blocks(self, *, fragment: bool = False, show_divider: bool = True):
         from toad.acp.encode_tool_call_id import encode_tool_call_id
         from toad.widgets.tool_call import ToolCall
@@ -260,11 +251,6 @@ class ContextTranscriptFragment(TranscriptFragment):
 
     def independent(self):
         return self._independent(prepared_content=None, original_content=None)
-
-    def release_source(self):
-        super().release_source()
-        self.original_content = None
-        return self
 
 
 class TranscriptFragmentConsumer(MroDispatch):

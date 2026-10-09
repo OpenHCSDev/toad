@@ -32,7 +32,7 @@ from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from toad.transcript_preparation import (
-    CategoryProjection, CommittedInterval, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageAdmission, TranscriptPageBuffer,
+    CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageAdmission, TranscriptPageBuffer,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -51,7 +51,7 @@ from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category,
 )
 from toad.widgets.transcript_fragments import (
-    TranscriptFragment, prepare_transcript_fragments, transcript_fragments,
+    TranscriptFragment, transcript_fragments,
 )
 
 if TYPE_CHECKING:
@@ -203,40 +203,6 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
             fragment=True, show_divider=not self.fragment.continuation,
         )
 
-    async def update_fragment(self, fragment: TranscriptFragment) -> None:
-        """Keep a live text leaf and its routing controls when only text changed.
-
-        A tool/result or routing change still requires normal recomposition.
-        Updating Markdown itself preserves the outer scene, subscriptions and
-        styles instead of destroying and reconstructing the entire fragment.
-        """
-        await self.publish_body(partial(self._update_fragment, fragment))
-
-    async def _update_fragment(self, fragment: TranscriptFragment) -> None:
-        previous_fragment = self.fragment
-        old_events, new_events = previous_fragment.events, fragment.events
-        self.fragment = fragment
-        category = event_category(new_events[0]) if new_events else OtherCategory
-        if category != self._message_category:
-            self.remove_class(f"-message-{self._message_category.declared_name}")
-            self.add_class(f"-message-{category.declared_name}")
-            self._message_category = category
-            apply_block_filter(self, self.selected_categories)
-        self.set_class(not any(event.routed for event in new_events), "-unrouted")
-        if (len(old_events) == len(new_events) == 1
-                and old_events[0].merge(new_events[0]) is not None
-                and previous_fragment.starts_agent_activity == fragment.starts_agent_activity
-                and previous_fragment.continuation == fragment.continuation
-                and (len(self.children) == 1 or
-                     (len(self.children) == 2 and isinstance(self.children[0], AgentActivityDivider)))):
-            leaf = self.children[-1]
-            if isinstance(leaf, (AgentResponse, AgentThought)):
-                if fragment.markdown_part is None:
-                    raise RuntimeError("Transcript Markdown update has no acquired syntax")
-                await leaf.update_part(fragment.markdown_part)
-                return
-        await self.recompose()
-
 class TranscriptPageView(VerticalGroup):
     CACHE_SUBTREE_GEOMETRY = True
 
@@ -301,15 +267,17 @@ class TranscriptPageView(VerticalGroup):
         self._fragment_views = ()
 
     def _retain_fragment_source(self, fragment, body):
-        # A source update may retain an unchanged native member while replacing
-        # the prepared inputs. Custody follows that actual admitted member.
+        # Immutable inputs never receive a frontend acquisition. This actual
+        # view-owned member can also be held by an independent reader.
         source = body.fragment
         source.retain_source(body)
         return source
 
-    def _body(self, fragment: TranscriptFragment, index: int) -> TranscriptFragmentView:
-        source = self.prepared.acquired(index)
-        return TranscriptFragmentView(fragment if source is None else source, self.visible_categories)
+    def _body(self, fragment: TranscriptFragment, index: int, *, source=None) -> TranscriptFragmentView:
+        if source is None:
+            source = self.prepared.acquired(index)
+        return TranscriptFragmentView(fragment.independent() if source is None else source,
+                                      self.visible_categories)
 
     @classmethod
     @asynccontextmanager
@@ -332,10 +300,10 @@ class TranscriptPageView(VerticalGroup):
             await owner.mount(view, before=before)
             if not current():
                 raise _PublicationRetired
-            selected = PreparedContentRange.initial_slice(fragments, batch_size, newest)
+            selected = PreparedContentRange.initial_slice(view.fragments, batch_size, newest)
             if selected != slice(view.start, view.stop):
                 previous = {view.start + index: child for index, child in enumerate(view.fragment_views)}
-                if not await view.prepared.replace_range(view, fragments, selected, previous, current):
+                if not await view.prepared.replace_range(view, view.fragments, selected, previous, current):
                     raise _PublicationRetired
             view.batch_size = batch_size
             yield view
@@ -359,9 +327,9 @@ class TranscriptPageView(VerticalGroup):
         fragments = demand.neighbors(self.fragments, self.start, self.stop, count)
         await preparation.prepare_fragments(fragments, keep_going, batch_size=self.batch_size)
 
-    async def update_fragments(
-        self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...], selected: slice,
-        current: Callable[[], bool],
+    async def select_range(
+        self, selected: slice, current: Callable[[], bool],
+        *, suppliers: tuple[TranscriptFragment, ...] | None = None,
     ) -> bool:
         if not current():
             return False
@@ -371,25 +339,13 @@ class TranscriptPageView(VerticalGroup):
                 return False
             admission = self.capture_admission()
             previous = {self.start + index: child for index, child in enumerate(self.fragment_views)}
-        start, stop = selected.start, selected.stop
-        # BodyMeasurement owns pending writers and their preceding paint. A
-        # nested paged body may itself publish into this window, so joining it
-        # cannot borrow either the source lock or the native membership fence.
-        for index, child in previous.items():
-            if not current():
-                return False
-            if start <= index < stop and child.fragment != fragments[index]:
-                await child.update_fragment(fragments[index])
-        async with window.history_lock:
-            if not current() or self.capture_admission() != admission:
-                return False
             async with window.preserve_history(None, root=self):
                 if not await self.prepared.replace_range(
-                    self, fragments, selected, previous,
+                    self, self.fragments, selected, previous,
                     lambda: current() and self.capture_admission() == admission,
+                    suppliers=suppliers,
                 ):
                     return False
-                self.page = page
             return True
 
 class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
@@ -428,7 +384,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         for page in self.pages:
             page.retain_sources()
         pages = tuple(page.prepared for page in self.pages)
-        await source.runtime.run_thread(source.measure_admission, pages, projected)
+        position = self.window.pending_reader_position
+        await source.runtime.run_thread(source.measure_admission, pages, projected,
+                                        () if position is None else position.admissions)
         source.park(pages, projected)
         return source
 
@@ -491,7 +449,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return self.loader, self.through, self.selected_categories
 
     def paging_window(self):
-        return self.through, self.capture_reader_admissions()
+        # Source progress observes admission; only an actual reader capture
+        # takes custody of the native producers' resolved acquisitions.
+        return self.through, tuple(page.capture_admission() for page in self.pages)
 
     def report_source_coverage(self) -> None:
         if self._source_state.reports_coverage:
@@ -499,12 +459,47 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
         """Retain the original source ranges that a returning reader needs."""
+        for page in self.pages:
+            if page.fragment_views:
+                page.retain_sources()
         return tuple(page.prepared.capture_admission() for page in self.pages)
 
     def restore_reader_admissions(self, admissions) -> None:
         for page in self.pages:
             for admission in admissions:
                 page.prepared.restore_admission(admission)
+        if (projection := self.filter.state.overlay) is not None:
+            projection.restore_reader_admissions(admissions)
+
+    async def restore_reader_ranges(self, admissions, current: Callable[[], bool]) -> bool:
+        """A retained native view admits the same source suppliers before paint.
+
+        Parked reconstruction sets source demand before composition. A live
+        page still has its preceding children, so it uses the original range
+        transaction to join new membership before evaluating reader placement.
+        """
+        for page in self.pages:
+            for admission in admissions:
+                if admission.page() is not page.prepared:
+                    continue
+                if not current():
+                    return False
+                if (page.start == admission.start and page.stop == admission.stop
+                        and len(page.fragment_views) == len(admission.members)
+                        and all(body.fragment is member for body, member in
+                                zip(page.fragment_views, admission.members))):
+                    continue
+                await self.prepare_fragments(admission.members, current)
+                if not await page.select_range(slice(admission.start, admission.stop), current,
+                                               suppliers=admission.members):
+                    return False
+        if (projection := self.filter.state.overlay) is not None:
+            if not await projection.restore_reader_ranges(admissions, current):
+                return False
+        if not current():
+            return False
+        self._update_edges()
+        return True
 
     def projection_changed(self) -> None:
         self.filter.changed()
@@ -682,49 +677,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             await refreshed
         return is_current()
 
-    async def update_live(self, page: TranscriptPage, *,
-                          fragments: tuple[TranscriptFragment, ...] | None = None,
-                          is_current: Callable[[], bool] | None = None) -> None:
-        """Update a live message's bounded tail without remounting unchanged fragments."""
-        self._generation += 1
-        generation = self._generation
-        window, view = self.window, self.pages[0]
-        if fragments is None:
-            fragments = await prepare_transcript_fragments(
-                page.events, getattr(self.app, "render_processes", None),
-            )
-        def current():
-            return (self.is_attached and self.window is window
-                    and generation == self._generation and self.pages[0] is view
-                    and (is_current is None or is_current()))
-
-        # The source producer already supplied syntax. Existing body writers
-        # prepare changed members; unchanged acquired documents need no eager
-        # render request from a fresh copy of their event inputs.
-        while current():
-            selected = view.prepared.update_slice(fragments, window.follows_tail)
-            async with window.history_lock:
-                if not current():
-                    return
-                if selected != view.prepared.update_slice(fragments, window.follows_tail):
-                    continue
-                async with window.preserve_history(None, root=self):
-                    self.filter.remove()
-                if selected != view.prepared.update_slice(fragments, window.follows_tail):
-                    continue
-            # Body workers have their own native custody. They may publish a
-            # nested page in the same window before this source is committed.
-            if not await view.update_fragments(
-                page, fragments, selected,
-                lambda: current() and selected == view.prepared.update_slice(fragments, window.follows_tail),
-            ):
-                continue
-            async with window.history_lock:
-                if not current():
-                    return
-                self._update_edges()
-            return
-
     def _reader(self) -> PreparedPageSource:
         reader = self._page_buffer
         if reader is None or reader.loader is not self.loader or reader.through != self.through:
@@ -829,25 +781,30 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
         destination_admission = window.document_viewport.lookahead.admission(self.budget, window.size.height)
-        if loader is None:
-            prepared = self.pages[-1].prepared
+        view = self.pages[-1]
+        if loader is None or view.page.after == self.through:
+            # The original source already supplies the newest cut. End moves
+            # its native demand; another read cannot improve its coverage.
+            prepared = view.prepared
         else:
             prepared = await self._reader().get(PageRequest(before=self.through))
         page, fragments = prepared.page, prepared.fragments
         selected = PreparedContentRange.initial_slice(fragments, destination_admission, True)
         await self.prepare_fragments(
-            fragments[selected], lambda: snapshot.current(self) and request.current(window),
+            (prepared.resources(selected) if prepared is view.prepared else fragments[selected]),
+            lambda: snapshot.current(self) and request.current(window),
         )
         async with window.history_lock:
             if not snapshot.current(self) or not request.current(window):
                 return False
-            view = self.pages[-1]
-        if CommittedInterval(view.page.before, view.page.after) == CommittedInterval(page.before, page.after):
+            if self.pages[-1] is not view:
+                return False
+        if prepared is view.prepared:
             # End changes the original admission, without locking the window
             # around pending body writers or replacing their paint resources.
             view.batch_size = destination_admission
-            if not await view.update_fragments(
-                page, fragments, selected, lambda: snapshot.current(self) and request.current(window),
+            if not await view.select_range(
+                selected, lambda: snapshot.current(self) and request.current(window),
             ):
                 return False
         async with window.history_lock:
@@ -855,7 +812,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 return False
             async with window.preserve_history(None, root=self):
                 previous = tuple(self.pages)
-                if CommittedInterval(view.page.before, view.page.after) == CommittedInterval(page.before, page.after):
+                if prepared is view.prepared:
                     self.pages = deque([view])
                 else:
                     try:
