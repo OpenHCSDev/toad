@@ -5,7 +5,7 @@ their message pumps, subscriptions and render caches have a shorter lifetime.
 The window owns admission; documents implement their own retirement/restoration.
 """
 
-from contextlib import AsyncExitStack, ExitStack, asynccontextmanager
+from contextlib import AsyncExitStack, ExitStack, asynccontextmanager, contextmanager
 from collections.abc import Awaitable, Callable, Coroutine
 from collections import OrderedDict
 from functools import partial
@@ -776,7 +776,8 @@ class PreparedDocumentBody(BodyMeasurement):
         # This is the actual publication participant's native admission. A
         # replacement source may borrow these rows, but cannot claim readiness.
         return (body.is_mounted and not body._closing
-                and self.paint.is_current(body, self.paint.width))
+                and self.paint.is_current(body, self.paint.width,
+                                          admissions=body.document_admissions))
 
     def cost(self, body):
         return body.materialized_widget_count
@@ -800,7 +801,7 @@ class PreparedDocumentBody(BodyMeasurement):
         document = body.document
         if (document is None or not self.paint.document.same_source(document)
                 or self.paint.presentation_key != document.presentation.key
-                or not document.presentation.current_for(body)
+                or not document.presentation.current_for(body, admissions=body.document_admissions)
                 or selection.start is not None or selection.end is not None):
             return None
         parts = (leaf.selected_text(selection) for leaf in self.paint.leaves)
@@ -923,6 +924,16 @@ class MeasuredViewportBody(ViewportBody):
 
     def body_preparation_targets(self):
         return self._body_measurement.preparation_targets(self)
+
+    @property
+    def document_admissions(self):
+        """Borrow only the actual synchronous native paint acquisition.
+
+        A standalone body and all asynchronous publications retain live checks.
+        The window membership supplies this resource's original screen owner.
+        """
+        return (None if self._body_viewport is None else
+                self._body_viewport.membership.presentation.document_admissions)
 
     @property
     def body_capture_pending(self):
@@ -1264,6 +1275,7 @@ class ViewportPresentation:
         self._screen = ref(screen)
         self.windows = WeakSet()
         self.anchors = set()
+        self.document_admissions = None
 
     @property
     def screen(self):
@@ -1311,6 +1323,39 @@ class ViewportPresentation:
         return (window for window in self.windows
                 if window.document_viewport.membership.displayed())
 
+    @contextmanager
+    def using_document_inputs(self):
+        """Lend one native acquisition to this synchronous preparation/paint.
+
+        Bound resources own their original source and native CSS participant.
+        Layout precedes this borrow; publication and pointer callbacks follow
+        it. Neither a later frame nor an asynchronous writer inherits it.
+        """
+        from textual.document._paint import DocumentPresentation
+
+        if self.document_admissions is not None:
+            yield
+            return
+        visible = self.screen._compositor.visible_widgets
+        pending = [owner for window in self.windows
+                   if (window.document_viewport.membership.displayed() or window in visible)
+                   for owner in window.document_viewport.owners]
+        bodies = set()
+        participants = []
+        while pending:
+            body = pending.pop()
+            if body in bodies:
+                continue
+            bodies.add(body)
+            if body._body_measurement.document_paint is not None:
+                participants.append(body)
+            pending.extend(body.child_bodies())
+        self.document_admissions = DocumentPresentation.acquire_admissions(participants)
+        try:
+            yield
+        finally:
+            self.document_admissions = None
+
     def geometry_targets(self) -> tuple[Widget, ...]:
         """Keep reader anchors and live body boxes in the same native layout.
 
@@ -1356,40 +1401,48 @@ class ViewportPresentation:
                      if (root := window.history_mutation_root) is not None)
 
     def prepare(self) -> tuple[Widget, ...]:
-        screen = self.screen
-        if not screen.is_current:
-            return ()
-        # This synchronous admission consumes one cohort from the original
-        # membership owner. Mutation, body readiness and follow checks don't
-        # independently select the same windows again within the same frame.
-        windows = tuple(self.frame_windows())
-        mutations = self.mutation_roots(windows)
-        # A retained body is the original paint owner for its whole subtree.
-        # Its new source may keep changing while those exact strips publish.
-        # Native layout and callback custody still borrow every mutation root;
-        # only paint exclusion ends when that owner has valid retained pixels.
-        deferred = dict.fromkeys(root for root in mutations
-                                 if not any(isinstance(owner, ViewportBody)
-                                            and owner.body_retained_paint_ready
-                                            for owner in root.walk_ancestors(with_self=True)))
-        pending_windows = {window for window in windows
-                           if window.history_mutating()}
-        # Each source owns its pending paint. Native publication derives the
-        # blocked geometry; this owner neither masks regions nor stops chrome.
-        for window, body in self.visible_bodies(windows):
-            if any(root is body or root in body.ancestors or body in root.ancestors
-                   for root in mutations):
-                continue
-            if not body.body_ready:
-                window.document_viewport.request()
-                deferred[body] = None
-                pending_windows.add(window)
-        for window in windows:
-            if window not in pending_windows and window.check_follow():
-                # Native UpdateScroll owns reflow. Hold this source's old
-                # coordinates until that update, without holding other roots.
-                deferred[window] = None
-        return tuple(deferred)
+        from textual.document._paint import DocumentPresentation
+
+        with self.using_document_inputs():
+            screen = self.screen
+            if not screen.is_current:
+                return ()
+            # This synchronous admission consumes one cohort from the original
+            # membership owner. Mutation, body readiness and follow checks don't
+            # independently select the same windows again within the same frame.
+            windows = tuple(self.frame_windows())
+            mutations = self.mutation_roots(windows)
+            # A retained body is the original paint owner for its whole subtree.
+            # Its new source may keep changing while those exact strips publish.
+            # Native layout and callback custody still borrow every mutation root;
+            # only paint exclusion ends when that owner has valid retained pixels.
+            deferred = dict.fromkeys(root for root in mutations
+                                     if not any(isinstance(owner, ViewportBody)
+                                                and owner.body_retained_paint_ready
+                                                for owner in root.walk_ancestors(with_self=True)))
+            pending_windows = {window for window in windows
+                               if window.history_mutating()}
+            # Each source owns its pending paint. Native publication derives the
+            # blocked geometry; this owner neither masks regions nor stops chrome.
+            for window, body in self.visible_bodies(windows):
+                if any(root is body or root in body.ancestors or body in root.ancestors
+                       for root in mutations):
+                    continue
+                if not body.body_ready:
+                    window.document_viewport.request()
+                    deferred[body] = None
+                    pending_windows.add(window)
+            for window in windows:
+                if window not in pending_windows and window.check_follow():
+                    # Native UpdateScroll owns reflow. Hold this source's old
+                    # coordinates until that update, without holding other roots.
+                    deferred[window] = None
+                    # Follow changes an original input synchronously. Custom
+                    # native pseudos may derive from it; the same paint scope
+                    # must consume the current acquisition after that change.
+                    self.document_admissions = DocumentPresentation.acquire_admissions(
+                        self.document_admissions)
+            return tuple(deferred)
 
 
 class WindowMembership:

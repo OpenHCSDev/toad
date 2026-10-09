@@ -164,6 +164,9 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     def _prepare_compositor_refresh(self) -> tuple[Widget, ...]:
         return self.viewport_presentation.prepare()
 
+    def _using_presentation_inputs(self):
+        return self.viewport_presentation.using_document_inputs()
+
     def _on_frame_published(self, deferred: tuple[Widget, ...]) -> None:
         if self is self.app.screen:
             self.frame_presentation.displayed(deferred)
