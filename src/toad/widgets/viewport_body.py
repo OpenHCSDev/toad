@@ -60,6 +60,10 @@ class ViewportBody:
     def body_geometry_targets(self) -> tuple[Widget, ...]:
         raise NotImplementedError
 
+    def body_preparation_targets(self) -> tuple["ViewportBody", ...]:
+        """Original resources that supply this body's text, not its controls."""
+        raise NotImplementedError
+
     @property
     def body_capture_pending(self) -> bool:
         raise NotImplementedError
@@ -194,8 +198,9 @@ class BodyMeasurement(ABC):
                 # finish. Join their original publications here, after the
                 # source operation released its window mutation fence, rather
                 # than making a range's Mount wait on those same writers.
-                for child in walk_depth_first(body, ViewportBody, with_root=False):
-                    await child.restore_body()
+                for child in body.child_bodies():
+                    for source in child.body_preparation_targets():
+                        await source.restore_body()
                 if body.is_attached:
                     body._update_body_measurement(
                         body._body_measurement.publication_finished(body, worker, result))
@@ -240,6 +245,10 @@ class BodyMeasurement(ABC):
 
     def geometry_targets(self, body):
         return (body,) if self.requires_geometry(body) else ()
+
+    def preparation_targets(self, body):
+        """A source/paint resource owns its original materialization worker."""
+        return (body,)
 
     def capture_requested(self):
         return self
@@ -423,6 +432,12 @@ class ChildBody(LiveBody):
     def geometry_targets(self, body):
         return tuple(dict.fromkeys((body, *(target
             for child in body.child_bodies() for target in child.body_geometry_targets()))))
+
+    def preparation_targets(self, body):
+        # The range stays live while its independent text resources retire.
+        # Its own dormant flag cannot decide whether those rows need work.
+        return tuple(target for child in body.child_bodies()
+                     for target in child.body_preparation_targets())
 
     async def retire(self, body):
         # Children retain their own source, measurement and paint. Only an
@@ -905,6 +920,9 @@ class MeasuredViewportBody(ViewportBody):
 
     def body_geometry_targets(self):
         return self._body_measurement.geometry_targets(self)
+
+    def body_preparation_targets(self):
+        return self._body_measurement.preparation_targets(self)
 
     @property
     def body_capture_pending(self):
@@ -1727,13 +1745,10 @@ class DocumentViewport:
                 # One foreground cohort produces readiness before frame
                 # admission. Per-body paint waits would hold this worker while
                 # the remaining visible dormant bodies reject that same frame.
-                restoring = tuple(owner for owner in foreground
-                                  if owner.is_attached and not owner._closing and owner.body_dormant and not owner.body_ready)
                 restored = ()
-                if restoring:
-                    anchor = self.window.reader_anchor(restoring[0])
+                if foreground:
                     started = monotonic()
-                    restored = await self._restore_bodies(restoring, anchor, demand)
+                    restored = await self._restore_bodies(foreground, None, demand)
                     if any(owner in visible for owner in restored):
                         self.lookahead.delivered(monotonic() - started)
                 # Restoration can publish new geometry, and native input can
@@ -1817,12 +1832,11 @@ class DocumentViewport:
                 for first in range(0, len(ahead_owners), self.budget.admission_items):
                     if self._pending or not self.lookahead.accepts(demand):
                         break
-                    batch = [owner for owner in ahead_owners[first:first + self.budget.admission_items]
-                             if owner in admitted and owner.is_attached and owner.body_dormant and not owner.body_ready]
+                    batch = tuple(owner for owner in ahead_owners[first:first + self.budget.admission_items]
+                                  if owner in admitted)
                     if not batch:
                         continue
-                    anchor = self.window.reader_anchor(batch[0])
-                    restored = await self._restore_bodies(tuple(batch), anchor, demand)
+                    restored = await self._restore_bodies(batch, None, demand)
                     # Live content or a width change can change actual cost.
                     # Re-admit the completed native batch before the next one.
                     if restored:
@@ -1832,12 +1846,20 @@ class DocumentViewport:
                 self._worker = None
 
     async def _restore_bodies(
-        self, owners: tuple[ViewportBody, ...], anchor: Widget, demand: PreparationDemand,
+        self, owners: tuple[ViewportBody, ...], anchor: Widget | None, demand: PreparationDemand,
     ) -> tuple[ViewportBody, ...]:
         if (not self.window.is_attached or not self.accepts_frame()
                 or not self.lookahead.accepts(demand)):
             return ()
-        owners = tuple(owner for owner in owners if owner.is_attached and not owner._closing)
+        owners = tuple(dict.fromkeys(
+            source for owner in owners for source in owner.body_preparation_targets()
+            if source.is_attached and not source._closing
+            and source.body_dormant and not source.body_ready
+        ))
+        if not owners:
+            return ()
+        if anchor is None:
+            anchor = self.window.reader_anchor(owners[0])
         async with AsyncExitStack() as mutation:
             if any(not owner.body_ready for owner in owners):
                 await mutation.enter_async_context(self.window.preserve_reader(anchor))
