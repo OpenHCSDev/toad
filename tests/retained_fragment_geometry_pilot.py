@@ -438,7 +438,7 @@ async def main():
             assert selected.body_dormant and selected.body_ready
             assert selected.retained_paint_bytes > 0
             assert not selected.reconstructible_children()
-            assert selected in viewport.admitted_bodies
+            assert viewport.retains_body(selected)
             receipt['offscreen_warm_admission_keeps_rows_not_controls'] = True
             settled_resource = selected._body_measurement
             await pilot.pause(.5)

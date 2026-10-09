@@ -963,7 +963,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def _resource_fragment_budget(self) -> int:
         """Native fragments retain the same window-wide working-set lease."""
         viewport = self.window.document_viewport
-        return sum(fragment in viewport.admitted_bodies for fragment in self.fragment_views)
+        return sum(viewport.retains_body(fragment) for fragment in self.fragment_views)
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A source projection with the ordinary pager's admission and eviction policy."""

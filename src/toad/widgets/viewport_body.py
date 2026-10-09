@@ -1571,6 +1571,15 @@ class DocumentViewport:
         self._warm.pop(ref(owner), None)
         self.admitted_bodies.discard(owner)
 
+    def retains_body(self, owner: ViewportBody) -> bool:
+        """A source boundary borrows admission from its original text bodies.
+
+        Message containers and independently prepared paragraphs have distinct
+        identities. Their declared preparation targets carry the ownership
+        relation; native registration or container identity is not admission.
+        """
+        return any(body in self.admitted_bodies for body in owner.body_preparation_targets())
+
     @property
     def source_tail(self) -> ViewportBody | None:
         """The last document body owns this window's current source edge.

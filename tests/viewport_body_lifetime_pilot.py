@@ -39,7 +39,7 @@ async def settled(view, pilot):
                 roots.append(dict(
                     measurement=type(owner._body_measurement).__name__,
                     ready=owner.body_ready, required=manager.requires_body(owner),
-                    admitted=owner in manager.admitted_bodies,
+                    admitted=manager.retains_body(owner),
                     locked=owner.lock.is_locked,
                     missing=[dict(type=type(child).__name__, size=str(child.size),
                                   ready=child.prepared_content is not None,
