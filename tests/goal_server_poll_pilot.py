@@ -47,7 +47,8 @@ async def main():
         )
         try:
             session = (await owner.new_session(cwd=str(project))).session_id
-            comms.register(Thread("peer", frozenset(), str(project)))
+            comms.register(Thread("peer", frozenset(), str(project), pid=os.getpid()))
+            comms.begin_turn("peer", "peer-turn")
             agent = Agent(
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
