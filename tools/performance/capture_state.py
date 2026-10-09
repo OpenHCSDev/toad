@@ -4,6 +4,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
             wait_history_thread=None, frame_trace=False, install_frame_trace=False,
             frames_only=False, runtime_only=False, scroll_travel_output=None, native_process_output=None):
     import asyncio
+    from contextlib import _AsyncGeneratorContextManager
     from collections import Counter
     from dataclasses import asdict
     import json
@@ -185,6 +186,12 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 seen.add(id(awaited))
                 if inspect.iscoroutine(awaited):
                     frame, following = awaited.cr_frame, awaited.cr_await
+                    if frame is not None:
+                        context = frame.f_locals.get("self")
+                        if isinstance(context, _AsyncGeneratorContextManager):
+                            following = context.gen
+                elif inspect.isasyncgen(awaited):
+                    frame, following = awaited.ag_frame, awaited.ag_await
                 elif inspect.isgenerator(awaited):
                     frame, following = awaited.gi_frame, awaited.gi_yieldfrom
                 else:
@@ -192,7 +199,9 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
                 if frame is not None:
                     chain.append({"file": frame.f_code.co_filename,
                                   "function": frame.f_code.co_qualname,
-                                  "line": frame.f_lineno})
+                                  "line": frame.f_lineno,
+                                  "owner_object_id": id(frame.f_locals["self"])
+                                  if "self" in frame.f_locals else None})
                 awaited = following
             return {"name": task.get_name(), "done": task.done(),
                     "cancelled": task.cancelled(), "await_chain": chain}
@@ -207,6 +216,7 @@ def capture(*, expected_pid, output_prefix, wait_history_seconds=0, wait_interva
         metadata["preparation_threads"] = [
             task_state(task) for task in tuple(app.preparation._thread_tasks)
         ]
+        metadata["tasks"] = [task_state(task) for task in asyncio.all_tasks()]
         # to_thread's coroutine ends at the executor boundary. Observe the
         # original OS threads too, so a suspended backend call is distinguishable
         # from UI work. Never export frame locals or argument values.
