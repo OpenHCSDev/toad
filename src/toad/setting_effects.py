@@ -15,9 +15,8 @@ def history_buffer_viewports(app: ToadApp, value: int) -> None:
 
     for view in app.workspace_sessions.views.values():
         for window in view.query(HistoryWindow):
-            viewport = window.document_viewport
-            viewport.budget = replace(viewport.budget, buffer_viewports=value)
-            viewport.request_after_refresh()
+            window.presentation_budget = replace(window.presentation_budget, buffer_viewports=value)
+            window.request_preparation()
 
 
 def conversation_layout(app: ToadApp, value: object) -> None:

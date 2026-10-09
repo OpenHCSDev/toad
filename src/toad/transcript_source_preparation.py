@@ -121,7 +121,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.schedule_source_work(partial(self._load_page, older))
 
     def request_latest(self) -> None:
-        self.window.document_viewport.destination()
+        self.window.destination()
         self.workers.cancel_group(self, self.LOOKAHEAD_GROUP)
         self._prefetch_intent = None
         self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
@@ -254,5 +254,4 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     @property
     def prefetch_distance(self) -> int:
         """Start background reads before the earlier edge enters the viewport."""
-        rows = self.window.size.height
-        return self.window.document_viewport.lookahead.ahead_rows(rows)
+        return self.window.lookahead.ahead_rows(self.window.outer_size.height)

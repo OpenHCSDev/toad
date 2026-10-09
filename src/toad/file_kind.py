@@ -54,7 +54,5 @@ class MarkdownFileKind(FileKind):
 
     @classmethod
     async def preview(cls, view, text):
-        from toad.widgets.prepared_markdown import PreparedConversationMarkdown
-        content = PreparedConversationMarkdown()
-        await view.mount(content)
-        await content.update(text)
+        from toad.widgets.line_markdown import LineMarkdown
+        await view.mount(LineMarkdown(text))

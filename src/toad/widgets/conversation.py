@@ -326,11 +326,6 @@ class CursorContainer(containers.Vertical):
 
 
 class Window(CoreEventReceiver, HistoryWindow):
-    def rebind_screen(self, previous, destination) -> None:
-        """Move the original window's layout admission with its conversation."""
-        if viewport := self.__dict__.get("document_viewport"):
-            viewport.membership.bind(destination.viewport_presentation)
-
     HELP = """\
 ## Conversation
 
@@ -521,9 +516,8 @@ class ConversationSessionBinding(containers.Vertical):
 
     async def release_native_session(self) -> None:
         """Acquire native custody before joining this surface's publications."""
-        viewport = self.window.document_viewport
         await self._release_source_resources()
-        await viewport.close()
+        self.window.settle_preparation()
         self.agent = None
         self.take_initial_prompt()
 
