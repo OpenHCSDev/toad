@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from textual.document._document import DocumentBase
 from textual.document._wrapped_document import WrappedDocument
+from textual.selection import Selection
+from textual.style import Style
 
 from toad.render_backend import ReusableRenderTask
 
@@ -146,14 +148,23 @@ class MarkdownDocumentRenderTask(ReusableRenderTask["DocumentPaint"]):
 
     document: "MarkdownDocument"
     width: int
+    root_selection: Selection | None = None
+    selection_style: Style | None = None
+    selecting: bool = False
 
     def execute(self) -> "DocumentPaint":
-        return self.document.prepare(self.width)
+        return self.document.prepare(
+            self.width, root_selection=self.root_selection,
+            selection_style=self.selection_style, selecting=self.selecting,
+        )
 
     def accept_result(self, result: object) -> "DocumentPaint":
         from textual.document._paint import DocumentPaint
 
-        if not isinstance(result, DocumentPaint) or not result.matches(self.document, self.width):
+        if not isinstance(result, DocumentPaint) or not result.matches(
+            self.document, self.width, root_selection=self.root_selection,
+            selection_style=self.selection_style, selecting=self.selecting,
+        ):
             raise TypeError("Document renderer returned paint for a different acquisition")
         return result
 
