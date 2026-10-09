@@ -44,7 +44,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
-from toad.widgets.viewport_body import MeasuredViewportBody, ViewportBody
+from toad.widgets.viewport_body import ChildBody, MeasuredViewportBody, ViewportBody
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
@@ -149,6 +149,7 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
 
     def __init__(self, fragment: TranscriptFragment, selected=None):
         super().__init__()
+        self._body_measurement = self.live_body_measurement()
         self.fragment = fragment
         self._message_category = (event_category(fragment.events[0]) if fragment.events
                                   else OtherCategory)
@@ -156,9 +157,12 @@ class TranscriptFragmentView(MeasuredViewportBody, CategorizedBlock, VerticalGro
         self.set_class(not any(event.routed for event in fragment.events), "-unrouted")
         self.set_categories(all_categories() if selected is None else selected)
 
+    def live_body_measurement(self, width=0, rows=0, widgets=1):
+        return ChildBody(width, rows, widgets)
+
     @property
     def retained_source_bytes(self) -> int:
-        return self.fragment.retained_bytes
+        return self.fragment.retained_bytes + super().retained_source_bytes
 
     def reconstructible_children(self) -> tuple[Widget, ...]:
         return tuple(self.children)

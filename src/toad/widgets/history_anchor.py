@@ -152,8 +152,12 @@ class FragmentReaderPosition(ReaderPosition):
         placed = HistoryAnchor._offset(record, window, require_placement=True)
         if placed is None:
             return False
-        window.scroll_to(y=placed + self.offset, animate=False, immediate=True)
-        return True
+        destination = placed + self.offset
+        window.scroll_to(y=destination, animate=False, immediate=True)
+        # A provisional native extent may clamp this request. Asking for a
+        # scroll does not consume source-owned reader intent; only attaining
+        # the original row in committed geometry completes restoration.
+        return window.scroll_y == destination
 
 
 class HistoryWindow(VerticalScroll):
