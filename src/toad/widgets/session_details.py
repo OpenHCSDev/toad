@@ -76,14 +76,11 @@ class SessionDetails(Collapsible):
         attention |= self.history_details.attention
         if self.delivery is not None:
             delivery = self.delivery.delivery
-            current = len(delivery["inputs"])
-            notices = delivery["historicalCount"] or delivery["dismissedHistoricalCount"]
-            if current:
-                parts.append(f"{current} awaiting start" if delivery.get("currentScope") == "owner_queue"
-                             else f"{current} unconfirmed")
+            if delivery.current:
+                parts.append(f"{delivery.current} {delivery.pending}")
                 attention = True
-            if notices:
-                parts.append(f"{notices} notices")
+            if delivery.notices:
+                parts.append(f"{delivery.notices} notices")
             if self.delivery.error:
                 parts.append("Delivery unavailable")
                 attention = True

@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 import asyncio
 from weakref import ref
 
+from agent_comms.goal_presentation import GoalSnapshot
+from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
 
 
@@ -91,13 +93,12 @@ class SessionObservation(ABC):
 
 
 class GoalObservation(SessionObservation):
-    async def read(self, agent):
+    async def read(self, agent) -> GoalSnapshot:
         return await agent.get_goal_snapshot()
 
-    def publish(self, view, result):
-        goal, execution = result
-        view.goal_display = GoalDisplay.current(goal)
-        view.goal_execution = execution
+    def publish(self, view, result: GoalSnapshot):
+        view.goal_display = GoalDisplay.current(result.goal)
+        view.goal_execution = result.execution
 
     def failed(self, view, error):
         view.goal_display = GoalUnavailable(view.goal_display.snapshot)
@@ -106,10 +107,10 @@ class GoalObservation(SessionObservation):
 class InputDeliveryObservation(SessionObservation):
     errors = (OSError, ValueError, RuntimeError, TimeoutError, KeyError)
 
-    async def read(self, agent):
+    async def read(self, agent) -> InputDelivery:
         return await agent.controller.input_delivery()
 
-    def publish(self, view, result):
+    def publish(self, view, result: InputDelivery):
         view.input_delivery = result
         view.input_delivery_error = ""
 
@@ -140,12 +141,9 @@ class InputDeliveryObservation(SessionObservation):
             self.require_owner(agent)
             if self.view.input_delivery_error:
                 raise ValueError(self.view.input_delivery_error)
-            if revision + 1 != self.revision or any(
-                result[key] != self.view.input_delivery[key]
-                for key in ("historicalCount", "dismissedHistoricalCount")
-            ):
+            if revision + 1 != self.revision or result.history_changed(self.view.input_delivery):
                 continue
-            return result["historicalInputs"]
+            return result.historical_inputs
 
     async def dismiss_history(self):
         agent = self.current_owner()

@@ -14,7 +14,8 @@ from textual.widgets import Input
 from runtime_fixture import ToadApp
 
 from toad.widgets.conversation import TurnActivity
-from toad.widgets.input_delivery import InputDeliveryBar, empty_delivery
+from agent_comms.ui_model.delivery import InputDelivery
+from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
 
@@ -32,7 +33,7 @@ async def check_disclosure(ansi):
     history = NativeHistory()
     history.status = "none"
     delivery = InputDeliveryBar()
-    delivery.delivery = {**empty_delivery(), "dismissedHistoricalCount": 5}
+    delivery.delivery = InputDelivery(dismissed_historical_count=5)
     details = SessionDetails(read, history=history, delivery=delivery)
 
     class Example(App):

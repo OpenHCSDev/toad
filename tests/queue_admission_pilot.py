@@ -5,6 +5,7 @@ admission, durable UNKNOWN, queue retirement and UI callbacks execute normally;
 this check does not claim native provider consumption.
 """
 
+from agent_comms.ui_model.delivery import InputDelivery
 import asyncio
 import os
 from pathlib import Path
@@ -77,11 +78,11 @@ async def main():
                 producer.on_connect(Client())
 
                 async def delivery(*, include_history=False):
-                    return comms.goals.input_delivery(
+                    return InputDelivery.from_wire(comms.goals.input_delivery(
                         "beta",
                         include_history=include_history,
                         awaiting_keys=producer.inputs.awaiting_input_keys("beta"),
-                    )
+                    ))
 
                 consumer.controller.input_delivery = delivery
 

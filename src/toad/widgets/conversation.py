@@ -80,6 +80,7 @@ from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber, ObservedThrobber
+from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
@@ -98,7 +99,6 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
     InputDeliveryBar,
     InputDeliveryDetails,
-    empty_delivery,
 )
 from toad.widgets.user_input import UserInput
 from toad.response_delivery import ResponseDelivery
@@ -401,7 +401,7 @@ class ConversationSessionBinding(containers.Vertical):
     def mode_selection_available(self) -> bool:
         return self.agent is not None and bool(self.agent.available_modes)
 
-    input_delivery: var[dict] = var(empty_delivery)
+    input_delivery: var[InputDelivery] = var(InputDelivery())
 
 
     input_delivery_error: var[str] = var("")
@@ -1748,10 +1748,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         self.update_title()
         self.window.anchor()
 
-    @property
-    def unresolved_inputs(self) -> list[dict]:
-        return self.input_delivery["inputs"]
-
     @handles(core_events.InputDispositionsChanged)
     async def on_input_dispositions_changed(
         self, event: CoreEventMessage
@@ -2284,7 +2280,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(GoalChangedUpdate)
     async def goal_changed(self, update: GoalChangedUpdate):
-        self.conversation.goal_observation.receive(self.message.publisher, (update.goal, update.execution))
+        self.conversation.goal_observation.receive(self.message.publisher, update)
 
     @handles(CompactionChangedUpdate)
     async def compaction_changed(self, update: CompactionChangedUpdate):

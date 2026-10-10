@@ -5,7 +5,8 @@ and observes its own stores (``agent_comms.ui_model.observation``). This owner
 caches the service it opened for one selection, runs one observation process
 for it, tells that process what the open views show, and applies its results:
 the sidebar model, open threads' status rows and their presentations. Views'
-transcript reads are requests to that process, awaited here.
+transcript reads and owner reads (goal snapshot, input delivery) are requests
+to that process, awaited here.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
-    ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, ReadRequest, RevisionObserved,
+    AwaitedRead, ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
     SidebarObserved, ViewsRetired,
     StopSidebar, ThreadsObserved,
 )
@@ -172,7 +173,7 @@ class CoordinationAccess(MroDispatch):
             self.loop.remove_reader(observed.process.fileno())
             self.app._handle_exception(error)
 
-    async def read(self, request: ReadRequest):
+    async def read(self, request: AwaitedRead):
         """A read answered in the observation service's process; its exception is raised here."""
         if self.observation is None:
             await self.preparation.run_thread(self.open_current)

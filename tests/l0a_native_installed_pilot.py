@@ -561,7 +561,7 @@ async def main(*, notification_only=False, retire_surface=False, app_type=ToadAp
                 print("QUEUE_PROJECTION", view.submissions.queue_projection, flush=True)
                 print(
                     "INPUT_DELIVERY",
-                    json.dumps(view.input_delivery, default=str),
+                    repr(view.input_delivery),
                     flush=True,
                 )
                 native_file = Path(comms.registry.require("beta").session_file)
