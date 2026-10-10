@@ -8,6 +8,7 @@ handler returns. ``python frame_meter.py RESULT.json`` prints the series-table n
 """
 
 import bisect
+import collections
 import json
 import os
 import statistics
@@ -15,6 +16,20 @@ import sys
 import threading
 import time
 import traceback
+from contextlib import contextmanager
+
+# Intervals (monotonic ns) in which a snapshot ran inside the app: the meter
+# leaves frames and lags overlapping them out, since the measurement caused them.
+PAUSES: list[tuple[int, int]] = []
+
+
+@contextmanager
+def measuring_pause():
+    begin = time.monotonic_ns()
+    try:
+        yield
+    finally:
+        PAUSES.append((begin, time.monotonic_ns()))
 
 
 def install(*, expected_pid, seconds, output):
@@ -113,10 +128,19 @@ def install(*, expected_pid, seconds, output):
 
     def timed_run(handle):
         state["current"] = begin = clock()
+        # A stall is a stretch the loop could not paint in: callbacks closer
+        # than 1 ms together form one stretch.
+        if begin - state.get("stretch_end", 0) > 1_000_000:
+            state["stretch_begin"] = begin
         try:
             return run(handle)
         finally:
-            spent = clock() - begin
+            end = clock()
+            state["stretch_end"] = end
+            stretch = (end - state["stretch_begin"]) / 1e6
+            if stretch > state.get("stall", 0):
+                state["stall"] = stretch
+            spent = end - begin
             state["busy"] += spent
             state["current"] = None
             if spent > 20_000:
@@ -159,7 +183,10 @@ def install(*, expected_pid, seconds, output):
             running = 0 if state["current"] is None else now - state["current"]
             work = (state["busy"] + running) / 1e6
             cpu = time.thread_time_ns()
-            frames.append((now, work))
+            frames.append((now, work, state.get("stall", 0)))
+            # A paint ends the stretch: the next one starts after it.
+            state["stall"] = 0
+            state["stretch_begin"] = state["stretch_end"] = now
             if work > 16:
                 # UI-thread CPU over the same interval: far below the work
                 # means the loop was waiting for the GIL, not computing.
@@ -212,7 +239,7 @@ def install(*, expected_pid, seconds, output):
         fd = os.open(partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
-                       "frames": frames, "inputs": inputs,
+                       "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,
@@ -221,6 +248,18 @@ def install(*, expected_pid, seconds, output):
                               "stats": gc.get_stats(), "threshold": gc.get_threshold()}}, file)
         os.rename(partial, output)
 
+    # Event-loop lag: how late a callback due every 4 ms actually ran is how
+    # long an input or a paint arriving then would have waited.
+    loop = asyncio.get_running_loop()
+    lags = []
+
+    def probe(due):
+        now = loop.time()
+        lags.append((clock(), round((now - due) * 1000, 2)))
+        if not state.get("finished"):
+            loop.call_at(now + 0.004, probe, now + 0.004)
+
+    loop.call_at(loop.time() + 0.004, probe, loop.time() + 0.004)
     gc.callbacks.append(collected)
     threading.Thread(target=watch_stalls, name="frame-meter-stalls", daemon=True).start()
     Widget.refresh = counted_refresh
@@ -235,6 +274,11 @@ def install(*, expected_pid, seconds, output):
 
 def targets(*, expected_pid, output):
     """Write where sidebar thread rows and session tabs are, in screen cells."""
+    with measuring_pause():
+        _targets(expected_pid=expected_pid, output=output)
+
+
+def _targets(*, expected_pid, output):
     import asyncio
     from textual._context import active_app
 
@@ -266,8 +310,17 @@ def targets(*, expected_pid, output):
         arranged = {}
         for node in compositor._layout_map:
             arranged[type(node).__name__] = arranged.get(type(node).__name__, 0) + 1
+        # What each open tab keeps warm, as the retention budget counts it.
+        retained = [{"screen": screen_.id, "widgets": owner.retained_widget_count,
+                     "source_bytes": owner.retained_source_bytes, "paint_bytes": owner.retained_paint_bytes}
+                    for screen_, owner in app.workspace_chrome.native._presentations()]
+        # Everything the current conversation mounted, shown or not, by type.
+        mounted = collections.Counter(
+            type(node).__name__ for view in app.workspace_sessions.views.values()
+            if (owner := getattr(view, "presentation", None)) is not None and owner.widget is not None
+            for node in owner.widget.walk_children(with_self=True))
         json.dump({"threads": rows, "tabs": tabs, "text": text, "message_window": message_window,
-                   "arranged": arranged}, file)
+                   "arranged": arranged, "retained": retained, "mounted": dict(mounted.most_common())}, file)
 
 
 def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Screen._refresh_layout"):
@@ -294,13 +347,16 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
     seen = {"calls": 0}
 
     def write():
-        setattr(Screen, method, original)
+        if seen["calls"] == calls:
+            setattr(Screen, method, original)
         text = io.StringIO()
         stats = pstats.Stats(profiler, stream=text)
         stats.sort_stats("cumulative").print_stats(45)
         stats.sort_stats("tottime").print_stats(30)
         # Comms reads must not run inside a layout: show who calls them.
         stats.print_callers("locked_store|store_files|registration|history_views")
+        # Restyling a subtree and mounting are the costs of building a view: who asks.
+        stats.print_callers("dom.py.*(add_class|remove_class|set_class)|widget.py.*\\(mount\\)|update_node_styles")
         partial = output + ".partial"
         with open(partial, "w") as file:
             file.write(text.getvalue())
@@ -316,8 +372,8 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
                 return await original(self, *args, **kwargs)
             finally:
                 profiler.disable()
-                if seen["calls"] == calls:
-                    write()
+                # Cumulative so far: a run with fewer calls still reports.
+                write()
     else:
         def profiled(self, *args, **kwargs):
             if seen["calls"] >= calls:
@@ -328,10 +384,17 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
                 return original(self, *args, **kwargs)
             finally:
                 profiler.disable()
-                if seen["calls"] == calls:
-                    write()
+                # Cumulative so far: a run with fewer calls still reports.
+                write()
 
     setattr(Screen, method, profiled)
+
+
+def _subject(args) -> str:
+    """Which object a traced call was for: its type and id."""
+    if not args:
+        return ""
+    return " ".join(f"{type(subject).__name__}#{getattr(subject, 'id', None) or ''}" for subject in args[:2])
 
 
 def trace_calls(*, expected_pid, output, targets, seconds=60):
@@ -358,7 +421,7 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
                 try:
                     return await __original(*args, **kwargs)
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6))
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args)))
         else:
             @functools.wraps(original)
             def timed(*args, __original=original, __target=target, **kwargs):
@@ -366,7 +429,7 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
                 try:
                     return __original(*args, **kwargs)
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6))
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args)))
         setattr(owner, name, timed)
         restore.append((owner, name, original))
 
@@ -388,14 +451,28 @@ def percentile(values, fraction):
 
 def summarize(path):
     data = json.load(open(path))
-    frames = data["frames"]
-    work = [busy for _end, busy in frames]
-    ends = [end for end, _busy in frames]
+    # Leave out what the scenario's own snapshots caused: a frame whose
+    # interval, or a lag whose wait, overlaps a snapshot (5 ms either side).
+    pauses = [(begin - 5_000_000, end + 5_000_000) for begin, end in data.get("pauses", [])]
+
+    def measured(begin, end):
+        return not any(begin < pause_end and pause_begin < end for pause_begin, pause_end in pauses)
+
+    frames = [frame for previous, frame in zip([None, *data["frames"]], data["frames"])
+              if measured(previous[0] if previous else frame[0], frame[0])]
+    data["lags"] = [(at, lag) for at, lag in data.get("lags", []) if measured(at - lag * 1e6, at)]
+    data["inputs"] = [entry for entry in data["inputs"] if measured(entry[0], entry[1] or entry[0])]
+    work = [frame[1] for frame in frames]
+    # The longest stretch per frame the loop could not paint in (older
+    # captures lack it: their frame work is the only measure).
+    stalls = [frame[2] if len(frame) > 2 else frame[1] for frame in frames]
+    ends = [frame[0] for frame in frames]
     latencies = []
     for arrived, handled, *_ in data["inputs"]:
         if handled is not None and (position := bisect.bisect_left(ends, handled)) < len(ends):
             latencies.append((ends[position] - arrived) / 1e6)
     return {
+        "snapshot_pauses": len(pauses), "frames_left_out": len(data["frames"]) - len(frames),
         "frames": len(work), "inputs": len(data["inputs"]), "painted_inputs": len(latencies),
         "frame_median_ms": round(statistics.median(work), 1) if work else None,
         "frame_p95_ms": round(percentile(work, .95), 1),
@@ -403,7 +480,23 @@ def summarize(path):
         "input_to_paint_median_ms": round(statistics.median(latencies), 1) if latencies else None,
         "input_to_paint_p95_ms": round(percentile(latencies, .95), 1),
         "input_to_paint_p99_ms": round(percentile(latencies, .99), 1),
+        "frame_worst_ms": round(max(work), 1) if work else None,
+        "frames_over_16_33_50": [sum(value > limit for value in work) for limit in (16, 33, 50)],
+        "stall_p95_ms": round(percentile(stalls, .95), 1),
+        "stall_worst_ms": round(max(stalls), 1) if stalls else None,
+        "stalls_over_16_33_50": [sum(value > limit for value in stalls) for limit in (16, 33, 50)],
+        **lag_summary(data.get("lags", [])),
     }
+
+
+def lag_summary(lags):
+    """How long input or paint would have waited: the loop's lateness."""
+    if not lags:
+        return {}
+    late = [lag for _at, lag in lags]
+    return {"lag_p95_ms": round(percentile(late, .95), 1), "lag_p99_ms": round(percentile(late, .99), 1),
+            "lag_worst_ms": round(max(late), 1),
+            "lags_over_16_33_50": [sum(value > limit for value in late) for limit in (16, 33, 50)]}
 
 
 if __name__ == "__main__":
