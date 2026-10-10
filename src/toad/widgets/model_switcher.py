@@ -119,7 +119,7 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         from toad.widgets.prompt import Prompt
         return None if prompt.simple_input else cls().data_bind(history_scope=Prompt.model_history_scope)
 
-    def compose(self) -> ComposeResult:
+    def compose_content(self) -> ComposeResult:
         yield Input(placeholder="Search models or providers…", compact=True)
         yield Static("", classes="model-count", markup=False)
         options = SelectionOptionList()
