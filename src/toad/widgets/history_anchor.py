@@ -138,10 +138,13 @@ class ReaderPosition(WindowPosition):
                 # The reader's row is on screen: an unplaced page cannot hold it.
                 if (offset := HistoryAnchor._placed_offset(page, window)) is None:
                     continue
-                row = int(window.scroll_y - offset)
-                if 0 <= row < page.line_count and (found := page.fragment_at(row)) is not None:
+                # Above this page (on the earlier-history edge), keep the
+                # reader's distance from the page's first row.
+                above = min(0, int(window.scroll_y - offset))
+                row = int(window.scroll_y - offset) - above
+                if row < page.line_count and (found := page.fragment_at(row)) is not None:
                     fragment, within = found
-                    return FragmentReaderPosition(fragment, within, admissions)
+                    return FragmentReaderPosition(fragment, within + above, admissions)
         return OffsetReaderPosition(window.scroll_y, admissions)
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
@@ -579,8 +582,12 @@ class HistoryWindow(VerticalScroll):
                     restoration.request_layout(self)
             if self._geometry_revision == geometry:
                 return
-            if (widget is not None and widget.is_attached and self.is_attached
-                    and screen.is_current):
+            # A reading position (a page row) or an anchor widget is applied
+            # by the layout that places this change; without waiting for it,
+            # the restoration ends first and the change moves the reader.
+            anchored = restoration.position is not None or (
+                widget is not None and widget.is_attached)
+            if anchored and self.is_attached and screen.is_current:
                 # A generic after-refresh callback can run before the pending
                 # mount's layout. Wait for an actual compensated reflow first.
                 await restoration.wait()
