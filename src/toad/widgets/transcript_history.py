@@ -22,6 +22,7 @@ from agent_comms.transcript_events import (
     ThinkingTranscript,
 )
 from textual import events, on
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.message import Message
@@ -215,9 +216,14 @@ class TranscriptPageView(Widget):
                 y += len(rows)
         self._layout, self._starts, self._height = layout, starts, y
         if self._pending and self.is_attached and (self._render is None or self._render.done()):
-            self._render = asyncio.create_task(self._render_pending())
+            # Layout calls this to measure: start the renderer in its own loop
+            # turn, not inside the measurement (the task factory is eager).
+            self._render = asyncio.create_task(self._render_pending(), eager_start=False)
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container, viewport, width: int) -> int:
+        # The admitted fragments wrapped at this width: the container's height
+        # is never read, so an arrangement measured at height 0 is reused.
         if width != self._width:
             self._relayout(width)
         return self._height
