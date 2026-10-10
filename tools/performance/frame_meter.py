@@ -15,7 +15,6 @@ import statistics
 import sys
 import threading
 import time
-import traceback
 from contextlib import contextmanager
 
 # Intervals (monotonic ns) in which a snapshot ran inside the app: the meter
@@ -117,9 +116,16 @@ def install(*, expected_pid, seconds, output):
             frame = sys._current_frames().get(main_thread)
             if frame is None:
                 continue
-            stack = [f"{f.name} {f.filename.split('/src/')[-1].split('site-packages/')[-1]}:{f.lineno}"
-                     for f in traceback.extract_stack(frame)
-                     if "/src/" in f.filename or "site-packages" in f.filename]
+            # Walk frames directly: extract_stack reads source lines (file
+            # I/O under the GIL), lengthening the very stall being sampled.
+            stack = []
+            while frame is not None:
+                code = frame.f_code
+                if "/src/" in code.co_filename or "site-packages" in code.co_filename:
+                    path = code.co_filename.split('/src/')[-1].split('site-packages/')[-1]
+                    stack.append(f"{code.co_name} {path}:{frame.f_lineno}")
+                frame = frame.f_back
+            stack.reverse()
             # Innermost frames show the work; the outermost Toad frames show
             # what started it.
             stack = stack[:8] + ["..."] + stack[-8:] if len(stack) > 16 else stack
