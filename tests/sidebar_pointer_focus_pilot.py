@@ -7,7 +7,7 @@ import tempfile
 from unittest.mock import PropertyMock, patch
 
 from runtime_fixture import ToadApp
-from toad.widgets.footer import Footer
+from textual.widgets import Footer
 from toad.widgets.side_bar import SideBar, SideBarToggle
 
 
