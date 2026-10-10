@@ -23,8 +23,13 @@ env -u NO_COLOR -u TOAD_VALIDATION st -g145x50 -t "$fork" -e "$bin/toad" acp "$b
 st_pid=$!
 cleanup() {
     xdotool key --window "$window" ctrl+q 2>/dev/null || true
-    sleep 3
-    kill "$st_pid" 2>/dev/null || true
+    # Wait for the app to exit by itself: killing the terminal sends SIGHUP to
+    # the app and its agents, and a process killed inside a guarded registry
+    # write leaves the live bus's registry guard pending (fail-closed for all).
+    for _ in $(seq 60); do kill -0 "$st_pid" 2>/dev/null || break; sleep 1; done
+    if kill -0 "$st_pid" 2>/dev/null; then
+        echo "app did not exit within 60 s; leaving it running rather than killing it mid-write" >&2
+    fi
     # A fork is a full copy of the parent's 141 MB history: delete it, which
     # removes its registration, per-thread state and session files.
     agent-comms stop --name "$fork" > /dev/null 2>&1 || true
