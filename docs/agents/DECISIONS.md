@@ -421,3 +421,26 @@ It also carries reader-position machinery built on widget geometry (`HistoryAnch
 - **Layout:** re-arrange only the boundary subtrees, when their own boxes are unchanged.
 
 In both cases the result is spliced into the existing map using the compositor's subtree-geometry machinery. Toad's widget model stays as it is. The work is measured with deterministic per-call traces plus an interleaved end-to-end A/B.
+
+## 2026-10-10: Direction — Pi Durable is the target agent runtime, behind one agent-backend interface
+
+Tristan: "pi durable seems to be the future so planning for it and beginning integration would be ideal. perhaps we need a proper abstraction layer so plugging in agent backends isn't slop."
+
+**Pi Durable** (`@earendil-works/pi-durable`, 1.1.0, experimental, pinned exactly) owns in one atomic store what Core and our patched Pi 0.85.1 currently split between them:
+- idempotent submissions (`requestId`), plus steer and follow-up while busy;
+- atomic commits of entries, documents and tasks;
+- tool replay rules;
+- compaction as a committed entry, with stale detection;
+- forks by entry;
+- single-process ownership of a store.
+
+**Plan:**
+1. **Forensics** of the compaction history (running) explain what keeps breaking.
+2. **Mapping:** each fact owned by Core or by the Pi patches is matched to a Pi Durable document, task or entry, and the gaps are listed (channel routing annotations, delivery, triage).
+3. **Agent-backend interface in Core:** the operations Core needs from an agent runtime, declared once.
+   - The current native Pi and Pi Durable implement it.
+   - Core keeps comms meaning: routing, channels, goals, delivery.
+   - The backend owns the session state, compaction and replay it already guarantees.
+   - The same layering as the UI: Core semantics, a backend interface, backend implementations.
+4. **One new thread on Pi Durable** behind that interface, measured.
+5. **Per-thread cutover** with a one-shot import of existing sessions. No compatibility path. Each step deletes the Core code that duplicated what Pi Durable owns.
