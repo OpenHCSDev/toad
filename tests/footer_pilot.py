@@ -7,7 +7,7 @@ from pathlib import Path
 
 from textual.widgets._footer import FooterKey
 from toad.app import ToadApp
-from toad.widgets.footer import Footer
+from textual.widgets import Footer
 
 
 async def main():

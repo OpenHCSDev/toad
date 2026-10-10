@@ -25,7 +25,7 @@ from toad.acp.agent import Agent
 from toad.core.events import AgentReady
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.conversation import ThreadLoading
-from toad.widgets.footer import Footer
+from textual.widgets import Footer
 
 
 async def until(condition):
@@ -154,8 +154,8 @@ async def main(profile_path=None, trace=False):
                                 len(screen._layout_widgets),
                             )
                             footer = screen.query_one(Footer)
-                            before_footer = footer._binding_state
-                            current_footer = footer._current_binding_state(screen)
+                            before_footer = footer._binding_projection
+                            current_footer = footer._project_bindings()
                             footer_layout_pending = footer._layout_required
                             gaps.clear()
                             started = time.perf_counter()
@@ -238,8 +238,8 @@ async def main(profile_path=None, trace=False):
                                         }
                                     )
                                     stages[-1]["footer_binding_delta"] = str(
-                                        footer._binding_state
-                                        != footer._current_binding_state(screen)
+                                        footer._binding_projection
+                                        != footer._project_bindings()
                                     )
                                     stages[-1]["footer_children"] = len(footer.children)
                                     stages[-1]["footer_layout_pending"] = (

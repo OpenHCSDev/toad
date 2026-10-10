@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from toad.widgets.footer import Footer
+from textual.widgets import Footer
 from toad.session_presentation import NativeSessionSurface
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core.events import SidebarLayoutChanged
