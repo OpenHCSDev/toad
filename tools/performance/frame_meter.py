@@ -270,42 +270,68 @@ def targets(*, expected_pid, output):
                    "arranged": arranged}, file)
 
 
-def profile_layout(*, expected_pid, output, calls=40):
-    """Deterministically profile the next screen layouts and write the top costs."""
+def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Screen._refresh_layout"):
+    """Deterministically profile the next calls of ``target`` (sync) and write the top costs.
+
+    cProfile in Python 3.12+ instruments every thread, so background threads'
+    work in the same window appears too; read callers before trusting a line.
+    """
     import cProfile
+    import importlib
+    import inspect
     import pstats
     import io
-    from textual.screen import Screen
 
     if os.getpid() != expected_pid:
         raise RuntimeError("Unexpected capture process")
-    original = Screen._refresh_layout
+    module_name, _, path = target.partition(":")
+    Screen = importlib.import_module(module_name)
+    *parents, method = path.split(".")
+    for parent in parents:
+        Screen = getattr(Screen, parent)
+    original = getattr(Screen, method)
     profiler = cProfile.Profile()
     seen = {"calls": 0}
 
-    def profiled(self, *args, **kwargs):
-        if seen["calls"] >= calls:
-            return original(self, *args, **kwargs)
-        seen["calls"] += 1
-        profiler.enable()
-        try:
-            return original(self, *args, **kwargs)
-        finally:
-            profiler.disable()
-            if seen["calls"] == calls:
-                Screen._refresh_layout = original
-                text = io.StringIO()
-                stats = pstats.Stats(profiler, stream=text)
-                stats.sort_stats("cumulative").print_stats(45)
-                stats.sort_stats("tottime").print_stats(30)
-                # Comms reads must not run inside a layout: show who calls them.
-                stats.print_callers("locked_store|store_files|registration|history_views")
-                partial = output + ".partial"
-                with open(partial, "w") as file:
-                    file.write(text.getvalue())
-                os.rename(partial, output)
+    def write():
+        setattr(Screen, method, original)
+        text = io.StringIO()
+        stats = pstats.Stats(profiler, stream=text)
+        stats.sort_stats("cumulative").print_stats(45)
+        stats.sort_stats("tottime").print_stats(30)
+        # Comms reads must not run inside a layout: show who calls them.
+        stats.print_callers("locked_store|store_files|registration|history_views")
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            file.write(text.getvalue())
+        os.rename(partial, output)
 
-    Screen._refresh_layout = profiled
+    if inspect.iscoroutinefunction(original):
+        async def profiled(self, *args, **kwargs):
+            if seen["calls"] >= calls:
+                return await original(self, *args, **kwargs)
+            seen["calls"] += 1
+            profiler.enable()
+            try:
+                return await original(self, *args, **kwargs)
+            finally:
+                profiler.disable()
+                if seen["calls"] == calls:
+                    write()
+    else:
+        def profiled(self, *args, **kwargs):
+            if seen["calls"] >= calls:
+                return original(self, *args, **kwargs)
+            seen["calls"] += 1
+            profiler.enable()
+            try:
+                return original(self, *args, **kwargs)
+            finally:
+                profiler.disable()
+                if seen["calls"] == calls:
+                    write()
+
+    setattr(Screen, method, profiled)
 
 
 def trace_calls(*, expected_pid, output, targets, seconds=60):
