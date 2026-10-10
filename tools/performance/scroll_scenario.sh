@@ -130,7 +130,16 @@ regions screen-tab-return
 # would delete it anyway) and the observation service must close the tab.
 # Archiving keeps the incarnation current, so it does not retire the view.
 "$HOME/.local/bin/agent-comms" stop --name "$fork" > /dev/null 2>&1 || true
-"$HOME/.local/bin/agent-comms" delete --name "$fork" > "$out/delete-during-run.json" 2>&1 || true
+# Core refuses while any process still references the session (the agent
+# exiting, a read in progress); retry as a person would, recording holders.
+for attempt in 1 2 3 4 5; do
+    "$HOME/.local/bin/agent-comms" delete --name "$fork" > "$out/delete-during-run.json" 2>&1 || true
+    grep -q '"deleted"' "$out/delete-during-run.json" && break
+    for pid in $(grep -o 'processes \[[0-9, ]*\]' "$out/delete-during-run.json" | grep -o '[0-9]\+'); do
+        ps -o pid,ppid,args -p "$pid" >> "$out/delete-referrers.txt" 2>&1 || true
+    done
+    sleep 1
+done
 for attempt in $(seq 10); do
     sleep 1
     regions "retire-$attempt"
