@@ -104,6 +104,7 @@ def install(*, expected_pid, seconds, output):
 
     stalls = {}
     long_callbacks = {}
+    timed_callbacks = []
     main_thread = threading.get_ident()
 
     def watch_stalls():
@@ -170,6 +171,10 @@ def install(*, expected_pid, seconds, output):
                         callback += f" [{type(target).__name__}{':' + str(label)[:40] if label else ''}]"
                 else:
                     callback = getattr(callback, "__qualname__", None) or repr(callback)[:80]
+                if spent > 8_000_000:
+                    # Each long callback's exact duration and owner; its
+                    # stall samples (same start) show where the time went.
+                    timed_callbacks.append((begin, spent / 1e6, callback))
                 # Callbacks are totalled per owner within a frame: a slow
                 # frame is usually many small callbacks, not one long one.
                 parts = state["parts"]
@@ -254,6 +259,7 @@ def install(*, expected_pid, seconds, output):
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
                        "long_callbacks": sorted(long_callbacks.items()),
+                       "timed_callbacks": timed_callbacks,
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,
@@ -375,6 +381,8 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
         stats.print_callers("locked_store|store_files|registration|history_views")
         # Restyling a subtree and mounting are the costs of building a view: who asks.
         stats.print_callers("dom.py.*(add_class|remove_class|set_class)|widget.py.*\\(mount\\)|update_node_styles")
+        # The raw statistics, for reading callers offline with pstats.
+        profiler.dump_stats(output + ".prof")
         partial = output + ".partial"
         with open(partial, "w") as file:
             file.write(text.getvalue())
@@ -408,6 +416,72 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
     setattr(Screen, method, profiled)
 
 
+def profile_within(*, expected_pid, output, target, within, calls=3):
+    """Profile each call of ``target`` (sync) made while a ``within`` call runs.
+
+    One statistics file per ``within`` call (output.N.prof). Uses the pure-Python
+    profiler on the calling thread's CPU clock: it sees only that thread
+    (cProfile instruments every thread, and the default clock counts the whole
+    process). Its times are inflated several-fold; read proportions and counts.
+    """
+    import importlib
+    import inspect
+    import profile
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+
+    def resolve(path):
+        module_name, _, attribute = path.partition(":")
+        owner = importlib.import_module(module_name)
+        *parents, method = attribute.split(".")
+        for parent in parents:
+            owner = getattr(owner, parent)
+        return owner, method, getattr(owner, method)
+
+    target_owner, target_name, target_original = resolve(target)
+    within_owner, within_name, within_original = resolve(within)
+    state = {"current": None, "count": 0}
+
+    def profiled(*args, **kwargs):
+        profiler = state["current"]
+        if profiler is None:
+            return target_original(*args, **kwargs)
+        return profiler.runcall(target_original, *args, **kwargs)
+
+    def finish(profiler):
+        state["current"] = None
+        state["count"] += 1
+        profiler.dump_stats(f"{output}.{state['count']}.prof")
+        if state["count"] >= calls:
+            setattr(target_owner, target_name, target_original)
+            setattr(within_owner, within_name, within_original)
+            with open(output, "w") as file:
+                json.dump({"profiles": state["count"]}, file)
+
+    if inspect.iscoroutinefunction(within_original):
+        async def scope(*args, **kwargs):
+            if state["count"] >= calls:
+                return await within_original(*args, **kwargs)
+            profiler = state["current"] = profile.Profile(time.thread_time)
+            try:
+                return await within_original(*args, **kwargs)
+            finally:
+                finish(profiler)
+    else:
+        def scope(*args, **kwargs):
+            if state["count"] >= calls:
+                return within_original(*args, **kwargs)
+            profiler = state["current"] = profile.Profile(time.thread_time)
+            try:
+                return within_original(*args, **kwargs)
+            finally:
+                finish(profiler)
+
+    setattr(target_owner, target_name, profiled)
+    setattr(within_owner, within_name, scope)
+
+
 def _subject(args) -> str:
     """Which object a traced call was for (its type and id), and who called it."""
     caller, chain = sys._getframe(2), []
@@ -430,7 +504,11 @@ def _result(value) -> str:
 
 
 def trace_calls(*, expected_pid, output, targets, seconds=60):
-    """Time each call of the named methods ("module:Class.method", sync or async)."""
+    """Time each call of the named methods ("module:Class.method", sync or async).
+
+    Each record: target, milliseconds, subject and callers, result, start (monotonic ns),
+    and the calling thread's CPU milliseconds (below the duration when it waited).
+    """
     import asyncio
     import functools
     import importlib
@@ -450,9 +528,10 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
         if isinstance(declared, classmethod):
             # Wrap the function itself and redeclare it as a classmethod.
             def timed_class(cls, *args, __original=declared.__func__, __target=target, **kwargs):
-                begin = time.monotonic_ns()
+                begin, cpu = time.monotonic_ns(), time.thread_time_ns()
                 result = __original(cls, *args, **kwargs)
-                calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject((cls, *args)), _result(result)))
+                calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject((cls, *args)), _result(result), begin,
+                              (time.thread_time_ns() - cpu) / 1e6))
                 return result
             setattr(owner, name, classmethod(timed_class))
             restore.append((owner, name, declared))
@@ -460,21 +539,23 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
         if inspect.iscoroutinefunction(original):
             @functools.wraps(original)
             async def timed(*args, __original=original, __target=target, **kwargs):
-                begin = time.monotonic_ns()
+                begin, cpu = time.monotonic_ns(), time.thread_time_ns()
                 try:
                     return await __original(*args, **kwargs)
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args)))
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), None, begin,
+                                  (time.thread_time_ns() - cpu) / 1e6))
         else:
             @functools.wraps(original)
             def timed(*args, __original=original, __target=target, **kwargs):
-                begin = time.monotonic_ns()
+                begin, cpu = time.monotonic_ns(), time.thread_time_ns()
                 result = None
                 try:
                     result = __original(*args, **kwargs)
                     return result
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), _result(result)))
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), _result(result), begin,
+                                  (time.thread_time_ns() - cpu) / 1e6))
         setattr(owner, name, timed)
         restore.append((owner, name, original))
 
@@ -533,6 +614,39 @@ def trace_reflows(*, expected_pid, output, seconds=60):
         Compositor.reflow_subtrees = original
         for name, method in fulls:
             setattr(Compositor, name, method)
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(records, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(seconds, finish)
+
+
+def trace_rules(*, expected_pid, output, seconds=60):
+    """Each committed style-rule change: when, on which node, which rules, and whether geometry."""
+    import asyncio
+    from textual.css.styles import Styles
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    original, records = Styles._update_rules, []
+
+    def recorded(self, rules, removals=()):
+        rules, removals = tuple(rules), tuple(removals)
+        before = dict(self._rules)
+        begin = time.monotonic_ns()
+        changed = original(self, rules, removals)
+        if changed and (node := self.node) is not None:
+            keys = sorted({key for key, value in rules if before.get(key) != value}
+                          | {key for key in removals if key in before})
+            records.append((begin, (time.monotonic_ns() - begin) / 1e6,
+                            f"{type(node).__name__}#{getattr(node, 'id', None) or ''}", keys))
+        return changed
+
+    Styles._update_rules = recorded
+
+    def finish():
+        Styles._update_rules = original
         partial = output + ".partial"
         with open(partial, "w") as file:
             json.dump(records, file)

@@ -97,12 +97,13 @@ regions screen-loaded
 if [[ -n "${PROFILE_SECONDS:-}" ]]; then
     measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle} ${PROFILE_GIL:+--gil})
 elif [[ -n "${PROFILE_LAYOUT:-}" ]]; then
-    measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"})
+    measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"}
+             ${PROFILE_WITHIN:+--profile-within "$PROFILE_WITHIN"})
 else
     measure=(--frame-meter "$meter_seconds")
 fi
 python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
-    "${measure[@]}" ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} --sudo > "$out/capture.log" 2>&1 &
+    "${measure[@]}" ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} --sudo > "$out/capture.log" 2>&1 &
 capture=$!
 sleep 2
 # Optional load: a real channel message whose replies arrive during the scenario.
