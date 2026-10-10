@@ -25,7 +25,6 @@ from typing import TYPE_CHECKING, Any, Callable, Literal
 from agent_comms import agent_events as comms_events
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
-    CompactionPublishedUpdate,
     CoordinationChangedUpdate,
     GoalChangedUpdate,
     InputFailedUpdate,
@@ -2294,29 +2293,13 @@ class ConversationCommsConsumer(MroDispatch):
     async def mcp_receipt(self, update: McpClientReceiptUpdate):
         await self.conversation.on_mcp_client_status(self.message)
 
-    @handles(CompactionPublishedUpdate)
-    async def compaction_published(self, update: CompactionPublishedUpdate):
-        self.conversation.transcript.require_checkpoint()
-
 
 
 class CompactionRenderer(MroDispatch):
     def __init__(self, conversation):
         self.conversation = conversation
 
-    @handles(comms_events.CompactionSummaryProgress)
-    async def selected_summary_progress(self, event):
-        view = self.conversation
-        if event.text and event.source is not None and event.source.summary_phase != "map":
-            from toad.live_output import CompactionStream
-            await view.output.append(CompactionStream(event.operation_id), event.text)
-
     @handles(comms_events.CompactionEnd)
     async def end(self, event):
-        view = self.conversation
-        from toad.live_output import CompactionStream
-        await view.output.finish(CompactionStream)
-        # The native entry or original journal outcome owns the retained notice.
-        # A terminal event invalidates that source; it does not create a second
-        # response with an unrelated native-output retirement claim.
-        view.transcript.require_checkpoint()
+        # Pi's saved compaction entry owns the notice; re-read the transcript.
+        self.conversation.transcript.require_checkpoint()

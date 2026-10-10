@@ -19,7 +19,7 @@ from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.private_bus_checkpoint import CapturedWireSource
-from agent_comms.selected_source import SessionRevision, SessionObservation
+from agent_comms.session_revision import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
     CodexRolloutProvenance, ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,

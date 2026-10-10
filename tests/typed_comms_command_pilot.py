@@ -21,7 +21,6 @@ from agent_comms.acp_extension import (
     CompactionChangedUpdate, GoalChangedUpdate, TurnChangedUpdate, decode_updates,
 )
 from agent_comms.child_process import ParentedProcess
-from agent_comms.compaction_progress import CompactionSourceProgress
 from agent_comms.coordinator import Coordination
 from agent_comms.field_codec import FieldCodec
 
@@ -52,10 +51,6 @@ async def produce(root: Path):
             ))
             await producer.turns.replay_turn_state(session_id)
             await producer._emit_event(session_id, agent_events.CompactionStart())
-            await producer._emit_event(session_id, agent_events.CompactionSummaryProgress(
-                operation_id="authored-progress",
-                source=CompactionSourceProgress(50, 100, "authored", 1, 2),
-            ))
             await producer._emit_event(session_id, agent_events.CompactionEnd(
                 summary="Authored phase observation; not a native committed summary",
             ))
