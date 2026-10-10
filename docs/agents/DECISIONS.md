@@ -311,3 +311,20 @@ Lag is what a person feels as jank. Tab-open latency is measured separately, by 
 - paint with much dirty: 10–22 ms;
 - `SessionObservation._run`: 13 ms;
 - `Conversation` messages: up to 19 ms.
+
+## 2026-10-09: Current goal (amended by Tristan)
+
+Tristan: "I'd like tab opening to be 16 ms UI frame time too; loading without UI hang is okay but should be optimized."
+
+**Done means,** in the installed `toad`, with #openhcs replies arriving during the scroll scenario:
+- **Every UI frame at or under 16 ms,** including opening, switching and closing tabs. Measured as worst event-loop lag, meaning how long an input or a paint waits, with snapshots left out. Report worst, counts over 16/33/50 ms, p99 and input-to-paint p95.
+- **Tab content may take longer than a frame to load,** provided the UI never hangs. Load time is optimized, not capped: report time to the first painted tab and time until content is ready.
+- **`screen_checks.py` passes.**
+- **Layering:** comms meaning lives in Core, UI semantics in `agent_comms.ui_model`, and Toad only renders. Each migrated slice deletes Toad's old path.
+- **Delivery:** published to the default runtime, agents restarted, and recorded in `docs/performance/scroll-series.md`.
+
+**Order:**
+1. Goal and delivery reads move into the service (agent working on it).
+2. Tab lifecycle work split into frame-sized steps: build the tree in background slices, keeping the session separate from it; close and mode switch.
+3. Repaints and observation handlers.
+4. Forms from declarations.
