@@ -30,13 +30,16 @@ def main():
     parser.add_argument("--profile-layout", type=int, default=0, help="Profile the next N calls of --profile-target")
     parser.add_argument("--profile-target", default="textual.screen:Screen._refresh_layout",
                         help="module:Class.method profiled by --profile-layout")
+    parser.add_argument("--profile-within", default="",
+                        help="Profile --profile-target only inside calls of this module:Class.method (frame_meter.profile_within)")
     parser.add_argument("--trace-calls", default="", help="Comma-separated module:Class.method targets to time")
     parser.add_argument("--trace-reflows", action="store_true", help="Record each scoped reflow (frame_meter.trace_reflows)")
+    parser.add_argument("--trace-rules", action="store_true", help="Record each style-rule change (frame_meter.trace_rules)")
     parser.add_argument("--trace-exit", action="store_true", help="Record who asks the app to exit (frame_meter.trace_exit)")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
-            or args.trace_reflows or args.trace_exit):
+            or args.trace_reflows or args.trace_rules or args.trace_exit):
         parser.error("Choose --profile-seconds, --frame-meter, --targets or --profile-layout")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
@@ -64,7 +67,10 @@ def main():
             calls.append((str(prefix) + "-targets", "targets", ""))
         if args.frame_meter > 0:
             calls.append((str(prefix) + "-frames", "install", f", seconds={args.frame_meter!r}"))
-        if args.profile_layout:
+        if args.profile_layout and args.profile_within:
+            calls.append((str(prefix) + "-layout", "profile_within",
+                          f", calls={args.profile_layout!r}, target={args.profile_target!r}, within={args.profile_within!r}"))
+        elif args.profile_layout:
             calls.append((str(prefix) + "-layout", "profile_layout",
                           f", calls={args.profile_layout!r}, target={args.profile_target!r}"))
         if args.trace_calls:
@@ -72,6 +78,8 @@ def main():
                           f", targets={args.trace_calls.split(',')!r}, seconds={max(args.frame_meter, 40)!r}"))
         if args.trace_exit:
             calls.append((str(prefix) + "-exit", "trace_exit", ""))
+        if args.trace_rules:
+            calls.append((str(prefix) + "-rules", "trace_rules", f", seconds={max(args.frame_meter, 40)!r}"))
         if args.trace_reflows:
             calls.append((str(prefix) + "-reflows", "trace_reflows", f", seconds={max(args.frame_meter, 40)!r}"))
         if calls:
