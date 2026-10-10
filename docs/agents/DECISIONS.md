@@ -444,3 +444,43 @@ Tristan: "pi durable seems to be the future so planning for it and beginning int
    - The same layering as the UI: Core semantics, a backend interface, backend implementations.
 4. **One new thread on Pi Durable** behind that interface, measured.
 5. **Per-thread cutover** with a one-shot import of existing sessions. No compatibility path. Each step deletes the Core code that duplicated what Pi Durable owns.
+
+## 2026-10-10: Dropped — output backpressure; GC is a minor share; the cursor's geometry read removed
+
+**Output backpressure (dropped, never committed).** The idea was to skip a frame while the terminal writer still had queued writes. A traced run of the fixed scenario shows writes do not block: 1,001 `WriterThread.write` calls, p99 0.48 ms, 9 over 1 ms, worst 6.4 ms. The writer queue holds 30 frames and never filled. The patch is kept at `~/.cache/agent-scratch/reverted-attempts/textual-output-backpressure-20261010.patch`.
+
+**Garbage collection.** The meter now records each collection pause and what it freed.
+- Worst pauses varied from run to run: 129, 72, 95, 40 and 29 ms in loaded runs; 12 ms in a quieter one.
+- Pause length does not follow the number of objects freed (7.8 ms freeing nothing; 4.6 ms freeing 1,349). The time is scanning, stretched by host contention.
+- About 140k objects are tracked and 210–250k are frozen.
+- GC is not the main cause of the waits over 16 ms. No change.
+
+**Terminal cursor (Textual, committed).** Input and TextArea pushed `App.cursor_position` from six watchers. A focus change before layout placed the widget forced a full viewport reflow just to read the widget's region. The cursor is now derived from the focused widget's published placement when a frame is written. It never arranges.
+
+Interleaved A/B, published build against the change, three rounds each, with host load 3–28:
+
+| Measure | Published | Change |
+|---|---|---|
+| Full reflows forced by a geometry read | 1, 1, 2 (42, 14, 23 ms) | 0, 0, 0 |
+| Full reflow time per run | 108, 61, 71 ms | 48, 48, 35 ms |
+| Waits over 16 ms | 34, 32, 35 | 30, 30, 30 |
+| Waits over 50 ms | 7, 4, 3 | 2, 2, 3 |
+
+Screen checks pass in all six runs.
+
+**Input-to-paint p95** swings from 18 to 240 ms in both arms. The slow inputs are the scenario's wheel bursts (25 notches at 10 ms), which queue between arrival and handling. That leads to the next item.
+
+**Wheel and move delivery (Textual, committed).** Since 1008b877e, the app waited for every forwarded mouse event to finish in the target widget's queue before it handled the next input. That fixed a real ordering bug: a MouseDown handler must have taken capture before the next pointer event is targeted. But it also made wheel bursts wait behind everything else queued on the history window.
+
+Every `capture_mouse` and `release_mouse` call sits in a MouseDown or MouseUp handler, or in hide, unmount or screen changes. So `MouseEvent.sets_capture` now declares the wait: MouseDown and MouseUp keep it; moves and wheel events are only queued.
+
+Interleaved A/B, three rounds each, host load 3–12:
+
+| Measure | Published | Change |
+|---|---|---|
+| Input-to-paint p95 | 79, 48, 166 ms | 17.6, 15.6, 16.1 ms |
+| Input-to-paint p99 | 112, 70, 237 ms | 47, 29, 31 ms |
+| Mouse handlers over 50 ms | 1, 2, 3 | 0, 0, 0 |
+| Waits over 16 ms | 31, 27, 38 | 33, 24, 19 |
+
+The pointer-capture ordering tests pass, and the set of failing tests is unchanged against HEAD.
