@@ -10,6 +10,7 @@ from typing import ClassVar
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
+from agent_comms.ui_model.observation import ReadTranscript
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms import HistoricalThread
@@ -104,17 +105,12 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             f"Channels/tags: {', '.join(sorted(item.thread.tags)) or 'none'}\n"
             f"Session: {item.thread.session_file or 'No saved session recorded'} · read only"
         )
-        loader = partial(
-            self.comms.transcripts.capture_page_read,
-            item.thread.name,
-            historical_source=item.source.key,
-        )
+        access, root = self.app.coordination_access, str(self.comms.root)
 
         async def load(**kwargs):
-            def read():
-                return loader(**kwargs).read()
-
-            return await asyncio.to_thread(read)
+            snapshot = await access.read(ReadTranscript(
+                root, item.thread.name, historical_source=item.source.key, **kwargs))
+            return snapshot.page
 
         try:
             page = await load()

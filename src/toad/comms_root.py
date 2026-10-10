@@ -4,7 +4,8 @@ Core owns route selection and guarded writes (``agent_comms.route_selection``)
 and observes its own stores (``agent_comms.ui_model.observation``). This owner
 caches the service it opened for one selection, runs one observation process
 for it, tells that process what the open views show, and applies its results:
-the sidebar model, open threads' status rows and their presentations.
+the sidebar model, open threads' status rows and their presentations. Views'
+transcript reads are requests to that process, awaited here.
 """
 
 from __future__ import annotations
@@ -17,11 +18,12 @@ from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
+from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
-    ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved, SidebarObserved,
-    ViewsRetired,
+    ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, ReadRequest, RevisionObserved,
+    SidebarObserved, ViewsRetired,
     StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel
@@ -152,6 +154,7 @@ class CoordinationAccess(MroDispatch):
 
     def retire(self, observed: ObservedCommsService) -> None:
         self.loop.remove_reader(observed.process.fileno())
+        observed.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
         # Joining the child may wait; it outlives the preparation runtime at app close.
         task = asyncio.ensure_future(asyncio.to_thread(observed.process.close))
         self.retiring.add(task)
@@ -168,6 +171,12 @@ class CoordinationAccess(MroDispatch):
             # never keep painting stale state.
             self.loop.remove_reader(observed.process.fileno())
             self.app._handle_exception(error)
+
+    async def read(self, request: ReadRequest):
+        """A read answered in the observation service's process; its exception is raised here."""
+        if self.observation is None:
+            await self.preparation.run_thread(self.open_current)
+        return await self.observation.process.read(request)
 
     @handles(RevisionObserved)
     def revision_observed(self, result: RevisionObserved, observed: ObservedCommsService) -> None:

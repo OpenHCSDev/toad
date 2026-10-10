@@ -17,8 +17,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def prepare(self, controller) -> None:
         app = self.target.app
-        controller.transcripts = controller.transcripts.with_runtime(
-            app.preparation, app.coordination_access)
+        controller.transcripts = controller.transcripts.observed(app.coordination_access)
         controller.validation = ApplicationValidationOwner(app.render_processes)
 
     def prepare_terminal(self, state) -> None:
