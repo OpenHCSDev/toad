@@ -52,7 +52,13 @@ regions() { python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out
 cell 1 25
 sleep 15
 regions sidebar
-read -r row_x row_y < <(python3 -c "import json,sys; r=json.load(open(sys.argv[1]))['threads']['parent-real-ui-20261009']; print(r[0]+4, r[1])" "$out/sidebar-targets.json")
+# Prefer the usual idle thread; with many agents running it may be scrolled
+# out of the sidebar, so take the first thread row on screen instead.
+read -r row_x row_y < <(python3 -c "
+import json,sys
+rows=json.load(open(sys.argv[1]))['threads']
+r=rows.get('parent-real-ui-20261009') or next(v for k, v in rows.items() if not k.startswith('perf-'))
+print(r[0]+4, r[1])" "$out/sidebar-targets.json")
 cell "$row_x" "$row_y"
 for attempt in $(seq 15); do
     sleep 2
