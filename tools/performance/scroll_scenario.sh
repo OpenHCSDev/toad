@@ -48,6 +48,9 @@ sleep "${LOAD_SECONDS:-25}"
 read -r width height < <(xdotool getwindowgeometry --shell "$window" | sed -n 's/^\(WIDTH\|HEIGHT\)=//p' | paste -sd' ')
 cell() { xdotool mousemove --window "$window" $(( ($1) * width / 145 + 3 )) $(( ($2) * height / 50 + height / 100 )) click 1; }
 regions() { python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name "$1" --targets --sudo > /dev/null; }
+# Who asks the app to exit is written as it happens (the app has quit by
+# itself when the second tab opened, with no error recorded).
+python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name app --trace-exit --sudo > /dev/null 2>&1 &
 # Open a second tab from the sidebar so the scenario can return to this one.
 cell 1 25
 sleep 15
