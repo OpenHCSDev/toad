@@ -418,6 +418,17 @@ def _subject(args) -> str:
     return f"{subjects} <- {' < '.join(chain)}"
 
 
+def _result(value) -> str:
+    """A short description of what a traced call returned."""
+    if value is None or isinstance(value, (bool, int, float)):
+        return repr(value)
+    fields = getattr(value, "__dataclass_fields__", None)
+    if fields:
+        shown = ", ".join(f"{field}={getattr(value, field)!r:.40}" for field in fields if field != "admissions")
+        return f"{type(value).__name__}({shown})"
+    return type(value).__name__
+
+
 def trace_calls(*, expected_pid, output, targets, seconds=60):
     """Time each call of the named methods ("module:Class.method", sync or async)."""
     import asyncio
@@ -434,7 +445,18 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
         *parents, name = path.split(".")
         for parent in parents:
             owner = getattr(owner, parent)
+        declared = inspect.getattr_static(owner, name)
         original = getattr(owner, name)
+        if isinstance(declared, classmethod):
+            # Wrap the function itself and redeclare it as a classmethod.
+            def timed_class(cls, *args, __original=declared.__func__, __target=target, **kwargs):
+                begin = time.monotonic_ns()
+                result = __original(cls, *args, **kwargs)
+                calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject((cls, *args)), _result(result)))
+                return result
+            setattr(owner, name, classmethod(timed_class))
+            restore.append((owner, name, declared))
+            continue
         if inspect.iscoroutinefunction(original):
             @functools.wraps(original)
             async def timed(*args, __original=original, __target=target, **kwargs):
@@ -447,10 +469,12 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
             @functools.wraps(original)
             def timed(*args, __original=original, __target=target, **kwargs):
                 begin = time.monotonic_ns()
+                result = None
                 try:
-                    return __original(*args, **kwargs)
+                    result = __original(*args, **kwargs)
+                    return result
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args)))
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), _result(result)))
         setattr(owner, name, timed)
         restore.append((owner, name, original))
 
