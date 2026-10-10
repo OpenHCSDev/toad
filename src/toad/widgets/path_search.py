@@ -151,9 +151,9 @@ class PathSearch(CompletionPopup):
     ]
 
     root: var[Path] = var(Path("./"))
-    paths: var[list[Path]] = var(list)
+    paths: var[list[Path]] = var(list, init=False)
     display_paths: var[list[str]] = var(list)
-    show_tree_picker: var[bool] = var(False)
+    show_tree_picker: var[bool] = var(False, init=False)
 
     option_list = getters.query_one(FuzzyPathOptionList)
     tree_view = getters.query_one(ProjectDirectoryTree)
@@ -196,8 +196,10 @@ class PathSearch(CompletionPopup):
                 path += " "
         area.insert(path)
 
-    def compose(self) -> ComposeResult:
-        with widgets.ContentSwitcher(initial="path-search-fuzzy"):
+    def compose_content(self) -> ComposeResult:
+        with widgets.ContentSwitcher(
+            initial="path-search-tree" if self.show_tree_picker else "path-search-fuzzy"
+        ):
             with containers.VerticalGroup(id="path-search-fuzzy"):
                 yield FuzzyInput(
                     compact=True, placeholder="fuzzy search \t[r]▌tab▐[/r] tree view"

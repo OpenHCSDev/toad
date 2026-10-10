@@ -108,7 +108,7 @@ class SlashComplete(CompletionPopup):
         area.insert(f"{event.command} ")
         self.action_dismiss()
 
-    def compose(self) -> ComposeResult:
+    def compose_content(self) -> ComposeResult:
         yield SlashCompleteInput(compact=True, placeholder="fuzzy search")
         yield SelectionOptionList()
 
@@ -129,7 +129,9 @@ class SlashComplete(CompletionPopup):
         self.filter_slash_commands(event.value)
 
     async def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
-        self.filter_slash_commands(self.input.value)
+        # Opening filters the current commands; a closed popup has no list.
+        if self.is_open:
+            self.filter_slash_commands(self.input.value)
 
     def filter_slash_commands(self, prompt: str) -> None:
         """Filter slash commands by the given prompt.
