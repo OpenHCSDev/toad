@@ -303,8 +303,11 @@ def _targets(*, expected_pid, output):
     from toad.widgets.history_anchor import HistoryWindow
 
     screen = app.screen
-    rows = {row.target_name: tuple(row.region) for row in screen.query("ThreadRow") if row.region}
-    tabs = [tuple(tab.region) for tab in screen.query("SessionLabel") if tab.region]
+    # Only on-screen rows and tabs can be clicked; reading an off-screen
+    # widget's region would make the app reflow its viewport.
+    shown = screen._compositor.visible_widgets
+    rows = {row.target_name: tuple(shown[row][0]) for row in screen.query("ThreadRow") if row in shown}
+    tabs = [tuple(shown[tab][0]) for tab in screen.query("SessionLabel") if tab in shown]
     # What the screen actually shows, row by row, and the visible message
     # window: the scenario checks blank runs, placeholders, End and tab return
     # from this text rather than from screenshots.
@@ -403,10 +406,13 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
 
 
 def _subject(args) -> str:
-    """Which object a traced call was for: its type and id."""
-    if not args:
-        return ""
-    return " ".join(f"{type(subject).__name__}#{getattr(subject, 'id', None) or ''}" for subject in args[:2])
+    """Which object a traced call was for (its type and id), and who called it."""
+    caller, chain = sys._getframe(2), []
+    while caller is not None and len(chain) < 8:
+        chain.append(f"{caller.f_code.co_qualname}:{caller.f_lineno}")
+        caller = caller.f_back
+    subjects = " ".join(f"{type(subject).__name__}#{getattr(subject, 'id', None) or ''}" for subject in args[:2])
+    return f"{subjects} <- {' < '.join(chain)}"
 
 
 def trace_calls(*, expected_pid, output, targets, seconds=60):
