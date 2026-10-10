@@ -1,8 +1,9 @@
 from toad.block_navigation import ConversationBlock
-from textual.widgets import Markdown
+from toad.widgets.line_markdown import LineMarkdown
 
 
+class MarkdownNote(ConversationBlock, LineMarkdown):
+    """A note in the conversation, drawn as prepared lines like any response."""
 
-class MarkdownNote(ConversationBlock, Markdown):
     def get_clipboard_text(self) -> str | None:
-        return self.source
+        return self.text
