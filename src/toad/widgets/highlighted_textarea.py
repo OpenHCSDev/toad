@@ -86,8 +86,13 @@ class HighlightedTextArea(TextArea):
         self._highlight_lines = None
         self._text_cache.clear()
 
-    def notify_style_update(self) -> None:
+    def watch_highlight_language(self) -> None:
         self._clear_caches()
+
+    def notify_style_update(self) -> None:
+        # Highlighted content resolves its styles when rendered: only the
+        # rendered lines depend on CSS, not the (costly) highlighting.
+        self._text_cache.clear()
         return super().notify_style_update()
 
     @property
