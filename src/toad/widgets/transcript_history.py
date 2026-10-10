@@ -485,8 +485,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             for page in self.pages:
                 if (offset := HistoryAnchor._placed_offset(page, window)) is None:
                     continue
-                row = int(window.scroll_y - offset)
-                if 0 <= row < page.line_count and (found := page.fragment_at(row)) is not None:
+                # Above this page (on the earlier-history edge), the reader
+                # keeps this page's first row where it is shown: rows the page
+                # gains above it are added out of view, not under the reader.
+                row = max(0, int(window.scroll_y - offset))
+                if row < page.line_count and (found := page.fragment_at(row)) is not None:
                     fragment, _within = found
                     return LineAnchor(page, window.scroll_y, window.scroll_revision,
                                       fragment=fragment, virtual_y=offset + page.fragment_line(fragment))
