@@ -52,7 +52,7 @@ def install(*, expected_pid, seconds, output):
     inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
     clock = time.monotonic_ns
     state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
-    frames, inputs, slow, slow_frames = [], [], [], []
+    frames, inputs, slow, slow_frames, gc_pauses = [], [], [], [], []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     refresh = Widget.refresh
     layouts = {}
@@ -185,7 +185,9 @@ def install(*, expected_pid, seconds, output):
         elif (began := state.pop("gc", None)) is not None:
             parts = state["parts"]
             label = f"gc generation {info['generation']}"
-            parts[label] = parts.get(label, 0) + (clock() - began) / 1e6
+            spent = (clock() - began) / 1e6
+            parts[label] = parts.get(label, 0) + spent
+            gc_pauses.append((began, spent, info["generation"], info["collected"], info["uncollectable"]))
 
     def timed_display(self, screen, renderable):
         result = display(self, screen, renderable)
@@ -257,7 +259,8 @@ def install(*, expected_pid, seconds, output):
                        "binding_refreshes": binding_refreshes,
                        "stalls": sorted(stalls.items(), key=lambda item: -item[1])[:40],
                        "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
-                              "stats": gc.get_stats(), "threshold": gc.get_threshold()}}, file)
+                              "stats": gc.get_stats(), "threshold": gc.get_threshold(),
+                              "pauses": gc_pauses}}, file)
         os.rename(partial, output)
 
     # Event-loop lag: how late a callback due every 4 ms actually ran is how
@@ -457,6 +460,37 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
         partial = output + ".partial"
         with open(partial, "w") as file:
             json.dump(calls, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(seconds, finish)
+
+
+def trace_reflows(*, expected_pid, output, seconds=60):
+    """Each scoped reflow: duration, roots, widgets placed, shown and hidden."""
+    import asyncio
+    from textual._compositor import Compositor
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    original, records = Compositor.reflow_subtrees, []
+
+    def timed(self, parent, size, roots, **kwargs):
+        roots = tuple(roots)
+        begin = time.monotonic_ns()
+        result = original(self, parent, size, roots, **kwargs)
+        records.append(((time.monotonic_ns() - begin) / 1e6,
+                        [f"{type(root).__name__}#{root.id or ''}" for root in roots],
+                        None if result is None else (len(result.placed), len(result.shown), len(result.hidden)),
+                        len(self._visible_map or ())))
+        return result
+
+    Compositor.reflow_subtrees = timed
+
+    def finish():
+        Compositor.reflow_subtrees = original
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(records, file)
         os.rename(partial, output)
 
     asyncio.get_running_loop().call_later(seconds, finish)
