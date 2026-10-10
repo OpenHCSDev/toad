@@ -484,3 +484,8 @@ Interleaved A/B, three rounds each, host load 3–12:
 | Waits over 16 ms | 31, 27, 38 | 33, 24, 19 |
 
 The pointer-capture ordering tests pass, and the set of failing tests is unchanged against HEAD.
+
+**Correction (same day).** I first read the 565 ms in the slow-frame record as the history's frame gate withholding paint. It is the idle time since the previous frame. The record shows something else: that frame covered 130 ms of loop time but only 28 ms of UI-thread CPU, so the UI thread spent about 100 ms waiting for the GIL.
+- A GIL profile of the scenario puts background threads at about 8% of GIL-held samples. All of it is Core reads decoding records (`field_codec` decoding with `abc` subclass checks, plus registry snapshots).
+- The live registry is 314 KB, decodes with `json.load` in 2 ms, and was not written during a 20 s watch, so registry decoding is not the cause.
+- The 100 ms wait is not yet attributed to a single holder. That needs time-aligned samples.
