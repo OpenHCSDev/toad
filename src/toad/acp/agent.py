@@ -5,6 +5,7 @@ from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
 from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
+from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
 from toad.acp.permission_controller import PermissionController
@@ -129,32 +130,8 @@ class Agent(AgentBase):
         yield self.command
 
     def log(self, line: str) -> None:
-        """Write text to the agent log file.
-
-        Args:
-            line: Text to be logged.
-
-        """
-        self.controller.start_operation(self._log(line))
-
-    async def _log(self, line: str) -> None:
-        """Write text to the agent log file.
-
-        Intended to be called from `log`
-
-        Args:
-            line: Text to be logged.
-        """
-
-        def write_log(log_file_path: Path, line: str):
-            """Write log in a thread."""
-            try:
-                with log_file_path.open("at") as log_file:
-                    log_file.write(f"{line.rstrip()}\n")
-            except OSError:
-                pass
-
-        await asyncio.to_thread(write_log, self.presentation.log_path, line)
+        """Append a line to this agent's log file (written off the UI thread)."""
+        AgentLog.shared().append(self.presentation.log_path, line)
 
     def get_info(self) -> str:
         return self.definition.name
