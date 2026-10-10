@@ -111,18 +111,26 @@ sleep 4
 # Screen text is sampled during the hold, not only after it.
 ( sleep 0.8; regions screen-pageup-hold-1; sleep 0.6; regions screen-pageup-hold-2 ) &
 holding=$!
-xdotool key --repeat 90 --delay 33 Prior
+xdotool key --repeat "${PAGEUP_REPEAT:-90}" --delay 33 Prior
 wait "$holding"
 import -window "$window" "$out/pageup.png" 2>/dev/null || true
 regions screen-pageup
-sleep 1
+# Without input the reader's view holds still: loading earlier history above
+# it must not move what is shown (checked by screen_checks.py).
+sleep 2
+regions screen-pageup-idle-1
+sleep 2
+regions screen-pageup-idle-2
 # Wheel bursts with reversal over the history.
 xdotool mousemove --window "$window" 400 300
 for _ in 1 2 3; do
     xdotool click --repeat 25 --delay 10 4
     xdotool click --repeat 25 --delay 10 5
 done
-sleep 1
+sleep 2
+regions screen-wheel-idle-1
+sleep 2
+regions screen-wheel-idle-2
 # End returns to the tail (End belongs to the history once it has focus).
 xdotool click 1
 xdotool key End

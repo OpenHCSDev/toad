@@ -6,7 +6,10 @@ the visible message window. Exits non-zero, listing every violation, if:
   message window in any snapshot (loaded, during held PageUp, after PageUp,
   End, tab return);
 - after End the window is not at its bottom following the tail;
-- after tab return the window is not filled and at the tail.
+- after tab return the window is not filled and at the tail;
+- with no input, the message window's text changes between the two idle
+  snapshots after held PageUp, or after the wheel bursts (the view moved by
+  itself, for example while earlier history loaded above it).
 """
 
 import json
@@ -56,6 +59,13 @@ def main(directory):
             failures.append(f"{name}: {seen[name]['placeholders']} '{PLACEHOLDER}' rows")
         if seen[name]["blank_run"] >= BLANK_RUN:
             failures.append(f"{name}: {seen[name]['blank_run']} consecutive blank rows")
+    for phase in ("pageup-idle", "wheel-idle"):
+        first, second = (out / f"screen-{phase}-{n}-targets.json" for n in (1, 2))
+        if first.exists() and second.exists():
+            before, after = (window_rows(json.loads(path.read_text())) for path in (first, second))
+            if before != after:
+                moved = sum(a != b for a, b in zip(before, after))
+                failures.append(f"{phase}: the view moved without input ({moved} rows changed)")
     for name in ("end", "tab-return"):
         state = seen.get(name)
         if state is None:
