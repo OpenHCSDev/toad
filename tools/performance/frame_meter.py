@@ -484,10 +484,31 @@ def trace_reflows(*, expected_pid, output, seconds=60):
                         len(self._visible_map or ())))
         return result
 
+    def full(name):
+        method = getattr(Compositor, name)
+
+        def timed_full(self, parent, size, *args, **kwargs):
+            # What the screen was asked to lay out when it could not scope it.
+            pending = getattr(parent, "_layout_widgets", {})
+            requests = sorted(f"{type(widget).__name__}#{widget.id or ''}"
+                              + ("" if widget.styles.auto_dimensions else "!")
+                              for widget in pending)
+            begin = time.monotonic_ns()
+            result = method(self, parent, size, *args, **kwargs)
+            records.append(((time.monotonic_ns() - begin) / 1e6, [name, *requests], "full",
+                            len(self._visible_map or ())))
+            return result
+
+        setattr(Compositor, name, timed_full)
+        return name, method
+
     Compositor.reflow_subtrees = timed
+    fulls = [full("reflow"), full("reflow_visible")]
 
     def finish():
         Compositor.reflow_subtrees = original
+        for name, method in fulls:
+            setattr(Compositor, name, method)
         partial = output + ".partial"
         with open(partial, "w") as file:
             json.dump(records, file)
