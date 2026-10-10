@@ -1,65 +1,44 @@
-"""Operational read custody; rich pager retirement does not discard source reuse."""
+"""Transcript reads for a view, answered by Core's observation service.
+
+The UI process does not read Core's transcript stores. A page read, a
+published page's currency check and message notifications are requests to the
+observation process (``agent_comms.ui_model.observation``) that
+``CoordinationAccess`` owns; the answer arrives as a finished page and its
+witness, or as the exception the read raised. The in-process service binding
+remains for the reads that have not moved: the owner presentation that settles
+turns, owner requests and input capture.
+"""
 
 from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from functools import partial
 from pathlib import Path
 
 from agent_comms.comms import wire
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
-from agent_comms.coordination_errors import StaleRevision
-from agent_comms.transcripts import TranscriptRead, TranscriptPage, TranscriptReadIdentity
-
-from toad.work_preparation import (
-    ScopedWork, SerializedWork, ThreadWork, PreparationRuntime, WorkKey,
+from agent_comms.transcripts import TranscriptReadIdentity
+from agent_comms.ui_model.observation import (
+    ReadNotifications, ReadRequest, ReadTranscript, RefreshTranscript,
 )
 
 
-@dataclass(frozen=True)
-class NativeTranscriptReadWork(ScopedWork[TranscriptPage],
-                               SerializedWork[TranscriptPage], ThreadWork[TranscriptPage]):
-    read: TranscriptRead
-
-    @property
-    def work_key(self) -> WorkKey:
-        # The source owner names page content independently of annotations.
-        # Notification/reader changes refresh their projections without causing
-        # another native history read or inventing a second source identity.
-        return WorkKey(NativeTranscriptReadWork, self.read.identity.content_identity)
-
-    def prepare(self) -> TranscriptPage:
-        return self.read.read()
-
-
-@dataclass(frozen=True)
-class PublishedNativeTranscriptReadWork(NativeTranscriptReadWork):
-    page: TranscriptPage
-
-    def prepare(self) -> TranscriptPage:
-        if not self.read.content_current():
-            raise StaleRevision("Published transcript inputs changed before admission")
-        return self.page
-
-
 class CoordinationTranscriptReader(ABC):
-    """One read-side Comms service, shared by transcript/status/owner requests."""
+    """One agent's transcript reads, and the read-side Comms service its other reads bind."""
 
     def __init__(self):
         self._reader = None
         self._lock = asyncio.Lock()
 
     @abstractmethod
-    async def deliver(self, work: NativeTranscriptReadWork) -> TranscriptPage: ...
+    async def read(self, request: ReadRequest): ...
 
     async def service(self, root):
         return await asyncio.to_thread(wire, root)
 
-    def with_runtime(self, runtime: PreparationRuntime, access) -> CoordinationTranscriptReader:
-        return PreparedTranscriptReadDelivery(runtime, access)
+    def observed(self, access) -> CoordinationTranscriptReader:
+        return ObservedTranscriptReader(access)
 
     @asynccontextmanager
     async def bind(self, root: str):
@@ -73,24 +52,13 @@ class CoordinationTranscriptReader(ABC):
         yield reader
 
     async def publication(self, update: TranscriptSnapshotUpdate) -> TranscriptSnapshotUpdate:
+        """The published page while its witness is current, else the current page."""
         identity = update.identity
-        async with self.bind(identity.root) as reader:
-            read = TranscriptRead(reader.transcripts, identity)
-        try:
-            page = await self.deliver(PublishedNativeTranscriptReadWork(read, update.page))
-        except StaleRevision:
-            return await self.snapshot(identity.root, identity.requested_name,
-                before=identity.before, after=identity.after, through=identity.through,
-                historical_source=identity.historical_source)
-        if not await asyncio.to_thread(read.content_current):
-            return await self.snapshot(identity.root, identity.requested_name,
-                before=identity.before, after=identity.after, through=identity.through,
-                historical_source=identity.historical_source)
-        return TranscriptSnapshotUpdate(page, identity)
+        current = await self.read(RefreshTranscript(identity.root, identity))
+        return update if current is None else current
 
     async def notifications(self, root, references):
-        async with self.bind(root) as reader:
-            return await asyncio.to_thread(reader.views.message_notifications_for_references, references)
+        return await self.read(ReadNotifications(root, tuple(references)))
 
     async def page(self, root, thread, *, before=None, after=None, through=None,
                    read_identity: TranscriptReadIdentity | None = None,
@@ -101,41 +69,28 @@ class CoordinationTranscriptReader(ABC):
 
     async def snapshot(self, root, thread, *, before=None, after=None, through=None,
                        read_identity: TranscriptReadIdentity | None = None,
-                       historical_source: str | None = None):
-        async with self.bind(root) as reader:
-            if read_identity is None:
-                request = partial(reader.transcripts.capture_page_read, thread,
-                                  historical_source=historical_source)
-            else:
-                if historical_source is not None and historical_source != read_identity.historical_source:
-                    raise StaleRevision("Published transcript belongs to another recorded source")
-                request = partial(reader.transcripts.bind_page_read, thread, read_identity)
-            read = await asyncio.to_thread(request, before=before, after=after, through=through)
-        page = await self.deliver(NativeTranscriptReadWork(read))
-        # The preparation cache may supply an earlier result. Its original
-        # content witness still has to admit it; annotations refresh separately.
-        if not await asyncio.to_thread(read.content_current):
-            raise StaleRevision("Transcript content changed before publication")
-        return TranscriptSnapshotUpdate(page, read.identity)
+                       historical_source: str | None = None) -> TranscriptSnapshotUpdate:
+        return await self.read(ReadTranscript(
+            root, thread, before=before, after=after, through=through,
+            read_identity=read_identity, historical_source=historical_source))
 
 
-class DirectTranscriptReadDelivery(CoordinationTranscriptReader):
-    """An operational Agent can read before an application is attached."""
+class DetachedTranscriptReader(CoordinationTranscriptReader):
+    """An operational Agent no view has attached: nothing presents a transcript."""
 
-    async def deliver(self, work):
-        return await asyncio.to_thread(work.prepare)
+    async def read(self, request):
+        raise RuntimeError("Transcript reads serve a view; no view is attached to this agent")
 
 
-class PreparedTranscriptReadDelivery(CoordinationTranscriptReader):
-    """Use the application's existing globally bounded worker/cache owner."""
+class ObservedTranscriptReader(CoordinationTranscriptReader):
+    """Reads answered by the application's observation service."""
 
-    def __init__(self, runtime: PreparationRuntime, access):
+    def __init__(self, access):
         super().__init__()
-        self.runtime = runtime
         self.access = access
 
-    async def deliver(self, work):
-        return await self.runtime.submit(work)
+    async def read(self, request):
+        return await self.access.read(request)
 
     async def service(self, root):
         shared = self.access.observed_service
@@ -143,6 +98,5 @@ class PreparedTranscriptReadDelivery(CoordinationTranscriptReader):
             return shared
         return await super().service(root)
 
-    def with_runtime(self, runtime, access):
-        return (self if self.runtime is runtime and self.access is access
-                else super().with_runtime(runtime, access))
+    def observed(self, access):
+        return self if self.access is access else super().observed(access)

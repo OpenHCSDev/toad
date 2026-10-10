@@ -11,7 +11,18 @@ from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.transcripts import RecordedTranscriptReadIdentity
 from toad.acp.comms_updates import OwnerSnapshotConsumer
-from toad.acp.transcript_reader import DirectTranscriptReadDelivery
+from toad.acp.transcript_reader import CoordinationTranscriptReader
+
+
+class ServedReader(CoordinationTranscriptReader):
+    """Answers each request as the observation service does, in this process."""
+
+    def __init__(self, comms):
+        super().__init__()
+        self.comms = comms
+
+    async def read(self, request):
+        return request.read(self.comms)
 
 
 @pytest.fixture
@@ -35,7 +46,7 @@ def test_recorded_snapshot_wire_and_stale_publication_keep_selected_source(recor
     live, source, native = recorded
 
     async def check():
-        reader = DirectTranscriptReadDelivery()
+        reader = ServedReader(live)
         update = await reader.snapshot(str(live.root), "reader", historical_source=source.key)
         assert isinstance(update.identity, RecordedTranscriptReadIdentity)
         assert decode_updates(encode_updates(update)) == (update,)
