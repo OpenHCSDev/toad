@@ -1,19 +1,12 @@
 
 Note,MarkdownNote {    
     padding: 0 1 0 0;
-    &.about MarkdownTable {
-        # Make the tables compact in /about
-        width: auto;
-    }
     &.-error {
         border: heavy $error;
     }    
     &.-stop-reason {        
         border: wide $error 50%;        
         padding: 0 1;
-        MarkdownH2 {           
-            margin: 1 0 1 0;
-        }
     }
 }
 
