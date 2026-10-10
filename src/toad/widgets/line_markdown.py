@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 from bisect import bisect_right
 
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.geometry import Size
 from textual.selection import Selection
 from textual.strip import Strip
@@ -154,10 +155,14 @@ class LineMarkdown(Widget):
             # message after every fragment.
             await asyncio.sleep(self.RESTYLE_INTERVAL)
 
+    @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        # The text wrapped at this width; the container's height is never read.
         if width != self._width:
             self._width = width
-            self._request_render()
+            # Restyle in its own loop turn, not inside the measurement (the
+            # worker's task would start eagerly here).
+            self.call_later(self._request_render)
         return len(self._lines(width).rows)
 
     def render_line(self, y: int) -> Strip:
