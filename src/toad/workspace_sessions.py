@@ -1,4 +1,5 @@
 """Logical session membership; Textual owns only the persistent native frame."""
+import asyncio
 from collections.abc import Callable
 from abc import abstractmethod
 from typing import TYPE_CHECKING
@@ -150,12 +151,15 @@ class WorkspaceSessions:
         if self.source.shown(destination):
             return destination
         await self.retire()
+        # Each step gets its own loop turn (the switch holds the frames).
+        await asyncio.sleep(0)
         # The preceding frame certifies the departing source. Revoke it before
         # LoadingWorkspaceSource admits any destination preparation callbacks.
         self.app.workspace_screen.frame_presentation.begin()
         self.source = LoadingWorkspaceSource(destination)
         destination.display = True
         await self.app.workspace_chrome.select(destination)
+        await asyncio.sleep(0)
         await destination.prepare_presentation()
         destination.activate_session()
         if destination.AUTO_FOCUS:

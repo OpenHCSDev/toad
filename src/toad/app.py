@@ -458,9 +458,16 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
                 else:
                     if self.current_mode != "workspace":
                         await super().switch_mode("workspace")
-                    await self.workspace_sessions.select(mode)
-                    await self.workspace_screen.prepare_navigation()
-                    await self.workspace_screen.layout_navigation()
+                    # A switch is several frames of work: hold the workspace's
+                    # frames and give the loop each step's turn, so input is
+                    # never held behind the whole switch and no half-switched
+                    # scene is written. Layout still runs for steps that measure.
+                    with self.workspace_screen.hold_frames():
+                        await self.workspace_sessions.select(mode)
+                        await asyncio.sleep(0)
+                        await self.workspace_screen.prepare_navigation()
+                        await asyncio.sleep(0)
+                        await self.workspace_screen.layout_navigation()
                 if mode != previous:
                     self.tab_order.record_visit(mode, history_index)
                     self.events.publish(core_events.SessionSelected(mode))
