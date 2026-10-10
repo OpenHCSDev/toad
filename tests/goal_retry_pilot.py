@@ -1,5 +1,6 @@
 """A blocked goal offers explicit Retry and reaches the executing owner."""
 
+from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.goal import GoalDisplay
 from agent_comms.goal_actions import GoalAction, RetryGoalAction
 
@@ -25,7 +26,7 @@ class FakeAgent:
         return self.goal
 
     async def get_goal_snapshot(self):
-        return self.goal, None
+        return GoalSnapshot(self.goal, None)
 
     async def stop(self) -> None:
         pass

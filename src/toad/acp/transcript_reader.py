@@ -1,12 +1,13 @@
-"""Transcript reads for a view, answered by Core's observation service.
+"""A view's reads, answered by Core's observation service.
 
-The UI process does not read Core's transcript stores. A page read, a
-published page's currency check and message notifications are requests to the
-observation process (``agent_comms.ui_model.observation``) that
-``CoordinationAccess`` owns; the answer arrives as a finished page and its
-witness, or as the exception the read raised. The in-process service binding
-remains for the reads that have not moved: the owner presentation that settles
-turns, owner requests and input capture.
+The UI process does not read Core's transcript stores or ask the live owner
+for its goal snapshot and input delivery. A page read, a published page's
+currency check, message notifications and those owner reads are requests to
+the observation process (``agent_comms.ui_model.observation``) that
+``CoordinationAccess`` owns; the answer arrives decoded (a finished page and
+its witness, an owner snapshot), or as the exception the read raised. The
+in-process service binding remains for the work that has not moved: the owner
+presentation that settles turns, owner actions and input capture.
 """
 
 from __future__ import annotations
@@ -20,19 +21,19 @@ from agent_comms.comms import wire
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
-    ReadNotifications, ReadRequest, ReadTranscript, RefreshTranscript,
+    AwaitedRead, ReadNotifications, ReadTranscript, RefreshTranscript,
 )
 
 
 class CoordinationTranscriptReader(ABC):
-    """One agent's transcript reads, and the read-side Comms service its other reads bind."""
+    """One agent's observed reads, and the read-side Comms service its other work binds."""
 
     def __init__(self):
         self._reader = None
         self._lock = asyncio.Lock()
 
     @abstractmethod
-    async def read(self, request: ReadRequest): ...
+    async def read(self, request: AwaitedRead): ...
 
     async def service(self, root):
         return await asyncio.to_thread(wire, root)
@@ -79,7 +80,7 @@ class DetachedTranscriptReader(CoordinationTranscriptReader):
     """An operational Agent no view has attached: nothing presents a transcript."""
 
     async def read(self, request):
-        raise RuntimeError("Transcript reads serve a view; no view is attached to this agent")
+        raise RuntimeError("Observed reads serve a view; no view is attached to this agent")
 
 
 class ObservedTranscriptReader(CoordinationTranscriptReader):

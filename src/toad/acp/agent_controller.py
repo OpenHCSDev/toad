@@ -26,6 +26,8 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
 from agent_comms.coordination_errors import CoordinationReadUnavailable
+from agent_comms.ui_model.delivery import InputDelivery
+from agent_comms.ui_model.observation import ReadInputDelivery
 
 
 @dataclass(frozen=True)
@@ -384,13 +386,16 @@ class AgentController(OperationalTerminalOwner):
         if (self.coordination.wire_root, self.coordination.thread) != (coordination.wire_root, coordination.thread):
             raise ValueError('The owner identity changed while preparing the request.')
 
-    async def input_delivery(self, *, include_history=False):
-        if self.coordination is None:
-            return {'inputs': [], 'historicalCount': 0, 'dismissedHistoricalCount': 0, 'historicalInputs': []}
-        return await self.request_owner('input_dispositions', include_history=include_history)
+    async def input_delivery(self, *, include_history=False) -> InputDelivery:
+        """The owner's delivery notices, read by the observation service."""
+        coordination = self.coordination
+        if coordination is None:
+            return InputDelivery()
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        delivery = await self.transcripts.read(ReadInputDelivery(
+            coordination.wire_root, coordination.thread, include_history=include_history))
+        self.require_owner(coordination, authority)
+        return delivery
 
     async def dismiss_historical_inputs(self):
         return await self.request_owner('dismiss_historical_inputs')
-
-    async def unresolved_inputs(self):
-        return (await self.input_delivery())['inputs']

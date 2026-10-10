@@ -12,14 +12,7 @@ from textual.reactive import var
 from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
-
-def empty_delivery() -> dict:
-    return {
-        "inputs": [],
-        "historicalCount": 0,
-        "dismissedHistoricalCount": 0,
-        "historicalInputs": [],
-    }
+from agent_comms.ui_model.delivery import InputDelivery
 
 
 class DeliveryInspect(Static, can_focus=True):
@@ -65,7 +58,7 @@ class InputDeliveryBar(HorizontalGroup):
     InputDeliveryBar #delivery-history-summary { width: 1fr; height: auto; color: $text-muted; }
     InputDeliveryBar #delivery-error { width: 1fr; height: auto; color: $warning; }
     """
-    delivery: var[dict] = var(empty_delivery)
+    delivery: var[InputDelivery] = var(InputDelivery())
     error: var[str] = var("")
 
     class Inspect(Message):
@@ -84,27 +77,17 @@ class InputDeliveryBar(HorizontalGroup):
         self._refresh_summary()
 
     def _refresh_summary(self) -> None:
-        current = len(self.delivery["inputs"])
-        history = self.delivery["historicalCount"]
-        dismissed = self.delivery["dismissedHistoricalCount"]
-        self.display = bool(current or history or dismissed or self.error)
+        delivery = self.delivery
+        current, history = delivery.current, delivery.historical_count
+        self.display = delivery.shown or bool(self.error)
         if self.is_attached:
             summary = self.query_one("#delivery-summary", Static)
             summary.display = bool(current)
-            pending = (
-                "awaiting start"
-                if self.delivery.get("currentScope") == "owner_queue"
-                else "unconfirmed"
-            )
-            summary.update(f"Delivery · {current} {pending}")
+            summary.update(f"Delivery · {current} {delivery.pending}")
             historical = self.query_one("#delivery-history-summary", Static)
-            historical.display = bool(history or dismissed)
-            label = (
-                "earlier notices"
-                if self.delivery.get("currentScope") == "owner_queue"
-                else "historical notices"
-            )
-            count = f"{history} {label}" if history else f"{dismissed} {label} cleared"
+            historical.display = bool(delivery.notices)
+            label = delivery.notice_label
+            count = f"{history} {label}" if history else f"{delivery.dismissed_historical_count} {label} cleared"
             historical.update(f"{' · ' if current else ''}{count}")
             error = self.query_one("#delivery-error", Static)
             error.display = bool(self.error)
@@ -129,7 +112,7 @@ class InputDeliveryDetails(ModalScreen[None]):
     InputDeliveryDetails #delivery-historical-summary { color: $text-muted; }
     InputDeliveryDetails DeliveryHistoryAction { height: 1; }
     """
-    delivery: var[dict] = var(empty_delivery)
+    delivery: var[InputDelivery] = var(InputDelivery())
     error: var[str] = var("")
     overview_text: var[str] = var("")
 
@@ -137,19 +120,15 @@ class InputDeliveryDetails(ModalScreen[None]):
         self,
         *,
         log_path: Path | None,
-        load_history: Callable[[], Awaitable[list[dict]]],
+        load_history: Callable[[], Awaitable[tuple[dict, ...]]],
         dismiss_history: Callable[[], Awaitable[None]],
     ):
         super().__init__()
         self.log_path = log_path
         self._load_history = load_history
         self._dismiss_history = dismiss_history
-        self._historical_inputs: list[dict] | None = None
+        self._historical_inputs: tuple[dict, ...] | None = None
         self._busy = False
-
-    @property
-    def inputs(self) -> list[dict]:
-        return self.delivery["inputs"]
 
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -191,7 +170,7 @@ class InputDeliveryDetails(ModalScreen[None]):
                 yield Button("Close (Esc)", id="delivery-close")
 
     @staticmethod
-    def _records(inputs: list[dict]) -> str:
+    def _records(inputs: tuple[dict, ...]) -> str:
         return "\n\n".join(
             f"Sequence: {row['sequence'] if row['sequence'] is not None else 'direct input'}"
             f" · Target: {row['target']}\nInput: {row['inputId']}\n{row['text']}"
@@ -199,11 +178,8 @@ class InputDeliveryDetails(ModalScreen[None]):
             for row in inputs
         )
 
-    def watch_delivery(self, old: dict, new: dict) -> None:
-        if any(
-            old[key] != new[key]
-            for key in ("historicalCount", "dismissedHistoricalCount")
-        ):
+    def watch_delivery(self, old: InputDelivery, new: InputDelivery) -> None:
+        if new.history_changed(old):
             self._historical_inputs = None
         self._refresh_records()
 
@@ -223,10 +199,10 @@ class InputDeliveryDetails(ModalScreen[None]):
         if not self.is_attached:
             return
         self.query_one("#delivery-records", Static).update(
-            self._records(self.inputs) or "No inputs currently awaiting start."
+            self._records(self.delivery.inputs) or "No inputs currently awaiting start."
         )
-        count = self.delivery["historicalCount"]
-        dismissed = self.delivery["dismissedHistoricalCount"]
+        count = self.delivery.historical_count
+        dismissed = self.delivery.dismissed_historical_count
         self.query_one("#delivery-historical-summary", Static).update(
             f"{count} earlier notices · {dismissed} cleared"
         )
@@ -240,7 +216,7 @@ class InputDeliveryDetails(ModalScreen[None]):
         clear.display = bool(count)
         clear.disabled = self._busy
         self.query_one("#delivery-historical-records", Static).update(
-            self._records(self._historical_inputs or [])
+            self._records(self._historical_inputs or ())
         )
 
     def on_mount(self) -> None:

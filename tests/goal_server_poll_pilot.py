@@ -5,6 +5,7 @@ from runtime_fixture import coordination_update
 
 import asyncio
 import os
+import threading
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -222,13 +223,15 @@ async def main():
                 await until(lambda: conversation.goal_display.can_control)
                 await conversation.goal_controls.change(ClearGoalAction)
                 assert conversation.goal_display.snapshot is None and not bar.display
-                # A stalled read is bounded; mutations have no automatic timeout/replay.
-                request = agent.controller.request_owner
+                # A stalled owner read is bounded by the observation service;
+                # mutations have no automatic timeout/replay.
+                release = threading.Event()
 
-                async def stalled(method, **params):
-                    await asyncio.Event().wait()
+                def stalled(name):
+                    release.wait(10)
+                    return read(name)
 
-                agent.controller.request_owner = stalled
+                comms.goals.goal_snapshot = stalled
                 try:
                     await asyncio.wait_for(agent.get_goal_snapshot(), 3.5)
                 except TimeoutError:
@@ -236,7 +239,8 @@ async def main():
                 else:
                     raise AssertionError("Snapshot read did not time out")
                 finally:
-                    agent.controller.request_owner = request
+                    release.set()
+                    comms.goals.goal_snapshot = read
         finally:
             await owner.shutdown()
             if peer_turn is not None and "peer" in comms.registry:

@@ -14,6 +14,7 @@ from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.comms import wire
 from agent_comms.goal_presentation import (
     GoalExecution,
+    GoalSnapshot,
     GoalExecutionState,
     GoalWaitTarget,
 )
@@ -42,13 +43,7 @@ class GoalOwner:
         self.reject = True
 
     async def get_goal_snapshot(self):
-        return (self.goal, self.execution)
-
-    async def get_goal(self):
-        return self.goal
-
-    async def get_goal_execution(self):
-        return self.execution
+        return GoalSnapshot(self.goal, self.execution)
 
     async def edit_goal(self, expected, text):
         self.requests.append((expected.id, expected.revision, text))

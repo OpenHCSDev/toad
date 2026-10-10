@@ -13,6 +13,18 @@ from comms_boundary_fixture import attach_coordination
 from runtime_fixture import private_native_wire
 
 from toad.acp.agent import Agent
+from toad.acp.transcript_reader import CoordinationTranscriptReader
+
+
+class ServedReader(CoordinationTranscriptReader):
+    """Asks the owner as the observation service does, in this process."""
+
+    def __init__(self, comms):
+        super().__init__()
+        self.comms = comms
+
+    async def read(self, request):
+        return await request.ask(self.comms)
 
 
 async def main():
@@ -41,6 +53,7 @@ async def main():
                 project, {"name": "agent-comms", "run_command": {"*": "true"}}, None
             )
             agent.coordination = coordination_update(str(comms.root), session)
+            agent.controller.transcripts = ServedReader(comms)
             original = await agent.update_goal(SetGoalAction, "Original objective")
             changed = await agent.edit_goal(original, "Revised objective")
             assert changed.id == original.id
@@ -74,9 +87,8 @@ async def main():
                     for entry in history
                 )
             )
-            execution = await agent.get_goal_execution()
-            assert execution.goal_id == changed.id
-            assert await agent.get_goal_snapshot() == (changed, execution)
+            snapshot = await agent.get_goal_snapshot()
+            assert snapshot.goal == changed and snapshot.execution.goal_id == changed.id
         finally:
             await owner.shutdown()
     print(

@@ -26,9 +26,10 @@ from agent_comms.acp_extension import (
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_presentation import GoalExecution
+from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.ui_model.observation import ReadOwnerGoal
 
 import toad
 from toad import jsonrpc, paths
@@ -252,35 +253,20 @@ class Agent(AgentBase):
     async def set_thinking_level(self, level: str) -> str | None:
         return await self.configuration.setting(ThinkingConfigurationSetting).select(self, level)
 
-    async def get_goal(self) -> Goal | None:
-        return (await self.get_goal_snapshot())[0]
-
-    async def get_goal_snapshot(self) -> tuple[Goal | None, GoalExecution | None]:
+    async def get_goal_snapshot(self) -> GoalSnapshot:
+        """The owner's goal snapshot, read by the observation service; its turn settles here."""
         from .comms_updates import OwnerSnapshotConsumer
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            return None, None
-        async with asyncio.timeout(3):
-            turn_token = self.presentation.turns.sequence
-            result = await self.controller.request_owner("goal_snapshot")
-        await OwnerSnapshotConsumer(self, self.session_id, turn_token=turn_token).consume_metadata(
-            result.get("_meta"))
-        raw_goal, raw_execution = result["goal"], result["goalExecution"]
-        goal = FieldCodec.decode(Goal, raw_goal) if raw_goal is not None else None
-        execution = (
-            GoalExecution.from_wire(raw_execution)
-            if raw_execution is not None
-            else None
-        )
-        if execution is not None and (goal is None or execution.goal_id != goal.id):
-            raise ValueError(
-                "Goal execution identity does not match the owner snapshot."
-            )
-        return goal, execution
-
-    async def get_goal_execution(self) -> GoalExecution | None:
-        return (await self.get_goal_snapshot())[1]
+        coordination = self.coordination
+        if coordination is None:
+            return GoalSnapshot(None, None)
+        authority = ClientSessionRequest(self, self.session_id)
+        consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
+        snapshot = await self.controller.transcripts.read(
+            ReadOwnerGoal(coordination.wire_root, coordination.thread))
+        self.controller.require_owner(coordination, authority)
+        for fact in snapshot.updates:
+            consumer.dispatch_sync(fact)
+        return snapshot
 
     async def get_goal_history(self, goal_id: str):
         result = await self.controller.request_owner("goal_history", goal_id=goal_id)
