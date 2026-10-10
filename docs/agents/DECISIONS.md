@@ -350,3 +350,22 @@ Tristan: "I'd like tab opening to be 16 ms UI frame time too; loading without UI
 **Measurement note:** host load moves the absolute numbers. In the same hour the published build measured frame p95 10.1 ms on a quiet host and 13.2–13.8 ms with load around 5–8. Compare changes only against a baseline measured in the same conditions.
 
 **Landed:** conversation notes draw with `LineMarkdown` instead of Textual's Markdown widget (it parsed on the UI thread in 7–12 ms callbacks).
+
+## 2026-10-10: Goal addition — channel reply latency
+
+Tristan: "24s is still very long". The time from a channel message to an agent's one-line reply is now part of the goal.
+
+**Decomposition** for test message 85-2 (seconds after sending):
+
+| Time (s) | Event |
+|---|---|
+| 0 | Message posted |
+| 0 → 10.0 | No model work: wake, drain, candidate and triage selection, admission |
+| 10.0 → 13.0 | First model request, with 0.84 s of "preparing" before the provider request (likely the IGNORE/FULL triage) |
+| 13.0 → 17.5 | Gap between the two requests |
+| 17.5 → 23.6 | Reply request, with 1.45 s of "preparing" |
+| 24.3 | Reply posted |
+
+**Owner:** an agent on Core's `perf/channel-wake-latency` branch.
+- **Task:** measure every stage live and move stage progression from polling ticks onto the events that enable it.
+- **Triage call:** report its share of the time rather than remove it; removing it is a product question.
