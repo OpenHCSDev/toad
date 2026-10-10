@@ -36,10 +36,12 @@ def main():
     parser.add_argument("--trace-reflows", action="store_true", help="Record each scoped reflow (frame_meter.trace_reflows)")
     parser.add_argument("--trace-rules", action="store_true", help="Record each style-rule change (frame_meter.trace_rules)")
     parser.add_argument("--trace-exit", action="store_true", help="Record who asks the app to exit (frame_meter.trace_exit)")
+    parser.add_argument("--remeasure", type=int, default=0,
+                        help="Arrange the screen at N new widths and time each pass (frame_meter.remeasure)")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
-            or args.trace_reflows or args.trace_rules or args.trace_exit):
+            or args.trace_reflows or args.trace_rules or args.trace_exit or args.remeasure):
         parser.error("Choose --profile-seconds, --frame-meter, --targets or --profile-layout")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
@@ -76,6 +78,8 @@ def main():
         if args.trace_calls:
             calls.append((str(prefix) + "-calls", "trace_calls",
                           f", targets={args.trace_calls.split(',')!r}, seconds={max(args.frame_meter, 40)!r}"))
+        if args.remeasure:
+            calls.append((str(prefix) + "-remeasure", "remeasure", f", iterations={args.remeasure!r}"))
         if args.trace_exit:
             calls.append((str(prefix) + "-exit", "trace_exit", ""))
         if args.trace_rules:
@@ -102,7 +106,7 @@ def main():
             script.write_text("\n".join(lines) + "\n")
             subprocess.run([*privilege, process.exe(), "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
-            deadline = time.monotonic() + max(args.frame_meter, 60 if args.profile_layout else 0) + 20
+            deadline = time.monotonic() + max(args.frame_meter, 60 if args.profile_layout or args.remeasure else 0) + 20
             outputs = [output + ".json" for output, _call, _extra in calls]
             while time.monotonic() < deadline and not all(Path(path).exists() for path in outputs):
                 time.sleep(.1)

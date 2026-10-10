@@ -182,3 +182,12 @@ wait "$capture"
 # the message window, End at the tail, tab return filled and still at the tail.
 python3 "$tools/screen_checks.py" "$out" | tee "$out/screen-checks.json"
 
+# Optional: the per-build layout figure for this live widget tree (after the
+# checks, since it re-measures the screen at widths it is not shown at).
+if [[ -n "${REMEASURE:-}" ]]; then
+    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name remeasure \
+        --remeasure "$REMEASURE" --sudo > /dev/null
+    python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print({k: d[k] for k in ('median_ms', 'p10_ms', 'p90_ms')})" \
+        "$out/remeasure-remeasure.json" | tee "$out/remeasure.txt"
+fi
+

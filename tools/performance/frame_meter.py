@@ -31,14 +31,10 @@ def measuring_pause():
         PAUSES.append((begin, time.monotonic_ns()))
 
 
-def install(*, expected_pid, seconds, output):
+def _running_app(expected_pid):
+    """The application running in this process (remote code runs outside its context)."""
     import asyncio
-    import gc
-    from asyncio import events as loop_events
-    from textual import events
     from textual._context import active_app
-    from textual.message_pump import MessagePump
-    from textual.widget import Widget
 
     if os.getpid() != expected_pid:
         raise RuntimeError("Unexpected capture process")
@@ -48,6 +44,18 @@ def install(*, expected_pid, seconds, output):
             break
     if app is None:
         raise RuntimeError("No application context")
+    return app
+
+
+def install(*, expected_pid, seconds, output):
+    import asyncio
+    import gc
+    from asyncio import events as loop_events
+    from textual import events
+    from textual.message_pump import MessagePump
+    from textual.widget import Widget
+
+    app = _running_app(expected_pid)
 
     inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
     clock = time.monotonic_ns
@@ -300,15 +308,7 @@ def targets(*, expected_pid, output):
 
 
 def _targets(*, expected_pid, output):
-    import asyncio
-    from textual._context import active_app
-
-    if os.getpid() != expected_pid:
-        raise RuntimeError("Unexpected capture process")
-    app = active_app.get(None)
-    for task in () if app is not None else asyncio.all_tasks():
-        if (app := task.get_context().get(active_app, None)) is not None:
-            break
+    app = _running_app(expected_pid)
     from toad.widgets.history_anchor import HistoryWindow
 
     screen = app.screen
@@ -419,14 +419,14 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
 def profile_within(*, expected_pid, output, target, within, calls=3):
     """Profile each call of ``target`` (sync) made while a ``within`` call runs.
 
-    One statistics file per ``within`` call (output.N.prof). Uses the pure-Python
-    profiler on the calling thread's CPU clock: it sees only that thread
-    (cProfile instruments every thread, and the default clock counts the whole
-    process). Its times are inflated several-fold; read proportions and counts.
+    One statistics file per ``within`` call (output.N.prof). cProfile sees every
+    thread, so while a target call runs the GIL switch interval is raised to
+    one second: the target is synchronous Python, so no other thread runs
+    inside it and the statistics are the UI thread's alone.
     """
+    import cProfile
     import importlib
     import inspect
-    import profile
 
     if os.getpid() != expected_pid:
         raise RuntimeError("Unexpected capture process")
@@ -447,7 +447,12 @@ def profile_within(*, expected_pid, output, target, within, calls=3):
         profiler = state["current"]
         if profiler is None:
             return target_original(*args, **kwargs)
-        return profiler.runcall(target_original, *args, **kwargs)
+        interval = sys.getswitchinterval()
+        sys.setswitchinterval(1.0)
+        try:
+            return profiler.runcall(target_original, *args, **kwargs)
+        finally:
+            sys.setswitchinterval(interval)
 
     def finish(profiler):
         state["current"] = None
@@ -463,7 +468,7 @@ def profile_within(*, expected_pid, output, target, within, calls=3):
         async def scope(*args, **kwargs):
             if state["count"] >= calls:
                 return await within_original(*args, **kwargs)
-            profiler = state["current"] = profile.Profile(time.thread_time)
+            profiler = state["current"] = cProfile.Profile()
             try:
                 return await within_original(*args, **kwargs)
             finally:
@@ -472,7 +477,7 @@ def profile_within(*, expected_pid, output, target, within, calls=3):
         def scope(*args, **kwargs):
             if state["count"] >= calls:
                 return within_original(*args, **kwargs)
-            profiler = state["current"] = profile.Profile(time.thread_time)
+            profiler = state["current"] = cProfile.Profile()
             try:
                 return within_original(*args, **kwargs)
             finally:
@@ -482,13 +487,113 @@ def profile_within(*, expected_pid, output, target, within, calls=3):
     setattr(within_owner, within_name, scope)
 
 
+def remeasure(*, expected_pid, output, iterations=60):
+    """Arrange the live screen at widths it was never laid out at, repeatedly.
+
+    This is the layout work of the first tab switch after the content width
+    changes: every widget of the selected tab measured and placed at a new
+    width. Each pass arranges the whole screen at a different width (40
+    widths in turn, more than a widget's 16 retained measurements), in its
+    own loop turn with the collector off, and publishes nothing. The median
+    is a per-build figure for the real widget tree, free of the switch's
+    other work and of collector pauses. A second set of passes is profiled
+    with other threads kept off the GIL, for call counts.
+
+    Measurement caches gain entries for widths the screen is not shown at,
+    and transcript pages re-wrap at them: run this after the scenario's checks.
+    """
+    import asyncio
+    import contextvars
+    import cProfile
+    import gc
+    from textual._context import active_app
+    from textual.geometry import Size
+
+    app = _running_app(expected_pid)
+    # Remote code runs outside the app's context; measurement reads it.
+    context = contextvars.copy_context()
+    context.run(active_app.set, app)
+    screen = app.screen
+    width, height = app.size
+    passes: list[tuple[int, float, float]] = []
+    profiler = cProfile.Profile()
+    loop = asyncio.get_running_loop()
+
+    def arrange(index: int, profiled: bool) -> None:
+        size = Size(width - 5 - index % 40, height)
+        enabled = gc.isenabled()
+        gc.disable()
+        interval = sys.getswitchinterval()
+        if profiled:
+            sys.setswitchinterval(1.0)
+            profiler.enable()
+        begin, cpu = time.perf_counter_ns(), time.thread_time_ns()
+        try:
+            screen._compositor._arrange_root(screen, size)
+        finally:
+            spent, spent_cpu = time.perf_counter_ns() - begin, time.thread_time_ns() - cpu
+            if profiled:
+                profiler.disable()
+                sys.setswitchinterval(interval)
+            if enabled:
+                gc.enable()
+        if not profiled:
+            passes.append((size.width, spent / 1e6, spent_cpu / 1e6))
+
+    def step(index: int) -> None:
+        if index < 2 * iterations:
+            # Timed passes first, then the same widths again profiled.
+            try:
+                arrange(index % iterations, profiled=index >= iterations)
+            except Exception:
+                # A loop callback's exception is only logged inside the app:
+                # write it where the capture waits for the result.
+                import traceback
+                with open(output, "w") as file:
+                    json.dump({"error": traceback.format_exc()}, file)
+                raise
+            loop.call_later(0.01, step, index + 1, context=context)
+            return
+        profiler.dump_stats(output + ".prof")
+        times = sorted(ms for _width, ms, _cpu in passes)
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump({"passes": passes, "median_ms": statistics.median(times),
+                       "p10_ms": times[len(times) // 10], "p90_ms": times[len(times) * 9 // 10],
+                       "unit_costs": costs, "profiled_passes": iterations}, file)
+        os.rename(partial, output)
+
+    def unit_costs() -> dict[str, float]:
+        # Per-operation costs in this process, to compare with a fresh one:
+        # the deepest widget's parent walk and two attribute reads.
+        deepest = max(screen.walk_children(), key=lambda widget: len(tuple(widget.walk_ancestors())))
+        costs = {"depth": len(tuple(deepest.walk_ancestors()))}
+        for label, operation in (("walk_ancestors_ns", lambda: tuple(deepest.walk_ancestors())),
+                                 ("parent_ns", lambda: deepest._parent),
+                                 ("styles_height_ns", lambda: deepest.styles.height)):
+            begin = time.perf_counter_ns()
+            for _ in range(2000):
+                operation()
+            costs[label] = (time.perf_counter_ns() - begin) / 2000
+        return costs
+
+    costs = context.run(unit_costs)
+    loop.call_soon(step, 0, context=context)
+
+
 def _subject(args) -> str:
     """Which object a traced call was for (its type and id), and who called it."""
     caller, chain = sys._getframe(2), []
     while caller is not None and len(chain) < 8:
         chain.append(f"{caller.f_code.co_qualname}:{caller.f_lineno}")
         caller = caller.f_back
-    subjects = " ".join(f"{type(subject).__name__}#{getattr(subject, 'id', None) or ''}" for subject in args[:2])
+    from textual.geometry import Region, Size
+
+    # Geometry arguments are shown by value: they tell two measurements of
+    # the same widget apart.
+    subjects = " ".join(repr(subject) if isinstance(subject, (tuple, Size, Region))
+                        else f"{type(subject).__name__}#{getattr(subject, 'id', None) or ''}"
+                        for subject in args[:3])
     return f"{subjects} <- {' < '.join(chain)}"
 
 
