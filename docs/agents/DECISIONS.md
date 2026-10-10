@@ -245,8 +245,8 @@ Not copied: pyqt_reactive's string action tables (`ACTION_REGISTRY`, `BUTTON_CON
 
 **Order:**
 1. Sidebar (done).
-2. A Core observation service out of process, carrying status bars, turn settlement, catalogs and goal state.
-3. Conversation and transcript.
+2. A Core observation service out of process (done: sidebar, open-thread status, turn settlement, view retirement).
+3. Conversation and transcript reads in the service (in progress).
 4. Forms from declarations.
 5. The remaining worst-frame owners.
 
@@ -263,3 +263,19 @@ Not copied: pyqt_reactive's string action tables (`ACTION_REGISTRY`, `BUTTON_CON
 - **Status rows:** `ui_model.status` holds the status rows for open threads.
 - **Finding:** each view re-reads or recomputes on every 50 ms observer tick. That covers the status line, the turn settlement and transcript refresh that share its read, the slash-command catalog, and per-second goal polls. `CoordinationAccess.observe` itself makes two or three worker-thread round trips every 50 ms, even when nothing changed. These wake-ups and executor threads are the many small callbacks and GIL waits in slow frames.
 - **Decision:** the next slice is a Core observation service in its own process. It watches Core's stores (`wire_watch`), recomputes `ui_model` models only on real changes, and sends small typed change sets (sidebar rows, open-thread status rows, presentations for turn settlement). Toad applies them through one pipe reader with one flush per frame, and deletes its poll loop and per-view reads. The status wiring lands directly on this service instead of on the poll loop.
+
+## 2026-10-09: The observation service landed; remaining worst-frame owners
+
+**Landed:**
+- **Observation service:** replaces the 50 ms poll loop. Slow frames fell from 88–91 to 48–54 per loaded run; frame p95 is about 15 ms; input-to-paint p95 is 12–15 ms.
+- **View retirement:** runs in the service. The scenario now deletes its open fork and checks that the tab closes.
+- **Batched history rendering:** one round trip per batch instead of about six loop callbacks per fragment.
+- **`Widget.size`:** computed from the widget's own size and gutter (fork), not looked up in the compositor.
+- **Cheap `CoordinationAccess.service`:** it no longer captures the route.
+- **Agent log:** written by one batching writer thread.
+
+**Remaining:**
+- **In-process Core reads:** transcript pages, registry decoding, and private bus checkpoint verification. They compete for the GIL; the transcript slice moves them into the service.
+- **Tab switch:** its own layout is about 2 ms; its 37–54 ms of wall time is mostly waiting behind those reads. Re-measure after the transcript slice; split the switch across frames if it still exceeds one.
+- **GC:** 15 ms collections on the young generation.
+- **Paint:** 5–16 ms screen updates when much is dirty.
