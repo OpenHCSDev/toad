@@ -76,7 +76,7 @@ import -window "$window" "$out/loaded.png" 2>/dev/null || true
 regions screen-loaded
 
 if [[ -n "${PROFILE_SECONDS:-}" ]]; then
-    measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle})
+    measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle} ${PROFILE_GIL:+--gil})
 elif [[ -n "${PROFILE_LAYOUT:-}" ]]; then
     measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"})
 else

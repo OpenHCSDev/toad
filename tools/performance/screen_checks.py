@@ -60,7 +60,9 @@ def main(directory):
         state = seen.get(name)
         if state is None:
             failures.append(f"{name}: no snapshot")
-        elif not state["follows_tail"] or state["scroll_y"] != state["max_scroll_y"]:
+        # Past the maximum is at the tail too: the content shrank (a finished
+        # reply's throbber row) between layout and the snapshot's read.
+        elif not state["follows_tail"] or state["scroll_y"] < state["max_scroll_y"]:
             failures.append(f"{name}: not at the tail (scroll {state['scroll_y']} of {state['max_scroll_y']})")
     if (state := seen.get("tab-return")) is not None and state["filled_rows"] < state["rows"] // 2:
         failures.append(f"tab-return: only {state['filled_rows']} of {state['rows']} rows drawn")
