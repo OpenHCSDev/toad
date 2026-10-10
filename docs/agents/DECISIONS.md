@@ -279,3 +279,35 @@ Not copied: pyqt_reactive's string action tables (`ACTION_REGISTRY`, `BUTTON_CON
 - **Tab switch:** its own layout is about 2 ms; its 37–54 ms of wall time is mostly waiting behind those reads. Re-measure after the transcript slice; split the switch across frames if it still exceeds one.
 - **GC:** 15 ms collections on the young generation.
 - **Paint:** 5–16 ms screen updates when much is dirty.
+
+## 2026-10-09: What "worst frame" measures
+
+Under #openhcs load, the earlier worst frames (127–229 ms) were mostly not the app:
+- **Snapshots:** the scenario's own screen snapshots run inside the app and take 105–220 ms each. They accounted for every event-loop lag over 50 ms in a loaded run. The meter now leaves out frames, lags and inputs that overlap a snapshot.
+- **Tab build:** building a never-shown tab (about 68 widgets) takes about 200 ms before it can be painted. The loop stays responsive while it runs (lag ≤ 35 ms). That is tab-open latency, not a frozen UI.
+
+The meter now reports three measures:
+- **Frame work:** busy time between paints.
+- **Busy stretch:** the longest run of callbacks with no paint.
+- **Event-loop lag:** how long an input or a paint would have waited, probed every 4 ms.
+
+Lag is what a person feels as jank. Tab-open latency is measured separately, by tracing the tab activation.
+
+**After this change, under load:**
+
+| Measure | Value |
+|---|---|
+| Worst lag | 34.7 ms |
+| Lags over 16 / 33 / 50 ms | 18 / 2 / 0 |
+| Lag p99 | 6 ms |
+| Input-to-paint p95 | 13 ms |
+| Cold tab build | 211 ms |
+
+**Remaining lag owners:**
+- tab close, `close_many`: 35 ms;
+- tab click, `SessionLabel`: 19 ms;
+- mode switch: 10–14 ms;
+- footer rebuild: 18 ms;
+- paint with much dirty: 10–22 ms;
+- `SessionObservation._run`: 13 ms;
+- `Conversation` messages: up to 19 ms.
