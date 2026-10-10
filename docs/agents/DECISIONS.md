@@ -340,3 +340,13 @@ Tristan: "I'd like tab opening to be 16 ms UI frame time too; loading without UI
 **Landed alongside:**
 - Prompt popups build their content on first use: cold tab build about 188 ms → 141 ms, and 74 → 67 widgets per conversation.
 - The meter keeps each long callback's sampled stacks.
+
+## 2026-10-09: Tried and reverted — a loop turn between the tab switch's layout and the sidebar scroll restore
+
+**Result** (two loaded runs, compared with the published build measured in the same conditions):
+- No fewer waits over 16 ms.
+- Input-to-paint p95 rose from 11–13 ms to 16–23 ms, because inputs during the switch wait out one more held turn.
+
+**Measurement note:** host load moves the absolute numbers. In the same hour the published build measured frame p95 10.1 ms on a quiet host and 13.2–13.8 ms with load around 5–8. Compare changes only against a baseline measured in the same conditions.
+
+**Landed:** conversation notes draw with `LineMarkdown` instead of Textual's Markdown widget (it parsed on the UI thread in 7–12 ms callbacks).
