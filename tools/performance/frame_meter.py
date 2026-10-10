@@ -541,6 +541,29 @@ def trace_reflows(*, expected_pid, output, seconds=60):
     asyncio.get_running_loop().call_later(seconds, finish)
 
 
+def trace_exit(*, expected_pid, output):
+    """Write who asks the app to exit, and when the process ends, as it happens."""
+    import atexit
+    import traceback
+    from textual.app import App
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    original = App.exit
+
+    def note(text):
+        with open(output, "a") as file:
+            file.write(f"{time.time():.3f} {text}\n")
+
+    def exit(self, *args, **kwargs):
+        note("App.exit " + repr((args, kwargs)) + "\n" + "".join(traceback.format_stack(limit=25)))
+        return original(self, *args, **kwargs)
+
+    App.exit = exit
+    atexit.register(note, "process exit")
+    note("installed")
+
+
 def percentile(values, fraction):
     ordered = sorted(values)
     return ordered[min(len(ordered) - 1, int(fraction * len(ordered)))] if ordered else float("nan")
