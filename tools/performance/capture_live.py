@@ -27,7 +27,9 @@ def main():
     parser.add_argument("--native", action="store_true")
     parser.add_argument("--frame-meter", type=float, default=0)
     parser.add_argument("--targets", action="store_true")
-    parser.add_argument("--profile-layout", type=int, default=0, help="Profile the next N screen layouts")
+    parser.add_argument("--profile-layout", type=int, default=0, help="Profile the next N calls of --profile-target")
+    parser.add_argument("--profile-target", default="textual.screen:Screen._refresh_layout",
+                        help="module:Class.method profiled by --profile-layout")
     parser.add_argument("--trace-calls", default="", help="Comma-separated module:Class.method targets to time")
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
@@ -60,7 +62,8 @@ def main():
         if args.frame_meter > 0:
             calls.append((str(prefix) + "-frames", "install", f", seconds={args.frame_meter!r}"))
         if args.profile_layout:
-            calls.append((str(prefix) + "-layout", "profile_layout", f", calls={args.profile_layout!r}"))
+            calls.append((str(prefix) + "-layout", "profile_layout",
+                          f", calls={args.profile_layout!r}, target={args.profile_target!r}"))
         if args.trace_calls:
             calls.append((str(prefix) + "-calls", "trace_calls",
                           f", targets={args.trace_calls.split(',')!r}, seconds={max(args.frame_meter, 40)!r}"))

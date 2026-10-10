@@ -77,6 +77,8 @@ regions screen-loaded
 
 if [[ -n "${PROFILE_SECONDS:-}" ]]; then
     measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle})
+elif [[ -n "${PROFILE_LAYOUT:-}" ]]; then
+    measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"})
 else
     measure=(--frame-meter "$meter_seconds")
 fi
@@ -138,7 +140,7 @@ done
 echo "{\"tabs_after_delete\": $tabs}" > "$out/retire-check.json"
 
 wait "$capture"
-[[ -n "${PROFILE_SECONDS:-}" ]] || python3 "$tools/frame_meter.py" "$out/run-frames.json" | tee "$out/summary.json"
+[[ -n "${PROFILE_SECONDS:-}${PROFILE_LAYOUT:-}" ]] || python3 "$tools/frame_meter.py" "$out/run-frames.json" | tee "$out/summary.json"
 # What the reader saw, from the screen text: no placeholders or blank runs in
 # the message window, End at the tail, tab return filled and still at the tail.
 python3 "$tools/screen_checks.py" "$out" | tee "$out/screen-checks.json"
