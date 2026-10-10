@@ -103,6 +103,7 @@ def install(*, expected_pid, seconds, output):
     display = app_type._display
 
     stalls = {}
+    long_callbacks = {}
     main_thread = threading.get_ident()
 
     def watch_stalls():
@@ -128,9 +129,13 @@ def install(*, expected_pid, seconds, output):
             stack.reverse()
             # Innermost frames show the work; the outermost Toad frames show
             # what started it.
+            full = stack
             stack = stack[:8] + ["..."] + stack[-8:] if len(stack) > 16 else stack
             key = " < ".join(reversed(stack))
             stalls[key] = stalls.get(key, 0) + 1
+            # Keep each long callback's own samples, by its start, to read one
+            # stall in full rather than only the run's aggregate.
+            long_callbacks.setdefault(begin, []).append(" < ".join(reversed(full)))
 
     def timed_run(handle):
         state["current"] = begin = clock()
@@ -246,6 +251,7 @@ def install(*, expected_pid, seconds, output):
         with os.fdopen(fd, "w") as file:
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
+                       "long_callbacks": sorted(long_callbacks.items()),
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,

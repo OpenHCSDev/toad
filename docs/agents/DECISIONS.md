@@ -328,3 +328,15 @@ Tristan: "I'd like tab opening to be 16 ms UI frame time too; loading without UI
 2. Tab lifecycle work split into frame-sized steps: build the tree in background slices, keeping the session separate from it; close and mode switch.
 3. Repaints and observation handlers.
 4. Forms from declarations.
+
+## 2026-10-09: Tried and reverted — splitting the screen update into layout and paint turns
+
+**Idea:** Textual's screen update runs layout (full reflow, median about 7 ms) and the frame write (about 5–8 ms) in one callback, so input waits behind both. Writing the frame in the next loop turn would halve the longest blocking step.
+
+**Result,** over two loaded runs: lags over 16 ms were unchanged (14–18), and input-to-paint p95 rose from 12–22 ms to 44–47 ms. Queued work ran ahead of the deferred write, so frames arrived later. Reverted.
+
+**Lesson:** frame cost has to come down. Reordering work within a frame does not help.
+
+**Landed alongside:**
+- Prompt popups build their content on first use: cold tab build about 188 ms → 141 ms, and 74 → 67 widgets per conversation.
+- The meter keeps each long callback's sampled stacks.
