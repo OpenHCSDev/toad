@@ -489,3 +489,9 @@ The pointer-capture ordering tests pass, and the set of failing tests is unchang
 - A GIL profile of the scenario puts background threads at about 8% of GIL-held samples. All of it is Core reads decoding records (`field_codec` decoding with `abc` subclass checks, plus registry snapshots).
 - The live registry is 314 KB, decodes with `json.load` in 2 ms, and was not written during a 20 s watch, so registry decoding is not the cause.
 - The 100 ms wait is not yet attributed to a single holder. That needs time-aligned samples.
+
+## 2026-10-10: Kept upstream measurement of viewport-unit max sizes
+
+The tab-switch agent found that the prompt's `max-height: 50vh` makes Textual measure the prompt chain and then arrange it again: while measuring a parent that sizes itself to its content, non-cell max sizes are skipped. Limiting that skip to units that resolve against the container (%, fr, w, h) would cut about 15–20% of the first tab switch after a width change.
+
+I tried it and reverted it. Existing tests assert upstream's measured outcome for viewport-unit max sizes under auto-size parents (`test_noncell_width_limit_keeps_original_zero_width_parent_exception`, `test_height_dependent_css_and_extrema_match_native_contexts[max_height-50vh]`). The change alters measured layout fork-wide for a small share of one rare wait.
