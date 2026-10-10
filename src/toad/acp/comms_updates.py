@@ -9,7 +9,6 @@ from typing import Any
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CompactionCommittedUpdate,
-    CompactionPublishedUpdate,
     CoordinationChangedUpdate,
     CursorAdvancedUpdate,
     GoalChangedUpdate,
@@ -164,10 +163,6 @@ class CommsUpdateConsumer(MroDispatch):
     def input_delivery_changed(self, update: InputDeliveryChangedUpdate) -> None:
         from toad.core.events import InputDispositionsChanged
         self.agent.events.publish(InputDispositionsChanged())
-
-    @handles(CompactionPublishedUpdate)
-    def compaction_published(self, update: CompactionPublishedUpdate) -> None:
-        self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
     @handles(McpClientReceiptUpdate)
     def mcp_receipt(self, update: McpClientReceiptUpdate) -> None:

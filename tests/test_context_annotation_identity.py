@@ -4,7 +4,7 @@ import asyncio
 from dataclasses import replace
 
 from agent_comms.comms import Comms
-from agent_comms.selected_source import SessionRevision
+from agent_comms.session_revision import SessionRevision
 from agent_comms.thread_identity import ThreadIncarnation, TurnId, TurnIdentity
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
