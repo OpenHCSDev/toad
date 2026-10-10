@@ -400,3 +400,24 @@ Tristan: "24s is still very long". The time from a channel message to an agent's
 4. Delete the widget-per-page path.
 
 Each step is measured against a same-conditions baseline (interleaved runs).
+
+## 2026-10-10: Correction — the history window is not only transcript pages; reflows get scoped instead
+
+The previous entry planned to turn history into one line-drawing widget. The census shows the history window also hosts every live conversation block that `Conversation.post` mounts:
+- responses and thoughts;
+- tool calls with expandable content;
+- shell terminal widgets;
+- questions and notes.
+
+It also carries reader-position machinery built on widget geometry (`HistoryAnchor`, `preserve_history`, `protect_history`). A single line widget would mean rewriting the whole conversation content model, interactive pieces included: days of work with product risk. That is not justified by the measured cost.
+
+**The measured cost is narrower.**
+- A container scroll posts `UpdateScroll`, and the screen re-arranges from its root (`reflow_visible`, 2.3–2.8 ms per frame).
+- A size change inside a fixed-size area re-lays out the whole screen (about 7 ms).
+- `Screen._on_layout` already finds each request's boundary (the first ancestor without auto dimensions), and the scrolled container is known.
+
+**Decision:** scope both reflows in the fork.
+- **Scroll:** re-arrange only the scrolled container's subtree.
+- **Layout:** re-arrange only the boundary subtrees, when their own boxes are unchanged.
+
+In both cases the result is spliced into the existing map using the compositor's subtree-geometry machinery. Toad's widget model stays as it is. The work is measured with deterministic per-call traces plus an interleaved end-to-end A/B.
