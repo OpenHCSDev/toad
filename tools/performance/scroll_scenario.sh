@@ -44,6 +44,11 @@ for _ in $(seq 60); do
     sleep 1
 done
 xdotool windowfocus --sync "$window"
+# Optional: raise the UI thread's scheduling priority (for example UI_NICE=-10)
+# to separate the app's own work from waiting for a CPU behind other processes.
+if [[ -n "${UI_NICE:-}" ]]; then
+    sudo -n renice -n "$UI_NICE" -p "$app_pid" > "$out/renice.log" 2>&1
+fi
 sleep "${LOAD_SECONDS:-25}"
 read -r width height < <(xdotool getwindowgeometry --shell "$window" | sed -n 's/^\(WIDTH\|HEIGHT\)=//p' | paste -sd' ')
 cell() { xdotool mousemove --window "$window" $(( ($1) * width / 145 + 3 )) $(( ($2) * height / 50 + height / 100 )) click 1; }
