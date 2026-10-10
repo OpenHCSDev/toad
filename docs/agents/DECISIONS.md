@@ -369,3 +369,34 @@ Tristan: "24s is still very long". The time from a channel message to an agent's
 **Owner:** an agent on Core's `perf/channel-wake-latency` branch.
 - **Task:** measure every stage live and move stage progression from polling ticks onto the events that enable it.
 - **Triage call:** report its share of the time rather than remove it; removing it is a product question.
+
+## 2026-10-10: Cost account and approach change — history as one line-drawing widget
+
+**Where the remaining stalls come from.** Six interleaved loaded runs (75 s each) on a quiet host show 80 waits over 16 ms, about 13 per run.
+- **Frame owners:**
+  - the screen-update timer (layout plus paint) owns 34;
+  - 27 have no slow callback nearby and are frame production as well;
+  - the rest are small: GC 5, workers 3.
+- **Sampled phases inside them:** paint 62, full reflow 26, scroll reflow 19, styling 15.
+- **Measured costs per frame:**
+  - scroll reflow (`reflow_visible`): median 2.3–2.8 ms;
+  - full reflow: about 7 ms, up to 18 ms;
+  - frame write: 1.3–5 ms;
+  - about 170 µs of arrange per placed widget.
+
+**Approach 1 (micro-optimizing Textual hot paths) has stopped paying end to end.** Three consecutive increments did not move the end-to-end numbers: the paint split and the navigation split (both reverted), and the `content_size` and per-render style changes, which are verified locally but flat in an A/B (frame p95 13–16 ms in both arms). Those two are kept because each removes measured work.
+
+**Approach 2 (decided).** History becomes one widget that draws prepared lines by scroll offset (Textual's line API, as `ScrollView` does). Scrolling becomes a repaint with no reflow. A streamed row extends the virtual height without re-arranging the screen. The compositor sees one region for history instead of a page tree.
+
+**What moves, and what is deleted:**
+- **Moves into the line source:** page widgets (`TranscriptPageView`), the live response's `LineMarkdown`, dividers and edges become line sources of the history widget.
+- **Stays out of history:** interactive pieces (tool expanders, buttons) become line hit regions owned by the same widget, or move to the prompt and sidebar chrome.
+- **Deleted:** per-page widget mounting, the history's layout requests, and the reader-anchor geometry that exists only because history is a widget tree.
+
+**Order:**
+1. Read-only history (pages plus edges) as a line source behind the existing preparation owners.
+2. The live response's lines appended in place.
+3. Interactive regions.
+4. Delete the widget-per-page path.
+
+Each step is measured against a same-conditions baseline (interleaved runs).
