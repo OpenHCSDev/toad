@@ -79,14 +79,6 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         return WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll) == requested
 
 
-NAVIGATION_STEP_NS = 4_000_000
-"""How long a step of a switch's layout runs before pausing for the loop.
-
-Half the 8 ms a switch step may take: the widget being arranged when the
-deadline passes finishes first, and the step has other work around the layout.
-"""
-
-
 class WorkspaceScreen(SidebarFocusOwner, Screen):
     BINDINGS = [Binding("ctrl+b,f20", "show_sidebar", "Sidebar")]
 
@@ -279,12 +271,9 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             return
         # The frames are held: the layout runs over loop turns so input is
         # handled between its steps, and is published once, at its end.
-        await self.layout_in_steps(self.app.size, step_ns=NAVIGATION_STEP_NS)
+        await self.layout_in_steps(self.app.size)
         if roster.navigation.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
-        # Requests made between the steps are laid out next.
-        self._layout_required = bool(self._layout_widgets)
-        self._scroll_required = bool(self._scrolled_widgets)
         self._dirty_widgets.clear()
         self._navigation_layout = MeasuredWorkspaceLayout(WorkspaceLayoutSnapshot.ready(self, self.app.size))
 
