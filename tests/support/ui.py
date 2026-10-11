@@ -143,6 +143,11 @@ class Ui(ABC):
     async def step(self, seconds: float | None = None) -> None:
         """Let the interface handle what is pending."""
 
+    @property
+    @abstractmethod
+    def core_service(self):
+        """The Core service the running interface itself reads through."""
+
     @abstractmethod
     def failure(self) -> BaseException | None:
         """An exception the interface caught while running, if any."""
@@ -333,6 +338,10 @@ class TextualUi(Ui):
 
     async def step(self, seconds: float | None = None) -> None:
         await self.pilot.pause(seconds)
+
+    @property
+    def core_service(self):
+        return self.app.coordination_access.service
 
     def failure(self) -> BaseException | None:
         return self.app._exception

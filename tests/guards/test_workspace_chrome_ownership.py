@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 def test_global_navigation_is_constructed_only_by_workspace_owner():
-    root = Path(__file__).resolve().parents[1] / "src" / "toad"
+    root = Path(__file__).resolve().parents[2] / "src" / "toad"
     violations = []
     for path in root.rglob("*.py"):
         if path.name == "workspace_chrome.py":
@@ -18,7 +18,7 @@ def test_global_navigation_is_constructed_only_by_workspace_owner():
 
 
 def test_view_mount_and_agent_readiness_do_not_activate_a_shell():
-    source = Path(__file__).resolve().parents[1] / "src" / "toad" / "widgets" / "conversation.py"
+    source = Path(__file__).resolve().parents[2] / "src" / "toad" / "widgets" / "conversation.py"
     tree = ast.parse(source.read_text())
     for node in ast.walk(tree):
         if isinstance(node, ast.AsyncFunctionDef) and node.name in {"initialize_view", "watch_agent_ready"}:
