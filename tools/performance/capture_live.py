@@ -31,7 +31,8 @@ def main():
     parser.add_argument("--profile-target", default="textual.screen:Screen._refresh_layout",
                         help="module:Class.method profiled by --profile-layout")
     parser.add_argument("--profile-within", default="",
-                        help="Profile --profile-target only inside calls of this module:Class.method (frame_meter.profile_within)")
+                        help="Profile --profile-target only inside calls of this module:Class.method (frame_meter.profile_within); "
+                             "'slow' profiles every call and keeps those over --profile-min-ms (frame_meter.profile_slow)")
     parser.add_argument("--profile-min-ms", type=float, default=0.0,
                         help="With --profile-within: keep only scopes whose target call took this long (profiled)")
     parser.add_argument("--trace-calls", default="", help="Comma-separated module:Class.method targets to time")
@@ -73,7 +74,10 @@ def main():
             calls.append((str(prefix) + "-targets", "targets", ""))
         if args.frame_meter > 0:
             calls.append((str(prefix) + "-frames", "install", f", seconds={args.frame_meter!r}"))
-        if args.profile_layout and args.profile_within:
+        if args.profile_layout and args.profile_within == "slow":
+            calls.append((str(prefix) + "-layout", "profile_slow",
+                          f", calls={args.profile_layout!r}, target={args.profile_target!r}, min_ms={args.profile_min_ms!r}"))
+        elif args.profile_layout and args.profile_within:
             calls.append((str(prefix) + "-layout", "profile_within",
                           f", calls={args.profile_layout!r}, target={args.profile_target!r}, within={args.profile_within!r}, min_ms={args.profile_min_ms!r}"))
         elif args.profile_layout:

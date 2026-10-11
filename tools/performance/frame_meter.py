@@ -62,8 +62,8 @@ def install(*, expected_pid, seconds, output):
     state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
     frames, inputs, slow, slow_frames, gc_pauses = [], [], [], [], []
     switch_steps = []
-    # Each stepped layout (Screen.layout_in_steps): its start, step budget and
-    # the length of every loop turn it ran in, however short.
+    # Each layout that ran in more than one step or had a step over 4 ms
+    # (Screen._layout_step): its start, step budget and every step's length.
     stepped_layouts = []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     refresh = Widget.refresh
@@ -93,18 +93,23 @@ def install(*, expected_pid, seconds, output):
     refresh_bindings = Screen.refresh_bindings
     refresh_layout = Screen._refresh_layout
 
-    # Builds before stepped layout run each switch's layout in one turn.
-    layout_in_steps = getattr(Screen, "layout_in_steps", None)
+    # Builds before the screen's own layouts ran in steps have no steps to time.
+    layout_step = getattr(Screen, "_layout_step", None)
+    # The layout each running step generator belongs to, until its last step.
+    running_layouts = {}
 
-    async def traced_layout_in_steps(self, *args, **kwargs):
-        turns = []
-        stepped_layouts.append((clock(), kwargs.get("step_ns"), turns))
-        # The turn the layout ends in records it and clears this.
-        traced = state["layout_turns"] = {"task": asyncio.current_task(), "turns": turns, "done": False}
+    def traced_layout_step(self, steps, deadline, step_ns):
+        begin, last = clock(), True
         try:
-            return await layout_in_steps(self, *args, **kwargs)
+            last = layout_step(self, steps, deadline, step_ns)
+            return last
         finally:
-            traced["done"] = True
+            record = running_layouts.setdefault(id(steps), (begin, step_ns, []))
+            record[2].append((clock() - begin) / 1e6)
+            if last:
+                del running_layouts[id(steps)]
+                if len(record[2]) > 1 or record[2][0] > 4:
+                    stepped_layouts.append(record)
 
     def timed_layout(self, *args, **kwargs):
         # Whole-screen layout inside a frame: how much of a slow frame it is.
@@ -166,8 +171,6 @@ def install(*, expected_pid, seconds, output):
     def timed_run(handle):
         state["current"] = begin = clock()
         cpu_begin = time.thread_time_ns()
-        # A stepped layout's first turn starts it and its last turn ends it.
-        layout_turns = state.get("layout_turns")
         # A stall is a stretch the loop could not paint in: callbacks closer
         # than 1 ms together form one stretch.
         if begin - state.get("stretch_end", 0) > 1_000_000:
@@ -183,11 +186,6 @@ def install(*, expected_pid, seconds, output):
             spent = end - begin
             state["busy"] += spent
             state["current"] = None
-            layout_turns = layout_turns or state.get("layout_turns")
-            if layout_turns is not None and getattr(handle._callback, "__self__", None) is layout_turns["task"]:
-                layout_turns["turns"].append(spent / 1e6)
-                if layout_turns["done"] and state.get("layout_turns") is layout_turns:
-                    state["layout_turns"] = None
             if spent > 20_000:
                 callback = handle._callback
                 owner = getattr(callback, "__self__", None)
@@ -285,8 +283,10 @@ def install(*, expected_pid, seconds, output):
         Widget.refresh = refresh
         Screen.refresh_bindings = refresh_bindings
         Screen._refresh_layout = refresh_layout
-        if layout_in_steps is not None:
-            Screen.layout_in_steps = layout_in_steps
+        if layout_step is not None:
+            Screen._layout_step = layout_step
+        # Layouts replaced before their last step.
+        stepped_layouts.extend(running_layouts.values())
         gc.callbacks.remove(collected)
         loop_events.Handle._run = run
         MessagePump.post_message = post
@@ -327,8 +327,8 @@ def install(*, expected_pid, seconds, output):
     Widget.refresh = counted_refresh
     Screen.refresh_bindings = counted_bindings
     Screen._refresh_layout = timed_layout
-    if layout_in_steps is not None:
-        Screen.layout_in_steps = traced_layout_in_steps
+    if layout_step is not None:
+        Screen._layout_step = traced_layout_step
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
     MessagePump._dispatch_message = timed_dispatch
@@ -535,6 +535,53 @@ def profile_within(*, expected_pid, output, target, within, calls=3, min_ms=0.0)
 
     setattr(target_owner, target_name, profiled)
     setattr(within_owner, within_name, scope)
+
+
+def profile_slow(*, expected_pid, output, target, calls=3, min_ms=0.0):
+    """Profile every call of ``target`` (sync); keep each one that took ``min_ms`` or longer.
+
+    One statistics file per kept call (output.N.prof), at most ``calls``. For
+    a target with no patchable enclosing call (the screen's update timer holds
+    a bound method, so ``profile_within`` cannot scope its layout). Other
+    threads are kept off the GIL during each call, as in ``profile_within``.
+    """
+    import cProfile
+    import gc
+    import importlib
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    module_name, _, attribute = target.partition(":")
+    owner = importlib.import_module(module_name)
+    *parents, name = attribute.split(".")
+    for parent in parents:
+        owner = getattr(owner, parent)
+    original = getattr(owner, name)
+    kept = []
+
+    def profiled(*args, **kwargs):
+        profiler = cProfile.Profile()
+        interval = sys.getswitchinterval()
+        sys.setswitchinterval(1.0)
+        collecting = gc.isenabled()
+        gc.disable()
+        begin = time.perf_counter()
+        try:
+            return profiler.runcall(original, *args, **kwargs)
+        finally:
+            spent = (time.perf_counter() - begin) * 1e3
+            if collecting:
+                gc.enable()
+            sys.setswitchinterval(interval)
+            if spent >= min_ms and len(kept) < calls:
+                kept.append((spent, time.monotonic_ns()))
+                profiler.dump_stats(f"{output}.{len(kept)}.prof")
+                if len(kept) == calls:
+                    setattr(owner, name, original)
+                    with open(output, "w") as file:
+                        json.dump({"profiles": len(kept), "profiled_ms": kept}, file)
+
+    setattr(owner, name, profiled)
 
 
 def remeasure(*, expected_pid, output, iterations=60):
@@ -1024,9 +1071,9 @@ def summarize(path):
         # Tab switches' loop turns over 20 us: how many and the longest.
         "switch_turns": [len(data.get("switch_steps", [])),
                          round(max((spent for _begin, spent in data.get("switch_steps", [])), default=0), 2)],
-        # Per stepped layout: loop turns and the longest turn.
-        "stepped_layouts": [[len(turns), round(max(turns), 2)]
-                            for _begin, _step_ns, turns in data.get("stepped_layouts", []) if turns],
+        # Per layout run in steps (or with a step over 4 ms): steps and the longest step.
+        "stepped_layouts": [[len(steps), round(max(steps), 2)]
+                            for _begin, _step_ns, steps in data.get("stepped_layouts", []) if steps],
     }
 
 

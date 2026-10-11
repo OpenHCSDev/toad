@@ -61,8 +61,16 @@ python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name app
 if [[ -n "${METER_FROM_OPEN:-}" ]]; then
     # One attach at a time: the exit trace above must be installed first.
     for _ in $(seq 40); do [[ -s "$out/app-exit.json" ]] && break; sleep 0.5; done
-    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
-        --frame-meter "${METER_SECONDS:-150}" --sudo > "$out/capture.log" 2>&1 &
+    # PROFILE_LAYOUT profiles the window's layouts instead of metering it.
+    if [[ -n "${PROFILE_LAYOUT:-}" ]]; then
+        measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"}
+                 ${PROFILE_WITHIN:+--profile-within "$PROFILE_WITHIN"} ${PROFILE_MIN_MS:+--profile-min-ms "$PROFILE_MIN_MS"})
+    else
+        measure=(--frame-meter "${METER_SECONDS:-150}")
+    fi
+    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run "${measure[@]}" \
+        ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} \
+        --sudo > "$out/capture.log" 2>&1 &
     capture=$!
     sleep 2
 fi
