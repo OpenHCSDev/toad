@@ -23,6 +23,6 @@ async def test_saved_context_use_is_shown_on_attach_and_replaced_by_live_reports
         assert agent.context_measurement.used == 40000 and agent.context_measurement.source_label == ""
 
         agent.comms_consumer_class(agent, agent.session_id).dispatch_sync(
-            coordination_fact("saved", str(workspace.roots.wire), context_usage=None))
+            coordination_fact("saved", str(workspace.roots.wire), worktree=str(workspace.project), context_usage=None))
         await ui.until(lambda: "unavailable" in ui.status(), why="context use reported as unavailable")
         assert not agent.context_measurement.available
