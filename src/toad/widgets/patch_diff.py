@@ -452,7 +452,7 @@ class PatchDiffView(DiffView):
         super().__init__(patch.before_path, patch.after_path, "", "", **kwargs)
 
     def _prepared_theme_matches(self) -> bool:
-        return self._prepared is None or self._prepared.syntax == self.app.colours.syntax
+        return self._prepared is None or self._prepared.syntax == SyntaxPalette.of(self.app)
 
     def _check_auto_split(self, width: int):
         if self._prepared_theme_matches():
@@ -485,7 +485,7 @@ class PatchDiffView(DiffView):
         if self._highlighted_code_lines is None:
             prepared = self._prepared
             if prepared is None:
-                prepared = self.patch.prepare(self.app.colours.syntax)
+                prepared = self.patch.prepare(SyntaxPalette.of(self.app))
             else:
                 assert self._prepared_theme_matches()
             self._highlighted_code_lines = prepared.bind(

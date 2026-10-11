@@ -24,7 +24,8 @@ from textual.visual import Visual, VisualType
 from toad.app import ToadApp
 from toad.render_tasks import RichRenderTask
 from toad.rich_preparation import (
-    ContentSource, PreparedPaintSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource, SyntaxSource,
+    ContentSource, PreparedPaintSource, PreparedRichContent, RenderableSource, RichPresentation, RichSource,
+    SyntaxPalette, SyntaxSource,
 )
 
 
@@ -170,7 +171,7 @@ class WorkerStatic(PreparedPaintSource, Static):
             presentation = RichPresentation(
                 options, native_style.rich_style, link_style,
                 auto_width, self._get_justify_method(), app.console.color_system,
-                app.colours.syntax,
+                SyntaxPalette.of(app),
                 tuple((name, self._get_style(name)) for name in source.style_names),
                 tuple((name, self.styles.get_rule(name))
                       for name in ("text_align", "text_overflow", "text_wrap", "line_pad")

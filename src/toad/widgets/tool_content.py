@@ -154,7 +154,7 @@ class ToolCallDiff(containers.VerticalGroup):
 
     @property
     def render_task(self) -> PatchRenderTask:
-        return PatchRenderTask(self.patch, self.app.colours.syntax)
+        return PatchRenderTask(self.patch, SyntaxPalette.of(self.app))
 
     @property
     def render_active(self) -> bool:
