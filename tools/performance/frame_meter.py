@@ -62,6 +62,9 @@ def install(*, expected_pid, seconds, output):
     state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
     frames, inputs, slow, slow_frames, gc_pauses = [], [], [], [], []
     switch_steps = []
+    # Each stepped layout (Screen.layout_in_steps): its start, step budget and
+    # the length of every loop turn it ran in, however short.
+    stepped_layouts = []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     refresh = Widget.refresh
     layouts = {}
@@ -89,6 +92,18 @@ def install(*, expected_pid, seconds, output):
     from textual.screen import Screen
     refresh_bindings = Screen.refresh_bindings
     refresh_layout = Screen._refresh_layout
+
+    layout_in_steps = Screen.layout_in_steps
+
+    async def traced_layout_in_steps(self, *args, **kwargs):
+        turns = []
+        stepped_layouts.append((clock(), kwargs.get("step_ns"), turns))
+        # The turn the layout ends in records it and clears this.
+        traced = state["layout_turns"] = {"task": asyncio.current_task(), "turns": turns, "done": False}
+        try:
+            return await layout_in_steps(self, *args, **kwargs)
+        finally:
+            traced["done"] = True
 
     def timed_layout(self, *args, **kwargs):
         # Whole-screen layout inside a frame: how much of a slow frame it is.
@@ -149,6 +164,8 @@ def install(*, expected_pid, seconds, output):
 
     def timed_run(handle):
         state["current"] = begin = clock()
+        # A stepped layout's first turn starts it and its last turn ends it.
+        layout_turns = state.get("layout_turns")
         # A stall is a stretch the loop could not paint in: callbacks closer
         # than 1 ms together form one stretch.
         if begin - state.get("stretch_end", 0) > 1_000_000:
@@ -164,6 +181,11 @@ def install(*, expected_pid, seconds, output):
             spent = end - begin
             state["busy"] += spent
             state["current"] = None
+            layout_turns = layout_turns or state.get("layout_turns")
+            if layout_turns is not None and getattr(handle._callback, "__self__", None) is layout_turns["task"]:
+                layout_turns["turns"].append(spent / 1e6)
+                if layout_turns["done"] and state.get("layout_turns") is layout_turns:
+                    state["layout_turns"] = None
             if spent > 20_000:
                 callback = handle._callback
                 owner = getattr(callback, "__self__", None)
@@ -259,6 +281,7 @@ def install(*, expected_pid, seconds, output):
         Widget.refresh = refresh
         Screen.refresh_bindings = refresh_bindings
         Screen._refresh_layout = refresh_layout
+        Screen.layout_in_steps = layout_in_steps
         gc.callbacks.remove(collected)
         loop_events.Handle._run = run
         MessagePump.post_message = post
@@ -272,6 +295,7 @@ def install(*, expected_pid, seconds, output):
                        "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
                        "long_callbacks": sorted(long_callbacks.items()),
                        "timed_callbacks": timed_callbacks, "switch_steps": switch_steps,
+                       "stepped_layouts": stepped_layouts,
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,
@@ -298,6 +322,7 @@ def install(*, expected_pid, seconds, output):
     Widget.refresh = counted_refresh
     Screen.refresh_bindings = counted_bindings
     Screen._refresh_layout = timed_layout
+    Screen.layout_in_steps = traced_layout_in_steps
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
     MessagePump._dispatch_message = timed_dispatch
@@ -829,6 +854,12 @@ def summarize(path):
         "stall_worst_ms": round(max(stalls), 1) if stalls else None,
         "stalls_over_16_33_50": [sum(value > limit for value in stalls) for limit in (16, 33, 50)],
         **lag_summary(data.get("lags", [])),
+        # Tab switches' loop turns over 20 us: how many and the longest.
+        "switch_turns": [len(data.get("switch_steps", [])),
+                         round(max((spent for _begin, spent in data.get("switch_steps", [])), default=0), 2)],
+        # Per stepped layout: loop turns and the longest turn.
+        "stepped_layouts": [[len(turns), round(max(turns), 2)]
+                            for _begin, _step_ns, turns in data.get("stepped_layouts", []) if turns],
     }
 
 
