@@ -2,7 +2,8 @@
 
 from support.agents import peer
 
-ANSWER_SOURCE = "file.md and `file.md` but `run file.md`; [website](https://example.com)."
+# One reference per paragraph: ui.link_at reaches the first match on a drawn row.
+ANSWER_SOURCE = "see file.md\n\nsee `file.md`\n\nbut `run file.md` is a command\n\nsee [website](https://example.com)"
 
 
 def file_links(ui, text):
