@@ -558,8 +558,19 @@ def profile_slow(*, expected_pid, output, target, calls=3, min_ms=0.0):
         owner = getattr(owner, parent)
     original = getattr(owner, name)
     kept = []
+    running = []
 
     def profiled(*args, **kwargs):
+        if running:
+            # A nested call (arrange measures by arranging) is part of the outer profile.
+            return original(*args, **kwargs)
+        running.append(True)
+        try:
+            return profile_call(*args, **kwargs)
+        finally:
+            running.pop()
+
+    def profile_call(*args, **kwargs):
         profiler = cProfile.Profile()
         interval = sys.getswitchinterval()
         sys.setswitchinterval(1.0)
@@ -844,6 +855,8 @@ def _result(value) -> str:
     """A short description of what a traced call returned."""
     if value is None or isinstance(value, (bool, int, float)):
         return repr(value)
+    if isinstance(value, (list, tuple)):
+        return f"{type(value).__name__}[{', '.join(type(item).__name__ for item in value)}]"
     fields = getattr(value, "__dataclass_fields__", None)
     if fields:
         shown = ", ".join(f"{field}={getattr(value, field)!r:.40}" for field in fields if field != "admissions")
@@ -965,6 +978,163 @@ def trace_reflows(*, expected_pid, output, seconds=60):
         partial = output + ".partial"
         with open(partial, "w") as file:
             json.dump(records, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(seconds, finish)
+
+
+def trace_garbage(*, expected_pid, output, seconds=12, min_objects=1000):
+    """What each collection that finds at least ``min_objects`` unreachable objects collected.
+
+    For ``seconds`` the collector keeps what it finds (DEBUG_SAVEALL); after
+    each collection the found objects are counted by type and released.
+    """
+    import asyncio
+    import collections
+    import gc
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    records = []
+    state = {}
+
+    def collected(phase, info):
+        if phase == "start":
+            state["begin"] = time.monotonic_ns()
+            return
+        found = gc.garbage[:]
+        gc.garbage.clear()
+        if len(found) >= min_objects:
+            types = collections.Counter(f"{type(item).__module__}.{type(item).__qualname__}" for item in found)
+            # Exceptions and frames held in cycles: which raised, and where.
+            types.update(f"raised {type(item).__qualname__}: {str(item)[:60]}"
+                         for item in found if isinstance(item, BaseException))
+            types.update(f"frame {item.f_code.co_qualname} {item.f_code.co_filename.rsplit('/', 2)[-1]}"
+                         for item in found if type(item).__name__ == "frame")
+            # The objects nothing else refers to first: what owned the cycle.
+            causes = [(name, count) for name, count in types.most_common() if name.startswith(("raised", "frame"))]
+            records.append((state["begin"], (time.monotonic_ns() - state["begin"]) / 1e6, info["generation"],
+                            len(found), types.most_common(60) + causes[:40]))
+        del found
+
+    gc.set_debug(gc.DEBUG_SAVEALL)
+    gc.callbacks.append(collected)
+
+    def finish():
+        gc.callbacks.remove(collected)
+        gc.set_debug(0)
+        gc.garbage.clear()
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(records, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(seconds, finish)
+
+
+def heap_census(*, expected_pid, output, after=10):
+    """``after`` seconds from now: the collector's tracked, unfrozen objects counted by type.
+
+    These are what each pass of the cyclic collector scans (frozen objects are not).
+    """
+    import asyncio
+    import collections
+    import gc
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+
+    def count():
+        with measuring_pause():
+            objects = gc.get_objects()
+            types = collections.Counter(f"{type(item).__module__}.{type(item).__qualname__}" for item in objects)
+            # Bound built-ins and weak references: which owners hold them.
+            types.update(f"bound {type(item.__self__).__qualname__}.{item.__name__}" for item in objects
+                         if type(item).__name__ == "builtin_function_or_method" and item.__self__ is not None)
+            types.update(f"weakref to {type(target).__qualname__}" for item in objects
+                         if type(item).__name__ == "ReferenceType" and (target := item()) is not None)
+            total = len(objects)
+            del objects
+            # Each ABC's isinstance/issubclass caches (weak references to classes).
+            import _abc
+            from abc import ABCMeta
+            seen, pending, caches = set(), [object], collections.Counter()
+            while pending:
+                cls = pending.pop()
+                for sub in type.__subclasses__(cls) if isinstance(cls, type) else ():
+                    if sub not in seen:
+                        seen.add(sub)
+                        pending.append(sub)
+                        if isinstance(sub, ABCMeta):
+                            registry, cache, negative, _version = _abc._get_dump(sub)
+                            if len(cache) + len(negative) >= 1:
+                                caches[f"abc cache {sub.__module__}.{sub.__qualname__}"] = len(cache) + len(negative)
+            types.update(caches)
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump({"tracked": total, "frozen": gc.get_freeze_count(), "types": types.most_common(3000)}, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(after, count)
+
+
+def freeze_heap(*, expected_pid, output):
+    """Experiment: freeze the collector's current heap now (what a later freeze policy would do)."""
+    import gc
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    with measuring_pause():
+        before = len(gc.get_objects())
+        gc.freeze()
+    with open(output, "w") as file:
+        json.dump({"frozen_now": before, "frozen_total": gc.get_freeze_count()}, file)
+
+
+def trace_abc_growth(*, expected_pid, output, seconds=40):
+    """Who adds entries to ABC isinstance/issubclass caches (each is two collector-tracked objects)."""
+    import _abc
+    import asyncio
+    import collections
+    from abc import ABCMeta
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    sources = collections.Counter()
+    instancecheck, subclasscheck = ABCMeta.__instancecheck__, ABCMeta.__subclasscheck__
+
+    def size(cls):
+        _registry, cache, negative, _version = _abc._get_dump(cls)
+        return len(cache) + len(negative)
+
+    def record(cls, checked):
+        caller, chain = sys._getframe(2), []
+        while caller is not None and len(chain) < 5:
+            chain.append(f"{caller.f_code.co_qualname} {caller.f_code.co_filename.rsplit('/', 2)[-1]}")
+            caller = caller.f_back
+        sources[" < ".join(chain)] += 1
+
+    def counted_instancecheck(cls, instance):
+        before = size(cls)
+        result = instancecheck(cls, instance)
+        if size(cls) > before:
+            record(cls, type(instance))
+        return result
+
+    def counted_subclasscheck(cls, subclass):
+        before = size(cls)
+        result = subclasscheck(cls, subclass)
+        if size(cls) > before:
+            record(cls, subclass)
+        return result
+
+    ABCMeta.__instancecheck__, ABCMeta.__subclasscheck__ = counted_instancecheck, counted_subclasscheck
+
+    def finish():
+        ABCMeta.__instancecheck__, ABCMeta.__subclasscheck__ = instancecheck, subclasscheck
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(sources.most_common(40), file)
         os.rename(partial, output)
 
     asyncio.get_running_loop().call_later(seconds, finish)

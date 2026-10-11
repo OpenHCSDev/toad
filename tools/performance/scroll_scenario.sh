@@ -70,7 +70,7 @@ if [[ -n "${METER_FROM_OPEN:-}" ]]; then
     fi
     python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run "${measure[@]}" \
         ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} \
-        --sudo > "$out/capture.log" 2>&1 &
+        ${TRACE_GARBAGE:+--trace-garbage} ${HEAP_CENSUS:+--heap-census "$HEAP_CENSUS"} ${FREEZE_HEAP:+--freeze-heap} ${TRACE_ABC:+--trace-abc} --sudo > "$out/capture.log" 2>&1 &
     capture=$!
     sleep 2
 fi
