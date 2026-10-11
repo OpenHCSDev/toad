@@ -1,7 +1,7 @@
 # Theming, pywal, true colour and effects
 
-Status, 2026-10-10: design done; the first increment is implemented (see
-[First increment](#first-increment-implemented)). Owner: the theming workflow.
+Status, 2026-10-11: the second increment moved theming into the standalone
+`ui-theme` package (see [Second increment](#second-increment-ui-theme)). Owner: the theming workflow.
 
 Toad's target layering (Tristan, 2026-10-09):
 
@@ -207,109 +207,132 @@ Rules every effect follows:
 
 ## 5. The refactor
 
-### Target
+### Target (Tristan, 2026-10-11)
 
-Neutral layer (no Textual, no Rich):
+"lets make sure to abstract it out properly too so its not coupled to toad and
+textual specifically". Theming, pywal, colour depth, effects and animation live
+in **`ui-theme`**, a standalone package (`/home/ts/code/projects/ui-theme`,
+GitHub `OpenHCSDev/ui-theme`, import `ui_theme`), one level above comms. It
+imports no UI toolkit and nothing of Toad or comms (an import test enforces
+both). A frontend (Textual today; PyQt through `pyqt-reactive` and a VS Code
+web view later) writes one backend adapter. Comms meaning, such as which role
+is drawn in which colour, stays in the comms UI layer (`toad/line_blocks.py`).
 
-- `toad/colour_scheme.py`: `Rgb` (with its `#rrggbb` codec), `TerminalPalette`
-  (ANSI 0–15, foreground, background, cursor), `ColourScheme` (each semantic
-  colour, `dark`, and its terminal palette), the `ThemeColour` family
-  (foreground, muted, primary, secondary, accent, success, warning, error),
-  `ColourDepth` (24-bit, 256, 16) with its one decision, and Toad's default
-  dark palette (Dracula).
-- `toad/wal_palette.py`: pywal's file format, decoded once into a palette.
-- `toad/line_blocks.py`: each `LineRole` declares its `colour` (and `italic`).
-  A new role states its colour where it is declared.
-- Later: the effect descriptions and the animation clock (section 4), and the
-  catalog of schemes Toad offers (decision D2).
+`ui_theme`:
 
-Textual backend:
+- `colour`: `Rgb` (optionally translucent), `AnsiColour` (palette slot 0–15),
+  `TerminalDefault`, and `TerminalPalette`. Terminal colours give their 24-bit
+  value from a palette for backends that are not terminals.
+- `scheme`: the `ThemeColour` family (core colours every scheme states:
+  foreground, background, primary, secondary, accent, success, warning, error;
+  layer colours a scheme may state: surface, panel, boost; muted, derived as
+  the foreground 60% over the background), `ColourScheme` (colours, darkness,
+  terminal palette, per-element colours), `scheme_of_palette`.
+- `catalog`: Textual's 21 built-in themes as `ColourScheme`s, plus the default
+  dark (Dracula) and light (Alabaster) terminal palettes (D2).
+- `wal`: pywal's `colors.json`, decoded exactly into a palette and the `wal`
+  scheme (D3 slots).
+- `depth`: `ColourDepth`, a terminal capability, decided once.
+- `effects`: effects over time and semantic colour (`GradientSweep`, `Fade`,
+  `Wipe`, `PlayedText`) and their frames (`Gradient`, `Mix`, `Band`,
+  `TextFrame`), which name theme colours and fractions of what they decorate,
+  never cells or pixels.
+- `splash`: TerminalTextEffects effects built in advance into `PlayedText`
+  (D5), meant for a worker process.
+- `clock`: `AnimationClock`, one cadence for every running effect.
+- `backend`: what a frontend implements. `Backend`: scheme → its theme type,
+  `ThemeColour` → its colour, and one paint per frame kind. `TerminalBackend`,
+  a capability only terminal frontends mix in: palette → its palette type,
+  native `Rgb`/`AnsiColour`/terminal default, colour depth.
 
-- `toad/textual_colours.py` `TextualColours`, held by the App: the colour depth
-  handed to the Console, a scheme registered as a Textual `Theme`, each theme's
-  terminal palette as the Rich `TerminalTheme` ANSI colours map to (the App's
-  `ansi_theme`), pywal's file followed by watchdog, and the line styles
-  resolved once each time Textual rebuilds the theme's CSS variables.
-- `LineTheme.of(variables)`: resolves every declared `ThemeColour` from the CSS
-  variables; muted is the 60% blend in true colour and `dim` in ANSI themes.
-- Consumers read `app.colours.line_theme` and listen to
-  `theme_changed_signal` (published after the variables are rebuilt), instead
-  of each caching its own.
+The package's tests drive the interface with two in-test backends: a terminal
+cell backend and a CSS backend with no cells and no terminal colours, through
+the same effects and clock.
 
-### Copies deleted (first increment)
+Textual backend (in Toad, because Toad is the Textual app and the adapter uses
+Toad's render workers and widgets; nothing in it belongs to the Textual fork):
 
-- `DRACULA_TERMINAL_THEME` and its assignment in `on_load` (`app.py`).
-- The role → colour table in `LineTheme.from_app`; `from_app` itself.
-- `TranscriptPage._theme`/`_line_theme()` and `LineMarkdown._theme`/
-  `_line_theme()`, and the extra `LineTheme.from_app` in `prepare_fragments`.
-- The `theme.secondary or theme.primary` fallback (Textual's generated
-  `secondary` already defaults to primary).
-- Rich's colour-depth detection for Toad (the App now asks Toad).
+- `toad/textual_colours.py` `TextualColours(Backend, TerminalBackend)`, held by
+  the App: registers the catalog over Textual's copies of the same themes (the
+  generated CSS variables are identical for all 21: checked by generating both),
+  offers only the catalog in the theme setting, follows pywal's file, gives the
+  Console the colour depth, owns the `SyntaxPalette` (ANSI-ness and darkness)
+  and the line styles, paints effect frames into strips and `Content`, and runs
+  the one animation clock on one Textual timer.
+- `Animated`: the capability a decorated widget mixes in (start/stop an effect,
+  the clock's visibility rule, repaint). Throbber, `MessageDivider`,
+  `ThreadLoading` and the tab `Underline` use it.
+- `LineTheme.of(variables, color_system)`: role styles once per theme.
 
-### Still to migrate (next increments, no decisions needed)
+### Before and after: owners and consumers
 
-1. "Is the theme ANSI?": one answer, `app.native_ansi_color`, for the 4
-   `current_theme.ansi` and 4 `startswith("ansi-")` sites; the patch key
-   `(ansi, dark)` built once by the colours owner (4 sites).
-2. Syntax theme: one choice derived from the scheme's darkness and ANSI-ness
-   (3 sites plus `file_kind.py`).
-3. The worker console's hard-coded `"truecolor"` reads the depth owner.
-4. Selection style resolved one way.
-5. Hard-coded CSS colours: `#ad8bf5` → `$accent`; `white`/`blue` → theme
-   variables; keep the `:ansi` twins (they are how ANSI themes stay readable).
-6. Pickled `Style._hash` in task inputs: clear it at the task boundary as
-   results already do.
-7. Live widgets and committed lines draw dividers differently
-   (`MessageDivider` muted for every role, line dividers in the role colour).
+Census by `grep`/AST over `src/toad` before and after (the two commits named
+in the second increment). "Consumers" are importing modules.
+
+| Fact | Owner before | Owner after | Consumers after |
+|---|---|---|---|
+| Colour values, palette, scheme | `toad/colour_scheme.py` | `ui_theme.colour`, `ui_theme.scheme` | `line_blocks`, `transcript_lines`, `textual_colours`, `render_tasks` |
+| Theme catalog | Textual `BUILTIN_THEMES` (Toad offered `app.available_themes`) | `ui_theme.catalog.SCHEMES` | `textual_colours` (registers them); the settings editor lists `app.colours.schemes` |
+| Default terminal palettes | `toad/colour_scheme.py` (dark), Textual `ALABASTER` through `app.ansi_theme_light` (light) | `ui_theme.catalog` | each scheme's `terminal` |
+| pywal decoding | `toad/wal_palette.py` (through `FieldCodec`) | `ui_theme.wal` | `textual_colours` |
+| Colour depth | `toad/colour_scheme.py`; a second answer, `"truecolor"`, in `transcript_lines.py` | `ui_theme.depth`; workers read it through `LineTheme.color_system` | `textual_colours`, `app.get_color_system` |
+| Effects and timing | `toad/effects.py` (sweep); each animated widget its own timer and visibility rule | `ui_theme.effects`, `ui_theme.clock`; `Animated` in the Textual backend | throbber, divider, splash, tab underline |
+| "Is the theme ANSI?" | `current_theme.ansi` ×4, `theme.startswith("ansi-")` ×4, CSS `:ansi` | `app.native_ansi_color` (the CSS `:ansi` answer), through `colours.syntax` for code | `tool_call`, `screens/store`, `tool_output`, `tool_content`, `patch_diff` |
+| Syntax theme | `"monokai"` default, `"auto"` → `ansi_dark/light`, `ansi_dark` in the unparsed-patch path, `DiffView.highlight(ansi, dark)` | `SyntaxPalette` (`rich_preparation.py`), built by `colours.syntax` | `RichPresentation.syntax`, `PatchRenderTask`, `PreparedPatch`, `PatchWarmup` |
+| Selection style | `Style.from_styles(get_component_styles(...))` ×3, `get_visual_style(...)` ×1 | Textual's `Visual.selection_style` | `worker_static` ×2, `patch_diff`, `terminal` |
+| Style hash in pickles | cleared by hand on results in `prepare_rich`; not on task inputs | one `copyreg` reducer in `rich_preparation.py` | every task input and result |
+| Live divider colour | `$text-muted` for every role | the role's colour, as committed lines | `MessageDivider` (`user_input`, `agent_response`, `AgentActivityDivider`) |
+
+Deleted: `toad/colour_scheme.py`, `toad/wal_palette.py`, `toad/effects.py`,
+`TextualColours.DARK_PALETTE` and its light fallback, `PaintOnlyRefresh`, the
+throbber's own 15 fps timer and `make_segments`, `SyntaxSource.theme` and
+`WorkerStatic.code(themed=)`, the manual result hash loop, the dead
+`PreparedMarkdownPart.prepare` (it named a task class that does not exist),
+`tests/test_colour_scheme.py` (its neutral tests moved to `ui-theme`) and
+`tests/throbber_render_cache_pilot.py` (it tested the deleted row cache).
+After the move, `grep -rn "toad.colour_scheme\|toad.wal_palette\|toad.effects"`
+over `src`, `tools` and `tests` finds nothing.
+
+What remains Textual's: its design system's derived variables (shades, text
+colours, panel and boost layering) are Textual's rendering of a scheme. The
+43 CSS `:ansi` twins stay (they keep ANSI themes readable).
 
 ### Edits a new case needs
 
 | Case | Before | After |
 |---|---|---|
-| A new theme source (pywal) | 5 sites in 4 files: a decoder; a hand-built Textual `Theme` in the App; the hard-coded `ansi_theme_dark` in `on_load`; and the three `watch(app, "theme")` consumers, which do not fire when a theme's colours change under the same name | 2: a decoder to `TerminalPalette`/`ColourScheme`, and one `colours.register(scheme)` (plus a watcher if the source changes live) |
-| A new backend (PyQt) | Re-derive 4 facts held in Textual code: the role table, the muted rule, the default palette (a Rich type), and the pywal decoding (did not exist) | 2 functions: scheme → its palette type, `ThemeColour` → its colour; roles, palettes, pywal and depth are reused |
-| A new line role | 2 files: the role class and a row in `LineTheme.from_app` | 1: the role class with `colour = ...` |
-| A new semantic colour | n/a (roles named Textual theme fields directly) | 1 class in `colour_scheme.py`; 0 backend edits when Textual has a variable of that name |
+| A new backend (PyQt, a web view) | Re-derive the role table, the muted rule, the palettes, the catalog (in Textual), pywal and every effect's timing | 1 class: `Backend`'s 6 methods (theme, colour, 4 frame paints). A terminal backend adds `TerminalBackend`'s 4 and a depth. Catalog, pywal, roles, effects and clock are reused |
+| A new theme source | 5 sites in 4 files | 2: a decoder to `TerminalPalette`/`ColourScheme` in `ui_theme`, and `colours.register(scheme)` (plus a watcher if it changes live) |
+| A new built-in theme | n/a (Textual's) | 1: a `ColourScheme` in `ui_theme.catalog` |
+| A new line role | 2 files | 1: the role class with `colour = ...` (`toad/line_blocks.py`) |
+| A new semantic colour | n/a | Layer colour: 1 class. Core colour: 1 class, plus its value in each catalog scheme (21) and in `scheme_of_palette` (1). 0 Textual edits when Textual has a variable of that name |
+| A new effect | its own timer, visibility rule and paint in the widget | 1 effect declaration and 1 `run_effect` call when it uses an existing frame kind; a new frame kind adds 1 frame class and 1 paint method per backend |
 
-## 6. Decisions for Tristan
+## 6. Decisions
 
-Each has a default I will follow unless told otherwise.
-
-- **D1. True colour in `st`.** `st` shows 24-bit colour but does not say so, so
-  Toad (and every Rich/Textual app) uses 256 colours.
-  Options: (a) export `COLORTERM=truecolor` for `st` (st's `config.h`, or your
-  shell profile when `TERM` starts with `st`); (b) a Toad "colour depth"
-  setting (auto/24-bit/256/16) that overrides detection; (c) treat `TERM=st-*`
-  as 24-bit inside Toad.
-  **Default: (a).** It fixes every program at its source, needs no Toad code,
-  and keeps one authority (the environment). (c) is a lookup table of terminal
-  names that would go stale.
-- **D2. Toad's theme catalog.** Textual's 20 built-in themes live in Textual;
-  a PyQt frontend would not have them.
-  **Default:** Toad's catalog becomes neutral: `ansi-dark`, `ansi-light`,
-  `wal` (when pywal has written a palette), and the built-in themes'
-  definitions moved into neutral `ColourScheme`s (Textual registers them from
-  there; Toad stops offering Textual's copies).
-- **D3. Which pywal colour is which.** **Default:** the same slots the ANSI
-  themes use: primary = colour 4 (blue), secondary = 6 (cyan), accent = 5
-  (magenta), success = 2, warning = 3, error = 1, background, foreground and
-  cursor from `special`. pywal palettes often repeat 1–6 in 9–14, so accent
-  differs from success only when colour 5 differs from colour 2.
-- **D4. Default theme.** **Default:** stay on `ansi-dark` (follows pywal live
-  with no file reading) and offer `wal` (true colour, smooth shades). Switch
-  the default to `wal` after D1 makes true colour real in `st`.
-- **D5. Effects library.** **Default:** add `terminaltexteffects` (pure Python,
-  MIT, no dependencies) for the startup splash only, built in render workers.
-  Package changes go through review, so this waits for your yes.
-- **D6. Which effects, in order.** **Default:** (1) theme-coloured activity
-  sweep, (2) new-message highlight (≈400 ms fade from accent), (3) startup
-  splash while history loads, (4) tab wipe. Each must hold frame p95 and keep
-  every wait at or under 16 ms in the scroll scenario before it is published.
-- **D7. User and agent colours.** The committed history drew the user in the
-  primary colour and the agent in the secondary, the reverse of the live
-  widgets, so a sent prompt changed colour when committed. **Implemented
-  default:** follow the live widgets (user = secondary, agent = primary). Say if
-  you want the reverse; it is one line per role.
+- **D1. True colour in `st`. Done (Tristan, 2026-10-11):** his `st` (commit
+  `577a38c` in `~/programs/st`, installed at `/usr/local/bin/st`) exports
+  `COLORTERM=truecolor`; terminals opened before it keep their old
+  environment. The equivalent one-line change for a shell profile would be
+  `[[ $TERM == st-* ]] && export COLORTERM=truecolor`.
+- **D2. Theme catalog. Done:** the catalog is `ui_theme.catalog`; Toad offers
+  only it (plus `wal`).
+- **D3. pywal slots.** As proposed (primary 4, secondary 6, accent 5, success
+  2, warning 3, error 1).
+- **D4. Default theme. Done:** `wal`, now that `st` shows true colour. When
+  pywal has written no `colors.json`, choosing `wal` reports that as an error
+  notification and the theme does not change.
+- **D5. TerminalTextEffects. Approved (Tristan, 2026-10-11):** a dependency of
+  `ui-theme`, not Toad; the splash builds its effect in a render worker.
+- **D6. Effects, in order.** Done in that order; measurements in the second
+  increment.
+- **D7. User and agent colours.** As implemented in the first increment.
+- **D8. Where `ui-theme` lives (Tristan, 2026-10-11):** a standalone package
+  one level above comms, at `~/code/projects/ui-theme`, published as
+  `OpenHCSDev/ui-theme`. Comms-specific role colours stay in the comms UI
+  layer. The package uses no comms code: its pywal decoder is its own (the
+  comms `FieldCodec` is not available to it), and its colour family uses
+  `metaclass-registry` directly.
 
 ## First increment (implemented)
 
@@ -378,3 +401,84 @@ Evidence:
   `wal` theme, so it raised `InvalidThemeError`. The file was restored from its
   backup (checksum `5f8ef5a4…` verified after every later run) and the runner
   now restores it after each app exits. The run was repeated.
+
+## Second increment: ui-theme
+
+What changed (commits on Toad `main`; `ui-theme` `71d088e`):
+
+- Theming moved out of Toad into `ui-theme` (section 5), with no copies left
+  in Toad. Toad depends on it through
+  `ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "71d088ec…" }`
+  in `[tool.uv.sources]`, and it is in `uv.lock`. `terminaltexteffects`
+  0.15.0 is a dependency of `ui-theme`, not of Toad.
+- Still-to-migrate items 1–7 are done (the before/after table in section 5).
+  Code previews, which were always Monokai, now draw in the theme's ANSI
+  palette like tool output, so they follow `wal`.
+- Effects 2–4 of D6 are added, and the sweep moved onto the one clock:
+  - **New message:** a live divider fades from the accent to its role colour
+    (400 ms, 30 fps; ANSI colours step at the halfway point).
+  - **Splash:** while a thread loads, its label plays a TerminalTextEffects
+    sweep into primary → accent → secondary. It is built in a render worker
+    (46 ms build, 55 frames, at most 2 s at 30 fps), and the label shows
+    plainly until the frames arrive.
+  - **Tab wipe:** choosing a tab sends an accent band across that tab's
+    underline (250 ms, 60 fps).
+- The clock ticks only while something animates, at the fastest running
+  effect's rate. It repaints only visible targets and gives a finished or
+  hidden effect one last paint. `animation_level` `none` shows final frames.
+- The default theme is `wal` (D4).
+
+Evidence:
+
+- `ui-theme`: 23 tests, using the runtime's Python. They cover the import
+  boundary (no Toad, Textual, Rich, comms or Qt is imported, even when a splash
+  is built), pywal exactness, depth per terminal, every scheme answering every
+  colour in 24 bits, terminal colours read from the palette, and a cell
+  backend and a CSS backend driven by the same effects and clock.
+- The Textual variables generated from the moved catalog equal those from
+  Textual's own copies for all 21 themes (scratch script, run once).
+- Real `ToadApp`, run headless in a scratch config:
+  - The default theme is `wal` in 24-bit, with 22 schemes offered.
+  - Choosing an unknown theme reports it and keeps the current one.
+  - A live divider repaints 8 times during its fade, ending on its role colour.
+  - The splash plays.
+  - The clock stops (no timer) when nothing animates.
+- Real `toad` in a fresh `st` (true colour since D1) on an isolated display,
+  in the scroll scenario. History, the live tail, End and tab return draw in
+  pywal's colours under the default `wal` (`theming-probe/end.png`).
+- Scroll scenario (`METER_FROM_OPEN=1`, display `:147`), interleaved with the
+  published runtime `toad-7c2cf29ad-textual-f744db2fe-core-ddb4c047d`. The
+  candidate is a scratch copy of it carrying this work, in `wal` at 24 bits.
+  The published build is in `ansi-dark`. Three runs each:
+
+  | Build | Frame p95 (ms) | Frame p99 (ms) | Input-to-paint p95 (ms) | Worst event-loop wait (ms) | Waits over 16 ms | Screen checks |
+  |---|---|---|---|---|---|---|
+  | Published | 11.8, 10.8, 11.5 | 27.0, 26.2, 23.8 | 11.3, 9.5, 9.4 | 35.4, 13.5, 14.5 | 1, 0, 0 | pass |
+  | Candidate | 11.6, 11.3, 12.4 | 26.2, 23.6, 25.1 | 7.9, 8.2, 9.1 | 14.8, 15.8, 15.6 | 0, 0, 0 | pass |
+
+  Frames over 16 ms (29–44 per run in both builds) are tab-open and
+  tab-switch work (`_switch_mode_ready`, roster composes, stepped layouts),
+  the same in both builds; none of the slow frames contains effect work.
+- Per-call cost of each effect in the real app (`TRACE_CALLS`, one candidate
+  run; that run overlapped another agent's scenario, so these are upper bounds):
+
+  | Effect | Call | Calls | Median (ms) | p95 (ms) |
+  |---|---|---|---|---|
+  | Sweep | `ThrobberVisual.render_strips` | 126 | 0.034 | 0.051 |
+  | Splash | `ThreadLoading.render` | 31 | 0.045 | 0.221 |
+  | Tab wipe | `Underline.render_line` | 52 | 0.51 | 0.90 |
+  | New message | `MessageDivider.render` | 1 | 0.065 | — |
+  | All | `AnimationClock.tick` | 344 | 0.080 | 0.199 |
+
+  In the scenario the new reply's divider was off screen during its fade, so
+  it got only its final paint (as designed). The headless run shows the fade
+  painting.
+
+Not done yet:
+
+- Rule 3 of section 4, "input first": the clock does not yet skip a tick
+  while input is waiting, and it has no 2 ms budget. Measured effect work per
+  tick is under 1 ms.
+- Other per-widget timers (`BusyRows`, `TurnActivity`, the tab spinner, the
+  cursor blink, `future_text.py`) still run their own timers. They are
+  candidates for the clock.
