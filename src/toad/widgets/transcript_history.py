@@ -46,7 +46,7 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.transcript_lines import (
-    LineTheme, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
@@ -112,7 +112,6 @@ class TranscriptPageView(Widget):
         )
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
-        self._theme: LineTheme | None = None
         self._pending: set[int] = set()
         self._render: asyncio.Task[None] | None = None
         self._width = 0
@@ -172,11 +171,10 @@ class TranscriptPageView(Widget):
         return self._height
 
     def on_mount(self) -> None:
-        self.watch(self.app, "theme", self._theme_changed, init=False)
+        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
 
-    def _theme_changed(self) -> None:
-        # Lines hold resolved theme colors; a new theme draws new lines.
-        self._theme = None
+    def _theme_changed(self, _theme) -> None:
+        # Lines hold resolved theme colours; a new theme draws new lines.
         self.admission_changed()
 
     def on_unmount(self) -> None:
@@ -188,13 +186,8 @@ class TranscriptPageView(Widget):
         self._relayout()
         self.refresh(layout=True)
 
-    def _line_theme(self) -> LineTheme:
-        if self._theme is None:
-            self._theme = LineTheme.from_app(self.app)
-        return self._theme
-
     def _rows(self, index: int, width: int) -> tuple[Strip, ...]:
-        fragment, theme = self.fragments[index], self._line_theme()
+        fragment, theme = self.fragments[index], self.app.colours.line_theme
         lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending.add(index)
@@ -290,7 +283,7 @@ class TranscriptPageView(Widget):
             if not batch:
                 return
             self._pending.difference_update(batch)
-            width, theme = self._width, self._line_theme()
+            width, theme = self._width, self.app.colours.line_theme
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
                 TranscriptLinesRenderTask(
                     self.fragments[index].line_blocks(show_divider=not self.fragments[index].continuation),
@@ -306,7 +299,7 @@ class TranscriptPageView(Widget):
         window = self.query_ancestor(HistoryWindow)
         history = self.query_ancestor(TranscriptHistory)
         async with window.preserve_history(None, root=self, position=history.reader_position(window)):
-            theme = self._line_theme()
+            theme = self.app.colours.line_theme
             for index, lines in ready:
                 self.fragments[index].hold_lines(theme, lines)
             self.admission_changed()
@@ -443,7 +436,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         width = self.line_width
         if width <= 0:
             return
-        theme = LineTheme.from_app(self.app)
+        theme = self.app.colours.line_theme
         selected = self.selected_categories if selected is None else selected
         todo = [fragment for fragment in fragments
                 if keep_events(fragment.events, selected) and fragment.lines_for(width, theme) is None]

@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, TypeVar, cast
 from weakref import WeakKeyDictionary
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
-from rich import terminal_theme
+from rich.terminal_theme import TerminalTheme
 from textual import events, on, work
 from textual.actions import ActionError, parse as parse_action
 from textual.app import App
@@ -52,6 +52,7 @@ from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionAdmissions
 from toad.terminal_attention import TerminalAttention
+from toad.textual_colours import TextualColours
 from toad.application_actions import ApplicationAction, ApplicationCommands, KeyboundAction
 from toad.application_lifetime import ApplicationLifetime
 
@@ -62,32 +63,6 @@ if TYPE_CHECKING:
     from toad.screens.store import StoreScreen
 
 RenderResultT = TypeVar("RenderResultT")
-
-
-DRACULA_TERMINAL_THEME = terminal_theme.TerminalTheme(
-    background=(40, 42, 54),  # #282A36
-    foreground=(248, 248, 242),  # #F8F8F2
-    normal=[
-        (33, 34, 44),  # black - #21222C
-        (255, 85, 85),  # red - #FF5555
-        (80, 250, 123),  # green - #50FA7B
-        (241, 250, 140),  # yellow - #F1FA8C
-        (189, 147, 249),  # blue - #BD93F9
-        (255, 121, 198),  # magenta - #FF79C6
-        (139, 233, 253),  # cyan - #8BE9FD
-        (248, 248, 242),  # white - #F8F8F2
-    ],
-    bright=[
-        (98, 114, 164),  # bright black - #6272A4
-        (255, 110, 110),  # bright red - #FF6E6E
-        (105, 255, 148),  # bright green - #69FF94
-        (255, 255, 165),  # bright yellow - #FFFFA5
-        (214, 172, 255),  # bright blue - #D6ACFF
-        (255, 146, 223),  # bright magenta - #FF92DF
-        (164, 255, 255),  # bright cyan - #A4FFFF
-        (255, 255, 255),  # bright white - #FFFFFF
-    ],
-)
 
 
 QUOTES = [
@@ -281,6 +256,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
         self.settings = ToadSettings.open(self)
+        self.colours = TextualColours(self)
         self.preparation = PreparationRuntime(RenderProcessPool())
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
@@ -312,6 +288,18 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
 
+    def get_color_system(self) -> str:
+        return self.colours.depth.terminal_name
+
+    def get_css_variables(self) -> dict[str, str]:
+        variables = super().get_css_variables()
+        self.colours.variables_changed(variables)
+        return variables
+
+    @property
+    def ansi_theme(self) -> TerminalTheme:
+        return self.colours.terminal_theme(self.theme)
+
     async def _close_all(self) -> None:
         await self.thread_navigation.close()
         await self.thread_actions.close()
@@ -321,6 +309,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         await self.coordination_access.close()
 
     async def on_unmount(self) -> None:
+        self.colours.stop()
         self.terminal_attention.close()
         await self.thread_navigation.close()
         await self.navigation_reader.aclose()
@@ -380,7 +369,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         db = await self.get_db()
         await db.create()
         self.settings.ensure_file(self)
-        self.ansi_theme_dark = DRACULA_TERMINAL_THEME
+        self.colours.start()
         self.settings.apply_all()
 
     def _prewarm_conversation_css(self) -> None:

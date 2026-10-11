@@ -20,7 +20,7 @@ from textual.worker import Worker
 
 from toad.line_blocks import Body, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    LineTheme, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask,
+    PreparedLines, RichLineRenderer, TranscriptLinesRenderTask,
 )
 
 
@@ -36,7 +36,6 @@ class LineMarkdown(Widget):
         super().__init__(id=id, classes=classes)
         self.text = text
         self.role, self.bar, self.markdown = role, bar, markdown
-        self._theme: LineTheme | None = None
         self._styled: PreparedLines | None = None
         self._plain: PreparedLines | None = None
         self._width = 0
@@ -47,10 +46,9 @@ class LineMarkdown(Widget):
         return Body(self.text, role=self.role, bar=self.bar, markdown=self.markdown)
 
     def on_mount(self) -> None:
-        self.watch(self.app, "theme", self._theme_changed, init=False)
+        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
 
-    def _theme_changed(self) -> None:
-        self._theme = None
+    def _theme_changed(self, _theme) -> None:
         self._styled, self._styled_text, self._plain = None, "", None
         self._request_render()
         self.refresh(layout=True)
@@ -77,13 +75,8 @@ class LineMarkdown(Widget):
     def append(self, text: str) -> None:
         self.update(self.text + text)
 
-    def _line_theme(self) -> LineTheme:
-        if self._theme is None:
-            self._theme = LineTheme.from_app(self.app)
-        return self._theme
-
     def _plain_rows(self, text: str, width: int):
-        return RichLineRenderer(self._line_theme(), width, plain=True).rows((
+        return RichLineRenderer(self.app.colours.line_theme, width, plain=True).rows((
             Body(text, role=self.role, bar=self.bar, markdown=False),))
 
     def _lines(self, width: int) -> PreparedLines:
@@ -132,7 +125,7 @@ class LineMarkdown(Widget):
         renderer = self.app.render_processes
         seen = None
         while self.is_attached:
-            text, width, theme = self.text, self._width, self._line_theme()
+            text, width, theme = self.text, self._width, self.app.colours.line_theme
             # While text keeps arriving, style only complete paragraphs, so
             # the plain tail never splits one. Unchanged for an interval (or a
             # one-shot update), style all of it.
@@ -144,7 +137,7 @@ class LineMarkdown(Widget):
                 lines = await renderer.submit(TranscriptLinesRenderTask((block,), width, theme))
                 if not self.is_attached:
                     return
-                if width == self._width and theme is self._line_theme() and self.text.startswith(target):
+                if width == self._width and theme is self.app.colours.line_theme and self.text.startswith(target):
                     rows = self._row_count()
                     self._styled, self._styled_text = lines, target
                     self._redraw(rows)
