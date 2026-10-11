@@ -27,7 +27,7 @@ async def test_a_page_painted_for_the_old_peer_does_not_mark_the_replacement_pee
         with patch.object(HistoryViews, "mark_dm_view_read", pause_old_mark):
             async with workspace.app(size=(120, 40)) as ui:
                 owner = ui.selected_tab
-                await ui.open_direct_messages("peer", actor=viewer)
+                await ui.open_direct("peer", actor=viewer)
                 chat = ui.textual[0].screen.query_one(CommsChatView)
                 assert await asyncio.to_thread(entered.wait, 4)
                 assert [message.body for message, _ in chat.message_history.rows] == ["old peer painted"]

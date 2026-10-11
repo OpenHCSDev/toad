@@ -24,7 +24,7 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
     publish_route(home, root, root_id)
 
     async with workspace.app(size=(105, 32)) as ui:
-        await ui.open_direct_messages("peer", actor="user")
+        await ui.open_direct("peer", actor="user")
         view = ui.textual[0].screen.query_one(CommsChatView)
         messaging = view.message_history.reader.comms.messaging
         original_send = messaging.send_user_message

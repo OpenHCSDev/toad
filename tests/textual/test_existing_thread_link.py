@@ -77,7 +77,7 @@ async def test_link_clicked_in_a_chat_view_reuses_the_open_thread_tab(workspace)
         # Chat views inherit the conversation's mouse handlers but omit goal
         # controls. A real link click must still reuse the tab.
         await ui.new_session()
-        await ui.open_channel("peer", actor="owner", owner=owner)
+        await ui.open_direct("peer", actor="owner", owner=owner)
         chat = app.screen.query_one(CommsChatView)
         assert chat.query_one_optional(GoalBar) is None
         await ui.resize(65, 36)

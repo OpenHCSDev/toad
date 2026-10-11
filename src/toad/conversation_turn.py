@@ -4,7 +4,6 @@ from dataclasses import dataclass, replace
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.turn_lease import TurnState
-from agent_comms.turn_phase import CompactionPhase
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
@@ -124,8 +123,7 @@ class ManagedTurn(TurnOwner):
 
     @property
     def started_at(self):
-        phase = self.state.phase
-        return phase.started_at if isinstance(phase, CompactionPhase) else self.state.started_at
+        return self.state.started_at
 
     @property
     def session_state(self):

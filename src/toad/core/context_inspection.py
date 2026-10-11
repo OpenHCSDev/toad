@@ -6,6 +6,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
+from operator import attrgetter
 from typing import TYPE_CHECKING, Awaitable, Callable
 from acp.exceptions import RequestError
 
@@ -522,10 +523,9 @@ class ContextInspection:
 
     def same_native_source(self, other: ContextInspection):
         """Compare original SDK source/launch facts, not roster presentation."""
-        return (self.source == other.source
-                and self.owner.publication_identity == other.owner.publication_identity
-                and self.owner.model == other.owner.model
-                and self.owner.thinking_level == other.owner.thinking_level)
+        launch_facts = attrgetter("incarnation", "process_identity", "role", "session_file", "worktree",
+                                  "execution", "model", "thinking_level")
+        return self.source == other.source and launch_facts(self.owner) == launch_facts(other.owner)
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
