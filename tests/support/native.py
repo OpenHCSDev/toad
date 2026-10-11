@@ -193,7 +193,8 @@ def configure_provider(base_url: str, *, settings: dict | None = None) -> None:
     config.mkdir(mode=0o700, parents=True, exist_ok=True)
     (config / "models.json").write_text(json.dumps({"providers": {PROVIDER: {
         "baseUrl": base_url, "api": "openai-completions",
-        "models": [{"id": "fixture", "name": "Offline fixture", "contextWindow": 32768, "maxTokens": 2048}],
+        "models": [{"id": "fixture", "name": "Offline fixture", "reasoning": True,
+                    "contextWindow": 32768, "maxTokens": 2048}],
     }}}))
     (config / "auth.json").write_text(json.dumps({PROVIDER: {"type": "api_key", "key": KEY}}))
     if settings is not None:
@@ -261,6 +262,10 @@ async def native_session(workspace, package: Path, *, provider: ControlledProvid
                 assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
                 yield NativeSession(ui, agent, comms, provider, workspace.project)
                 assert not provider.failures, provider.failures
+        except BaseException as error:
+            if provider.failures:
+                error.add_note(f"Controlled provider failures: {provider.failures}")
+            raise
         finally:
             provider.release()
             if agent is not None:
