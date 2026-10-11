@@ -30,12 +30,16 @@ class FrameApp(ToadApp):
         if isinstance(screen, WorkspaceScreen):
             if prompt := screen.query_one_optional(Prompt):
                 slash_input = prompt.slash_complete.query_one_optional(Input)
-                (Path(self.project_dir) / "current-ui.json").write_text(json.dumps({
+                state = json.dumps({
                     "text": prompt.text, "agent_ready": prompt.agent_ready, "editor_focused": prompt.prompt_text_area.has_focus,
                     "slash_open": any(popup.is_open for popup in prompt.query(SlashComplete)),
                     "slash_focused": slash_input is not None and slash_input.has_focus,
                     "slash_query": "" if slash_input is None else slash_input.value,
-                }))
+                })
+                # Readers poll this file; replace it whole so they never see half of it.
+                pending = Path(self.project_dir) / "current-ui.json.new"
+                pending.write_text(state)
+                pending.replace(Path(self.project_dir) / "current-ui.json")
 
     def record_frame(self):
         frame = self.screen.frame_presentation

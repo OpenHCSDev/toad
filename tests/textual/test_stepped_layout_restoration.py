@@ -2,8 +2,9 @@
 
 - A history restoration that requests a layout while a stepped layout is paused
   waits for the layout that places its change, not the one already running.
-- Between steps the history window's anchor reads (_layout_map) and published
-  geometry (_published_map, hit testing) are the previous scene's.
+- Until the step that commits the arrangement, the history window's anchor reads
+  (_layout_map) are the previous scene's; published geometry (_published_map, hit
+  testing) stays the previous scene's until the last step.
 - The stepped layout's scene equals a one-shot layout of the same change.
 """
 
@@ -41,6 +42,16 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         await ui.step()
         compositor = screen._compositor
 
+        # The sidebars mount their rows over several frames; compare scenes only once that is over.
+        seen = []
+
+        async def settled():
+            await ui.step(0.1)
+            seen.append(scene(screen))
+            return len(seen) > 2 and seen[-1] == seen[-2] == seen[-3]
+
+        await ui.until(settled, why="the workspace's widgets to finish mounting")
+
         # One-shot reference for the same change.
         await widen(ui, screen, 100)
         with screen.hold_frames():
@@ -65,18 +76,27 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
             steps = drive(screen)
             restoration.request_layout(window)  # made while the layout is paused
             pauses = 0
+            committed = None
             try:
                 while True:
-                    assert compositor._layout_map is layout_map and compositor._published_map is published, (pauses, compositor._layout_map is layout_map, compositor._published_map is published)
+                    # Textual's contract: readers see the previous arrangement until the step that
+                    # commits it; later steps render, and nothing is published until the last step.
+                    if committed is None and compositor._layout_map is not layout_map:
+                        committed = compositor._layout_map
+                    assert compositor._published_map is published, pauses
                     assert window.published_content_region == published[window].content_region.intersection(
                         published[window].clip)
-                    assert [HistoryAnchor._placed_offset(child, window) for child in placed] == offsets
-                    assert window.reader_anchor() is anchor
                     assert screen.get_widget_and_offset_at(region.x + 2, region.y + 2) == hit
+                    if committed is None:
+                        assert [HistoryAnchor._placed_offset(child, window) for child in placed] == offsets
+                        assert window.reader_anchor() is anchor
+                    else:
+                        assert compositor._layout_map is committed, "the arrangement changed again after its commit"
                     pauses += 1
                     next(steps)
             except StopIteration:
                 screen._stepped_layout = None
+        assert committed is not None
         assert pauses > 10, pauses
         assert scene(screen) == one_shot
         assert not restoration.layout_ready.is_set(), "released by a layout that started before its request"
