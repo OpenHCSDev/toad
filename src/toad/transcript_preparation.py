@@ -14,7 +14,7 @@ from agent_comms.transcript_events import TranscriptEvent
 
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import TranscriptRenderTask
-from toad.widgets.message_filter import MessageCategory, keep_events
+from toad.widgets.message_filter import MessageCategory
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedValue,
@@ -188,7 +188,7 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
         while stop and len(matches) < self.limit:
             stop -= 1
             fragment = self.fragments[stop]
-            if keep_events(fragment.events, self.selected):
+            if fragment.shown_in(self.selected):
                 matches.append(fragment)
         return FilteredTranscriptBatch(tuple(reversed(matches)), stop)
 

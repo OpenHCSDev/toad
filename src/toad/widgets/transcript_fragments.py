@@ -15,7 +15,7 @@ from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary
-from toad.widgets.message_filter import event_category, keep_events
+from toad.widgets.message_filter import MessageCategory, event_category
 
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
@@ -167,6 +167,15 @@ class TranscriptFragment:
         for event in self.events:
             consumer.dispatch_sync(event)
         return tuple(consumer.blocks)
+
+    @cached_property
+    def categories(self) -> frozenset[type[MessageCategory]]:
+        """The message categories of this fragment's events, derived once."""
+        return frozenset(map(event_category, self.events))
+
+    def shown_in(self, selected: frozenset[type[MessageCategory]]) -> bool:
+        """A fragment shows when a filter selects any of its events' categories."""
+        return not self.categories.isdisjoint(selected)
 
     def lines_for(self, width: int, theme):
         """Styled lines this fragment holds for a width and theme, if any."""
