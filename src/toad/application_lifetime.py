@@ -19,6 +19,9 @@ class UsageReports:
 
     def __init__(self, app: ToadApp) -> None:
         self.app = app
+        # Built once, on the first delivery: loading the CA certificates holds
+        # the GIL for 4-14 ms, which blocked the UI thread at every report.
+        self._tls = None
 
     def publish(self, event_name: str, **properties: object):
         return self.app.run_worker(partial(self.send, event_name, properties))
@@ -41,9 +44,10 @@ class UsageReports:
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "os": platform.system(),
         }
+        if self._tls is None:
+            self._tls = await app.preparation.run_thread(httpx.create_ssl_context)
         try:
-            client = await app.preparation.run_thread(httpx.AsyncClient)
-            async with client:
+            async with httpx.AsyncClient(verify=self._tls) as client:
                 await client.post("https://us.i.posthog.com/i/v0/e/", json=body)
         except httpx.HTTPError:
             # Optional collection cannot prevent normal application use.
