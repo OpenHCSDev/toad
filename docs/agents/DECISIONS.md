@@ -495,3 +495,21 @@ The pointer-capture ordering tests pass, and the set of failing tests is unchang
 The tab-switch agent found that the prompt's `max-height: 50vh` makes Textual measure the prompt chain and then arrange it again: while measuring a parent that sizes itself to its content, non-cell max sizes are skipped. Limiting that skip to units that resolve against the container (%, fr, w, h) would cut about 15–20% of the first tab switch after a width change.
 
 I tried it and reverted it. Existing tests assert upstream's measured outcome for viewport-unit max sizes under auto-size parents (`test_noncell_width_limit_keeps_original_zero_width_parent_exception`, `test_height_dependent_css_and_extrema_match_native_contexts[max_height-50vh]`). The change alters measured layout fork-wide for a small share of one rare wait.
+
+## 2026-10-10: Plan — rewrite the history of Core, Toad and the Textual fork
+
+Tristan has three reasons:
+- understanding the system;
+- how the public repositories read to others;
+- context contamination: agents read `git log`, `git blame` and PRs, and copy the Codex vocabulary they find there.
+
+Nothing external cites a commit; the OOPSLA paper cites its Zenodo DOI. The rewrite runs after the stepped-layout work lands.
+
+**Steps:**
+1. **Archive:** tag and bundle every current main and branch tip, so old hashes still resolve. The archive tag's message gives the Zenodo DOI.
+2. **Rebuild each main** as coherent commits with plain messages written from the diffs. The final tree must be identical to the current main, checked mechanically.
+3. **Pins:** move `stack/pyproject.toml` and `uv.lock` to the new hashes in the same change.
+4. **Cutover:** freeze agent activity, force-push the new mains, then carry over any unfinished work.
+5. **Branches:** delete the roughly 1,550 stale remote branches, recoverable from the archive.
+6. **Rename pass:** rename the legacy vocabulary (custody, admission, original, receipt) in the code, so new commits stay clean.
+7. **History document:** write a plain-language history per subsystem.
