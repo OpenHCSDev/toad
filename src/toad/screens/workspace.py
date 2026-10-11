@@ -79,6 +79,14 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         return WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll) == requested
 
 
+NAVIGATION_STEP_NS = 4_000_000
+"""How long a step of a switch's layout runs before pausing for the loop.
+
+Half the 8 ms a switch step may take: the widget being arranged when the
+deadline passes finishes first, and the step has other work around the layout.
+"""
+
+
 class WorkspaceScreen(SidebarFocusOwner, Screen):
     BINDINGS = [Binding("ctrl+b,f20", "show_sidebar", "Sidebar")]
 
@@ -179,7 +187,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     def _use_viewport_layout(self) -> bool:
         return self.is_current
 
-    def _refresh_layout(self, size: Size | None = None, scroll: bool = False) -> None:
+    def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
         from toad.widgets.history_anchor import WindowPosition
 
         # Keep the last committed geometry: reading virtual_region here can
@@ -199,19 +207,21 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             for window, _restoration, _position in anchors:
                 compensation.enter_context(WindowPosition.geometry(window))
             if not anchors:
-                super()._refresh_layout(size, scroll)
+                yield from super()._layout_steps(size, scroll, deadline)
                 for _window, restoration in tracked:
                     restoration.finish_layout()
                 return
             # Screen normally paints from inside _refresh_layout. Do not expose
             # prepend/eviction coordinates before compensating for their height.
+            # The compensation holds the window's placement within one turn, so
+            # this layout does not pause.
             with self.app.batch_update():
-                super()._refresh_layout(size, scroll)
+                yield from super()._layout_steps(size, scroll)
                 changed = False
                 for window, restoration, position in anchors:
                     changed |= restoration.restore_layout(window, position)
                 if changed:
-                    super()._refresh_layout(size, scroll=True)
+                    yield from super()._layout_steps(size, scroll=True)
                 for _window, restoration in tracked:
                     restoration.finish_layout()
 
@@ -267,11 +277,14 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             if roster.navigation.restore_scroll():
                 self._refresh_layout(self.app.size, scroll=True)
             return
-        self._refresh_layout(self.app.size)
+        # The frames are held: the layout runs over loop turns so input is
+        # handled between its steps, and is published once, at its end.
+        await self.layout_in_steps(self.app.size, step_ns=NAVIGATION_STEP_NS)
         if roster.navigation.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
-        self._layout_required = False
-        self._scroll_required = False
+        # Requests made between the steps are laid out next.
+        self._layout_required = bool(self._layout_widgets)
+        self._scroll_required = bool(self._scrolled_widgets)
         self._dirty_widgets.clear()
         self._navigation_layout = MeasuredWorkspaceLayout(WorkspaceLayoutSnapshot.ready(self, self.app.size))
 

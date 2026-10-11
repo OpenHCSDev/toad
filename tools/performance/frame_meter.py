@@ -61,6 +61,7 @@ def install(*, expected_pid, seconds, output):
     clock = time.monotonic_ns
     state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
     frames, inputs, slow, slow_frames, gc_pauses = [], [], [], [], []
+    switch_steps = []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     refresh = Widget.refresh
     layouts = {}
@@ -179,6 +180,9 @@ def install(*, expected_pid, seconds, output):
                         callback += f" [{type(target).__name__}{':' + str(label)[:40] if label else ''}]"
                 else:
                     callback = getattr(callback, "__qualname__", None) or repr(callback)[:80]
+                if callback.startswith("ToadApp._switch_mode_ready"):
+                    # Every loop turn of a tab switch, whatever its length.
+                    switch_steps.append((begin, spent / 1e6))
                 if spent > 8_000_000:
                     # Each long callback's exact duration and owner; its
                     # stall samples (same start) show where the time went.
@@ -267,7 +271,7 @@ def install(*, expected_pid, seconds, output):
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
                        "long_callbacks": sorted(long_callbacks.items()),
-                       "timed_callbacks": timed_callbacks,
+                       "timed_callbacks": timed_callbacks, "switch_steps": switch_steps,
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,
