@@ -82,7 +82,7 @@ async def test_a_different_turn_id_or_owner_notice_starts_a_new_block(workspace)
         assert notice is not another
 
 
-async def test_an_update_from_a_retired_source_adds_no_block(workspace):
+async def test_an_update_published_by_another_agent_adds_no_block(workspace):
     async with workspace.app() as ui:
         view = ui.conversation
         agent = detached(workspace.project, None)
@@ -94,7 +94,10 @@ async def test_an_update_from_a_retired_source_adds_no_block(workspace):
         await view.on_acp_agent_message(CoreEventMessage(Update("text", "Local queued", queued), subscription))
         await view.output.finish(ResponseStream)
         count = len(view.query(AgentResponse))
-        await view.on_acp_agent_message(CoreEventMessage(Update("text", "Retired source", ResponseStream()), subscription))
+        # The view shows `agent`; an update published by any other agent is not its output.
+        other = detached(workspace.project, None, identity="another-agent")
+        foreign = other.events.subscribe(lambda event, subscription: None)
+        await view.on_acp_agent_message(CoreEventMessage(Update("text", "Retired source", ResponseStream()), foreign))
         assert len(view.query(AgentResponse)) == count
 
 
