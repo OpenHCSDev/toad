@@ -57,6 +57,11 @@ def test_textual_tests_say_what_textual_owns():
         assert docstring.startswith("Textual-facing:"), f"{path.name} must open with 'Textual-facing: <what Textual owns here>'"
 
 
+def test_source_names_no_machine_path():
+    for path in sorted((TESTS.parent / "src").rglob("*.py")):
+        assert "/" + "home/" not in path.read_text(), f"{path} names a machine path"
+
+
 def test_tests_take_outside_requirements_from_fixtures():
     """No test reads a required environment variable or hard-codes a home directory."""
     for path in sorted(TESTS.rglob("test_*.py")):
