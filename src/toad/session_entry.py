@@ -1,6 +1,6 @@
 """Declared logical sessions own creation, projection and dependent lifetime.
 
-Admissions are the callable factories in WorkspaceSessions, not another roster.
+Entries are the callable factories in WorkspaceSessions, not another roster.
 The mounted view remains the authority for source/presentation state.
 """
 from __future__ import annotations
@@ -21,13 +21,13 @@ from toad.conversation_kind import ConversationKind
 from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
 
 if TYPE_CHECKING:
-    from toad.session_navigation import SessionAdmissions
+    from toad.session_navigation import SessionNavigation
     from toad.screens.main import MainScreen
     from toad.screens.session_view import SessionView
     from toad.comms_root import ObservedCommsService
 
 
-class SessionAdmission(DeclaredFamily, affix="Admission"):
+class SessionEntry(DeclaredFamily, affix="Entry"):
     def __init__(self, mode: str) -> None:
         self.mode = mode
 
@@ -35,53 +35,53 @@ class SessionAdmission(DeclaredFamily, affix="Admission"):
     def __call__(self) -> SessionView: ...
 
     @abstractmethod
-    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab: ...
+    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab: ...
 
     @property
     @abstractmethod
     def address(self) -> object: ...
 
-    async def ready(self, sessions: SessionAdmissions) -> None:
-        """Views with deferred loading own their admission completion."""
+    async def ready(self, sessions: SessionNavigation) -> None:
+        """Views with deferred loading own their loading completion."""
 
-    async def reconnect(self, sessions: SessionAdmissions, selected, snapshot, targets) -> None:
-        """Only a bound native admission can refresh its connection resource."""
+    async def reconnect(self, sessions: SessionNavigation, selected, snapshot, targets) -> None:
+        """Only a bound native entry can refresh its connection resource."""
 
-    def source(self, sessions: SessionAdmissions) -> MainScreen | None:
+    def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return None
 
-    def accepts_launch(self, sessions: SessionAdmissions, agent_identity: str, session_id: str) -> bool:
+    def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         return False
 
     def depends_on(self, mode: str) -> bool:
         return self.mode == mode
 
-    def original_threads(self, sessions: SessionAdmissions) -> tuple[tuple[str, ThreadIncarnation], ...]:
+    def original_threads(self, sessions: SessionNavigation) -> tuple[tuple[str, ThreadIncarnation], ...]:
         return ()
 
     def original_channels(self) -> tuple[tuple[str, str], ...]:
         return ()
 
     def entered(self, previous: str) -> None:
-        """Only admissions with a return destination retain entry intent."""
+        """Only entries with a return destination retain entry intent."""
 
-    async def return_to(self, sessions: SessionAdmissions) -> None:
+    async def return_to(self, sessions: SessionNavigation) -> None:
         await sessions.app.select_session(sessions.app.tab_order.previous(self.mode))
 
-    def forget(self, sessions: SessionAdmissions) -> None:
+    def forget(self, sessions: SessionNavigation) -> None:
         """Release any domain membership beyond the workspace factory itself."""
 
-    def sync_identity(self, sessions: SessionAdmissions, owner: str, previous: str, current: str) -> None:
+    def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         pass
 
-    def sync_recovery(self, sessions: SessionAdmissions, owner: str, root: str | None) -> None:
+    def sync_recovery(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
         pass
 
-    def sync_project(self, sessions: SessionAdmissions, owner: str, project: Path) -> None:
+    def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
         pass
 
 
-class NativeSessionAdmission(SessionAdmission):
+class NativeSessionEntry(SessionEntry):
     def __init__(self, details: SessionDetails, factory: Callable[[], MainScreen],
                  original: tuple[str, ThreadIncarnation] | None = None) -> None:
         super().__init__(details.mode_name)
@@ -105,7 +105,7 @@ class NativeSessionAdmission(SessionAdmission):
     def address(self) -> str:
         return self.mode
 
-    def source(self, sessions: SessionAdmissions) -> MainScreen | None:
+    def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return sessions.app.workspace_sessions.views.get(self.mode)
 
     async def reconnect(self, sessions, selected, snapshot, targets):
@@ -122,7 +122,7 @@ class NativeSessionAdmission(SessionAdmission):
                                     for target in targets)):
                         await agent.session.reconnect()
 
-    def accepts_launch(self, sessions: SessionAdmissions, agent_identity: str, session_id: str) -> bool:
+    def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
         if source is None or not source.has_agent():
             return False
@@ -134,7 +134,7 @@ class NativeSessionAdmission(SessionAdmission):
         root = source.coordination_root
         return root is not None and wire(root).registry.canonical_name(session_id) == source._resolve_comms_thread()
 
-    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab:
+    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
         name = source._comms_thread if source else ""
         snapshot = observed.sidebar.snapshot if observed is not None else None
@@ -149,7 +149,7 @@ class NativeSessionAdmission(SessionAdmission):
         return OpenTab(self.mode, row.label if row else self.details.title or "New Session",
                        UnreadPresentation.for_thread(snapshot, name))
 
-    async def return_to(self, sessions: SessionAdmissions) -> None:
+    async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
         remaining = [details.mode_name for details in app.session_tracker.ordered_sessions
                      if details.mode_name != self.mode]
@@ -162,11 +162,11 @@ class NativeSessionAdmission(SessionAdmission):
         else:
             await app.select_session("store")
 
-    def forget(self, sessions: SessionAdmissions) -> None:
+    def forget(self, sessions: SessionNavigation) -> None:
         sessions.app.session_tracker.close_session(self.mode)
 
 
-class HistorySessionAdmission(SessionAdmission):
+class HistorySessionEntry(SessionEntry):
     def __init__(self, mode: str, key: CommsViewKey, kind: type[ConversationKind], project: Path,
                  recovery_root: str | None, participants: tuple[ThreadIncarnation, ...]) -> None:
         super().__init__(mode)
@@ -190,13 +190,13 @@ class HistorySessionAdmission(SessionAdmission):
     def address(self) -> object:
         return self.kind.view_identity(self.key)
 
-    async def ready(self, sessions: SessionAdmissions) -> None:
+    async def ready(self, sessions: SessionNavigation) -> None:
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()
 
-    def source(self, sessions: SessionAdmissions) -> MainScreen | None:
+    def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return sessions.source(self.key.owner_mode)
 
-    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab:
+    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         return OpenTab(self.mode, self.key.title, self.kind.unread(
             observed.sidebar.snapshot
             if observed is not None and Path(self.key.root).resolve() == observed.service.root
@@ -205,11 +205,11 @@ class HistorySessionAdmission(SessionAdmission):
     def depends_on(self, mode: str) -> bool:
         return super().depends_on(mode) or self.key.owner_mode == mode
 
-    async def return_to(self, sessions: SessionAdmissions) -> None:
+    async def return_to(self, sessions: SessionNavigation) -> None:
         owner = self.key.owner_mode
         await sessions.app.select_session(owner if owner in sessions.app.workspace_sessions.factories else "store")
 
-    def sync_identity(self, sessions: SessionAdmissions, owner: str, previous: str, current: str) -> None:
+    def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         if self.key.owner_mode != owner:
             return
         if self.key.me != previous and wire(self.key.root).registry.canonical_name(self.key.me) != current:
@@ -218,14 +218,14 @@ class HistorySessionAdmission(SessionAdmission):
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_identity(current)
 
-    def sync_recovery(self, sessions: SessionAdmissions, owner: str, root: str | None) -> None:
+    def sync_recovery(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
         if self.key.owner_mode != owner:
             return
         self.recovery_root = root if root is not None and Path(root).expanduser().resolve() == Path(self.key.root) else None
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_recovery(self.recovery_root)
 
-    def sync_project(self, sessions: SessionAdmissions, owner: str, project: Path) -> None:
+    def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
         if self.key.owner_mode != owner:
             return
         self.project = project
@@ -233,7 +233,7 @@ class HistorySessionAdmission(SessionAdmission):
             view.rebind_project(project)
 
 
-class PreviewSessionAdmission(SessionAdmission):
+class PreviewSessionEntry(SessionEntry):
     def __init__(self, mode: str, path: Path, origin: str) -> None:
         super().__init__(mode)
         self.path, self.origin = path, origin
@@ -246,14 +246,14 @@ class PreviewSessionAdmission(SessionAdmission):
     def address(self) -> Path:
         return self.path
 
-    def tab(self, sessions: SessionAdmissions, observed: ObservedCommsService | None) -> OpenTab:
+    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         return OpenTab(self.mode, self.path.name)
 
     def entered(self, previous: str) -> None:
         if previous != self.mode:
             self.origin = previous
 
-    async def return_to(self, sessions: SessionAdmissions) -> None:
+    async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
         target = self.origin if self.origin in app.workspace_sessions.factories else app.tab_order.previous(self.mode)
         await app.select_session(target)

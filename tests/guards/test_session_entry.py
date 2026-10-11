@@ -3,7 +3,7 @@ import ast
 from pathlib import Path
 
 
-def test_complete_root_admission_caller_deletion():
+def test_app_session_roster_callers_stay_deleted():
     root = Path(__file__).resolve().parents[2] / "src/toad"
     retired = {"_comms_modes", "_comms_mode_index", "_file_preview_modes", "_file_preview_index",
                "_file_preview_return", "_thread_openings", "open_thread_session",
@@ -18,7 +18,7 @@ def test_complete_root_admission_caller_deletion():
                 assert node.attr not in retired, (path, node.lineno, node.attr)
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 assert node.name not in retired, (path, node.lineno, node.name)
-    for relative in ("session_admission.py", "session_navigation.py", "thread_navigation.py"):
+    for relative in ("session_entry.py", "session_navigation.py", "thread_navigation.py"):
         for node in ast.walk(ast.parse((root / relative).read_text())):
             if isinstance(node, ast.ClassDef):
                 assert not node.name.endswith("Mixin"), (relative, node.name)

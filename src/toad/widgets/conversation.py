@@ -502,10 +502,15 @@ class ConversationSessionBinding(containers.Vertical):
         return prompt
 
     async def release_native_session(self) -> None:
-        """Acquire native custody before joining this surface's publications."""
+        """Release this view's sources and agent before its tree is removed.
+
+        The view is removed right after (its only caller removes the tree), so
+        dropping the agent projects nothing: setting it through its watchers
+        restyled the prompt and re-derived the title of a closing tab.
+        """
         await self._release_source_resources()
         self.window.settle_preparation()
-        self.agent = None
+        self.set_reactive(Conversation.agent, None)
         self.take_initial_prompt()
 
     async def prepare_retained_session(self) -> None:

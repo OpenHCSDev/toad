@@ -49,7 +49,7 @@ from toad.sidebar_layout import SidebarLayout
 from toad.clipboard import Clipboard
 from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
-from toad.session_navigation import SessionAdmissions
+from toad.session_navigation import SessionNavigation
 from toad.terminal_attention import TerminalAttention
 from toad.textual_colours import ThemedApp
 from toad.application_actions import ApplicationAction, ApplicationCommands, KeyboundAction
@@ -291,7 +291,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         self.terminal_attention = TerminalAttention(self)
 
         self._session_tracker = SessionTracker()
-        self.session_navigation = SessionAdmissions(self, agent_session_id)
+        self.session_navigation = SessionNavigation(self, agent_session_id)
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
         self.transfers = Transfers(self)

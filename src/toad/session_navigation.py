@@ -1,4 +1,4 @@
-"""App admission and close use the existing workspace's declared factories."""
+"""Opening and closing sessions use the existing workspace's declared factories."""
 from __future__ import annotations
 import asyncio
 from toad.core import events as core_events
@@ -13,8 +13,8 @@ from functools import partial
 
 from agent_comms.route_selection import root_is_current
 from toad.navigation_preparation import CommsNavigationRequest
-from toad.session_admission import (HistorySessionAdmission, NativeSessionAdmission,
-                                   PreviewSessionAdmission, SessionAdmission)
+from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
+                                PreviewSessionEntry, SessionEntry)
 from toad.session_tracker import OpenTab, SessionDetails
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionAdmissions:
+class SessionNavigation:
     def __init__(self, app: ToadApp, initial_session_id: str | None = None) -> None:
         self.app = app
         self.events = CoreEventStream(self)
@@ -65,8 +65,8 @@ class SessionAdmissions:
             await sidebar.navigation.focus_current()
 
     @property
-    def members(self) -> tuple[SessionAdmission, ...]:
-        return tuple(cast(SessionAdmission, factory) for factory in self.app.workspace_sessions.factories.values())
+    def members(self) -> tuple[SessionEntry, ...]:
+        return tuple(cast(SessionEntry, factory) for factory in self.app.workspace_sessions.factories.values())
 
     @property
     def processes(self):
@@ -75,15 +75,15 @@ class SessionAdmissions:
                      if (source := member.source(self)) is not None
                      and (agent := source.presentation.operational_agent) is not None)
 
-    def get(self, mode: str) -> SessionAdmission | None:
-        return cast(SessionAdmission | None, self.app.workspace_sessions.factories.get(mode))
+    def get(self, mode: str) -> SessionEntry | None:
+        return cast(SessionEntry | None, self.app.workspace_sessions.factories.get(mode))
 
-    def find(self, address: object) -> SessionAdmission | None:
+    def find(self, address: object) -> SessionEntry | None:
         return next((entry for entry in self.members if entry.address == address), None)
 
     def source(self, mode: str) -> MainScreen | None:
-        admission = self.get(mode)
-        return admission.source(self) if admission else None
+        entry = self.get(mode)
+        return entry.source(self) if entry else None
 
     async def reconnect(self, selected, targets: tuple[str, ...]) -> None:
         if not targets:
@@ -122,18 +122,18 @@ class SessionAdmissions:
             self._closing_retired.add(task)
             task.add_done_callback(self._closing_retired.discard)
 
-    async def admit(self, admission: SessionAdmission, *, after: str | None = None) -> str:
+    async def open(self, entry: SessionEntry, *, after: str | None = None) -> str:
         app = self.app
-        app.workspace_sessions.register(admission.mode, admission)
-        app.tab_order.open(admission.mode, after=after)
+        app.workspace_sessions.register(entry.mode, entry)
+        app.tab_order.open(entry.mode, after=after)
         self.publish()
-        await app.select_session(admission.mode)
-        await admission.ready(self)
-        return admission.mode
+        await app.select_session(entry.mode)
+        await entry.ready(self)
+        return entry.mode
 
     async def new(self, factory: Callable[[], MainScreen], *, title: str = "New Session", original=None) -> SessionDetails:
         details = self.app.session_tracker.new_session(title=title)
-        await self.admit(NativeSessionAdmission(details, factory, original))
+        await self.open(NativeSessionEntry(details, factory, original))
         return details
 
     async def create_from(self, owner_mode: str) -> None:
@@ -199,24 +199,24 @@ class SessionAdmissions:
             return app.selected_mode
         if not origin.current(app.thread_navigation, owner_mode):
             return app.selected_mode
-        # History admission is the only owner of this typed key. Workspace
+        # The history entry is the only owner of this typed key. Workspace
         # factories carry its identity, so no key-to-mode mirror can go stale.
-        admission = self.find(kind.view_identity(prepared.key))
-        if admission is None:
-            admission = HistorySessionAdmission(f"comms-{next(self.identities)}", prepared.key, kind,
+        entry = self.find(kind.view_identity(prepared.key))
+        if entry is None:
+            entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key, kind,
                                                 project_path, prepared.recovery_root, prepared.participants)
-            await self.admit(admission)
+            await self.open(entry)
         else:
-            await app.select_session(admission.mode)
-            await admission.ready(self)
-        return admission.mode
+            await app.select_session(entry.mode)
+            await entry.ready(self)
+        return entry.mode
 
     async def preview(self, path: Path) -> str:
         path = path.expanduser().resolve()
         entry = self.find(path)
         if entry is None:
-            entry = PreviewSessionAdmission(f"preview-{next(self.identities)}", path, self.app.selected_mode)
-            return await self.admit(entry, after=self.app.selected_mode)
+            entry = PreviewSessionEntry(f"preview-{next(self.identities)}", path, self.app.selected_mode)
+            return await self.open(entry, after=self.app.selected_mode)
         await self.app.select_session(entry.mode)
         return entry.mode
 
@@ -265,7 +265,7 @@ class SessionAdmissions:
             self.app.workspace_sessions.factories.pop(member.mode)
         self.publish()
         try:
-            # Retired admissions cannot reopen. Show the surviving workspace
+            # Closed entries cannot reopen. Show the surviving workspace
             # before joining hydration, native sessions and widget removal.
             if returning is not None:
                 await returning.return_to(self)
@@ -303,7 +303,7 @@ class SessionAdmissions:
     async def retire_missing(self) -> None:
         from agent_comms.route_selection import RouteChanged, RouteSelection
 
-        # Borrow each actual admission, including hidden views. Core decides
+        # Borrow each open entry, including hidden views. Core decides
         # which of their sources no longer exist; Toad only closes the views.
         originals = tuple((member, member.original_threads(self), member.original_channels())
                           for member in self.members)
