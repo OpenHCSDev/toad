@@ -3,7 +3,7 @@
 import ast
 from pathlib import Path
 
-SOURCE = Path(__file__).resolve().parents[1] / "src/toad"
+SOURCE = Path(__file__).resolve().parents[2] / "src/toad"
 
 
 def test_retired_local_sidebar_and_modules():

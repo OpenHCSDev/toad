@@ -15,7 +15,7 @@ def test_operational_owner_deletions():
                    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Attribute) and node.value.attr == "agent")
 
 
-def test_human_capture_uses_original_queue_owner():
+def test_human_capture_uses_the_queue_owner():
     source = Path(__file__).parents[2] / 'src/toad/acp/agent_controller.py'
     module = ast.parse(source.read_text())
     submit = next(node for node in ast.walk(module)

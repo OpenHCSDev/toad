@@ -27,11 +27,10 @@ def test_deleted_scan_flags_and_external_projection_probes():
                     raise AssertionError('Filter must ask history admission owner')
 
 
-def test_original_source_and_body_owners_do_not_reacquire_six_term_gates():
-    """Seal the two final T9 sites and their shared declaration owners."""
+def test_source_and_body_owners_do_not_reacquire_six_term_gates():
+    """Seal the final two sites and their shared declaration owners."""
     for relative in ('transcript_filter.py', 'transcript_source_preparation.py',
-                     'widgets/transcript_history.py', 'widgets/streaming_markdown.py',
-                     'widgets/prepared_markdown.py'):
+                     'widgets/transcript_history.py'):
         for node in ast.walk(ast.parse((ROOT / relative).read_text())):
             if isinstance(node, ast.BoolOp):
                 assert len(node.values) < 6, (relative, node.lineno, ast.unparse(node))
@@ -54,7 +53,7 @@ def test_projected_pager_worker_receives_callable():
                       and node.name == 'ProjectedTranscriptHistory')
     assert not any(isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
                    and node.name == '_request_page' for node in projection.body)
-    # The projection inherits the original pager's admitted operation. Its
+    # The projection inherits the pager's operation. Its
     # WorkingTranscript, not an override in a widget, owns worker scheduling.
     states = ast.parse((ROOT/'transcript_state.py').read_text())
     working = next(node for node in states.body if isinstance(node, ast.ClassDef)

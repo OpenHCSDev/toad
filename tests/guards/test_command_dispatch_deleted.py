@@ -1,4 +1,4 @@
-"""T3 guards against restoring maintained command rosters and dispatch."""
+"""Guards against restoring maintained command rosters and dispatch."""
 import ast
 from pathlib import Path
 
@@ -45,7 +45,7 @@ def test_command_owners_have_no_parallel_dispatch():
 
 
 def test_catalog_action_consumers_do_not_classify_configured_names():
-    """The original C0 case and its completion/result consumers stay deleted."""
+    """The first catalog case and its completion/result consumers stay deleted."""
     root = Path(__file__).resolve().parents[2] / "src/toad"
     retired = {"__launch__", "install", "install-acp", "install_acp",
                "install_adapter", "login", "launch"}

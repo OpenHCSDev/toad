@@ -1,4 +1,4 @@
-"""One workspace roster and declared cases replace App's repeated authority."""
+"""One workspace roster and declared cases replace the App's repeated session-opening methods."""
 import ast
 from pathlib import Path
 

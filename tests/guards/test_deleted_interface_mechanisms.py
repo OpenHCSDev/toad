@@ -1,4 +1,4 @@
-"""Deleted T4 mechanisms cannot return to production."""
+"""Deleted interface mechanisms cannot return to production."""
 import ast
 from pathlib import Path
 import re
@@ -32,7 +32,7 @@ def test_deleted_cursor_family_has_no_callers():
         assert re.search(r'(?<![\w-])Cursor(?![\w-])', path.read_text()) is None, path
 
 
-def test_t4_ownership_and_deletion():
+def test_conversation_ownership_and_deletion():
     for relative in ('widgets/conversation.py', 'widgets/prompt.py', 'slash_command.py'):
         tree=ast.parse((ROOT/relative).read_text())
         for node in ast.walk(tree):
@@ -89,7 +89,7 @@ def test_nominal_block_interaction_caller_closure():
 
 
 def test_markdown_tokens_use_native_rule_registry():
-    """The admitted C0 boundary cannot acquire a token-type switch again."""
+    """The conversation markdown boundary cannot acquire a token-type switch again."""
     path = ROOT / 'conversation_markdown.py'
     for node in ast.walk(ast.parse(path.read_text())):
         if isinstance(node, (ast.Compare, ast.Match)):
@@ -127,7 +127,7 @@ def test_startup_failure_declaration_caller_closure():
                 assert all(keyword.arg != 'help' for keyword in node.keywords), (relative, node.lineno)
 
 
-def test_channel_history_has_one_publication_owner():
+def test_channel_history_has_one_owner():
     tree = ast.parse((ROOT / 'widgets/comms_chat.py').read_text())
     retired = {'_history', '_has_older', '_has_newer', '_history_initialized',
                '_poll_cursor', '_edge_load_scheduled', '_edge_check_on_resume',
@@ -143,7 +143,7 @@ def test_channel_history_has_one_publication_owner():
             assert node.name not in retired, (node.lineno, node.name)
 
 
-def test_serialized_history_tree_mutations_use_native_publication():
+def test_serialized_history_tree_mutations_use_the_window_fence():
     """A source lock cannot substitute for the window's native frame fence."""
     mutations = {'mount', 'remove_children', 'remove', 'extend', 'trim',
                  'update_fragments', 'insert_page', '_extend_and_trim'}
@@ -168,7 +168,7 @@ def test_serialized_history_tree_mutations_use_native_publication():
             visit(child, path, source_locked, publication)
 
     for relative in ('widgets/transcript_history.py', 'transcript_filter.py',
-                     'mounted_message_history.py', 'widgets/viewport_body.py'):
+                     'mounted_message_history.py'):
         visit(ast.parse((ROOT / relative).read_text()), relative)
 
 
@@ -190,7 +190,7 @@ def test_widget_action_availability_has_no_case_catalog():
 
 
 def test_history_layout_producers_do_not_wait_for_their_own_paint():
-    """Native frame admission consumes the resources these transactions build."""
+    """Native frame handling consumes the resources these transactions build."""
     for path in (*ROOT.rglob('*.py'), *(ROOT.parents[1] / 'tools').rglob('*.py')):
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):

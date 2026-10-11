@@ -1,4 +1,4 @@
-"""T2 has one shared wire family and no local copy of its messages or flags."""
+"""The ACP extension has one shared wire family and no local copy of its messages or flags."""
 
 import ast
 from pathlib import Path

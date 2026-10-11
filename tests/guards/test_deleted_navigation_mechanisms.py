@@ -1,4 +1,4 @@
-"""T5 retired mechanisms cannot return to production callers."""
+"""Retired navigation and history mechanisms cannot return to production callers."""
 
 import ast
 from pathlib import Path
@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] / 'src' / 'toad'
 
 
-def test_t5_deletion_closure():
+def test_navigation_deletion_closure():
     history = ast.parse((ROOT / 'widgets/transcript_history.py').read_text())
     retired = {'_committed', '_publication_current', '_filter_overlay', '_filter_scanning', '_filter_force_pending', '_filtered_source'}
     for node in ast.walk(history):
@@ -32,10 +32,7 @@ def test_t5_deletion_closure():
     assert 'isinstance(error, HumanInitialUnknownError)' not in chat
     assert 'isinstance(error, RelationViolationError)' not in chat
     assert '"UNKNOWN outcome" in str(error)' not in chat
-    fragment = next(node for node in history.body if isinstance(node, ast.ClassDef) and node.name == 'TranscriptFragmentView')
-    for node in ast.walk(fragment):
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            assert node.func.id != 'type', node.lineno
+    assert not any(isinstance(node, ast.ClassDef) and node.name == 'TranscriptFragmentView' for node in history.body)
 
     conversation = ast.parse((ROOT / 'widgets/conversation.py').read_text())
     consumer = next(node for node in conversation.body if isinstance(node, ast.ClassDef) and node.name == 'ConversationCommsConsumer')

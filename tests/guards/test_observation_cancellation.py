@@ -1,4 +1,4 @@
-"""Cancellation custody, in addition to the actual installed native swap gate."""
+"""Cancellation, in addition to the actual installed native swap gate."""
 
 import asyncio
 
