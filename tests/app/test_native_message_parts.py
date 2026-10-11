@@ -1,19 +1,18 @@
 """One saved native assistant message keeps its Markdown parts together under a single timestamp."""
 
-import json
-
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.threads import Thread
 
 from support.agents import deliver, detached
 from support.coordination import carrying
+from support.journals import assistant_entry, write_journal
 
 
 async def test_saved_message_in_parts_shows_as_one_message(workspace):
     parts = ["## Plan\n\n", "- **Read** first\n", "- Keep working\n\n", "```python\n", "value = 123\n", "```\n"]
-    session = workspace.project / "native.jsonl"
-    session.write_text(json.dumps({"type": "message", "id": "native-message", "message": {
-        "role": "assistant", "content": [{"type": "text", "text": part} for part in parts]}}) + "\n")
+    entry = assistant_entry("", id="native-message")
+    entry["message"]["content"] = [{"type": "text", "text": part} for part in parts]
+    session = write_journal(workspace.project / "native.jsonl", entry)
     workspace.comms.registry.declare(Thread("worker", frozenset(), str(workspace.project), session_file=str(session)))
     read = workspace.comms.transcripts.capture_page_read("worker")
     saved = read.read()
