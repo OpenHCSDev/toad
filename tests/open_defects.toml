@@ -14,4 +14,21 @@ tests = [
     "tests/textual/test_file_links_in_agent_text.py::test_right_clicking_a_file_link_offers_to_copy_its_full_path",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_links_to_a_search_that_opens_the_one_matching_file",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_found_in_several_places_says_so_instead_of_guessing",
+    "tests/textual/test_source_link_navigation.py::test_source_link_opens_the_file_and_returning_restores_the_editor",
+]
+
+[shared-channel-tab]
+defect = "A channel has one tab for all sessions (deliberate). When a second session opens a channel the first already has open, the tab still sends as the first session's thread, Back returns to the first session, and closing the first session closes the tab (leaving the store screen). The old per-session expectations were written before tabs were shared. Needs a product decision on what a shared tab does for the second session; the three tests state the proposed answer."
+owner = "Tristan (product meaning), then the comms UI owner"
+tests = [
+    "tests/app/test_channel_tab_sharing.py::test_going_back_from_a_shared_channel_tab_returns_to_the_session_it_was_opened_from",
+    "tests/app/test_channel_tab_sharing.py::test_a_shared_channel_tab_sends_as_the_session_it_was_opened_from",
+    "tests/app/test_channel_tab_sharing.py::test_closing_one_session_keeps_the_channel_tab_another_session_opened",
+]
+
+[relationships-revision]
+defect = "The thread sidebar's Relationships panel never refreshes: toad/widgets/thread_comms.py asks Core for ThreadRelationships.revision(), which Core deleted as unused (agent-comms b8b5ba0ef, 2026-10-09). The refresh task raises AttributeError and the panel keeps its first content. Core should answer whether what the panel shows has changed; Toad should ask that."
+owner = "Core (agent-comms) owner for the answer, then Toad's thread_comms_source"
+tests = [
+    "tests/textual/test_sidebar_retirement.py::test_panels_restore_selection_scroll_and_plan_after_release_and_collect_the_old_widgets",
 ]

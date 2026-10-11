@@ -65,6 +65,8 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
         menu.action_choose()
         await ui.until(lambda: isinstance(ui.textual[0].screen, ThreadImportDialog), why="the import dialog")
         dialog = ui.textual[0].screen
+        await ui.until(lambda: dialog.query("#import-format") and dialog.query_one("#import-format", Select).value == "opencode",
+                       why="the import dialog's format choice")
         dialog.query_one("#import-source", Input).value = str(source)
         dialog.query_one("#import-name", Input).value = "imported"
         dialog.action_submit()
