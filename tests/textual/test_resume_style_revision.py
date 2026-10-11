@@ -1,0 +1,109 @@
+"""Textual-facing: reopening a workspace tab restyles only what a real stylesheet change touches; Textual owns the stylesheet and the resume refresh."""
+
+from unittest.mock import patch
+
+from textual.widgets import Static
+
+from toad.widgets.agent_response import AgentResponse
+
+
+class ComponentProbe(Static):
+    COMPONENT_CLASSES = {"probe-label"}
+    DEFAULT_CSS = "ComponentProbe .probe-label { color: #112233; }"
+
+
+async def test_unchanged_reparse_and_unrelated_scopes_skip_restyle_and_real_changes_refresh(workspace):
+    async with workspace.app(size=(100, 35)) as ui:
+        app, _pilot = ui.textual
+        first_mode = app.selected_mode
+        first = app.workspace_screen
+        session = app.selected_session
+        await session.conversation.contents.mount(AgentResponse("Style target"))
+        target = Static("Scoped selector target", id="style-target")
+        component = ComponentProbe("Component target")
+        await session.mount(target, component)
+        # Logical tabs share one WorkspaceScreen. The store is a separate
+        # native mode, so returning through the application selection owner
+        # acquires the actual ScreenResume style-refresh contract.
+        async def resume_workspace():
+            await app.select_session("store")
+            await app.select_session(first_mode)
+
+        await resume_workspace()
+        await ui.step()
+        assert first._resume_style is not None
+        rules_before = id(app.stylesheet.rules_map)
+        app.stylesheet.reparse()
+        assert id(app.stylesheet.rules_map) != rules_before
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            styled.assert_not_called()
+
+        app.stylesheet.add_source(
+            "UnrelatedView { color: #112233; }", scope="UnrelatedView",
+            read_from=("benchmark", "Unrelated.DEFAULT_CSS"), is_default_css=True,
+        )
+        app.stylesheet.parse()
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            styled.assert_not_called()
+
+        # Scope metadata alone is insufficient: the parser can leave an
+        # earlier comma group global. Honor the parsed selector groups.
+        app.stylesheet.add_source(
+            "#style-target, UnrelatedView { color: #335577; }", scope="UnrelatedView",
+            read_from=("benchmark", "Comma.DEFAULT_CSS"), is_default_css=True,
+        )
+        app.stylesheet.parse()
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            assert target.styles.color.hex == "#335577"
+
+        del app.stylesheet.source[("benchmark", "Comma.DEFAULT_CSS")]
+        app.stylesheet.parse()
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            assert target.styles.color.hex != "#335577"
+
+        app.stylesheet.add_source(
+            "AgentResponse { color: #ffaa22; }",
+            read_from=("benchmark", "Changed.DEFAULT_CSS"), is_default_css=True,
+        )
+        app.stylesheet.parse()
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            assert first.query_one(AgentResponse).styles.color.hex == "#FFAA22"
+        assert app._exception is None
+
+        app.stylesheet.add_source(
+            "ComponentProbe .probe-label { color: #abcdef; }",
+            read_from=("benchmark", "Component.DEFAULT_CSS"), is_default_css=True,
+        )
+        app.stylesheet.parse()
+        await resume_workspace()
+        await ui.step()
+        assert component.get_component_styles("probe-label").color.hex == "#ABCDEF"
+
+        # Root-class updates already apply the full tree immediately. Their
+        # completed revision must not be repeated on the next activation.
+        first.add_class("revision-applied")
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            styled.assert_not_called()
+
+        # A source reorder changes specificity tie-breaking even if every
+        # declaration remains identical. Preserve the full refresh fallback.
+        key = ("benchmark", "Changed.DEFAULT_CSS")
+        value = app.stylesheet.source.pop(key)
+        app.stylesheet.source[key] = value
+        app.stylesheet.parse()
+        with patch.object(first, "update_node_styles", wraps=first.update_node_styles) as styled:
+            await resume_workspace()
+            await ui.step()
+            assert styled.call_count > 0
