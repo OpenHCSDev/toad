@@ -72,6 +72,11 @@ if [[ -n "${METER_FROM_OPEN:-}" ]]; then
         ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} \
         ${TRACE_GARBAGE:+--trace-garbage} ${HEAP_CENSUS:+--heap-census "$HEAP_CENSUS"} ${FREEZE_HEAP:+--freeze-heap} ${TRACE_ABC:+--trace-abc} --sudo > "$out/capture.log" 2>&1 &
     capture=$!
+    # Optional: every app thread's CPU and run-queue time, every 10 ms, over
+    # the same window (THREAD_CPU_SAMPLER names the sampler script).
+    if [[ -n "${THREAD_CPU_SAMPLER:-}" ]]; then
+        python3 "$THREAD_CPU_SAMPLER" "$app_pid" "$out/thread-cpu.json" "${METER_SECONDS:-150}" &
+    fi
     sleep 2
 fi
 # Open a second tab from the sidebar so the scenario can return to this one.
