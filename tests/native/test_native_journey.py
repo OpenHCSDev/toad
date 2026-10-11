@@ -138,38 +138,33 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         assert view._directory_watcher is watcher
 
 
-async def test_queue_survives_replacing_the_conversation_widget(workspace, native_package):
-    from toad.widgets.conversation import Conversation
-
+async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace, native_package):
     async with native_session(workspace, native_package) as native:
         ui, agent = native.ui, native.agent
-        view = ui.conversation
+        owner_tab = ui.selected_tab
         await send_first_input_and_hold_its_reply(native)
         await ui.write_draft("unsent local draft")
-        editor = view.prompt.prompt_text_area.capture_editor_state()
-        parent, process, queue = view.parent, agent.process.process, agent.queue_attachment
-        agent.detach_surface(view)
-        await view.remove()
+        process, queue = agent.process.process, agent.queue_attachment
+        await ui.new_session()
         assert agent.process.process is process and process.returncode is None
-        assert agent.controller.surface.target is None
         await asyncio.wait_for(agent.send_prompt(
             "QUEUED_NATIVE_INPUT", request=QueuePromptRequest("QUEUED_NATIVE_INPUT", True)), 10)
         await ui.until(lambda: bool(agent.queue_attachment.projection.items), seconds=20, why="the queued input")
-        replacement = Conversation(native.project)
-        await parent.mount(replacement)
-        replacement.prompt.prompt_text_area.restore_editor_state(editor)
-        replacement.agent = agent
-        await ui.until(lambda: replacement.turns.managed_id == agent.current_turn.managed_id, seconds=20,
-                       why="the new widget to show the running turn")
-        await ui.until(lambda: replacement.agent.configuration.model.selected is not None, seconds=20,
+        await ui.select_tab(owner_tab)
+        view = ui.conversation
+        assert view.agent is agent
+        await ui.until(lambda: view.turns.managed_id == agent.current_turn.managed_id, seconds=20,
+                       why="the running turn on return")
+        await ui.until(lambda: view.agent.configuration.model.selected is not None, seconds=20,
                        why="the model selection")
-        assert replacement.agent.configuration.model.current == "selected-offline/fixture"
-        assert replacement.busy_count == 1
+        assert view.agent.configuration.model.current == "selected-offline/fixture"
+        assert view.busy_count == 1
         assert agent.queue_attachment is queue
         assert agent.process.process is process and process.returncode is None
-        await ui.until(lambda: bool(replacement.submissions.queue_projection.items), seconds=20,
-                       why="the queued input in the new widget")
-        assert "QUEUED_NATIVE_INPUT" in replacement.query_one(QueueSummary).render().plain
+        await ui.until(lambda: bool(view.submissions.queue_projection.items), seconds=20,
+                       why="the queued input in the returned view")
+        assert "QUEUED_NATIVE_INPUT" in view.query_one(QueueSummary).render().plain
+        assert ui.draft() == "unsent local draft"
         await finish_both_turns(native)
         assert ui.draft() == "unsent local draft"
 

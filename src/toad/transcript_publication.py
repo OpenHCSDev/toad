@@ -55,8 +55,7 @@ class TranscriptPublication(ABC):
         prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
                      key=lambda bound: bound.offset,
                      default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
-        return TranscriptCursor(prefix.session_file, prefix.offset,
-                                cursor.receipts, prefix.outcomes)
+        return TranscriptCursor(prefix.session_file, prefix.offset, cursor.receipts)
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
