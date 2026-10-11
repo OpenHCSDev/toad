@@ -4,7 +4,6 @@ from functools import cached_property
 from rich.segment import Segment
 
 from textual.visual import Visual
-from textual.app import ScreenStackError, UnknownModeError
 
 from textual.style import Style
 from textual.strip import Strip
@@ -13,8 +12,9 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
-from ui_theme.clock import Animation
-from ui_theme.effects import ACTIVITY_SWEEP, Gradient
+from ui_theme.effects import ACTIVITY_SWEEP
+
+from toad.textual_colours import Animated
 
 
 class ThrobberVisual(Visual):
@@ -44,11 +44,9 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(Widget):
+class Throbber(Animated, Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
-
-    animation: Animation[Gradient] | None = None
 
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:
@@ -60,38 +58,18 @@ class Throbber(Widget):
         self.watch_busy(self.busy)
 
     def on_unmount(self) -> None:
-        self.app.colours.clock.stop(self)
-        self.animation = None
+        self.stop_effect()
 
     def watch_busy(self, busy: bool) -> None:
-        clock = self.app.colours.clock
         if busy and self.is_mounted:
             if self.animation is None:
-                self.animation = clock.start(ACTIVITY_SWEEP, self)
-        elif self.animation is not None:
-            clock.stop(self)
-            self.animation = None
+                self.run_effect(ACTIVITY_SWEEP)
+        else:
+            self.stop_effect()
 
     @property
     def animation_visible(self) -> bool:
-        # Widget.is_on_screen falls back to the full geometry map for hidden
-        # widgets. Scrolling invalidates that map, so an idle/hidden throbber
-        # used to re-layout the whole transcript on every frame. Animation
-        # only needs the committed visible map; normal layout paints the
-        # indicator when it becomes visible again.
-        if not (self.busy and self.is_attached):
-            return False
-        screen = self.screen
-        try:
-            current = self.app.screen
-        except (ScreenStackError, UnknownModeError):
-            # Mode removal/shutdown can retire the stack before the clock
-            # has stopped this widget's animation.
-            return False
-        return screen is current and self in screen._compositor.visible_widgets
-
-    def repaint(self) -> None:
-        self.refresh()
+        return self.busy and super().animation_visible
 
     def render(self) -> ThrobberVisual | str:
         return self._busy_visual if self.busy else ""

@@ -10,6 +10,8 @@ from rich.text import Text
 from textual.content import Content, Span
 from textual.geometry import Region
 from textual.strip import Strip
+
+from toad.rich_preparation import SyntaxPalette
 from textual.style import Style
 from textual.visual import RenderOptions, Visual
 from textual_diff_view import DiffView
@@ -26,11 +28,11 @@ class Patch:
     after: dict[int, str]
     groups: list[list[tuple[str, int, int, int, int]]]
 
-    def prepare(self, ansi: bool, dark: bool) -> "PreparedPatch":
+    def prepare(self, syntax: SyntaxPalette) -> "PreparedPatch":
         """Highlight the reported hunk once, independent of a mounted view."""
         def highlight_lines(lines: dict[int, str], path: str) -> dict[int, Content]:
             code = "\n".join(value for _, value in sorted(lines.items())).expandtabs()
-            styled = DiffView.highlight(code, path, "", ansi=ansi, dark=dark)
+            styled = DiffView.highlight(code, path, "", ansi=syntax.ansi, dark=syntax.dark)
             # Keep absolute hunk keys and blank EOF context when the syntax
             # highlighter normalizes trailing newlines. Only borrow its spans.
             highlighted = Content(code, list(styled.spans)).split("\n", allow_blank=True)
@@ -47,7 +49,7 @@ class Patch:
                     )
                     before.update(zip(range(i1, i2), left))
                     after.update(zip(range(j1, j2), right))
-        return PreparedPatch((ansi, dark), self, (
+        return PreparedPatch(syntax, self, (
             {index: prepare_diff_line(line) for index, line in before.items()},
             {index: prepare_diff_line(line) for index, line in after.items()},
         ))
@@ -160,7 +162,7 @@ def prepare_diff_line(line: Content) -> Content:
 
 @dataclass(frozen=True)
 class PreparedPatch:
-    theme: tuple[bool, bool]
+    syntax: SyntaxPalette
     patch: Patch | None
     lines: tuple[dict[int, Content], dict[int, Content]] | None
     plain_text: Text | None = None
@@ -172,7 +174,7 @@ class PreparedPatch:
         return _bind_inline_styles(before, added, removed), _bind_inline_styles(after, added, removed)
 
 
-def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:
+def prepare_patch(text: str, syntax: SyntaxPalette) -> PreparedPatch:
     """Parse and highlight immutable text in a CPU worker, without a live app."""
     try:
         patch = parse_patch(text)
@@ -180,13 +182,13 @@ def prepare_patch(text: str, ansi: bool, dark: bool) -> PreparedPatch:
         from rich.syntax import Syntax
 
         highlighted = Syntax(
-            text, "diff", theme="ansi_dark", background_color="default"
+            text, "diff", theme=syntax.pygments_theme, background_color="default"
         ).highlight(text)
         # Keep Rich's ANSI colors symbolic. Conversion to Content belongs to
         # the UI's actual terminal palette, which is not present in this worker.
-        return PreparedPatch((ansi, dark), None, None, highlighted)
+        return PreparedPatch(syntax, None, None, highlighted)
 
-    return patch.prepare(ansi, dark)
+    return patch.prepare(syntax)
 
 
 def _bind_inline_styles(lines: dict[int, Content], added: Style, removed: Style) -> "KnownLines":
@@ -315,8 +317,7 @@ class _DiffPaint:
         code = self.code
         selection = code.text_selection
         selection_style = (
-            Style.from_styles(code.screen.get_component_styles("screen--selection"))
-            if selection is not None else None
+            Visual.selection_style(code) if selection is not None else None
         )
         return RenderOptions(code._get_style, code.styles.get_rules(), selection, selection_style)
 
@@ -451,8 +452,7 @@ class PatchDiffView(DiffView):
         super().__init__(patch.before_path, patch.after_path, "", "", **kwargs)
 
     def _prepared_theme_matches(self) -> bool:
-        theme = self.app.current_theme
-        return self._prepared is None or self._prepared.theme == (theme.ansi, theme.dark)
+        return self._prepared is None or self._prepared.syntax == self.app.colours.syntax
 
     def _check_auto_split(self, width: int):
         if self._prepared_theme_matches():
@@ -485,8 +485,7 @@ class PatchDiffView(DiffView):
         if self._highlighted_code_lines is None:
             prepared = self._prepared
             if prepared is None:
-                theme = self.app.current_theme
-                prepared = self.patch.prepare(theme.ansi, theme.dark)
+                prepared = self.patch.prepare(self.app.colours.syntax)
             else:
                 assert self._prepared_theme_matches()
             self._highlighted_code_lines = prepared.bind(

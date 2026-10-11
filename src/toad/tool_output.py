@@ -28,7 +28,9 @@ from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
 from toad.widgets.worker_static import WorkerStatic
-from toad.rich_preparation import AnsiContentSource, ContentSource, NativeContentSource
+from toad.rich_preparation import (
+    AnsiContentSource, ContentSource, NativeContentSource, SyntaxPalette,
+)
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -54,7 +56,7 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         return False
 
-    def begin_preparation(self, theme: tuple[bool, bool]) -> bool:
+    def begin_preparation(self, syntax: SyntaxPalette) -> bool:
         return False
 
     async def prepare(self, view: ToolCall) -> None:
@@ -170,7 +172,7 @@ class ReadToolOutputPart(SpecificTextToolOutputPart):
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (WorkerStatic.code(self.text, filename=self.path, line_numbers=False,
-                                  themed=True, filename_only=True),)
+                                  filename_only=True),)
 
 
 class PatchPreparation:
@@ -179,9 +181,9 @@ class PatchPreparation:
     def __init__(self) -> None:
         self.warmup: PatchWarmup | None = None
 
-    def begin(self, source: str, theme: tuple[bool, bool]) -> None:
+    def begin(self, source: str, syntax: SyntaxPalette) -> None:
         self.retire()
-        self.warmup = PatchWarmup(source, theme, asyncio.get_running_loop().create_future())
+        self.warmup = PatchWarmup(source, syntax, asyncio.get_running_loop().create_future())
 
     def prepared_for(self, source: str):
         entry = self.warmup
@@ -197,7 +199,7 @@ class PatchPreparation:
         entry = self.warmup
         assert entry is not None
         try:
-            prepared = await view.app.prepare_background(PatchRenderTask(entry.source, *entry.theme))
+            prepared = await view.app.prepare_background(PatchRenderTask(entry.source, entry.syntax))
             if not entry.result.done():
                 entry.result.set_result(prepared)
         finally:
@@ -225,8 +227,8 @@ class PatchToolOutputPart(ToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (ToolCallDiff(self.source, preparation=self.preparation),)
 
-    def begin_preparation(self, theme: tuple[bool, bool]) -> bool:
-        self.preparation.begin(self.source, theme)
+    def begin_preparation(self, syntax: SyntaxPalette) -> bool:
+        self.preparation.begin(self.source, syntax)
         return True
 
     async def prepare(self, view: ToolCall) -> None:
@@ -377,7 +379,7 @@ class ToolOutput:
         self.suppress_auto_expansion = False
         self.hydration: ToolHydration = IdleToolHydration()
         self._warming: tuple[ToolOutputPart, ...] = ()
-        self._theme: tuple[bool, bool] | None = None
+        self._syntax: SyntaxPalette | None = None
         self._generation = 0
         self._worker: Worker[None] | None = None
 
@@ -444,12 +446,12 @@ class ToolOutput:
 
     def prepare_hidden(self) -> None:
         view = self.view
-        theme = (view.app.current_theme.ansi, view.app.current_theme.dark)
-        if self.parts == self._warming and self._theme == theme:
+        syntax = view.app.colours.syntax
+        if self.parts == self._warming and self._syntax == syntax:
             return
         self.cancel_preparation()
-        self._warming, self._theme = self.parts, theme
-        pending = tuple(part for part in self.parts if part.begin_preparation(theme))
+        self._warming, self._syntax = self.parts, syntax
+        pending = tuple(part for part in self.parts if part.begin_preparation(syntax))
         if pending:
             self._worker = view.run_worker(partial(self.prepare, self._generation, pending),
                                           group="hidden-patch-warmup", exclusive=True)
@@ -472,7 +474,7 @@ class ToolOutput:
             self._worker = None
         for part in self._warming:
             part.retire_preparation()
-        self._warming, self._theme = (), None
+        self._warming, self._syntax = (), None
 
     def theme_changed(self) -> None:
         if self.hydration.pending and self.view.content_open:

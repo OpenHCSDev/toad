@@ -147,7 +147,7 @@ class AgentItem(containers.VerticalGroup):
                 FieldCodec.encode(agent.kind),
                 "$primary-muted 50%",
                 "$text-primary",
-                filled=not self.app.theme.startswith("ansi-"),
+                filled=not self.app.native_ansi_color,
             )
             yield widgets.Label(tag, id="type")
         yield widgets.Label(agent.author_name, id="author")
@@ -393,7 +393,7 @@ class StoreScreen(CoreEventReceiver, Screen):
             f"v{toad_version}",
             "$primary-muted",
             "$text-primary",
-            filled=not self.app.theme.startswith("ansi-"),
+            filled=not self.app.native_ansi_color,
         )
         content = Content.assemble(
             Content.from_markup("🐸 Toad"),

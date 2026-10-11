@@ -15,7 +15,12 @@ from toad.rich_preparation import (
     PreparedRichContent,
     RichPresentation,
     RichSource,
+    SyntaxPalette,
 )
+
+from ui_theme.effects import PlayedText
+from ui_theme.scheme import ColourScheme
+from ui_theme.splash import TextEffect
 
 if TYPE_CHECKING:
     from toad.widgets.patch_diff import PreparedPatch
@@ -43,13 +48,12 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
 @dataclass(frozen=True)
 class PatchRenderTask(ReusableRenderTask["PreparedPatch"]):
     source: str
-    ansi: bool
-    dark: bool
+    syntax: SyntaxPalette
 
     def execute(self) -> PreparedPatch:
         from toad.widgets.patch_diff import prepare_patch
 
-        return prepare_patch(self.source, self.ansi, self.dark)
+        return prepare_patch(self.source, self.syntax)
 
     def accept_result(self, result: object) -> PreparedPatch:
         from toad.widgets.patch_diff import PreparedPatch
@@ -70,4 +74,20 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
     def accept_result(self, result: object) -> PreparedRichContent:
         if not isinstance(result, PreparedRichContent):
             raise TypeError("Rich renderer returned an invalid result")
+        return result
+
+
+@dataclass(frozen=True)
+class TextEffectRenderTask(ReusableRenderTask[PlayedText]):
+    """Build a text effect's frames in a worker; building one takes tens to hundreds of ms."""
+
+    effect: TextEffect
+    scheme: ColourScheme
+
+    def execute(self) -> PlayedText:
+        return self.effect.build(self.scheme)
+
+    def accept_result(self, result: object) -> PlayedText:
+        if not isinstance(result, PlayedText):
+            raise TypeError("Text effect renderer returned an invalid result")
         return result

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copyreg
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from io import StringIO
@@ -23,6 +24,26 @@ from textual.selection import Selection
 from textual.visual import RenderOptions
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
+
+
+def _rebuild_style(values: tuple[object, ...]) -> Style:
+    style = Style.__new__(Style)
+    for slot, value in zip(Style.__slots__, values):
+        setattr(style, slot, value)
+    return style
+
+
+def _reduce_style(style: Style) -> tuple[object, ...]:
+    # Rich compares Styles by a cached Python hash, salted per process. It must
+    # not cross a process boundary or reach a task's content address: the same
+    # style data would otherwise pickle differently once something hashed it.
+    return _rebuild_style, (tuple(None if slot == "_hash" else getattr(style, slot)
+                                  for slot in Style.__slots__),)
+
+
+# Every task and result crosses the process boundary through pickle; this
+# module is imported on both sides before either pickles.
+copyreg.pickle(Style, _reduce_style)
 
 
 class PreparedPaintSource:
@@ -47,7 +68,7 @@ class RichSource(ABC):
     """Picklable data which materializes Rich or native content in the worker."""
 
     @abstractmethod
-    def materialize(self) -> RenderableType | Content:
+    def materialize(self, presentation: RichPresentation) -> RenderableType | Content:
         """Construct the renderable without a widget, app or core service."""
 
     style_names: tuple[str, ...] = ()
@@ -148,8 +169,25 @@ class AnsiContentSource(NativeContentSource):
 class RenderableSource(RichSource):
     value: RenderableType
 
-    def materialize(self) -> RenderableType:
+    def materialize(self, presentation: RichPresentation) -> RenderableType:
         return self.value
+
+
+@dataclass(frozen=True)
+class SyntaxPalette:
+    """How code is highlighted under the current theme.
+
+    Code is drawn in the terminal's ANSI colours, so it follows the theme's
+    palette: natively under ANSI themes, and through the scheme's terminal
+    palette under true-colour themes (pywal's palette under `wal`).
+    """
+
+    ansi: bool
+    dark: bool
+
+    @property
+    def pygments_theme(self) -> str:
+        return "ansi_dark" if self.dark else "ansi_light"
 
 
 @dataclass(frozen=True)
@@ -157,11 +195,10 @@ class SyntaxSource(RichSource):
     code: str
     filename: str
     lexer: str | None = None
-    theme: str = "monokai"
     line_numbers: bool = True
     filename_only: bool = False
 
-    def materialize(self) -> Syntax:
+    def materialize(self, presentation: RichPresentation) -> Syntax:
         lexer = self.lexer
         if lexer is None:
             try:
@@ -169,7 +206,8 @@ class SyntaxSource(RichSource):
                          else Syntax.guess_lexer(self.filename, self.code))
             except ClassNotFound:
                 lexer = "text"
-        return Syntax(self.code, lexer, theme=self.theme, line_numbers=self.line_numbers,
+        return Syntax(self.code, lexer, theme=presentation.syntax.pygments_theme,
+                      line_numbers=self.line_numbers,
                       word_wrap=False, background_color="default")
 
     def selected_text(self, selection: Selection, prepared: PreparedRichContent) -> str:
@@ -239,7 +277,7 @@ class RichPresentation:
     auto_width: bool
     justify: JustifyMethod | None
     color_system: RichColorSystem | None
-    dark: bool = True
+    syntax: SyntaxPalette
     styles: tuple[tuple[str, NativeStyle], ...] = ()
     rules: tuple[tuple[str, object], ...] = ()
     native_style: NativeStyle = NativeStyle()
@@ -251,9 +289,7 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
     console = Console(file=StringIO(), width=options.max_width, height=options.max_height,
                       force_terminal=options.is_terminal, legacy_windows=options.legacy_windows,
                       color_system=presentation.color_system, highlight=False)
-    if isinstance(source, SyntaxSource) and source.theme == "auto":
-        source = replace(source, theme="ansi_dark" if presentation.dark else "ansi_light")
-    renderable = source.materialize()
+    renderable = source.materialize(presentation)
     if isinstance(renderable, Content):
         # Capture only the source's declared style inputs on the native side;
         # span merging, link metadata and full text conversion stay here.
@@ -276,13 +312,4 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
     lines = tuple(Strip(line) for line in Segment.split_and_crop_lines(
         segments, width, include_new_lines=False, pad=False,
     ))
-    # Rich compares Styles via its cached Python hash. That hash is salted per
-    # process and must not travel with otherwise identical style data. Clear
-    # only this derived cache, in the worker, before the result is serialized.
-    seen: set[int] = set()
-    for line in lines:
-        for _, style, _ in line:
-            if style is not None and id(style) not in seen:
-                seen.add(id(style))
-                style._hash = None
     return PreparedRichContent(width, lines)

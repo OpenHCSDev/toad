@@ -71,7 +71,7 @@ class GoalBar(VerticalGroup):
     GoalBar .goal-execution { width: 1fr; height: auto; }
     GoalBar .goal-controls { height: 1; grid-rows: 1; }
     GoalBar.-collapsed GoalControl { margin-right: 1; }
-    GoalBar.-resize-hover, GoalBar.-resizing { border-top: solid white; pointer: ns-resize; }
+    GoalBar.-resize-hover, GoalBar.-resizing { border-top: solid $foreground; pointer: ns-resize; }
     """
     collapsed: var[bool] = var(False)
     _separator_update_pending = False

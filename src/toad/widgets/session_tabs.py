@@ -15,6 +15,7 @@ from textual.geometry import Offset, Region
 from textual.message import Message
 from textual.reactive import reactive
 from textual.renderables.bar import Bar
+from textual.strip import Strip
 from textual.widget import Widget
 
 from toad import messages
@@ -24,6 +25,8 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab
 from toad.widgets.activity_spinner import FRAMES, animated_label
+from toad.textual_colours import Animated
+from ui_theme.effects import TAB_WIPE
 
 
 class SessionLabel(widgets.Label):
@@ -75,8 +78,8 @@ class SessionTabClose(widgets.Static, can_focus=True):
             self.action_close_tab()
 
 
-class Underline(Widget):
-    """The animated underline beneath tabs."""
+class Underline(Animated, Widget):
+    """The underline beneath tabs; a wipe crosses the current tab's highlight when it is chosen."""
 
     COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
     """
@@ -119,6 +122,18 @@ class Underline(Widget):
             highlight_style=RichStyle.from_color(bar_style.color),
             background_style=RichStyle.from_color(bar_style.bgcolor),
         )
+
+    def render_line(self, y: int) -> Strip:
+        strip = super().render_line(y)
+        animation = self.animation
+        start, end = self._highlight_range
+        if animation is None or start >= end:
+            return strip
+        before, tab, after = strip.divide((start, end, strip.cell_length))
+        return Strip.join((before, self.app.colours.paint_band(animation.frame(), tab), after))
+
+    def on_unmount(self) -> None:
+        self.stop_effect()
 
     def _on_click(self, event: events.Click):
         """Catch clicks, so that the underline can activate the tabs."""
@@ -201,6 +216,8 @@ class SessionsTabs(CoreEventReceiver, Widget):
             self.update_underline(old_session, animate=False)
 
         self.update_underline(new_session, animate=False)
+        if old_session and new_session and self.is_mounted:
+            self.query_one(Underline).run_effect(TAB_WIPE)
 
     def update_underline(self, session: str | None = None, animate: bool = True):
         if not self.is_mounted or not self.is_attached:
