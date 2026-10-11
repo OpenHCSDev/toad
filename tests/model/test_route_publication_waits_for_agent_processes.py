@@ -1,0 +1,72 @@
+"""Stopping an agent retires its whole process group before the default route is published."""
+
+import asyncio
+import os
+import shlex
+import signal
+import sys
+from unittest.mock import patch
+
+import psutil
+from agent_comms import cohort_foreground
+from agent_comms.acp_ingress import AcpIngress
+from agent_comms.active_route import ActiveRoute, publish_active_route
+from agent_comms.route_selection import RouteSelection, current_root
+
+from support.agents import detached
+from support.routes import private_root, select_root_by_default_route
+
+
+def live_members(group: int) -> list[int]:
+    found = []
+    for member in psutil.process_iter():
+        try:
+            if os.getpgid(member.pid) == group and member.status() != psutil.STATUS_ZOMBIE:
+                found.append(member.pid)
+        except (ProcessLookupError, psutil.NoSuchProcess):
+            pass
+    return found
+
+
+async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_published(tmp_path, monkeypatch):
+    from toad.acp.shell_command import ShellCommand
+
+    tmp_path.chmod(0o700)
+    for name in ("CONFIG", "DATA", "STATE"):
+        monkeypatch.setenv(f"XDG_{name}_HOME", str(tmp_path / name.lower()))
+    home = select_root_by_default_route(monkeypatch, tmp_path)
+    old = home / ".agent-comms"
+    old.mkdir(mode=0o700)
+    program = ("import subprocess,sys,time; "
+               "child=subprocess.Popen([sys.executable,'-c','import time;time.sleep(60)']); "
+               "print(child.pid,flush=True); time.sleep(60)")
+    command = f"{shlex.quote(sys.executable)} -c {shlex.quote(program)}"
+    new_root, root_id = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
+    route = ActiveRoute(new_root, root_id, tmp_path / "unused-package")
+    assert current_root() == old
+
+    env = dict(os.environ)
+    selection = RouteSelection.for_child(env, tmp_path)
+    process = await AcpIngress(selection, tmp_path).spawn(ShellCommand.current().argv(command), env=env)
+    group = process.identity.pid
+    try:
+        child_pid = int(await asyncio.wait_for(process.stdout.readline(), timeout=8))
+        assert os.getpgid(group) == group
+        assert os.getpgid(child_pid) == group
+        assert {group, child_pid} <= set(live_members(group))
+        agent = detached(tmp_path)
+        agent.process.process = process
+        agent.session.task = None
+        agent.process.runner = None
+        await agent.stop()
+        assert process.returncode is not None
+        assert not live_members(group), "old ACP descendant survived stop"
+        assert agent.process.process is None
+        with patch.object(cohort_foreground, "_trusted_package", lambda _: None):
+            publish_active_route(route)
+        assert current_root() == new_root
+    finally:
+        if live_members(group):
+            os.killpg(group, signal.SIGKILL)
+        if process.returncode is None:
+            await process.wait()
