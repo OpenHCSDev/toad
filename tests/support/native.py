@@ -25,18 +25,22 @@ MODEL = f"{PROVIDER}/fixture"
 KEY = "offline-only-fixture"
 
 
+def last_user_texts(request: dict) -> tuple[str, ...]:
+    message = request["messages"][-1]
+    if message["role"] != "user":
+        return ()
+    content = message["content"]
+    return (content,) if isinstance(content, str) else tuple(
+        block["text"] for block in content if block["type"] == "text")
+
+
 def selected_triage_reply(request: dict, decision=None) -> dict | None:
     """The answer to Core's "should this thread respond" question, when `request` is one."""
     from agent_comms.field_codec import FieldCodec
     from agent_comms.selected_triage import IgnoreSelectedTriage, SelectedTriage
     from agent_comms.turn_context import InstructionFile
 
-    message = request["messages"][-1]
-    if message["role"] != "user":
-        return None
-    content = message["content"]
-    texts = (content,) if isinstance(content, str) else tuple(
-        block["text"] for block in content if block["type"] == "text")
+    texts = last_user_texts(request)
     output = InstructionFile.read("selected-triage-output.md").render(SelectedTriage.output_values()).strip()
     if not any(text.rstrip().endswith(output) for text in texts):
         return None
@@ -44,10 +48,25 @@ def selected_triage_reply(request: dict, decision=None) -> dict | None:
         IgnoreSelectedTriage() if decision is None else decision))}
 
 
+def wire_reply(request: dict, answer: str) -> dict | None:
+    """The answer to a wire message, in the form Core asks for: its example records with `answer` as text."""
+    from agent_comms.turn_context import InstructionFile
+
+    placeholder = InstructionFile.read("selected-response-example.md").content
+    marker = "Declared Message examples: "
+    for text in last_user_texts(request):
+        if marker in text:
+            examples, _end = json.JSONDecoder().raw_decode(text[text.index(marker) + len(marker):])
+            records = json.loads(json.dumps(examples).replace(json.dumps(placeholder), json.dumps(answer)))
+            return {"role": "assistant", "content": json.dumps(records)}
+    return None
+
+
 def numbered_reply(request: dict, number: int) -> tuple[dict, str]:
     """Declines triage questions and answers anything else ``NATIVE_RESPONSE_<n>``."""
-    return (selected_triage_reply(request)
-            or {"role": "assistant", "content": f"NATIVE_RESPONSE_{number}"}), "stop"
+    answer = f"NATIVE_RESPONSE_{number}"
+    return (selected_triage_reply(request) or wire_reply(request, answer)
+            or {"role": "assistant", "content": answer}), "stop"
 
 
 def small_usage(request: dict, number: int) -> dict:

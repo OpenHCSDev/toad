@@ -239,7 +239,9 @@ class ThreadRead:
     def settle(self, presentation: ThreadPresentation | None) -> ThreadPresentation | None:
         if self.agent.observed_thread() != self.thread:
             raise ValueError("Thread attachment changed while reading status")
-        self.authority.require()
+        if self.authority.retired:
+            # Not a client request to refuse: the read simply outlived its session.
+            raise ValueError("Client session ended while reading status")
         if presentation is not None:
             self.snapshot.dispatch_sync(presentation)
         return presentation
