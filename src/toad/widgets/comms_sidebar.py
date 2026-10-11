@@ -437,6 +437,8 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self.service: Comms | None = None
         self.model: SidebarModel | None = None
         self.groups: dict[str, ChannelGroup] = {}
+        # Mounts the groups in `groups` that are not mounted yet.
+        self._group_mounting = None
         self.new_session: NewSessionButton | None = None
         # Thread name -> the mode of the tab that has it open.
         self.open_views: dict[str, str] = {}
@@ -501,7 +503,7 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self.display = False
         self.navigation.reset()
         if self.groups:
-            self.remove_children(list(self.groups.values()))
+            self.remove_children([group for group in self.groups.values() if group.parent is self])
             self.groups.clear()
             self.navigation.rows_changed()
         self.stale = True
@@ -551,7 +553,8 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
             self.mount(self.new_session)
         removed = [key for key in self.groups if key not in rows]
         if removed:
-            self.remove_children([self.groups.pop(key) for key in removed])
+            # A group not mounted yet is only dropped.
+            self.remove_children([group for group in map(self.groups.pop, removed) if group.parent is self])
         added = []
         for key, channel in rows.items():
             group = self.groups.get(key)
@@ -567,14 +570,10 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
                 group.sync_members()
             elif threads is None or not threads.isdisjoint(channel.members):
                 group.sync_members(threads)
-        if added:
-            self.mount(*added)
+        if added and (self._group_mounting is None or self._group_mounting.is_finished):
+            self._group_mounting = self.run_worker(self._mount_groups(), group="sidebar-groups")
         if removed or added or reorder:
-            ordered = [self.new_session, *(self.groups[key] for key in rows)]
-            if [child for child in self.children if not child._pruning] != ordered:
-                positions = {widget: index for index, widget in enumerate(ordered)}
-                self.sort_children(key=lambda child: positions.get(child, len(positions)))
-            self.navigation.rows_changed()
+            self._order_groups()
         panel = self.query_ancestor(SideBarCollapsible)
         control = panel.header_control
         assert isinstance(control, ChannelListSort)
@@ -586,6 +585,26 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
+
+    async def _mount_groups(self) -> None:
+        """Mount the channel groups ``sync`` created, one at a time, in model order.
+
+        Each group composes its header and member rows in loop turns of its
+        own; mounted together, every group would compose in the same turn.
+        """
+        while self.is_attached and (group := next(
+                (group for group in self.groups.values() if group.parent is None), None)) is not None:
+            await self.mount(group)
+            self._order_groups()
+
+    def _order_groups(self) -> None:
+        """Place the mounted groups in the model's order."""
+        positions = {widget: index for index, widget in enumerate(
+            (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups)))}
+        live = [child for child in self.children if not child._pruning]
+        if live != sorted(live, key=lambda child: positions.get(child, len(positions))):
+            self.sort_children(key=lambda child: positions.get(child, len(positions)))
+        self.navigation.rows_changed()
 
     def content_width(self) -> int:
         model = self.model
