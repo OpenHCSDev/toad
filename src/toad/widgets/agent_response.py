@@ -7,6 +7,7 @@ from toad.core.projection import MroProjection
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.line_blocks import AgentRole, OutgoingRole
+from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
 from toad.widgets.route_header import RouteHeader
@@ -16,8 +17,11 @@ from toad.widgets.message_filter import (
     MessageCategory,
 )
 
-class AgentResponse(MroProjection, ConversationBlock, CategorizedBlock, VerticalGroup):
-    """An agent's message: its headers, then its text drawn as prepared lines."""
+class AgentResponse(MroProjection, ConversationBlock, SnapshotPresentation, CategorizedBlock, VerticalGroup):
+    """An agent's message: its headers, then its text drawn as prepared lines.
+
+    Saved history that covers it replaces it (`SnapshotPresentation`).
+    """
 
     DEFAULT_CSS = """
     AgentResponse {

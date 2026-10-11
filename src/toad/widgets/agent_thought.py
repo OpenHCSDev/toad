@@ -8,13 +8,14 @@ from typing import ClassVar
 from textual.binding import Binding, BindingType
 from textual.containers import VerticalGroup
 from toad.line_blocks import ThinkingRole
+from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
 
-class AgentThought(ConversationBlock, CategorizedBlock, VerticalGroup, can_focus=True):
-    """The agent's 'thoughts', drawn as prepared lines."""
+class AgentThought(ConversationBlock, SnapshotPresentation, CategorizedBlock, VerticalGroup, can_focus=True):
+    """The agent's 'thoughts', drawn as prepared lines; saved history that covers them replaces them."""
 
     DEFAULT_CSS = """
     AgentThought {
