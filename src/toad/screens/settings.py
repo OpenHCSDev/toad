@@ -108,7 +108,7 @@ class SettingsScreen(MroProjection, ModalScreen):
 
     @handles(ThemeChoice)
     def theme_form(self, kind, group, title):
-        options = ((theme.name, theme.name) for theme in self.app.available_themes.values())
+        options = ((name, name) for name in self.app.colours.schemes)
         return self.leaf(kind, group, title, partial(ChoiceEditor, options=options))
 
     def filter_settings(self, search_term: str) -> None:

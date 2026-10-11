@@ -59,8 +59,8 @@ class UiSettings(SettingsGroup):
     )
     theme = ThemeChoice(
         title="Theme",
-        default="ansi-dark",
-        help="A theme registered by the frontend. ANSI themes inherit your terminal palette.",
+        default="wal",
+        help="wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette.",
         effect=effects.theme,
     )
     prompt_message = StringSetting(

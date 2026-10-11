@@ -28,12 +28,14 @@ dependencies = [
     "format-currency>=0.0.10",
     "agent-comms[acp]",
     "agent-client-protocol==0.12.1",
+    "ui-theme",
 ]
 
 [tool.uv.workspace]
 members = ["toad"]
 
 [tool.uv.sources]
+ui-theme = { path = "/home/ts/code/projects/ui-theme" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "32917269ced9e4d95009e608e052a6c3e048fa3b" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "df60dab0004124ee491bc1b921a7d7351f85c127" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }

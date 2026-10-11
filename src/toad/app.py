@@ -308,12 +308,13 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
+        self.colours.register_catalog()
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
 
     def get_color_system(self) -> str:
-        return self.colours.depth.terminal_name
+        return self.colours.depth.name
 
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()

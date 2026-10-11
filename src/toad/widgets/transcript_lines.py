@@ -18,7 +18,7 @@ from rich.style import Style
 from textual.strip import Strip
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.colour_scheme import MutedColour, ThemeColour
+from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import Body, Divider, Gap, LineBlock, LineRole, Summary
 from toad.render_backend import ReusableRenderTask
 
@@ -46,12 +46,12 @@ class LineTheme:
 
         foreground = Color.parse(variables["foreground"])
         background = Color.parse(variables["background"])
-        # Muted text is the foreground at 60% over the background. ANSI
-        # colours cannot be blended; the terminal dims them instead.
+        # Muted text is the foreground part of the way over the background.
+        # ANSI colours cannot be blended; the terminal dims them instead.
         muted = (Style(dim=True) if foreground.ansi is not None
-                 else Style(color=background.blend(foreground, 0.6).rich_color))
+                 else Style(color=background.blend(foreground, MutedColour.amount).rich_color))
         return cls(tuple(
-            (member, muted if member is MutedColour else colour(member.declared_name))
+            (member, muted if member is MutedColour else colour(member.name))
             for member in ThemeColour.__registry__.values()
         ))
 
