@@ -1,1 +1,0 @@
-L0A guard: no retired Goal decoder or thread-purge production callers

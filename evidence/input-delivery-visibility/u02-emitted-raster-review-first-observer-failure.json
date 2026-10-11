@@ -1,4 +1,0 @@
-{
-  "passed": false,
-  "failure": "TypeError(\"Got unexpected field names: ['paint_frame']\")"
-}

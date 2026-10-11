@@ -1,1 +1,0 @@
-goal collapse: compact left controls, history, live revision/standby, resize, outage and draft preserved

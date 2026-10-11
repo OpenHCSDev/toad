@@ -1,1 +1,0 @@
-Partial viewport ACKs contain only painted bodies; scrolling acknowledges the remaining captured rows

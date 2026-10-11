@@ -1,1 +1,0 @@
-persistent UI: two Toad instances reused one renderer; Markdown, native diff, file preview and Read tool completed

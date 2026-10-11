@@ -1,1 +1,0 @@
-{"frames": 525, "incomplete": 0, "partial_admissions": 0, "blanks": 0, "histories": 2}

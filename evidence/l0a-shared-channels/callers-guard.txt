@@ -1,1 +1,0 @@
-L0A guard: no retired Goal decoder, purge caller or text-only queue reader

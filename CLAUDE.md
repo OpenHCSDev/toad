@@ -32,4 +32,3 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 What the previous agent did wrong, with the evidence: `docs/agents/CODEX-POSTMORTEM.md`. Reread it whenever you are about to report progress.
 
 
-The previous agent's full handoff, including the stopped six-file working diff: `docs/handoff/HANDOFF-REPLACEMENT-20261009.md`. Sections 3, 4, 7, 11 and 14 matter most; read them when the work needs them.

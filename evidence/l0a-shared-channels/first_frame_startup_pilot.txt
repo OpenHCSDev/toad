@@ -1,1 +1,0 @@
-first frame: sidebar/agent startup gated, callbacks delivered once, closed views cannot start

@@ -1,1 +1,0 @@
-MCP inventory: current strict DTO, redaction, trust and malformed input rejection pass

@@ -1,1 +1,0 @@
-shared Channels: one tree, retained rows/tasks, every new/loading/warm frame, independent right panel

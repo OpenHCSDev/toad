@@ -1,1 +1,0 @@
-model picker: fuzzy filtering, focus, recency persistence, failed selections and resizing passed

@@ -1,1 +1,0 @@
-PR261 was the persistent proof/fix contribution. Its whole working version was normally integrated into the original PR258, including baseline, intermediate and final proof. PR258 remains the single delivery owner; native readiness stays pending its replacement installed gate.
