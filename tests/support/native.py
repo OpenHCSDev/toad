@@ -233,19 +233,49 @@ class NativeSession:
 
 
 @asynccontextmanager
+async def attached_app(workspace, comms, thread: str, *, size: tuple[int, int] = (160, 44),
+                       application: type | None = None, attached: bool = True, project: Path | None = None):
+    """Start Toad on declared thread `thread` through Core's ACP server; yields (ui, agent) once
+    the session has settled. Stops the agent and every owner on the wire afterwards."""
+    from toad.app import ToadApp
+
+    agent = None
+    started = partial(application or ToadApp, agent_session_id=thread)
+    if project is not None:
+        started = partial(started, project_dir=str(project))
+    try:
+        async with workspace.app(size=size, agent=comms_agent(), application=_first_wins(started)) as ui:
+            await ui.until(lambda: ui.conversation.agent is not None, seconds=20, why="the agent object")
+            agent = ui.conversation.agent
+            await ui.until(agent.session.settled.is_set, seconds=30, why="the ACP session to settle")
+            assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
+            yield ui, agent
+    finally:
+        if agent is not None:
+            await agent.stop()
+        for name in comms.registry.all_threads():
+            await asyncio.to_thread(comms.owners.stop, name)
+
+
+def _first_wins(started):
+    """Construct with the arguments bound here taking precedence over the caller's."""
+    def construct(**given):
+        return started.func(**{**given, **started.keywords})
+    return construct
+
+
+@asynccontextmanager
 async def native_session(workspace, package: Path, *, provider: ControlledProvider | None = None,
                          settings: dict | None = None, prepare=None, size: tuple[int, int] = (160, 44),
                          application: type | None = None, attached: bool = True):
-    """Start Toad on a declared native thread ``beta`` and wait for its ACP session to settle.
+    """Start Toad on a declared native thread ``beta`` whose model is the controlled provider.
 
     `prepare(comms, project, provider)` may arrange wire state before the app starts.
     `attached=False` expects the session to settle without a connection.
     """
     from agent_comms.threads import Thread
-    from toad.app import ToadApp
 
     provider = provider or ControlledProvider()
-    agent = None
     with provider.serving() as base_url:
         comms = start_private_native_wire(workspace.roots.wire, package)
         configure_provider(base_url, settings=settings)
@@ -254,12 +284,8 @@ async def native_session(workspace, package: Path, *, provider: ControlledProvid
         try:
             if prepare is not None:
                 await prepare(comms, workspace.project, provider)
-            started = partial(application or ToadApp, agent_session_id="beta")
-            async with workspace.app(size=size, agent=comms_agent(), application=started) as ui:
-                await ui.until(lambda: ui.conversation.agent is not None, seconds=20, why="the agent object")
-                agent = ui.conversation.agent
-                await ui.until(agent.session.settled.is_set, seconds=30, why="the ACP session to settle")
-                assert agent.session.connected is attached, "Unexpected ACP attachment outcome"
+            async with attached_app(workspace, comms, "beta", size=size, application=application,
+                                    attached=attached) as (ui, agent):
                 yield NativeSession(ui, agent, comms, provider, workspace.project)
                 assert not provider.failures, provider.failures
         except BaseException as error:
@@ -268,7 +294,18 @@ async def native_session(workspace, package: Path, *, provider: ControlledProvid
             raise
         finally:
             provider.release()
-            if agent is not None:
-                await agent.stop()
-            for name in comms.registry.all_threads():
-                await asyncio.to_thread(comms.owners.stop, name)
+
+
+def without_provider(models: str = "test/model") -> None:
+    """Configure native owners with a model nothing serves, for tests that must never ask one."""
+    os.environ.update(AGENT_COMMS_AGENT_BIN="pi", AGENT_COMMS_AGENT_ARGS="", AGENT_COMMS_AGENT_MODELS=models)
+
+
+def owner_server(comms, package: Path, *, provider: str = "openrouter", model: str = "fake"):
+    """Core's ACP server object in this process, able to start native owners on the private wire."""
+    from agent_comms.acp import CommsAgent
+
+    return CommsAgent(
+        comms, agent_bin="pi", agent_args=["--provider", provider, "--model", model],
+        runtime_enabled=True, auto_wake=False, private_nk_native_package=package,
+        private_nk_wire_root_id=os.environ["AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID"])
