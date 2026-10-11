@@ -237,8 +237,8 @@ class TranscriptPageView(Widget):
             return Strip.blank(width)
         _index, first, rows = self._layout[slot]
         row = y - first
-        strip = rows[row] if row < len(rows) else Strip.blank(width)
-        return strip.extend_cell_length(width).crop(0, width)
+        # Prepared rows span exactly this width (PreparedLines.strips).
+        return rows[row] if row < len(rows) else Strip.blank(width)
 
     def fragment_line(self, fragment: TranscriptFragment) -> int | None:
         """The first row of an admitted fragment within this page."""
