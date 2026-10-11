@@ -104,6 +104,42 @@ class Ui(ABC):
         """Open a channel or direct-message tab for `actor` and return its identity."""
 
     @abstractmethod
+    async def open_direct(self, thread: str, *, actor: str, owner: str | None = None) -> str:
+        """Open the direct-message history between `actor` and `thread` and return its tab identity."""
+
+    @abstractmethod
+    async def return_to_owner(self) -> None:
+        """From a channel or direct-message tab, go back to the session tab that opened it."""
+
+    @abstractmethod
+    async def go_back(self) -> None:
+        """Step back through the visited tabs, as the Back control does."""
+
+    @abstractmethod
+    async def go_forward(self) -> None:
+        """Step forward through the visited tabs, as the Forward control does."""
+
+    @abstractmethod
+    def can_go_back(self) -> bool:
+        """Whether the Back control has an earlier visited tab to go to."""
+
+    @abstractmethod
+    def can_go_forward(self) -> bool:
+        """Whether the Forward control has a later visited tab to go to."""
+
+    @abstractmethod
+    async def open_preview(self, path) -> str:
+        """Open a file preview tab for `path` and return its tab identity."""
+
+    @abstractmethod
+    def sender_of(self, identity: str) -> str:
+        """The thread name a channel or direct-message tab sends as."""
+
+    @abstractmethod
+    async def thread_renamed(self, owner: str, previous: str, current: str) -> None:
+        """Tell the interface that the thread behind session tab `owner` was renamed on the wire."""
+
+    @abstractmethod
     async def step(self, seconds: float | None = None) -> None:
         """Let the interface handle what is pending."""
 
@@ -256,6 +292,44 @@ class TextualUi(Ui):
         identity = await channel_target(target).open(context)
         await self.step()
         return identity
+
+    async def open_direct(self, thread: str, *, actor: str, owner: str | None = None) -> str:
+        from toad.navigation_target import DirectTarget, NavigationContext
+
+        context = NavigationContext(self.app, owner or self.selected_tab, self.app.project_dir, actor)
+        identity = await DirectTarget(thread).open(context)
+        await self.step()
+        return identity
+
+    async def return_to_owner(self) -> None:
+        await self.app.selected_session.action_back_to_agent()
+        await self.step()
+
+    async def go_back(self) -> None:
+        self.app.tab_order.navigate(-1)
+        await self.step()
+
+    async def go_forward(self) -> None:
+        self.app.tab_order.navigate(+1)
+        await self.step()
+
+    def can_go_back(self) -> bool:
+        return not self.app.screen.query_one("#tab-back").has_class("-unavailable")
+
+    def can_go_forward(self) -> bool:
+        return not self.app.screen.query_one("#tab-forward").has_class("-unavailable")
+
+    async def open_preview(self, path) -> str:
+        identity = await self.app.session_navigation.preview(path)
+        await self.step()
+        return identity
+
+    def sender_of(self, identity: str) -> str:
+        return self.app.workspace_sessions.require(identity).me
+
+    async def thread_renamed(self, owner: str, previous: str, current: str) -> None:
+        self.app.session_navigation.sync_identity(owner, previous, current)
+        await self.step()
 
     async def step(self, seconds: float | None = None) -> None:
         await self.pilot.pause(seconds)
