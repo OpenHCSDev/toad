@@ -134,14 +134,20 @@ class RichLineRenderer(MroDispatch):
 
 @dataclass(frozen=True)
 class PreparedLines:
-    """Rows of one fragment at one width; strips are built once, on first draw."""
+    """Rows of one fragment at one width; strips are built once, on first draw.
+
+    Each strip spans exactly the width, so a page draws it as it is and the
+    strip keeps what painting it computes (its terminal sequence) across
+    repaints.
+    """
 
     width: int
     rows: tuple[Row, ...]
 
     @cached_property
     def strips(self) -> tuple[Strip, ...]:
-        return tuple(Strip(row) for row in self.rows)
+        width = self.width
+        return tuple(Strip(row).extend_cell_length(width).crop(0, width) for row in self.rows)
 
 
 @dataclass(frozen=True)
