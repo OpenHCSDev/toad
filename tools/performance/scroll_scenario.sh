@@ -56,6 +56,16 @@ regions() { python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out
 # Who asks the app to exit is written as it happens (the app has quit by
 # itself when the second tab opened, with no error recorded).
 python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name app --trace-exit --sudo > /dev/null 2>&1 &
+# Optional: measure from here, so opening the second tab (and the closing of
+# the deleted thread's tab at the end) fall inside the measured window.
+if [[ -n "${METER_FROM_OPEN:-}" ]]; then
+    # One attach at a time: the exit trace above must be installed first.
+    for _ in $(seq 40); do [[ -s "$out/app-exit.json" ]] && break; sleep 0.5; done
+    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
+        --frame-meter "${METER_SECONDS:-150}" --sudo > "$out/capture.log" 2>&1 &
+    capture=$!
+    sleep 2
+fi
 # Open a second tab from the sidebar so the scenario can return to this one.
 cell 1 25
 sleep 15
@@ -94,7 +104,9 @@ done
 import -window "$window" "$out/loaded.png" 2>/dev/null || true
 regions screen-loaded
 
-if [[ -n "${PROFILE_SECONDS:-}" ]]; then
+if [[ -n "${METER_FROM_OPEN:-}" ]]; then
+    :  # already measuring since before the second tab opened
+elif [[ -n "${PROFILE_SECONDS:-}" ]]; then
     measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle} ${PROFILE_GIL:+--gil})
 elif [[ -n "${PROFILE_LAYOUT:-}" ]]; then
     measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"}
@@ -102,9 +114,11 @@ elif [[ -n "${PROFILE_LAYOUT:-}" ]]; then
 else
     measure=(--frame-meter "$meter_seconds")
 fi
+if [[ -z "${METER_FROM_OPEN:-}" ]]; then
 python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
     "${measure[@]}" ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} --sudo > "$out/capture.log" 2>&1 &
 capture=$!
+fi
 sleep 2
 # Optional load: a real channel message whose replies arrive during the scenario.
 if [[ -n "${CHANNEL:-}" && -n "${CHANNEL_MESSAGE:-}" ]]; then
