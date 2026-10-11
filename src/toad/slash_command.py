@@ -95,7 +95,7 @@ class AgentAdvertisedCommand(SlashCommand):
 
     @classmethod
     def from_acp(cls, record) -> Self:
-        return cls(record.name, record.description, record.input.hint if record.input else None)
+        return cls(record.name, record.description, record.input.root.hint if record.input else None)
 
     @classmethod
     def parse(cls, arguments: str) -> Self:

@@ -126,11 +126,13 @@ class Underline(Animated, Widget):
     def render_line(self, y: int) -> Strip:
         strip = super().render_line(y)
         animation = self.animation
-        start, end = self._highlight_range
+        width = strip.cell_length
+        # The highlighted tab can lie partly or wholly beyond the visible strip.
+        start, end = (min(cell, width) for cell in self._highlight_range)
         if animation is None or start >= end:
             return strip
-        before, tab, after = strip.divide((start, end, strip.cell_length))
-        return Strip.join((before, self.app.colours.paint_band(animation.frame(), tab), after))
+        tab = self.app.colours.paint_band(animation.frame(), strip.crop(start, end))
+        return Strip.join((strip.crop(0, start), tab, strip.crop(end, width)))
 
     def on_unmount(self) -> None:
         self.stop_effect()
