@@ -1,9 +1,9 @@
-import asyncio
+"""Prompt and shell histories keep separate entries, navigate with a draft, and rebind by thread."""
 from pathlib import Path
 from toad.input_history import InputHistories, InputHistory
 
 
-def test_real_files_mode_navigation_binding_and_new_case(tmp_path: Path):
+async def test_real_files_mode_navigation_binding_and_new_case(tmp_path: Path):
     class ReviewInputHistory(InputHistory):
         @classmethod
         def history_path(cls, directory, scope):
@@ -12,7 +12,7 @@ def test_real_files_mode_navigation_binding_and_new_case(tmp_path: Path):
         def skips(self, entry, reference):
             return False
 
-    async def acceptance():
+    try:
         histories = InputHistories(tmp_path, "thread-a")
         for text in ("first", "second", "second"):
             await histories.shell.record(text)
@@ -34,8 +34,5 @@ def test_real_files_mode_navigation_binding_and_new_case(tmp_path: Path):
         histories.bind_scope("thread-a")
         assert (await histories.prompt.navigate(-1, "")).input == "prompt only"
         assert histories.shell.index == 0
-
-    try:
-        asyncio.run(acceptance())
     finally:
         InputHistory.__registry__.pop(ReviewInputHistory.declared_name)
