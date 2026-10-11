@@ -1,6 +1,6 @@
-"""Prepared style topology preserves native segments without UI span sweeps."""
+"""Textual-facing: a prepared diff row paints exactly the segments, styles and link metadata of Textual's own diff row, with no span sweep on the UI thread."""
 
-import asyncio
+from contextlib import nullcontext
 from unittest.mock import patch
 
 from textual.app import App
@@ -11,17 +11,18 @@ from textual.style import Style
 from textual.visual import RenderOptions
 from textual_diff_view._diff_view import LineContent
 
+from toad.textual_colours import ThemedApp
 from toad.widgets.patch_diff import (
     PatchDiffCode, PreparedDiffLine, _DiffPaint, _DiffRow, prepare_diff_line,
 )
 
 
-class RowApp(App):
+class RowApp(ThemedApp, App):
     def compose(self):
         yield PatchDiffCode(LineContent([Content("dummy")], [""]))
 
 
-async def main():
+async def test_prepared_rows_match_native_rows():
     lines = [
         Content(""), Content("plain"), Content("界é🙂 text"),
         Content("abcdef", [Span(0, 6, "bold"), Span(1, 4, "red"), Span(2, 5, "on blue 30%")]),
@@ -57,7 +58,6 @@ async def main():
                                 expected = expected._apply_link_style(paint.link_style)
                             # Negative endpoints can fall outside very short
                             # rows; those unusual selections keep the native path.
-                            from contextlib import nullcontext
                             negative = selection is not None and selection.start is not None and selection.start.x < 0
                             context = (nullcontext() if negative else
                                        patch.object(Content, "render", side_effect=AssertionError("UI span sweep")))
@@ -76,8 +76,4 @@ async def main():
             else:
                 raise AssertionError("Row failure was not exercised")
         assert code._paint is None
-    print(f"prepared diff rows: {compared} exact native segment/style/metadata cases; no UI span sweep; paint context released")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    assert compared

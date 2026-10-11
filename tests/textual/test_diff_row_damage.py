@@ -1,6 +1,4 @@
-"""Native diff parity and viewport-bounded row work (no dependency patches)."""
-
-import asyncio
+"""Textual-facing: the prepared diff widget paints exactly like Textual's native diff view and reads only the rows in the damaged viewport."""
 
 from textual.app import App, ComposeResult
 from textual.containers import VerticalScroll
@@ -12,6 +10,7 @@ from textual.visual import RenderOptions, Visual
 from textual_diff_view import DiffView
 from textual_diff_view._diff_view import DiffCode, FoldedLineContent, LineAnnotations, LineContent
 
+from toad.textual_colours import ThemedApp
 from toad.widgets.patch_diff import PatchDiffCode, PatchDiffView, _DiffRow, parse_patch
 
 
@@ -25,7 +24,7 @@ def equal_strip(actual, expected):
     assert list(actual) == list(expected), (list(actual), list(expected))
 
 
-def row_parity():
+def test_diff_row_matches_native_row():
     lines = [Content("\t界é🙂".expandtabs()).stylize("bold red", 8, 10),
              Content(""), None, Content("abc"), Content("界" * 50), Content("")]
     visual = LineContent(lines, ["on #123456"] * len(lines), hatch_style=Style.parse("dim"))
@@ -47,7 +46,7 @@ class NativePatch(PatchDiffView):
         yield from DiffView.compose(self)
 
 
-class DiffApp(App):
+class DiffApp(ThemedApp, App):
     def __init__(self, patch=PATCH):
         super().__init__()
         self.patch = patch
@@ -59,7 +58,7 @@ class DiffApp(App):
                 yield NativePatch(parse_patch(self.patch), id="native", split=False)
 
 
-async def mounted_parity():
+async def test_mounted_diff_matches_native_diff_view():
     app = DiffApp()
     async with app.run_test(size=(85, 25)) as pilot:
         fast = app.query_one("#fast", PatchDiffView)
@@ -125,7 +124,7 @@ class CountedLines(list):
         return super().__iter__()
 
 
-async def bounded_damage():
+async def test_damage_reads_only_the_rows_in_view():
     count = 20000
     huge = f"--- a.py\n+++ a.py\n@@ -1,{count} +1,{count} @@\n-old\n+new\n" + " context\n" * (count - 1)
     app = DiffApp(huge)
@@ -177,15 +176,3 @@ async def bounded_damage():
         app.query_one(VerticalScroll).scroll_to(y=10000, animate=False)
         await pilot.pause()
         assert 0 < lines.reads <= 50 and lines.scans == 0, lines.reads
-        print(f"20,000-line hunk: 12-row damage <=12 row reads; scrolled frame {lines.reads} reads; no scans")
-
-
-async def main():
-    row_parity()
-    await mounted_parity()
-    await bounded_damage()
-    print("diff row parity: segments/metadata/styles, copy, clipping, resize, wrap, themes, gutters passed")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
