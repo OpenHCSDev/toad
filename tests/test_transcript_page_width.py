@@ -55,6 +55,18 @@ class TranscriptPageWidth(unittest.TestCase):
                 vars(item).pop("strips", None)
                 vars(item).pop("rows", None)
 
+    def test_filtered_page_lays_out_only_shown_fragments(self):
+        from toad.widgets.message_filter import all_categories, event_category
+
+        view = page_view(60)
+        user = event_category(view.admitted_fragments[0].events[0])
+        view.visible_categories = all_categories() - {user}
+        shown = [fragment for fragment in view.admitted_fragments
+                 if any(event_category(event) != user for event in fragment.events)]
+        view.get_content_height(None, None, 80)
+        self.assertEqual([view.fragments[index] for index, _first, _lines in view._layout], shown)
+        self.assertLess(len(shown), len(view.admitted_fragments))
+
     def test_plain_height_counts_the_rows_plain_mode_draws(self):
         theme = active_app.get().colours.line_theme
         blocks = (

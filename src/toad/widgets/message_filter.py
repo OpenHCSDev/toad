@@ -148,13 +148,6 @@ def event_category(event: TranscriptEvent) -> type[MessageCategory]:
     return consumer.category
 
 
-def keep_events(
-    events: tuple[TranscriptEvent, ...], selected: frozenset[type[MessageCategory]]
-) -> bool:
-    """A fragment remains if any of its semantic events is selected."""
-    return any(event_category(event) in selected for event in events)
-
-
 def block_category(widget) -> type[MessageCategory] | None:
     """Ask the native block; uncategorized controls belong to Other."""
     return (

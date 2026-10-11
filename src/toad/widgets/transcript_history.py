@@ -51,7 +51,7 @@ from toad.widgets.transcript_lines import (
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
 from toad.widgets.message_filter import (
-    all_categories, CategorizedBlock, MessageCategory, apply_block_filter, event_category, keep_events,
+    all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
 from toad.widgets.transcript_fragments import (
     TranscriptFragment, transcript_fragments,
@@ -202,7 +202,7 @@ class TranscriptPageView(Widget):
         if width > 0:
             for index in range(self.start, self.stop):
                 fragment = self.fragments[index]
-                if not keep_events(fragment.events, self.visible_categories):
+                if not fragment.shown_in(self.visible_categories):
                     continue
                 # Layout needs only the row count; rows and strips are
                 # built when a row is drawn, so a width change draws no text.
@@ -440,7 +440,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         theme = self.app.colours.line_theme
         selected = self.selected_categories if selected is None else selected
         todo = [fragment for fragment in fragments
-                if keep_events(fragment.events, selected) and fragment.lines_for(width, theme) is None]
+                if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
         renderer = self.app.render_processes
         for first in range(0, len(todo), self.budget.admission_items):
             if not current():
