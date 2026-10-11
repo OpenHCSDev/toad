@@ -39,6 +39,12 @@ def main():
     parser.add_argument("--trace-reflows", action="store_true", help="Record each scoped reflow (frame_meter.trace_reflows)")
     parser.add_argument("--trace-rules", action="store_true", help="Record each style-rule change (frame_meter.trace_rules)")
     parser.add_argument("--trace-exit", action="store_true", help="Record who asks the app to exit (frame_meter.trace_exit)")
+    parser.add_argument("--trace-abc", action="store_true", help="Record who grows ABC caches, 40 s (frame_meter.trace_abc_growth)")
+    parser.add_argument("--freeze-heap", action="store_true", help="Experiment: freeze the heap now (frame_meter.freeze_heap)")
+    parser.add_argument("--heap-census", type=float, default=0,
+                        help="After N seconds count the collector's tracked objects by type (frame_meter.heap_census)")
+    parser.add_argument("--trace-garbage", action="store_true",
+                        help="Count by type what each large collection found, for 12 s (frame_meter.trace_garbage)")
     parser.add_argument("--remeasure", type=int, default=0,
                         help="Arrange the screen at N new widths and time each pass (frame_meter.remeasure)")
     parser.add_argument("--repaint", type=int, default=0,
@@ -46,7 +52,8 @@ def main():
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
-            or args.trace_reflows or args.trace_rules or args.trace_exit or args.remeasure or args.repaint):
+            or args.trace_reflows or args.trace_rules or args.trace_exit or args.trace_garbage or args.heap_census or args.freeze_heap or args.trace_abc
+            or args.remeasure or args.repaint):
         parser.error("Choose --profile-seconds, --frame-meter, --targets or --profile-layout")
     if Path(args.name).name != args.name:
         parser.error("--name must be a capture basename")
@@ -94,6 +101,14 @@ def main():
             calls.append((str(prefix) + "-exit", "trace_exit", ""))
         if args.trace_rules:
             calls.append((str(prefix) + "-rules", "trace_rules", f", seconds={max(args.frame_meter, 40)!r}"))
+        if args.trace_abc:
+            calls.append((str(prefix) + "-abc", "trace_abc_growth", ""))
+        if args.freeze_heap:
+            calls.append((str(prefix) + "-freeze", "freeze_heap", ""))
+        if args.heap_census:
+            calls.append((str(prefix) + "-heap", "heap_census", f", after={args.heap_census!r}"))
+        if args.trace_garbage:
+            calls.append((str(prefix) + "-garbage", "trace_garbage", ", seconds=150"))
         if args.trace_reflows:
             calls.append((str(prefix) + "-reflows", "trace_reflows", f", seconds={max(args.frame_meter, 40)!r}"))
         if calls:
