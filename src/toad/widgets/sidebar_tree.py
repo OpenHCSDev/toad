@@ -1,5 +1,8 @@
 """Shared disclosure, row navigation and keyed tree presentation mechanics."""
 
+import asyncio
+from time import perf_counter_ns
+
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
@@ -39,6 +42,12 @@ class SidebarGroup(VerticalGroup):
 
     expanded = reactive(False, init=False, toggle_class="-expanded")
 
+    _rows_pending = False
+    """A reconciliation ran out of its step and left rows unmounted."""
+
+    _row_mounting = None
+    """The worker mounting pending rows after the following frames."""
+
     def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
@@ -61,8 +70,8 @@ class SidebarGroup(VerticalGroup):
         self.expanded = not self.expanded
         self.sync_members()
 
-    def sync_members(self) -> None:
-        """Specializations reconcile their model-owned member rows."""
+    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+        """Specializations reconcile their model-owned member rows; repaint ``changed`` (all if None)."""
 
     def watch_expanded(self, previous: bool, expanded: bool) -> None:
         self.disclosure.refresh(layout=False)
@@ -91,6 +100,9 @@ class SidebarGroup(VerticalGroup):
         """Retain rows by identity; mount, remove and reorder only what differs.
 
         Neither a title/status change nor a selection repaint remounts the list.
+        New rows are created and mounted in key order (the top of the list
+        first) for one layout step's time; the rest follow a step's worth per
+        frame, so each frame lays out and paints only the rows just added.
         """
         if not self.accepts_members():
             return ()
@@ -102,15 +114,24 @@ class SidebarGroup(VerticalGroup):
             # Retire the exact set in one DOM operation.
             self.member_container.remove_children([rows.pop(key) for key in retired])
         mounted = []
+        deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         for key in keys:
             current = rows.get(key)
             if current is None:
+                if perf_counter_ns() >= deadline:
+                    self._rows_pending = True
+                    continue
                 current = rows[key] = create(key)
+                update(key, current)
+                # Mounted one at a time: styling each is most of its cost,
+                # and the deadline must see it.
+                self.member_container.mount(current)
                 mounted.append(current)
+                continue
             update(key, current)
-        if mounted:
-            self.member_container.mount(*mounted)
-        ordered = tuple(rows[key] for key in keys)
+        if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
+            self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
+        ordered = tuple(rows[key] for key in keys if key in rows)
         live = tuple(child for child in self.member_container.children if not child._pruning)
         reordered = bool(ordered) and live != ordered
         if reordered:
@@ -119,6 +140,16 @@ class SidebarGroup(VerticalGroup):
         if retired or mounted or reordered:
             self.rows_changed()
         return ordered
+
+    async def _mount_pending_rows(self) -> None:
+        """Mount the rows reconciliation left, a step's worth after each frame."""
+        while self._rows_pending and self.accepts_members():
+            self._rows_pending = False
+            refreshed = asyncio.Event()
+            self.call_after_refresh(refreshed.set)
+            await refreshed.wait()
+            # No model change: only the rows created now are painted.
+            self.sync_members(frozenset())
 
 
 class TargetTree(Vertical):
