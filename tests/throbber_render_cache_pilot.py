@@ -41,7 +41,8 @@ async def main():
                     # The uncached native algorithm remains the parity control;
                     # reference acquisition must not evict the cache being tested.
                     with patch.object(ThrobberVisual, "make_segments", uncached):
-                        expected = ThrobberVisual(get_time=lambda value=clock: value).render_strips(width, 1, style, options)
+                        expected = ThrobberVisual(lambda: app.theme_variables,
+                                                  get_time=lambda value=clock: value).render_strips(width, 1, style, options)
                     assert list(actual[0]) == list(expected[0])
                     assert actual[0].cell_length == width
         info = cached.cache_info()
