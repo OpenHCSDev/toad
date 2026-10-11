@@ -233,7 +233,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def sidebars(self):
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        sidebar = self.query_one_optional("#thread-sidebar", SessionThreadSidebar)
+        sidebar = self.query_one_optional(SessionThreadSidebar)
         return (sidebar,) if sidebar is not None else ()
 
     def compose(self) -> ComposeResult:

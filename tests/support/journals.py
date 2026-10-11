@@ -1,0 +1,39 @@
+"""Saved native session journals in the format Pi writes.
+
+Pi owns the format; Core only reads it. A line a test writes by hand drifts
+(an assistant message's content is always an array of blocks, for one), so
+every line written here is read back through Core and must decode as the
+message it was meant to be.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+
+def message_entry(role: str, text: str, *, id: str, parent: str | None = None) -> dict:
+    """One ``message`` line: `role` is ``assistant`` or ``user``."""
+    return {"type": "message", "id": id, "parentId": parent,
+            "message": {"role": role, "content": [{"type": "text", "text": text}]}}
+
+
+def assistant_entry(text: str, *, id: str, parent: str | None = None) -> dict:
+    return message_entry("assistant", text, id=id, parent=parent)
+
+
+def user_entry(text: str, *, id: str, parent: str | None = None) -> dict:
+    return message_entry("user", text, id=id, parent=parent)
+
+
+def write_journal(path: Path, *entries: dict) -> Path:
+    """Write `entries` as the lines of a session journal and return its path."""
+    from agent_comms.native_entries import MessageEntry, NativeEntry
+    from agent_comms.pi_payloads import UnknownMessage
+
+    for entry in entries:
+        decoded = NativeEntry.read(json.dumps(entry).encode())
+        if isinstance(decoded, MessageEntry) and isinstance(decoded.message, UnknownMessage):
+            raise ValueError(f"Core does not read this journal line as a known message: {entry}")
+    path.write_text("".join(json.dumps(entry) + "\n" for entry in entries))
+    return path

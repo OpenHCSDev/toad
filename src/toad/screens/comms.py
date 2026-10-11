@@ -118,7 +118,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         return self.me, self.target
 
     def sidebars(self):
-        sidebar = self.query_one_optional("#thread-sidebar", ThreadSidebar)
+        sidebar = self.query_one_optional(ThreadSidebar)
         return (sidebar,) if sidebar is not None else ()
 
     def compose(self) -> ComposeResult:
