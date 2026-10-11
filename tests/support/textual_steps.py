@@ -163,3 +163,23 @@ async def replay_with_pending_render(workspace, events=None):
     finally:
         dispatch.set()
         released.set()
+
+
+def tool_status(fields: dict):
+    """The ToolCallStatus for an ACP tool call written with the protocol's field names."""
+    from acp.schema import ToolCall
+    from toad.acp.status import ToolCallStatus
+
+    return ToolCallStatus.from_acp(ToolCall.model_validate(fields))
+
+
+async def wait_for_tool_diff(ui, tool):
+    """Wait for a tool call's diff to be mounted and drawn (a loading label is not a result); return it."""
+    from toad.widgets.tool_content import ToolCallDiff
+
+    await ui.until(lambda: tool.query_one_optional(ToolCallDiff) is not None, seconds=10, why="the diff widget")
+    diff = tool.query_one(ToolCallDiff)
+    await diff.prepared.wait()
+    await ui.until(lambda: diff.query("PatchDiffView DiffCode, TextContent"), seconds=10, why="the diff to be drawn")
+    await ui.step()
+    return diff
