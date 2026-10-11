@@ -83,6 +83,10 @@ class Ui(ABC):
         """The action a click on `text` would trigger, as (name, arguments), if it is a link."""
 
     @abstractmethod
+    def hyperlink_at(self, text: str, *, occurrence: int = 0) -> str | None:
+        """The address a click on `text` would open, if the drawn text is a hyperlink."""
+
+    @abstractmethod
     async def resize(self, width: int, height: int) -> None: ...
 
     @abstractmethod
@@ -223,6 +227,9 @@ class TextualUi(Ui):
 
     def link_at(self, text: str, *, occurrence: int = 0) -> tuple[str, tuple] | None:
         return self.app.screen.get_style_at(*self._cell_of(text, occurrence)).meta.get("@click")
+
+    def hyperlink_at(self, text: str, *, occurrence: int = 0) -> str | None:
+        return self.app.screen.get_style_at(*self._cell_of(text, occurrence)).link
 
     async def resize(self, width: int, height: int) -> None:
         await self.pilot.resize_terminal(width, height)
