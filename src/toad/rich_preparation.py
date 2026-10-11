@@ -6,7 +6,7 @@ import copyreg
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from io import StringIO
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 from rich.console import Console, ConsoleOptions, ConsoleRenderable, JustifyMethod, RenderableType
 from rich.segment import Segment
@@ -22,6 +22,9 @@ from textual.content import Content
 from textual.style import Style as NativeStyle
 from textual.selection import Selection
 from textual.visual import RenderOptions
+
+if TYPE_CHECKING:
+    from textual.app import App
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
 
@@ -184,6 +187,11 @@ class SyntaxPalette:
 
     ansi: bool
     dark: bool
+
+    @classmethod
+    def of(cls, app: App) -> SyntaxPalette:
+        """The palette under any Textual app's current theme: ANSI as `:ansi` answers it."""
+        return cls(app.native_ansi_color, app.current_theme.dark)
 
     @property
     def pygments_theme(self) -> str:

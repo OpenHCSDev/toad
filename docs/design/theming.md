@@ -256,9 +256,10 @@ Toad's render workers and widgets; nothing in it belongs to the Textual fork):
   the App: registers the catalog over Textual's copies of the same themes (the
   generated CSS variables are identical for all 21: checked by generating both),
   offers only the catalog in the theme setting, follows pywal's file, gives the
-  Console the colour depth, owns the `SyntaxPalette` (ANSI-ness and darkness)
-  and the line styles, paints effect frames into strips and `Content`, and runs
-  the one animation clock on one Textual timer.
+  Console the colour depth, owns the line styles, paints effect frames into strips and `Content`, and runs
+  the one animation clock on one Textual timer. Code colours come from
+  `SyntaxPalette.of(app)`, which any Textual app answers, so diff and preview
+  widgets need no Toad app.
 - `Animated`: the capability a decorated widget mixes in (start/stop an effect,
   the clock's visibility rule, repaint). Throbber, `MessageDivider`,
   `ThreadLoading` and the tab `Underline` use it.
@@ -277,8 +278,8 @@ in the second increment). "Consumers" are importing modules.
 | pywal decoding | `toad/wal_palette.py` (through `FieldCodec`) | `ui_theme.wal` | `textual_colours` |
 | Colour depth | `toad/colour_scheme.py`; a second answer, `"truecolor"`, in `transcript_lines.py` | `ui_theme.depth`; workers read it through `LineTheme.color_system` | `textual_colours`, `app.get_color_system` |
 | Effects and timing | `toad/effects.py` (sweep); each animated widget its own timer and visibility rule | `ui_theme.effects`, `ui_theme.clock`; `Animated` in the Textual backend | throbber, divider, splash, tab underline |
-| "Is the theme ANSI?" | `current_theme.ansi` ×4, `theme.startswith("ansi-")` ×4, CSS `:ansi` | `app.native_ansi_color` (the CSS `:ansi` answer), through `colours.syntax` for code | `tool_call`, `screens/store`, `tool_output`, `tool_content`, `patch_diff` |
-| Syntax theme | `"monokai"` default, `"auto"` → `ansi_dark/light`, `ansi_dark` in the unparsed-patch path, `DiffView.highlight(ansi, dark)` | `SyntaxPalette` (`rich_preparation.py`), built by `colours.syntax` | `RichPresentation.syntax`, `PatchRenderTask`, `PreparedPatch`, `PatchWarmup` |
+| "Is the theme ANSI?" | `current_theme.ansi` ×4, `theme.startswith("ansi-")` ×4, CSS `:ansi` | `app.native_ansi_color` (the CSS `:ansi` answer), through `SyntaxPalette.of(app)` for code (any Textual app, no Toad app needed) | `tool_call`, `screens/store`, `tool_output`, `tool_content`, `patch_diff` |
+| Syntax theme | `"monokai"` default, `"auto"` → `ansi_dark/light`, `ansi_dark` in the unparsed-patch path, `DiffView.highlight(ansi, dark)` | `SyntaxPalette.of(app)` (`rich_preparation.py`) | `RichPresentation.syntax`, `PatchRenderTask`, `PreparedPatch`, `PatchWarmup` |
 | Selection style | `Style.from_styles(get_component_styles(...))` ×3, `get_visual_style(...)` ×1 | Textual's `Visual.selection_style` | `worker_static` ×2, `patch_diff`, `terminal` |
 | Style hash in pickles | cleared by hand on results in `prepare_rich`; not on task inputs | one `copyreg` reducer in `rich_preparation.py` | every task input and result |
 | Live divider colour | `$text-muted` for every role | the role's colour, as committed lines | `MessageDivider` (`user_input`, `agent_response`, `AgentActivityDivider`) |

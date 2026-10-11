@@ -35,7 +35,6 @@ from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Effect, Gradient, Mix, TextFrame
 from ui_theme.scheme import ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
-from toad.rich_preparation import SyntaxPalette
 from toad.widgets.transcript_lines import LineTheme
 
 if TYPE_CHECKING:
@@ -130,11 +129,6 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
                             title="Theme", severity="error", timeout=10)
             return
         self.app.theme = name
-
-    @property
-    def syntax(self) -> SyntaxPalette:
-        """How code is highlighted now: the one answer to "is the theme ANSI?" and "is it dark?"."""
-        return SyntaxPalette(self.app.native_ansi_color, self.app.current_theme.dark)
 
     @property
     def scheme(self) -> ColourScheme:

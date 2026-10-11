@@ -15,7 +15,10 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from toad.app import ToadApp
-from textual.theme import Theme
+from dataclasses import replace
+from ui_theme.catalog import SCHEMES
+from ui_theme.colour import Rgb
+from ui_theme.scheme import PrimaryColour
 from toad.acp.status import ToolCallStatus
 from acp.schema import ToolCall
 from toad.preferences import ToadSettings, UiSettings
@@ -63,7 +66,11 @@ class SettingsApp(ToadApp):
 
     async def on_mount(self, event) -> None:
         event.prevent_default()
-        self.register_theme(Theme(name="settings-private-custom", primary="#44aa88"))
+        # A custom scheme is registered with the colours owner, which offers it
+        # in the theme setting and registers it with Textual.
+        base = SCHEMES[0]
+        self.colours.register(replace(base, name="settings-private-custom",
+                                      colours={**base.colours, PrimaryColour: Rgb.parse("#44aa88")}))
         await self.push_screen(SettingsScreen())
 
 

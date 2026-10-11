@@ -11,6 +11,7 @@ from textual_diff_view import DiffView
 from textual_diff_view._diff_view import DiffCode
 
 from toad.render_processes import RenderProcessPool
+from toad.rich_preparation import SyntaxPalette
 from toad.widgets.patch_diff import PatchDiffView, parse_patch, prepare_patch
 
 
@@ -48,7 +49,7 @@ async def main():
                     # The native reference has settled. A worker must import
                     # its own unpatched highlighter, rather than run on this loop.
                     with patch.object(DiffView, "highlight", side_effect=AssertionError("UI-loop syntax highlight")):
-                        data = await pool.run(prepare_patch, source, app.current_theme.ansi, app.current_theme.dark)
+                        data = await pool.run(prepare_patch, source, SyntaxPalette.of(app))
                     assert data.patch == parse_patch(source)
                     prepared._prepared = data
                     prepared._highlighted_code_lines = None
@@ -87,7 +88,7 @@ async def main():
                                     if selection is not None:
                                         assert code.get_selection(selection) == original.get_selection(selection)
                 assert app._exception is None
-        fallback = await pool.run(prepare_patch, "not a valid unified patch\n", False, True)
+        fallback = await pool.run(prepare_patch, "not a valid unified patch\n", SyntaxPalette(False, True))
         assert fallback.patch is None and fallback.plain_text.plain == "not a valid unified patch\n"
     finally:
         await pool.aclose()

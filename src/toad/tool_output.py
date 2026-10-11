@@ -446,7 +446,7 @@ class ToolOutput:
 
     def prepare_hidden(self) -> None:
         view = self.view
-        syntax = view.app.colours.syntax
+        syntax = SyntaxPalette.of(view.app)
         if self.parts == self._warming and self._syntax == syntax:
             return
         self.cancel_preparation()
