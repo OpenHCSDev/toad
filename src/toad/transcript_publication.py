@@ -700,6 +700,7 @@ class TranscriptPresentation:
                 return
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
+                view.app.history_displayed()
                 if reader_revision is not None:
                     position = self.reader_position
                     if position is not None:
