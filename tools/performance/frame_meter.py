@@ -165,6 +165,7 @@ def install(*, expected_pid, seconds, output):
 
     def timed_run(handle):
         state["current"] = begin = clock()
+        cpu_begin = time.thread_time_ns()
         # A stepped layout's first turn starts it and its last turn ends it.
         layout_turns = state.get("layout_turns")
         # A stall is a stretch the loop could not paint in: callbacks closer
@@ -207,9 +208,11 @@ def install(*, expected_pid, seconds, output):
                     # Every loop turn of a tab switch, whatever its length.
                     switch_steps.append((begin, spent / 1e6))
                 if spent > 8_000_000:
-                    # Each long callback's exact duration and owner; its
-                    # stall samples (same start) show where the time went.
-                    timed_callbacks.append((begin, spent / 1e6, callback))
+                    # Each long callback's exact duration, owner and UI-thread
+                    # CPU (far below the duration: the thread was waiting for
+                    # the GIL or a CPU); its stall samples (same start) show
+                    # where the time went.
+                    timed_callbacks.append((begin, spent / 1e6, callback, (time.thread_time_ns() - cpu_begin) / 1e6))
                 # Callbacks are totalled per owner within a frame: a slow
                 # frame is usually many small callbacks, not one long one.
                 parts = state["parts"]
@@ -448,15 +451,18 @@ def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Scr
     setattr(Screen, method, profiled)
 
 
-def profile_within(*, expected_pid, output, target, within, calls=3):
+def profile_within(*, expected_pid, output, target, within, calls=3, min_ms=0.0):
     """Profile each call of ``target`` (sync) made while a ``within`` call runs.
 
-    One statistics file per ``within`` call (output.N.prof). cProfile sees every
+    One statistics file per ``within`` call (output.N.prof). With ``min_ms``,
+    a ``within`` call is kept only when one of its profiled ``target`` calls
+    took at least that long (profiled time), so N counts only slow calls. cProfile sees every
     thread, so while a target call runs the GIL switch interval is raised to
     one second: the target is synchronous Python, so no other thread runs
     inside it and the statistics are the UI thread's alone.
     """
     import cProfile
+    import gc
     import importlib
     import inspect
 
@@ -473,7 +479,7 @@ def profile_within(*, expected_pid, output, target, within, calls=3):
 
     target_owner, target_name, target_original = resolve(target)
     within_owner, within_name, within_original = resolve(within)
-    state = {"current": None, "count": 0}
+    state = {"current": None, "count": 0, "longest": 0.0, "kept": []}
 
     def profiled(*args, **kwargs):
         profiler = state["current"]
@@ -481,20 +487,32 @@ def profile_within(*, expected_pid, output, target, within, calls=3):
             return target_original(*args, **kwargs)
         interval = sys.getswitchinterval()
         sys.setswitchinterval(1.0)
+        # A collection inside the call is charged to whichever function it
+        # interrupts; collection pauses are measured by the frame meter.
+        collecting = gc.isenabled()
+        gc.disable()
+        begin = time.perf_counter()
         try:
             return profiler.runcall(target_original, *args, **kwargs)
         finally:
+            state["longest"] = max(state["longest"], (time.perf_counter() - begin) * 1e3)
+            if collecting:
+                gc.enable()
             sys.setswitchinterval(interval)
 
     def finish(profiler):
         state["current"] = None
+        longest, state["longest"] = state["longest"], 0.0
+        if longest < min_ms or (min_ms and not longest):
+            return
+        state["kept"].append((longest, time.monotonic_ns()))
         state["count"] += 1
         profiler.dump_stats(f"{output}.{state['count']}.prof")
         if state["count"] >= calls:
             setattr(target_owner, target_name, target_original)
             setattr(within_owner, within_name, within_original)
             with open(output, "w") as file:
-                json.dump({"profiles": state["count"]}, file)
+                json.dump({"profiles": state["count"], "profiled_ms": state["kept"]}, file)
 
     if inspect.iscoroutinefunction(within_original):
         async def scope(*args, **kwargs):
@@ -610,6 +628,152 @@ def remeasure(*, expected_pid, output, iterations=60):
         return costs
 
     costs = context.run(unit_costs)
+    loop.call_soon(step, 0, context=context)
+
+
+def repaint(*, expected_pid, output, iterations=40):
+    """Repaint the live history viewport in full, repeatedly, and time each paint.
+
+    The paint of a PageUp into history not shown before: every widget drawn
+    inside the history window renders its lines again (their styled-line
+    caches are cleared) and the window's whole viewport is damaged, then the
+    screen publishes it through the real driver. "warm" passes damage the
+    same viewport without clearing the line caches (the paint of rows shown
+    before). "scroll" passes move the window a page up, then back down, and
+    run the screen update the update timer would run (layout, then paint):
+    a PageUp's frame within history already loaded. Each pass runs in its own
+    loop turn with the collector off; then cold and scroll passes again,
+    profiled with other threads kept off the GIL (repaint.json.prof holds
+    the cold ones, repaint.json.scroll.prof the scroll ones).
+    Run after the scenario's checks: the passes write to the terminal.
+    """
+    import asyncio
+    import contextvars
+    import cProfile
+    import gc
+    from textual._compositor import ChopsUpdate, Compositor
+    from textual._context import active_app
+    from toad.widgets.history_anchor import HistoryWindow
+
+    app = _running_app(expected_pid)
+    context = contextvars.copy_context()
+    context.run(active_app.set, app)
+    screen = app.screen
+    compositor = screen._compositor
+    windows = [window for window in screen.query(HistoryWindow) if window in compositor.visible_widgets]
+    if len(windows) != 1:
+        raise RuntimeError(f"Expected one visible history window, found {len(windows)}")
+    window = windows[0]
+    passes: list[dict] = []
+    profilers = {"cold": cProfile.Profile(), "scroll": cProfile.Profile()}
+    loop = asyncio.get_running_loop()
+    parts: dict[str, float] = {}
+    described: list[dict] = []
+    from textual.screen import Screen
+
+    def timed_part(name, original):
+        def timed(*args, **kwargs):
+            begin = time.perf_counter_ns()
+            try:
+                return original(*args, **kwargs)
+            finally:
+                parts[name] = parts.get(name, 0.0) + (time.perf_counter_ns() - begin) / 1e6
+        return timed
+
+    def paint(kind: str, profiled: bool, index: int) -> None:
+        clip = compositor.visible_widgets[window][1]
+        drawn = [widget for widget, (_region, widget_clip) in compositor.visible_widgets.items()
+                 if widget_clip.overlaps(clip) and (widget is window or window in widget.ancestors)]
+        if kind == "cold":
+            for widget in drawn:
+                widget._styles_cache.clear()
+        if kind == "scroll":
+            # Up a page on even passes, back down on odd ones: loaded history.
+            page = window.scrollable_content_region.height
+            window.scroll_to(y=window.scroll_y + (page if index % 2 else -page), animate=False, immediate=True)
+            # What the window's idle check and the screen's UpdateScroll
+            # handler do, so this turn's update lays out the scroll.
+            window._check_refresh()
+            screen._scroll_required = True
+            update = screen._on_timer_update
+        else:
+            compositor._dirty_regions.add(clip)
+            update = screen._compositor_refresh
+        written = []
+        driver_write = app._driver.write
+        app._driver.write = lambda data: (written.append(len(data)), driver_write(data))[1]
+        originals = {"partial": Compositor.render_partial_update, "segments": ChopsUpdate.render_segments,
+                     "chops": Compositor._render_chops, "layout": Screen._refresh_layout}
+        Compositor.render_partial_update = timed_part("partial", originals["partial"])
+        ChopsUpdate.render_segments = timed_part("segments", originals["segments"])
+        Compositor._render_chops = timed_part("chops", originals["chops"])
+        Screen._refresh_layout = timed_part("layout", originals["layout"])
+        parts.clear()
+        enabled = gc.isenabled()
+        gc.disable()
+        interval = sys.getswitchinterval()
+        profiler = profilers.get(kind)
+        if profiled:
+            sys.setswitchinterval(1.0)
+            profiler.enable()
+        begin, cpu = time.perf_counter_ns(), time.thread_time_ns()
+        try:
+            update()
+        finally:
+            spent, spent_cpu = time.perf_counter_ns() - begin, time.thread_time_ns() - cpu
+            if profiled:
+                profiler.disable()
+                sys.setswitchinterval(interval)
+            if enabled:
+                gc.enable()
+            Compositor.render_partial_update = originals["partial"]
+            ChopsUpdate.render_segments = originals["segments"]
+            Compositor._render_chops = originals["chops"]
+            Screen._refresh_layout = originals["layout"]
+            app._driver.write = driver_write
+        if not described:
+            # What the viewport is drawn from: each widget's place and the
+            # styles its lines are painted with.
+            for widget in drawn:
+                region, widget_clip = compositor.visible_widgets[widget]
+                styles = widget.styles
+                described.append({"widget": type(widget).__name__, "region": tuple(region), "clip": tuple(widget_clip),
+                                  "padding": tuple(styles.padding), "border": any(edge for edge, _ in styles.border),
+                                  "outline": any(edge for edge, _ in styles.outline), "tint": styles.tint.a,
+                                  "opacity": widget.opacity, "text_opacity": styles.text_opacity,
+                                  "background": str(styles.background), "filters": len(widget.get_line_filters())})
+        if not profiled:
+            passes.append({"kind": kind, "ms": spent / 1e6, "cpu_ms": spent_cpu / 1e6, "widgets": len(drawn),
+                           "rows": clip.height, "columns": clip.width, "bytes": sum(written), **parts})
+
+    schedule = [(kind, False) for kind in ("cold", "warm", "scroll") for _ in range(iterations)]
+    schedule += [(kind, True) for kind in ("cold", "scroll") for _ in range(iterations)]
+
+    def step(index: int) -> None:
+        if index < len(schedule):
+            try:
+                paint(*schedule[index], index)
+            except Exception:
+                import traceback
+                with open(output, "w") as file:
+                    json.dump({"error": traceback.format_exc()}, file)
+                raise
+            loop.call_later(0.02, step, index + 1, context=context)
+            return
+        profilers["cold"].dump_stats(output + ".prof")
+        profilers["scroll"].dump_stats(output + ".scroll.prof")
+
+        def summary(kind):
+            chosen = [entry for entry in passes if entry["kind"] == kind]
+            return {key: round(statistics.median(entry.get(key, 0.0) for entry in chosen), 3)
+                    for key in ("ms", "cpu_ms", "layout", "partial", "chops", "segments", "bytes",
+                                "widgets", "rows", "columns")}
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump({"cold": summary("cold"), "warm": summary("warm"), "scroll": summary("scroll"),
+                       "drawn": described, "passes": passes}, file, indent=1)
+        os.rename(partial, output)
+
     loop.call_soon(step, 0, context=context)
 
 

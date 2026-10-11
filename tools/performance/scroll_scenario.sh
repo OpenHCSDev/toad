@@ -98,7 +98,7 @@ if [[ -n "${PROFILE_SECONDS:-}" ]]; then
     measure=(--profile-seconds "$PROFILE_SECONDS" ${PROFILE_IDLE:+--idle} ${PROFILE_GIL:+--gil})
 elif [[ -n "${PROFILE_LAYOUT:-}" ]]; then
     measure=(--profile-layout "$PROFILE_LAYOUT" ${PROFILE_TARGET:+--profile-target "$PROFILE_TARGET"}
-             ${PROFILE_WITHIN:+--profile-within "$PROFILE_WITHIN"})
+             ${PROFILE_WITHIN:+--profile-within "$PROFILE_WITHIN"} ${PROFILE_MIN_MS:+--profile-min-ms "$PROFILE_MIN_MS"})
 else
     measure=(--frame-meter "$meter_seconds")
 fi
@@ -181,6 +181,15 @@ wait "$capture"
 # What the reader saw, from the screen text: no placeholders or blank runs in
 # the message window, End at the tail, tab return filled and still at the tail.
 python3 "$tools/screen_checks.py" "$out" | tee "$out/screen-checks.json"
+
+# Optional: the per-build paint figure for this live history viewport (after
+# the checks: it repaints the history window in full, cold, warm and scrolled by a page).
+if [[ -n "${REPAINT:-}" ]]; then
+    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name repaint \
+        --repaint "$REPAINT" --sudo > /dev/null
+    python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('error') or {k: d[k] for k in ('cold', 'warm', 'scroll')})" \
+        "$out/repaint-repaint.json" | tee "$out/repaint.txt"
+fi
 
 # Optional: the per-build layout figure for this live widget tree (after the
 # checks, since it re-measures the screen at widths it is not shown at).
