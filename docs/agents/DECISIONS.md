@@ -513,3 +513,11 @@ Nothing external cites a commit; the OOPSLA paper cites its Zenodo DOI. The rewr
 5. **Branches:** delete the roughly 1,550 stale remote branches, recoverable from the archive.
 6. **Rename pass:** rename the legacy vocabulary (custody, admission, original, receipt) in the code, so new commits stay clean.
 7. **History document:** write a plain-language history per subsystem.
+
+## 2026-10-11: One heap freeze, after the first tab's history is shown
+
+Tristan decided (through the coordinator): Toad's single `gc.freeze()` moves from application start to the moment the first view's history is painted (`ToadApp.history_displayed`, called when a transcript presentation records its displayed cursor). The startup freeze is deleted; there is exactly one freeze point.
+
+Why: Python 3.14's cyclic collector periodically scans the whole live, unfrozen heap. After startup that heap was about 70,000 objects (lazily imported modules and their type caches, the workspace, the first tab's history), and each such pass took 12-18 ms inside whatever callback was running; those passes were the remaining waits over 16 ms at the sidebar roster mount. Offline, a 60,000-object live heap gives a 28 ms pass and 20,000 gives 5 ms. Freezing once after the first tab loaded left no collection over 7.5 ms in three scenario runs.
+
+Accepted cost: objects alive at the freeze that later die in a reference cycle (for example the first tab's widgets after that tab is closed) are never collected. That strands at most the heap as it was at the freeze, about 6-10 MB.
