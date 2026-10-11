@@ -19,7 +19,6 @@ from typing import TYPE_CHECKING, TypeVar, cast
 from weakref import WeakKeyDictionary
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
-from rich.terminal_theme import TerminalTheme
 from textual import events, on, work
 from textual.actions import ActionError, parse as parse_action
 from textual.app import App
@@ -52,7 +51,7 @@ from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionAdmissions
 from toad.terminal_attention import TerminalAttention
-from toad.textual_colours import TextualColours
+from toad.textual_colours import ThemedApp
 from toad.application_actions import ApplicationAction, ApplicationCommands, KeyboundAction
 from toad.application_lifetime import ApplicationLifetime
 
@@ -242,7 +241,7 @@ class HeapFrozen:
         pass
 
 
-class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings=False):
+class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -280,7 +279,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
         self.settings = ToadSettings.open(self)
-        self.colours = TextualColours(self)
         self.preparation = PreparationRuntime(RenderProcessPool())
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
@@ -308,22 +306,9 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, App, inherit_bindings
         self.temporary_background_screen: Screen | None = None
 
         super().__init__()
-        self.colours.register_catalog()
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
 
-
-    def get_color_system(self) -> str:
-        return self.colours.depth.name
-
-    def get_css_variables(self) -> dict[str, str]:
-        variables = super().get_css_variables()
-        self.colours.variables_changed(variables)
-        return variables
-
-    @property
-    def ansi_theme(self) -> TerminalTheme:
-        return self.colours.terminal_theme(self.theme)
 
     async def _close_all(self) -> None:
         await self.thread_navigation.close()
