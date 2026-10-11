@@ -93,7 +93,8 @@ def install(*, expected_pid, seconds, output):
     refresh_bindings = Screen.refresh_bindings
     refresh_layout = Screen._refresh_layout
 
-    layout_in_steps = Screen.layout_in_steps
+    # Builds before stepped layout run each switch's layout in one turn.
+    layout_in_steps = getattr(Screen, "layout_in_steps", None)
 
     async def traced_layout_in_steps(self, *args, **kwargs):
         turns = []
@@ -281,7 +282,8 @@ def install(*, expected_pid, seconds, output):
         Widget.refresh = refresh
         Screen.refresh_bindings = refresh_bindings
         Screen._refresh_layout = refresh_layout
-        Screen.layout_in_steps = layout_in_steps
+        if layout_in_steps is not None:
+            Screen.layout_in_steps = layout_in_steps
         gc.callbacks.remove(collected)
         loop_events.Handle._run = run
         MessagePump.post_message = post
@@ -322,7 +324,8 @@ def install(*, expected_pid, seconds, output):
     Widget.refresh = counted_refresh
     Screen.refresh_bindings = counted_bindings
     Screen._refresh_layout = timed_layout
-    Screen.layout_in_steps = traced_layout_in_steps
+    if layout_in_steps is not None:
+        Screen.layout_in_steps = traced_layout_in_steps
     loop_events.Handle._run = timed_run
     MessagePump.post_message = timed_post
     MessagePump._dispatch_message = timed_dispatch
