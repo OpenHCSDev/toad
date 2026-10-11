@@ -60,6 +60,14 @@ class Ui(ABC):
         """Replace the selected conversation's input text and focus it."""
 
     @abstractmethod
+    def attach_agent(self, agent) -> None:
+        """Show `agent` (see ``support.agents.detached``) in the selected conversation."""
+
+    @abstractmethod
+    def status(self) -> str:
+        """The selected conversation's status line."""
+
+    @abstractmethod
     def agent_ready(self) -> bool:
         """Whether the selected conversation's agent accepts input."""
 
@@ -184,6 +192,13 @@ class TextualUi(Ui):
         self._prompt.text = text
         self._prompt.focus()
         await self.step()
+
+    def attach_agent(self, agent) -> None:
+        self.conversation.agent = agent
+        self.conversation.bind_agent(agent)
+
+    def status(self) -> str:
+        return self.conversation.status.plain
 
     def agent_ready(self) -> bool:
         return self._prompt.agent_ready

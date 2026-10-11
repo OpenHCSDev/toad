@@ -1,0 +1,27 @@
+"""Coordination facts as Core's ACP extension carries them, for tests that hand them to an agent."""
+
+from __future__ import annotations
+
+from dataclasses import replace
+
+from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
+from agent_comms.thread_identity import ThreadIncarnation
+
+
+def coordination_fact(thread, wire_root, *, owner_pid=1, model=None, thinking_level=None,
+                      worktree=None, title=None, context_usage=None) -> CoordinationChangedUpdate:
+    return CoordinationChangedUpdate(
+        ThreadIncarnation(thread, 1.0), str(wire_root), owner_pid, str(worktree or wire_root),
+        model, thinking_level, title or thread, context_usage)
+
+
+def registered_coordination_fact(comms, thread, **facts) -> CoordinationChangedUpdate:
+    """The fact for a thread declared on `comms`, with the registry's own incarnation."""
+    return replace(coordination_fact(thread, comms.root, **facts),
+                   thread=comms.registry.require(thread).incarnation)
+
+
+def carrying(*facts) -> dict:
+    """An otherwise empty agent message chunk whose metadata carries Core updates."""
+    return {"sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
+            "_meta": encode_updates(*facts)}

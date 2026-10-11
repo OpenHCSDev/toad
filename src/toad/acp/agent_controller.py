@@ -119,6 +119,7 @@ class AgentController(OperationalTerminalOwner):
         # Retained operational facts are available now. A source read must not
         # hold modes, commands, plan, queue and cursor behind filesystem I/O.
         agent.configuration.publish()
+        agent.update_status_line()
         agent.events.publish(AvailableCommandsUpdate())
         if self.plan_entries is not None:
             from toad.core.events import Plan

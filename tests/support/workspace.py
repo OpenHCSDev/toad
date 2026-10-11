@@ -66,6 +66,14 @@ class Workspace:
         record = self.project / "peer-received.jsonl"
         return [json.loads(line) for line in record.read_text().splitlines()] if record.exists() else []
 
+    def release(self, name: str) -> None:
+        """Let the scripted agent past its ``{"wait": name}`` step."""
+        (self.project / f"released-{name}").touch()
+
+    def steps_done(self) -> list[dict]:
+        """The steps the scripted agent has finished, in order."""
+        return [fact["done"] for fact in self.received() if "done" in fact]
+
     def prompts_received(self) -> list[str]:
         return [fact["prompt"] for fact in self.received() if "prompt" in fact]
 
