@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from functools import cached_property, lru_cache
 from time import monotonic
 
@@ -16,48 +16,42 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
-
-COLORS = [
-    "ansi_magenta",
-    "ansi_red",
-    "ansi_yellow",
-    "ansi_green",
-    "ansi_cyan",
-    "ansi_blue",
-]
+from toad.effects import ACTIVITY_SWEEP, GradientSweep
 
 
 class ThrobberVisual(Visual):
-    """A Textual 'Visual' object.
+    """The activity sweep: a band of theme colours moving across one row.
 
-    Analogous to a Rich renderable, but with support for transparency.
-
+    `toad.effects.ACTIVITY_SWEEP` says which colours and how fast; this paints
+    it. The row for a width and set of colours is built once and sliced by time.
     """
 
     def __init__(
-        self, character: str = "━", get_time: Callable[[], float] = monotonic
+        self, get_variables: Callable[[], Mapping[str, str]], sweep: GradientSweep = ACTIVITY_SWEEP,
+        character: str = "━", get_time: Callable[[], float] = monotonic,
     ) -> None:
+        self.sweep = sweep
+        self.get_variables = get_variables
         self.character = character
         self.get_time = get_time
 
-    colors = tuple(Color.parse(color).rich_color for color in COLORS)
-
     @lru_cache(maxsize=8)
-    def make_segments(self, style: Style, width: int) -> list[Segment]:
+    def make_segments(self, style: Style, width: int, stops: tuple[str, ...]) -> list[Segment]:
+        """Two widths of the gradient, so any window of `width` cells is a slice."""
         background = style.rich_style.bgcolor
         character = self.character
-        color_count = len(self.colors)
-        segments = [
-            Segment(
-                character,
-                RichStyle.from_color(
-                    self.colors[(offset * color_count // max(width, 1)) % color_count],
-                    background,
-                ),
-            )
-            for offset in range(width * 2)
-        ]
-
+        colours = [Color.parse(stop) for stop in stops]
+        count = len(colours)
+        # ANSI colours cannot be blended; they step from one stop to the next.
+        blend = all(colour.ansi is None for colour in colours)
+        segments = []
+        for offset in range(width * 2):
+            position = offset * count / max(width, 1)
+            index = int(position) % count
+            colour = colours[index]
+            if blend:
+                colour = colour.blend(colours[(index + 1) % count], position - int(position))
+            segments.append(Segment(character, RichStyle.from_color(colour.rich_color, background)))
         return segments
 
     def render_strips(
@@ -74,10 +68,10 @@ class ThrobberVisual(Visual):
         Returns:
             An list of Strips.
         """
-
-        time = self.get_time()
-        segments = self.make_segments(style, width)
-        offset = width - int((time % 1.0) * width)
+        variables = self.get_variables()
+        stops = tuple(variables[stop.declared_name] for stop in self.sweep.stops)
+        segments = self.make_segments(style, width, stops)
+        offset = width - self.sweep.shift(self.get_time(), width)
         segments = segments[offset : offset + width]
         return [Strip(segments, cell_length=width)]
 
@@ -92,15 +86,16 @@ class Throbber(Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
 
-    # The animation's own cadence. Tying it to the app's frame cap (144 Hz)
+    # The sweep's own cadence. Tying it to the app's frame cap (144 Hz)
     # repainted a full-width row every frame while an agent worked.
-    ANIMATION_INTERVAL = 1 / 15
+    ANIMATION_INTERVAL = 1 / ACTIVITY_SWEEP.frames_per_second
 
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:
-        # Animation time is read while rendering. Keep the immutable color table
-        # warm across repaint invalidations instead of caching fresh Visual IDs.
-        return ThrobberVisual()
+        # Animation time and the theme's colours are read while rendering. Keep
+        # the gradient table warm across repaint invalidations instead of
+        # caching fresh Visual IDs.
+        return ThrobberVisual(lambda: self.app.theme_variables)
 
     def on_mount(self) -> None:
         self.watch_busy(self.busy)
