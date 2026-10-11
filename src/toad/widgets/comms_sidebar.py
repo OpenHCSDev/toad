@@ -437,7 +437,7 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self.service: Comms | None = None
         self.model: SidebarModel | None = None
         self.groups: dict[str, ChannelGroup] = {}
-        # Mounts the groups in `groups` that are not mounted yet.
+        # Creates and mounts the model's channel groups this view lacks.
         self._group_mounting = None
         self.new_session: NewSessionButton | None = None
         # Thread name -> the mode of the tab that has it open.
@@ -503,7 +503,7 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self.display = False
         self.navigation.reset()
         if self.groups:
-            self.remove_children([group for group in self.groups.values() if group.parent is self])
+            self.remove_children(list(self.groups.values()))
             self.groups.clear()
             self.navigation.rows_changed()
         self.stale = True
@@ -553,17 +553,12 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
             self.mount(self.new_session)
         removed = [key for key in self.groups if key not in rows]
         if removed:
-            # A group not mounted yet is only dropped.
-            self.remove_children([group for group in map(self.groups.pop, removed) if group.parent is self])
-        added = []
+            self.remove_children([self.groups.pop(key) for key in removed])
+        added = False
         for key, channel in rows.items():
             group = self.groups.get(key)
             if group is None:
-                row = CommsRow(channel_target(key), key)
-                group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
-                    key, row.target.expanded_by_default))
-                group.present(channel)  # Its members sync once it is mounted.
-                added.append(group)
+                added = True  # Created and mounted by _mount_groups.
             elif channels is None or key in channels:
                 # Membership, pins or order changed: every member row is current.
                 group.present(channel)
@@ -587,13 +582,20 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
 
     async def _mount_groups(self) -> None:
-        """Mount the channel groups ``sync`` created, one at a time, in model order.
+        """Create and mount the model's channel groups this view lacks, one at a time, in model order.
 
-        Each group composes its header and member rows in loop turns of its
-        own; mounted together, every group would compose in the same turn.
+        Each group builds its header and member rows in loop turns of its
+        own; built together, every group would be built in the same turn.
         """
-        while self.is_attached and (group := next(
-                (group for group in self.groups.values() if group.parent is None), None)) is not None:
+        while self.is_attached and self.model is not None:
+            rows = self.model.channels.rows
+            key = next((key for key in rows if key not in self.groups), None)
+            if key is None:
+                return
+            row = CommsRow(channel_target(key), key)
+            group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
+                key, row.target.expanded_by_default))
+            group.present(rows[key])  # Its members sync once it is mounted.
             await self.mount(group)
             self._order_groups()
 
