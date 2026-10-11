@@ -1,6 +1,5 @@
-"""The animation clock's visibility rule must not rebuild off-screen transcript geometry."""
+"""Textual-facing: the animation clock repaints only visible throbbers and never rebuilds off-screen transcript geometry."""
 
-import asyncio
 from unittest.mock import patch
 
 from textual.app import App, ComposeResult
@@ -25,7 +24,7 @@ class Probe(ThemedApp, App):
             yield Throbber(id="hidden-indicator")
 
 
-async def main():
+async def test_offscreen_and_hidden_animations_do_not_rebuild_geometry():
     app = Probe()
     async with app.run_test(size=(100, 35)) as pilot:
         hidden = app.query_one("#hidden-indicator", Throbber)
@@ -81,8 +80,3 @@ async def main():
         with patch.object(visible, "refresh") as repaint:
             tick()
             repaint.assert_called_once()
-    print("2000-record history: hidden/offscreen animations caused zero full-map rebuilds; visible and resumed animation still repaint")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

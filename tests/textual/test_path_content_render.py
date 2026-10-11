@@ -1,4 +1,4 @@
-"""Path policy consumes actual native widget style resources."""
+"""Textual-facing: path text renders through Textual's own widget styles, and a height bound crops exactly what the full render would."""
 import unittest
 
 from textual.content import Content
@@ -39,6 +39,3 @@ class PathContentRenderTest(unittest.TestCase):
             self.assertIs(options.rules, widget.styles)
         self.assertEqual(content.render_strips(0, None, base_style, options), [])
 
-
-if __name__ == "__main__":
-    unittest.main()

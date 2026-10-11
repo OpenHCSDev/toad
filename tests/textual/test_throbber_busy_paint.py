@@ -1,11 +1,10 @@
-"""Busy paint must preserve a settled transcript's layout and scroll.
+"""Textual-facing: the throbber's busy paint runs on the app's one animation clock and must preserve a settled transcript's layout and scroll.
 
 The sweep runs on the app's one animation clock: one animation while busy,
 none (and no timer) while idle.
 """
 
-import asyncio
-from pathlib import Path
+from importlib.resources import files
 from unittest.mock import patch
 from math import ceil
 from time import monotonic
@@ -20,7 +19,7 @@ from toad.widgets.throbber import Throbber
 
 
 class Probe(ThemedApp, App):
-    CSS_PATH = Path(__file__).resolve().parents[1] / "src/toad/toad.tcss"
+    CSS_PATH = files("toad").joinpath("toad.tcss")
     CSS = "Static.record { height: 1; }"
 
     def compose(self) -> ComposeResult:
@@ -30,7 +29,7 @@ class Probe(ThemedApp, App):
             yield Throbber(id="throbber")
 
 
-async def main():
+async def test_busy_paint_keeps_layout_and_scroll_and_uses_one_animation():
     app = Probe()
     async with app.run_test(size=(100, 35)) as pilot:
         history = app.query_one("#history", VerticalScroll)
@@ -50,7 +49,6 @@ async def main():
         assert indicator.size.height == 1
         assert indicator in compositor.visible_widgets
         animation = None
-        repaints = []
         with (
             patch.object(compositor, "_arrange_root", wraps=compositor._arrange_root) as arrange,
             patch.object(indicator, "refresh", wraps=indicator.refresh) as refresh,
@@ -88,14 +86,7 @@ async def main():
                 started = monotonic()
                 await pilot.pause(0.3)
                 delta = refresh.call_count - before
-                repaints.append(delta)
                 upper = ceil((monotonic() - started) * ACTIVITY_SWEEP.frames_per_second) + 2
                 assert (1 <= delta <= upper if busy else delta == 0), (busy, delta, upper)
             assert arrange.call_count == 0
             assert geometry() == baseline
-
-    print(f"2000 rows; busy off→on→on→off: stable geometry/scroll; repaints={repaints}")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
