@@ -1,17 +1,16 @@
 """Typed grouped advertisements, retained state and declaration-owned new cases."""
-from acp.schema import SessionConfigOptionSelect, SetSessionConfigOptionResponse
+from acp.schema import SetSessionConfigOptionResponse
+from support.agents import detached
 from toad.acp.agent_configuration import (AgentConfiguration, ConfigurationSetting,
-                                         ModelConfigurationSetting, ThinkingConfigurationSetting)
-
-class Publication:
-    def __init__(self):
-        self.messages = []
-    def post_message(self, value):
-        self.messages.append(value)
+                                         ModelConfigurationSetting)
+from toad.core.events import ConfigurationChanged
 
 
-def test_configuration_owns_typed_groups_replacement_and_new_case():
-    agent = Publication()
+def test_configuration_owns_typed_groups_replacement_and_new_case(tmp_path):
+    agent = detached(tmp_path)
+    changes = []
+    subscription = agent.events.subscribe(
+        lambda event, source: changes.append((event, source.stream.publisher)))
     configuration = AgentConfiguration(agent)
     configuration.receive(SetSessionConfigOptionResponse.model_validate({'configOptions': [
         {'id':'native-model','name':'Model','category':'model','type':'select','currentValue':'model-a',
@@ -27,11 +26,11 @@ def test_configuration_owns_typed_groups_replacement_and_new_case():
     configuration.receive(None)
     assert configuration.setting(ModelConfigurationSetting) is model
     configuration.publish()
-    assert agent.messages[-1].agent is agent
+    assert isinstance(changes[-1][0], ConfigurationChanged) and changes[-1][1] is agent
     assert configuration.model.selected is model.choices[0]
     configuration.receive([])
     assert not configuration.thinking.choices and configuration.thinking.current == ''
-    assert agent.messages[-1].agent is agent  # invalidation carries no selection copy
+    assert isinstance(changes[-1][0], ConfigurationChanged) and changes[-1][1] is agent  # invalidation carries no selection copy
 
     class BudgetConfigurationSetting(ConfigurationSetting):
         label = 'budget'
@@ -45,6 +44,7 @@ def test_configuration_owns_typed_groups_replacement_and_new_case():
                                         'options':[{'value':'bounded','name':'Bounded'}]}]}, strict=True).config_options)
         assert extra.setting(BudgetConfigurationSetting).current == 'bounded'
         assert extra.setting(BudgetConfigurationSetting).selected.name == 'Bounded'
-        assert agent.messages[-1].agent is agent
+        assert isinstance(changes[-1][0], ConfigurationChanged) and changes[-1][1] is agent
     finally:
         ConfigurationSetting.__registry__.pop(BudgetConfigurationSetting.declared_name)
+    subscription.close()

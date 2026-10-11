@@ -1,11 +1,11 @@
-"""T1's deleted dispatch and string-read mechanisms cannot return."""
+"""Settings are typed fields; the deleted schema, string-keyed reads and change routing stay deleted."""
 
 import ast
 from pathlib import Path
 
 
-def test_settings_ownership_guards():
-    root = Path(__file__).resolve().parents[1] / "src" / "toad"
+def test_settings_are_read_and_routed_by_declaration():
+    root = Path(__file__).resolve().parents[2] / "src" / "toad"
     assert not (root / "settings_schema.py").exists()
     violations = []
     for path in root.rglob("*.py"):
@@ -65,7 +65,3 @@ def test_settings_ownership_guards():
                         )
     assert not violations, violations
 
-
-if __name__ == "__main__":
-    test_settings_ownership_guards()
-    print("PASS settings deletion guards")
