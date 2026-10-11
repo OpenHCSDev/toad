@@ -37,7 +37,7 @@ def sidebar_filters(app: ToadApp, value: bool) -> None:
 
 
 def theme(app: ToadApp, value: str) -> None:
-    app.theme = value
+    app.colours.choose(value)
 
 
 def compact_input(app: ToadApp, value: bool) -> None:

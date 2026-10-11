@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.colour_scheme import (
+from ui_theme.scheme import (
     AccentColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
     ThemeColour, WarningColour,
 )
