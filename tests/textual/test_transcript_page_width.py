@@ -1,4 +1,6 @@
-"""A transcript page laid out at a new width builds no rows; drawing a row builds only its fragment's."""
+"""Textual-facing: a transcript page widget counts rows at layout and builds strips only when Textual draws a row.
+
+A transcript page laid out at a new width builds no rows; drawing a row builds only its fragment's."""
 
 from types import SimpleNamespace
 import unittest

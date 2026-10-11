@@ -1,4 +1,6 @@
-"""A lookahead request never cancels the running pass; the worker takes the latest request after it."""
+"""Textual-facing: a history widget runs its lookahead passes as Textual workers.
+
+A lookahead request never cancels the running pass; the worker takes the latest request after it."""
 
 import asyncio
 from types import SimpleNamespace
@@ -40,7 +42,7 @@ class History(TranscriptSourcePreparation, Widget):
             raise
         self.release.clear()
 
-    # The state a request was made for; a width change or a new admission
+    # The state a request was made for; a width change or a new page
     # makes every earlier request stale before the next one arrives.
     latest = None
 
