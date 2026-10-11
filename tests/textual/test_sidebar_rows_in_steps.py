@@ -1,4 +1,4 @@
-"""A long sidebar list is mounted a layout step at a time, top first, a step's worth per frame."""
+"""Textual-facing: a long sidebar list is mounted a layout step at a time, top first, a step's worth per frame by the screen's stepped layout."""
 
 import unittest
 
@@ -6,6 +6,7 @@ from textual.app import App, ComposeResult
 from textual.screen import Screen
 from textual.widgets import Static
 
+from toad.textual_colours import ThemedApp
 from toad.widgets.sidebar_tree import SidebarGroup
 
 
@@ -34,7 +35,7 @@ class Group(SidebarGroup):
         self.reconcile_rows(self.keys, self.members, lambda key: Row(key), update)
 
 
-class Rows(App):
+class Rows(ThemedApp, App):
     def __init__(self, count: int) -> None:
         super().__init__()
         self.count = count
@@ -77,12 +78,12 @@ class SidebarRowsInSteps(unittest.IsolatedAsyncioTestCase):
     async def test_short_list_mounts_at_once(self):
         app = Rows(5)
         async with app.run_test(size=(60, 30)) as pilot:
+            # "Short" means the whole list fits in one step; a step is a time budget,
+            # so the budget is fixed here the way the long-list test fixes it.
+            app.screen.LAYOUT_STEP_NS = 1_000_000_000
             group = Group(app.count)
             await app.screen.mount(group)
             self.assertEqual(len(group.member_container.children), app.count)
             self.assertIsNone(group._row_mounting)
             await pilot.pause()
 
-
-if __name__ == "__main__":
-    unittest.main()
