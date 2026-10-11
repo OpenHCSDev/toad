@@ -7,7 +7,7 @@ from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable, NoGoal, Show
 def test_each_goal_state_answers_visibility_control_and_snapshot():
     goal = Goal("Keep the objective", "display-state")
     for state, visible, enabled, snapshot in (
-        (NoGoal(), False, True, None),
+        (NoGoal(), False, False, None),  # nothing to control: Core answers a control with "This goal has been cleared."
         (ShowingGoal(goal), True, True, goal),
         (GoalUnavailable(goal), True, False, goal),
         (GoalUnavailable(None), True, False, None),

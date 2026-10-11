@@ -17,6 +17,15 @@ from support.roots import ATTEMPT, Roots
 from support.workspace import Workspace
 
 RESULT = "TOAD_TEST_RESULT"
+OPEN_DEFECTS = Path(__file__).with_name("open_defects.toml")
+
+
+def open_defects() -> dict[str, str]:
+    """Test id -> why it is expected to fail (see tests/open_defects.toml)."""
+    import tomllib
+
+    return {test: f"open defect {name} ({entry['owner']}): {entry['defect']}"
+            for name, entry in tomllib.loads(OPEN_DEFECTS.read_text()).items() for test in entry["tests"]}
 pytest_plugins = ["legacy_pilots"]
 
 
@@ -63,7 +72,13 @@ class OwnProcessTest(pytest.Item):
         child = asyncio.run(run())
         reports = [json.loads(line) for line in result.read_text().splitlines()] if result.exists() else []
         output = child.stdout.decode(errors="replace")[-12000:] + child.stderr.decode(errors="replace")[-4000:]
-        if not child.outcome.successful or not reports:
+        failed = not child.outcome.successful or not reports
+        if (defect := open_defects().get(self.nodeid)) is not None:
+            shutil.rmtree(roots.attempt, ignore_errors=True)
+            if failed:
+                pytest.xfail(defect)
+            pytest.fail(f"{self.nodeid} passes; remove it from tests/open_defects.toml", pytrace=False)
+        if failed:
             pytest.fail(f"{child.outcome!r}\n{output}\nRoots kept: {roots.attempt}", pytrace=False)
         shutil.rmtree(roots.attempt)
         for report in reports:
@@ -77,6 +92,13 @@ class OwnProcessTest(pytest.Item):
 def pytest_collection_modifyitems(config, items):
     if ATTEMPT in os.environ:
         return  # This is the process a test was given.
+    defects = open_defects()
+    unknown = set(defects) - {item.nodeid for item in items}
+    if unknown and not config.args_source == config.ArgsSource.ARGS:
+        raise pytest.UsageError(f"tests/open_defects.toml names tests that do not exist: {sorted(unknown)}")
+    for item in items:
+        if item.nodeid in defects and "workspace" not in getattr(item, "fixturenames", ()):
+            item.add_marker(pytest.mark.xfail(reason=defects[item.nodeid], strict=True))
     items[:] = [OwnProcessTest.from_parent(item.parent, name=item.name)
                 if "workspace" in getattr(item, "fixturenames", ()) else item for item in items]
 
