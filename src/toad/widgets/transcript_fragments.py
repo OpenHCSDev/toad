@@ -152,11 +152,16 @@ class TranscriptFragment:
     continuation: bool = False
     starts_agent_activity: bool = False
 
-    def line_blocks(self, *, show_divider: bool = True):
-        """What this fragment shows in committed history, one block per visual part."""
+    @cached_property
+    def line_blocks(self):
+        """What this fragment shows in committed history, one block per visual part.
+
+        A continuation of the previous fragment has no divider. The blocks do
+        not depend on the width: each width's lines are built from them.
+        """
         from toad.line_blocks import FragmentLineConsumer, Summary
 
-        consumer = FragmentLineConsumer(show_divider=show_divider)
+        consumer = FragmentLineConsumer(show_divider=not self.continuation)
         if self.starts_agent_activity and not self.continuation:
             consumer.blocks.append(Summary("· Agent activity"))
         for event in self.events:
@@ -172,14 +177,12 @@ class TranscriptFragment:
         self.__dict__["_lines"] = theme, lines
 
     def plain_lines(self, width: int, theme):
-        """Plain wrapped lines drawn until styled lines arrive; built once per width."""
-        from toad.widgets.transcript_lines import PreparedLines, RichLineRenderer
+        """Plain wrapped lines drawn until styled lines arrive; one per width."""
+        from toad.widgets.transcript_lines import PlainLines
 
         held = self.__dict__.get("_plain")
         if held is None or held[0] != theme or held[1].width != width:
-            blocks = self.line_blocks(show_divider=not self.continuation)
-            held = self.__dict__["_plain"] = theme, PreparedLines(
-                width, RichLineRenderer(theme, width, plain=True).rows(blocks))
+            held = self.__dict__["_plain"] = theme, PlainLines(width, theme, self.line_blocks)
         return held[1]
 
 
@@ -198,7 +201,8 @@ class ToolTranscriptFragment(TranscriptFragment):
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
-    def line_blocks(self, *, show_divider: bool = True):
+    @cached_property
+    def line_blocks(self):
         from toad.line_blocks import Summary
 
         return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}"),)
@@ -210,7 +214,8 @@ class ContextTranscriptFragment(TranscriptFragment):
 
     formatted: str | None = field(default=None, compare=False, repr=False)
 
-    def line_blocks(self, *, show_divider: bool = True):
+    @cached_property
+    def line_blocks(self):
         from toad.line_blocks import Summary
 
         return (Summary("▶ Agent coordination context"),)
