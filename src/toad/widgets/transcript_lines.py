@@ -27,9 +27,11 @@ Row = tuple[Segment, ...]
 
 @dataclass(frozen=True)
 class LineTheme:
-    """Rich styles for the theme colours, resolved once per theme from its CSS variables."""
+    """Rich styles for the theme colours, resolved once per theme from its CSS variables,
+    and the host terminal's colour system (Rich's name for the colour depth)."""
 
     colours: tuple[tuple[type[ThemeColour], Style], ...]
+    color_system: str
 
     def style(self, role: type[LineRole]) -> Style:
         for colour, style in self.colours:
@@ -38,7 +40,7 @@ class LineTheme:
         raise KeyError(f"{role.__name__} asks for {role.colour.__name__}, which the theme lacks")
 
     @classmethod
-    def of(cls, variables: Mapping[str, str]) -> LineTheme:
+    def of(cls, variables: Mapping[str, str], color_system: str) -> LineTheme:
         from textual.color import Color
 
         def colour(name: str) -> Style:
@@ -53,7 +55,7 @@ class LineTheme:
         return cls(tuple(
             (member, muted if member is MutedColour else colour(member.name))
             for member in ThemeColour.__registry__.values()
-        ))
+        ), color_system)
 
 
 _ITALIC = Style(italic=True)
@@ -123,7 +125,8 @@ class RichLineRenderer(MroDispatch):
             from rich.console import Console
             from rich.markdown import Markdown
 
-            console = Console(width=inner, color_system="truecolor", force_terminal=True,
+            console = Console(width=inner, color_system=self.theme.color_system,  # type: ignore[arg-type]
+                              force_terminal=True,
                               file=io.StringIO(), legacy_windows=False)
             rows = [tuple(line) for line in console.render_lines(
                 Markdown(block.text), console.options.update(width=inner), style=style, pad=False)]

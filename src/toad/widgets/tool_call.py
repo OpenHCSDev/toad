@@ -349,7 +349,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
     def running_header(self, status, parts):
         parts.append(Content.assemble(' ', pill(
             'running', '$warning-muted', '$warning',
-            filled=not self.app.theme.startswith('ansi-'))))
+            filled=not self.app.native_ansi_color)))
 
     @handles(CompletedToolCallStatus)
     def completed_header(self, status, parts):
@@ -359,7 +359,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
     def failed_header(self, status, parts):
         parts.append(Content.assemble(' ', pill(
             'failed', '$error-muted', '$error',
-            filled=not self.app.theme.startswith('ansi-'))))
+            filled=not self.app.native_ansi_color)))
 
     def watch_expanded(self) -> None:
         self.output.sync()

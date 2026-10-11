@@ -17,7 +17,10 @@ from typing import TYPE_CHECKING, Any
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
+from textual.app import ScreenStackError, UnknownModeError
 from textual.color import Color
+from textual.content import Content
+from textual.style import Style as VisualStyle
 from textual.strip import Strip
 from textual.theme import Theme
 from textual.timer import Timer
@@ -26,12 +29,13 @@ from watchdog.observers import Observer
 
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
-from ui_theme.clock import AnimationClock
+from ui_theme.clock import Animation, AnimationClock
 from ui_theme.colour import AnsiColour, Rgb, TerminalPalette
 from ui_theme.depth import ColourDepth
-from ui_theme.effects import Band, Gradient, Mix, TextFrame
+from ui_theme.effects import Band, Effect, Gradient, Mix, TextFrame
 from ui_theme.scheme import ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
+from toad.rich_preparation import SyntaxPalette
 from toad.widgets.transcript_lines import LineTheme
 
 if TYPE_CHECKING:
@@ -128,6 +132,11 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         self.app.theme = name
 
     @property
+    def syntax(self) -> SyntaxPalette:
+        """How code is highlighted now: the one answer to "is the theme ANSI?" and "is it dark?"."""
+        return SyntaxPalette(self.app.native_ansi_color, self.app.current_theme.dark)
+
+    @property
     def scheme(self) -> ColourScheme:
         return self.schemes[self.app.theme]
 
@@ -137,7 +146,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def variables_changed(self, variables: dict[str, str]) -> None:
         self.variables = variables
-        self.line_theme = LineTheme.of(variables)
+        self.line_theme = LineTheme.of(variables, self.depth.name)
         _row.cache_clear()
 
     # The backend.
@@ -198,11 +207,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         band = band.apply_style(RichStyle(color=self.colour(frame.colour).rich_color))
         return Strip.join((before, band, after))
 
-    def paint_text(self, frame: TextFrame, target: Strip) -> list[Strip]:
-        base = next(iter(target)).style if target.cell_length else None
-        return [Strip([Segment(character, base + RichStyle(color=colour.hex) if base else
-                               RichStyle(color=colour.hex)) if colour else Segment(character, base)
-                       for character, colour in line]) for line in frame.lines]
+    def paint_text(self, frame: TextFrame, target: None) -> Content:
+        """Text in Textual's own styled text; each frame is built once."""
+        return _text(frame)
 
     # The animation clock's one timer.
 
@@ -212,6 +219,53 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             self._timer = None
         if interval is not None:
             self._timer = self.app.set_interval(interval, self.clock.tick, name="animation clock")
+
+
+class Animated:
+    """A widget an effect decorates; the app's animation clock repaints it while it shows.
+
+    Mixed into Textual widgets. The widget reads `self.animation.frame()` when
+    it renders.
+    """
+
+    animation: Animation[Any] | None = None
+
+    def run_effect(self, effect: Effect[Any]) -> None:
+        self.animation = self.app.colours.clock.start(effect, self)  # type: ignore[attr-defined]
+
+    def stop_effect(self) -> None:
+        if self.animation is not None:
+            self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
+            self.animation = None
+
+    @property
+    def animation_visible(self) -> bool:
+        # Widget.is_on_screen falls back to the full geometry map for hidden
+        # widgets, and scrolling invalidates that map, so a hidden animated
+        # widget would re-lay out the whole transcript on every frame. The
+        # committed visible map is enough; layout paints it when it shows.
+        widget: Any = self
+        if not widget.is_attached:
+            return False
+        screen = widget.screen
+        try:
+            current = widget.app.screen
+        except (ScreenStackError, UnknownModeError):
+            # Mode removal and shutdown can retire the stack before the clock
+            # stops this widget's animation.
+            return False
+        return screen is current and widget in screen._compositor.visible_widgets
+
+    def repaint(self) -> None:
+        self.refresh()  # type: ignore[attr-defined]
+
+
+@lru_cache(maxsize=128)
+def _text(frame: TextFrame) -> Content:
+    return Content("\n").join(
+        Content.assemble(*((character, VisualStyle(foreground=Color(*colour.triple)))
+                           if colour is not None else character for character, colour in line))
+        for line in frame.lines)
 
 
 @lru_cache(maxsize=16)

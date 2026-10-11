@@ -16,7 +16,7 @@ from abc import abstractmethod
 from contextlib import suppress
 from functools import partial
 from itertools import filterfalse
-from math import atan2, pi
+
 from operator import attrgetter
 from pathlib import Path
 from time import monotonic, time, time_ns
@@ -56,7 +56,10 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
 
+from ui_theme.splash import loading_splash
+
 from toad import jsonrpc, messages, paths
+from toad.textual_colours import Animated
 
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
@@ -159,20 +162,14 @@ class Loading(ConversationBlock, Static):
     """
 
 
-class PaintOnlyRefresh:
-    """Refresh progress only while its native widget is visible and current."""
+class ThreadLoading(Animated, ConversationBlock, Static):
+    """The splash while a thread attaches: its label swept into the theme's colours.
 
-    def on_mount(self) -> None:
-        self.auto_refresh = 1 / 12
+    The effect's frames are built in a render worker; until they arrive the
+    label shows plainly.
+    """
 
-    def automatic_refresh(self) -> None:
-        if self.is_attached and not self._closing and self.screen.is_current:
-            if self in self.screen._compositor.visible_widgets:
-                self.refresh(layout=False)
-
-
-class ThreadLoading(ConversationBlock, PaintOnlyRefresh, Static):
-    """Paint-only, viewport-scaled progress while a thread attaches."""
+    LABEL = "Loading thread and history…"
 
     @classmethod
     def initial_contents(cls, agent):
@@ -190,33 +187,26 @@ class ThreadLoading(ConversationBlock, PaintOnlyRefresh, Static):
     }
     """
 
+    def on_mount(self) -> None:
+        self.run_worker(self._build_splash(), group="splash", exclusive=True)
 
+    def on_unmount(self) -> None:
+        self.stop_effect()
+
+    async def _build_splash(self) -> None:
+        from toad.render_tasks import TextEffectRenderTask
+
+        colours = self.app.colours
+        played = await self.app.prepare_background(
+            TextEffectRenderTask(loading_splash(self.LABEL), colours.scheme))
+        if self.is_attached:
+            self.run_effect(played)
 
     def render(self) -> Content:
-        width, height = self.size
-        radius = max(2, min(6, width // 12, height // 5))
-        # Terminal cells are roughly 2.2 times taller than they are wide in
-        # pixels. Draw the ring wider in columns so it looks circular, not a
-        # vertically stretched oval, on a real terminal display.
-        horizontal_radius = max(2, round(radius * 2.2))
-        phase = int(monotonic() * 12) % 12
-        rows = []
-        for y in range(-radius, radius + 1):
-            row = []
-            for x in range(-horizontal_radius, horizontal_radius + 1):
-                distance = (x / horizontal_radius) ** 2 + (y / radius) ** 2
-                if not .7 <= distance <= 1.3:
-                    row.append(" ")
-                    continue
-                position = int((atan2(y / radius, x / horizontal_radius) + pi) * 6 / pi) % 12
-                gap = (position - phase) % 12
-                row.append("●" if gap < 2 else "•" if gap < 5 else "·")
-            rows.append("".join(row).strip())
-        label = ("Loading new thread and history…" if width >= 32
-                 else "Loading new thread…")
-        block_width = max(len(label), 2 * horizontal_radius + 1)
-        centered = (row.center(block_width) for row in rows)
-        return Content("\n".join((*centered, "", label.center(block_width))))
+        animation = self.animation
+        if animation is None:
+            return Content(self.LABEL)
+        return self.app.colours.paint_text(animation.frame(), None)
 
 
 class TurnActivity(Static):

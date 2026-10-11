@@ -15,6 +15,7 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.selection import Selection
 from textual.style import Style
+from textual.visual import Visual
 from textual.geometry import Size
 from textual.scroll_view import ScrollView
 from textual.strip import Strip
@@ -342,7 +343,7 @@ Tap escape *twice* to exit.
             start, end = select_span
             if end == -1:
                 end = offset + len(line)
-            selection_style = self.screen.get_visual_style("screen--selection")
+            selection_style = Visual.selection_style(self)
             start, end = max(0, start - offset), min(len(line), end - offset)
             if start < end:
                 line = line.stylize(selection_style, start, end)

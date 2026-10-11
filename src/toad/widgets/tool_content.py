@@ -14,6 +14,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 
 from toad.render_tasks import PatchRenderTask
+from toad.rich_preparation import SyntaxPalette
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.worker_static import WorkerStatic
 
@@ -41,7 +42,7 @@ class MarkdownContent(LineMarkdown):
 @dataclass(frozen=True)
 class PatchWarmup:
     source: str
-    theme: tuple[bool, bool]
+    syntax: SyntaxPalette
     result: "asyncio.Future[PreparedPatch | None]"
 
 @dataclass(frozen=True)
@@ -135,7 +136,7 @@ class ToolCallDiff(containers.VerticalGroup):
         self.patch = patch
         self._warmup = None if preparation is None else preparation.warmup
         prepared = None if preparation is None else preparation.prepared_for(patch)
-        task = None if prepared is None else PatchRenderTask(patch, *prepared.theme)
+        task = None if prepared is None else PatchRenderTask(patch, prepared.syntax)
         self.publication: PatchPublication = (WaitingPatchPublication() if prepared is None
                                              else PublishedPatchPublication(prepared, task))
         self._requested_task: PatchRenderTask | None = task
@@ -151,13 +152,9 @@ class ToolCallDiff(containers.VerticalGroup):
     def compose(self) -> ComposeResult:
         yield from self.publication.compose(self)
 
-    def _theme_key(self) -> tuple[bool, bool]:
-        theme = self.app.current_theme
-        return theme.ansi, theme.dark
-
     @property
     def render_task(self) -> PatchRenderTask:
-        return PatchRenderTask(self.patch, *self._theme_key())
+        return PatchRenderTask(self.patch, self.app.colours.syntax)
 
     @property
     def render_active(self) -> bool:
@@ -198,7 +195,7 @@ class ToolCallDiff(containers.VerticalGroup):
         try:
             warmup = self._warmup
             prepared = None
-            if warmup is not None and PatchRenderTask(warmup.source, *warmup.theme) == ticket.task:
+            if warmup is not None and PatchRenderTask(warmup.source, warmup.syntax) == ticket.task:
                 await asyncio.wait((warmup.result,))
                 prepared = warmup.result.result()
             if prepared is None:

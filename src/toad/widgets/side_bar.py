@@ -513,7 +513,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         dock: right; width: 1; height: 1fr; padding: 0;
         color: $success; pointer: ew-resize;
     }
-    SidebarResizeHandle:hover, SidebarResizeHandle:focus { color: white; }
+    SidebarResizeHandle:hover, SidebarResizeHandle:focus { color: $foreground; }
     SidebarResizeHandle:ansi { color: ansi_green; }
     SidebarResizeHandle:ansi:hover, SidebarResizeHandle:ansi:focus { color: ansi_white; }
     """

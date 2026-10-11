@@ -26,7 +26,7 @@ class ThreadStatusRow(HoverSelection):
     ThreadStatusRow.-wire-thread.-unread { text-style: bold; }
     ThreadStatusRow:hover {
         background: transparent;
-        color: #ad8bf5 !important;
+        color: $accent !important;
         text-style: underline;
     }
     ThreadStatusRow:ansi:hover {
@@ -36,7 +36,7 @@ class ThreadStatusRow(HoverSelection):
     }
     ThreadStatusRow:focus {
         background: transparent;
-        color: #ad8bf5 !important;
+        color: $accent !important;
         text-style: underline;
     }
     ThreadStatusRow:ansi:focus {

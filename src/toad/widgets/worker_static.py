@@ -17,10 +17,9 @@ from textual.geometry import Region, Size
 from textual.screen import Screen
 from textual.selection import Selection
 from textual.strip import Strip
-from textual.style import Style
 from textual.widget import Widget
 from textual.widgets import Static
-from textual.visual import VisualType
+from textual.visual import Visual, VisualType
 
 from toad.app import ToadApp
 from toad.render_tasks import RichRenderTask
@@ -70,11 +69,10 @@ class WorkerStatic(PreparedPaintSource, Static):
 
     @classmethod
     def code(cls, text: str, *, filename: str, lexer: str | None = None,
-             line_numbers: bool = True, themed: bool = False,
+             line_numbers: bool = True,
              filename_only: bool = False, id: str | None = None) -> WorkerStatic:
         """Prepare lexer discovery and native Syntax rendering in the worker."""
         return cls(SyntaxSource(text, filename, lexer=lexer,
-                                theme="auto" if themed else "monokai",
                                 line_numbers=line_numbers, filename_only=filename_only), id=id)
 
     def on_mount(self) -> None:
@@ -167,13 +165,12 @@ class WorkerStatic(PreparedPaintSource, Static):
         else:
             selection = self.text_selection
             source = self._source.capture_selection(selection,
-                Style.from_styles(self.screen.get_component_styles("screen--selection"))
-                if selection is not None else None)
+                Visual.selection_style(self) if selection is not None else None)
             native_style = self.visual_style
             presentation = RichPresentation(
                 options, native_style.rich_style, link_style,
                 auto_width, self._get_justify_method(), app.console.color_system,
-                app.current_theme.dark,
+                app.colours.syntax,
                 tuple((name, self._get_style(name)) for name in source.style_names),
                 tuple((name, self.styles.get_rule(name))
                       for name in ("text_align", "text_overflow", "text_wrap", "line_pad")
@@ -286,10 +283,10 @@ class WorkerStatic(PreparedPaintSource, Static):
                 else super().get_content_width(container, viewport))
 
     def _render_styles_sensitive(self) -> bool:
-        # Acquired dimensions come from the original worker result. Style
+        # Dimensions come from the worker's result. Style
         # changes request its replacement through notify_style_update; that
         # publication already invalidates geometry if the dimensions change.
-        # Until acquisition, preserve Static's conservative placeholder path.
+        # Until the result arrives, keep Static's conservative placeholder path.
         return self._prepared is None and super()._render_styles_sensitive()
 
     @height_dependency(NATIVE_WIDGET_HEIGHT)
@@ -314,7 +311,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         if not 0 <= y < len(prepared.lines):
             return Strip.blank(width, self.visual_style.rich_style)
         selection = self.text_selection
-        selection_style = (Style.from_styles(self.screen.get_component_styles("screen--selection")).rich_style
+        selection_style = (Visual.selection_style(self).rich_style
                            if selection is not None else None)
         strip = prepared.render_lines(Region(0, y, prepared.width, 1), selection=selection,
                                       selection_style=selection_style)[0]
