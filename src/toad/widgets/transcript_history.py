@@ -46,7 +46,7 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.transcript_lines import (
-    PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    Lines, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
@@ -115,7 +115,8 @@ class TranscriptPageView(Widget):
         self._pending: set[int] = set()
         self._render: asyncio.Task[None] | None = None
         self._width = 0
-        self._layout: list[tuple[int, int, tuple[Strip, ...]]] = []
+        # Each admitted fragment's index, first row and lines at the laid-out width.
+        self._layout: list[tuple[int, int, Lines]] = []
         self._starts: list[int] = []
         self._height = 0
         super().__init__()
@@ -186,13 +187,13 @@ class TranscriptPageView(Widget):
         self._relayout()
         self.refresh(layout=True)
 
-    def _rows(self, index: int, width: int) -> tuple[Strip, ...]:
+    def _lines(self, index: int, width: int) -> Lines:
         fragment, theme = self.fragments[index], self.app.colours.line_theme
         lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending.add(index)
             lines = fragment.plain_lines(width, theme)
-        return lines.strips
+        return lines
 
     def _relayout(self, width: int | None = None) -> None:
         width = self._width if width is None else width
@@ -203,10 +204,12 @@ class TranscriptPageView(Widget):
                 fragment = self.fragments[index]
                 if not keep_events(fragment.events, self.visible_categories):
                     continue
-                rows = self._rows(index, width)
-                layout.append((index, y, rows))
+                # Layout needs only the row count; rows and strips are
+                # built when a row is drawn, so a width change draws no text.
+                lines = self._lines(index, width)
+                layout.append((index, y, lines))
                 starts.append(y)
-                y += len(rows)
+                y += lines.height
         self._layout, self._starts, self._height = layout, starts, y
         if self._pending and self.is_attached and (self._render is None or self._render.done()):
             # Layout calls this to measure: start the renderer in its own loop
@@ -228,14 +231,14 @@ class TranscriptPageView(Widget):
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
             return Strip.blank(width)
-        _index, first, rows = self._layout[slot]
+        _index, first, lines = self._layout[slot]
         row = y - first
         # Prepared rows span exactly this width (PreparedLines.strips).
-        return rows[row] if row < len(rows) else Strip.blank(width)
+        return lines.strips[row] if row < lines.height else Strip.blank(width)
 
     def fragment_line(self, fragment: TranscriptFragment) -> int | None:
         """The first row of an admitted fragment within this page."""
-        for index, first, _rows in self._layout:
+        for index, first, _lines in self._layout:
             if self.fragments[index] is fragment:
                 return first
         return None
@@ -245,7 +248,7 @@ class TranscriptPageView(Widget):
         slot = bisect_right(self._starts, row) - 1
         if slot < 0:
             return None
-        index, first, _rows = self._layout[slot]
+        index, first, _lines = self._layout[slot]
         return self.fragments[index], row - first
 
     def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
@@ -259,14 +262,14 @@ class TranscriptPageView(Widget):
             return ()
         top = window.scroll_y - offset
         bottom = top + window.outer_size.height
-        return tuple(self.fragments[index] for index, first, rows in self._layout
-                     if first < bottom and first + len(rows) > top)
+        return tuple(self.fragments[index] for index, first, lines in self._layout
+                     if first < bottom and first + lines.height > top)
 
     def _nearest_pending(self) -> list[int]:
         from toad.widgets.history_anchor import HistoryAnchor, HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
-        rows = {index: first for index, first, _rows in self._layout}
+        rows = {index: first for index, first, _lines in self._layout}
         admitted = [index for index in self._pending if index in rows]
         self._pending.difference_update(set(self._pending) - set(admitted))
         # On screen, style the rows nearest the reader first. An off-screen
@@ -285,9 +288,7 @@ class TranscriptPageView(Widget):
             self._pending.difference_update(batch)
             width, theme = self._width, self.app.colours.line_theme
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
-                TranscriptLinesRenderTask(
-                    self.fragments[index].line_blocks(show_divider=not self.fragments[index].continuation),
-                    width, theme)
+                TranscriptLinesRenderTask(self.fragments[index].line_blocks, width, theme)
                 for index in batch)))
             if not self.is_attached or width != self._width:
                 continue
@@ -446,7 +447,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 return
             batch = todo[first:first + self.budget.admission_items]
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
-                TranscriptLinesRenderTask(fragment.line_blocks(show_divider=not fragment.continuation), width, theme)
+                TranscriptLinesRenderTask(fragment.line_blocks, width, theme)
                 for fragment in batch)))
             for fragment, lines in zip(batch, results):
                 fragment.hold_lines(theme, lines)

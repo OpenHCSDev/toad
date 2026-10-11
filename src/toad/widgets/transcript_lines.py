@@ -63,6 +63,21 @@ def _fit(text: str, width: int) -> str:
     return text if len(text) <= width else text[: max(0, width - 1)] + "…"
 
 
+def _text_width(block: Body, width: int) -> int:
+    """The cells a body's text wraps at: the width less its bar."""
+    return max(1, width - (2 if block.bar is not None else 0))
+
+
+def _plain_lines(text: str) -> list[str]:
+    """A body's text as plain mode draws it: one string per source line, tabs expanded."""
+    return [line.expandtabs(4) for line in text.splitlines() or [""]]
+
+
+def _plain_spans(line: str, width: int) -> range:
+    """Where plain mode breaks a line into rows: every `width` characters."""
+    return range(0, max(1, len(line)), width)
+
+
 class RichLineRenderer(MroDispatch):
     """Rows for each block type; plain mode skips Markdown for immediate drawing."""
 
@@ -102,8 +117,7 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Body)
     def body(self, block: Body) -> None:
-        inset = 2 if block.bar is not None else 0
-        inner = max(1, self.width - inset)
+        inner = _text_width(block, self.width)
         style = self.theme.style(block.role)
         if block.markdown and not self.plain:
             from rich.console import Console
@@ -114,20 +128,39 @@ class RichLineRenderer(MroDispatch):
             rows = [tuple(line) for line in console.render_lines(
                 Markdown(block.text), console.options.update(width=inner), style=style, pad=False)]
         else:
-            rows = []
-            for line in block.text.splitlines() or [""]:
-                line = line.expandtabs(4)
-                for start in range(0, max(1, len(line)), inner):
-                    rows.append((Segment(line[start:start + inner], style),))
+            rows = [(Segment(line[start:start + inner], style),)
+                    for line in _plain_lines(block.text) for start in _plain_spans(line, inner)]
         if block.bar is not None:
             prefix = Segment("▌ ", self.theme.style(block.bar))
             rows = [(prefix, *row) for row in rows]
         self.output.extend(rows)
 
 
-@dataclass(frozen=True)
-class PreparedLines:
-    """Rows of one fragment at one width; strips are built once, on first draw.
+class PlainRowCount(MroDispatch):
+    """How many rows plain mode draws blocks in at a width, without building them."""
+
+    def __init__(self, width: int):
+        self.width = width
+        self.count = 0
+
+    def height(self, blocks: tuple[LineBlock, ...]) -> int:
+        self.count = 0
+        for block in blocks:
+            self.dispatch_sync(block)
+        return self.count
+
+    @handles(Divider, Summary, Gap)
+    def one_row(self, block: LineBlock) -> None:
+        self.count += 1
+
+    @handles(Body)
+    def body(self, block: Body) -> None:
+        inner = _text_width(block, self.width)
+        self.count += sum(len(_plain_spans(line, inner)) for line in _plain_lines(block.text))
+
+
+class Lines:
+    """Rows of text at one width (`width`, `rows`); strips are built once, on first draw.
 
     Each strip spans exactly the width, so a page draws it as it is and the
     strip keeps what painting it computes (its terminal sequence) across
@@ -137,10 +170,43 @@ class PreparedLines:
     width: int
     rows: tuple[Row, ...]
 
+    @property
+    def height(self) -> int:
+        return len(self.rows)
+
     @cached_property
     def strips(self) -> tuple[Strip, ...]:
         width = self.width
         return tuple(Strip(row).extend_cell_length(width).crop(0, width) for row in self.rows)
+
+
+@dataclass(frozen=True)
+class PreparedLines(Lines):
+    """Rows of one fragment at one width, rendered (styled) in a render worker."""
+
+    width: int
+    rows: tuple[Row, ...]
+
+
+class PlainLines(Lines):
+    """A fragment's plain rows at a width, drawn until its styled rows arrive.
+
+    Layout reads only the height, which is counted without building a row;
+    the rows are built when one of them is drawn.
+    """
+
+    def __init__(self, width: int, theme: LineTheme, blocks: tuple[LineBlock, ...]):
+        self.width = width
+        self.theme = theme
+        self.blocks = blocks
+
+    @cached_property
+    def height(self) -> int:
+        return PlainRowCount(self.width).height(self.blocks)
+
+    @cached_property
+    def rows(self) -> tuple[Row, ...]:
+        return RichLineRenderer(self.theme, self.width, plain=True).rows(self.blocks)
 
 
 @dataclass(frozen=True)
