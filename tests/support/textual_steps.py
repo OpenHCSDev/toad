@@ -183,3 +183,16 @@ async def wait_for_tool_diff(ui, tool):
     await ui.until(lambda: diff.query("PatchDiffView DiffCode, TextContent"), seconds=10, why="the diff to be drawn")
     await ui.step()
     return diff
+
+
+def viewport_text(widget) -> str:
+    """The text drawn in the part of `widget` that is on screen."""
+    region, clip = widget.screen.screen._compositor.visible_widgets[widget]
+    region = region.intersection(clip).intersection(widget.screen.region)
+    return "\n".join(strip.crop(region.x, region.right).text
+                     for strip in widget.screen.screen._compositor.render_strips()[region.y:region.bottom])
+
+
+def painted_text(widget, text) -> bool:
+    """Whether `widget` is on screen and draws `text`."""
+    return widget in widget.screen._compositor.visible_widgets and text in viewport_text(widget)
