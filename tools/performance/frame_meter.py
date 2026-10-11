@@ -1140,6 +1140,38 @@ def trace_abc_growth(*, expected_pid, output, seconds=40):
     asyncio.get_running_loop().call_later(seconds, finish)
 
 
+def trace_posts(*, expected_pid, output, seconds=40):
+    """Every message posted to a screen: when, its type and who posted it."""
+    import asyncio
+    from textual.message_pump import MessagePump
+    from textual.screen import Screen
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    post, records = MessagePump.post_message, []
+
+    def recorded(self, message):
+        if isinstance(self, Screen):
+            caller, chain = sys._getframe(1), []
+            while caller is not None and len(chain) < 6:
+                chain.append(f"{caller.f_code.co_qualname}:{caller.f_lineno}")
+                caller = caller.f_back
+            sender = getattr(message, "widget", None) or getattr(message, "_sender", None)
+            records.append((time.monotonic_ns(), type(message).__qualname__, type(sender).__name__, " < ".join(chain)))
+        return post(self, message)
+
+    MessagePump.post_message = recorded
+
+    def finish():
+        MessagePump.post_message = post
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(records, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(seconds, finish)
+
+
 def trace_rules(*, expected_pid, output, seconds=60):
     """Each committed style-rule change: when, on which node, which rules, and whether geometry."""
     import asyncio
