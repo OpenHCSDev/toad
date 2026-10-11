@@ -1,13 +1,14 @@
 """The Rich/Textual frontend for transcript line blocks.
 
 `toad.line_blocks` says what a fragment shows. This module decides how it looks
-in Textual: a theme maps each role to a style, and a renderer turns each block
+in Textual: a theme maps each role's colour to a style, and a renderer turns each block
 into rows. Styled rows are rendered in the render worker processes; until they
 arrive a fragment draws plain rows, so a row is never blank.
 """
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import cached_property
 import io
@@ -17,10 +18,8 @@ from rich.style import Style
 from textual.strip import Strip
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import (
-    AgentRole, Body, Divider, Gap, IncomingRole, LineBlock, LineRole, MutedRole, NoticeRole,
-    OutgoingRole, Summary, TextRole, ThinkingRole, UserRole,
-)
+from toad.colour_scheme import MutedColour, ThemeColour
+from toad.line_blocks import Body, Divider, Gap, LineBlock, LineRole, Summary
 from toad.render_backend import ReusableRenderTask
 
 Row = tuple[Segment, ...]
@@ -28,42 +27,36 @@ Row = tuple[Segment, ...]
 
 @dataclass(frozen=True)
 class LineTheme:
-    """Styles for line roles, resolved once from the App's theme."""
+    """Rich styles for the theme colours, resolved once per theme from its CSS variables."""
 
-    styles: tuple[tuple[type[LineRole], Style], ...]
+    colours: tuple[tuple[type[ThemeColour], Style], ...]
 
     def style(self, role: type[LineRole]) -> Style:
-        # A role without its own style uses its nearest parent's.
-        table = dict(self.styles)
-        for owner in role.__mro__:
-            if owner in table:
-                return table[owner]
-        return Style()
+        for colour, style in self.colours:
+            if colour is role.colour:
+                return style + _ITALIC if role.italic else style
+        raise KeyError(f"{role.__name__} asks for {role.colour.__name__}, which the theme lacks")
 
     @classmethod
-    def from_app(cls, app) -> LineTheme:
+    def of(cls, variables: Mapping[str, str]) -> LineTheme:
         from textual.color import Color
 
-        theme = app.current_theme
-        variables = app.theme_variables
+        def colour(name: str) -> Style:
+            return Style(color=Color.parse(variables[name]).rich_color)
+
         foreground = Color.parse(variables["foreground"])
         background = Color.parse(variables["background"])
-        muted = background.blend(foreground, 0.6).rich_color
-
-        def color(value: str | None) -> Style:
-            return Style(color=(Color.parse(value) if value else foreground).rich_color)
-
-        return cls((
-            (TextRole, color(None)),
-            # Textual's text-muted is the foreground at 60% over the background.
-            (MutedRole, Style(color=muted)),
-            (ThinkingRole, Style(color=muted, italic=True)),
-            (UserRole, color(theme.primary)),
-            (AgentRole, color(theme.secondary or theme.primary)),
-            (IncomingRole, color(theme.accent)),
-            (OutgoingRole, color(theme.success)),
-            (NoticeRole, color(theme.warning)),
+        # Muted text is the foreground at 60% over the background. ANSI
+        # colours cannot be blended; the terminal dims them instead.
+        muted = (Style(dim=True) if foreground.ansi is not None
+                 else Style(color=background.blend(foreground, 0.6).rich_color))
+        return cls(tuple(
+            (member, muted if member is MutedColour else colour(member.declared_name))
+            for member in ThemeColour.__registry__.values()
         ))
+
+
+_ITALIC = Style(italic=True)
 
 
 def _fit(text: str, width: int) -> str:

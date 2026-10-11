@@ -9,7 +9,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from typing import ClassVar
+
 from agent_comms.mro_dispatch import MroDispatch, handles
+from toad.colour_scheme import (
+    AccentColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
+    ThemeColour, WarningColour,
+)
 from agent_comms.transcript_events import (
     AgentTextTranscript, ContextTranscript, IncomingTranscript, SentTranscript,
     ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
@@ -17,7 +23,10 @@ from agent_comms.transcript_events import (
 
 
 class LineRole:
-    """The meaning of a piece of text; frontends choose how each role looks."""
+    """The meaning of a piece of text, and the theme colour it is drawn in."""
+
+    colour: ClassVar[type[ThemeColour]] = ForegroundColour
+    italic: ClassVar[bool] = False
 
 
 class TextRole(LineRole):
@@ -27,29 +36,39 @@ class TextRole(LineRole):
 class MutedRole(LineRole):
     """Secondary text: summaries, collapsed disclosures."""
 
+    colour = MutedColour
+
 
 class ThinkingRole(MutedRole):
     """The model's visible reasoning."""
 
+    italic = True
+
 
 class UserRole(LineRole):
-    pass
+    # The live prompt (UserInput) is drawn in the secondary colour; a committed
+    # prompt keeps that colour.
+    colour = SecondaryColour
 
 
 class AgentRole(LineRole):
-    pass
+    colour = PrimaryColour
 
 
 class IncomingRole(LineRole):
     """A message received from another participant."""
 
+    colour = AccentColour
+
 
 class OutgoingRole(LineRole):
     """A message sent to another participant."""
 
+    colour = SuccessColour
+
 
 class NoticeRole(LineRole):
-    pass
+    colour = WarningColour
 
 
 class LineBlock:
