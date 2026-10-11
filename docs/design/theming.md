@@ -260,6 +260,10 @@ Toad's render workers and widgets; nothing in it belongs to the Textual fork):
   the one animation clock on one Textual timer. Code colours come from
   `SyntaxPalette.of(app)`, which any Textual app answers, so diff and preview
   widgets need no Toad app.
+- `ThemedApp`: the capability a Textual app mixes in to be drawn through
+  `ui_theme`. It holds the colours owner and answers Textual's colour system,
+  terminal palette and CSS-variable hooks from it. `ToadApp` and the test
+  harness apps use the same one.
 - `Animated`: the capability a decorated widget mixes in (start/stop an effect,
   the clock's visibility rule, repaint). Throbber, `MessageDivider`,
   `ThreadLoading` and the tab `Underline` use it.

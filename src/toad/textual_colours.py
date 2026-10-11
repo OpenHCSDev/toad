@@ -12,12 +12,12 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
-from textual.app import ScreenStackError, UnknownModeError
+from textual.app import App, ScreenStackError, UnknownModeError
 from textual.color import Color
 from textual.content import Content
 from textual.style import Style as VisualStyle
@@ -37,10 +37,6 @@ from ui_theme.scheme import ColourScheme, LayerColour, ThemeColour, CoreColour, 
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme
 
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
-
 class _WalFileClosed(FileSystemEventHandler):
     """pywal rewrites `colors.json` in place; it is whole once the writer closes it."""
 
@@ -59,7 +55,7 @@ def _element(value: Any, backend: TextualColours) -> str:
 class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
     """The app's colour depth, schemes, terminal palettes, line styles and animation clock."""
 
-    def __init__(self, app: ToadApp) -> None:
+    def __init__(self, app: App) -> None:
         self.app = app
         self.depth: type[ColourDepth] = ColourDepth.of_terminal(os.environ)
         self.wal_directory = WalFile.directory(os.environ)
@@ -79,6 +75,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def register_catalog(self) -> None:
         """Offer ui_theme's schemes, replacing Textual's copies of the same themes."""
+        self.clock.enabled = self.app.animation_level != "none"
         for scheme in self.schemes.values():
             self.app.register_theme(self.theme(scheme))
         if (self.wal_directory / WalFile.NAME).is_file():
@@ -86,7 +83,6 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def start(self) -> None:
         """Follow pywal's changes to its palette."""
-        self.clock.enabled = self.app.animation_level != "none"
         if not self.wal_directory.is_dir():
             return
         self._observer = Observer()
@@ -215,6 +211,36 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             self._timer = self.app.set_interval(interval, self.clock.tick, name="animation clock")
 
 
+class ThemedApp:
+    """A Textual app drawn through ui_theme: mix in before `App`.
+
+    Holds the colours owner and answers Textual's three questions from it: the
+    console's colour system, the terminal palette ANSI colours map to, and the
+    CSS variables (from which the line styles are resolved). Widgets that use
+    effects or line styles need their app to be one.
+    """
+
+    colours: TextualColours
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        # Textual asks for the colour system and the palette while it builds the app.
+        self.colours = TextualColours(self)  # type: ignore[arg-type]
+        super().__init__(*args, **kwargs)
+        self.colours.register_catalog()
+
+    def get_color_system(self) -> str:
+        return self.colours.depth.name
+
+    def get_css_variables(self) -> dict[str, str]:
+        variables = super().get_css_variables()  # type: ignore[misc]
+        self.colours.variables_changed(variables)
+        return variables
+
+    @property
+    def ansi_theme(self) -> TerminalTheme:
+        return self.colours.terminal_theme(self.theme)  # type: ignore[attr-defined]
+
+
 class Animated:
     """A widget an effect decorates; the app's animation clock repaints it while it shows.
 
@@ -234,10 +260,10 @@ class Animated:
 
     @property
     def animation_visible(self) -> bool:
-        # Widget.is_on_screen falls back to the full geometry map for hidden
-        # widgets, and scrolling invalidates that map, so a hidden animated
-        # widget would re-lay out the whole transcript on every frame. The
-        # committed visible map is enough; layout paints it when it shows.
+        # Only what the compositor last showed on the current screen. An
+        # off-screen or hidden widget is not repainted (Widget.is_on_screen
+        # says "laid out", which includes rows scrolled out of view); layout
+        # paints it when it shows.
         widget: Any = self
         if not widget.is_attached:
             return False
