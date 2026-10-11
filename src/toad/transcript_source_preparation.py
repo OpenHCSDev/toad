@@ -214,19 +214,18 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Sources with data lookahead supply it independently of page reads."""
 
     def request_lookahead(self, intent) -> None:
-        """One source worker consumes the latest measured preparation demand.
+        """One worker prepares ahead for the latest request.
 
-        Updating the requested extent does not revoke an admitted pure batch.
-        The source leaf checks its original source, page and direction custody;
-        after that pass this worker takes the latest intent, without restarting
-        its waiter on every scroll or layout publication.
+        A running worker is never cancelled: its pass checks whether its
+        request is still current (``lookahead_current``) and stops at the next
+        check when it is not; the worker then takes the latest request. A
+        cancelled pass kept its prepared pages alive in a reference cycle
+        (the cancellation's traceback holds its frames) for the collector.
         """
-        previous = self._prefetch_intent
-        current = previous is not None and self.lookahead_current(previous)
-        if current and intent == previous:
+        if intent == self._prefetch_intent:
             return
         self._prefetch_intent = intent
-        if current and any(self.lookahead_workers()):
+        if any(self.lookahead_workers()):
             return
 
         async def prepare() -> None:
