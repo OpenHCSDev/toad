@@ -15,8 +15,3 @@ def test_attention_caller_closure():
                        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))), path
     assert not any(isinstance(node, ast.ClassDef) and node.name.endswith("FieldCodec")
                    for node in ast.walk(ast.parse((root / "terminal_attention.py").read_text())))
-
-
-if __name__ == "__main__":
-    test_attention_caller_closure()
-    print("PASS retired counter/timer/notification caller API absent; no FieldCodec")
