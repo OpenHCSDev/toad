@@ -134,6 +134,10 @@ def install(*, expected_pid, seconds, output):
 
     stalls = {}
     long_callbacks = {}
+    # Per long callback: the other threads' innermost frames in the same
+    # samples. When the UI thread waited for the GIL, the holder's frame
+    # still points at the call that held it when this watcher gets the GIL.
+    stall_threads = {}
     timed_callbacks = []
     main_thread = threading.get_ident()
 
@@ -145,9 +149,23 @@ def install(*, expected_pid, seconds, output):
             begin = state["current"]
             if begin is None or clock() - begin < 8_000_000:
                 continue
-            frame = sys._current_frames().get(main_thread)
+            frames_now = sys._current_frames()
+            frame = frames_now.get(main_thread)
             if frame is None:
                 continue
+            others = {}
+            for ident, other in frames_now.items():
+                if ident in (main_thread, threading.get_ident()):
+                    continue
+                if other.f_code.co_name in ("wait", "_worker", "select", "get", "_wait_for_tstate_lock"):
+                    continue  # idle
+                chain = []
+                while other is not None and len(chain) < 8:
+                    chain.append(f"{other.f_code.co_name} {other.f_code.co_filename.rsplit('/', 2)[-1]}:{other.f_lineno}")
+                    other = other.f_back
+                others[threading._active.get(ident).name if ident in threading._active else str(ident)] = " < ".join(chain)
+            if others:
+                stall_threads.setdefault(begin, []).append(others)
             # Walk frames directly: extract_stack reads source lines (file
             # I/O under the GIL), lengthening the very stall being sampled.
             stack = []
@@ -299,6 +317,7 @@ def install(*, expected_pid, seconds, output):
             json.dump({"pid": expected_pid, "seconds": seconds,
                        "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
                        "long_callbacks": sorted(long_callbacks.items()),
+                       "stall_threads": sorted(stall_threads.items()),
                        "timed_callbacks": timed_callbacks, "switch_steps": switch_steps,
                        "stepped_layouts": stepped_layouts,
                        "slow_handlers": slow, "slow_frames": slow_frames,
