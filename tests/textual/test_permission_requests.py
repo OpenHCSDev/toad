@@ -47,7 +47,7 @@ async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_o
         app, _pilot = ui.textual
         view = ui.conversation
         agent = detached(workspace.project, "session")
-        ui.attach_agent(agent)
+        view.agent = agent  # binds the view once, as opening a session does
         await ui.step()
         errors = []
         loop = asyncio.get_running_loop()
