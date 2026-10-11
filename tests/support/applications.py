@@ -16,3 +16,8 @@ def stylesheet_of_application() -> list[Path]:
 
     directory = Path(inspect.getfile(ToadApp)).parent
     return [directory / name for name in ToadApp.CSS_PATH]
+
+
+def record_notifications(app) -> None:
+    """Let the headless app keep its notifications (Textual drops them under test by default)."""
+    app._disable_notifications = False
