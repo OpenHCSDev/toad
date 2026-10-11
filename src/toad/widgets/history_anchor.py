@@ -79,6 +79,8 @@ class WindowRestoration:
 
     position: WindowPosition | None
     layout_ready: asyncio.Event = field(default_factory=asyncio.Event, init=False, repr=False)
+    layout_requests: int = field(default=0, init=False)
+    """How many layouts this restoration has requested; a layout answers those made before it started."""
 
     def required_bodies(self, window: "HistoryWindow") -> tuple[Widget, ...]:
         return () if self.position is None else self.position.required_bodies(window)
@@ -101,10 +103,21 @@ class WindowRestoration:
     def request_layout(self, window: "HistoryWindow") -> None:
         # Layouts during the mutation do not complete its final compensation.
         # Arm the same acquired event before making that layout actionable.
+        self.layout_requests += 1
         self.layout_ready.clear()
         window.refresh(layout=True)
 
-    def finish_layout(self) -> None:
+    def finish_layout(self, answered: int) -> None:
+        """A layout that started after `answered` requests has finished.
+
+        A layout running over loop turns may finish after a request made while
+        it ran; that request waits for the layout that places it.
+        """
+        if answered == self.layout_requests:
+            self.layout_ready.set()
+
+    def release(self) -> None:
+        """No layout will answer: release the waiter."""
         self.layout_ready.set()
 
     async def wait(self) -> None:
@@ -279,7 +292,7 @@ class HistoryWindow(VerticalScroll):
     def retire_presentation_wait(self) -> None:
         """Release a transaction whose scene no longer promises another frame."""
         if (restoration := self.history_restoration) is not None:
-            restoration.finish_layout()
+            restoration.release()
 
     def on_mount(self) -> None:
         from toad.screens.workspace import WorkspaceScreen

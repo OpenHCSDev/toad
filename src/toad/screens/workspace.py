@@ -193,12 +193,12 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         # Keep the last committed geometry: reading virtual_region here can
         # itself rebuild Textual's invalidated map with the new child positions.
         # Only the reader's current scroll/follow intent is refreshed pre-layout.
-        tracked = tuple((window, restoration)
+        tracked = tuple((window, restoration, restoration.layout_requests)
                         for window in self.history_windows
                         if (restoration := window.history_restoration) is not None)
         anchors = [
             (window, restoration, position)
-            for window, restoration in tracked
+            for window, restoration, _answered in tracked
             if (position := restoration.prepare_layout(window)) is not None
         ]
         with ExitStack() as compensation:
@@ -208,8 +208,8 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                 compensation.enter_context(WindowPosition.geometry(window))
             if not anchors:
                 yield from super()._layout_steps(size, scroll, deadline)
-                for _window, restoration in tracked:
-                    restoration.finish_layout()
+                for _window, restoration, answered in tracked:
+                    restoration.finish_layout(answered)
                 return
             # Screen normally paints from inside _refresh_layout. Do not expose
             # prepend/eviction coordinates before compensating for their height.
@@ -222,8 +222,8 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
                     changed |= restoration.restore_layout(window, position)
                 if changed:
                     yield from super()._layout_steps(size, scroll=True)
-                for _window, restoration in tracked:
-                    restoration.finish_layout()
+                for _window, restoration, answered in tracked:
+                    restoration.finish_layout(answered)
 
     def _screen_resized(self, size: Size) -> None:
         if self._navigation_layout.reusable(self, size, include_scroll=False):
