@@ -1,87 +1,99 @@
-"""Collect script pilots once, using the installed pinned stack and bounded children."""
+"""How Toad's tests run: app tests get a process and private roots each; coroutine tests just run."""
 
-import ast
+from __future__ import annotations
+
 import asyncio
+import inspect
+import json
 import os
 from pathlib import Path
-import sys
 import shutil
-import tempfile
+import sys
 
 import pytest
-from agent_comms.child_process import BoundedRun
-from runtime_fixture import stop_test_children
+
+from support.requirements import Requirement
+from support.roots import ATTEMPT, Roots
+from support.workspace import Workspace
+
+RESULT = "TOAD_TEST_RESULT"
+pytest_plugins = ["legacy_pilots"]
 
 
 def pytest_addoption(parser):
-    parser.addoption('--pilot-timeout', type=float, default=165,
-                     help='One attempt per pilot, bounded wall seconds (no retries)')
+    parser.addoption("--test-timeout", type=float, default=165,
+                     help="Wall seconds one app test may take, once (no retries)")
 
 
-class PilotFile(pytest.File):
-    def collect(self):
-        if self.path.stem.endswith(("_fixture", "_app", "_probe")):
-            return
-        tree = ast.parse(self.path.read_text())
-        if any(isinstance(node, ast.If) and ast.unparse(node.test) == "__name__ == '__main__'"
-               for node in tree.body):
-            yield Pilot.from_parent(self, name=self.path.stem)
+@pytest.fixture
+def workspace() -> Workspace:
+    """A private project and wire; asking for it gives the test its own process."""
+    return Workspace(Roots.of_this_process())
 
 
-class Pilot(pytest.Item):
+for _requirement in Requirement.__subclasses__():
+    globals()[_requirement.fixture] = pytest.fixture(name=_requirement.fixture)(_requirement.require)
+
+
+class OwnProcessTest(pytest.Item):
+    """Runs one collected test in a fresh interpreter that owns disposable roots.
+
+    The app keeps process-wide state (render workers, the comms route, settings
+    paths, frozen heap), so two app tests never share an interpreter.
+    """
+
     def runtest(self):
-        factory = self.config._tmp_path_factory
-        logs = factory.mktemp(self.path.stem)
-        # Unix-domain sockets have a small pathname budget. Keep disposable
-        # runtime roots short; source/worktrees and retained logs stay persistent.
-        root = Path(tempfile.mkdtemp(prefix="toad-pilot-", dir="/var/tmp"))
-        (logs / "runtime-root").write_text(str(root))
-        env = {key: value for key, value in os.environ.items() if not key.startswith("AGENT_COMMS_")}
-        # Every script receives private roots, even before it enters its own
-        # fixture. Detached children are retired through the existing child owner.
-        env.update(
-            AGENT_COMMS_ROOT=str(root/'wire'),
-            TOAD_TEST_ATTEMPT=str(root),
-            XDG_CONFIG_HOME=str(root/'config'),
-            XDG_DATA_HOME=str(root/'data'),
-            XDG_STATE_HOME=str(root/'state'),
-            XDG_CACHE_HOME=str(root/'cache'),
-            PI_CODING_AGENT_DIR=str(root/'pi'),
-            TMPDIR=str(root),
-            TOAD_E2E_ROOT=str(root),
-        )
-        # No editable package/source overrides: children import the installed
-        # wheel. The script directory is Python's normal local fixture boundary.
-        env.pop('PYTHONPATH', None)
-        env.pop('NO_COLOR', None)
-        env.update(TERM="xterm-256color", COLORTERM="truecolor", FORCE_COLOR="1")
-        timeout = self.config.getoption('--pilot-timeout')
-        stdout, stderr = logs/'stdout.log', logs/'stderr.log'
+        from agent_comms.child_process import BoundedRun
+        from support.processes import stop_test_children
+
+        roots = Roots.create()
+        result = roots.attempt / "result.jsonl"
+        env = roots.environment(dict(os.environ)) | {RESULT: str(result)}
+        command = (sys.executable, "-m", "pytest", self.nodeid, "-p", "no:cacheprovider",
+                   "-q", "--no-header", "--tb=short", "--color=no")
 
         async def run():
-            successful = False
             try:
-                result = await BoundedRun.run(
-                    (sys.executable, str(self.path)), timeout=timeout,
-                    cwd=self.config.rootpath, env=env,
-                )
-                stdout.write_bytes(result.stdout)
-                stderr.write_bytes(result.stderr)
-                successful = result.outcome.successful
-                if not successful:
-                    pytest.fail(f'Pilot failed: {result.outcome!r}\n{result.stderr.decode(errors="replace")[-12000:]}\nLogs: {logs}', pytrace=False)
+                return await BoundedRun.run(command, timeout=self.config.getoption("--test-timeout"),
+                                            cwd=self.config.rootpath, env=env)
             finally:
-                # UI shutdown deliberately leaves owners alive. Retire only
-                # processes whose private fixture root attests this attempt.
-                await stop_test_children(str(root))
-                if successful:
-                    shutil.rmtree(root)
-        asyncio.run(run())
+                # Closing the app leaves owners and helpers running; stop the ones this test started.
+                await stop_test_children(str(roots.attempt))
+
+        child = asyncio.run(run())
+        reports = [json.loads(line) for line in result.read_text().splitlines()] if result.exists() else []
+        output = child.stdout.decode(errors="replace")[-12000:] + child.stderr.decode(errors="replace")[-4000:]
+        if not child.outcome.successful or not reports:
+            pytest.fail(f"{child.outcome!r}\n{output}\nRoots kept: {roots.attempt}", pytrace=False)
+        shutil.rmtree(roots.attempt)
+        for report in reports:
+            if report["outcome"] == "skipped":
+                pytest.skip(report["reason"])
 
     def reportinfo(self):
-        return self.path, 0, f'pilot: {self.name}'
+        return self.path, None, self.name
 
 
-def pytest_pycollect_makemodule(module_path, parent):
-    if not module_path.name.startswith("test_"):
-        return PilotFile.from_parent(parent, path=module_path)
+def pytest_collection_modifyitems(config, items):
+    if ATTEMPT in os.environ:
+        return  # This is the process a test was given.
+    items[:] = [OwnProcessTest.from_parent(item.parent, name=item.name)
+                if "workspace" in getattr(item, "fixturenames", ()) else item for item in items]
+
+
+def pytest_runtest_logreport(report):
+    if (path := os.environ.get(RESULT)) is None:
+        return
+    reason = report.longrepr[2].removeprefix("Skipped: ") if report.skipped else ""
+    with Path(path).open("a") as stream:
+        stream.write(json.dumps({"when": report.when, "outcome": report.outcome, "reason": reason}) + "\n")
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_pyfunc_call(pyfuncitem):
+    """Coroutine tests run on their own event loop."""
+    if not inspect.iscoroutinefunction(pyfuncitem.obj):
+        return None
+    arguments = {name: pyfuncitem.funcargs[name] for name in pyfuncitem._fixtureinfo.argnames}
+    asyncio.run(pyfuncitem.obj(**arguments))
+    return True
