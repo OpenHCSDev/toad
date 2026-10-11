@@ -168,8 +168,10 @@ def test_reads_own_consumption_and_pattern_exhaustion():
 
 
 def test_terminal_dispatch_deletion_guard():
-    root = Path(__file__).resolve().parents[1] / "src/toad/ansi"
-    for path in root.glob("*.py"):
+    root = Path(__file__).resolve().parents[2] / "src/toad/ansi"
+    sources = sorted(root.glob("*.py"))
+    assert sources, root
+    for path in sources:
         tree = ast.parse(path.read_text())
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
