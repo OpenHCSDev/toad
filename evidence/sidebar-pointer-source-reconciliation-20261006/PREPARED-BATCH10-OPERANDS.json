@@ -1,0 +1,614 @@
+{
+  "state": "Prepared corrected sidebar control; fresh at-issue floor/ref/preimage binding required; no purpose/access",
+  "recipient": "OriginalParent",
+  "recipient_thread": "01a0d295-dfad-71f3-89f7-8a78d8917a73",
+  "prefix": "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001",
+  "owned_output": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose",
+  "root_prepare": {
+    "mode": "0700",
+    "paths": [
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose",
+      "/home/ts/.cache/agent-scratch/pbatch10"
+    ]
+  },
+  "stage_argv": [
+    "uv",
+    "pip",
+    "install",
+    "--python",
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "--no-deps",
+    "--no-cache",
+    "--no-index",
+    "--link-mode",
+    "copy",
+    "--reinstall",
+    "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/sidebar-latency-pair-20261006/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native77-selection-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+    "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/menu-click-selection-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl"
+  ],
+  "stage_cwd": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+  "stage_environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1"
+    }
+  },
+  "stage_attemptlimit": 1,
+  "source_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/sidebar-latency-pair-20261006/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "b55c17dc1acf22af7b03a2233cbd60e04c6a173d615aa0b1f38a58b3f51e7362",
+      "bytes": 912589,
+      "assets": 355
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native77-selection-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+      "sha256": "a59a71198f54a78ca56b29d639647058aca54f05404e0bff84df12c0ae4bfa4f",
+      "bytes": 772806,
+      "assets": 266
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "ef600e4b38c9da949de083437512f4c64d861f03",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/menu-click-selection-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "713113749b96cba774c91c29a4fd32d828f64467fa98dcec4c0dda42b130af5d",
+      "bytes": 2252755,
+      "assets": 319
+    },
+    {
+      "module": "textual_diff_view",
+      "distribution": "textual-diff-view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "bytes": 25753,
+      "assets": 3
+    },
+    {
+      "module": "refactor_audit",
+      "distribution": "nominal-refactor-audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "assets": 10
+    }
+  ],
+  "candidate_filewheels": [
+    {
+      "module": "agent_comms",
+      "distribution": "agent-comms",
+      "head": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/sidebar-latency-pair-20261006/core-wheel/agent_comms-0.1.0-py3-none-any.whl",
+      "sha256": "b55c17dc1acf22af7b03a2233cbd60e04c6a173d615aa0b1f38a58b3f51e7362",
+      "bytes": 912589,
+      "assets": 355
+    },
+    {
+      "module": "textual",
+      "distribution": "textual",
+      "head": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/native77-selection-pair-20261006/textual-wheel/textual-8.2.8-py3-none-any.whl",
+      "sha256": "a59a71198f54a78ca56b29d639647058aca54f05404e0bff84df12c0ae4bfa4f",
+      "bytes": 772806,
+      "assets": 266
+    },
+    {
+      "module": "toad",
+      "distribution": "batrachian-toad",
+      "head": "ef600e4b38c9da949de083437512f4c64d861f03",
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/menu-click-selection-pair-20261006/toad-wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "sha256": "713113749b96cba774c91c29a4fd32d828f64467fa98dcec4c0dda42b130af5d",
+      "bytes": 2252755,
+      "assets": 319
+    },
+    {
+      "module": "textual_diff_view",
+      "distribution": "textual-diff-view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+      "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+      "bytes": 25753,
+      "assets": 3
+    },
+    {
+      "module": "refactor_audit",
+      "distribution": "nominal-refactor-audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+      "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+      "bytes": 23532,
+      "assets": 10
+    }
+  ],
+  "matching_native_reference": {
+    "package": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+    "manifest": "4b687d2ddcafeea5b8baad92f4e88217f8dc78b38c3b608a024abc7e4ec31e50",
+    "tree": "63f18710cb9329be6ade27bac3b4dd822e2b36f013756fa8e6717b8073a4592c",
+    "authority": "Fresh private4b READ for sole installed proof; separate fresh private4b EXEC and Bohr final same-purpose release for one native SDK/ACP App; no public source READ"
+  },
+  "controls": [
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/declared_target_actions_installed_pilot.py",
+      "sha256": "6718b84edce73717b57a7248002af873a1ca03f9019d549e2e7970b4e1bbf5a3",
+      "bytes": 47358
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/l0a_native_installed_pilot.py",
+      "sha256": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+      "bytes": 37666
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/viewport_recent_tabs_pilot.py",
+      "sha256": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+      "bytes": 22482
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/native_session_retention_pilot.py",
+      "sha256": "b2ef51a97609077948f4e9ac0c4820aa4e0ae04bdf2a12e8e5c7544afc33e85c",
+      "bytes": 35157
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/thread_navigation_installed_journey.py",
+      "sha256": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+      "bytes": 10668
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/saved_state_user_journey_pilot.py",
+      "sha256": "c9e8e3b32c0285653112a37ea6596a809d601e0c779a3dabd35f6b2f0b4c971e",
+      "bytes": 47905
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/manual_live_turn_status.py",
+      "sha256": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+      "bytes": 7122
+    },
+    {
+      "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/runtime_fixture.py",
+      "sha256": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315",
+      "bytes": 18978
+    }
+  ],
+  "control_hashes": {
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/declared_target_actions_installed_pilot.py": "6718b84edce73717b57a7248002af873a1ca03f9019d549e2e7970b4e1bbf5a3",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/l0a_native_installed_pilot.py": "af0fb2d285ce9dddf728650809ab206b706000ed1d003e520d382b483b04e61a",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/viewport_recent_tabs_pilot.py": "b6141aeb7024439d39c57802bf3f0d10be394e17e5e6f0610479843ad3a19f57",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/native_session_retention_pilot.py": "b2ef51a97609077948f4e9ac0c4820aa4e0ae04bdf2a12e8e5c7544afc33e85c",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/thread_navigation_installed_journey.py": "a23fbcb8578986949712cacc8d7b1af01b97808de225c9dbdf970177c4a6f4d2",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/saved_state_user_journey_pilot.py": "c9e8e3b32c0285653112a37ea6596a809d601e0c779a3dabd35f6b2f0b4c971e",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/manual_live_turn_status.py": "f333da956fcc9e367f993853aa3daabbaea8d4278feed24eaa644d51c74e48fa",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/runtime_fixture.py": "c34f37f450a02f09d344352466431744892a0c788953212da5ac434d912e3315"
+  },
+  "proof": {
+    "template": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/verify_configured_source_member.template.py",
+      "sha256": "647980f579bb77ac9e1a6b3db7c7dab12b1af153f31ecbe1b3bd8b9da9e80113",
+      "bytes": 10546
+    },
+    "source_binding": {
+      "path": "/home/ts/wt/toad-warm-rendered-reader-20261006/evidence/configured-loaded-consumer-repair-20261006/PROOF-SOURCE-MEMBER-BINDING.json",
+      "sha256": "18e13c57f2d314c6f0103c3ccbce83305ba4ab28c864e9c6742d562124932312",
+      "bytes": 2156
+    },
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/verify_installed.py"
+    ],
+    "cwd": "/home/ts/wt/toad-sidebar-selected-targets-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "exclusive_destinations": [
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/agent_comms-installed-inventory.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/toad-installed-inventory.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/textual-installed-inventory.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/textual_diff_view-installed-inventory.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/refactor_audit-installed-inventory.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/native-full-trust.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/source-proof.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/candidate-activation.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/package-boundary-proof.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/core-installed-source.json"
+    ],
+    "materialization": "Only four actual fresh grantpath/SHA and newREADpath/SHA substitutions, after actual stagePASS/matchingREAD. Exact helper hash/argv/env/output binding and Bohr proofrelease precede sole invocation. Same original953/69/FullTrust algorithm; changed3 and1883 other66 truthful. Original typed Core member is a tenth exclusive proof output and must enter final App map/handoff."
+  },
+  "exact_control": {
+    "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/declared_target_actions_installed_pilot.py",
+    "sha256": "6718b84edce73717b57a7248002af873a1ca03f9019d549e2e7970b4e1bbf5a3",
+    "bytes": 47358
+  },
+  "control_arguments": [
+    "--output",
+    "/home/ts/.cache/agent-scratch/pbatch10/f",
+    "--batch-native-only"
+  ],
+  "outer_argv": [
+    "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+    "-B",
+    "/home/ts/wt/toad-sidebar-context-pointer-20261006/tests/declared_target_actions_installed_pilot.py",
+    "--output",
+    "/home/ts/.cache/agent-scratch/pbatch10/f",
+    "--batch-native-only"
+  ],
+  "cwd": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+  "environment": {
+    "unset": [
+      "PYTHONPATH",
+      "PYTHONHOME",
+      "VIRTUAL_ENV",
+      "AGENT_COMMS_THREAD",
+      "AGENT_COMMS_STARTUP_INPUT_KEY",
+      "PI_PROMPT",
+      "PI_PARENT_ID",
+      "PI_AGENT_ID",
+      "PI_TASK",
+      "TEXTUAL_DRIVER",
+      "AC_REAL_ORIGINAL_PYTHON",
+      "AC_REAL_SOURCE_OWNER",
+      "AC_REAL_SOURCE_ROOT",
+      "AC_REAL_SOURCE_FILE",
+      "AC_REAL_PROVIDER_AUTHORIZED",
+      "AC_REAL_READ_ONLY_CUSTODY",
+      "WORKSPACE_COHORTS"
+    ],
+    "set": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "AC_NATIVE_COPIED_PACKAGE": "/home/ts/wt/comms-native-bootstrap-origin-guard-20261005/stack/.pi-native-4b687d2ddcafeea5/node_modules/@earendil-works/pi-coding-agent",
+      "L0A_EVIDENCE": "/home/ts/.cache/agent-scratch/pbatch10/f/start-connections",
+      "TMPDIR": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/tmp"
+    }
+  },
+  "controller": {
+    "template": {
+      "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/evidence/selected-target-installed-20261006/run_selected_targets.template.py",
+      "sha256": "d5d63c4222c7c9898f80659c4fc0750b008b8cf3753de392d1ee5c36500740f2",
+      "bytes": 5478
+    },
+    "predecessor_template": {
+      "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/evidence/sidebar-wheel-installed-20261006/run_physical.template.py",
+      "sha256": "115acb1ef790812e96d70a6a93980aa033c263f87f4c2e546015c9f5a5a5ccfa",
+      "bytes": 5452
+    },
+    "new_literal": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/run_selected_targets.py",
+    "argv": [
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "-B",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/run_selected_targets.py"
+    ],
+    "materialization": "Only three actual grant/lifecycle/SHA literals after specific issue; original BoundedRun/AttachedChild/drain/parent-wait lifetime preserved"
+  },
+  "control_timeout_seconds": 600,
+  "outer_bound_basis": "Owner-selected safety deadline for one original SDK/ACP App, selection/dialog operations and serial native start/stop/reconnect under existing15s predicate and20s native phase checks; not a measured speed claim",
+  "input_scope": {
+    "provider_request_budget": 0,
+    "native_prompt_inputs": 0,
+    "public_original_inputs_replayed": 0,
+    "public_source_capture": false,
+    "new_authored_private_wire_messages": 3,
+    "new_authored_saved_menu_fixture": 1,
+    "additional_stopped_range_fixture_rows": 60
+  },
+  "mandatory_phases": [
+    "Ctrl toggle and Shift range without opening a thread",
+    "mixed thread/channel human read without consuming executor messages",
+    "mixed contextual thread/channel pin",
+    "real acquired-menu partial archive failure without blanket success",
+    "exclusive inactive exact-tag removal preserving multitag and active owners",
+    "real channel/member start-stop once per owner and only successful opened-peer reconnect",
+    "catalog reads off UI loop",
+    "original ToadApp SDK children/workers/default executor joined",
+    "native60-row Shift range after actual anchor leaves viewport; same App, no provider prompt"
+  ],
+  "restore": {
+    "argv": [
+      "uv",
+      "pip",
+      "install",
+      "--python",
+      "/home/ts/wt/toad-receiving-485-488-278-20261001/.artifacts/runtime-bundled-485-488-278-20261001/bin/python",
+      "--no-deps",
+      "--no-cache",
+      "--no-index",
+      "--link-mode",
+      "copy",
+      "--reinstall",
+      "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+      "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+      "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl"
+    ],
+    "cwd": "/home/ts/wt/toad-warm-rendered-reader-20261006",
+    "environment": {
+      "unset": [
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "VIRTUAL_ENV",
+        "AGENT_COMMS_THREAD",
+        "AGENT_COMMS_STARTUP_INPUT_KEY",
+        "PI_PROMPT",
+        "PI_PARENT_ID",
+        "PI_AGENT_ID",
+        "PI_TASK",
+        "TEXTUAL_DRIVER",
+        "AC_REAL_ORIGINAL_PYTHON",
+        "AC_REAL_SOURCE_OWNER",
+        "AC_REAL_SOURCE_ROOT",
+        "AC_REAL_SOURCE_FILE",
+        "AC_REAL_PROVIDER_AUTHORIZED",
+        "AC_REAL_READ_ONLY_CUSTODY",
+        "WORKSPACE_COHORTS"
+      ],
+      "set": {
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1"
+      }
+    },
+    "filewheels": [
+      {
+        "module": "agent_comms",
+        "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+        "assets": 355,
+        "wheel": {
+          "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+          "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+          "bytes": 904487
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/agent_comms-inventory.json",
+          "sha256": "3b7c13a8db9130ac170bbb8df5e77e61409c482242f226d0bd6ee6d8f2e5bee0",
+          "bytes": 55897
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      },
+      {
+        "module": "toad",
+        "head": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+        "assets": 319,
+        "wheel": {
+          "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+          "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+          "bytes": 2251159
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/toad-inventory.json",
+          "sha256": "3034ea1634b3d371d32595fc76e25f1605a5152e28a3e4e6ea7814f64a639236",
+          "bytes": 48134
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      },
+      {
+        "module": "textual",
+        "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+        "assets": 266,
+        "wheel": {
+          "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+          "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+          "bytes": 768752
+        },
+        "inventory": {
+          "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/textual-inventory.json",
+          "sha256": "06cf52a6d070eb515e9b061c1f81ce97ee34fed231a15e37b62401fb725ba610",
+          "bytes": 39856
+        },
+        "installed_namespace_noextras_and_ZIPbytes_equal": true
+      }
+    ],
+    "attemptlimit": 1,
+    "whole_floor": {
+      "nodes": 1467,
+      "assets": 953,
+      "versions": 69,
+      "other66": 1883,
+      "protected": 266,
+      "environment_nodes": 2,
+      "PREFIXactivation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11"
+    }
+  },
+  "outputs": {
+    "controller": [
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/control-effective-release.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/control-command.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/control-handle.json",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/control.stdout.log",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/control.stderr.log",
+      "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/control-terminal.json"
+    ],
+    "private_fixture": "/home/ts/.cache/agent-scratch/pbatch10/f",
+    "whole_handback": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch10-installed-purpose/whole-handback.json"
+  },
+  "all_new_outputs_absent": true,
+  "selected_source_heads": {
+    "core": "d8467b730cf87d45931fcc44e8ecb409277f86ed",
+    "toad": "ef600e4b38c9da949de083437512f4c64d861f03",
+    "textual": "2d45091584a7f9b386baa2a8edf8fb3a3ba8a3d6"
+  },
+  "helper_source_root": "/home/ts/wt/toad-sidebar-context-pointer-20261006",
+  "helper_source_head": "d4c9072e16e716a445b019a6f36d26402a3d94f7",
+  "helper_revision_note": "Existing SidebarObservation.sync reconciles backend roster before pointer acquisition; other helpers/product unchanged",
+  "public_originals_UNKNOWN_journals_preserved": true,
+  "boundary": "No package install, proof, FullTrust, SDK, native, App, input or public operation from this source record. Fresh at-issue checks and actual phase releases remain required.",
+  "prospective_runtime_socket": {
+    "original_owner": "agent_comms.runtime.socket_path(root,pid)",
+    "fixture_root": "/home/ts/.cache/agent-scratch/pbatch10/f/start-fixture/private-root/wire",
+    "max_32bit_pid_path": "/home/ts/.cache/agent-scratch/pbatch10/f/start-fixture/private-root/wire/runtime/2147483647.sock",
+    "utf8_bytes": 96,
+    "limit_exclusive": 107,
+    "actual_birth_path_bound_by_original_runtime_at_use": true
+  },
+  "control_source_checkpoint": {
+    "path": "/home/ts/wt/toad-sidebar-context-pointer-20261006/evidence/sidebar-pointer-source-reconciliation-20261006/CHECKPOINT.md",
+    "sha256": "b1937471d47ec58dd7d3acd77912530cf2b37b599268c41a6040daffd2031afe",
+    "bytes": 1903
+  },
+  "source_pair_readback": {
+    "path": "/home/ts/wt/toad-right-sidebar-latency-20261006/.artifacts/menu-click-selection-pair-20261006/WHEEL-READBACK.json",
+    "sha256": "7652728378f8771bc4e8245b5e606547ea36e254e2bf9ecb3c2d4bc5ccd141f8",
+    "bytes": 1812
+  },
+  "previous_whole_return": {
+    "path": "/home/ts/wt/toad-sidebar-selected-targets-20261006/.artifacts/selected-target-installed-20261006/485-batch09-installed-purpose/whole-handback.json",
+    "sha256": "ec0ef7cd7d68e32d401ce5c971608486894840c2eb4144c59ad7b75b9ba2d630",
+    "bytes": 27377
+  },
+  "previous_closed_lifecycle": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch09-package-App-lifecycle.json",
+    "sha256": "63ba0f12af190beedd97b9e704e427fb8852ae92388f94b7a2444ce1f290cacc",
+    "bytes": 27008
+  },
+  "fresh_assessment_required": true,
+  "restore_operand_status": "Bound byteexact to actual fresh assessment original three-package argv/cwd/environment/filewheels; one return after the sole attempt",
+  "floor": {
+    "nodes": 1467,
+    "assets": 953,
+    "versions": 69,
+    "other66": 1883,
+    "protected": 266,
+    "environment_nodes": 2,
+    "PREFIXactivation_sha256": "273d1ae8cbd9b38adfeb17e379419beea26c5a52fa2394aff16de6661c6eec11"
+  },
+  "normal_original_source_relation": [
+    {
+      "module": "agent_comms",
+      "head": "3931f16feb8bcb2dbcc3041446ca342dea665024",
+      "assets": 355,
+      "wheel": {
+        "path": "/home/ts/wt/comms-goal-ledger-schema-carry-20261002/.artifacts/same-owner-native-fork676-corrected-wheel-20261005/agent_comms-0.1.0-py3-none-any.whl",
+        "sha256": "3fe14077293b691000394831ed7458ecae92afd9b667af4501be2945ab86051d",
+        "bytes": 904487
+      },
+      "inventory": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/agent_comms-inventory.json",
+        "sha256": "3b7c13a8db9130ac170bbb8df5e77e61409c482242f226d0bd6ee6d8f2e5bee0",
+        "bytes": 55897
+      },
+      "installed_namespace_noextras_and_ZIPbytes_equal": true
+    },
+    {
+      "module": "toad",
+      "head": "289f1c6cd7667abf985ddba265d6469a95e3ea48",
+      "assets": 319,
+      "wheel": {
+        "path": "/home/ts/wt/toad-regression-widget-cost-20261001/.artifacts/viewport-worker-custody-20261005/wheel/batrachian_toad-0.6.20-py3-none-any.whl",
+        "sha256": "b2e420e5b2eed1aaa96d815b2abf38f990272a047417c2ca5082c01d9149a151",
+        "bytes": 2251159
+      },
+      "inventory": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/toad-inventory.json",
+        "sha256": "3034ea1634b3d371d32595fc76e25f1605a5152e28a3e4e6ea7814f64a639236",
+        "bytes": 48134
+      },
+      "installed_namespace_noextras_and_ZIPbytes_equal": true
+    },
+    {
+      "module": "textual",
+      "head": "d7337ee084f6dcda42cbd8a41c7417e87d60ae78",
+      "assets": 266,
+      "wheel": {
+        "path": "/home/ts/wt/textual-native-subtree-strips-20261002/.artifacts/native67-filewheel-20261005/textual-8.2.8-py3-none-any.whl",
+        "sha256": "16c9f5e7a1aca9f7a339fdb859c1743bbc0ba8f17327ba3debd4b13959ca927d",
+        "bytes": 768752
+      },
+      "inventory": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/textual-inventory.json",
+        "sha256": "06cf52a6d070eb515e9b061c1f81ce97ee34fed231a15e37b62401fb725ba610",
+        "bytes": 39856
+      },
+      "installed_namespace_noextras_and_ZIPbytes_equal": true
+    },
+    {
+      "module": "textual_diff_view",
+      "head": "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9",
+      "assets": 3,
+      "wheel": {
+        "path": "/home/ts/.cache/uv/sdists-v9/git/6a8a377ce2150d3f/8fa7d4d0db993ea3/textual_diff_view-0.1.5-py3-none-any.whl",
+        "sha256": "be7089c8f282e07e893b0254a0859e0f1b243a7ba591749f2053fa1fb775ad36",
+        "bytes": 25753
+      },
+      "inventory": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/textual_diff_view-inventory.json",
+        "sha256": "ec4c5f0a4025898ce5d6dd8233c3c7786f860bced717e16d59516d40b8269396",
+        "bytes": 460
+      },
+      "installed_namespace_noextras_and_ZIPbytes_equal": true
+    },
+    {
+      "module": "refactor_audit",
+      "head": "9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10",
+      "assets": 10,
+      "wheel": {
+        "path": "/home/ts/wt/nra-skill-publish-20261002/.artifacts/family-flattened-collector-20261004/wheels/nominal_refactor_audit-0.1.0-py3-none-any.whl",
+        "sha256": "8d489731728ebf9f7e0f90ef2b14e7e3b5d2f90ed82bd8b1482d735f82869886",
+        "bytes": 23532
+      },
+      "inventory": {
+        "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/merged466-worker-functional-receiving-20261005/refactor_audit-inventory.json",
+        "sha256": "b5831ab38127f3351c738fc05e287b8766e0adbd7aa796e5ddc15936adf7bc50",
+        "bytes": 1529
+      },
+      "installed_namespace_noextras_and_ZIPbytes_equal": true
+    }
+  ],
+  "matching_artifact_authorities_closed": [
+    {
+      "path": "/home/ts/wt/toad-prompt-action-owner-20261002/.artifacts/native-keeper-Parent-selected-target-batch08-private-READ-EXEC-handback-20261006.json",
+      "sha256": "20313624854934bc25d12cfa159e83bfa33cfea37dd68cc64f5ee3e60e2f6d84",
+      "bytes": 54587
+    }
+  ],
+  "fresh_checks_required_before_specific_issue": true,
+  "returned_floor_reference": {
+    "path": "/home/ts/.cache/agent-scratch/disk-cleanup-owner-20261002/485-Parent-selected-target-batch09-independent-final-floor-readback.json",
+    "sha256": "5b17c6aef81d74171b9f77d4a030aed8b98409dd3374644911a5a8f0e5f24325",
+    "bytes": 5247
+  }
+}
