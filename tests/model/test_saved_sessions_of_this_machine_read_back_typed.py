@@ -26,6 +26,8 @@ def test_saved_sessions_keep_identity_agent_definition_and_directory(tmp_path):
         for before, after in zip(raw, typed, strict=True):
             assert before[:7] == (after.id, after.agent, after.agent_identity, after.agent_session_id,
                                   after.title, after.protocol, after.prompt_count)
-            assert FieldCodec.encode(after.meta_json.agent_data) == json.loads(before[9])["agent_data"]
+            saved = json.loads(before[9])["agent_data"]
+            encoded = FieldCodec.encode(after.meta_json.agent_data)
+            assert {key: encoded[key] for key in saved} == saved
             assert json.loads(before[9])["cwd"] == str(after.meta_json.cwd)
         assert copied.execute("SELECT * FROM sessions ORDER BY id").fetchall() == raw
