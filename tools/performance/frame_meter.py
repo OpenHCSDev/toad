@@ -139,6 +139,10 @@ def install(*, expected_pid, seconds, output):
     # still points at the call that held it when this watcher gets the GIL.
     stall_threads = {}
     timed_callbacks = []
+    # Every callback since the lag probe last ran, and, per wait over 16 ms,
+    # the callbacks that made it up: a wait is often one loop turn of many
+    # short callbacks, none long enough to be recorded on its own.
+    since_probe, long_waits = [], []
     main_thread = threading.get_ident()
 
     def watch_stalls():
@@ -231,6 +235,7 @@ def install(*, expected_pid, seconds, output):
                     timed_callbacks.append((begin, spent / 1e6, callback, (time.thread_time_ns() - cpu_begin) / 1e6))
                 # Callbacks are totalled per owner within a frame: a slow
                 # frame is usually many small callbacks, not one long one.
+                since_probe.append((begin, spent / 1e6, callback))
                 parts = state["parts"]
                 parts[callback] = parts.get(callback, 0) + spent / 1e6
                 counts = state.setdefault("counts", {})
@@ -241,12 +246,16 @@ def install(*, expected_pid, seconds, output):
         # them separately so they are not blamed on that owner.
         if phase == "start":
             state["gc"] = clock()
+            # Objects allocated since the last collection that did any work:
+            # a collection that waited long has that many young objects to scan.
+            state["gc_young"] = gc.get_count()[0]
         elif (began := state.pop("gc", None)) is not None:
             parts = state["parts"]
             label = f"gc generation {info['generation']}"
             spent = (clock() - began) / 1e6
             parts[label] = parts.get(label, 0) + spent
-            gc_pauses.append((began, spent, info["generation"], info["collected"], info["uncollectable"]))
+            gc_pauses.append((began, spent, info["generation"], info["collected"], info["uncollectable"],
+                              state.pop("gc_young", 0)))
 
     def timed_display(self, screen, renderable):
         result = display(self, screen, renderable)
@@ -292,6 +301,10 @@ def install(*, expected_pid, seconds, output):
             if (entry := vars(message).get("_frame_meter")) is not None:
                 entry[1] = end
                 entry[3].append((type(self).__name__, begin, end))
+            if end - begin > 200_000:
+                # Inside its pump's callback: which message the time went to.
+                since_probe.append((begin, (end - begin) / 1e6,
+                                    f"  message {type(message).__name__} to {type(self).__name__}"))
             if end - begin > 50_000_000:
                 slow.append((begin, (end - begin) / 1e6, type(self).__name__, type(message).__qualname__,
                              type(getattr(message, "event", None)).__qualname__))
@@ -318,13 +331,21 @@ def install(*, expected_pid, seconds, output):
                        "frames": frames, "inputs": inputs, "lags": lags, "pauses": PAUSES,
                        "long_callbacks": sorted(long_callbacks.items()),
                        "stall_threads": sorted(stall_threads.items()),
-                       "timed_callbacks": timed_callbacks, "switch_steps": switch_steps,
+                       # Kernel thread id to Python thread name, to name the
+                       # per-thread CPU sampler's rows (a thread the kernel
+                       # still calls by the process name is one of these).
+                       "threads": sorted((thread.native_id, thread.name) for thread in threading.enumerate()),
+                       "timed_callbacks": timed_callbacks, "long_waits": long_waits, "switch_steps": switch_steps,
                        "stepped_layouts": stepped_layouts,
                        "slow_handlers": slow, "slow_frames": slow_frames,
                        "layout_requests": layouts, "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,
                        "stalls": sorted(stalls.items(), key=lambda item: -item[1])[:40],
                        "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
+                              # What the collector still scans (frozen objects excluded), by type.
+                              "tracked_types": collections.Counter(
+                                  f"{type(item).__module__}.{type(item).__qualname__}"
+                                  for item in gc.get_objects()).most_common(40),
                               "stats": gc.get_stats(), "threshold": gc.get_threshold(),
                               "pauses": gc_pauses}}, file)
         os.rename(partial, output)
@@ -337,6 +358,9 @@ def install(*, expected_pid, seconds, output):
     def probe(due):
         now = loop.time()
         lags.append((clock(), round((now - due) * 1000, 2)))
+        if now - due > 0.016:
+            long_waits.append((clock(), round((now - due) * 1000, 2), list(since_probe)))
+        since_probe.clear()
         if not state.get("finished"):
             loop.call_at(now + 0.004, probe, now + 0.004)
 
@@ -863,8 +887,13 @@ def _subject(args) -> str:
     from textual.geometry import Region, Size
 
     # Geometry arguments are shown by value: they tell two measurements of
-    # the same widget apart.
-    subjects = " ".join(repr(subject) if isinstance(subject, (tuple, Size, Region))
+    # the same widget apart. Any other tuple is named by type: printing a
+    # large argument costs the traced thread more than the call did.
+    def geometry(subject):
+        return isinstance(subject, (Size, Region)) or (
+            isinstance(subject, tuple) and all(isinstance(item, (int, float)) for item in subject))
+
+    subjects = " ".join(repr(subject) if geometry(subject)
                         else f"{type(subject).__name__}#{getattr(subject, 'id', None) or ''}"
                         for subject in args[:3])
     return f"{subjects} <- {' < '.join(chain)}"
@@ -878,9 +907,17 @@ def _result(value) -> str:
         return f"{type(value).__name__}[{', '.join(type(item).__name__ for item in value)}]"
     fields = getattr(value, "__dataclass_fields__", None)
     if fields:
-        shown = ", ".join(f"{field}={getattr(value, field)!r:.40}" for field in fields if field != "admissions")
+        shown = ", ".join(f"{field}={_field(getattr(value, field))}" for field in fields if field != "admissions")
         return f"{type(value).__name__}({shown})"
     return type(value).__name__
+
+
+def _field(value) -> str:
+    """One field of a traced result. A container is counted, not printed:
+    printing a large one costs the traced thread more than the call did."""
+    if isinstance(value, (dict, list, tuple, set, frozenset)):
+        return f"{type(value).__name__}[{len(value)}]"
+    return f"{value!r:.40}"
 
 
 def trace_calls(*, expected_pid, output, targets, seconds=60):
@@ -1095,6 +1132,164 @@ def heap_census(*, expected_pid, output, after=10):
         os.rename(partial, output)
 
     asyncio.get_running_loop().call_later(after, count)
+
+
+def collect_all(*, expected_pid, output, after=70):
+    """``after`` seconds from now: one full collection, split into its scan and its frees.
+
+    The first pass keeps what it finds (DEBUG_SAVEALL), so its time is the
+    scan of the whole unfrozen heap and the found objects can be counted by
+    type; the second pass scans again and frees them. The difference is what
+    freeing that garbage costs. Both run inside a measuring pause.
+    """
+    import asyncio
+    import collections
+    import gc
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+
+    def collect():
+        with measuring_pause():
+            tracked = len(gc.get_objects())
+            gc.set_debug(gc.DEBUG_SAVEALL)
+            begin = time.monotonic_ns()
+            gc.collect()
+            scanned = time.monotonic_ns()
+            gc.set_debug(0)
+            found = gc.garbage[:]
+            gc.garbage.clear()
+            types = collections.Counter(f"{type(item).__module__}.{type(item).__qualname__}" for item in found)
+            sizes, item = collections.Counter(), None
+            for item in found:
+                if isinstance(item, (list, tuple, dict, set)):
+                    sizes[f"{type(item).__name__} items"] += len(item)
+            count = len(found)
+            del found, item
+            begin_free = time.monotonic_ns()
+            gc.collect()
+            freed = time.monotonic_ns()
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump({"tracked_before": tracked, "found": count, "scan_ms": (scanned - begin) / 1e6,
+                       "scan_and_free_ms": (freed - begin_free) / 1e6, "tracked_after": len(gc.get_objects()),
+                       "types": types.most_common(60), "container_items": sizes.most_common()}, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(after, collect)
+
+
+def heap_components(*, expected_pid, output, after=100):
+    """``after`` seconds from now: how the unfrozen heap hangs together.
+
+    A collector increment takes an object and everything unfrozen it can
+    reach, so its pause is the size of that reachable set, not of the
+    increment's budget. This records the largest strongly connected group,
+    what it reaches, by type, and how much it would reach if objects of one
+    type were not followed (which type ties the set together).
+    """
+    import asyncio
+    import collections
+    import gc
+
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+
+    def name(item):
+        return f"{type(item).__module__}.{type(item).__qualname__}"
+
+    def measure():
+        with measuring_pause():
+            objects = gc.get_objects()
+            index = {id(item): position for position, item in enumerate(objects)}
+            count = len(objects)
+            types = [name(item) for item in objects]
+            edges = [[index[id(target)] for target in gc.get_referents(item) if id(target) in index]
+                     for item in objects]
+
+            def reach(seeds, skip=None):
+                seen = bytearray(count)
+                pending = list(seeds)
+                for seed in pending:
+                    seen[seed] = 1
+                total = 0
+                while pending:
+                    node = pending.pop()
+                    total += 1
+                    if skip is not None and types[node] == skip:
+                        continue
+                    for target in edges[node]:
+                        if not seen[target]:
+                            seen[target] = 1
+                            pending.append(target)
+                return total, seen
+
+            # Strongly connected groups (iterative Tarjan).
+            order, low, on_stack, stack, groups = [-1] * count, [0] * count, bytearray(count), [], []
+            counter = 0
+            for start in range(count):
+                if order[start] != -1:
+                    continue
+                work = [(start, 0)]
+                while work:
+                    node, edge = work.pop()
+                    if edge == 0:
+                        order[node] = low[node] = counter
+                        counter += 1
+                        stack.append(node)
+                        on_stack[node] = 1
+                    targets = edges[node]
+                    descended = False
+                    while edge < len(targets):
+                        target = targets[edge]
+                        edge += 1
+                        if order[target] == -1:
+                            work.append((node, edge))
+                            work.append((target, 0))
+                            descended = True
+                            break
+                        if on_stack[target] and order[target] < low[node]:
+                            low[node] = order[target]
+                    if descended:
+                        continue
+                    if low[node] == order[node]:
+                        group = []
+                        while True:
+                            member = stack.pop()
+                            on_stack[member] = 0
+                            group.append(member)
+                            if member == node:
+                                break
+                        if len(group) > 50:
+                            groups.append(group)
+                    if work:
+                        parent = work[-1][0]
+                        if low[node] < low[parent]:
+                            low[parent] = low[node]
+            groups.sort(key=len, reverse=True)
+            report = {"tracked": count, "edges": sum(map(len, edges)), "groups": []}
+            for group in groups[:4]:
+                total, seen = reach(group[:1])
+                reached = collections.Counter(types[node] for node in range(count) if seen[node])
+                inside = collections.Counter(types[node] for node in group)
+                cuts = sorted(((reach(group[:1], skip=kind)[0], kind) for kind, _ in reached.most_common(40)
+                               if types[group[0]] != kind))[:15]
+                report["groups"].append({"size": len(group), "types": inside.most_common(25), "reaches": total,
+                                         "reached_types": reached.most_common(40), "reaches_without_type": cuts})
+            # Objects no unfrozen object refers to: where increments that stay small begin.
+            referred = bytearray(count)
+            for targets in edges:
+                for target in targets:
+                    referred[target] = 1
+            report["unreferred_types"] = collections.Counter(
+                types[node] for node in range(count) if not referred[node]).most_common(25)
+            del objects, index, edges
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump(report, file)
+        os.rename(partial, output)
+
+    asyncio.get_running_loop().call_later(after, measure)
 
 
 def freeze_heap(*, expected_pid, output):

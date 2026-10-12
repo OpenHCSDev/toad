@@ -44,6 +44,10 @@ def main():
     parser.add_argument("--freeze-heap", action="store_true", help="Experiment: freeze the heap now (frame_meter.freeze_heap)")
     parser.add_argument("--heap-census", type=float, default=0,
                         help="After N seconds count the collector's tracked objects by type (frame_meter.heap_census)")
+    parser.add_argument("--collect-all", type=float, default=0,
+                        help="After N seconds run one full collection, timing its scan and its frees (frame_meter.collect_all)")
+    parser.add_argument("--heap-components", type=float, default=0,
+                        help="After N seconds record how the unfrozen heap hangs together (frame_meter.heap_components)")
     parser.add_argument("--trace-garbage", action="store_true",
                         help="Count by type what each large collection found, for 12 s (frame_meter.trace_garbage)")
     parser.add_argument("--remeasure", type=int, default=0,
@@ -53,7 +57,7 @@ def main():
     parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
-            or args.trace_reflows or args.trace_rules or args.trace_exit or args.trace_garbage or args.heap_census or args.freeze_heap or args.trace_abc or args.trace_posts
+            or args.trace_reflows or args.trace_rules or args.trace_exit or args.trace_garbage or args.collect_all or args.heap_components or args.heap_census or args.freeze_heap or args.trace_abc or args.trace_posts
             or args.remeasure or args.repaint):
         parser.error("Choose --profile-seconds, --frame-meter, --targets or --profile-layout")
     if Path(args.name).name != args.name:
@@ -110,6 +114,10 @@ def main():
             calls.append((str(prefix) + "-freeze", "freeze_heap", ""))
         if args.heap_census:
             calls.append((str(prefix) + "-heap", "heap_census", f", after={args.heap_census!r}"))
+        if args.collect_all:
+            calls.append((str(prefix) + "-collect", "collect_all", f", after={args.collect_all!r}"))
+        if args.heap_components:
+            calls.append((str(prefix) + "-components", "heap_components", f", after={args.heap_components!r}"))
         if args.trace_garbage:
             calls.append((str(prefix) + "-garbage", "trace_garbage", ", seconds=150"))
         if args.trace_reflows:

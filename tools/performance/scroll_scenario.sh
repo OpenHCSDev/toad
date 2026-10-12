@@ -70,7 +70,7 @@ if [[ -n "${METER_FROM_OPEN:-}" ]]; then
     fi
     python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run "${measure[@]}" \
         ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} \
-        ${TRACE_GARBAGE:+--trace-garbage} ${HEAP_CENSUS:+--heap-census "$HEAP_CENSUS"} ${FREEZE_HEAP:+--freeze-heap} ${TRACE_ABC:+--trace-abc} ${TRACE_POSTS:+--trace-posts} --sudo > "$out/capture.log" 2>&1 &
+        ${TRACE_GARBAGE:+--trace-garbage} ${HEAP_CENSUS:+--heap-census "$HEAP_CENSUS"} ${COLLECT_ALL:+--collect-all "$COLLECT_ALL"} ${HEAP_COMPONENTS:+--heap-components "$HEAP_COMPONENTS"} ${FREEZE_HEAP:+--freeze-heap} ${TRACE_ABC:+--trace-abc} ${TRACE_POSTS:+--trace-posts} --sudo > "$out/capture.log" 2>&1 &
     capture=$!
     # Optional: every app thread's CPU and run-queue time, every 10 ms, over
     # the same window (THREAD_CPU_SAMPLER names the sampler script).
