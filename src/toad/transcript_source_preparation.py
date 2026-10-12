@@ -22,7 +22,7 @@ class HistorySourceSnapshot:
     """One original source/view identity for page and filter publication."""
 
     generation: int
-    window: HistoryWindow | None
+    window: HistoryWindow
     screen: Screen
     source: object
 

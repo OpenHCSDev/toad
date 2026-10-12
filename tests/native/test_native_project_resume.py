@@ -11,6 +11,14 @@ from support.textual_steps import reveal_project_tree
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 
 
+async def project_applied(ui, project) -> None:
+    """Wait for the whole project change (shell directory, saved session, title), which ends with the title."""
+    from toad.format_path import format_path
+
+    app, _pilot = ui.textual
+    await ui.until(lambda: format_path(project) in app.screen.title, why="the title to name the new project")
+
+
 async def test_saved_project_and_later_changes_replace_the_launch_directory(workspace, native_package):
     launched, saved = workspace.project, workspace.roots.attempt / "saved-project"
     saved.mkdir()
@@ -45,6 +53,7 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
         await ui.until(lambda: session.project_path == launched, seconds=10, why="the project change from the wire")
         await ui.until(lambda: conversation.project_path == launched, why="the conversation's project")
         assert Path(session.query_one(ProjectDirectoryTree).path) == launched
+        await project_applied(ui, launched)
 
 
 async def test_a_project_change_reported_by_the_agent_moves_the_session(workspace, native_package):
@@ -63,4 +72,5 @@ async def test_a_project_change_reported_by_the_agent_moves_the_session(workspac
             coordination_fact("saved", str(workspace.roots.wire), worktree=str(moved)))
         await ui.until(lambda: session.project_path == moved, why="the session's project to follow the agent's report")
         await ui.until(lambda: ui.conversation.project_path == moved, why="the conversation's project")
+        await project_applied(ui, moved)
         assert ui.failure() is None
