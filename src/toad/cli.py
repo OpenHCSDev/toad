@@ -35,8 +35,12 @@ def run_terminal(app: ToadApp) -> None:
     except Exception as error:
         persist_terminal_failure(error)
         raise
+    finally:
+        # The failure that ended the app is saved even when closing the app
+        # then raised its own error, or was interrupted.
+        if app._exception is not None:
+            persist_terminal_failure(app._exception)
     if app._exception is not None:
-        persist_terminal_failure(app._exception)
         raise SystemExit(app.return_code or 1)
     app.application.version.status.print_notice()
 
