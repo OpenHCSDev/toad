@@ -139,14 +139,14 @@ class NativeSessionEntry(SessionEntry):
         name = source._comms_thread if source else ""
         snapshot = observed.sidebar.snapshot if observed is not None else None
         if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
-            return OpenTab(self.mode, self.details.title or "New Session")
+            return OpenTab(self.mode, self.details.name.display or "New Session")
         row = observed.sidebar.threads.rows.get(name)
         originals = self.original_threads(sessions)
         if row is not None and originals and not any(
                 Path(root).resolve() == observed.service.root and identity == row.incarnation
                 for root, identity in originals):
-            return OpenTab(self.mode, self.details.title or "New Session")
-        return OpenTab(self.mode, row.label if row else self.details.title or "New Session",
+            return OpenTab(self.mode, self.details.name.display or "New Session")
+        return OpenTab(self.mode, row.label if row else self.details.name.display or "New Session",
                        UnreadPresentation.for_thread(snapshot, name))
 
     async def return_to(self, sessions: SessionNavigation) -> None:

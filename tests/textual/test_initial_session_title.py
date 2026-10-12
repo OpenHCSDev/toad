@@ -68,7 +68,7 @@ async def test_new_session_metadata_names_the_tab_and_the_saved_session(workspac
         await ui.until(lambda: expected in tab_title(ui, mode), why="the tab to carry the thread's title")
         assert created_titles == [expected], ("saved title at creation", created_titles, expected)
         assert ui.selected_tab == mode, "No tab switch should be needed"
-        assert app.session_tracker.get_session(mode).title == expected
+        assert app.session_tracker.get_session(mode).name.display == expected
         assert agent.session.pk is not None
         assert (await DB().session_get(agent.session.pk)).title == expected
         assert workspace.comms.registry.require(THREAD).title == title, "Presenting a title must not rename the thread"
@@ -99,15 +99,15 @@ async def test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label
             await resumed.session.load()
         await ui.until(lambda: expected in tab_title(ui, loaded), why="the loaded tab to carry the thread's title")
         assert ui.selected_tab == loaded
-        assert app.session_tracker.get_session(loaded).title == expected
+        assert app.session_tracker.get_session(loaded).name.display == expected
         assert (await DB().session_get(agent.session.pk)).title == expected
-        app.session_tracker.update_session(loaded, title="My explicit label")
+        app.session_tracker.name_session(loaded, "My explicit label")
         app.selected_session.on_comms_session_named(THREAD)
-        assert app.session_tracker.get_session(loaded).title == "My explicit label"
+        assert app.session_tracker.get_session(loaded).name.display == "My explicit label"
         resumed.comms_consumer_class(resumed, resumed.session_id).dispatch_sync(
             coordination_fact(THREAD, workspace.roots.wire))
         await ui.step()
-        assert app.session_tracker.get_session(loaded).title == "My explicit label"
+        assert app.session_tracker.get_session(loaded).name.display == "My explicit label"
 
 
 async def new_session_with_pending_name(workspace):

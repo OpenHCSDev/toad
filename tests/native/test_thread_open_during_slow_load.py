@@ -104,7 +104,8 @@ async def test_a_slow_thread_open_uses_one_tab_and_ends_with_saved_history(works
                 await ui.until_shows(ThreadLoading.LABEL)
                 assert tuple(app.tab_order.names) == (*tabs_before, tab)
                 details = app.session_tracker.get_session(tab)
-                assert details.title == "fresh-peer"
+
+                assert details.name.display == "fresh-peer"
                 workspace.release("load-fresh-peer")
                 assert await opening == tab and await duplicate == tab
                 await ui.until(lambda: view.conversation.agent_ready, seconds=12, why="the opened thread to be ready")

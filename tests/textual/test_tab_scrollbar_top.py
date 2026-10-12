@@ -10,7 +10,7 @@ async def open_peers(ui, count: int) -> list[str]:
     peers = []
     for index in range(count):
         identity = await ui.new_session()
-        ui.app.session_tracker.update_session(identity, title=f"thread-{index}-long-title")
+        ui.app.session_tracker.name_session(identity, f"thread-{index}-long-title")
         peers.append(identity)
     await ui.step()
     await ui.pilot.wait_for_scheduled_animations()
@@ -140,7 +140,7 @@ async def test_overflow_appearing_on_a_mounted_strip_keeps_the_underline_painted
                 for index, session in enumerate(app.session_tracker.ordered_sessions):
                     title = (f"pr17-standby-liveness-owner-{index} working on active goal"
                              if long_titles else str(index))
-                    app.session_tracker.update_session(session.mode_name, title=title)
+                    app.session_tracker.name_session(session.mode_name, title)
                 await ui.step()
                 await ui.pilot.wait_for_scheduled_animations()
                 assert tabs.show_horizontal_scrollbar == long_titles

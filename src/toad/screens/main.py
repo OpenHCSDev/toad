@@ -2,6 +2,7 @@ from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
 from toad.core.events import SessionChangedEvent
+from toad.format_path import format_path
 from toad.core_event_carrier import CoreEventReceiver
 import asyncio
 from functools import partial
@@ -260,6 +261,11 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
         self._initial_prompt = None
         return conversation
 
+    def update_title(self) -> None:
+        """The screen's title names the agent and the project it presents."""
+        self.title = (f"{self._agent.name} {format_path(self.project_path)}"
+                      if self._agent is not None else "")
+
     async def wait_content_ready(self) -> None:
         await self._content_ready.wait()
         if self._content_error is not None and not self._closing and not self._closed:
@@ -328,11 +334,11 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
                 self.project_path = project
                 if self._project_panel is not None:
                     self._project_panel.path = project
-                await self.conversation.sync_project_path(project)
                 if self.id is not None:
                     self.app.session_navigation.sync_project(self.id, project)
+                self.update_title()
         self.on_comms_session_named(event.thread.name)
-        self.conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
+        await self.presentation.apply_coordination(self, event)
 
     _last_dm_target: str | None = None
 
@@ -450,14 +456,15 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
 
     @handles(core_events.SessionTitleChanged)
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
+        """The user or the agent process named this session; the tab keeps it."""
         if self.id is not None:
-            self.app.session_tracker.update_session(self.id, title=message.event.name)
+            self.app.session_tracker.name_session(self.id, message.event.name)
 
     @handles(core_events.SessionThreadTitle)
     def on_session_thread_title(self, message: CoreEventMessage) -> None:
         """The thread presented a title; an authored name keeps the tab's label."""
-        if self.id is not None:
-            if self.app.session_tracker.sessions[self.id].update_thread_title(message.event.title):
+        if (details := self.app.session_tracker.get_session(self.id)) is not None:
+            if details.update_thread_title(message.event.title):
                 self.app.session_tracker.events.publish(SessionChangedEvent(self.id))
 
     @handles(core_events.SessionSubtitleChanged)
@@ -486,6 +493,7 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
             tree.data_bind(path=MainScreen.project_path)
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
+        self.update_title()
 
     def channels_context(self) -> tuple[str, str]:
         return self._comms_thread, ""

@@ -55,7 +55,7 @@ class SidebarState:
 
 @dataclass(frozen=True)
 class SessionName:
-    """A session tab's name: either the user's choice or the thread's title."""
+    """A session tab's name: the user's choice, or the thread's title."""
 
     authored: str | None
     thread_title: str = ""
@@ -65,6 +65,11 @@ class SessionName:
         """What the tab shows: the user's name when they chose one."""
         return self.authored or self.thread_title
 
+    @property
+    def is_placeholder(self) -> bool:
+        """No name yet: not authored, and still showing the workspace placeholder."""
+        return self.authored is None and self.thread_title == "New Session"
+
     @classmethod
     def authored_name(cls, name: str) -> "SessionName":
         return cls(name)
@@ -73,17 +78,24 @@ class SessionName:
     def following(cls, thread_title: str) -> "SessionName":
         return cls(None, thread_title)
 
-    def replace_authored(self, name: str) -> "SessionName":
-        return type(self).authored_name(name)
-
-    def replace_thread_title(self, thread_title: str) -> "SessionName":
-        return type(self)(self.authored, thread_title)
-
     def present_thread_title(self, thread_title: str) -> "SessionName | None":
         """The name after the thread presents a title, or None if it cannot win."""
         if self.authored is not None:
             return None
-        return self.replace_thread_title(thread_title)
+        return type(self)(None, thread_title)
+
+    def adopt_identity(self, previous: str, current: str) -> "SessionName | None":
+        """The thread behind this session is now named `current`.
+
+        A tab that shows no name of its own yet, or still shows the old
+        thread's name, follows; the user's name and a tab already following
+        another thread stay.
+        """
+        if self.authored is not None:
+            return None
+        if self.thread_title != previous and not self.is_placeholder:
+            return None
+        return type(self)(None, current)
 
 
 @dataclass
@@ -107,31 +119,23 @@ class SessionDetails:
     """Creation time for local sessions without a wire identity."""
 
     @property
-    def title(self) -> str:
-        """The name this session currently shows."""
-        return self.name.display
-
-    @title.setter
-    def title(self, value: str) -> None:
-        """A write through the plain title is the user naming the session."""
-        self.name = self.name.replace_authored(value)
-
-    @property
     def initial_title(self) -> str | None:
         """The workspace placeholder is not an authored session name."""
-        return None if self.title == "New Session" else self.title
+        return None if self.name.is_placeholder else self.name.display
 
     def bind_initial_identity(self, session_id: str | None) -> None:
         """An existing native identity names an otherwise unnamed admission."""
-        if session_id is not None and self.title == "New Session":
+        if session_id is not None and self.name.is_placeholder:
             self.update_thread_title(session_id)
+
+    def name_session(self, name: str) -> None:
+        """The user named this session; no presented title replaces it."""
+        self.name = SessionName.authored_name(name)
 
     def update_thread_title(self, thread_title: str) -> bool:
         """Adopt the thread's title where the user has not named the session."""
         replacement = self.name.present_thread_title(thread_title)
-        if replacement is None:
-            return False
-        if replacement.thread_title == self.name.thread_title:
+        if replacement is None or replacement.thread_title == self.name.thread_title:
             return False
         self.name = replacement
         return True
@@ -167,39 +171,40 @@ class SessionTracker:
             self.events.publish(SessionClosedEvent(mode_name))
 
     def bind_identity(self, mode_name: str, previous: str, current: str) -> None:
-        """The thread's name arrives: an authored name keeps the tab's label.
-
-        A tab that still shows the old thread's name adopts the new one.
-        """
+        """The thread's name arrives: the user's name keeps the tab's label."""
         details = self.sessions[mode_name]
-        following = details.name.authored is None and details.name.thread_title in {"New Session", previous}
-        if following and details.update_thread_title(current):
+        if (adopted := details.name.adopt_identity(previous, current)) is not None:
+            details.name = adopted
             self.events.publish(SessionChangedEvent(mode_name))
 
     def get_session(self, mode_name: str) -> SessionDetails | None:
         return self.sessions.get(mode_name, None)
 
+    def name_session(self, mode_name: str, name: str) -> SessionDetails:
+        """The user named this session; its tab keeps the name."""
+        session_details = self.sessions[mode_name]
+        before = session_details.name.display
+        session_details.name_session(name)
+        if session_details.name.display != before:
+            self.events.publish(SessionChangedEvent(mode_name))
+        return session_details
+
     def update_session(
         self,
         mode_name: str,
-        title: str | None = None,
         subtitle: str | None = None,
         path: str | None = None,
     ) -> SessionDetails:
         session_details = self.sessions[mode_name]
         before = (
-            session_details.title, session_details.subtitle, session_details.path,
+            session_details.name.display, session_details.subtitle, session_details.path,
         )
-        if title is not None:
-            # Writing the plain title is an authored name; the thread's title
-            # arrives through update_thread_title.
-            session_details.title = title
         if subtitle is not None:
             session_details.subtitle = subtitle
         if path is not None:
             session_details.path = path
         after = (
-            session_details.title, session_details.subtitle, session_details.path,
+            session_details.name.display, session_details.subtitle, session_details.path,
         )
         if after != before:
             self.events.publish(SessionChangedEvent(mode_name))

@@ -4,11 +4,14 @@ import asyncio
 from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 from weakref import ref
 
 from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
+
+from agent_comms.acp_extension import CoordinationChangedUpdate
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
@@ -192,6 +195,20 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     async def attach_binding(self, conversation: Conversation) -> None:
         await self.sources.present(conversation)
 
+    async def apply_coordination(self, screen: "MainScreen", event: CoordinationChangedUpdate) -> None:
+        """Apply a coordination update's view work to this session's conversation.
+
+        The workspace admits one session's native tree at a time, so the
+        widget may be parked or not yet built. Its work waits for admission,
+        which applies the screen's retained fact.
+        """
+        conversation = self.widget
+        if conversation is None:
+            return
+        if event.worktree is not None and (project := Path(event.worktree)) != conversation.project_path:
+            await conversation.sync_project_path(project)
+        conversation.input_histories.bind_scope(f"thread:{event.thread.name}")
+
     @asynccontextmanager
     async def acquire(self, screen: "MainScreen"):
         """Mount owned resources before workspace admission, then restore them.
@@ -212,6 +229,8 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             if self.state is not None:
                 conversation._initial_prompt = self.state.initial_prompt
             await content.mount(conversation, before=slot)
+            if (fact := screen.app.coordination_facts.get(screen)) is not None:
+                await self.apply_coordination(screen, fact)
         yield conversation
         if self.state is not None:
             self.state.prepare_transcript(conversation)

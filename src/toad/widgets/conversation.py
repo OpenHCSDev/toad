@@ -705,16 +705,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         if len(self.tool_expansions) > 512:
             del self.tool_expansions[next(iter(self.tool_expansions))]
 
-    def update_title(self) -> None:
-        """Update the screen title; a conversation off screen has no title."""
-        if not self.is_mounted:
-            return
-        if agent_title := self.agent_title:
-            project_path = format_path(self.project_path)
-            self.screen.title = f"{agent_title} {project_path}"
-        else:
-            self.screen.title = ""
-
     @property
     def agent_title(self) -> str | None:
         if self._agent_data is not None:
@@ -762,7 +752,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                 from toad.db import DB
 
                 await DB().session_update_project(session_pk, path)
-        self.update_title()
 
     def _turn_changed(self, owner: TurnOwner) -> None:
         self._sync_throbber()
@@ -1742,7 +1731,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self.app.settings.shell.allow_commands.split()
         )
         self.start_native_session()
-        self.update_title()
         self.window.anchor()
 
     @handles(core_events.InputDispositionsChanged)
@@ -1870,7 +1858,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             if self.agent_ready:
                 self.call_later(self.goal_observation.invalidate)
                 self.call_later(self.delivery_observation.invalidate)
-        self.update_title()
 
         if self.is_mounted:
             self.update_slash_commands()

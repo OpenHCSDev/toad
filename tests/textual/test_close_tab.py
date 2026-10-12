@@ -40,19 +40,19 @@ async def test_closing_a_tab_releases_its_agent_without_titling_or_configuring_t
         await ui.step()
         prompt = conversation.prompt
         updated = []
-        update_title, sync_configuration = Conversation.update_title, Prompt.sync_configuration
-
-        def titled(view, *args, **kwargs):
-            if view is conversation:
-                updated.append("title")
-            return update_title(view, *args, **kwargs)
+        sync_configuration, sync_project = Prompt.sync_configuration, Conversation.sync_project_path
 
         def configured(view, *args, **kwargs):
             if view is prompt:
                 updated.append("prompt configuration")
             return sync_configuration(view, *args, **kwargs)
 
-        with (patch.object(Conversation, "update_title", titled),
+        def synced(view, *args, **kwargs):
+            if view is conversation:
+                updated.append("project sync")
+            return sync_project(view, *args, **kwargs)
+
+        with (patch.object(Conversation, "sync_project_path", synced),
               patch.object(Prompt, "sync_configuration", configured)):
             await ui.close_tab(identity)
         assert not updated, ("The closing view was updated again", updated)
