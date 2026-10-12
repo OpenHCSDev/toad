@@ -12,7 +12,7 @@ from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
 from functools import cached_property, partial
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -47,6 +47,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
+from toad.line_blocks import ToggleDetails
 from toad.widgets.transcript_lines import (
     LinkedRows, Lines, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
@@ -128,7 +129,8 @@ class TranscriptPageView(LinkedRows, Widget):
     def history(self) -> LineHistory:
         return self.query_ancestor(LineHistory)
 
-    def action_toggle_details(self) -> None:
+    @handles(ToggleDetails)
+    def toggle_details(self, link: ToggleDetails) -> None:
         """Show or hide the details of the fragment whose line was clicked."""
         history = self.history
         history.run_worker(history.toggle_details(self.fragment_under_mouse()), group="message-details")
@@ -426,8 +428,6 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
-    # The widget that draws one page of this history.
-    page_view: ClassVar[type[TranscriptPageView]] = TranscriptPageView
 
     @property
     def message_category(self) -> None:
@@ -447,7 +447,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         self.budget = budget or PresentationBudget(
             max_items=self.MAX_FRAGMENTS, batch_items=PreparedTranscriptPage.BATCH,
         )
-        self.pages = deque([self.page_view(
+        self.pages = deque([TranscriptPageView(
             page, fragments=fragments, prepared=prepared, batch_size=self.budget.batch_items,
         )])
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
@@ -925,7 +925,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                     self.pages = deque([view])
                 else:
                     try:
-                        async with self.page_view.acquire(
+                        async with TranscriptPageView.acquire(
                             self, page, fragments=fragments, batch_size=destination_batch,
                             prepared=prepared,
                             before=self.newer, current=lambda: snapshot.current(self) and request.current(window),
@@ -1010,7 +1010,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
             elif page is not None:
                 assert fragments is not None
                 page_range = edge.capture_range()
-                async with self.page_view.acquire(
+                async with TranscriptPageView.acquire(
                     self, page, newest=older, fragments=fragments, batch_size=edge.batch_size,
                     prepared=prepared,
                     before=edge if older else self.newer,

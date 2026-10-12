@@ -1,6 +1,8 @@
 """Completing a thread mention in a channel keeps the draft and delivers to the channel."""
 
 
+from toad.line_blocks import OpenTarget
+
 async def test_mention_completion_delivery_and_link(workspace):
     workspace.thread("alpha", "team")
     workspace.thread("beta", "team")
@@ -20,7 +22,7 @@ async def test_mention_completion_delivery_and_link(workspace):
         assert len(comms.bus.inbox("alpha")) == len(comms.bus.inbox("beta")) == 1
         await ui.until_shows("Can @alpha review this?")
         # The name becomes a link when the message's styled lines replace its plain ones.
-        await ui.until(lambda: ui.link_at("@alpha review") == ("open_target", ("alpha",)),
+        await ui.until(lambda: ui.link_at("@alpha review") == OpenTarget("alpha").click,
                        why="the mention drawn as a link")
 
         await ui.write_draft("@")

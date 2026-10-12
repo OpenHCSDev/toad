@@ -26,7 +26,8 @@ from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import Body, FragmentLineConsumer, LineBlock, MutedRole
+from toad.line_blocks import Body, LineBlock, MutedRole
+from toad.message_rows import MarkdownMessageStyle, MessageRow
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -273,9 +274,8 @@ class SentMessageToolOutputPart(ToolOutputPart):
         return (OutgoingMessage(self.message),)
 
     def line_blocks(self):
-        consumer = FragmentLineConsumer(show_divider=True)
-        consumer.dispatch_sync(self.message)
-        return tuple(consumer.blocks)
+        row = MessageRow.sent(self.message)
+        return (row.header, *MarkdownMessageStyle().body(row))
 
 
 @dataclass(frozen=True)

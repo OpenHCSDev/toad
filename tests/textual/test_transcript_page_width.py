@@ -81,7 +81,7 @@ class TranscriptPageWidth(unittest.TestCase):
     def test_plain_height_counts_the_rows_plain_mode_draws(self):
         theme = active_app.get().colours.line_theme
         blocks = (
-            Divider("Agent", role=AgentRole), Summary("· Agent activity"), Gap(),
+            Divider.titled("Agent", AgentRole), Summary("· Agent activity"), Gap(),
             Body("", role=UserRole), Body("\t\tindented\tline", role=AgentRole),
             Body("x" * 250 + "\n\n" + "short\n" + "y" * 77, role=AgentRole, bar=UserRole),
             Body("# Heading\n\n- item " * 30, role=AgentRole, markdown=True),

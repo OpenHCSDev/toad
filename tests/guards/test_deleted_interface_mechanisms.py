@@ -162,6 +162,32 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
         assert not hasattr(WireHistory, name), name
 
 
+def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
+    """The channel, saved thread history and live rows build a message's header from `MessageRow`."""
+    assert not (ROOT / 'widgets/route_header.py').exists()
+    declared: dict[str, list[str]] = {}
+    for path in ROOT.rglob('*.py'):
+        for node in ast.walk(ast.parse(path.read_text())):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                declared.setdefault(node.name, []).append(path.relative_to(ROOT).as_posix())
+    # One class says how a link opens; no view or widget keeps actions of its own for it.
+    assert declared['OpensLinks'] == ['widgets/transcript_lines.py']
+    for name in ('action_open_target', 'action_open_historical_target', 'action_open_url', 'action_open_thread',
+                 'action_toggle_details', 'open_link', 'RouteHeader', 'WirePageView'):
+        assert name not in declared, (name, declared.get(name))
+    # The words that used to stand in for the route are drawn nowhere.
+    source = ''.join(path.read_text() for path in ROOT.rglob('*.py'))
+    for caption in ('"Outbound"', '"Inbound"', 'Sent →'):
+        assert caption not in source, caption
+    from toad.line_blocks import Divider
+    from toad.widgets.message_divider import MessageDivider
+    from toad.widgets.transcript_lines import OpensLinks
+
+    # The live rule draws the block saved history draws; it has no drawing of its own.
+    assert 'render' not in vars(MessageDivider) and issubclass(MessageDivider, OpensLinks)
+    assert Divider.__dataclass_fields__.keys() == {'spans', 'role', 'timestamp'}
+
+
 def test_serialized_history_tree_mutations_use_the_window_fence():
     """A source lock cannot substitute for the window's native frame fence."""
     mutations = {'mount', 'remove_children', 'remove', 'extend', 'trim',

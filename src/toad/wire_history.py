@@ -7,7 +7,7 @@ Nothing here imports a terminal library.
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from pathlib import Path
@@ -15,18 +15,13 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms import HistoricalMessage
 from agent_comms.comms import Comms
-from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message
 from agent_comms.presentation import WireRevision
-from agent_comms.thread_identity import ThreadRole
 
 from toad.conversation_kind import ConversationKind
-from toad.inline_spans import inline_spans
-from toad.line_blocks import (
-    Body, Divider, Gap, LineBlock, LineLink, MutedRole, NameRole, NoticeRole, OpenHistoricalTarget,
-    OpenTarget, Span, Spans, WorkingRole,
-)
+from toad.line_blocks import Body, Gap, LineBlock, MutedRole, NoticeRole, Summary, WorkingRole
+from toad.message_rows import MessageRow, WireMessageStyle
 from toad.menus import MenuItem
 from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.transcript_preparation import (
@@ -104,65 +99,6 @@ class WirePage:
     def unread(cls) -> WirePage:
         """What is drawn before the first read: nothing, up to sequence zero."""
         return cls((), None, AfterSequence(0), False, False, None)
-
-
-class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
-    """How a message's own text is laid out between its caption and its notification line."""
-
-    @abstractmethod
-    def body(self, message: Message) -> tuple[LineBlock, ...]: ...
-
-    @abstractmethod
-    def next(self) -> WireMessageStyle: ...
-
-    @abstractmethod
-    def clipboard(self, message: Message) -> str:
-        """What copying a message drawn in this style gives."""
-
-    @staticmethod
-    def name(target: str, message: Message) -> Span:
-        link: LineLink = (OpenHistoricalTarget(target, message.source.key)
-                          if isinstance(message, HistoricalMessage) and not target.startswith("#")
-                          else OpenTarget(target))
-        return Span(target, NameRole, link)
-
-    def route(self, message: Message) -> tuple[Span, ...]:
-        return (self.name(message.sender, message), Span(" → ", MutedRole),
-                self.name(message.target, message))
-
-
-class IrcMessageStyle(WireMessageStyle):
-    """Sender, destination and inline-formatted text as one wrapped paragraph."""
-
-    def body(self, message):
-        return (Spans((*self.route(message), Span(" "),
-                       *inline_spans(message.body, message.mentions))),)
-
-    def next(self):
-        return MarkdownMessageStyle()
-
-    def clipboard(self, message):
-        return f"{message.sender} → {message.target}: {message.body}"
-
-
-class MarkdownMessageStyle(WireMessageStyle):
-    """The route on its own line, then the text as Markdown and who it mentions."""
-
-    def body(self, message):
-        blocks: list[LineBlock] = [Spans(self.route(message)), Body(message.body)]
-        if message.mentions:
-            names = dict.fromkeys(mention.thread for mention in message.mentions)
-            mentioned = [Span("Mentioned: ")]
-            for index, target in enumerate(names):
-                mentioned += [Span(", ")] * bool(index) + [self.name(target, message)]
-            blocks.append(Spans(tuple(mentioned)))
-        return tuple(blocks)
-
-    def next(self):
-        return IrcMessageStyle()
-
-    def clipboard(self, message):
-        return message.body
 
 
 @dataclass(frozen=True)
@@ -245,28 +181,32 @@ class MembershipFragment(WireFragment):
 
 @dataclass(kw_only=True)
 class MessageFragment(WireFragment):
-    """A sent message: caption, text and the state of its notifications."""
+    """A sent message: its header, text and the state of its notifications."""
 
-    direction: str
+    outgoing: bool
     checks_notifications = True
     has_details = True
     block_menu = (MenuItem("Open [u]s[/u]ender", "block.open_sender", "s"),
                   MenuItem("Open [u]d[/u]estination", "block.open_destination", "d"))
 
+    @cached_property
+    def row(self) -> MessageRow:
+        return MessageRow.of(self.message, outgoing=self.outgoing)
+
     @property
     def clipboard_text(self):
-        return self.shown.style.clipboard(self.message)
+        return self.shown.style.clipboard(self.row)
 
     @property
     def leading(self):
         message = self.message
-        caption = (f"History · {message.source.original_root} · @{message.sender} "
-                   f"created {message.sender_created_at}"
-                   if isinstance(message, HistoricalMessage) else self.direction)
-        return (Gap(), Divider(caption, MutedRole, message.timestamp))
+        if not isinstance(message, HistoricalMessage):
+            return (Gap(), self.row.header)
+        return (Gap(), Summary(f"History · {message.source.original_root} · @{message.sender} "
+                               f"created {message.sender_created_at}"), self.row.header)
 
     def text(self, shown):
-        return shown.style.body(self.message)
+        return shown.style.body(self.row)
 
     def trailing(self, shown):
         status = shown.status
@@ -315,10 +255,6 @@ class WireSource:
             and self.kind.display_identity(self.page(limit=1)) != identity)
         return WireObservation(revision, high, replaced)
 
-    def direction(self, message: Message) -> str:
-        return ("User" if message.sender_role is ThreadRole.USER else
-                "Outbound" if message.sender == self.me else "Inbound")
-
     def read(self, request: PageRequest, through: AfterSequence) -> PreparedTranscriptPage:
         """Read the page a request names, never past `through`, as fragments to draw."""
         older = request.after is None
@@ -337,7 +273,7 @@ class WireSource:
         fragments = tuple(
             WireFragment.of(message, shown=shown, evidence=evidence,
                             **({} if message.membership is not None
-                               else {"direction": self.direction(message)}))
+                               else {"outgoing": message.sender == self.me}))
             for message in page.messages)
         wire = WirePage(
             page.messages,

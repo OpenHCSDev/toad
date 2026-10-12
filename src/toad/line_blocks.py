@@ -7,21 +7,15 @@ imports a terminal or rendering library.
 
 from __future__ import annotations
 
-from dataclasses import astuple, dataclass
+from dataclasses import dataclass
 import re
 
 from typing import ClassVar
 
-from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import (
     AccentColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
     ThemeColour, WarningColour,
 )
-from agent_comms.transcript_events import (
-    AgentTextTranscript, IncomingTranscript, SentTranscript, ThinkingTranscript, TranscriptEvent,
-    UserTranscript,
-)
-
 
 class LineRole:
     """The meaning of a piece of text, and the theme colour it is drawn in."""
@@ -108,22 +102,20 @@ class WorkingRole(LineRole):
 
 
 class LineLink:
-    """What clicking a piece of text does: the frontend runs `action` with the link's fields."""
+    """What clicking a piece of text does; the widget that drew it opens each kind of link."""
 
-    action: ClassVar[str]
     # Whether the text is underlined to show that it leads somewhere.
     underlined: ClassVar[bool] = True
 
     @property
     def click(self) -> tuple[str, tuple]:
-        return self.action, astuple(self)
+        return "open", (self,)
 
 
 @dataclass(frozen=True)
 class OpenTarget(LineLink):
     """Open a thread or channel."""
 
-    action = "open_target"
     target: str
 
 
@@ -131,14 +123,12 @@ class OpenTarget(LineLink):
 class OpenHistoricalTarget(LineLink):
     """Open a thread as an attached history source recorded it."""
 
-    action = "open_historical_target"
     target: str
     source: str
 
 
 @dataclass(frozen=True)
 class OpenUrl(LineLink):
-    action = "open_url"
     url: str
 
 
@@ -146,7 +136,6 @@ class OpenUrl(LineLink):
 class ToggleDetails(LineLink):
     """Show or hide the details of the fragment this is drawn in."""
 
-    action = "toggle_details"
     underlined = False
 
 
@@ -165,11 +154,23 @@ class LineBlock:
 
 @dataclass(frozen=True)
 class Divider(LineBlock):
-    """A rule naming the speaker; the frontend formats the time."""
+    """A rule carrying a title: who speaks, or who sent a message to whom.
 
-    label: str
+    Title text without a link is drawn in the rule's role; a linked span keeps
+    its own. The frontend formats the time.
+    """
+
+    spans: tuple[Span, ...]
     role: type[LineRole]
     timestamp: float | None = None
+
+    @classmethod
+    def titled(cls, title: str, role: type[LineRole], timestamp: float | None = None) -> Divider:
+        return cls((Span(title),), role, timestamp)
+
+    @property
+    def label(self) -> str:
+        return "".join(span.text for span in self.spans)
 
 
 @dataclass(frozen=True)
@@ -211,49 +212,3 @@ class Body(LineBlock):
         """Text drawn as it is written, in a language's colours when the language is known."""
         ticks = "`" * max(3, 1 + max(map(len, re.findall("`+", text)), default=0))
         return cls(f"{ticks}{language}\n{text}\n{ticks}", **shown)
-
-
-class FragmentLineConsumer(MroDispatch):
-    """Turn a fragment's events into line blocks, one handler per event family."""
-
-    def __init__(self, *, show_divider: bool):
-        self.show_divider = show_divider
-        self.blocks: list[LineBlock] = []
-
-    def divider(self, label: str, timestamp: float | None, role: type[LineRole]) -> None:
-        if self.show_divider:
-            self.blocks.append(Divider(label, role, timestamp))
-
-    @handles(TranscriptEvent)
-    def other(self, event: TranscriptEvent) -> None:
-        """Events without visible text in committed history draw nothing."""
-
-    @handles(UserTranscript)
-    def user(self, event: UserTranscript) -> None:
-        self.divider("User", event.timestamp, UserRole)
-        self.blocks += [Body(event.text, bar=UserRole, markdown=False), Gap()]
-
-    @handles(AgentTextTranscript)
-    def agent(self, event: AgentTextTranscript) -> None:
-        self.divider("Agent", event.timestamp, AgentRole)
-        self.blocks += [Body(event.text), Gap()]
-
-    @handles(ThinkingTranscript)
-    def thinking(self, event: ThinkingTranscript) -> None:
-        if event.text.strip():
-            self.blocks += [Body(event.text, role=ThinkingRole), Gap()]
-
-    @handles(IncomingTranscript)
-    def incoming(self, event: IncomingTranscript) -> None:
-        route = event.route
-        targets = ", ".join(route.targets)
-        self.divider(f"{route.sender} → {targets}" if targets else route.sender,
-                     event.timestamp, IncomingRole)
-        self.blocks += [Body(event.text, bar=IncomingRole), Gap()]
-
-    @handles(SentTranscript)
-    def sent(self, event: SentTranscript) -> None:
-        reply = event.routing.reply if event.routing is not None else None
-        targets = ", ".join(reply.targets) if reply is not None else ""
-        self.divider(f"Sent → {targets}" if targets else "Sent", event.timestamp, OutgoingRole)
-        self.blocks += [Body(event.text, bar=OutgoingRole), Gap()]

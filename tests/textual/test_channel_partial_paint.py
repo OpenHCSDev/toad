@@ -5,7 +5,7 @@ from support.textual_steps import text_rows_of
 
 async def test_partial_viewport_marks_only_painted_text_and_scrolling_marks_the_remaining_messages(workspace):
     from toad.widgets.comms_chat import CommsChatView
-    from toad.wire_history import IrcMessageStyle, MarkdownMessageStyle
+    from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
 
     workspace.thread("peer", "team", running=True)
     comms = workspace.comms

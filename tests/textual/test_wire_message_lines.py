@@ -5,13 +5,14 @@ from textual.app import App
 
 from toad.line_blocks import OpenTarget
 from toad.widgets.transcript_lines import LineTheme, PlainLines, PlainRowCount, RichLineRenderer
-from toad.wire_history import IrcMessageStyle, MarkdownMessageStyle, MessageFragment, MessageShown
+from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
+from toad.wire_history import MessageFragment, MessageShown
 
 
 def fragment(target, style=IrcMessageStyle()):
     message = Message(sender="explorer-grandchild", target=target,
                       body="payload " * 30 + "\nsecond paragraph [literal markup]", type=MessageType.INFO)
-    return MessageFragment((message,), shown=MessageShown(style), evidence=None, direction="Inbound")
+    return MessageFragment((message,), shown=MessageShown(style), evidence=None, outgoing=False)
 
 
 def theme():
@@ -30,16 +31,16 @@ def test_rows_fit_the_width_wrap_on_words_and_keep_their_names_clickable_at_ever
             rows = RichLineRenderer(theme(), width).rows(shown.line_blocks)
             text = ["".join(segment.text for segment in row) for row in rows]
             assert all(len(line) <= width for line in text), (width, text)
-            # Gap, caption, the wrapped text, then the notification line.
+            # Gap, the header rule naming the route, the wrapped text, then the notification line.
+            assert "explorer-grandchild → " in text[1], (width, text[1])
             body = text[2:-1]
             words = [line.split() for line in body[:-1]]
-            assert sum(words, []) == ["explorer-grandchild", "→", target, *["payload"] * 30], (width, body)
+            assert sum(words, []) == ["payload"] * 30, (width, body)
             assert body[-1].rstrip() == "second paragraph [literal markup]", (width, body)
             assert {OpenTarget("explorer-grandchild").click, OpenTarget(target).click} <= clicks(rows)
-            assert ("open_target", (target,)) in clicks(rows)
 
 
-def test_the_rows_that_count_as_reading_are_the_text_between_caption_and_notification_line():
+def test_the_rows_that_count_as_reading_are_the_text_between_header_and_notification_line():
     for style in (IrcMessageStyle(), MarkdownMessageStyle()):
         shown = fragment("#all", style)
         for width in (36, 80):

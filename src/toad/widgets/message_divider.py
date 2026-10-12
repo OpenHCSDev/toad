@@ -5,69 +5,71 @@ from toad.block_navigation import ConversationBlock
 from toad.block_content import BlockContent
 
 import time
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import ClassVar
 
-from textual.content import Content
+from rich.style import Style
 from textual.geometry import Size
-from textual.style import Style
+from textual.selection import Selection
+from textual.strip import Strip
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from textual.widgets import Static
+from textual.widget import Widget
 
 from ui_theme.effects import NEW_MESSAGE
 
-from toad.line_blocks import AgentRole, LineRole
+from toad.line_blocks import AgentRole, Divider
 from toad.textual_colours import Animated
+from toad.widgets.transcript_lines import LineTheme, LinkedRows, PreparedLines, RichLineRenderer, link_place
 
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 
 
-class MessageClock(ABC):
+class MessageClock:
+    """When a displayed message happened."""
+
     # True for a message happening now (not one read back from history).
     fresh: ClassVar[bool] = False
 
-    @abstractmethod
-    def display(self) -> tuple[str, str | None]: ...
+    # Each clock says when: now, a recorded time, or not known.
+    timestamp: float | None
 
-    @classmethod
-    def recorded(cls, timestamp: float | None) -> MessageClock:
-        return UnknownMessageClock() if timestamp is None else RecordedMessageClock(timestamp)
-
-    @staticmethod
-    def format(timestamp: float) -> tuple[str, str | None]:
+    def display(self) -> tuple[str, str | None]:
+        """The time as a rule shows it, and in full with its zone."""
+        timestamp = self.timestamp
+        if timestamp is None:
+            return "time unknown", None
         try:
             local = time.localtime(timestamp)
             return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
         except (OverflowError, OSError, ValueError):
             return "time unknown", None
 
+    @classmethod
+    def recorded(cls, timestamp: float | None) -> MessageClock:
+        return UnknownMessageClock() if timestamp is None else RecordedMessageClock(timestamp)
+
 
 class LiveMessageClock(MessageClock):
     fresh = True
 
-    def display(self) -> tuple[str, str | None]:
-        return self.format(time.time())
+    @property
+    def timestamp(self) -> float:
+        return time.time()
 
 
 @dataclass(frozen=True)
 class RecordedMessageClock(MessageClock):
     timestamp: float
 
-    def display(self) -> tuple[str, str | None]:
-        return self.format(self.timestamp)
-
 
 class UnknownMessageClock(MessageClock):
-    def display(self) -> tuple[str, str | None]:
-        return "time unknown", None
+    timestamp = None
 
 
-class MessageDivider(Animated, BlockContent, Static):
-    """Keep timestamps with the message block, not a second transcript row.
+class MessageDivider(LinkedRows, Animated, BlockContent, Widget):
+    """The rule above a live message: the same `Divider` block saved history draws, drawn the same way.
 
-    Drawn in its role's colour, as committed history draws the same divider.
     A message that has just arrived fades in from the accent colour.
     """
 
@@ -76,54 +78,50 @@ class MessageDivider(Animated, BlockContent, Static):
         width: 1fr;
         height: 1;
         margin: 1 0 0 0;
-        color: $text-muted;
-        text-wrap: nowrap;
     }
     """
 
-    def __init__(self, label: str, role: type[LineRole], *,
-                 clock: MessageClock = LiveMessageClock()) -> None:
-        super().__init__(markup=False)
-        self.label = label
-        self.role = role
+    def __init__(self, block: Divider, *, clock: MessageClock = LiveMessageClock()) -> None:
+        super().__init__()
+        self.block = replace(block, timestamp=clock.timestamp)
         self.fresh = clock.fresh
-        self.clock, self.tooltip = clock.display()
+        self.tooltip = clock.display()[1]
+        self._link_place = link_place()
+        self._lines: tuple[LineTheme, PreparedLines] | None = None
 
     def on_mount(self) -> None:
         if self.fresh:
             # Once: a divider moved to another parent is not a new message.
             self.fresh = False
-            self.run_effect(NEW_MESSAGE.ending_at(self.role.colour))
+            self.run_effect(NEW_MESSAGE.ending_at(self.block.role.colour))
 
     def on_unmount(self) -> None:
         self.stop_effect()
 
-    def render(self) -> Content:
-        title = f" {self.label} · {self.clock} "
-        width = max(0, self.size.width)
-        if width <= len(title):
-            return Content(title).truncate(width, ellipsis=True)
-        left = (width - len(title)) // 2
-        right = max(0, width - left - len(title))
-        colours = self.app.colours
+    def _drawn(self, theme: LineTheme, width: int) -> PreparedLines:
+        return PreparedLines(width, RichLineRenderer(theme, width).rows((self.block,)))
+
+    def render_line(self, y: int) -> Strip:
+        width = self.size.width
+        if y or not width:
+            return self.blank_row(width)
+        theme = self.app.colours.line_theme
         animation = self.animation
-        if animation is None:
-            colour = colours.colour(self.role.colour)
-        else:
+        if animation is not None:
             mix = animation.frame()
-            colour = colours.mixed(mix.start, mix.end, mix.amount)
-        rule = Style(foreground=colour)
-        return Content.assemble(
-            ("─" * left, rule),
-            (title, rule + Style(bold=True)),
-            ("─" * right, rule),
-        )
+            colour = self.app.colours.mixed(mix.start, mix.end, mix.amount)
+            lines = self._drawn(theme.with_colour(self.block.role.colour, Style(color=colour.rich_color)), width)
+        else:
+            if self._lines is None or self._lines[0] is not theme or self._lines[1].width != width:
+                self._lines = theme, self._drawn(theme, width)
+            lines = self._lines[1]
+        return self.on_background(lines.strips_at(self._link_place)[0])
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        return selection.extract(self.block.label), "\n"
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        # The separator truncates to one line. Measuring render() before the
-        # new native width is committed would wrap the *previous* width's rule
-        # and incorrectly report two rows to a stream layout.
         return 1
 
 
@@ -133,7 +131,7 @@ class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedB
     ALLOW_SELECT = False
 
     def __init__(self, category: type[MessageCategory], *, clock: MessageClock = LiveMessageClock()) -> None:
-        super().__init__("Agent", AgentRole, clock=clock)
+        super().__init__(Divider.titled("Agent", AgentRole), clock=clock)
         self._category = category
 
     @property

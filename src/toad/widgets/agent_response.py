@@ -6,11 +6,11 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
-from toad.line_blocks import AgentRole, OutgoingRole
+from toad.line_blocks import AgentRole, Divider
+from toad.message_rows import MessageRow
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
-from toad.widgets.route_header import RouteHeader
 from toad import response_delivery
 from toad.widgets.message_filter import (
     CategorizedBlock,
@@ -60,13 +60,13 @@ class AgentResponse(MroProjection, ConversationBlock, SnapshotPresentation, Cate
 
     @handles(response_delivery.UnroutedResponse)
     def ordinary_prefix(self, delivery, clock, show_divider):
-        return {"prefix": (MessageDivider("Agent", AgentRole, clock=clock),) if show_divider else ()}
+        return {"prefix": (MessageDivider(Divider.titled("Agent", AgentRole), clock=clock),) if show_divider else ()}
 
     @handles(response_delivery.RoutedResponse)
     def routed_prefix(self, delivery, clock, show_divider):
         return {
             "prefix": (
-                (MessageDivider("Outbound", OutgoingRole, clock=clock), RouteHeader(delivery.route))
+                (MessageDivider(MessageRow(delivery.route, "", None, outgoing=True).header, clock=clock),)
                 if show_divider else ()
             ),
             "classes": f"{self.DEFAULT_CLASSES} -routed",

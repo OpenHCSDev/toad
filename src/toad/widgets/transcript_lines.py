@@ -20,7 +20,13 @@ from textual.strip import Strip
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
-from toad.line_blocks import Body, Divider, Gap, LineBlock, LineLink, LineRole, Spans, Summary
+from toad.line_blocks import (
+    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenTarget, OpenUrl, Span, Spans,
+    Summary,
+)
+from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
+from toad.core_event_carrier import CoreEventReceiver
+from toad.navigation_target import linked_target
 from toad.render_backend import ReusableRenderTask
 
 Row = tuple[Segment, ...]
@@ -40,6 +46,10 @@ class LineTheme:
                 return style + Style(italic=role.italic or None, bold=role.bold or None,
                                      underline=role.underline or None)
         raise KeyError(f"{role.__name__} asks for {role.colour.__name__}, which the theme lacks")
+
+    def with_colour(self, colour: type[ThemeColour], style: Style) -> LineTheme:
+        """This theme with one colour drawn another way, as a fade draws it part of the way through."""
+        return LineTheme(((colour, style), *self.colours), self.color_system)
 
     @classmethod
     def of(cls, variables: Mapping[str, str], color_system: str) -> LineTheme:
@@ -123,7 +133,27 @@ def _each_link_apart(rows: tuple[Row, ...], place: int) -> tuple[Row, ...]:
     return tuple(tuple(map(placed, row)) for row in rows)
 
 
-class LinkedRows:
+class OpensLinks(CoreEventReceiver, MroDispatch):
+    """A widget whose drawn links open what they name: one handler per kind of link."""
+
+    def action_open(self, link: LineLink) -> None:
+        """What a click on a drawn link runs (`LineLink.click`); the keyboard calls it too."""
+        self.dispatch_sync(link)
+
+    @handles(OpenTarget)
+    def open_target(self, link: OpenTarget) -> None:
+        self.publish_core(SelectTarget(linked_target(link.target)))
+
+    @handles(OpenHistoricalTarget)
+    def open_historical_target(self, link: OpenHistoricalTarget) -> None:
+        self.publish_core(SelectHistoricalIdentity(link.target, link.source))
+
+    @handles(OpenUrl)
+    def open_url(self, link: OpenUrl) -> None:
+        self.app.open_url(link.url)
+
+
+class LinkedRows(OpensLinks):
     """A widget that draws rendered rows: on its own background, opening the links clicked in them."""
 
     def on_background(self, strip: Strip) -> Strip:
@@ -174,15 +204,24 @@ class RichLineRenderer(MroDispatch):
     def divider(self, block: Divider) -> None:
         from toad.widgets.message_divider import MessageClock
 
-        label = block.label
+        spans = block.spans
         if block.timestamp is not None:
-            label = f"{label} · {MessageClock.recorded(block.timestamp).display()[0]}"
-        style = self.theme.style(block.role)
-        label = f" {_fit(label, max(0, self.width - 8))} "
-        left = max(0, (self.width - len(label)) // 2)
-        right = max(0, self.width - left - len(label))
-        self.output.append((Segment("─" * left, style), Segment(label, style + Style(bold=True)),
-                            Segment("─" * right, style)))
+            spans = (*spans, Span(f" · {MessageClock.recorded(block.timestamp).display()[0]}"))
+        rule, bold = self.theme.style(block.role), Style(bold=True)
+        title, room = [Segment(" ", rule)], max(0, self.width - 8)
+        for span in spans:
+            # A title longer than the rule ends in an ellipsis; what follows is not drawn.
+            text = _fit(span.text, room)
+            room -= len(text)
+            title.append(Segment(text, (rule if span.link is None else self.theme.style(span.role))
+                                 + bold + _click(span.link)))
+            if text != span.text:
+                break
+        title.append(Segment(" ", rule))
+        length = sum(len(segment.text) for segment in title)
+        left = max(0, (self.width - length) // 2)
+        self.output.append((Segment("─" * left, rule), *title,
+                            Segment("─" * max(0, self.width - left - length), rule)))
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:

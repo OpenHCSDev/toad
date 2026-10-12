@@ -41,7 +41,7 @@ async def test_channel_rows_have_the_view_background_and_the_cursor_acts_on_one_
         history = view.message_history
         page = history.pages[-1]
 
-        # Text, the blank row between messages and the caption rule all sit on the page's background.
+        # Text, the blank row between messages and the header rule all sit on the page's background.
         background = page.rich_style.bgcolor
         assert background is not None
         column, row = ui._cell_of("third words", 0)

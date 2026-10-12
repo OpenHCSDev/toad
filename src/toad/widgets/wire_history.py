@@ -5,13 +5,11 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from dataclasses import replace
+from operator import attrgetter
 from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
 
-from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
-from toad.line_blocks import LineLink
-from toad.navigation_target import linked_target
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
@@ -21,32 +19,12 @@ from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.transcript_history import LineHistory, TranscriptPageView
-from toad.wire_history import (
-    AfterSequence, IrcMessageStyle, WireFragment, WireMessageStyle, WirePage,
-    WirePageBuffer, WireSource,
-)
+from toad.message_rows import IrcMessageStyle, WireMessageStyle
+from toad.wire_history import AfterSequence, WireFragment, WirePage, WirePageBuffer, WireSource
 
 if TYPE_CHECKING:
     from agent_comms.presentation import WireRevision
     from textual.worker import Worker
-
-
-class WirePageView(TranscriptPageView):
-    """A page of wire messages: its names, URLs and notification lines can be clicked."""
-
-    def open_link(self, link: LineLink) -> None:
-        """Do what clicking a link drawn on this page does."""
-        action, arguments = link.click
-        getattr(self, f"action_{action}")(*arguments)
-
-    def action_open_target(self, target: str) -> None:
-        self.history.publish_core(SelectTarget(linked_target(target)))
-
-    def action_open_historical_target(self, target: str, source: str) -> None:
-        self.history.publish_core(SelectHistoricalIdentity(target, source))
-
-    def action_open_url(self, url: str) -> None:
-        self.app.open_url(url)
 
 
 class WireHistory(LineHistory):
@@ -58,7 +36,6 @@ class WireHistory(LineHistory):
     seen, notification states and two styles.
     """
 
-    page_view = WirePageView
 
     def __init__(self, view) -> None:
         # The view's message filter is read while the line history is built.
@@ -180,7 +157,7 @@ class WireHistory(LineHistory):
                 if len(self.pages) == 1 and self.pages[0].page.source is None:
                     return
                 retired = tuple(self.pages)
-                view = self.page_view(WirePage.unread(), fragments=(),
+                view = TranscriptPageView(WirePage.unread(), fragments=(),
                                       batch_size=self.budget.batch_items)
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=self.newer)
@@ -280,16 +257,15 @@ class WireHistory(LineHistory):
 
     # The message under the cursor
 
-    def _open_name(self, target: str, message: Message) -> None:
-        self.pages[-1].open_link(self.style.name(target, message).link)
+    def _open_name(self, name) -> None:
+        if (fragment := self.block_cursor.current) is not None:
+            self.pages[-1].action_open(fragment.row.name(name(fragment.message)).link)
 
     def action_open_sender(self) -> None:
-        if (fragment := self.block_cursor.current) is not None:
-            self._open_name(fragment.message.sender, fragment.message)
+        self._open_name(attrgetter("sender"))
 
     def action_open_destination(self) -> None:
-        if (fragment := self.block_cursor.current) is not None:
-            self._open_name(fragment.message.target, fragment.message)
+        self._open_name(attrgetter("target"))
 
     # Notifications
 

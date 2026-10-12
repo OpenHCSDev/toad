@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+from toad.line_blocks import OpenTarget
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.session_tabs import SessionsTabs, Underline
@@ -29,7 +30,7 @@ async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(worksp
         await ui.select_tab(owner)
         await ui.open_channel("#team", actor="owner", owner=owner)
         await ui.until_shows("peer → #team")
-        await ui.until(lambda: ui.link_at("peer → #team") == ("open_target", ("peer",)), why="the sender drawn as a link")
+        await ui.until(lambda: ui.link_at("peer → #team") == OpenTarget("peer").click, why="the sender drawn as a link")
         # The channel tab's unread count clears as its message is read; the tabs themselves must not change.
         def order():
             return [tab.identity for tab in ui.tabs()]
@@ -78,7 +79,7 @@ async def test_name_clicked_in_a_narrow_direct_chat_reuses_the_open_thread_tab(w
         clip = app.screen._compositor.find_widget(underline).clip
         assert underline.region.intersection(clip).height == 1
         await ui.until_shows(f"peer → {viewer}")
-        await ui.until(lambda: ui.link_at(f"peer → {viewer}") == ("open_target", ("peer",)), why="the sender drawn as a link")
+        await ui.until(lambda: ui.link_at(f"peer → {viewer}") == OpenTarget("peer").click, why="the sender drawn as a link")
         # The chat tab's title drops its unread count once the message is marked read.
         order = [tab.identity for tab in ui.tabs()]
         await ui.click(f"peer → {viewer}")

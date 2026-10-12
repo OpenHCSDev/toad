@@ -5,7 +5,8 @@ from toad.core import input_events
 from functools import partial
 from toad.delivery_failure_view import DeliveryFailureView
 from toad.widgets.wire_history import WireHistory
-from toad.wire_history import IrcMessageStyle, WireSource
+from toad.message_rows import IrcMessageStyle
+from toad.wire_history import WireSource
 
 import asyncio
 import re

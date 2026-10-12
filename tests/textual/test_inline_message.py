@@ -1,6 +1,7 @@
 """Textual-facing: a wire message body becomes one Textual `Content` with emphasis, links and mention spans."""
 
 from agent_comms.mentions import ThreadMention
+from toad.line_blocks import OpenTarget, OpenUrl
 from toad.widgets.inline_message import inline_message
 
 
@@ -16,8 +17,8 @@ def test_emphasis_code_links_and_mentions_become_spans():
     assert content.plain == "Bold italic x = 1 docs and @peer [literal]"
     assert any(span.start == 0 and span.style == "bold" for span in content.spans)
     assert any(span.start == 5 and span.style == "italic" for span in content.spans)
-    assert meta_at(content, content.plain.index("docs"))["@click"] == ("open_url", ("https://example.test",))
-    assert meta_at(content, content.plain.index("@peer"))["@click"] == ("open_target", ("peer",))
+    assert meta_at(content, content.plain.index("docs"))["@click"] == OpenUrl("https://example.test").click
+    assert meta_at(content, content.plain.index("@peer"))["@click"] == OpenTarget("peer").click
 
 
 def test_unsafe_links_and_plain_text_stay_literal():

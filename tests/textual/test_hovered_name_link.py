@@ -1,6 +1,8 @@
 """Textual-facing: the pointer over one name in a chat highlights that name only, not every equal name on screen."""
 
 
+from toad.line_blocks import OpenTarget
+
 async def test_the_pointer_over_one_sender_highlights_that_one_and_leaves_equal_names_as_drawn(workspace):
     workspace.thread("owner", "team", running=True)
     workspace.thread("peer", "team", running=True)
@@ -11,7 +13,7 @@ async def test_the_pointer_over_one_sender_highlights_that_one_and_leaves_equal_
         await ui.open_channel("#team", actor="owner", owner=ui.selected_tab)
         row = "peer → #team"
         await ui.until(lambda: ui.visible_text().count(row) == 3, why="three messages from one sender")
-        await ui.until(lambda: all(ui.link_at(row, occurrence=n) == ("open_target", ("peer",)) for n in range(3)),
+        await ui.until(lambda: all(ui.link_at(row, occurrence=n) == OpenTarget("peer").click for n in range(3)),
                        why="three messages whose sender is the same link")
         cells = [ui._cell_of(row, n) for n in range(3)]
         body, _ = app.screen.get_widget_at(*cells[1])
@@ -24,6 +26,6 @@ async def test_the_pointer_over_one_sender_highlights_that_one_and_leaves_equal_
         assert [app.screen.get_style_at(*cells[n]).bgcolor for n in (0, 2)] == [resting[0], resting[2]]
         # The destination on the same row is another link: it stays as drawn too.
         target = (cells[1][0] + len("peer → "), cells[1][1])
-        assert app.screen.get_style_at(*target).meta["@click"] == ("open_target", ("#team",))
+        assert app.screen.get_style_at(*target).meta["@click"] == OpenTarget("#team").click
         assert app.screen.get_style_at(*target).bgcolor == resting[1]
         assert ui.failure() is None

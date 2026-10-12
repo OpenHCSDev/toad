@@ -10,6 +10,7 @@ from agent_comms.ui_model.goal import GoalDisplay
 from textual.widgets import Button, Static
 
 from support.goals import ScriptedGoalOwner
+from toad.line_blocks import OpenTarget
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
 from toad.screens.goal_details import GoalDetails
@@ -58,7 +59,7 @@ async def test_standby_row_names_the_waited_peer_and_mentions_navigate(workspace
         owner, view, bar, status = await shown_goal(workspace, ui)
         rendered = bar.query_one(".goal-summary", Static).render()
         assert any(not isinstance(span.style, str)
-                   and (span.style.meta or {}).get("@click") == ("open_target", ("peer",))
+                   and (span.style.meta or {}).get("@click") == OpenTarget("peer").click
                    for span in rendered.spans), "Goal mentions must use existing thread navigation"
         assert "Standby" in str(status.render()) and "@peer" in str(status.render())
 

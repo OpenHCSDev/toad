@@ -5,7 +5,8 @@ from agent_comms.threads import Thread
 
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.transcript_preparation import PageRequest
-from toad.wire_history import AfterSequence, IrcMessageStyle, MessageFragment, WireSource
+from toad.message_rows import IrcMessageStyle
+from toad.wire_history import AfterSequence, MessageFragment, WireSource
 
 
 def channel_source(comms, target, project):
@@ -50,7 +51,7 @@ def test_pages_lie_between_cuts_and_a_read_never_passes_its_bound(tmp_path):
     # The newest page is short; it ends at the bound, with nothing newer.
     assert bodies(newest) == [f"Message {index}" for index in range(52, 60)]
     assert newest.page.after == first.through and not newest.page.has_newer and newest.page.has_older
-    assert all(isinstance(fragment, MessageFragment) and fragment.direction == "Inbound"
+    assert all(isinstance(fragment, MessageFragment) and not fragment.outgoing
                for fragment in newest.fragments)
     # Earlier pages are whole transport pages, each beginning where the next one ended.
     earlier = source.read(PageRequest(before=newest.page.before), first.through)

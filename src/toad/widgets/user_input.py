@@ -6,7 +6,7 @@ from textual import containers
 from toad.widgets.line_markdown import LineMarkdown
 
 from toad.widgets.non_selectable_label import NonSelectableLabel
-from toad.line_blocks import UserRole
+from toad.line_blocks import Divider, UserRole
 from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CAPTURED_CLAIM, CommitClaim, SnapshotPresentation
@@ -56,7 +56,7 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
 
     def compose(self) -> ComposeResult:
         if self.show_divider:
-            yield MessageDivider("User", UserRole, clock=self.clock)
+            yield MessageDivider(Divider.titled("User", UserRole), clock=self.clock)
         with containers.HorizontalGroup(classes="user-input-body"):
             yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
             yield LineMarkdown(self.content, id="content")

@@ -8,10 +8,15 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
-    TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, MarkdownTranscript, ToolTranscript,
+    AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
+    TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
 )
 
-from toad.line_blocks import Body, FragmentLineConsumer, LineBlock, LineRole, MutedRole, Summary, ToggleDetails
+from toad.line_blocks import (
+    AgentRole, Body, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ThinkingRole, ToggleDetails,
+    UserRole,
+)
+from toad.message_rows import MarkdownMessageStyle, MessageRow
 from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
@@ -146,6 +151,51 @@ class RenderBudget:
             pending_lines += part_lines
         if pending_characters:
             yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
+
+
+class FragmentLineConsumer(MroDispatch):
+    """Turn a fragment's events into line blocks, one handler per event family."""
+
+    def __init__(self, *, show_divider: bool):
+        self.show_divider = show_divider
+        self.blocks: list[LineBlock] = []
+
+    def divider(self, label: str, timestamp: float | None, role: type[LineRole]) -> None:
+        if self.show_divider:
+            self.blocks.append(Divider.titled(label, role, timestamp))
+
+    @handles(TranscriptEvent)
+    def other(self, event: TranscriptEvent) -> None:
+        """Events without visible text in committed history draw nothing."""
+
+    @handles(UserTranscript)
+    def user(self, event: UserTranscript) -> None:
+        self.divider("User", event.timestamp, UserRole)
+        self.blocks += [Body(event.text, bar=UserRole, markdown=False), Gap()]
+
+    @handles(AgentTextTranscript)
+    def agent(self, event: AgentTextTranscript) -> None:
+        self.divider("Agent", event.timestamp, AgentRole)
+        self.blocks += [Body(event.text), Gap()]
+
+    @handles(ThinkingTranscript)
+    def thinking(self, event: ThinkingTranscript) -> None:
+        if event.text.strip():
+            self.blocks += [Body(event.text, role=ThinkingRole), Gap()]
+
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript) -> None:
+        self.message(MessageRow.incoming(event))
+
+    @handles(SentTranscript)
+    def sent(self, event: SentTranscript) -> None:
+        self.message(MessageRow.sent(event))
+
+    def message(self, row: MessageRow) -> None:
+        """A message on the bus: the row every view draws, in the Markdown style."""
+        if self.show_divider:
+            self.blocks.append(row.header)
+        self.blocks += [*MarkdownMessageStyle().body(row), Gap()]
 
 
 @dataclass(frozen=True, kw_only=True)
