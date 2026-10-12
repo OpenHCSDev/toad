@@ -56,10 +56,12 @@ async def test_clicking_saved_history_does_not_scroll(workspace):
         await ui.until(lambda: history.is_mounted, why="the history mounted")
         await settled_at_end(ui, view)
         await ui.until_shows("RECORD_59")
-        before = view.window.scroll_y, row_of(ui, "RECORD_59")
+        # The history may still be admitting rows above the reader, which changes the
+        # scroll offset and not what is shown: the row on screen is the fact.
+        before = row_of(ui, "RECORD_59")
 
         await clicked(ui, view, "RECORD_59", history)
-        assert (view.window.scroll_y, row_of(ui, "RECORD_59")) == before
+        assert row_of(ui, "RECORD_59") == before
 
 
 async def test_clicking_a_block_taller_than_the_viewport_shows_its_top(workspace):
