@@ -31,7 +31,8 @@ from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.transcript_history import TranscriptHistory
 
 FILE = "paged-fixture"
-PAGES = 10
+# More pages than are ever read ahead of a reader: a cell that needs a read still running can travel to one.
+PAGES = 40
 PER_PAGE = 8
 WRITTEN = re.compile(r"(ANSWER|THINK) (\d+)\.(\d+)\b(?!\.)|(item|thought) (\d+)\.(\d+)\.(\d+)")
 NO_THINKING = all_categories() - {ThinkingCategory}
@@ -214,7 +215,9 @@ def choose(selected):
 async def reapply(reader: Reader):
     for selected in (NO_THINKING, all_categories(), NO_THINKING):
         reader.ui.conversation.visible_categories = selected
-        await reader.settled()
+        # A reader holding PageUp keeps the window moving: each choice is laid out, not stood still on.
+        await reader.ui.step()
+        await reader.ui.until(reader.idle, why="the chosen kinds laid out")
 
 
 async def older_page_loads(reader: Reader):
@@ -224,7 +227,7 @@ async def older_page_loads(reader: Reader):
     drawn does a finished read add its page above the reader at once.
     """
     reader.reads_held.clear()
-    for _ in range(60):
+    for _ in range(PAGES * 4):
         if reader.reads_waiting and reader.window.scroll_y == 0:
             break
         await reader.keys("pageup", 1)
