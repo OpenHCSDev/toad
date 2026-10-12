@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from unittest.mock import patch
 
-from support.applications import stylesheet_of_application
+from support.stylesheets import INSTALLED
 from support.textual_steps import coordination_update
 from toad.app import ToadApp
 from toad.widgets.recovery_view import RecoveryView
@@ -15,7 +15,7 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible
 class PaintCounter(ToadApp):
     """The application, counting the frames it has painted on its current screen."""
 
-    CSS_PATH = stylesheet_of_application()
+    CSS_PATH = INSTALLED
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
