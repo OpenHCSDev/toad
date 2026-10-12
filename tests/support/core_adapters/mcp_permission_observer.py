@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from typing import Any, AsyncIterator
 
-from mcp_observation_fixture import AGENT_DATA, exercise_boundaries, notes
+from mcp_turn_boundaries import AGENT_DATA, exercise_boundaries, notes
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
 from agent_comms.acp_extension import McpClientReceiptUpdate, TurnChangedUpdate, decode_updates
@@ -143,7 +143,7 @@ class Observer:
 
 @asynccontextmanager
 async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer]:
-    from runtime_fixture import ToadApp
+    from toad.app import ToadApp
 
     root = Path(artifact_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
