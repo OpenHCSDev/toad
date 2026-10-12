@@ -33,6 +33,15 @@ def window_rows(snapshot):
     return [line[x:x + width] for line in snapshot["text"][y:y + height]]
 
 
+def shared_screen_rows(before, after):
+    """Each snapshot's window text on the screen rows both windows cover."""
+    spans = [snapshot["message_window"]["region"] for snapshot in (before, after)]
+    top = max(y for _x, y, _width, _height in spans)
+    bottom = min(y + height for _x, y, _width, height in spans)
+    return tuple([line[x:x + width] for line in snapshot["text"][top:bottom]]
+                 for snapshot, (x, _y, width, _height) in zip((before, after), spans))
+
+
 def longest_blank_run(rows):
     longest = run = 0
     for row in rows:
@@ -62,10 +71,16 @@ def main(directory):
     for phase in ("pageup-idle", "wheel-idle"):
         first, second = (out / f"screen-{phase}-{n}-targets.json" for n in (1, 2))
         if first.exists() and second.exists():
-            before, after = (window_rows(json.loads(path.read_text())) for path in (first, second))
-            if before != after:
-                moved = sum(a != b for a, b in zip(before, after))
-                failures.append(f"{phase}: the view moved without input ({moved} rows changed)")
+            before, after = (json.loads(path.read_text()) for path in (first, second))
+            # The view moved when the reader's scroll position changed or a
+            # screen row both windows cover shows something else. The window
+            # itself may change height (a queued-input row leaving the prompt
+            # gives it a row): rows it gains or loses are not movement.
+            scrolled = before["message_window"]["scroll_y"] != after["message_window"]["scroll_y"]
+            changed = sum(a != b for a, b in zip(*shared_screen_rows(before, after)))
+            if scrolled or changed:
+                failures.append(f"{phase}: the view moved without input ({changed} rows changed"
+                                f"{', scroll position changed' if scrolled else ''})")
     for name in ("end", "tab-return"):
         state = seen.get(name)
         if state is None:
