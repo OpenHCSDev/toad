@@ -118,3 +118,10 @@ intermittent = true
 tests = [
     "tests/textual/test_tool_diff_lifecycle.py::test_remounting_an_auto_expanded_tool_while_hidden_registers_its_output_again",
 ]
+
+[late-goal-notice]
+defect = "A goal notice that arrives after a newer goal state is shown replaces it: GoalObservation.receive (toad/session_observation.py) publishes every GoalChangedUpdate as the current goal, so a notice of revision 2 delivered after the view read revision 3 puts revision 2 back on the goal bar until the next notice, and a notice delivered after a clear brings the cleared goal back. Core's GoalSnapshot carries no order a view could compare (a cleared goal has no revision), so Core should answer which of two snapshots is newer and Toad should ask before publishing."
+owner = "Core goal owner (agent_comms GoalSnapshot), then the Toad goal bar (GoalObservation.receive)"
+tests = [
+    "tests/native/test_native_goal_objective_edit.py::test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one",
+]
