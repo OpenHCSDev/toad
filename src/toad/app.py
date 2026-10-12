@@ -303,7 +303,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_access = CoordinationAccess(self)
-        self.temporary_background_screen: Screen | None = None
 
         super().__init__()
         self.session_navigation.bind_events()
@@ -352,13 +351,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     def settings(self) -> ToadSettings:
         """The settings in use, to read from; `saved_settings` changes and saves them."""
         return self.saved_settings.current
-
-    @property
-    def _background_screens(self) -> list[Screen]:
-        background_screens = super()._background_screens
-        if self.temporary_background_screen:
-            background_screens.append(self.temporary_background_screen)
-        return background_screens
 
     async def get_db(self) -> DB:
         """Get an instance of the database."""

@@ -38,8 +38,8 @@ members = ["toad"]
 
 [tool.uv.sources]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "71d088ec78a0e6c88c1fa725160a2da563170eef" }
-agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "11e1be3f3c8067f4d9146f55df32c39b509d214f" }
-textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "c345606c75a7b8c0b949bb4071c233064102febd" }
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "daca9f941e6648290291b6950cc2c026ed545605" }
+textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "6320620c11f2ad34ec52c286ceccee9b6fe22dc5" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 
 # formbridge and objectstate declare the dependencies of formbridge's bridge
