@@ -233,10 +233,12 @@ class TranscriptPageView(LinkedRows, Widget):
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
             return self.blank_row(width)
-        _index, first, lines = self._layout[slot]
+        index, first, lines = self._layout[slot]
         row = y - first
-        # Prepared rows span exactly this width (PreparedLines.strips).
-        return self.on_background(lines.strips[row]) if row < lines.height else self.blank_row(width)
+        if row >= lines.height:
+            return self.blank_row(width)
+        # Prepared rows span exactly this width (Lines.strips_at).
+        return self.on_background(lines.strips_at(self.fragments[index].link_place)[row])
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text is read from the rows this page draws."""

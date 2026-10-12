@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import cached_property
 import io
+from itertools import count
 
 from rich.segment import Segment
 from rich.style import Style
@@ -75,24 +76,51 @@ def _text_width(block: Body, width: int) -> int:
 
 
 def _clickable(rows: list[Row]) -> list[Row]:
-    """Give each Markdown link the click action that hovers and opens it.
-
-    Rich marks a link's cells with its address only. Textual highlights and
-    activates cells that carry a click action and share a link identity, so
-    every cell of one link gets one action style.
-    """
-    actions: dict[str, Style] = {}
-
+    """Give each Markdown link the click action that opens it; Rich marks a link's cells with its address only."""
     def linked(segment: Segment) -> Segment:
         style = segment.style
         if style is None or not style.link:
             return segment
-        action = actions.get(style.link_id)
-        if action is None:
-            action = actions[style.link_id] = Style.from_meta({"@click": f"link({style.link!r})"})
-        return Segment(segment.text, style + action, segment.control)
+        return Segment(segment.text, style + Style.from_meta({"@click": f"link({style.link!r})"}), segment.control)
 
     return [tuple(map(linked, row)) for row in rows]
+
+
+_row_owners = count()
+
+
+def link_place() -> int:
+    """A number for one thing that draws rows (a history fragment, a message being written)."""
+    return next(_row_owners)
+
+
+def _each_link_apart(rows: tuple[Row, ...], place: int) -> tuple[Row, ...]:
+    """Rows whose every link is told apart from equal links drawn elsewhere.
+
+    Textual highlights the cells that share the hovered cell's link identity,
+    and Rich gives equal styles one identity: two rows naming the same thread
+    carried one, so the pointer over one name lit them all. A link here is a
+    run of cells with one click action, which wrapping may carry onto the
+    next row. Each run is marked with where it is drawn: the number of what
+    draws these rows and the run's number within them. The same link drawn
+    again by the same owner (restyled text, another width) keeps its mark,
+    so it stays highlighted under a pointer that has not moved.
+    """
+    action, apart, runs = None, Style.null(), count()
+
+    def placed(segment: Segment) -> Segment:
+        nonlocal action, apart
+        style = segment.style
+        click = style.meta.get("@click") if style is not None else None
+        if click is None:
+            if segment.text.strip():
+                action = None
+            return segment
+        if click != action:
+            action, apart = click, Style.from_meta({"drawn": (place, next(runs))})
+        return Segment(segment.text, style + apart, segment.control)
+
+    return tuple(tuple(map(placed, row)) for row in rows)
 
 
 class LinkedRows:
@@ -245,10 +273,14 @@ class Lines:
     def height(self) -> int:
         return len(self.rows)
 
-    @cached_property
-    def strips(self) -> tuple[Strip, ...]:
-        width = self.width
-        return tuple(Strip(row).extend_cell_length(width).crop(0, width) for row in self.rows)
+    def strips_at(self, place: int) -> tuple[Strip, ...]:
+        """The rows as strips, for the one owner (`link_place`) that draws them."""
+        strips = self.__dict__.get("strips")
+        if strips is None:
+            width = self.width
+            strips = self.__dict__["strips"] = tuple(
+                Strip(row).extend_cell_length(width).crop(0, width) for row in _each_link_apart(self.rows, place))
+        return strips
 
 
 @dataclass(frozen=True)

@@ -21,7 +21,7 @@ from textual.worker import Worker
 from toad.block_content import BlockContent
 from toad.line_blocks import Body, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask,
+    LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
 )
 
 
@@ -44,6 +44,7 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         self._styled: PreparedLines | None = None
         self._plain: PreparedLines | None = None
         self._width = 0
+        self._link_place = link_place()
         self._render_worker: Worker[None] | None = None
 
     @property
@@ -168,10 +169,10 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
 
     def render_line(self, y: int) -> Strip:
         width = self._width
-        strips = self._lines(width).strips if width else ()
+        strips = self._lines(width).strips_at(self._link_place) if width else ()
         if y >= len(strips):
             return self.blank_row(width)
-        # Prepared rows span exactly this width (PreparedLines.strips).
+        # Prepared rows span exactly this width (Lines.strips_at).
         return self.on_background(strips[y])
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:

@@ -194,6 +194,13 @@ class TranscriptFragment:
         """A fragment shows when a filter selects any of its events' categories."""
         return not self.categories.isdisjoint(selected)
 
+    @cached_property
+    def link_place(self) -> int:
+        """What tells this fragment's drawn links apart from equal links in other fragments."""
+        from toad.widgets.transcript_lines import link_place
+
+        return link_place()
+
     def lines_for(self, width: int, theme):
         """Styled lines this fragment holds for a width and theme, if any."""
         held = self.__dict__.get("_lines")

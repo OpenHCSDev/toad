@@ -47,7 +47,7 @@ class TranscriptPageWidth(unittest.TestCase):
             # Drawing one row builds that fragment's strips only, at the laid-out width.
             index, first, drawn = view._layout[len(lines) // 2]
             row = view.render_line(first)
-            self.assertEqual(row, drawn.strips[0])
+            self.assertEqual(row, drawn.strips_at(view.fragments[index].link_place)[0])
             self.assertEqual(row.cell_length, width)
             self.assertEqual([item for item in lines if "strips" in vars(item)], [drawn])
             # Every row of the page draws at exactly the width, and each
