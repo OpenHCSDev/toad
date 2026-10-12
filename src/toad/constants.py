@@ -58,8 +58,8 @@ DEBUG: Final[bool] = _get_environ_bool("DEBUG", False)
 """Debug flag."""
 
 ALL_COMMS_TARGET: Final[str] = "#any"
+"""Virtual all-comms viewer, distinct from the #all broadcast channel."""
 
 WELCOME: Final = "welcome"
 """The workspace view shown while no tab is open."""
-"""Virtual all-comms viewer, distinct from the #all broadcast channel."""
 
