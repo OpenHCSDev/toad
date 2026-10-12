@@ -11,6 +11,7 @@ from support.agents import detached
 from support.native import owner_server, start_private_native_wire
 from support.textual_steps import coordination_update
 from toad.core.events import CommsUpdated
+from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import GoalText
 
@@ -83,8 +84,9 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         await ui.until_shows(f"rev {current.revision}")
         assert not ui.shows("Scroll for full text") and not ui.shows("TAIL_COORDINATOR")
         await pilot.click("#goal-history")
-        await ui.until(lambda: "TAIL_COORDINATOR" in getattr(getattr(app.screen, "goal", None), "text", ""),
-                       why="the full objective in goal details")
+        await ui.until(lambda: isinstance(app.screen, GoalDetails), why="goal details")
+        assert "TAIL_COORDINATOR" in app.screen.goal_display.snapshot.text
+        await ui.until_shows("Objective: Work on draft PR #17.")
 
 
 async def test_a_slow_goal_read_does_not_bring_back_a_goal_paused_then_cleared(workspace, native_package, monkeypatch):
@@ -120,10 +122,11 @@ async def test_a_slow_goal_read_does_not_bring_back_a_goal_paused_then_cleared(w
 async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(workspace, native_package, monkeypatch):
     async with goal_in_toad(workspace, native_package, monkeypatch) as (ui, agent, comms, session, first):
         conversation = ui.conversation
-        current = await agent.edit_goal(first, "Short updated goal")
+        older = comms.registry.require(session).goal
+        current = await agent.edit_goal(older, "Short updated goal")
         await conversation.goal_observation.refresh()
         assert conversation.goal_display.snapshot == current
-        agent.events.publish(CommsUpdated(GoalChangedUpdate(first, None), session_id=agent.session_id))
+        agent.events.publish(CommsUpdated(GoalChangedUpdate(older, None), session_id=agent.session_id))
         await ui.step()
-        assert conversation.goal_display.snapshot == current, "A notice of revision " \
-            f"{first.revision} replaced the shown revision {current.revision}"
+        assert conversation.goal_display.snapshot == current, (
+            f"A notice of revision {older.revision} replaced the shown revision {current.revision}")
