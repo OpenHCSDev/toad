@@ -3,7 +3,6 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 import asyncio
 from collections.abc import Iterable
-from functools import partial
 from typing import ClassVar
 
 from rich.style import Style as RichStyle
@@ -31,6 +30,11 @@ from ui_theme.effects import TAB_WIPE
 
 class SessionLabel(widgets.Label):
     ALLOW_SELECT = False
+
+    def on_resize(self) -> None:
+        # A label laid out for the first time, or at a new width, moves the
+        # cells the underline marks.
+        self.query_ancestor(SessionsTabs).show_selected_tab()
 
     def on_click(self, event: events.Click) -> None:
         if self.id is not None:
@@ -88,13 +92,6 @@ class Underline(Animated, Widget):
     | `underline--bar` | Style of the bar (may be used to change the color). |
     """
 
-    highlight_start = reactive(0)
-    """First cell in highlight."""
-    highlight_end = reactive(0)
-    """Last cell (inclusive) in highlight."""
-    show_highlight: reactive[bool] = reactive(True)
-    """Flag to indicate if a highlight should be shown at all."""
-
     class Clicked(Message):
         """Inform ancestors the underline was clicked."""
 
@@ -107,12 +104,8 @@ class Underline(Animated, Widget):
 
     @property
     def _highlight_range(self) -> tuple[int, int]:
-        """Highlighted range for underline bar."""
-        return (
-            (self.highlight_start, self.highlight_end)
-            if self.show_highlight
-            else (0, 0)
-        )
+        """The selected tab's cells, read from its label when the bar is drawn."""
+        return self.query_ancestor(SessionsTabs).selected_span
 
     def render(self) -> RenderResult:
         """Render the bar."""
@@ -202,8 +195,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
         self.observe_core(self.app.events)
         self.subscribe_core(self.app.session_tracker.events)
         self.call_later(self._sync_tabs)
-        self.update_underline(self.current_session, animate=False)
-        self.call_after_refresh(self.update_underline, self.current_session)
+        self.call_after_refresh(self.show_selected_tab)
         self._sync_spinner(self.app.open_tabs)
 
     @handles(core_events.SessionSelected)
@@ -214,38 +206,28 @@ class SessionsTabs(CoreEventReceiver, Widget):
     def watch_current_session(self, old_session: str, new_session: str) -> None:
         self.query(".-current").remove_class("-current")
         self.query(f"#{new_session}").add_class("-current")
-        if old_session:
-            self.update_underline(old_session, animate=False)
-
-        self.update_underline(new_session, animate=False)
+        self.show_selected_tab()
         if old_session and new_session and self.is_mounted:
             self.query_one(Underline).run_effect(TAB_WIPE)
 
-    def update_underline(self, session: str | None = None, animate: bool = True):
+    @property
+    def selected_span(self) -> tuple[int, int]:
+        """The cells under the selected tab's label; empty until that label is laid out."""
+        label = self.query_one_optional(f"#{self.current_session}", SessionLabel) if self.current_session else None
+        return (0, 0) if label is None else label.virtual_region.shrink((0, 1, 0, 1)).column_span
+
+    def show_selected_tab(self) -> None:
+        """Redraw the underline and bring the selected tab into the strip.
+
+        Called when the selection or a label's geometry changes. It reads the
+        selection when it runs, so a deferred call cannot restore an earlier tab.
+        """
         if not self.is_mounted or not self.is_attached:
             return
-        if session is None:
-            session = self.current_session
-        if not session:
-            return
-        if current_label := self.query_one_optional(f"#{session}", SessionLabel):
-            tab_region = current_label.virtual_region.shrink((0, 1, 0, 1))
-            if not tab_region:
-                return
-            start, end = tab_region.column_span
-            underline = self.query_one(Underline)
-            if animate:
-                underline.animate("highlight_start", start, duration=0.3)
-                underline.animate(
-                    "highlight_end",
-                    end,
-                    duration=0.3,
-                    on_complete=partial(self.scroll_to_center, current_label),
-                )
-            else:
-                underline.highlight_start = start
-                underline.highlight_end = end
-                self.scroll_to_center(current_label, animate=False)
+        self.query_one(Underline).refresh()
+        if self.current_session and (label := self.query_one_optional(f"#{self.current_session}", SessionLabel)):
+            if label.virtual_region:
+                self.scroll_to_center(label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
         title = animated_label(
@@ -340,7 +322,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
             self._last_tabs = tabs
             self._sync_spinner(tabs)
             if geometry_changed or mode_changed:
-                self.call_after_refresh(self.update_underline, self.current_session, False)
+                self.call_after_refresh(self.show_selected_tab)
             # Mount/removal yields to metadata publications. Reconcile their
             # actual newest roster before the activation caller can finish.
             if tabs == self.app.open_tabs:
