@@ -23,4 +23,8 @@ def test_emphasis_code_links_and_mentions_become_spans():
 
 def test_unsafe_links_and_plain_text_stay_literal():
     assert inline_message("[link](javascript:alert)").plain == "[link](javascript:alert)"
+    # A file is opened, not run: its link is drawn as its label.
+    file_link = inline_message("[Open diagnostic](file:///var/tmp/failure.json)")
+    assert file_link.plain == "Open diagnostic"
+    assert meta_at(file_link, 0)["@click"] == OpenUrl("file:///var/tmp/failure.json").click
     assert inline_message("snake_case remains\nwrapped text").plain == "snake_case remains\nwrapped text"

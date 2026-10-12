@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import urlsplit
 
 from toad.line_blocks import (
     CodeRole, EmphasisRole, LineLink, LineRole, MentionRole, OpenTarget, OpenUrl, Span,
@@ -31,7 +30,7 @@ def inline_spans(body: str, mentions=()) -> tuple[Span, ...]:
         name = match.lastgroup if match.lastgroup != "url" else "label"
         if name in _ROLES:
             pieces.append((*match.span(name), _ROLES[name], None))
-        elif urlsplit(match.group("url")).scheme.lower() in {"http", "https", "mailto"}:
+        elif OpenUrl.opens(match.group("url")):
             pieces.append((*match.span("label"), UrlRole, OpenUrl(match.group("url"))))
         else:
             pieces.append((match.start(), match.end(), TextRole, None))

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from functools import cached_property
 import io
 from itertools import count
+from threading import local
 
 from rich.segment import Segment
 from rich.style import Style
@@ -91,9 +92,32 @@ def _clickable(rows: list[Row]) -> list[Row]:
         style = segment.style
         if style is None or not style.link:
             return segment
-        return Segment(segment.text, style + Style.from_meta({"@click": f"link({style.link!r})"}), segment.control)
+        return Segment(segment.text, style + Style.from_meta({"@click": OpenUrl(style.link).click}), segment.control)
 
     return [tuple(map(linked, row)) for row in rows]
+
+
+class _MarkdownParser(local):
+    """Rich's Markdown parser, linking the addresses `OpenUrl` opens: left alone it refuses files."""
+
+    def __init__(self) -> None:
+        from markdown_it import MarkdownIt
+
+        self.parser = MarkdownIt().enable("strikethrough").enable("table")
+        self.parser.validateLink = OpenUrl.opens  # type: ignore[method-assign]
+
+
+_markdown_parser = _MarkdownParser()
+
+
+def _markdown(text: str):
+    """A message's text as Rich Markdown."""
+    from rich.markdown import Markdown
+
+    # Rich parses in its constructor with a parser of its own; parse nothing there.
+    markdown = Markdown("")
+    markdown.markup, markdown.parsed = text, _markdown_parser.parser.parse(text)
+    return markdown
 
 
 _row_owners = count()
@@ -148,9 +172,11 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
     def open_historical_target(self, link: OpenHistoricalTarget) -> None:
         self.publish_core(SelectHistoricalIdentity(link.target, link.source))
 
-    @handles(OpenUrl)
-    def open_url(self, link: OpenUrl) -> None:
-        self.app.open_url(link.url)
+    async def action_link(self, href: str) -> None:
+        """What a click on an address runs (`OpenUrl.click`): a file opens its preview, anything else the browser."""
+        from toad.project_path_owner import ProjectPathOwner
+
+        await ProjectPathOwner.link_from(self, href).preview(self)
 
 
 class LinkedRows(OpensLinks):
@@ -168,11 +194,6 @@ class LinkedRows(OpensLinks):
 
     def blank_row(self, width: int) -> Strip:
         return Strip.blank(width, self.rich_style)
-
-    async def action_link(self, href: str) -> None:
-        from toad.project_path_owner import ProjectPathOwner
-
-        await ProjectPathOwner.link_from(self, href).preview(self)
 
 
 def _plain_lines(text: str) -> list[str]:
@@ -254,13 +275,12 @@ class RichLineRenderer(MroDispatch):
         style = self.theme.style(block.role)
         if block.markdown and not self.plain:
             from rich.console import Console
-            from rich.markdown import Markdown
 
             console = Console(width=inner, color_system=self.theme.color_system,  # type: ignore[arg-type]
                               force_terminal=True,
                               file=io.StringIO(), legacy_windows=False)
             rows = _clickable([tuple(line) for line in console.render_lines(
-                Markdown(block.text), console.options.update(width=inner), style=style, pad=False)])
+                _markdown(block.text), console.options.update(width=inner), style=style, pad=False)])
         else:
             rows = [(Segment(line[start:start + inner], style),)
                     for line in _plain_lines(block.text) for start in _plain_spans(line, inner)]

@@ -108,7 +108,7 @@ class LineLink:
     underlined: ClassVar[bool] = True
 
     @property
-    def click(self) -> tuple[str, tuple]:
+    def click(self) -> str | tuple[str, tuple]:
         return "open", (self,)
 
 
@@ -129,7 +129,21 @@ class OpenHistoricalTarget(LineLink):
 
 @dataclass(frozen=True)
 class OpenUrl(LineLink):
+    """Open an address written in a message: a web page, a mail address, a file."""
+
     url: str
+    # An address that would run code instead of opening something is never a link.
+    runs_code: ClassVar[re.Pattern[str]] = re.compile(r"\s*(vbscript|javascript|data):", re.IGNORECASE)
+
+    @classmethod
+    def opens(cls, url: str) -> bool:
+        """Whether `[label](url)` is drawn as a link, in every style a message is drawn in."""
+        return cls.runs_code.match(url) is None
+
+    @property
+    def click(self) -> str:
+        # The action a Markdown link runs, so one handler opens an address however it was written.
+        return f"link({self.url!r})"
 
 
 @dataclass(frozen=True)
