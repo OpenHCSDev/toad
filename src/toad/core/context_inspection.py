@@ -6,7 +6,6 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import partial
-from operator import attrgetter
 from typing import TYPE_CHECKING, Awaitable, Callable
 from acp.exceptions import RequestError
 
@@ -393,9 +392,8 @@ class NativeMessageNode(NativeSegmentNode):
 
     def public_text(self):
         message = self.message
-        calls = tuple(call for part in message.parts for call in part.tool_calls())
         tool_text = "\n".join(json.dumps(FieldCodec.encode(call), ensure_ascii=False,
-                                        indent=2) for call in calls)
+                                        indent=2) for call in message.tool_calls)
         return "\n".join(filter(None, (message.text, tool_text)))
 
     def detail(self):
@@ -522,10 +520,8 @@ class ContextInspection:
                    annotations, imported, resources)
 
     def same_native_source(self, other: ContextInspection):
-        """Compare original SDK source/launch facts, not roster presentation."""
-        launch_facts = attrgetter("incarnation", "process_identity", "role", "session_file", "worktree",
-                                  "execution", "model", "thinking_level")
-        return self.source == other.source and launch_facts(self.owner) == launch_facts(other.owner)
+        """Whether a context read from the running agent for one still describes the other."""
+        return self.source == other.source and self.owner.same_launch(other.owner)
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
