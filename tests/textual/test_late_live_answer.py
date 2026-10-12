@@ -32,7 +32,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
     comms.registry.declare(Thread("peer", frozenset(), str(project)))
     comms.messaging.send_message("peer", "source", "WIRE_NOTICE")
     first_page = comms.transcripts.thread_transcript_page("source")
-    held, release = asyncio.Event(), asyncio.Event()
+    held, release, applied = asyncio.Event(), asyncio.Event(), asyncio.Event()
     read_release = asyncio.Event()
     pending = []
     async with workspace.app(size=(120, 35)) as ui:
@@ -56,6 +56,9 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                 if isinstance(event, Update) and event.text == TOKEN:
                     held.set()
                     await release.wait()
+                    await dispatch(message)
+                    applied.set()
+                    return
                 await dispatch(message)
 
             view._dispatch_message = hold_the_live_answer
@@ -127,6 +130,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             await asyncio.sleep(.5)
             release.set()
             await asyncio.wait_for(asyncio.gather(*pending), 8)
+            await asyncio.wait_for(applied.wait(), 5)
             await ui.until(lambda: ui.painted(view.window).count(TOKEN) == 1, seconds=5,
                            why="exactly one drawn copy of the answer")
             await ui.step(.5)
