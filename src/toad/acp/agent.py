@@ -28,7 +28,7 @@ from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
-from agent_comms.ui_model.observation import ReadOwnerGoal
+from agent_comms.ui_model.observation import ReadOwnerGoal, ReadThreadPresentation
 
 import toad
 from toad import jsonrpc, paths
@@ -302,14 +302,10 @@ class Agent(AgentBase):
                                                 turn_token=self.presentation.turns.sequence))
 
     async def get_thread_presentation(self):
-        from toad.owner_preparation import read_thread_presentation
-
         if (read := self.thread_read()) is None:
             return None
         root, thread = read.thread
-        async with self.controller.transcripts.bind(root) as reader:
-            presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
-        return read.settle(presentation)
+        return read.settle(await self.controller.transcripts.read(ReadThreadPresentation(root, thread)))
 
     async def get_message_notifications(self, references):
         coordination = self.coordination

@@ -18,6 +18,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from agent_comms.messages import Message as WireMessage
+from agent_comms.ui_model.observation import ReadThreadPresentation
 from textual import containers, work
 from textual.app import ComposeResult
 from textual.content import Content
@@ -35,7 +36,6 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
 
@@ -277,7 +277,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         comms, target = source.comms, self.target
         if not await history.source_is_current(snapshot):
             raise ValueError("Comms route changed")
-        presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
+        presentation = await self.app.coordination_access.read(ReadThreadPresentation(str(comms.root), target))
         if not await history.source_is_current(snapshot) or target != self.target:
             raise ValueError("Comms route changed")
         return presentation

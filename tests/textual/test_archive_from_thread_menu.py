@@ -14,12 +14,10 @@ from toad.widgets.comms_menu import ContextMenu, ContextMenuItem
 from toad.widgets.comms_sidebar import CommsRow, CommsSidebar
 
 
-async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_history(workspace):
-    class RetainAction(ArchiveCliCommand):
-        """A command declared here must appear in the menu and run with no other edit."""
-
+async def test_the_archive_command_runs_from_the_menu_and_keeps_history(workspace):
+    # The menu lists what Core's process declares; a class declared in this
+    # process is not one of its commands.
     commands = CliCommand.members_with(CliCommand)
-    assert RetainAction in commands
     assert len({command.declared_name for command in commands}) == len(commands)
     assert all(command.help for command in commands)
 
@@ -55,7 +53,7 @@ async def test_a_newly_declared_archive_command_runs_from_the_menu_and_keeps_his
         assert ArchiveCliCommand.declared_name in actions
         assert "comms_delete" not in actions
         archive = next(item for item in app.screen.query(ContextMenuItem)
-                       if item.action == RetainAction.declared_name)
+                       if item.action == ArchiveCliCommand.declared_name)
         assert await pilot.click(archive)
         await ui.until(lambda: comms.registry.status("peer") == ArchivedThreadStatus(), why="the thread archived")
         await ui.until(lambda: "peer" not in app.thread_actions.pending, why="the command to finish")

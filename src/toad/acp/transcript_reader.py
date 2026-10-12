@@ -2,12 +2,13 @@
 
 The UI process does not read Core's transcript stores or ask the live owner
 for its goal snapshot and input delivery. A page read, a published page's
-currency check, message notifications and those owner reads are requests to
-the observation process (``agent_comms.ui_model.observation``) that
-``CoordinationAccess`` owns; the answer arrives decoded (a finished page and
-its witness, an owner snapshot), or as the exception the read raised. The
-in-process service binding remains for the work that has not moved: the owner
-presentation that settles turns, owner actions and input capture.
+currency check, message notifications, the thread presentation that settles a
+turn and those owner reads are requests to the observation process
+(``agent_comms.ui_model.observation``) that ``CoordinationAccess`` owns; the
+answer arrives decoded (a finished page and its witness, a presentation, an
+owner snapshot), or as the exception the read raised. The in-process service
+binding remains for the work that has not moved: owner actions and input
+capture.
 """
 
 from __future__ import annotations

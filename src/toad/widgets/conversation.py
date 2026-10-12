@@ -1687,7 +1687,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         navigation = source.navigation_context
         agent = self.agent
         context = await self.command_target_context()
-        catalog = await CommandCatalog.read(self.app,
+        catalog = await CommandCatalog.read(
             agent.presentation.commands if agent is not None else (), context)
         if (not self.is_attached or source.navigation_context != navigation
                 or agent is not self.agent):

@@ -13,7 +13,9 @@ from agent_comms.comms import Comms
 from toad import messages
 from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
-from agent_comms.cli_commands import CliCommand, TargetAction
+from agent_comms.cli_commands import TargetAction
+from agent_comms.coordination_errors import StaleRevision
+from agent_comms.ui_model.observation import ReadTargetActions
 from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
@@ -45,14 +47,14 @@ class TargetContext:
             raise ValueError('Comms route changed; reopen this view')
         return self
 
-    def available_actions(self):
-        from agent_comms.route_selection import RouteSelection
-        selected = RouteSelection.capture(self.comms.root)
-        self.current()
-        actions = CliCommand.target_catalog(self.comms, self.targets or self.subject, self.channel, project=str(self.project))
-        if RouteSelection.capture(self.comms.root) != selected:
-            raise ValueError('Comms route changed during command discovery')
-        return actions
+    async def available_actions(self):
+        """The operations Core offers for this target, read in its observation process."""
+        try:
+            return await self.app.coordination_access.read(ReadTargetActions(
+                str(self.comms.root), self.targets or self.subject, self.channel, str(self.project)))
+        except StaleRevision as error:
+            # This view's service is not the observed one: the route was replaced.
+            raise ValueError('Comms route changed; reopen this view') from error
 
     def show_menu(self, sidebar, offset):
         from toad.widgets.comms_menu import show_target_menu
@@ -75,7 +77,7 @@ class TargetContext:
 
     async def command_choices(self):
         from toad.command_catalog import CommandCatalog
-        return (await CommandCatalog.read(self.app, (), self)).target_choices
+        return (await CommandCatalog.read((), self)).target_choices
 
     def execute_menu(self, sidebar, command):
         try:

@@ -202,7 +202,8 @@ See on-screen instructions for details.
         pass
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
-        self.notify_style_update()
+        # A typed command is highlighted, and its hint shown, from this list.
+        self._clear_caches()
         self.refresh()
 
     def highlight_slash_command(self, text: str) -> Content:

@@ -17,9 +17,9 @@ class CommandCatalog:
     context: TargetContext | None = None
 
     @classmethod
-    async def read(cls, app, advertised: Sequence[AgentAdvertisedCommand],
+    async def read(cls, advertised: Sequence[AgentAdvertisedCommand],
                    context: TargetContext | None = None):
-        """Acquire one operation's projection through the shared read worker.
+        """Join the agent's commands, Core's operations for the target and the local ones.
 
         This value is consumed by a refresh or execution and then released;
         widgets retain completion display resources, never applicability.
@@ -30,7 +30,7 @@ class CommandCatalog:
         commands = {command.command: command for command in advertised}
         if context is not None:
             try:
-                definitions = await app.preparation.run_thread(context.available_actions)
+                definitions = await context.available_actions()
             except UnregisteredThreadError:
                 # A shell-only view has no backend thread. The registry query,
                 # rather than a second UI-side presence read, owns that fact.
