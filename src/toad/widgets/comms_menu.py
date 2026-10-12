@@ -166,8 +166,7 @@ class ContextMenu(ModalScreen[str]):
         self.dismiss(event.item.action)
 
     def on_click(self, event: events.Click) -> None:
-        widget, _ = self.get_widget_at(event.screen_x, event.screen_y)
-        node: DOMNode | None = widget
+        node: DOMNode | None = event.widget
         while node is not None:
             if node.id == "context-menu":
                 return
