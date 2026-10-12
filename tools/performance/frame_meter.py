@@ -139,7 +139,7 @@ def install(*, expected_pid, seconds, output):
     # still points at the call that held it when this watcher gets the GIL.
     stall_threads = {}
     timed_callbacks = []
-    # Every callback since the lag probe last ran, and, per wait over 16 ms,
+    # Every callback since the lag probe last ran, and, per wait over 12 ms,
     # the callbacks that made it up: a wait is often one loop turn of many
     # short callbacks, none long enough to be recorded on its own.
     since_probe, long_waits = [], []
@@ -358,7 +358,8 @@ def install(*, expected_pid, seconds, output):
     def probe(due):
         now = loop.time()
         lags.append((clock(), round((now - due) * 1000, 2)))
-        if now - due > 0.016:
+        if now - due > 0.012:
+            # From 12 ms, so the turns just under the 16 ms target are seen too.
             long_waits.append((clock(), round((now - due) * 1000, 2), list(since_probe)))
         since_probe.clear()
         if not state.get("finished"):
