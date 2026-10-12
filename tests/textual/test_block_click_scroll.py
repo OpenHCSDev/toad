@@ -3,6 +3,7 @@
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 
+from toad.widgets.agent_response import AgentResponse
 from toad.widgets.note import Note
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -72,3 +73,21 @@ async def test_clicking_a_block_taller_than_the_viewport_shows_its_top(workspace
         await clicked(ui, view, "TALL_LINE_119", tall)
         await ui.until(lambda: tall.region.y == view.window.content_region.y, why="the tall block's top at the viewport's top")
         assert ui.shows("TALL_LINE_0")
+
+
+async def test_clicking_or_entering_a_live_agent_response_selects_its_text(workspace):
+    async with workspace.app(size=(110, 38)) as ui:
+        view = ui.conversation
+        await view.contents.remove_children()
+        response = await view.post(AgentResponse("RESPONSE_TEXT in **Markdown**"))
+        await ui.until_shows("RESPONSE_TEXT")
+
+        await clicked(ui, view, "RESPONSE_TEXT", response)
+        assert view.cursor_block_child is response.body
+        assert view.navigation.cursor.get_clipboard_text() == "RESPONSE_TEXT in **Markdown**"
+
+        view.navigation.clear()
+        view.action_cursor_up()
+        await ui.step()
+        assert view.cursor_block_child is response.body
+        assert ui.failure() is None

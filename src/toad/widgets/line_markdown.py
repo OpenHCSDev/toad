@@ -18,14 +18,19 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.worker import Worker
 
+from toad.block_content import BlockContent
 from toad.line_blocks import Body, LineRole, TextRole
 from toad.widgets.transcript_lines import (
     PreparedLines, RichLineRenderer, TranscriptLinesRenderTask,
 )
 
 
-class LineMarkdown(Widget):
-    """A leaf that draws one Markdown body; its owner holds headers and identity."""
+class LineMarkdown(BlockContent, Widget):
+    """A leaf that draws one Markdown body; its owner holds headers and identity.
+
+    It is block content: the cursor of the message that holds it can select it,
+    and copying it gives its Markdown source.
+    """
 
     DEFAULT_CSS = "LineMarkdown { height: auto; }"
     RESTYLE_INTERVAL = 0.25
@@ -44,6 +49,9 @@ class LineMarkdown(Widget):
     @property
     def block(self) -> Body:
         return Body(self.text, role=self.role, bar=self.bar, markdown=self.markdown)
+
+    def get_clipboard_text(self) -> str | None:
+        return self.text or None
 
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self._theme_changed)

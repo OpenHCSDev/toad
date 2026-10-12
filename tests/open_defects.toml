@@ -6,7 +6,7 @@
 # `intermittent = true` marks a defect that shows only on some runs: passing is then not an error.
 
 [agent-text-click]
-defect = "A left click on live agent text raises AttributeError: 'LineMarkdown' object has no attribute 'block_cursor' (AgentResponse's ChildBlockCursor asks every child for one), and file paths and links in agent text are plain text: no preview on click, no copy-path menu, no file search. The line view's interaction (block cursor, links) is not carried over to the live tail yet; docs/agents/DECISIONS.md lists it under features to carry over."
+defect = "File paths and links in live agent text are plain text: no preview on click, no copy-path menu, no file search. The line view's link interaction is not carried over to the live tail yet; docs/agents/DECISIONS.md lists it under features to carry over. (The click itself no longer raises: LineMarkdown is block content, tests/textual/test_block_click_scroll.py.)"
 owner = "frame-time / line-view owner (perf/line-history)"
 tests = [
     "tests/textual/test_file_links_in_agent_text.py::test_existing_project_paths_in_agent_text_are_links_and_other_text_is_not",
