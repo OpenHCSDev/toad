@@ -19,7 +19,10 @@ from ui_theme.effects import NEW_MESSAGE
 
 from toad.line_blocks import AgentRole, Divider
 from toad.textual_colours import Animated
-from toad.widgets.transcript_lines import LineTheme, LinkedRows, PreparedLines, RichLineRenderer, link_place
+from toad.message_rows import MessageRow
+from toad.widgets.transcript_lines import (
+    LineTheme, LinkedRows, MessageRowBlock, PreparedLines, RichLineRenderer, link_place,
+)
 
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
@@ -123,6 +126,14 @@ class MessageDivider(LinkedRows, Animated, BlockContent, Widget):
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         return 1
+
+
+class MessageRowDivider(MessageRowBlock, MessageDivider):
+    """The rule above a live bus message: the cursor's menu on it opens the sender or the destination."""
+
+    def __init__(self, row: MessageRow, *, clock: MessageClock = LiveMessageClock()) -> None:
+        super().__init__(row.header, clock=clock)
+        self.message_row = row
 
 
 class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, MessageDivider):

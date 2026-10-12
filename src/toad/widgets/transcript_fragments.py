@@ -183,20 +183,6 @@ class FragmentLineConsumer(MroDispatch):
         if event.text.strip():
             self.blocks += [Body(event.text, role=ThinkingRole), Gap()]
 
-    @handles(IncomingTranscript)
-    def incoming(self, event: IncomingTranscript) -> None:
-        self.message(MessageRow.incoming(event))
-
-    @handles(SentTranscript)
-    def sent(self, event: SentTranscript) -> None:
-        self.message(MessageRow.sent(event))
-
-    def message(self, row: MessageRow) -> None:
-        """A message on the bus: the row every view draws, in the Markdown style."""
-        if self.show_divider:
-            self.blocks.append(row.header)
-        self.blocks += [*MarkdownMessageStyle().body(row), Gap()]
-
 
 @dataclass(frozen=True, kw_only=True)
 class Shown:
@@ -326,6 +312,35 @@ class ToolTranscriptFragment(TranscriptFragment):
         return (shown.summary(title), *(block for part in self.output_parts for block in part.line_blocks()))
 
 
+class BusMessageFragment(TranscriptFragment):
+    """A message on the bus in a thread's saved history: the row every view draws, in the Markdown style."""
+
+    @cached_property
+    def row(self) -> MessageRow:
+        raise NotImplementedError
+
+    @property
+    def block_menu(self):
+        return self.row.menu
+
+    def blocks(self, shown):
+        row = self.row
+        # Text too long for one fragment continues in the next, under the first one's header.
+        return (*(() if self.continuation else (row.header,)), *MarkdownMessageStyle().body(row), Gap())
+
+
+class IncomingMessageFragment(BusMessageFragment):
+    @cached_property
+    def row(self) -> MessageRow:
+        return MessageRow.incoming(self.events[0])
+
+
+class SentMessageFragment(BusMessageFragment):
+    @cached_property
+    def row(self) -> MessageRow:
+        return MessageRow.sent(self.events[0])
+
+
 class ContextTranscriptFragment(TranscriptFragment):
     """The coordination context an agent was given: one line, and its text when opened."""
 
@@ -353,12 +368,20 @@ class TranscriptFragmentConsumer(MroDispatch):
         # One lazy disclosure owns the full metadata source.
         self.fragments.append(ContextTranscriptFragment((event,), continuation=self.continuation))
 
+    @handles(IncomingTranscript)
+    def incoming(self, event: IncomingTranscript):
+        self.text(event, IncomingMessageFragment)
+
+    @handles(SentTranscript)
+    def sent(self, event: SentTranscript):
+        self.text(event, SentMessageFragment)
+
     @handles(UserTranscript, MarkdownTranscript)
-    def text(self, event: TextTranscript):
+    def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment):
         starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
         self.fragments.extend(
-            TranscriptFragment((replace(event, text=part.text),), continuation=self.continuation or index > 0,
+            kind((replace(event, text=part.text),), continuation=self.continuation or index > 0,
                                starts_agent_activity=starts_activity and index == 0)
             for index, part in enumerate(self.budget.split(source) if self.split_text else (source,))
         )

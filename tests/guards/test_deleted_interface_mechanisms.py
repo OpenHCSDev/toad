@@ -187,6 +187,16 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
     assert 'render' not in vars(MessageDivider) and issubclass(MessageDivider, OpensLinks)
     assert Divider.__dataclass_fields__.keys() == {'spans', 'role', 'timestamp'}
 
+    # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
+    for name, home in (('action_open_sender', 'widgets/transcript_lines.py'),
+                       ('action_open_destination', 'widgets/transcript_lines.py'),
+                       ('action_link', 'widgets/transcript_lines.py'), ('opens', 'line_blocks.py')):
+        assert declared[name] == [home], (name, declared[name])
+    assert '_open_name' not in declared and 'open_url' not in declared
+    assert source.count('"block.open_sender"') == source.count('"block.open_destination"') == 1
+    # Which addresses are links is one rule; the inline parser keeps no list of its own.
+    assert 'urlsplit' not in (ROOT / 'inline_spans.py').read_text()
+
 
 def test_serialized_history_tree_mutations_use_the_window_fence():
     """A source lock cannot substitute for the window's native frame fence."""

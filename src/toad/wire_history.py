@@ -22,7 +22,6 @@ from agent_comms.presentation import WireRevision
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, NoticeRole, Summary, WorkingRole
 from toad.message_rows import MessageRow, WireMessageStyle
-from toad.menus import MenuItem
 from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
@@ -186,12 +185,14 @@ class MessageFragment(WireFragment):
     outgoing: bool
     checks_notifications = True
     has_details = True
-    block_menu = (MenuItem("Open [u]s[/u]ender", "block.open_sender", "s"),
-                  MenuItem("Open [u]d[/u]estination", "block.open_destination", "d"))
 
     @cached_property
     def row(self) -> MessageRow:
         return MessageRow.of(self.message, outgoing=self.outgoing)
+
+    @property
+    def block_menu(self):
+        return self.row.menu
 
     @property
     def clipboard_text(self):

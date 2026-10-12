@@ -3,7 +3,8 @@
 A channel, a thread's saved history and a message being sent all draw one
 through this: a header rule carrying "sender → destination · time", whose
 names open the thread or channel they name, then the text in one of two
-styles. Nothing here imports a terminal library.
+styles. The cursor's menu on a message opens the same names from the
+keyboard. Nothing here imports a terminal library.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from agent_comms.routing import MessageRoute
 from agent_comms.transcript_events import IncomingTranscript, SentTranscript
 
 from toad.inline_spans import inline_spans
+from toad.menus import MenuItem
 from toad.line_blocks import (
     Body, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole, OpenHistoricalTarget,
     OpenTarget, OutgoingRole, Span, Spans,
@@ -61,6 +63,22 @@ class MessageRow:
                           if self.history is not None and not target.startswith("#")
                           else OpenTarget(target))
         return Span(target, NameRole, link)
+
+    @property
+    def sender(self) -> LineLink:
+        """What opens the thread that sent the message."""
+        return self.name(self.route.sender).link
+
+    @property
+    def destination(self) -> LineLink:
+        """What opens the first thread or channel the message was sent to."""
+        return self.name(self.route.targets[0]).link
+
+    @property
+    def menu(self) -> tuple[MenuItem, ...]:
+        """What the cursor's menu offers on this message, wherever it is drawn."""
+        return (MenuItem("Open [u]s[/u]ender", "block.open_sender", "s"),
+                *(MenuItem("Open [u]d[/u]estination", "block.open_destination", "d"),) * bool(self.route.targets))
 
     @property
     def route_text(self) -> str:

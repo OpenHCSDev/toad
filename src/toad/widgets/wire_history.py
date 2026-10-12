@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from dataclasses import replace
-from operator import attrgetter
 from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
@@ -254,18 +253,6 @@ class WireHistory(LineHistory):
         await self._show([(fragment, replace(fragment.shown, style=style))
                           for fragment in self.wire_fragments])
         self.window.scroll_end(animate=False)
-
-    # The message under the cursor
-
-    def _open_name(self, name) -> None:
-        if (fragment := self.block_cursor.current) is not None:
-            self.pages[-1].action_open(fragment.row.name(name(fragment.message)).link)
-
-    def action_open_sender(self) -> None:
-        self._open_name(attrgetter("sender"))
-
-    def action_open_destination(self) -> None:
-        self._open_name(attrgetter("target"))
 
     # Notifications
 

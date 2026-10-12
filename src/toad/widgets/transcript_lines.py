@@ -26,6 +26,8 @@ from toad.line_blocks import (
     Summary,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
+from toad.menus import MenuItem
+from toad.message_rows import MessageRow
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import linked_target
 from toad.render_backend import ReusableRenderTask
@@ -177,6 +179,26 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
         from toad.project_path_owner import ProjectPathOwner
 
         await ProjectPathOwner.link_from(self, href).preview(self)
+
+
+class OpensMessageNames(OpensLinks):
+    """A block the cursor rests on while it draws a bus message: what the message's menu (`MessageRow.menu`) runs."""
+
+    # The message under the cursor.
+    message_row: MessageRow
+
+    def action_open_sender(self) -> None:
+        self.action_open(self.message_row.sender)
+
+    def action_open_destination(self) -> None:
+        self.action_open(self.message_row.destination)
+
+
+class MessageRowBlock(OpensMessageNames):
+    """A widget that is one bus message under the cursor: it offers the message's menu."""
+
+    def get_block_menu(self) -> tuple[MenuItem, ...]:
+        return self.message_row.menu
 
 
 class LinkedRows(OpensLinks):

@@ -10,7 +10,7 @@ from toad.line_blocks import AgentRole, Divider
 from toad.message_rows import MessageRow
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
-from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
+from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider, MessageRowDivider
 from toad import response_delivery
 from toad.widgets.message_filter import (
     CategorizedBlock,
@@ -66,7 +66,7 @@ class AgentResponse(MroProjection, ConversationBlock, SnapshotPresentation, Cate
     def routed_prefix(self, delivery, clock, show_divider):
         return {
             "prefix": (
-                (MessageDivider(MessageRow(delivery.route, "", None, outgoing=True).header, clock=clock),)
+                (MessageRowDivider(MessageRow(delivery.route, "", None, outgoing=True), clock=clock),)
                 if show_divider else ()
             ),
             "classes": f"{self.DEFAULT_CLASSES} -routed",

@@ -48,8 +48,9 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
+from toad.message_rows import MessageRow
 from toad.widgets.transcript_lines import (
-    LinkedRows, Lines, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    LinkedRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
@@ -441,7 +442,7 @@ class TranscriptPageView(LinkedRows, Widget):
                 return await self.prepared.replace_range(self, self.fragments, selected, None, current)
 
 
-class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
+class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the
@@ -567,6 +568,11 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
 
     # The message cursor
+
+    @property
+    def message_row(self) -> MessageRow:
+        """The bus message the cursor rests on; its menu is offered on no other fragment."""
+        return self.block_cursor.current.row
 
     @property
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
