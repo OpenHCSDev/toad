@@ -66,7 +66,7 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
         async def choose(widget, key):
             assert isinstance(widget, BlockContent), type(widget)
             assert view.navigation.select(widget)
-            view.refresh_block_cursor()
+            view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
             await ui.press("enter")
             await ui.until(lambda: bool(view.query(Menu)), why="the block menu")
             assert "opy to clipboard" in ui.visible_text(), ui.visible_text()
@@ -90,7 +90,7 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
         await choose(extra, "z")
         await ui.until_shows("DECLARED_ACTION_PAINT")
         assert view.navigation.select(tool)
-        view.refresh_block_cursor()
+        view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
         assert view.check_action("expand_block", ()) is True
         assert view.check_action("collapse_block", ()) is False
         await ui.press("space")
@@ -102,7 +102,7 @@ async def test_block_menu_copy_prompt_and_expansion(workspace, private_display):
         assert not ui.shows("TOOL_EXPANSION_PAINT")
         await ui.resize(83, 31)
         assert view.navigation.select(extra)
-        view.refresh_block_cursor()
+        view.refresh_block_cursor(lambda cursor: cursor.show_moved_to(view.window))
         await copied(extra, "DECLARED_COPY café 界")
         assert ui.shows("DECLARED_ACTION_PAINT")
         assert view.check_action("expand_block", ()) is None

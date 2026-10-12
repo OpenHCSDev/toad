@@ -9,7 +9,7 @@ async def test_window_follows_tail_releases_on_scroll_up_and_resumes(workspace):
         response = await conversation.post(AgentResponse("\n\n".join(f"Paragraph {i}" for i in range(40))))
         window = conversation.window
         window.anchor(False)
-        conversation.refresh_block_cursor()
+        conversation.refresh_block_cursor(lambda cursor: cursor.show_moved_to(conversation.window))
         assert window.follows_tail, "Returning the block cursor to the composer disabled follow"
         window.anchor()
         await ui.step()

@@ -87,8 +87,11 @@ class BlockCursor(DeclaredFamily, affix="BlockCursor"):
     def visible_region(self) -> Region | None:
         return None
 
-    def scroll_to_center(self, window) -> None:
-        pass
+    def show_moved_to(self, window) -> None:
+        """Scroll for a keyboard move, which can land on a block out of view."""
+
+    def show_clicked(self, window) -> None:
+        """Scroll for a click, which lands on a block that is already in view."""
 
     def export_render(self):
         return None
@@ -134,8 +137,15 @@ class AtomicBlockCursor(BlockCursor):
         geometry = self.block.screen._compositor.visible_widgets.get(self.block)
         return None if geometry is None else geometry[0]
 
-    def scroll_to_center(self, window):
+    def show_moved_to(self, window):
         window.scroll_to_center(self.block, immediate=True)
+
+    def show_clicked(self, window):
+        # The clicked block stays where it is. Only a block taller than the
+        # viewport whose top is scrolled off moves, so that its top shows.
+        block, viewport = self.block.region, window.content_region
+        if block.height > viewport.height and block.y < viewport.y:
+            window.scroll_to_widget(self.block, top=True, immediate=True)
 
     def export_render(self):
         from textual._compositor import Compositor
@@ -143,6 +153,20 @@ class AtomicBlockCursor(BlockCursor):
         compositor = Compositor()
         compositor.reflow(self.block, self.block.outer_size)
         return self.block.outer_size, compositor.render_full_update()
+
+
+class SavedHistoryBlockCursor(AtomicBlockCursor):
+    """The saved history is one block; its rows are reached by scrolling it.
+
+    Selecting it never scrolls: the reader's place in it belongs to the window,
+    and the block's own top is the oldest loaded row, not what was clicked.
+    """
+
+    def show_moved_to(self, window):
+        pass
+
+    def show_clicked(self, window):
+        pass
 
 
 class ChildBlockCursor(BlockCursor):

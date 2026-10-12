@@ -1908,7 +1908,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             return
 
         if self.navigation.select(widget):
-            self.refresh_block_cursor()
+            self.refresh_block_cursor(lambda cursor: cursor.show_clicked(self.window))
 
     async def post[WidgetType: Widget](
         self,
@@ -2086,7 +2086,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
 
     def move_cursor(self, direction) -> None:
         self.navigation.move(direction)
-        self.refresh_block_cursor()
+        self.refresh_block_cursor(lambda cursor: cursor.show_moved_to(self.window))
 
     def action_cursor_up(self) -> None:
         self.move_cursor(UpCursor())
@@ -2203,28 +2203,29 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
 
         webbrowser.open(f"file:///{svg_path}")
 
-    def refresh_block_cursor(self) -> None:
+    def refresh_block_cursor(self, show) -> None:
+        """Paint the cursor's new block; `show` scrolls for how the cursor got there."""
         self.cursor.refresh()
         if (cursor := self.navigation.cursor) is not None:
             # Resolve this navigation event before a later tab/editor event.
             self.screen.set_focus(self.window)
             self.call_after_refresh(
-                self._present_block_cursor, cursor
+                self._present_block_cursor, cursor, show
             )
         else:
             self.window.anchor()
             self.prompt.focus()
         self.refresh_bindings()
 
-    def _present_block_cursor(self, cursor) -> None:
+    def _present_block_cursor(self, cursor, show) -> None:
         from toad.screens.session_view import SessionView
 
-        # Original frame admission resolves pending source entry. A later
-        # prompt/tab/source event may already have revoked this cursor intent.
+        # A later prompt, tab or source event may already have moved the cursor
+        # off this block.
         if (self.is_attached and not self._closing
                 and self.query_ancestor(SessionView).is_current
                 and self.navigation.cursor is cursor):
-            cursor.scroll_to_center(self.window)
+            show(cursor)
             self.cursor.refresh()
             self.refresh_bindings()
 

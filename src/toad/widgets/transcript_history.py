@@ -1,7 +1,7 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationBlock
+from toad.block_navigation import ConversationBlock, SavedHistoryBlockCursor
 
 from toad.widgets.message_filter import OtherCategory
 
@@ -10,7 +10,7 @@ from bisect import bisect_right
 from collections import deque
 from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
-from functools import partial
+from functools import cached_property, partial
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -365,6 +365,10 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     @property
     def message_category(self) -> None:
         return None
+
+    @cached_property
+    def block_cursor(self):
+        return SavedHistoryBlockCursor(self)
 
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                   *, fragments: tuple[TranscriptFragment, ...] | None = None,
