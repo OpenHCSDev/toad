@@ -706,8 +706,9 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             del self.tool_expansions[next(iter(self.tool_expansions))]
 
     def update_title(self) -> None:
-        """Update the screen title."""
-
+        """Update the screen title; a conversation off screen has no title."""
+        if not self.is_mounted:
+            return
         if agent_title := self.agent_title:
             project_path = format_path(self.project_path)
             self.screen.title = f"{agent_title} {project_path}"
@@ -1033,7 +1034,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         if self.agent is not None:
             await self.agent.set_session_name(name)
         self.publish_core(core_events.SessionTitleChanged(name))
-
     async def rename_session(self, name: str) -> None:
         """Apply an explicit user- or agent-provided title to this session."""
         self._auto_title_eligible = False
@@ -1056,15 +1056,17 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             if self.agent and self.agent.coordination
             else None
         ) is not None:
-            from toad.db import DB
+            from toad.core.events import SessionThreadTitle
 
             self._auto_title_eligible = False
             title = message.event.title or ""
-            if (pk := self.agent.session.pk) is not None:
-                await DB().session_update_title(pk, title)
-            self.publish_core(core_events.SessionTitleChanged(title))
+            self.publish_core(SessionThreadTitle(title))
         else:
-            await self.rename_session(message.event.title or "")
+            from toad.core.events import SessionThreadTitle
+
+            self._auto_title_eligible = False
+            title = message.event.title or ""
+            self.publish_core(SessionThreadTitle(title))
 
     async def on_unmount(self) -> None:
         self.app.coordination_access.show_thread(self, None)

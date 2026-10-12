@@ -155,6 +155,17 @@ class SessionTitleChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
+class SessionThreadTitle(CoreEvent):
+    """The coordination thread presented a title for this session.
+
+    A name the user chose outranks it; consumers keep the user's name and
+    adopt this one only where the user has not named the session.
+    """
+
+    title: str
+
+
+@dataclass(frozen=True)
 class SessionSubtitleChanged(CoreEvent):
     subtitle: str
 

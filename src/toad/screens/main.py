@@ -1,6 +1,7 @@
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
+from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 import asyncio
 from functools import partial
@@ -451,6 +452,13 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
         if self.id is not None:
             self.app.session_tracker.update_session(self.id, title=message.event.name)
+
+    @handles(core_events.SessionThreadTitle)
+    def on_session_thread_title(self, message: CoreEventMessage) -> None:
+        """The thread presented a title; an authored name keeps the tab's label."""
+        if self.id is not None:
+            if self.app.session_tracker.sessions[self.id].update_thread_title(message.event.title):
+                self.app.session_tracker.events.publish(SessionChangedEvent(self.id))
 
     @handles(core_events.SessionSubtitleChanged)
     def on_session_subtitle_changed(self, message: CoreEventMessage) -> None:

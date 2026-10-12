@@ -57,7 +57,7 @@ class AgentSession:
         self.retirement = None
         self.disposition = ActiveSessionDisposition()
         self.pk = pk
-        self.pending_name = None
+        self.chosen_name = None
         self.connected = False
         self.reconnecting = False
         self.load_admission: SessionLoadAdmission = EnsuringSessionLoadAdmission()
@@ -170,11 +170,27 @@ class AgentSession:
             await DB().session_update_last_used(self.pk)
 
     def coordinated_title(self, title):
-        from toad.core.events import SessionInfoUpdate
-        self.agent.events.publish(SessionInfoUpdate(self.pending_name or title))
-        if self.pending_name is not None:
-            self.rename_coordination(self.pending_name)
-            self.pending_name = None
+        """A coordination update presents the thread's title.
+
+        A name the user chose wins: it is announced as the session's title
+        and carried to the wire when the wire does not already carry it.
+        Otherwise the saved title and the tab follow the thread's title.
+        """
+        from toad.core.events import SessionInfoUpdate, SessionThreadTitle
+        self.agent.events.publish(SessionInfoUpdate(self.chosen_name or title))
+        if self.chosen_name is not None:
+            coordination = self.agent.coordination
+            if coordination is not None and coordination.title != self.chosen_name:
+                self.rename_coordination(self.chosen_name)
+            return
+        if title:
+            self.agent.events.publish(SessionThreadTitle(title))
+            if self.pk is not None:
+                self.start_operation(self._adopt_thread_title(title))
+
+    async def _adopt_thread_title(self, title):
+        """A session without a chosen name keeps its saved title following the thread."""
+        await DB().session_update_title(self.pk, title)
 
     async def run(self) -> None:
         """The main logic of the Agent."""
@@ -316,8 +332,8 @@ class AgentSession:
         if self.supports_load:
             db = DB()
             session_name = (
-                self.pending_name
-                if self.pending_name is not None
+                self.chosen_name
+                if self.chosen_name is not None
                 else (self.agent.coordination.title if self.agent.coordination else "New Session")
             )
             session_pk = await db.session_new(
@@ -334,11 +350,7 @@ class AgentSession:
             if not self.agent._private_cursor.is_current_request(cursor_token):
                 return
             self.pk = session_pk
-            if self.pk is not None and self.pending_name is not None:
-                await db.session_update_title(
-                    self.pk, self.pending_name
-                )
-                authority.require()
+            authority.require()
 
         if not self.agent._private_cursor.is_current_request(cursor_token):
             return
@@ -434,10 +446,15 @@ class AgentSession:
 
 
     async def set_name(self, name: str) -> None:
-        self.pending_name = name
+        """The user or agent process named this session.
+
+        The name sticks: no later presented title replaces it. Naming it
+        again with the name it already carries does nothing.
+        """
+        if self.chosen_name == name:
+            return
+        self.chosen_name = name or None
         self.rename_coordination(name)
-        if (self.agent.coordination.thread.name if self.agent.coordination else None) is not None:
-            self.pending_name = None
         if self.pk is None:
             return
         db = DB()

@@ -69,15 +69,6 @@ tests = [
     "tests/textual/test_filtered_history_underfill.py::test_clearing_the_filter_restores_the_transcript_and_setting_it_again_finds_the_routed_message",
 ]
 
-[session-title-precedence]
-defect = "A session's name loses to the thread's name twice: a label the user set on a tab is replaced by the thread name at the next coordination update (on_session_info_update publishes the title without checking for an explicit label), and a name chosen before the session exists is not the one saved with it (coordinated_title clears the pending name before the session is created)."
-owner = "unassigned: Toad sessions (acp/agent_session.py; widgets/conversation.py is being edited by the frame-time agent)"
-tests = [
-    "tests/textual/test_initial_session_title.py::test_a_name_chosen_before_the_session_exists_is_saved_with_the_session",
-    "tests/textual/test_initial_session_title.py::test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label[named]",
-    "tests/textual/test_initial_session_title.py::test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label[unnamed]",
-]
-
 [model-picker-highlight]
 defect = "In the model picker the highlighted row is drawn with the same background as its neighbour, and moving the pointer over another row does not move the highlight."
 owner = "theming owner (the ui-theme colours work), widgets/model_switcher.py"
