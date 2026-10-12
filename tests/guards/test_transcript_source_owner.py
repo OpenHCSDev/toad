@@ -32,14 +32,14 @@ def test_source_operation_flags_deleted():
 
 
 def test_native_page_coverage_is_joined():
-    """No page/projection may defer live coverage until after its frame."""
+    """A page that joins the history is reported inside its own change, never after its frame."""
     tree = ast.parse((Path(__file__).parents[2] / 'src/toad/widgets/transcript_history.py').read_text())
     parents = {child: node for node in ast.walk(tree) for child in ast.iter_child_nodes(node)}
     declarations = [node for node in ast.walk(tree)
                     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-                    and node.name == '_report_coverage']
+                    and node.name == '_page_added']
     calls = [node for node in ast.walk(tree) if isinstance(node, ast.Call)
-             and isinstance(node.func, ast.Attribute) and node.func.attr == '_report_coverage']
+             and isinstance(node.func, ast.Attribute) and node.func.attr == '_page_added']
     assert declarations and calls
     assert all(isinstance(node, ast.AsyncFunctionDef) for node in declarations)
     assert all(isinstance(parents[node], ast.Await) for node in calls)

@@ -13,7 +13,7 @@ def test_navigation_deletion_closure():
         if isinstance(node, ast.Attribute):
             assert node.attr not in retired, (node.lineno, node.attr)
     for declaration in history.body:
-        if isinstance(declaration, ast.ClassDef) and declaration.name == 'TranscriptHistory':
+        if isinstance(declaration, ast.ClassDef) and declaration.name in {'LineHistory', 'TranscriptHistory'}:
             for node in ast.walk(declaration):
                 assert not isinstance(node, ast.Attribute) or node.attr not in {'_closing', '_pruning'}, node.lineno
     for relative in ('navigation_target.py', 'widgets/comms_sidebar.py'):

@@ -19,7 +19,7 @@ from textual.strip import Strip
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
-from toad.line_blocks import Body, Divider, Gap, LineBlock, LineRole, Summary
+from toad.line_blocks import Body, Divider, Gap, LineBlock, LineLink, LineRole, Spans, Summary
 from toad.render_backend import ReusableRenderTask
 
 Row = tuple[Segment, ...]
@@ -36,7 +36,8 @@ class LineTheme:
     def style(self, role: type[LineRole]) -> Style:
         for colour, style in self.colours:
             if colour is role.colour:
-                return style + _ITALIC if role.italic else style
+                return style + Style(italic=role.italic or None, bold=role.bold or None,
+                                     underline=role.underline or None)
         raise KeyError(f"{role.__name__} asks for {role.colour.__name__}, which the theme lacks")
 
     @classmethod
@@ -58,7 +59,9 @@ class LineTheme:
         ), color_system)
 
 
-_ITALIC = Style(italic=True)
+def _click(link: LineLink | None) -> Style:
+    """The style that makes text run a link's action when clicked."""
+    return Style.null() if link is None else Style(meta={"@click": link.click})
 
 
 def _fit(text: str, width: int) -> str:
@@ -141,7 +144,24 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:
-        self.output.append((Segment(_fit(block.text, self.width), self.theme.style(block.role)),))
+        self.output.append((Segment(_fit(block.text, self.width),
+                                    self.theme.style(block.role) + _click(block.link)),))
+
+    @handles(Spans)
+    def spans(self, block: Spans) -> None:
+        if self.plain:
+            self.output.extend((Segment(line[start:start + self.width]),)
+                               for line in _plain_lines(block.text)
+                               for start in _plain_spans(line, self.width))
+            return
+        from rich.console import Console
+        from rich.text import Text
+
+        console = Console(width=self.width, color_system=self.theme.color_system,  # type: ignore[arg-type]
+                          force_terminal=True, file=io.StringIO(), legacy_windows=False)
+        text = Text.assemble(*((span.text, self.theme.style(span.role) + _click(span.link))
+                               for span in block.spans), tab_size=4)
+        self.output.extend(tuple(line.render(console)) for line in text.wrap(console, self.width))
 
     @handles(Gap)
     def gap(self, block: Gap) -> None:
@@ -190,6 +210,10 @@ class PlainRowCount(MroDispatch):
     def body(self, block: Body) -> None:
         inner = _text_width(block, self.width)
         self.count += sum(len(_plain_spans(line, inner)) for line in _plain_lines(block.text))
+
+    @handles(Spans)
+    def spans(self, block: Spans) -> None:
+        self.count += sum(len(_plain_spans(line, self.width)) for line in _plain_lines(block.text))
 
 
 class Lines:

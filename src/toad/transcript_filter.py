@@ -15,7 +15,7 @@ from toad.transcript_source_preparation import HistorySourceSnapshot
 if TYPE_CHECKING:
     from textual.worker import Worker
     from toad.transcript_preparation import PreparedPageSource
-    from toad.widgets.transcript_history import TranscriptHistory, ProjectedTranscriptHistory
+    from toad.widgets.transcript_history import LineHistory, ProjectedTranscriptHistory
 
 
 class FilterState(DeclaredFamily, affix="Filter"):
@@ -48,7 +48,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
     def covers_incoming(self, sequence: int) -> bool:
         return False
 
-    def visible(self, owner: TranscriptHistory) -> bool:
+    def visible(self, owner: LineHistory) -> bool:
         return False
 
     def retire(self, filtering: TranscriptFilter) -> None:
@@ -59,13 +59,13 @@ class FilterState(DeclaredFamily, affix="Filter"):
             filtering.clear()
 
     @abstractmethod
-    def has_older(self, owner: TranscriptHistory) -> bool: ...
+    def has_older(self, owner: LineHistory) -> bool: ...
 
     @abstractmethod
-    def scan_available(self, owner: TranscriptHistory) -> bool: ...
+    def scan_available(self, owner: LineHistory) -> bool: ...
 
     @abstractmethod
-    def scan_needed(self, owner: TranscriptHistory) -> bool: ...
+    def scan_needed(self, owner: LineHistory) -> bool: ...
 
     @abstractmethod
     async def advance(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot) -> bool: ...
@@ -241,7 +241,7 @@ class RequestedScanDemand(ScanDemand):
 
 
 class TranscriptFilter:
-    def __init__(self, owner: TranscriptHistory):
+    def __init__(self, owner: LineHistory):
         self.owner = owner
         self.state: FilterState = FilterState.for_selection(owner.selected_categories)
         self.demand: ScanDemand = AutomaticScanDemand()

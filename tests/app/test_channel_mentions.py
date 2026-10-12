@@ -19,7 +19,9 @@ async def test_mention_completion_delivery_and_link(workspace):
         assert sent.mentions[0].thread == "alpha"
         assert len(comms.bus.inbox("alpha")) == len(comms.bus.inbox("beta")) == 1
         await ui.until_shows("Can @alpha review this?")
-        assert ui.link_at("@alpha review") == ("open_target", ("alpha",))
+        # The name becomes a link when the message's styled lines replace its plain ones.
+        await ui.until(lambda: ui.link_at("@alpha review") == ("open_target", ("alpha",)),
+                       why="the mention drawn as a link")
 
         await ui.write_draft("@")
         await ui.until_shows("Mention a thread")

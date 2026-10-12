@@ -1,11 +1,11 @@
 """Textual-facing: paging earlier history through the window keeps the reader's row on every painted frame.
 
-Covers the line-drawn transcript history and the mounted channel message history, since Textual publishes both
-frames. Not carried over from the old script: nothing was dropped except that the transcript marker is now a
+Covers the transcript history and the channel history, which the same line history draws. Not carried over from the old script: nothing was dropped except that the transcript marker is now a
 fragment's row (history is line-drawn) rather than the first message widget.
 """
 
 import asyncio
+import threading
 from unittest.mock import patch
 
 from agent_comms.transcript_events import AssistantTranscript
@@ -16,6 +16,7 @@ from toad.transcript_preparation import PreparedTranscriptPage
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.transcript_history import TranscriptHistory
+from toad.wire_history import WireSource
 
 
 def record_frames(app, row_of_marker):
@@ -86,63 +87,80 @@ async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_i
             assert not window.follows_tail
 
 
-async def test_channel_paging_keeps_the_reader_row_on_every_frame(workspace):
+async def long_channel(workspace, ui):
+    app, _pilot = ui.textual
+    await ui.open_channel("#scroll", actor="sender")
+    chat = app.screen.query_one(CommsChatView)
+    history = chat.message_history
+    await ui.until(lambda: history.messages and history.state.accepts_source_work, why="channel messages")
+    return chat, history, chat.window
+
+
+def scroll_messages(workspace):
     workspace.thread("sender", "scroll", running=True)
     for index in range(140):
         workspace.comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
+
+
+async def test_channel_paging_keeps_the_reader_row_on_every_frame(workspace):
+    scroll_messages(workspace)
     async with workspace.app(size=(110, 38)) as ui:
         app, _pilot = ui.textual
-        await ui.open_channel("#scroll", actor="sender")
-        chat = app.screen.query_one(CommsChatView)
-        history = chat.message_history
-        window = chat.window
-        await ui.until(lambda: history.rows, why="channel rows")
+        _chat, history, window = await long_channel(workspace, ui)
         for _ in range(3):
-            operation = history.reserve_source_work()
+            await ui.until(lambda: history.state.accepts_source_work, why="the history idle")
+            positioning = history.reserve_source_work()
             window.scroll_to(y=1, animate=False, immediate=True)
             await ui.step()
-            marker = history.rows[0][1]
-            expected = marker.region.y - window.content_region.y
-            frames, stop = record_frames(app, lambda: marker.region.y - window.content_region.y if marker.is_attached else None)
-            await operation.execute(history, lambda: history._load_page(True))
+            view = history.pages[0]
+            fragment = view.admitted_fragments[0]
+            oldest = fragment.message.seq
+
+            def marker_row():
+                offset = HistoryAnchor._placed_offset(view, window)
+                line = view.fragment_line(fragment)
+                return None if offset is None or line is None else offset + line - window.scroll_y
+
+            expected = marker_row()
+            frames, stop = record_frames(app, marker_row)
+            history.finish_source_work(positioning)
+            history._request_page(True)
+            await ui.until(lambda: history.messages[0].seq < oldest and history.state.accepts_source_work,
+                           why="an earlier page drawn above")
             await ui.step()
             stop()
             assert frames and set(frames) == {expected}, (expected, frames)
-        assert history.has_newer, "Fixture must exercise eviction as well as prepending"
+            assert not window.follows_tail
 
 
 async def test_a_slow_channel_refresh_does_not_resume_follow_after_the_reader_scrolls(workspace):
-    workspace.thread("sender", "scroll", running=True)
-    for index in range(140):
-        workspace.comms.messaging.send("sender", "#scroll", f"Message {index}: " + "wrapped body " * 30)
+    scroll_messages(workspace)
     async with workspace.app(size=(110, 38)) as ui:
-        app, _pilot = ui.textual
-        await ui.open_channel("#scroll", actor="sender")
-        chat = app.screen.query_one(CommsChatView)
-        history = chat.message_history
-        window = chat.window
-        await ui.until(lambda: history.rows, why="channel rows")
-        # A slow refresh must not re-enable follow after the reader scrolls.
+        chat, history, window = await long_channel(workspace, ui)
         window.scroll_end(animate=False, immediate=True)
         await ui.step()
-        entered, release = asyncio.Event(), asyncio.Event()
-        original_refresh = history.publish
+        entered, release = threading.Event(), threading.Event()
+        real_read = WireSource.read
 
-        async def delayed_refresh(read):
-            follow = await original_refresh(read)
-            entered.set()
-            await release.wait()
-            return follow
+        def slow_read(source, request, through):
+            if request.after is not None:
+                entered.set()
+                assert release.wait(10), "the held read was not released"
+            return real_read(source, request, through)
 
-        history.reader.restart()
-        with patch.object(history, "publish", delayed_refresh):
+        with patch.object(WireSource, "read", slow_read):
+            workspace.comms.messaging.send("sender", "#scroll", "ARRIVED-DURING-SCROLL")
             refresh = asyncio.create_task(refresh_chat(chat))
-            async with asyncio.timeout(10):
-                await entered.wait()
-                window.scroll_relative(y=-4, animate=False, immediate=True)
-                await ui.step()
-                position = window.scroll_y
-                release.set()
-                await refresh
+            assert await asyncio.to_thread(entered.wait, 10)
+            window.scroll_relative(y=-4, animate=False, immediate=True)
             await ui.step()
-            assert not window.follows_tail and window.scroll_y == position
+            position = window.scroll_y
+            release.set()
+            await refresh
+            await ui.until(lambda: history.state.accepts_source_work and (history.has_newer or any(
+                message.body == "ARRIVED-DURING-SCROLL" for message in history.messages)),
+                why="the read to end with the new message below the reader")
+        await ui.step()
+        # The reader left the tail during the read: their place holds and the new message waits below.
+        assert not window.follows_tail and window.scroll_y == position
+        assert not ui.shows("ARRIVED-DURING-SCROLL")

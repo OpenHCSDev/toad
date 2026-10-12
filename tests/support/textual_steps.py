@@ -78,10 +78,30 @@ async def command_dialog(ui, *, seconds: float = 20):
 
 
 async def refresh_chat(view) -> None:
-    """Run the chat view's history read now and wait for it."""
-    worker = await view._refresh()
-    if worker is not None:
-        await worker.wait()
+    """Run the chat view's history read now and wait for it; a view that is not shown reads nothing."""
+    history = view.message_history
+    while (worker := await view._refresh()) is None:
+        if history.source is None or history.state.accepts_source_work:
+            return
+        # Another read is in flight: read once it ends.
+        await asyncio.sleep(0.01)
+    await worker.wait()
+
+
+def text_rows_of(chat, message) -> range | None:
+    """The rows of the chat window's scrolled content that draw a message's own text, if it is laid out."""
+    from toad.widgets.history_anchor import HistoryAnchor
+
+    for page in chat.message_history.pages:
+        for index, first, lines in page._layout:
+            fragment = page.fragments[index]
+            if fragment.message.view_key == message.view_key:
+                offset = HistoryAnchor._placed_offset(page, chat.window)
+                if offset is None:
+                    return None
+                rows = fragment.text_rows(lines)
+                return range(int(offset) + first + rows.start, int(offset) + first + rows.stop)
+    return None
 
 
 def coordination_update(root, name):

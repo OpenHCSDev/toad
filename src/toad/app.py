@@ -393,7 +393,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         from textual.widgets.markdown import Markdown
 
         from toad.screens import comms, main  # noqa: F401 - register widget classes
-        from toad.widgets import irc_message, tool_call  # noqa: F401 - register widget classes
+        from toad.widgets import tool_call  # noqa: F401 - register widget classes
 
         started = monotonic()
         source_count = len(self.stylesheet.source)

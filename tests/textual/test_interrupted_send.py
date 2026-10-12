@@ -26,7 +26,7 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
     async with workspace.app(size=(105, 32)) as ui:
         await ui.open_direct("peer", actor="user")
         view = ui.textual[0].screen.query_one(CommsChatView)
-        messaging = view.message_history.reader.comms.messaging
+        messaging = view.message_history.source.comms.messaging
         original_send = messaging.send_user_message
         started, release, settled = threading.Event(), threading.Event(), threading.Event()
         calls = 0
@@ -48,7 +48,7 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
             assert await asyncio.to_thread(started.wait, 8)
             task.cancel()
             await task
-            assert view._human_admission_blocked
+            assert view._send_block_reason
             assert view.prompt.text == event.body
             assert view.prompt.prompt_text_area.disabled
             await view.submit_input(event)
@@ -61,10 +61,11 @@ async def test_a_direct_message_interrupted_while_its_worker_survives_is_not_rep
             assert times_on_wire(root, event.body) == 1
 
 
-async def test_a_channel_send_cancelled_while_its_committed_message_is_being_painted_keeps_its_identity(
+async def test_a_committed_channel_send_keeps_its_identity_and_cannot_be_resent_until_it_is_drawn(
         workspace, monkeypatch):
     from toad.core import input_events
     from toad.widgets.comms_chat import CommsChatView
+    from toad.wire_history import WireSource
 
     attempt = workspace.roots.attempt
     home = select_root_by_default_route(monkeypatch, attempt)
@@ -75,31 +76,29 @@ async def test_a_channel_send_cancelled_while_its_committed_message_is_being_pai
         await ui.open_channel("#team", actor="user")
         channel = ui.textual[0].screen.query_one(CommsChatView)
         await refresh_chat(channel)
-        entered_paint, release_paint = asyncio.Event(), asyncio.Event()
-        original_mount = channel.message_history._mount_page
+        release = threading.Event()
+        real_read = WireSource.read
 
-        async def delayed_paint(page, **kwargs):
-            if any(message.body == "POSTRECEIPT-CANCEL" for message in page.messages):
-                entered_paint.set()
-                await release_paint.wait()
-            return await original_mount(page, **kwargs)
+        def held_read(source, request, through):
+            assert release.wait(8), "the held read was not released"
+            return real_read(source, request, through)
 
-        messaging = channel.message_history.reader.comms.messaging
-        with (patch.object(channel.message_history, "_mount_page", delayed_paint),
+        messaging = channel.message_history.source.comms.messaging
+        with (patch.object(WireSource, "read", held_read),
               patch.object(messaging, "send_user_message", wraps=messaging.send_user_message) as sender):
-            sent = input_events.UserInputSubmitted("POSTRECEIPT-CANCEL")
-            pending = asyncio.create_task(channel.submit_input(sent))
-            async with asyncio.timeout(8):
-                await entered_paint.wait()
+            sent = input_events.UserInputSubmitted("COMMITTED-NOT-DRAWN")
+            await channel.submit_input(sent)
             rows = [row for row in wire(root).bus.log.full_history() if row.body == sent.body]
             assert len(rows) == 1 and sender.call_count == 1
-            pending.cancel()
-            await pending
-            assert channel._human_admission_blocked
+            # The message is on the wire but not drawn: its text stays, unsendable, under its identity.
+            assert channel._send_block_reason
             assert channel.prompt.text == sent.body
             assert channel.prompt.prompt_text_area.disabled
             assert str(rows[0].seq) in channel.status
             assert rows[0].message_id in channel.status
             await channel.submit_input(sent)
             assert sender.call_count == 1
-            release_paint.set()
+            release.set()
+            await ui.until(lambda: not channel._send_block_reason, why="the sent message drawn")
+            assert ui.shows(sent.body)
+            assert channel.prompt.text == "" and not channel.prompt.prompt_text_area.disabled

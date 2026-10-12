@@ -21,7 +21,7 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
         chat = ui.textual[0].screen.query_one(CommsChatView)
         await refresh_chat(chat)
         await ui.step()
-        assert [m.body for m, _ in chat.message_history.rows] == ["current channel message"]
+        assert [m.body for m in chat.message_history.messages] == ["current channel message"]
         assert not chat.message_history.has_older
 
         comms.channels.update_tags("carol", add=frozenset({"team"}))
@@ -29,5 +29,5 @@ async def test_any_mode_channel_rows_include_older_messages_after_a_refresh(work
         assert [m.body for m in expanded.messages][:2] == ["older newly visible DM", "current channel message"]
         await refresh_chat(chat)
         await ui.step()
-        assert [m.body for m, _ in chat.message_history.rows][:2] == [
+        assert [m.body for m in chat.message_history.messages][:2] == [
             "older newly visible DM", "current channel message"]

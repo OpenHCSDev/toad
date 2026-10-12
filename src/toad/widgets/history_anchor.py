@@ -14,7 +14,6 @@ from textual.widget import Widget
 from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
-from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
@@ -141,7 +140,7 @@ class ReaderPosition(WindowPosition):
         # Parked pagers revoke source work and leave window.histories while
         # their original admitted pages remain in the native tree. Capture
         # those page ranges before eviction, including the parked resource.
-        histories = tuple(window.transcript_histories())
+        histories = tuple(window.line_histories())
         admissions = tuple(
             admission for history in histories
             for admission in history.capture_reader_admissions()
@@ -205,7 +204,7 @@ class FragmentReaderPosition(ReaderPosition):
 
     def record(self, window: "HistoryWindow"):
         """The page that draws this fragment, if it is admitted."""
-        return next((page for history in window.transcript_histories() for page in history.pages
+        return next((page for history in window.line_histories() for page in history.pages
                      if page.fragment_line(self.fragment) is not None), None)
 
     def current(self, window: "HistoryWindow") -> bool:
@@ -476,14 +475,14 @@ class HistoryWindow(VerticalScroll):
         placement = self.screen._compositor._published_map.get(self)
         return None if placement is None else placement.content_region.intersection(placement.clip)
 
-    def transcript_histories(self):
-        """Read original pager custody without walking rich native descendants."""
-        from toad.widgets.transcript_history import TranscriptHistory
+    def line_histories(self):
+        """Every line history in this window, without walking the descendants of rich blocks."""
+        from toad.widgets.transcript_history import LineHistory
 
         pending = list(reversed(self.children))
         while pending:
             node = pending.pop()
-            if isinstance(node, TranscriptHistory):
+            if isinstance(node, LineHistory):
                 yield node
                 if (projection := node.filter.state.overlay) is not None:
                     pending.append(projection)
@@ -504,32 +503,14 @@ class HistoryWindow(VerticalScroll):
         if self.follows_tail:
             return self
         from toad.block_navigation import ConversationBlock
-        from toad.widgets.transcript_history import TranscriptHistory, TranscriptPageView
+        from toad.widgets.transcript_history import LineHistory, TranscriptPageView
 
         # The topmost visible message: a line-drawn page or a live block.
         visible = self.screen._compositor.published_widgets
         candidates = (*self.query(TranscriptPageView), *(
-            block for block in self.query(ConversationBlock) if not isinstance(block, TranscriptHistory)))
+            block for block in self.query(ConversationBlock) if not isinstance(block, LineHistory)))
         return min(self.visible_history_items(candidates),
                    key=lambda node: visible[node][0].y, default=None)
-
-    def protect_history(self, items, *, older: bool) -> tuple[Widget | None, set[Widget]]:
-        """Keep the reader's painted records and interaction owners during paging.
-
-        Source leaves supply their mounted presentations, not another copy of
-        the scene. Both native and wire pages borrow this one published geometry
-        and the window's original selection/focus before admitting or trimming.
-        """
-        items = tuple(items)
-        retained = tuple(self.visible_history_items(items))
-        # Rows the reader can see anchor the change; otherwise the reader is
-        # elsewhere and that position is kept instead.
-        anchor = retained[0 if older else -1] if retained else self.reader_anchor()
-        protected = protected_presentations(items, self.screen._interaction_widgets())
-        protected.update(retained)
-        if anchor is not None:
-            protected.add(anchor)
-        return anchor, protected
 
     @asynccontextmanager
     async def preserve_history(self, widget: Widget | None, *, root: Widget | None = None,
@@ -721,9 +702,9 @@ class LineAnchor(HistoryAnchor):
 
     def before_layout(self, window: HistoryWindow) -> HistoryAnchor:
         if window.follows_tail or window.scroll_revision != self.scroll_revision:
-            from toad.widgets.transcript_history import TranscriptHistory
+            from toad.widgets.transcript_history import LineHistory
 
-            return self.widget.query_ancestor(TranscriptHistory).reader_position(window)
+            return self.widget.query_ancestor(LineHistory).reader_position(window)
         return self
 
     def _restore(self, window: HistoryWindow) -> bool:

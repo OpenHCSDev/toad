@@ -46,7 +46,7 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
         view = app.screen.query_one(CommsChatView)
         await refresh_chat(view)
         await ui.step()
-        assert view.message_history.reader.comms.root == legacy
+        assert view.message_history.source.comms.root == legacy
         old.messaging.send("peer", "#team", "UNREAD-OLD")
         page = old.views.channel_display_page("#team", worktree=str(project), limit=8)
         assert page.newest_seq == 2

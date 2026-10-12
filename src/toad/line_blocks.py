@@ -7,7 +7,7 @@ imports a terminal or rendering library.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import astuple, dataclass
 
 from typing import ClassVar
 
@@ -27,6 +27,8 @@ class LineRole:
 
     colour: ClassVar[type[ThemeColour]] = ForegroundColour
     italic: ClassVar[bool] = False
+    bold: ClassVar[bool] = False
+    underline: ClassVar[bool] = False
 
 
 class TextRole(LineRole):
@@ -71,6 +73,89 @@ class NoticeRole(LineRole):
     colour = WarningColour
 
 
+class StrongRole(LineRole):
+    bold = True
+
+
+class EmphasisRole(LineRole):
+    italic = True
+
+
+class NameRole(LineRole):
+    """A thread or channel name."""
+
+    colour = AccentColour
+
+
+class MentionRole(NameRole):
+    bold = True
+
+
+class CodeRole(LineRole):
+    colour = AccentColour
+
+
+class UrlRole(LineRole):
+    colour = AccentColour
+    underline = True
+
+
+class WorkingRole(LineRole):
+    """Something still in progress."""
+
+    colour = AccentColour
+
+
+class LineLink:
+    """What clicking a piece of text does: the frontend runs `action` with the link's fields."""
+
+    action: ClassVar[str]
+
+    @property
+    def click(self) -> tuple[str, tuple]:
+        return self.action, astuple(self)
+
+
+@dataclass(frozen=True)
+class OpenTarget(LineLink):
+    """Open a thread or channel."""
+
+    action = "open_target"
+    target: str
+
+
+@dataclass(frozen=True)
+class OpenHistoricalTarget(LineLink):
+    """Open a thread as an attached history source recorded it."""
+
+    action = "open_historical_target"
+    target: str
+    source: str
+
+
+@dataclass(frozen=True)
+class OpenUrl(LineLink):
+    action = "open_url"
+    url: str
+
+
+@dataclass(frozen=True)
+class ToggleDetails(LineLink):
+    """Show or hide the details under the message with this key."""
+
+    action = "toggle_details"
+    key: tuple[str, int]
+
+
+@dataclass(frozen=True)
+class Span:
+    """A run of text with one meaning, optionally clickable."""
+
+    text: str
+    role: type[LineRole] = TextRole
+    link: LineLink | None = None
+
+
 class LineBlock:
     """One visual part of a fragment."""
 
@@ -90,6 +175,18 @@ class Summary(LineBlock):
 
     text: str
     role: type[LineRole] = MutedRole
+    link: LineLink | None = None
+
+
+@dataclass(frozen=True)
+class Spans(LineBlock):
+    """Wrapped text made of spans; line breaks in the text are kept."""
+
+    spans: tuple[Span, ...]
+
+    @property
+    def text(self) -> str:
+        return "".join(span.text for span in self.spans)
 
 
 @dataclass(frozen=True)

@@ -523,9 +523,9 @@ class ConversationSessionBinding(containers.Vertical):
 
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
-        from toad.widgets.transcript_history import TranscriptHistory
+        from toad.widgets.transcript_history import LineHistory
 
-        for history in self.contents.query(TranscriptHistory):
+        for history in self.contents.query(LineHistory):
             history.state.resume_if_parked(history)
 
     def refresh_native_projection(self) -> None:

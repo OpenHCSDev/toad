@@ -4,9 +4,8 @@ from __future__ import annotations
 from toad.core import input_events
 from functools import partial
 from toad.delivery_failure_view import DeliveryFailureView
-from toad.mounted_message_history import MountedMessageHistory, WireMessageStyle
-from agent_comms.thread_identity import ThreadRole
-from toad.widgets.irc_message import MembershipNotice
+from toad.widgets.wire_history import WireHistory
+from toad.wire_history import IrcMessageStyle, WireSource
 
 import asyncio
 import re
@@ -18,13 +17,11 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.message_viewport import NotificationViewport
 from agent_comms.messages import Message as WireMessage
 from textual import containers, work
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
-from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.conversation_kind import ConversationKind
@@ -115,18 +112,22 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self.conversation_kind = kind
         self._me = me
         self._unknown_send: tuple[str, int, str] | None = None
-        self._human_admission_blocked = False
+        # A message this view sent that its history has not drawn yet.
+        self._sent_undrawn: WireMessage | None = None
+        # Why this view refuses to send now; empty when it can.
         self._send_block_reason = ""
+        # The observer's announcement the last refresh began from.
+        self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
-        self.message_history = MountedMessageHistory(self)
-        self._notification_task: Worker[None] | None = None
+        self.message_history = WireHistory(self)
 
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
+                    yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
                     yield ChannelActivityTray(id="comms-activity")
         yield Flash()
@@ -152,20 +153,15 @@ class CommsChatView(DeliveryFailureView, Conversation):
         if self._bound_root is not None and root != self._bound_root:
             self.display = False
             return
-        from toad.channel_preparation import ChannelHistoryReader, InitialHistoryReadRequest
-        from toad.mounted_message_history import (
-            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
-        )
-
         shared = await self.app.preparation.run_thread(
             lambda: self.app.coordination_access.service)
         if shared.root != root:
             self.display = False
             return
         comms = shared
-        self.message_history.reader = ChannelHistoryReader(InitialHistoryReadRequest(
-            comms, self.conversation_kind, self.target, Path(self.project_path),
-            INITIAL_HISTORY_PAGE_SIZE, HISTORY_PAGE_SIZE, HISTORY_PAGE_BYTES,
+        self.message_history.open(WireSource(
+            comms, self.conversation_kind, self.target, Path(self.project_path), self._me,
+            IrcMessageStyle(),
         ))
         self.agent_info = Content(self._target_label())
         self.agent_ready = True
@@ -175,7 +171,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         # CommsScreen has already presented its route before mounting this
         # view. Start its asynchronous page read now, overlapping it with the
         # remaining control mounts rather than waiting for another empty
-        # history frame. The original pager admits its asynchronous source read.
+        # history frame. The history runs the read as its own source work.
         await self._refresh()
 
     @handles(core_events.CoordinationObserved)
@@ -195,31 +191,40 @@ class CommsChatView(DeliveryFailureView, Conversation):
         """Reconcile an observation which arrived during this source's work."""
         super().on_transcript_source_work_finished(event)
         history = self.message_history
-        reader = history.reader
+        source = history.source
         access = self.app.coordination_access
-        if (event.publisher is not history or reader is None
-                or not history.state.accepts_source_work
-                or reader.source.loading
-                or reader.comms is not access.observed_service
-                or access.revision is None
-                or reader.source.matches_revision(access.revision)):
+        if event.publisher is not history or source is None:
+            return
+        self._settle_sent()
+        if (not history.state.accepts_source_work
+                or history.undrawn
+                or source.comms is not access.observed_service
+                or access.revision is None):
+            return
+        if self._refreshed_from != access.revision:
+            # The observer announced a change while this work ran. The history
+            # may have read it from the stores already; the participants line
+            # reads the observer's sidebar, which only now shows it.
+            await self._refresh()
+            return
+        if history.revision == access.revision:
             return
         snapshot = history.source_snapshot()
         if not snapshot.current(history):
             return
-        # A read can also be newer than the observer's last publication. Their
-        # file revisions are identities, not an ordering: check the original
-        # service before admitting more work rather than repeatedly rereading
-        # an already-current page until the observer's next tick.
+        # A read can also be newer than the observer's last announcement. Their
+        # file revisions are identities, not an ordering: ask the service
+        # itself before reading again, rather than rereading an already
+        # current page until the observer's next tick.
         try:
-            revision = await self.app.preparation.run_thread(reader.comms.views.revision)
+            revision = await self.app.preparation.run_thread(source.comms.views.revision)
         except (OSError, ValueError, RuntimeError):
-            # An unavailable/replaced route has no revision to admit. Its
-            # original observer remains responsible for the next observation.
+            # An unavailable or replaced route has no revision to read. Its
+            # observer remains responsible for the next observation.
             return
-        if (reader is history.reader and snapshot.current(history)
-                and reader.comms is access.observed_service
-                and not reader.source.matches_revision(revision)):
+        if (source is history.source and snapshot.current(history)
+                and source.comms is access.observed_service
+                and history.revision != revision):
             await self._refresh()
 
     def prepare_prompt(self) -> None:
@@ -257,45 +262,19 @@ class CommsChatView(DeliveryFailureView, Conversation):
     def _target_label(self) -> str:
         return self.conversation_kind.label(self.target)
 
-
-
-
-
-
-    def message_block(self, message: WireMessage, *, style: WireMessageStyle) -> Widget:
-        """The view owns display direction and the membership-notice widget."""
-        if message.membership is not None:
-            return MembershipNotice(message)
-        direction = ("User" if message.sender_role is ThreadRole.USER else
-                     "Outbound" if message.sender == self._me else "Inbound")
-        return style.block(message, direction=direction)
-
-    def _refresh_notifications(self) -> None:
-        """One bounded batch for the painted window; independent of bus revision."""
-        if (not self.is_attached or self.message_history.reader is None
-                or not self.display
-                or self._notification_task is not None and not self._notification_task.is_finished):
-            return
-        rows = self._visible_notification_rows()
-        if rows:
-            self._notification_task = self.run_worker(self._read_notifications(rows))
-
-    def _visible_notification_rows(self) -> tuple[tuple[WireMessage, Widget], ...]:
-        return self.message_history.viewport(NotificationViewport).visible_rows()
-
     def status_thread(self) -> tuple[str, str] | None:
         """A direct conversation shows its peer thread's status."""
         name = self.conversation_kind.historical_thread(self.target)
-        reader = self.message_history.reader
-        return (str(reader.comms.root), name) if name is not None and reader is not None else None
+        source = self.message_history.source
+        return (str(source.comms.root), name) if name is not None and source is not None else None
 
     async def read_foreign_thread(self):
         history = self.message_history
-        reader = history.reader
-        if reader is None:
+        source = history.source
+        if source is None:
             return None
         snapshot = history.source_snapshot()
-        comms, target = reader.comms, self.target
+        comms, target = source.comms, self.target
         if not await history.source_is_current(snapshot):
             raise ValueError("Comms route changed")
         presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
@@ -303,56 +282,30 @@ class CommsChatView(DeliveryFailureView, Conversation):
             raise ValueError("Comms route changed")
         return presentation
 
-    async def _read_notifications(self, rows: tuple[tuple[WireMessage, Widget], ...]) -> None:
-        history = self.message_history
-        reader = history.reader
-        if reader is None:
-            return
-        snapshot = history.source_snapshot()
-        comms, target = reader.comms, self.target
-        if not await history.source_is_current(snapshot):
-            return
-        error = None
-        try:
-            results = await asyncio.to_thread(
-                comms.views.message_notifications, tuple(message for message, _ in rows),
-            )
-        except (OSError, ValueError, RuntimeError) as failure:
-            # Core read failure is shown on each visible row's feedback.
-            error, results = failure, {}
-        if not await history.source_is_current(snapshot) or self.target != target:
-            return
-        visible = {widget for _, widget in self._visible_notification_rows()}
-        for message, widget in rows:
-            if widget in visible:
-                feedback = widget.notifications
-                if feedback is None or not feedback.is_attached:
-                    continue  # Style replacement has unmounted this row's children.
-                if error is not None:
-                    feedback.show_error(error)
-                else:
-                    feedback.show_result(results.get((message.seq, message.message_id), ()))
-
     async def _refresh(self) -> Worker | None:
-        if not self.is_attached or self.message_history.reader is None:
+        history = self.message_history
+        if not self.is_attached or history.source is None:
             return
         if not self.query_ancestor(SessionView).is_current:
             return
-        self._refresh_notifications()
-        return self.message_history.schedule_source_work(self._refresh_source)
+        history.check_notifications()
+        return history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         try:
             history = self.message_history
+            announced = self.app.coordination_access.revision
+            newly_announced = announced != self._refreshed_from
+            self._refreshed_from = announced
             snapshot = history.source_snapshot()
             if not await history.source_is_current(snapshot):
                 if snapshot.current(history):
                     self.display = False
                 return
-            reader = history.reader
-            comms = reader.comms
+            source = history.source
+            comms = source.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
             if not await history.source_is_current(snapshot):
                 return
@@ -361,39 +314,39 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 self.prompt.prompt_text_area.disabled = True
                 self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
                 self.status = "Read-only saved view"
-            show_loading = self.message_history.reader.source.loading
-            if show_loading:
+            undrawn = history.undrawn
+            if undrawn:
                 self.on_work_started()
             try:
-                read = await reader.read(self.message_history.follows_tail)
+                changed = await history.read_changes()
             finally:
-                if show_loading:
+                if undrawn:
                     self.on_work_finished()
-            if not await history.source_is_current(snapshot):
-                if snapshot.current(history):
-                    self.display = False
+            # A sent message may now be drawn: composing resumes before the roster is read.
+            self._settle_sent()
+            if not changed:
+                if newly_announced:
+                    # The history is as the stores are (it may have read them
+                    # before the observer announced the change), but the
+                    # participants line reads the observer's sidebar.
+                    await self.conversation_kind.update_roster(self, comms)
+                self.call_after_refresh(history.mark_visible)
                 return
-            if not reader.current(read, self.message_history.follows_tail):
-                return
-            revision = read.revision
-            if reader.source.matches_revision(revision):
-                self.call_after_refresh(self.message_history.mark_visible)
-                return
-            # Show the bounded tail before computing roster/sort metadata,
-            # which can scan a much larger coordination history.
-            if not await self.message_history.publish(read):
-                return
-            follow = read.follow_tail
+            if undrawn and (placeholder := self.query_one_optional("#history-loading")):
+                placeholder.remove()
+            # The newest messages are drawn before roster and sort metadata,
+            # which can scan a much larger coordination history. Drawing them
+            # moved the history on, so later checks compare against it as it is now.
             snapshot = history.source_snapshot()
             await self.conversation_kind.update_roster(self, comms)
             if not await history.source_is_current(snapshot):
                 if snapshot.current(history):
                     self.display = False
                 return
-            if (not self.is_attached or reader is not self.message_history.reader
+            if (not self.is_attached or source is not history.source
                     or not self.query_ancestor(SessionView).is_current):
                 return
-            self.call_after_refresh(self.message_history.mark_visible)
+            self.call_after_refresh(history.mark_visible)
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         except (OSError, ValueError, RuntimeError) as error:
@@ -413,7 +366,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
                 "inspect the bus, do not retry"
             )
-        elif self._human_admission_blocked:
+        elif self._send_block_reason:
             self.status = self._send_block_reason
         elif info is not None:
             self.status = " · ".join(
@@ -423,16 +376,16 @@ class CommsChatView(DeliveryFailureView, Conversation):
             )
         else:
             self.status = "Read-only saved view" if read_only else ""
-        if follow and self.window.follows_tail:
+        if self.window.follows_tail:
             self.window.anchor()
-        if self.message_history.has_newer or (self.message_history.has_older and self.window.max_scroll_y == 0):
-            self.message_history.request_preparation()
+        if history.has_newer or (history.has_older and self.window.max_scroll_y == 0):
+            history.request_preparation()
 
     async def command_target_context(self):
         from toad.target_commands import TargetContext
-        if self.message_history.reader is None:
+        if self.message_history.source is None:
             return None
-        return TargetContext(self.app, self.message_history.reader.comms, self.target, self._me, self.project_path,
+        return TargetContext(self.app, self.message_history.source.comms, self.target, self._me, self.project_path,
                              self.query_ancestor(SessionView).id)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
@@ -440,18 +393,18 @@ class CommsChatView(DeliveryFailureView, Conversation):
             return
         if not event.body.strip():
             return
-        if self._unknown_send is not None or self._human_admission_blocked:
+        if self._unknown_send is not None or self._send_block_reason:
             self.flash("Send pending/UNKNOWN/blocked; inspect, do not retry", style="error")
             return
         try:
             from agent_comms.route_selection import implicit_root, root_is_current, run_selected_write
 
-            reader = self.message_history.reader
-            if (reader is None
-                    or not await self.app.preparation.run_thread(root_is_current, reader.comms.root)
-                    or reader is not self.message_history.reader):
+            source = self.message_history.source
+            if (source is None
+                    or not await self.app.preparation.run_thread(root_is_current, source.comms.root)
+                    or source.comms is not self.message_history.source.comms):
                 raise ValueError("Comms route changed; reopen this view before sending")
-            comms = reader.comms
+            comms = source.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
             if self.conversation_kind.read_only(catalog, self.target):
                 self.prompt.text = event.body
@@ -459,10 +412,9 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 self.status = "Read-only saved view; open an exact channel to send"
                 self.flash(self.status, style="error")
                 return
-            # Disable compose through both the worker and the subsequent
-            # receipt paint. Cancellation after a committed receipt must not
+            # Disable compose through both the worker and the drawing of the
+            # sent message. Cancellation after a committed send must not
             # leave an apparently fresh, send-ready draft.
-            self._human_admission_blocked = True
             self._send_block_reason = "Send pending; do not retry"
             self.prompt.text = event.body
             self.prompt.prompt_text_area.disabled = True
@@ -474,12 +426,11 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 )
             )
             try:
-                receipt = await asyncio.shield(send_task)
+                sent = await asyncio.shield(send_task)
             except asyncio.CancelledError:
                 # Cancelling the UI coroutine does not cancel the worker. The
                 # append may already have happened; never present this text as
                 # send-ready or launch a second attempt on a different root.
-                self._human_admission_blocked = True
                 self.prompt.text = event.body
                 self.prompt.prompt_text_area.disabled = True
                 self._send_block_reason = (
@@ -499,42 +450,33 @@ class CommsChatView(DeliveryFailureView, Conversation):
             delivery_failure(error).present(self, event.body)
             return
         self._send_block_reason = (
-            f"Send receipt {comms.root}/{receipt.seq}/{receipt.message_id}; "
-            "awaiting paint, do not retry"
+            f"Sent {comms.root}/{sent.seq}/{sent.message_id}; "
+            "waiting to be drawn, do not retry"
         )
         self.status = self._send_block_reason
         self.prompt.prompt_text_area.tooltip = self.status
         try:
-            await self._paint_sent_receipt(comms, receipt, event.body, root_is_current)
+            await self._show_sent(comms, sent, event.body, root_is_current)
         except (asyncio.CancelledError, Exception) as error:
             reason = (
                 "interrupted" if isinstance(error, asyncio.CancelledError) else "failed"
             )
+            self._sent_undrawn = None
             self._send_block_reason = (
-                f"Committed send {comms.root}/{receipt.seq}/{receipt.message_id}; "
-                f"paint {reason}, inspect before composing"
+                f"Committed send {comms.root}/{sent.seq}/{sent.message_id}; "
+                f"drawing it {reason}, inspect before composing"
             )
             self.status = self._send_block_reason
             self.prompt.prompt_text_area.tooltip = self.status
-            return
-        if await self.app.preparation.run_thread(root_is_current, comms.root) and any(
-            message.message_id == receipt.message_id and message.seq == receipt.seq
-            for message, _ in self.message_history.rows
-        ):
-            self._human_admission_blocked = False
-            self._send_block_reason = ""
-            self.prompt.text = ""
-            self.prompt.prompt_text_area.disabled = False
-            self.prompt.prompt_text_area.tooltip = None
-            self.status = ""
 
-    async def _paint_sent_receipt(
-        self, comms: Comms, receipt: WireMessage, body: str,
+    async def _show_sent(
+        self, comms: Comms, sent: WireMessage, body: str,
         root_is_current: Callable[[str | Path], bool],
     ) -> None:
+        """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
         if not await self.app.preparation.run_thread(root_is_current, comms.root):
             # The send may already have reached the former wire. Do not
-            # duplicate it on the successor or paint it under the new route.
+            # duplicate it on the successor or draw it under the new route.
             self.display = False
             self.flash(
                 "Comms route changed during send; outcome may be uncertain",
@@ -542,5 +484,19 @@ class CommsChatView(DeliveryFailureView, Conversation):
             )
             return
         self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
-        await self.message_history.paint_receipt(receipt)
+        self._sent_undrawn = sent
+        self.window.jump_to_latest()
         await self._refresh()
+        self._settle_sent()
+
+    def _settle_sent(self) -> None:
+        """Let the reader compose again once the history draws the message they sent."""
+        sent = self._sent_undrawn
+        if sent is None or not self.message_history.draws(sent):
+            return
+        self._sent_undrawn = None
+        self._send_block_reason = ""
+        self.prompt.text = ""
+        self.prompt.prompt_text_area.disabled = False
+        self.prompt.prompt_text_area.tooltip = None
+        self.status = ""

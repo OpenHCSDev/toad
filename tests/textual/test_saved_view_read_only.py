@@ -32,7 +32,7 @@ async def test_saved_view_shows_union_history_keeps_its_pin_and_refuses_to_send(
         next(group for group in sidebar.query(ChannelGroup) if group.row.target_name == "#engineering").row.focus()
         await ui.press("enter")
         chat = ui.textual[0].screen.query_one(CommsChatView)
-        await ui.until(lambda: [m.body for m, _ in chat.message_history.rows] == [m.body for m in rows],
+        await ui.until(lambda: [m.body for m in chat.message_history.messages] == [m.body for m in rows],
                        why="the saved view's history")
         assert chat.prompt.prompt_text_area.disabled
         await ui.until(lambda: "Read-only" in chat.status, why="the read-only status")

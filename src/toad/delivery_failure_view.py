@@ -14,12 +14,10 @@ class DeliveryFailureView:
         self._show_delivery_failure(f"Send UNKNOWN: {failure.description}; do not retry", body, disabled=True)
 
     def delivery_blocked(self, description: str, body: str) -> None:
-        self._human_admission_blocked = True
-        self._send_block_reason = f"Private human admission blocked: {description}"
+        self._send_block_reason = f"Send blocked: {description}"
         self._show_delivery_failure(self._send_block_reason, body, disabled=True)
 
     def delivery_refused(self, description: str, body: str) -> None:
-        self._human_admission_blocked = False
         self._send_block_reason = ""
         self.prompt.text = body
         self.prompt.prompt_text_area.disabled = False

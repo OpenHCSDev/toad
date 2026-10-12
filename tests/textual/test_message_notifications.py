@@ -1,4 +1,4 @@
-"""Textual-facing: notification feedback widgets under chat rows (collapsible titles, details, row styles, hidden screens)."""
+"""Textual-facing: the notification line under each drawn chat message (its title, details, both styles, hidden screens)."""
 
 import asyncio
 from threading import Event, get_ident
@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 from agent_comms.audience_manifest import FrozenRecipient
 from agent_comms.presentation import MessageNotification
-from textual.app import App
 
 from support.textual_steps import refresh_chat
 
@@ -20,6 +19,7 @@ class Notifications:
         self.loop_thread = loop_thread
         self.calls = []
         self.state, self.priority, self.busy, self.failure = "Checking relevance…", 0, True, False
+        self.recorded = True
         self.gate, self.entered = Event(), Event()
         self.gate.set()
 
@@ -30,6 +30,8 @@ class Notifications:
         assert self.gate.wait(10), "fixture release missing"
         if self.failure:
             raise OSError("fixture busy database")
+        if not self.recorded:
+            return {}
         return {(m.seq, m.message_id): (
             MessageNotification(FrozenRecipient("active", "active"), self.state, "#comms message", self.priority, self.busy),
             *(MessageNotification(FrozenRecipient(f"waiting-{n}", f"waiting-{n}"), "Waiting for agent", "Not running", 4, False)
@@ -52,66 +54,75 @@ async def open_comms_channel(workspace):
     return notifications, CommsChatView
 
 
-def newest_feedback(chat):
-    from toad.widgets.message_notifications import MessageNotifications
+def newest_status(chat):
+    """What the newest message on screen shows about its notifications."""
+    return chat.message_history.visible_fragments()[-1].shown.status
 
-    return next(w.query_one(MessageNotifications) for m, w in reversed(chat.message_history.rows)
-                if m.view_key in chat.message_history.painted_keys())
+
+async def checked(ui, chat):
+    """Read the notifications of the messages on screen now and wait for the read."""
+    history = chat.message_history
+    await ui.until(lambda: history._notification_check is None or history._notification_check.is_finished,
+                   why="the earlier notification read")
+    history.check_notifications()
+    await ui.until(lambda: history._notification_check is not None and history._notification_check.is_finished,
+                   why="the notification read")
 
 
 async def settled(ui, chat):
     history = chat.message_history
-    await ui.until(lambda: history.reader is not None and not history.reader.source.loading
-                   and history.state.accepts_source_work, why="the channel's history read")
+    await ui.until(lambda: not history.undrawn and history.state.accepts_source_work, why="the channel's history read")
     await ui.step()
-    chat._refresh_notifications()
-    await ui.until(lambda: chat._notification_task is not None and chat._notification_task.is_finished,
-                   why="the notification batch")
+    await checked(ui, chat)
 
 
-async def test_feedback_shows_the_core_state_of_the_painted_rows_in_one_bounded_batch(workspace):
+async def test_the_line_shows_the_core_state_of_the_messages_on_screen_in_one_bounded_read(workspace):
+    notifications, CommsChatView = await open_comms_channel(workspace)
+    with reading(workspace, notifications):
+        async with workspace.app(size=(110, 40)) as ui:
+            await ui.open_channel("#comms", actor="peer")
+            chat = ui.textual[0].screen.query_one(CommsChatView)
+            history = chat.message_history
+            await settled(ui, chat)
+            await ui.until_shows("Checking relevance… (1) · Waiting for agent (44)")
+            on_screen = {fragment.message.view_key for fragment in history.visible_fragments()}
+            assert 0 < len(notifications.calls[-1]) <= len(on_screen) < 30
+            assert set(notifications.calls[-1]) <= on_screen
+            await ui.click("▶ Checking relevance…", occurrence=len(on_screen) - 1)
+            # Opened, the line lists every recipient below it; the reader stays at the newest row.
+            await ui.until_shows("waiting-9: Waiting for agent — Not running")
+            opened = history.visible_fragments()[-1].shown
+            assert opened.details_open and opened.status.details.startswith("active: Checking relevance… — #comms message")
+
+
+async def test_the_line_follows_changing_state_and_errors_without_new_messages(workspace):
     notifications, CommsChatView = await open_comms_channel(workspace)
     with reading(workspace, notifications):
         async with workspace.app(size=(110, 40)) as ui:
             await ui.open_channel("#comms", actor="peer")
             chat = ui.textual[0].screen.query_one(CommsChatView)
             await settled(ui, chat)
-            feedback = newest_feedback(chat)
-            assert str(feedback.title).startswith("Checking relevance… (1)"), feedback.title
-            assert 0 < len(notifications.calls[-1]) <= len(chat.message_history.rows) <= 120
-            assert set(notifications.calls[-1]) <= {m.view_key for m, _ in chat._visible_notification_rows()}
-            await ui.textual[1].click(feedback.query_one("CollapsibleTitle"))
-            await ui.step()
-            assert not feedback.collapsed and "active: Checking relevance…" in str(feedback.details.render())
 
-
-async def test_feedback_follows_changing_state_and_errors_without_new_messages(workspace):
-    notifications, CommsChatView = await open_comms_channel(workspace)
-    with reading(workspace, notifications):
-        async with workspace.app(size=(110, 40)) as ui:
-            await ui.open_channel("#comms", actor="peer")
-            chat = ui.textual[0].screen.query_one(CommsChatView)
-            await settled(ui, chat)
-            feedback = newest_feedback(chat)
-            feedback.parent.scroll_visible(animate=False, immediate=True, top=True)
-            await ui.step()
             # The state of a delivery changes without a new message; the next observed change shows it.
-            async def shown_after_refresh(wanted, why):
+            async def shown_after_refresh(text):
                 await refresh_chat(chat)
-                await ui.until(lambda: wanted(str(feedback.title)), seconds=15, why=why)
+                await checked(ui, chat)
+                await ui.until_shows(text, seconds=15)
 
             notifications.state, notifications.priority, notifications.busy = "Responding…", 1, True
-            await shown_after_refresh(lambda title: "Responding…" in title, "the new state")
+            await shown_after_refresh("▶ Responding… (1)")
+            assert newest_status(chat).working
             notifications.state, notifications.priority, notifications.busy = "Checked — no response", 2, False
-            await shown_after_refresh(lambda title: title.startswith("Checked — no response (1)"), "the finished state")
+            await shown_after_refresh("▶ Checked — no response (1)")
+            assert not newest_status(chat).working
             notifications.failure = True
-            await shown_after_refresh(lambda title: "unavailable" in title, "the failure")
-            assert "fixture busy database" in str(feedback.details.render())
+            await shown_after_refresh("▶ Notification status unavailable")
+            assert "fixture busy database" in newest_status(chat).details
             notifications.failure, notifications.state = False, "Responded"
-            await shown_after_refresh(lambda title: title.startswith("Responded (1)"), "recovery")
+            await shown_after_refresh("▶ Responded (1)")
 
 
-async def test_one_batch_at_a_time_and_a_hidden_view_discards_its_result_and_stops_reading(workspace):
+async def test_one_read_at_a_time_and_a_hidden_view_discards_its_result_and_stops_reading(workspace):
     notifications, CommsChatView = await open_comms_channel(workspace)
     with reading(workspace, notifications):
         async with workspace.app(size=(110, 40)) as ui:
@@ -119,27 +130,30 @@ async def test_one_batch_at_a_time_and_a_hidden_view_discards_its_result_and_sto
             owner = ui.selected_tab
             await ui.open_channel("#comms", actor="peer")
             chat = app.screen.query_one(CommsChatView)
+            history = chat.message_history
             await settled(ui, chat)
+            before = newest_status(chat)
+            notifications.state = "Responded"
             notifications.entered.clear()
             notifications.gate.clear()
-            chat._refresh_notifications()
+            history.check_notifications()
             await ui.until(notifications.entered.is_set, why="a read in flight")
             count = len(notifications.calls)
-            chat._refresh_notifications()
-            chat._refresh_notifications()
+            history.check_notifications()
+            history.check_notifications()
             assert len(notifications.calls) == count
             # Another tab is selected: the channel view is no longer the one shown.
             await ui.select_tab(owner)
             notifications.gate.set()
-            await ui.until(lambda: chat._notification_task.is_finished, why="the in-flight read to end")
+            await ui.until(lambda: history._notification_check.is_finished, why="the in-flight read to end")
             for _ in range(3):
                 await refresh_chat(chat)
             assert len(notifications.calls) == count
+            assert all(fragment.shown.status == before for fragment in history.wire_fragments
+                       if fragment.shown.status.title != "Notification status not checked")
 
 
-async def test_markdown_rows_use_the_same_feedback_and_an_empty_result_says_so(workspace):
-    from toad.widgets.message_notifications import MessageNotifications
-
+async def test_markdown_messages_show_the_same_line_and_an_empty_result_says_so(workspace):
     notifications, CommsChatView = await open_comms_channel(workspace)
     notifications.state, notifications.busy = "Responded", False
     with reading(workspace, notifications):
@@ -149,10 +163,8 @@ async def test_markdown_rows_use_the_same_feedback_and_an_empty_result_says_so(w
             await settled(ui, chat)
             await chat.message_history.toggle_style()
             await ui.step()
-            chat._refresh_notifications()
-            await ui.until(lambda: chat._notification_task.is_finished, why="the Markdown batch")
-            row = chat.message_history.rows[-1][1]
-            assert not isinstance(row.read_ack_widget(), MessageNotifications)
-            assert "Responded" in str(row.query_one(MessageNotifications).title)
-            row.query_one(MessageNotifications).show_result(())
-            assert "No recorded" in str(row.query_one(MessageNotifications).title)
+            await checked(ui, chat)
+            await ui.until_shows("▶ Responded (1)")
+            notifications.recorded = False
+            await checked(ui, chat)
+            await ui.until_shows("▶ No recorded notification result")

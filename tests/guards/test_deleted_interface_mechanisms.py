@@ -143,6 +143,25 @@ def test_channel_history_has_one_owner():
             assert node.name not in retired, (node.lineno, node.name)
 
 
+def test_channel_messages_are_drawn_by_the_line_history_alone():
+    """The channel view has no paging, preparation or row widgets of its own."""
+    for relative in ('mounted_message_history.py', 'channel_preparation.py', 'message_viewport.py',
+                     'widgets/irc_message.py'):
+        assert not (ROOT / relative).exists(), relative
+    from toad.widgets.transcript_history import LineHistory, TranscriptHistory
+    from toad.widgets.wire_history import WireHistory
+
+    # A channel is a line history, and not a saved transcript: it covers no live blocks.
+    assert issubclass(WireHistory, LineHistory) and not issubclass(WireHistory, TranscriptHistory)
+    # Paging, lookahead, trimming and the reader's position are the line history's, for both.
+    for name in ('_load_page', '_check_edges', 'prepare_scroll', 'prepare_lookahead', 'reader_position',
+                 '_publish_latest', 'extend_source'):
+        assert name in vars(LineHistory), name
+        assert name not in vars(WireHistory) and name not in vars(TranscriptHistory), name
+    for name in ('covers_incoming', 'covers_input', 'coverage_events', 'committed_cursor'):
+        assert not hasattr(WireHistory, name), name
+
+
 def test_serialized_history_tree_mutations_use_the_window_fence():
     """A source lock cannot substitute for the window's native frame fence."""
     mutations = {'mount', 'remove_children', 'remove', 'extend', 'trim',
@@ -168,7 +187,7 @@ def test_serialized_history_tree_mutations_use_the_window_fence():
             visit(child, path, source_locked, publication)
 
     for relative in ('widgets/transcript_history.py', 'transcript_filter.py',
-                     'mounted_message_history.py'):
+                     'widgets/wire_history.py'):
         visit(ast.parse((ROOT / relative).read_text()), relative)
 
 

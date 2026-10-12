@@ -337,6 +337,9 @@ class TranscriptPageBuffer(PreparedPageSource):
     still-running read's admission or publish it into a closed view.
     """
 
+    # The work that reads and prepares one page of this kind of source.
+    work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
+
     def __init__(
         self, loader: Callable[..., Awaitable[TranscriptPage]] | None, through: TranscriptCursor,
         runtime: PreparationRuntime,
@@ -352,7 +355,7 @@ class TranscriptPageBuffer(PreparedPageSource):
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         if self.loader is None:
             raise ValueError("This transcript has no saved-source reader")
-        result = await self.runtime.submit(TranscriptPageWork(self.scope, self.loader, self.through, request))
+        result = await self.runtime.submit(self.work(self.scope, self.loader, self.through, request))
         return result.admit()
 
     async def prefetch(

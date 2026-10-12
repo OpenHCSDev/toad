@@ -103,7 +103,7 @@ Real Markdown block widgets exist only for non-conversation parsers, or after a 
 - `MarkdownContent` (`tool_content.py:37`).
 - `ToolContent` (`tool_call.py:38`): `MeasuredViewportBody`, used only for offscreen retire and restore.
 - `file_kind.py:58`, `project_panel.py`.
-- Readers of `document_viewport` and body readiness: `irc_message.py`, `session_view.py`, `transcript_source_preparation.py`, `mounted_message_history.py`, `transcript_state.py`, `session_presentation.py`, `setting_effects.py`, `app.py:546`, `conversation.py:331,524`, `history_anchor.py`.
+- Readers of `document_viewport` and body readiness: `session_view.py`, `transcript_source_preparation.py`, `transcript_state.py`, `session_presentation.py`, `setting_effects.py`, `app.py:546`, `conversation.py:331,524`, `history_anchor.py`.
 
 **Features to carry over, not drop:**
 - Per-block cursor and copy, including code fences (`block_navigation.py` `DocumentBlockCursor` / `ChildBlockCursor`).
@@ -541,3 +541,35 @@ Tristan: "maybe we should refactor toad into the textual version of pyqt-reactiv
 Direction, following the 2026-10-09 layering decision: pyqt-reactive renders an `ObjectState` ("the state is the model; the form is a view over it") and takes its toolkit-neutral declarations from formbridge. Toad becomes the same thing for the terminal: generic widgets, form lifecycle, field-change dispatch, theming and window infrastructure over the same formbridge contracts and ObjectState, with comms meaning in Core and nothing comms-specific in the generic layer.
 
 Not started. First step when the frame goal and the open defects are closed: one form (session details or settings) rendered in Toad from formbridge declarations and an `ObjectState`, to find what in formbridge still assumes Qt. The name-based API removal in the entry above proceeds independently.
+
+## 2026-10-12: The channel view is drawn by the line history
+
+**Problem.** The channel and direct-message view (Ctrl+G) had its own history: `MountedMessageHistory` mounted one widget tree per message, `ChannelHistoryReader` paged and read ahead, `MessageViewport` decided what counted as seen. The thread view used the line history. Two mechanisms for one behaviour: the channel view loaded and scrolled worse, and moved the reader's row when a page was added above (open defect `channel-reader-row-on-prepend`).
+
+**Decision.** One owner. `LineHistory` (`widgets/transcript_history.py`) draws pages of fragments as lines and owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position. It has two kinds:
+
+| | Source | Adds |
+|---|---|---|
+| `TranscriptHistory(LineHistory, CommittedHistory)` | a saved transcript (`TranscriptPageBuffer`) | coverage of the conversation's live blocks, the committed end, parking with a tab |
+| `WireHistory(LineHistory)` (`widgets/wire_history.py`) | a `WireSource` (`wire_history.py`, no terminal imports) | read marks, notification lines, two message styles, a source that grows |
+
+A channel is not a saved transcript, so `WireHistory` is not a `TranscriptHistory`: the conversation's transcript owner (`TranscriptPresentation.histories`) never sees it, and it has no coverage answers at all. The differences are declared on types the line history already takes:
+
+- **Page source.** `WirePageBuffer.work = WirePageWork` reads Core's `MessagePage` (`channel_display_page` / `dm_display_page`). Cursors are cuts between messages (`BeforeMessage`, `AfterMessage`, `AfterSequence`); `through` is the bus sequence the drawn pages reach.
+- **Rows.** `MessageFragment` / `MembershipFragment` build line blocks; `WireMessageStyle` (IRC or Markdown) lays out the text. New block `Spans` carries styled, clickable runs; a `LineLink` is the action a click runs.
+- **Page widget.** `LineHistory.page_view`: `WirePageView` adds the click actions for names, URLs and the notification line.
+- **Read marks.** A fragment keeps Core's page as `evidence` until its mark is written. Seen means a row of the message's own text is in the viewport (`WireFragment.text_rows`); `ConversationKind.seen_page` chooses what Core is asked to mark.
+- **Notification line and style.** Per-fragment `Shown` state; changing it renders the new lines first and swaps them in one frame.
+
+Two hooks carry what differs at a shared step: `_page_added` (a transcript reports coverage) and `source_resumed` (a transcript reports coverage, a channel marks what is on screen read).
+
+Core was not changed: `MessagePage` already answers a bounded page with its evidence.
+
+**Deleted.** `mounted_message_history.py`, `channel_preparation.py`, `message_viewport.py`, `widgets/irc_message.py`, `HistoryWindow.protect_history`.
+
+**What the reader loses.** A channel's history is one block, like a thread's: no per-message block cursor, no Enter on a focused message to open its sender, no per-message copy (text selection copies), no clock tooltip on the caption. Names, mentions and URLs are still clickable.
+
+**Left open.**
+- `WireSource.observe` asks how far the bus has grown through `comms.bus.log.latest_sequence()`, as the deleted reader did; that is Toad reaching into a Core store and should become an answer of `comms.views` (a Core change and a new Core pin).
+- The line history's rows carry no background colour, so they are drawn on the terminal's own background, not the theme's (seen in `st` with its default colours, 2026-10-12). The thread view draws through the same code, so it should show the same (not checked on screen).
+- `WorkerStatic.preparation_publication` has no override left now that the per-message widget is gone.

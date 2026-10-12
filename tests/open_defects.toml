@@ -54,13 +54,6 @@ tests = [
     "tests/textual/test_history_admission_budget.py::test_admitting_earlier_pages_repeatedly_keeps_admission_bounded_and_the_source_untruncated",
 ]
 
-[channel-reader-row-on-prepend]
-defect = "In a channel or direct-message view, when an older page is added above, the row the reader was on moves down by the height of that page (28 rows in the test) instead of staying where it was. Thread history holds its row; channel history does not."
-owner = "frame-time / line-view owner (perf/line-history), mounted_message_history.py"
-tests = [
-    "tests/textual/test_history_scroll_frames.py::test_channel_paging_keeps_the_reader_row_on_every_frame",
-]
-
 [filter-reapplied-finds-nothing]
 defect = "Clearing a message filter and applying it again sometimes leaves the filtered history empty: the filter stays in its seeking state, nothing scans, and the history has no lines. Same cause as filter-selection-before-layout (the edge check runs once, while the history has no height)."
 owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"

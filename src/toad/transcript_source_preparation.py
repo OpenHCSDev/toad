@@ -206,7 +206,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state = self._source_state.resume()
         self._prefetch_intent = None
         self.window.histories.add(self)
-        self.report_source_coverage()
+        self.source_resumed()
         self.window.check_follow()
         self.request_preparation()
 
@@ -214,6 +214,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     @property
     def drawn_extent(self) -> tuple[int, int]:
         """Rows drawn and the source items they show, for converting rows to items."""
+        raise NotImplementedError
+
+    def source_resumed(self) -> None:
+        """A parked source publishes again: report what its drawn pages mean to their owner."""
         raise NotImplementedError
 
     def prepare_scroll(self) -> None:

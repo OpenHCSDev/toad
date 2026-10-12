@@ -12,7 +12,7 @@ from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
 from functools import cached_property, partial
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 from weakref import ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -257,19 +257,25 @@ class TranscriptPageView(LinkedRows, Widget):
         index, first, _lines = self._layout[slot]
         return self.fragments[index], row - first
 
-    def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
-        """Admitted fragments overlapping the window's viewport."""
+    def visible_rows(self, window) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
+        """Each admitted fragment in the window's viewport, with its rows that are in view."""
         from toad.widgets.history_anchor import HistoryAnchor
 
         # A page the viewport layout did not place is off screen; computing
         # its offset would rebuild the compositor's whole map.
         offset = HistoryAnchor._placed_offset(self, window)
         if offset is None:
-            return ()
-        top = window.scroll_y - offset
+            return
+        top = int(window.scroll_y - offset)
         bottom = top + window.outer_size.height
-        return tuple(self.fragments[index] for index, first, lines in self._layout
-                     if first < bottom and first + lines.height > top)
+        for index, first, lines in self._layout:
+            if first < bottom and first + lines.height > top:
+                yield (self.fragments[index],
+                       range(max(0, top - first), min(lines.height, bottom - first)), lines)
+
+    def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
+        """Admitted fragments overlapping the window's viewport."""
+        return tuple(fragment for fragment, _rows, _lines in self.visible_rows(window))
 
     def _nearest_pending(self) -> list[int]:
         from toad.widgets.history_anchor import HistoryAnchor, HistoryWindow
@@ -304,7 +310,7 @@ class TranscriptPageView(LinkedRows, Widget):
         from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
-        history = self.query_ancestor(TranscriptHistory)
+        history = self.query_ancestor(LineHistory)
         async with window.preserve_history(None, root=self, position=history.reader_position(window)):
             theme = self.app.colours.line_theme
             for index, lines in ready:
@@ -319,7 +325,7 @@ class TranscriptPageView(LinkedRows, Widget):
     @classmethod
     @asynccontextmanager
     async def acquire(
-        cls, owner: TranscriptHistory, page: TranscriptPage, *, fragments,
+        cls, owner: LineHistory, page: TranscriptPage, *, fragments,
         batch_size: int, before: Widget, current: Callable[[], bool], newest: bool = True,
         prepared: PreparedTranscriptPage | None = None,
     ) -> AsyncIterator[TranscriptPageView]:
@@ -355,18 +361,28 @@ class TranscriptPageView(LinkedRows, Widget):
     ) -> bool:
         if not current():
             return False
-        window = self.query_ancestor(TranscriptHistory).window
+        window = self.query_ancestor(LineHistory).window
         async with window.history_lock:
             if not current():
                 return False
-            history = self.query_ancestor(TranscriptHistory)
+            history = self.query_ancestor(LineHistory)
             async with window.preserve_history(None, root=self, position=history.reader_position(window)):
                 return await self.prepared.replace_range(self, self.fragments, selected, None, current)
 
 
-class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, CommittedHistory, CategorizedBlock, VerticalGroup):
+class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
+    """History drawn as lines, a bounded range of pages at a time.
+
+    It owns paging in both directions, lookahead, trimming, the jump to the
+    newest page and the reader's position. A subclass says what its source is:
+    `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or
+    direct conversation.
+    """
+
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
+    # The widget that draws one page of this history.
+    page_view: ClassVar[type[TranscriptPageView]] = TranscriptPageView
 
     @property
     def message_category(self) -> None:
@@ -378,14 +394,15 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
 
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                   *, fragments: tuple[TranscriptFragment, ...] | None = None,
-                  budget: PresentationBudget | None = None, committed: bool = True,
-                  prepared: PreparedTranscriptPage | None = None):
-        super().__init__(source_state=LiveTranscript() if committed else ProvisionalTranscript())
+                  budget: PresentationBudget | None = None,
+                  prepared: PreparedTranscriptPage | None = None,
+                  source_state: TranscriptState | None = None):
+        super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, page.after
         self.budget = budget or PresentationBudget(
             max_items=self.MAX_FRAGMENTS, admission_items=PreparedTranscriptPage.BATCH,
         )
-        self.pages = deque([TranscriptPageView(
+        self.pages = deque([self.page_view(
             page, fragments=fragments, prepared=prepared, batch_size=self.budget.admission_items,
         )])
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
@@ -395,48 +412,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self._fragment_budget = self.budget.max_items
         # Bound when mounted; a history closed before its mount has no window to leave.
         self.window: HistoryWindow | None = None
-
-    async def park_document(self) -> PreparedPageSource:
-        """Transfer original data and admission out of disposable native pages."""
-        await self.retire_source(parked=True)
-        source = self._reader()
-        projection = self.filter.state.overlay
-        projected = await projection.park_document() if projection is not None else None
-        for page in self.pages:
-            page.retain_sources()
-        pages = tuple(page.prepared for page in self.pages)
-        position = self.window.pending_reader_position
-        await source.runtime.run_thread(source.measure_admission, pages, projected,
-                                        () if position is None else position.admissions)
-        source.park(pages, projected)
-        return source
-
-    @classmethod
-    def from_source(cls, source: PreparedPageSource) -> TranscriptHistory:
-        """Reacquire the original pages; retained source is not live coverage."""
-        pages = source.admitted
-        if not pages or source.closed:
-            raise ValueError("No retained transcript admission")
-        history = cls(pages[0].page, source.loader, prepared=pages[0])
-        history.through = source.through
-        history._page_buffer = source
-        history._source_state = ParkedSourceTranscript(LiveTranscript())
-        history.pages.extend(TranscriptPageView(
-            page.page, prepared=page, batch_size=history.budget.admission_items,
-        ) for page in pages[1:])
-        projected = source.projection_source
-        if projected is not None:
-            from toad.transcript_filter import Filtered
-            projection = ProjectedTranscriptHistory.from_source(projected, owner=history)
-            history.filter.state = Filtered(projection)
-        return history
-
-    def acquire_document(self) -> None:
-        """Mounted consumers have taken custody of the same data resources."""
-        if self._page_buffer is not None:
-            self._page_buffer.release_admission()
-        if (projection := self.filter.state.overlay) is not None:
-            projection.acquire_document()
 
     def resume_source(self) -> None:
         super().resume_source()
@@ -516,10 +491,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         # takes custody of the native producers' resolved acquisitions.
         return self.through, tuple(page.capture_admission() for page in self.pages)
 
-    def report_source_coverage(self) -> None:
-        if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
-
     def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
         """Retain the original source ranges that a returning reader needs."""
         for page in self.pages:
@@ -585,29 +556,6 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
     def _follow_source_tail(self) -> bool:
         return self.window.follows_tail
 
-    async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        if self._source_state.reports_coverage:
-            from toad.widgets.conversation import Conversation
-            # Transfer covered native display inside the page admission. The
-            # original retirement receipt owns teardown; observe its completed
-            # result without holding the Conversation pump or mount admission.
-            # Standalone saved viewers have no live transcript to transfer.
-            # Resolve custody from native ancestry, not a second owner field.
-            for ancestor in self.ancestors:
-                if isinstance(ancestor, Conversation):
-                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(ancestor)
-                    break
-
-    def publish_committed(self) -> None:
-        """Acquire live-row ownership only after a provisional mount is accepted."""
-        self._source_state = self._source_state.publish()
-        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
-        self.request_preparation()
-
-    @property
-    def coverage_events(self) -> Iterator[TranscriptEvent]:
-        return (event for page in self.pages for event in page.page.events)
-
     @property
     def has_older(self) -> bool:
         page = self.pages[0]
@@ -650,8 +598,19 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.window = self.query_ancestor(HistoryWindow)
         await self._finish_mount()
 
+    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+        """A page joined what this history draws."""
+
+    def extend_source(self, through: TranscriptCursor) -> None:
+        """The source now reaches `through`; the drawn pages stay as they are."""
+        self._generation += 1
+        self.through = through
+        edge = self.pages[-1]
+        edge.page = replace(edge.page, has_newer=edge.page.after != through)
+        self._update_edges()
+
     async def _finish_mount(self) -> None:
-        await self._report_coverage(self.pages[0].page, self.pages[0].fragments)
+        await self._page_added(self.pages[0].page, self.pages[0].fragments)
         self._update_edges()
         self.observe_source()
 
@@ -671,69 +630,9 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         return (self.query_ancestor(Conversation).visible_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
-    def covers_incoming(self, sequence: int) -> bool:
-        if not self._source_state.reports_coverage:
-            return False
-        if self.committed_cursor.covers_incoming(sequence):
-            return True
-        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
-            return True
-        return self.filter.covers_incoming(sequence)
-
-    def covers_input(self, native_id: str | None) -> bool:
-        """Whether the loaded saved pages hold the input Core started under this identity."""
-        return (self._source_state.reports_coverage
-                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
-
-    @property
-    def committed_cursor(self) -> TranscriptCursor:
-        return self.through
-
     @property
     def source_checkpoint_available(self) -> bool:
         return self.filter.checkpoint_available
-
-    def retain_committed(self, through: TranscriptCursor) -> None:
-        """Extend access to saved source without moving the displayed page window."""
-        if not self.accepts_commit(through):
-            raise ValueError("Commit replaces or rewinds the retained source")
-        self._generation += 1
-        self.through = through
-        edge = self.pages[-1]
-        edge.page = replace(edge.page, has_newer=edge.page.after != through)
-        self._update_edges()
-
-    async def advance_committed(
-        self, through: TranscriptCursor, is_current: Callable[[], bool],
-    ) -> bool:
-        """Advance in bounded native pages and render batches, preserving loaded rows."""
-        async with self.window.history_lock:
-            if not self.checkpoint_available or not is_current():
-                return False
-            # Reject scans started with the old bound without discarding their
-            # already accepted filtered overlay or its backward cursor.
-            self.retain_committed(through)
-            operation = self.reserve_source_work()
-        return await operation.execute(self, partial(self._advance_committed, is_current))
-
-    async def _advance_committed(self, is_current: Callable[[], bool]) -> bool:
-        while self.has_newer:
-            if not is_current() or not self.state.accepts_publication:
-                return False
-            edge = self.pages[-1]
-            previous = edge.page.after, edge.stop
-            await self._load_page(False)
-            edge = self.pages[-1]
-            if previous == (edge.page.after, edge.stop):
-                return False
-            # Let the bounded batch paint before selecting the next batch's
-            # visible anchors. Never mount an entire oversized native row.
-            refreshed = asyncio.get_running_loop().create_future()
-            self.call_after_refresh(
-                lambda future=refreshed: future.done() or future.set_result(None)
-            )
-            await refreshed
-        return is_current()
 
     def _reader(self) -> PreparedPageSource:
         reader = self._page_buffer
@@ -876,7 +775,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     self.pages = deque([view])
                 else:
                     try:
-                        async with TranscriptPageView.acquire(
+                        async with self.page_view.acquire(
                             self, page, fragments=fragments, batch_size=destination_admission,
                             prepared=prepared,
                             before=self.newer, current=lambda: snapshot.current(self) and request.current(window),
@@ -888,7 +787,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                 self._update_edges()
             return True
 
-    async def _load_page(self, older: bool) -> None:
+    async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None) -> None:
+        """Draw the next range beyond an edge; `prepared` is that page when the caller read it."""
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
         edge = self.pages[0] if older else self.pages[-1]
@@ -897,14 +797,14 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             local = edge.start > 0 if older else edge.stop < len(edge.fragments)
             page = None
             fragments = None
-            prepared = None
             if not local:
                 if loader is None:
                     return
-                prepared = await self._reader().get(PageRequest(
-                    before=edge.page.before if older else None,
-                    after=edge.page.after if not older else None,
-                ))
+                if prepared is None:
+                    prepared = await self._reader().get(PageRequest(
+                        before=edge.page.before if older else None,
+                        after=edge.page.after if not older else None,
+                    ))
                 page, fragments = prepared.page, prepared.fragments
             selected = (edge.prepared.extension_slice(older) if local
                         else PreparedTranscriptPage.initial_slice(fragments, self.budget.admission_items, older))
@@ -957,7 +857,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             elif page is not None:
                 assert fragments is not None
                 admission = edge.capture_admission()
-                async with TranscriptPageView.acquire(
+                async with self.page_view.acquire(
                     self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
                     prepared=prepared,
                     before=edge if older else self.newer,
@@ -969,7 +869,7 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                         self.pages.append(view)
                 protected.update(id(fragment) for fragment in view.admitted_fragments)
                 protected_pages.add(view)
-                await self._report_coverage(page, fragments)
+                await self._page_added(page, fragments)
             self._fragment_budget = limit = max(
                 self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
             )
@@ -1012,6 +912,143 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
                     excess -= remove_count
             self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
+
+
+class TranscriptHistory(LineHistory, CommittedHistory):
+    """The line history of a saved transcript.
+
+    Its pages stand in for the conversation's live blocks: it reports which
+    events it covers, follows the committed end of the transcript, and can be
+    parked with a tab and rebuilt from what was parked.
+    """
+
+    def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
+                 *, committed: bool = True, **kwargs):
+        super().__init__(page, loader, **kwargs,
+                         source_state=LiveTranscript() if committed else ProvisionalTranscript())
+
+    async def park_document(self) -> PreparedPageSource:
+        """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
+        await self.retire_source(parked=True)
+        source = self._reader()
+        projection = self.filter.state.overlay
+        projected = await projection.park_document() if projection is not None else None
+        for page in self.pages:
+            page.retain_sources()
+        pages = tuple(page.prepared for page in self.pages)
+        position = self.window.pending_reader_position
+        await source.runtime.run_thread(source.measure_admission, pages, projected,
+                                        () if position is None else position.admissions)
+        source.park(pages, projected)
+        return source
+
+    @classmethod
+    def from_source(cls, source: PreparedPageSource) -> TranscriptHistory:
+        """Rebuild a parked history from its pages; it covers no live blocks until it resumes."""
+        pages = source.admitted
+        if not pages or source.closed:
+            raise ValueError("No retained transcript admission")
+        history = cls(pages[0].page, source.loader, prepared=pages[0])
+        history.through = source.through
+        history._page_buffer = source
+        history._source_state = ParkedSourceTranscript(LiveTranscript())
+        history.pages.extend(TranscriptPageView(
+            page.page, prepared=page, batch_size=history.budget.admission_items,
+        ) for page in pages[1:])
+        projected = source.projection_source
+        if projected is not None:
+            from toad.transcript_filter import Filtered
+            projection = ProjectedTranscriptHistory.from_source(projected, owner=history)
+            history.filter.state = Filtered(projection)
+        return history
+
+    def acquire_document(self) -> None:
+        """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
+        if self._page_buffer is not None:
+            self._page_buffer.release_admission()
+        if (projection := self.filter.state.overlay) is not None:
+            projection.acquire_document()
+
+    def source_resumed(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+
+    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+        if self._source_state.reports_coverage:
+            from toad.widgets.conversation import Conversation
+            # The live blocks this page covers are retired as part of adding
+            # the page, without holding the conversation's message pump. A
+            # saved viewer outside a conversation has no live blocks.
+            for ancestor in self.ancestors:
+                if isinstance(ancestor, Conversation):
+                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(ancestor)
+                    break
+
+    def publish_committed(self) -> None:
+        """Acquire live-row ownership only after a provisional mount is accepted."""
+        self._source_state = self._source_state.publish()
+        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+        self.request_preparation()
+
+    @property
+    def coverage_events(self) -> Iterator[TranscriptEvent]:
+        return (event for page in self.pages for event in page.page.events)
+
+    def covers_incoming(self, sequence: int) -> bool:
+        if not self._source_state.reports_coverage:
+            return False
+        if self.committed_cursor.covers_incoming(sequence):
+            return True
+        if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
+            return True
+        return self.filter.covers_incoming(sequence)
+
+    def covers_input(self, native_id: str | None) -> bool:
+        """Whether the loaded saved pages hold the input Core started under this identity."""
+        return (self._source_state.reports_coverage
+                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+
+    @property
+    def committed_cursor(self) -> TranscriptCursor:
+        return self.through
+
+    def retain_committed(self, through: TranscriptCursor) -> None:
+        """Extend access to saved source without moving the displayed page window."""
+        if not self.accepts_commit(through):
+            raise ValueError("Commit replaces or rewinds the retained source")
+        self.extend_source(through)
+
+    async def advance_committed(
+        self, through: TranscriptCursor, is_current: Callable[[], bool],
+    ) -> bool:
+        """Advance in bounded native pages and render batches, preserving loaded rows."""
+        async with self.window.history_lock:
+            if not self.checkpoint_available or not is_current():
+                return False
+            # Reject scans started with the old bound without discarding their
+            # already accepted filtered overlay or its backward cursor.
+            self.retain_committed(through)
+            operation = self.reserve_source_work()
+        return await operation.execute(self, partial(self._advance_committed, is_current))
+
+    async def _advance_committed(self, is_current: Callable[[], bool]) -> bool:
+        while self.has_newer:
+            if not is_current() or not self.state.accepts_publication:
+                return False
+            edge = self.pages[-1]
+            previous = edge.page.after, edge.stop
+            await self._load_page(False)
+            edge = self.pages[-1]
+            if previous == (edge.page.after, edge.stop):
+                return False
+            # Let the bounded batch paint before selecting the next batch's
+            # visible anchors. Never mount an entire oversized native row.
+            refreshed = asyncio.get_running_loop().create_future()
+            self.call_after_refresh(
+                lambda future=refreshed: future.done() or future.set_result(None)
+            )
+            await refreshed
+        return is_current()
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A source projection with the ordinary pager's admission and eviction policy."""
@@ -1093,9 +1130,9 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def coverage_events(self) -> Iterator[TranscriptEvent]:
         return (event for page in self.pages for fragment in page.fragments for event in fragment.events)
 
-    async def _report_coverage(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
+    async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
         if owner is not None and owner.filter.owns_projection(self):
-            await owner._report_coverage(replace(page, events=tuple(
+            await owner._page_added(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

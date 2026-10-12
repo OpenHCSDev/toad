@@ -11,20 +11,21 @@ from toad.core import input_events
 from toad.navigation_target import DirectTarget, NavigationContext, channel_target
 from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.message_notifications import MessageNotifications
+from toad.notification_status import NotificationStatus
 
 from support.textual_steps import refresh_chat
 
 
 def rows_with(chat, predicate):
-    return [message for message, _ in chat.message_history.rows if predicate(message)]
+    return [message for message in chat.message_history.messages if predicate(message)]
 
 
-def feedback_of(chat, sent) -> MessageNotifications:
-    """The delivery feedback drawn under the one row showing `sent`."""
-    rows = [widget for message, widget in chat.message_history.rows if message.reference == sent.reference]
-    assert len(rows) == 1, (sent.reference, len(rows))
-    return rows[0].query_one(MessageNotifications)
+def feedback_of(chat, sent) -> NotificationStatus:
+    """The notification status drawn under the one message showing `sent`."""
+    shown = [fragment.shown.status for fragment in chat.message_history.wire_fragments
+             if fragment.message.reference == sent.reference]
+    assert len(shown) == 1, (sent.reference, len(shown))
+    return shown[0]
 
 
 async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: str = "beta",
@@ -100,7 +101,7 @@ async def direct_reply_feedback(native, owner_tab: str, *, hold: bool, target: s
     fresh = reopened.query_one(CommsChatView)
     assert fresh.conversation_kind is DmConversation
     await ui.until(lambda: all(
-        sum(message.reference == reference for message, _ in fresh.message_history.rows) == 1
+        sum(message.reference == reference for message in fresh.message_history.messages) == 1
         for reference in (sent.reference, reply.reference)), seconds=20,
         why="the message and its reply once each after reopening")
     await ui.until(lambda: "Responded" in str(feedback_of(fresh, sent).title), seconds=20,
@@ -136,9 +137,8 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     await ui.until(lambda: not comms.registry.require("beta").executing, seconds=20, why="the decision to finish")
     await refresh_chat(chat)
     await ui.until(lambda: "No active turns" in roster.names.render().plain, seconds=20, why="an idle roster")
-    notification = feedback_of(chat, sent)
-    await ui.until(lambda: "Checked" in str(notification.title), seconds=10, why="'Checked' under the message")
-    assert "no response" in str(notification.title).lower(), notification.title
+    await ui.until(lambda: "Checked" in feedback_of(chat, sent).title, seconds=10, why="'Checked' under the message")
+    assert "no response" in feedback_of(chat, sent).title.lower(), feedback_of(chat, sent).title
 
 
 @asynccontextmanager

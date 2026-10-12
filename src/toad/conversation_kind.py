@@ -83,28 +83,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
-    def remember_page(cls, history, page, older):
-        """Only committed mounted pages supply read-receipt authority."""
-        mounted = {message.view_key for message, _ in history.rows}
-        history.historical_receipts = {
-            key: source for key, source in history.historical_receipts.items() if key in mounted
-        }
-        cls.remember_tail(history, page, older, mounted)
-        cls.remember_mounted(history, page, mounted)
-        if page is not None and page.historical_display is not None:
-            history.historical_receipts.update(
-                (message.view_key, page) for message in page.messages if message.view_key in mounted
-            )
-
-    @classmethod
-    def remember_tail(cls, history, page, older, mounted):
-        pass
-
-    @classmethod
-    def remember_mounted(cls, history, page, mounted):
-        pass
-
-    @classmethod
     def read_only(cls, catalog, target):
         return False
 
@@ -126,11 +104,15 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def painted_page(cls, history, painted): ...
+    def seen_page(cls, history, seen):
+        """The page to mark read for the seen fragments and the fragments it settles, or None.
+
+        Every fragment in `seen` still holds its page's read evidence.
+        """
 
     @classmethod
     @abstractmethod
-    async def mark_painted(cls, comms, target, project, page): ...
+    async def mark_read(cls, comms, target, project, page): ...
 
 
 class ChannelConversation(ConversationKind):
@@ -183,16 +165,6 @@ class ChannelConversation(ConversationKind):
         return ChannelPrompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    def remember_mounted(cls, history, page, mounted):
-        history.channel_receipts = {
-            seq: source for seq, source in history.channel_receipts.items() if ("", seq) in mounted
-        }
-        if page is not None and cls.current_identity(page) is not None:
-            history.channel_receipts.update(
-                (message.seq, page) for message in page.messages if message.view_key in mounted
-            )
-
-    @classmethod
     def read_only(cls, catalog, target):
         return catalog.is_view_target(target)
 
@@ -230,33 +202,21 @@ class ChannelConversation(ConversationKind):
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
     @classmethod
-    def painted_page(cls, history, painted):
-        original = next(
-            (
-                source
-                for seq, source in history.channel_receipts.items()
-                if seq in painted
-            ),
-            None,
-        )
-        if original is None:
+    def seen_page(cls, history, seen):
+        if not seen:
             return None
-        scope = original.display_scope
-        selected = {
-            seq
-            for seq, source in history.channel_receipts.items()
-            if source is original and seq in painted
-        }
+        page = seen[0].evidence
+        marked = tuple(fragment for fragment in seen if fragment.evidence is page)
+        selected = {fragment.message.seq for fragment in marked}
+        scope = page.display_scope
         return replace(
-            original,
-            messages=tuple(
-                message for message in original.messages if message.seq in selected
-            ),
+            page,
+            messages=tuple(message for message in page.messages if message.seq in selected),
             display_scope=replace(scope, displayed=scope.displayed.select(selected)),
-        ), original
+        ), marked
 
     @classmethod
-    async def mark_painted(cls, comms, target, project, page):
+    async def mark_read(cls, comms, target, project, page):
         from agent_comms.route_selection import implicit_root, run_selected_write
 
         assert page.display_scope is not None and page.newest_seq is not None
@@ -334,43 +294,34 @@ class DmConversation(ConversationKind):
         return Prompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    def remember_tail(cls, history, page, older, mounted):
-        original = history.tail_receipt
-        if original is not None and ("", original.newest_seq) not in mounted:
-            history.tail_receipt = None
-        if page is not None and not older and cls.current_identity(page) is not None:
-            history.tail_receipt = page if page.messages else None
-
-    @classmethod
     async def agent_info(cls, comms, target):
         return await asyncio.to_thread(comms.agents.agent_info_of, target)
 
     @classmethod
-    def painted_page(cls, history, painted):
-        original = history.tail_receipt
-        if original is None or original.newest_seq not in painted:
+    def seen_page(cls, history, seen):
+        # Only the newest page marks a direct conversation read, and only as a
+        # whole: its newest message and every message from the peer were seen.
+        newest = history.pages[-1]
+        page = newest.page.source
+        if history.has_newer or page is None:
             return None
-        basis = original.display_basis
+        painted = {fragment.message.seq for fragment in seen if fragment.evidence is page}
+        if page.newest_seq not in painted:
+            return None
+        basis = page.display_basis
         if basis.older_unread:
             return None
-        inbound = (
-            message.seq
-            for message in original.messages
-            if message.sender in basis.peer_names
-            and message.target in basis.viewer_names
-        )
-        if any(sequence not in painted for sequence in inbound):
+        if any(message.seq not in painted for message in page.messages
+               if message.sender in basis.peer_names and message.target in basis.viewer_names):
             return None
         return replace(
-            original,
-            messages=tuple(
-                message for message in original.messages if message.seq in painted
-            ),
+            page,
+            messages=tuple(message for message in page.messages if message.seq in painted),
             display_basis=replace(basis, displayed=basis.displayed.select(painted)),
-        ), original
+        ), tuple(fragment for fragment in newest.fragments if fragment.evidence is page)
 
     @classmethod
-    async def mark_painted(cls, comms, target, project, page):
+    async def mark_read(cls, comms, target, project, page):
         from agent_comms.route_selection import implicit_root, run_selected_write
 
         assert page.display_basis is not None and page.newest_seq is not None

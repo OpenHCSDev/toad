@@ -1,33 +1,19 @@
-"""Textual-facing: clicking a thread link in a conversation or a chat selects the thread's already-open tab, without a provisional tab or route discovery."""
+"""Textual-facing: clicking a thread's name in a chat selects the thread's already-open tab, without a provisional tab or route discovery."""
 
 from unittest.mock import patch
 
-from textual.containers import VerticalGroup
-
-from toad.block_navigation import ConversationBlock
 from toad.widgets.comms_chat import CommsChatView
 from toad.widgets.goal_bar import GoalBar
-from toad.widgets.irc_message import ThreadLink
 from toad.widgets.session_tabs import SessionsTabs, Underline
 
 
-class LinkBlock(ConversationBlock, VerticalGroup):
-    """A conversation block holding one thread link."""
-
-    def __init__(self, target):
-        super().__init__()
-        self.link = ThreadLink(target)
-
-    def compose(self):
-        yield self.link
-
-
-async def test_link_to_an_open_thread_selects_its_tab_and_creates_nothing(workspace):
-    workspace.thread("owner", running=True)
-    workspace.thread("peer", running=True)
+async def test_name_of_an_open_thread_selects_its_tab_and_creates_nothing(workspace):
+    workspace.thread("owner", "team", running=True)
+    workspace.thread("peer", "team", running=True)
+    workspace.comms.messaging.send("peer", "#team", "a message from the open thread")
     wire_root = str(workspace.roots.wire)
     async with workspace.app(size=(100, 36)) as ui:
-        app, pilot = ui.textual
+        app, _pilot = ui.textual
         owner = ui.selected_tab
         source = app.selected_session
         source.initial_coordination_root = wire_root
@@ -41,17 +27,20 @@ async def test_link_to_an_open_thread_selects_its_tab_and_creates_nothing(worksp
         destination._comms_thread = "peer"
         await ui.write_draft("Keep this draft")
         await ui.select_tab(owner)
-        block = LinkBlock("peer")
-        link = block.link
-        await source.conversation.contents.mount(block)
-        await ui.step()
-        order = ui.tabs()
+        await ui.open_channel("#team", actor="owner", owner=owner)
+        await ui.until_shows("peer → #team")
+        await ui.until(lambda: ui.link_at("peer → #team") == ("open_target", ("peer",)), why="the sender drawn as a link")
+        # The channel tab's unread count clears as its message is read; the tabs themselves must not change.
+        def order():
+            return [tab.identity for tab in ui.tabs()]
+
+        opened = order()
         with patch.object(app.navigation_reader, "read", wraps=app.navigation_reader.read) as reads:
-            assert await pilot.click(link)
+            await ui.click("peer → #team")
             await ui.until(lambda: ui.selected_tab == existing, seconds=3, why="the open thread's tab")
             assert app.selected_session is destination and ui.selected_tab != foreign
             assert reads.call_count == 0, "Existing mounted identity needed route discovery"
-            assert ui.tabs() == order
+            assert order() == opened
             assert ui.draft() == "Keep this draft"
             assert not app.thread_navigation.pending
             # Repeated and self links reuse the very same mounted tab too.
@@ -59,15 +48,17 @@ async def test_link_to_an_open_thread_selects_its_tab_and_creates_nothing(worksp
                 assert await app.thread_navigation.open(
                     owner_mode=existing, project_path=workspace.project, target="peer") == existing
             assert reads.call_count == 0
-            assert ui.tabs() == order
+            assert order() == opened
 
 
-async def test_link_clicked_in_a_chat_view_reuses_the_open_thread_tab(workspace):
+async def test_name_clicked_in_a_narrow_direct_chat_reuses_the_open_thread_tab(workspace):
     workspace.thread("owner")
     workspace.thread("peer")
+    viewer = workspace.viewer
+    workspace.comms.messaging.send("peer", viewer, "a direct message")
     wire_root = str(workspace.roots.wire)
     async with workspace.app(size=(100, 36)) as ui:
-        app, pilot = ui.textual
+        app, _pilot = ui.textual
         owner = ui.selected_tab
         existing = await ui.new_session()
         destination = app.selected_session
@@ -75,9 +66,9 @@ async def test_link_clicked_in_a_chat_view_reuses_the_open_thread_tab(workspace)
         destination._comms_thread = "peer"
         await ui.write_draft("Keep this draft")
         # Chat views inherit the conversation's mouse handlers but omit goal
-        # controls. A real link click must still reuse the tab.
+        # controls. A real click on a name must still reuse the tab.
         await ui.new_session()
-        await ui.open_direct("peer", actor="owner", owner=owner)
+        await ui.open_direct("peer", actor=viewer, owner=owner)
         chat = app.screen.query_one(CommsChatView)
         assert chat.query_one_optional(GoalBar) is None
         await ui.resize(65, 36)
@@ -86,14 +77,12 @@ async def test_link_clicked_in_a_chat_view_reuses_the_open_thread_tab(workspace)
         underline = tabs.query_one(Underline)
         clip = app.screen._compositor.find_widget(underline).clip
         assert underline.region.intersection(clip).height == 1
-        block = LinkBlock("peer")
-        chat_link = block.link
-        await chat.contents.mount(block)
-        chat_link.scroll_visible(animate=False)
-        await ui.step()
-        order = ui.tabs()
-        assert await pilot.click(chat_link)
+        await ui.until_shows(f"peer → {viewer}")
+        await ui.until(lambda: ui.link_at(f"peer → {viewer}") == ("open_target", ("peer",)), why="the sender drawn as a link")
+        # The chat tab's title drops its unread count once the message is marked read.
+        order = [tab.identity for tab in ui.tabs()]
+        await ui.click(f"peer → {viewer}")
         await ui.until(lambda: ui.selected_tab == existing, seconds=3, why="the open thread's tab")
         assert app.selected_session is destination
-        assert ui.tabs() == order
+        assert [tab.identity for tab in ui.tabs()] == order
         assert ui.draft() == "Keep this draft"

@@ -1,6 +1,7 @@
 """Textual-facing: a mounted chat view (widget state: display, composer, status) follows the default comms route when it flips."""
 
 import asyncio
+import threading
 from unittest.mock import patch
 
 from agent_comms.errors import HumanInitialUnknownError
@@ -8,6 +9,7 @@ from agent_comms.route_selection import root_is_current
 
 from support.routes import private_root, publish_route, select_root_by_default_route
 from support.textual_steps import refresh_chat
+from toad.wire_history import WireSource
 
 
 async def test_a_late_read_from_the_former_wire_is_not_painted_after_the_route_flips(workspace, monkeypatch):
@@ -28,35 +30,30 @@ async def test_a_late_read_from_the_former_wire_is_not_painted_after_the_route_f
         view = app.screen.query_one(CommsChatView)
         await refresh_chat(view)
         await ui.step()
-        assert view.message_history.reader.comms.root == first
-        assert any("OLD-WIRE-ONLY" in str(message) for message, _ in view.message_history.rows), view.message_history.rows
+        assert view.message_history.source.comms.root == first
+        assert any("OLD-WIRE-ONLY" in str(message) for message in view.message_history.messages), view.message_history.messages
 
         # A read already in flight when the route flips must not paint a late page
         # from the former wire into the successor view.
-        view.message_history.reader.comms.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
-        entered, release = asyncio.Event(), asyncio.Event()
-        original_read = view.message_history.reader.read
+        view.message_history.source.comms.messaging.send_initial_cohort("peer", "#team", "LATE-OLD-EDGE")
+        entered, release = threading.Event(), threading.Event()
+        real_read = WireSource.read
 
-        async def delayed_read(*args, **kwargs):
+        def delayed_read(source, request, through):
             entered.set()
-            await release.wait()
-            return await original_read(*args, **kwargs)
+            assert release.wait(8), "the held read was not released"
+            return real_read(source, request, through)
 
-        with patch.object(view.message_history.reader, "read", delayed_read):
-            view.message_history.reader.restart()
+        with patch.object(WireSource, "read", delayed_read):
             pending = asyncio.create_task(refresh_chat(view))
-            async with asyncio.timeout(5):
-                await entered.wait()
+            assert await asyncio.to_thread(entered.wait, 5)
             publish_route(home, second, second_id)
             release.set()
             await pending
+            await ui.until(lambda: view.message_history.state.accepts_source_work, why="the held read to end")
         # The route check runs once a second; the app's observed service follows it.
         await ui.until(lambda: app.coordination_access.service.root == second, why="the app to follow the route")
-        view.message_history.has_newer = True
-        worker = view.message_history.schedule_source_work(lambda: view.message_history._load_page(False))
-        if worker is not None:
-            await worker.wait()
-        assert all("LATE-OLD-EDGE" not in str(message) for message, _ in view.message_history.rows)
+        assert all("LATE-OLD-EDGE" not in str(message) for message in view.message_history.messages)
         await refresh_chat(view)
         async with asyncio.timeout(10):
             await app.coordination_access.current_sidebar()
@@ -94,24 +91,24 @@ async def test_a_fresh_connection_after_a_flip_paints_only_the_newly_published_w
         view = app.screen.query_one(CommsChatView)
         await refresh_chat(view)
         await ui.step()
-        assert view.display and view.message_history.reader.comms.root == second
-        assert any("NEW-WIRE-ONLY" in str(message) for message, _ in view.message_history.rows), view.message_history.rows
-        assert all("OLD-WIRE-ONLY" not in str(message) for message, _ in view.message_history.rows)
+        assert view.display and view.message_history.source.comms.root == second
+        assert any("NEW-WIRE-ONLY" in str(message) for message in view.message_history.messages), view.message_history.messages
+        assert all("OLD-WIRE-ONLY" not in str(message) for message in view.message_history.messages)
 
         # A proven pre-append rejection remains editable; an UNKNOWN or an interrupted
         # committed send does not.
-        with patch.object(view.message_history.reader.comms.messaging, "send_user_message",
+        with patch.object(view.message_history.source.comms.messaging, "send_user_message",
                           side_effect=ValueError("pre-append rejection")) as rejected:
             await view.submit_input(input_events.UserInputSubmitted("EDITABLE-REJECTION"))
             assert rejected.call_count == 1
             assert view.prompt.text == "EDITABLE-REJECTION"
             assert not view.prompt.prompt_text_area.disabled
-            assert not view._human_admission_blocked
+            assert not view._send_block_reason
         view.prompt.text = ""
 
         # An uncertain private send retains text for inspection and disables compose.
         error = HumanInitialUnknownError(second_id, 17, "opaque-unknown-id")
-        with patch.object(view.message_history.reader.comms.messaging, "send_user_message",
+        with patch.object(view.message_history.source.comms.messaging, "send_user_message",
                           side_effect=error) as sender:
             event = input_events.UserInputSubmitted("UNCERTAIN-NO-RETRY")
             await view.submit_input(event)
