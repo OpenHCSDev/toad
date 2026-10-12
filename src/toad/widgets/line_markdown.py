@@ -21,11 +21,11 @@ from textual.worker import Worker
 from toad.block_content import BlockContent
 from toad.line_blocks import Body, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    PreparedLines, RichLineRenderer, TranscriptLinesRenderTask,
+    LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask,
 )
 
 
-class LineMarkdown(BlockContent, Widget):
+class LineMarkdown(LinkedRows, BlockContent, Widget):
     """A leaf that draws one Markdown body; its owner holds headers and identity.
 
     It is block content: the cursor of the message that holds it can select it,

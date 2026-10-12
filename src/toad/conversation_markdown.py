@@ -218,8 +218,8 @@ class ConversationMarkdown(Markdown):
 
     async def on_markdown_link_clicked(self, event: Markdown.LinkClicked) -> None:
         from toad.project_path_owner import ProjectPathOwner
-        link = ProjectPathOwner.link_from(self, event.href)
-        await link.preview(self, event)
+        event.stop()
+        await ProjectPathOwner.link_from(self, event.href).preview(self)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:

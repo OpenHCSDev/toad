@@ -107,7 +107,7 @@ class ProjectLink(DeclaredFamily, affix="Link"):
         return ()
 
     @abstractmethod
-    async def preview(self, widget, event) -> None: ...
+    async def preview(self, widget) -> None: ...
 
     async def copy_menu(self, widget, event) -> bool:
         return False
@@ -121,19 +121,19 @@ class ProjectFileLink(ProjectLink):
         return (Token("link_open", "a", 1, attrs={"href": self.href}),
                 content, Token("link_close", "a", -1))
 
-    async def preview(self, widget, event) -> None:
-        await self.apply_file(widget, event, partial(self.preview_file, widget))
+    async def preview(self, widget) -> None:
+        await self.apply_file(widget, partial(self.preview_file, widget))
 
     async def copy_menu(self, widget, event) -> bool:
-        await self.apply_file(widget, event, partial(self.copy_file, widget, event))
+        event.stop()
+        await self.apply_file(widget, partial(self.copy_file, widget, event))
         return True
 
-    async def apply_file(self, widget, event, effect: Callable[[Path], None]) -> None:
+    async def apply_file(self, widget, effect: Callable[[Path], None]) -> None:
         from toad.project_path_owner import ProjectPathOwner
 
         owner = ProjectPathOwner.containing(widget)
         root = owner.project_root.resolve()
-        event.stop()
         try:
             path = await self.resolve(root)
         except ProjectLinkProblem as problem:
@@ -171,6 +171,23 @@ class DirectProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
 
     async def resolve(self, root: Path) -> Path:
         return self.existing_file(root, str(self.path))
+
+
+class AcpLogLink(DirectProjectFileLink, declared_name="toad-acp-log"):
+    """An agent's ACP log, written as a Markdown link in the conversation.
+
+    It opens whether or not the file exists: the log view says when a log
+    cannot be read, and reads it again on request.
+    """
+
+    label: ClassVar[str] = "Open ACP log"
+
+    @property
+    def markdown(self) -> str:
+        return f"[{self.label}]({self.href})"
+
+    async def resolve(self, root: Path) -> Path:
+        return self.path
 
 
 @dataclass(frozen=True)
@@ -247,5 +264,5 @@ class ExternalProjectLink(ProjectLink):
     def href(self) -> str:
         return self.value
 
-    async def preview(self, widget, event) -> None:
+    async def preview(self, widget) -> None:
         widget.app.open_url(self.href)

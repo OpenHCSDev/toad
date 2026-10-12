@@ -215,7 +215,7 @@ class SessionNavigation:
         path = path.expanduser().resolve()
         entry = self.find(path)
         if entry is None:
-            entry = PreviewSessionEntry(f"preview-{next(self.identities)}", path, self.app.selected_mode)
+            entry = PreviewSessionEntry.of(f"preview-{next(self.identities)}", path, self.app.selected_mode)
             return await self.open(entry, after=self.app.selected_mode)
         await self.app.select_session(entry.mode)
         return entry.mode

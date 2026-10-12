@@ -130,6 +130,37 @@ async def test_earlier_and_latest_page_through_a_log_larger_than_one_page_and_re
         assert ui.failure() is None
 
 
+async def test_a_full_raw_page_is_drawn_exactly_and_follows_new_lines_only_while_its_end_is_in_view(workspace):
+    log = write_log(workspace)
+    padding = ("[agent] " + json.dumps({"jsonrpc": "2.0", "id": 8, "result": "z" * 1024}) + "\n").encode()
+    with log.open("ab") as stream:
+        stream.write(padding * (FilePreview.MAX_BYTES // len(padding) + 1))
+    async with workspace.app(size=(100, 32)) as ui:
+        view = await open_log(ui, log)
+        area = view.query_one(TextArea)
+        await reread(ui, view, "#log-raw")
+        # The page enters the text area in slices; together they are the page.
+        assert len(view.page.raw) > 100 * view.SLICE
+        assert area.text == view.page.raw.decode("utf-8", errors="replace")
+        await ui.until(lambda: area.max_scroll_y > 0 and area.scroll_y == area.max_scroll_y,
+                       why="the newest line in view")
+        with log.open("a") as stream:
+            stream.write("backend stderr: written while the end is in view\n")
+        await ui.until(lambda: area.text.endswith("written while the end is in view\n"),
+                       why="the new line drawn without asking", seconds=10)
+        await ui.until(lambda: area.scroll_y == area.max_scroll_y, why="the new line in view")
+        # A reader who scrolled back is left where they are.
+        area.scroll_home(animate=False)
+        await ui.step()
+        with log.open("a") as stream:
+            stream.write("backend stderr: written while reading earlier lines\n")
+        await ui.step(3 * view.FOLLOW_INTERVAL)
+        assert "written while reading earlier lines" not in area.text and area.scroll_y == 0
+        await reread(ui, view, "#log-latest")
+        assert area.text.endswith("written while reading earlier lines\n")
+        assert ui.failure() is None
+
+
 async def test_an_ordinary_project_file_previews_with_wide_and_accented_text(workspace):
     plain = workspace.project / "ordinary.txt"
     plain.write_text("Project file: 界 café\n")

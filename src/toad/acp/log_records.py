@@ -209,8 +209,41 @@ class LogPage:
         records = decode_records(data, leading_fragment=leading, trailing_fragment=trailing)
         return cls(start, end, total, data, records)
 
+    def extended(self, path: Path, budget: int) -> LogPage:
+        """This page brought up to the end of the log.
+
+        The same page when nothing was written; this page with the complete
+        lines written after it; or the latest page when this one is not the
+        log's end, the log was replaced, or the page outgrew twice the budget.
+        """
+        with path.open("rb") as stream:
+            total = stream.seek(0, 2)
+            if total == self.total:
+                return self
+            if self.end != self.total or total < self.end or total - self.start > 2 * budget:
+                return self.read(path, budget)
+            stream.seek(self.end)
+            data = stream.read(total - self.end)
+        # A line still being written is read once it is complete.
+        data = data[: data.rfind(b"\n") + 1]
+        if not data:
+            return self
+        records = decode_records(data, leading_fragment=False, trailing_fragment=False)
+        last = self.records[-1] if self.records else None
+        if isinstance(last, DiagnosticLogRecord) and isinstance(records[0], DiagnosticLogRecord):
+            # Process output continuing across the two reads is one diagnostic.
+            records = (DiagnosticLogRecord(last.raw + records[0].raw), *records[1:])
+            earlier = self.records[:-1]
+        else:
+            earlier = self.records
+        end = self.end + len(data)
+        return LogPage(self.start, end, end, self.raw + data, earlier + records)
+
 
 class LogView(DeclaredFamily, affix="LogView"):
+    # Where the latest record is drawn: at the end of the text, or at its start.
+    newest_first = False
+
     @abstractmethod
     def render(self, page: LogPage) -> str: ...
 
@@ -220,6 +253,8 @@ class LogView(DeclaredFamily, affix="LogView"):
 
 
 class ErrorsLogView(LogView):
+    newest_first = True
+
     def render(self, page: LogPage) -> str:
         errors = dict.fromkeys(record.diagnostic for record in reversed(page.records) if record.diagnostic)
         return "\n\n────────────────────\n\n".join(errors) or (

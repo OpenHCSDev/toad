@@ -1,14 +1,14 @@
 """A read-only project file in the ordinary, closeable session tab bar."""
 
 from pathlib import Path
-from typing import cast
+from collections.abc import Callable
 
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from toad.screens.session_view import SessionView
 from textual.widgets import Footer
-from toad.widgets.acp_log import file_preview
+from textual.widget import Widget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import TabHistoryControls
 
@@ -23,13 +23,14 @@ class FilePreviewScreen(SessionView, can_focus=False):
         Binding("ctrl+w", "close_preview", "Close preview", show=False, priority=True),
     ]
 
-    def __init__(self, path: Path) -> None:
+    def __init__(self, path: Path, content: Callable[[], Widget]) -> None:
         super().__init__(name=path.name)
         self.project_path = path.parent
+        self.content = content
 
     def compose(self) -> ComposeResult:
         with Vertical(id="file-preview-content"):
-            yield file_preview(self.project_path / cast(str, self.name))
+            yield self.content()
 
     async def action_back(self) -> None:
         if self.id is not None:

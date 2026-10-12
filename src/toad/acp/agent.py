@@ -11,7 +11,6 @@ from toad.acp.agent_controller import AgentController
 from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
-import os
 from contextlib import asynccontextmanager, suppress
 from dataclasses import replace
 from datetime import datetime
@@ -107,8 +106,8 @@ class Agent(AgentBase):
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
         log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
-        if log_path := os.environ.get("TOAD_LOG"):
-            self.presentation.log_path = Path(log_path).resolve().absolute()
+        if (log_path := AgentLog.selected()) is not None:
+            self.presentation.log_path = log_path
             with suppress(OSError):
                 self.presentation.log_path.unlink(missing_ok=True)
         else:

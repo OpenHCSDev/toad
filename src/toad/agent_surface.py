@@ -69,11 +69,11 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     @handles(LogAgentFail)
     async def show_failure_log(self, failure, view):
-        from urllib.parse import quote
+        from toad.project_link import AcpLogLink
         from toad.widgets.agent_response import AgentResponse
         from toad.widgets.message_filter import OtherCategory
 
-        link = AgentResponse(f"[Open ACP log]({quote(str(failure.log_path))})",
+        link = AgentResponse(AcpLogLink(failure.log_path).markdown,
                              show_divider=False, category=OtherCategory)
         link.add_class("-error-log-link")
         await view.post(link)

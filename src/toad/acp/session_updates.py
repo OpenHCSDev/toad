@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from urllib.parse import quote
 
 from agent_comms.declared_family import DeclaredFamily
 from toad import jsonrpc
@@ -17,6 +16,7 @@ from acp.schema import (UserMessageChunk, AgentMessageChunk, AgentThoughtChunk,
     ToolCallStart, ToolCallProgress, AgentPlanUpdate, AvailableCommandsUpdate,
     CurrentModeUpdate, ConfigOptionUpdate, SessionInfoUpdate, UsageUpdate, TextContentBlock)
 from toad.plan import decode_plan
+from toad.project_link import AcpLogLink
 
 
 class SessionUpdateEffect(MroDispatch):
@@ -106,7 +106,7 @@ class AgentContentEffect(MessageContentEffect):
     def publish(self, content):
         text = content.text
         if text.startswith('[agent error]'):
-            text += f'\n\n[Open ACP log]({quote(str(self.agent.presentation.log_path))})'
+            text += f'\n\n{AcpLogLink(self.agent.presentation.log_path).markdown}'
         from toad.response_delivery import ResponseDelivery
         stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))
         self.agent.events.publish(events.Update(content.type, text, stream))

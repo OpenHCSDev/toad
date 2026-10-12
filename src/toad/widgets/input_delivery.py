@@ -13,6 +13,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, Static
 
 from agent_comms.ui_model.delivery import InputDelivery
+from toad.project_link import AcpLogLink
 
 
 class DeliveryInspect(Static, can_focus=True):
@@ -166,7 +167,7 @@ class InputDeliveryDetails(ModalScreen[None]):
                 yield Static(markup=False, id="delivery-historical-records")
             with HorizontalGroup():
                 if self.log_path is not None:
-                    yield Button("Open ACP log", id="delivery-log")
+                    yield Button(AcpLogLink.label, id="delivery-log")
                 yield Button("Close (Esc)", id="delivery-close")
 
     @staticmethod

@@ -6,16 +6,14 @@
 # `intermittent = true` marks a defect that shows only on some runs: passing is then not an error.
 
 [agent-text-click]
-defect = "File paths and links in live agent text are plain text: no preview on click, no copy-path menu, no file search. The line view's link interaction is not carried over to the live tail yet; docs/agents/DECISIONS.md lists it under features to carry over. (The click itself no longer raises: LineMarkdown is block content, tests/textual/test_block_click_scroll.py.)"
+defect = "File paths in line-drawn agent text are plain text, and a written Markdown link keeps the address it was written with: no link for a bare project path, no file search by name, no toad-file address, no copy-path menu. The project-path grammar is not carried over to the line renderer yet; docs/agents/DECISIONS.md lists it under features to carry over. (A written Markdown link does highlight under the pointer and open on click: tests/textual/test_acp_log_link.py, test_clicking_a_file_link_opens_its_preview_tab.)"
 owner = "frame-time / line-view owner (perf/line-history)"
 tests = [
     "tests/textual/test_file_links_in_agent_text.py::test_existing_project_paths_in_agent_text_are_links_and_other_text_is_not",
     "tests/textual/test_file_links_in_agent_text.py::test_explicit_links_name_the_file_search_or_the_website",
-    "tests/textual/test_file_links_in_agent_text.py::test_clicking_a_file_link_opens_its_preview_tab",
     "tests/textual/test_file_links_in_agent_text.py::test_right_clicking_a_file_link_offers_to_copy_its_full_path",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_links_to_a_search_that_opens_the_one_matching_file",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_found_in_several_places_says_so_instead_of_guessing",
-    "tests/textual/test_source_link_navigation.py::test_source_link_opens_the_file_and_returning_restores_the_editor",
     "tests/app/test_markdown_file_links.py::test_file_link_in_answer_opens_preview_and_return_keeps_draft",
 ]
 

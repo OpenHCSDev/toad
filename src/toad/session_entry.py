@@ -234,20 +234,36 @@ class HistorySessionEntry(SessionEntry):
 
 
 class PreviewSessionEntry(SessionEntry):
+    """A read-only file in its own tab."""
+
     def __init__(self, mode: str, path: Path, origin: str) -> None:
         super().__init__(mode)
         self.path, self.origin = path, origin
 
+    @classmethod
+    def of(cls, mode: str, path: Path, origin: str) -> PreviewSessionEntry:
+        from toad.acp.agent_log import AgentLog
+
+        return (AcpLogSessionEntry if AgentLog.writes(path) else cls)(mode, path, origin)
+
     def __call__(self):
         from toad.screens.file_preview import FilePreviewScreen
-        return FilePreviewScreen(self.path)
+        return FilePreviewScreen(self.path, self.content)
+
+    def content(self):
+        from toad.widgets.project_panel import FilePreview
+        return FilePreview(self.path, id="file-preview")
+
+    @property
+    def title(self) -> str:
+        return self.path.name
 
     @property
     def address(self) -> Path:
         return self.path
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        return OpenTab(self.mode, self.path.name)
+        return OpenTab(self.mode, self.title)
 
     def entered(self, previous: str) -> None:
         if previous != self.mode:
@@ -257,3 +273,15 @@ class PreviewSessionEntry(SessionEntry):
         app = sessions.app
         target = self.origin if self.origin in app.workspace_sessions.factories else app.tab_order.previous(self.mode)
         await app.select_session(target)
+
+
+class AcpLogSessionEntry(PreviewSessionEntry):
+    """An agent's ACP log in its own tab, named for the agent and start time in the file name."""
+
+    def content(self):
+        from toad.widgets.acp_log import AcpLogPreview
+        return AcpLogPreview(self.path, id="file-preview")
+
+    @property
+    def title(self) -> str:
+        return f"ACP log · {self.path.stem}"

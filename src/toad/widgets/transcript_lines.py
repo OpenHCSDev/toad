@@ -70,6 +70,36 @@ def _text_width(block: Body, width: int) -> int:
     return max(1, width - (2 if block.bar is not None else 0))
 
 
+def _clickable(rows: list[Row]) -> list[Row]:
+    """Give each Markdown link the click action that hovers and opens it.
+
+    Rich marks a link's cells with its address only. Textual highlights and
+    activates cells that carry a click action and share a link identity, so
+    every cell of one link gets one action style.
+    """
+    actions: dict[str, Style] = {}
+
+    def linked(segment: Segment) -> Segment:
+        style = segment.style
+        if style is None or not style.link:
+            return segment
+        action = actions.get(style.link_id)
+        if action is None:
+            action = actions[style.link_id] = Style.from_meta({"@click": f"link({style.link!r})"})
+        return Segment(segment.text, style + action, segment.control)
+
+    return [tuple(map(linked, row)) for row in rows]
+
+
+class LinkedRows:
+    """A widget that draws rendered rows opens the links clicked in them."""
+
+    async def action_link(self, href: str) -> None:
+        from toad.project_path_owner import ProjectPathOwner
+
+        await ProjectPathOwner.link_from(self, href).preview(self)
+
+
 def _plain_lines(text: str) -> list[str]:
     """A body's text as plain mode draws it: one string per source line, tabs expanded."""
     return [line.expandtabs(4) for line in text.splitlines() or [""]]
@@ -128,8 +158,8 @@ class RichLineRenderer(MroDispatch):
             console = Console(width=inner, color_system=self.theme.color_system,  # type: ignore[arg-type]
                               force_terminal=True,
                               file=io.StringIO(), legacy_windows=False)
-            rows = [tuple(line) for line in console.render_lines(
-                Markdown(block.text), console.options.update(width=inner), style=style, pad=False)]
+            rows = _clickable([tuple(line) for line in console.render_lines(
+                Markdown(block.text), console.options.update(width=inner), style=style, pad=False)])
         else:
             rows = [(Segment(line[start:start + inner], style),)
                     for line in _plain_lines(block.text) for start in _plain_spans(line, inner)]

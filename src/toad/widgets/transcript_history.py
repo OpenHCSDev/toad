@@ -46,7 +46,7 @@ from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.widgets.transcript_lines import (
-    Lines, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    LinkedRows, Lines, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
@@ -92,7 +92,7 @@ class JumpToLatest(Static, can_focus=True):
         event.stop()
         self.action_jump()
 
-class TranscriptPageView(Widget):
+class TranscriptPageView(LinkedRows, Widget):
     """One transcript page, drawn as its admitted fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker

@@ -7,10 +7,13 @@ A failed write is not lost: the next log call raises it.
 
 from __future__ import annotations
 
+import os
 import queue
 import threading
 from pathlib import Path
 from typing import ClassVar, TextIO
+
+from toad import paths
 
 
 class AgentLog:
@@ -31,6 +34,17 @@ class AgentLog:
             if cls._instance is None:
                 cls._instance = cls()
             return cls._instance
+
+    @staticmethod
+    def selected() -> Path | None:
+        """The one log file the TOAD_LOG environment variable names, when it is set."""
+        selected = os.environ.get("TOAD_LOG")
+        return Path(selected).resolve().absolute() if selected else None
+
+    @classmethod
+    def writes(cls, path: Path) -> bool:
+        """Whether `path` is an agent log: the selected file, or a file in the log directory."""
+        return path.parent == paths.get_log() or path == cls.selected()
 
     def append(self, path: Path, line: str) -> None:
         if (failure := self.failure) is not None:
