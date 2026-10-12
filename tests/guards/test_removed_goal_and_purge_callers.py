@@ -1,12 +1,15 @@
-"""No production caller can restore retired Goal readers or thread purging."""
+"""No production caller brings back the removed goal readers, thread purging or text-only queue reads,
+and no test declares a thread with a bare process id."""
 
 import ast
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
 
-def main():
+
+def test_removed_goal_readers_purge_callers_and_bare_pid_threads_stay_gone():
     findings = []
-    for path in (Path(__file__).resolve().parents[1] / "src/toad").rglob("*.py"):
+    for path in (ROOT / "src/toad").rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
             retired = (
                 isinstance(node, ast.Constant)
@@ -45,7 +48,7 @@ def main():
                 )
             if retired:
                 findings.append(f"{path.name}:{node.lineno}")
-    for path in (Path(__file__).resolve().parent).glob("*.py"):
+    for path in (ROOT / "tests").rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
             if (
                 isinstance(node, ast.Call)
@@ -55,8 +58,3 @@ def main():
             ):
                 findings.append(f"{path.name}:{node.lineno}: bare-PID Thread fixture")
     assert not findings, "\n".join(findings)
-    print("L0A guard: no retired Goal decoder, purge caller or text-only queue reader")
-
-
-if __name__ == "__main__":
-    main()
