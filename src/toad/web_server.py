@@ -142,16 +142,13 @@ class ToadWebServer(Server):
         self,
         command: str,
         *,
-        host: str = "localhost",
+        host: str = "127.0.0.1",
         port: int = 8000,
         title: str | None = None,
-        public_url: str | None = None,
     ) -> None:
         if version("textual-serve") != "1.1.3":
             raise RuntimeError("Browser serving requires reviewed textual-serve 1.1.3")
         endpoint = LocalBrowserEndpoint(host, port)
-        if public_url is not None and public_url != endpoint.url:
-            raise ValueError("Browser serving cannot use a non-local public URL")
         super().__init__(
             command, host=host, port=port, title=title, public_url=endpoint.url
         )
