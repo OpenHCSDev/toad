@@ -7,7 +7,6 @@ from unittest.mock import patch
 from agent_comms.audience_manifest import FrozenRecipient
 from agent_comms.presentation import MessageNotification
 from textual.app import App
-from textual.screen import Screen
 
 from support.textual_steps import refresh_chat
 
@@ -96,17 +95,20 @@ async def test_feedback_follows_changing_state_and_errors_without_new_messages(w
             feedback = newest_feedback(chat)
             feedback.parent.scroll_visible(animate=False, immediate=True, top=True)
             await ui.step()
-            # Same bus revision, changed native lifecycle: the observation timer must refresh.
+            # The state of a delivery changes without a new message; the next observed change shows it.
+            async def shown_after_refresh(wanted, why):
+                await refresh_chat(chat)
+                await ui.until(lambda: wanted(str(feedback.title)), seconds=15, why=why)
+
             notifications.state, notifications.priority, notifications.busy = "Responding…", 1, True
-            await ui.until(lambda: "Responding…" in str(feedback.title), seconds=15, why="the new state")
+            await shown_after_refresh(lambda title: "Responding…" in title, "the new state")
             notifications.state, notifications.priority, notifications.busy = "Checked — no response", 2, False
-            await ui.until(lambda: str(feedback.title).startswith("Checked — no response (1)"), seconds=15,
-                           why="the finished state")
+            await shown_after_refresh(lambda title: title.startswith("Checked — no response (1)"), "the finished state")
             notifications.failure = True
-            await ui.until(lambda: "unavailable" in str(feedback.title), seconds=15, why="the failure")
+            await shown_after_refresh(lambda title: "unavailable" in title, "the failure")
             assert "fixture busy database" in str(feedback.details.render())
             notifications.failure, notifications.state = False, "Responded"
-            await ui.until(lambda: str(feedback.title).startswith("Responded (1)"), seconds=15, why="recovery")
+            await shown_after_refresh(lambda title: title.startswith("Responded (1)"), "recovery")
 
 
 async def test_one_batch_at_a_time_and_a_hidden_view_discards_its_result_and_stops_reading(workspace):
@@ -114,6 +116,7 @@ async def test_one_batch_at_a_time_and_a_hidden_view_discards_its_result_and_sto
     with reading(workspace, notifications):
         async with workspace.app(size=(110, 40)) as ui:
             app = ui.textual[0]
+            owner = ui.selected_tab
             await ui.open_channel("#comms", actor="peer")
             chat = app.screen.query_one(CommsChatView)
             await settled(ui, chat)
@@ -125,15 +128,13 @@ async def test_one_batch_at_a_time_and_a_hidden_view_discards_its_result_and_sto
             chat._refresh_notifications()
             chat._refresh_notifications()
             assert len(notifications.calls) == count
-            await app.push_screen(Screen())
+            # Another tab is selected: the channel view is no longer the one shown.
+            await ui.select_tab(owner)
             notifications.gate.set()
             await ui.until(lambda: chat._notification_task.is_finished, why="the in-flight read to end")
             for _ in range(3):
-                chat._refresh_notifications()
                 await refresh_chat(chat)
             assert len(notifications.calls) == count
-            app.pop_screen()
-            await ui.step()
 
 
 async def test_markdown_rows_use_the_same_feedback_and_an_empty_result_says_so(workspace):

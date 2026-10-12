@@ -57,19 +57,19 @@ async def test_channel_menu_toggles_member_activity_and_keeps_unpainted_traffic_
         assert bodies(comms) == ["exact route"]
 
 
-async def test_menu_labels_say_which_way_the_toggle_goes(workspace):
+async def test_the_menu_item_carries_cores_label_before_and_after_the_toggle(workspace):
     workspace.thread("alice", "team")
     workspace.comms.messaging.send("alice", "#team", "exact route")
     async with workspace.app(size=(100, 30)) as ui:
         _, pilot = ui.textual
         sidebar = await channel_roster(ui, "#team")
         item = await open_menu_item(ui, sidebar, "#team", ACTION)
-        assert "Show member activity" in item.render().plain
+        assert "Toggle member activity" in item.render().plain  # Core's own label for the command
         await pilot.click(item)
         await ui.step()
         sidebar = await channel_roster(ui, "#team")
         item = await open_menu_item(ui, sidebar, "#team", ACTION)
-        assert "Show channel only" in item.render().plain
+        assert "Toggle member activity" in item.render().plain
 
 
 async def test_the_all_feed_has_no_member_activity_toggle(workspace):

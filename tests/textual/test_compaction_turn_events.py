@@ -47,11 +47,9 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
             assert agent.current_turn.busy and view.turns.owner.busy
             await consume_until(CompactionChangedUpdate)
             assert "Compacting context" in str(view.query_one(TurnActivity).render())
-            progress = await consume_until(CompactionChangedUpdate)
-            assert progress.event.source.label in view.turns.owner.activity
-            assert progress.event.source.label in str(view.query_one(TurnActivity).render())
+            # Pi runs the compaction and reports its start and its end; there is no progress in between.
             await consume_until(CompactionChangedUpdate)
-            assert progress.event.source.label not in view.turns.owner.activity
+            assert "Compacting context" not in view.turns.owner.activity
             stale = await consume_until(TurnChangedUpdate)
             assert not stale.state.busy and not stale.state.matches(turn_id)
             assert agent.current_turn.managed_id == view.turns.managed_id == turn_id

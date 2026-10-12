@@ -15,6 +15,7 @@ tests = [
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_links_to_a_search_that_opens_the_one_matching_file",
     "tests/textual/test_file_links_in_agent_text.py::test_a_bare_file_name_found_in_several_places_says_so_instead_of_guessing",
     "tests/textual/test_source_link_navigation.py::test_source_link_opens_the_file_and_returning_restores_the_editor",
+    "tests/app/test_markdown_file_links.py::test_file_link_in_answer_opens_preview_and_return_keeps_draft",
 ]
 
 [shared-channel-tab]
@@ -31,4 +32,19 @@ defect = "The thread sidebar's Relationships panel never refreshes: toad/widgets
 owner = "Core (agent-comms) owner for the answer, then Toad's thread_comms_source"
 tests = [
     "tests/textual/test_sidebar_retirement.py::test_panels_restore_selection_scroll_and_plan_after_release_and_collect_the_old_widgets",
+    "tests/textual/test_thread_relationship_sidebar.py::test_relationship_groups_follow_core_edits_tools_sorting_and_renames",
+]
+
+[filter-selection-before-layout]
+defect = "Choosing a message category while the filtered history has not been laid out yet finds nothing until the user scrolls: filter.changed() checks the edges once, before the pager has geometry, and nothing checks again after layout (the comment in widgets/transcript_history.py says a layout signal does; no such subscription exists)."
+owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"
+tests = [
+    "tests/textual/test_message_filter_switch_while_mounting.py::test_empty_filter_reads_no_history_and_a_later_selection_finds_the_match",
+]
+
+[route-publication-while-toad-runs]
+defect = "Publishing a new default comms route does not complete while a Toad is mounted on the default root: the app's coordination access holds the route's shared lock for its lifetime, so publish_active_route waits. Views therefore never reach the refusal of writes selected before the publication. Either the lock is meant to be held only per operation, or publication is meant to wait for every client to exit; Core's route owner decides."
+owner = "Core (agent-comms) route owner, with Toad's CoordinationAccess"
+tests = [
+    "tests/textual/test_stale_route_writes.py::test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused",
 ]

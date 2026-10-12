@@ -20,7 +20,7 @@ from support.routes import private_root, select_root_by_default_route
 from support.textual_steps import refresh_chat, request_target_command
 
 
-async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused(workspace, monkeypatch):
+async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused(workspace, monkeypatch, native_package):
     from toad import comms_root
     from toad.acp.shell_command import ShellCommand
     from toad.widgets.comms_chat import CommsChatView
@@ -37,7 +37,7 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
     old.registry.declare(Thread("peer", frozenset({"team"}), str(project / "peer")))
     old.messaging.send("peer", "#team", "LEGACY-PAINT")
     private, private_id = private_root(attempt / "private", project, "PRIVATE-PAINT")
-    route = ActiveRoute(private, private_id, attempt / "unused-package")
+    route = ActiveRoute(private, private_id, native_package)
     assert current_root() == legacy
 
     async with workspace.app(size=(115, 38)) as ui:

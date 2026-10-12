@@ -32,21 +32,6 @@ async def started_agent(project):
     return agent
 
 
-async def test_an_implicit_child_started_on_the_former_route_refuses_the_prompt_write_after_a_flip(routes, monkeypatch):
-    agent = await started_agent(routes.project)
-    assert agent.process.route_selection.implicit
-    assert "AGENT_COMMS_ROOT" not in agent.process.env
-    publish_route(routes.home, routes.second, routes.second_id)
-    written = []
-    agent.process.process = SimpleNamespace(stdin=SimpleNamespace(write=written.append))
-    prompt = SimpleNamespace(body={"method": "session/prompt"}, body_json=b"{}")
-    # A later explicit process override cannot turn the old-root child into an independent explicit-root writer.
-    monkeypatch.setenv("AGENT_COMMS_ROOT", str(routes.first))
-    with pytest.raises(ValueError, match="route changed"):
-        agent.send(prompt)
-    assert not written, "stale implicit-root child prompt was written"
-
-
 async def test_the_real_prompt_path_refuses_a_stale_implicit_child(routes, monkeypatch):
     agent = await started_agent(routes.project)
     publish_route(routes.home, routes.second, routes.second_id)

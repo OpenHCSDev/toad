@@ -23,7 +23,7 @@ def spawn_through_ingress(command, *, env, cwd):
 
 
 @pytest.fixture
-def published(tmp_path, monkeypatch):
+def published(tmp_path, monkeypatch, native_package):
     """A legacy root, and a private root published as the default route."""
     tmp_path.chmod(0o700)
     for name in ("CONFIG", "DATA", "STATE"):
@@ -32,7 +32,7 @@ def published(tmp_path, monkeypatch):
     legacy = home / ".agent-comms"
     legacy.mkdir(mode=0o700)
     private, private_id = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
-    route = ActiveRoute(private, private_id, tmp_path / "unused-package")
+    route = ActiveRoute(private, private_id, native_package)
     assert current_root() == legacy
     with patch.object(cohort_foreground, "_trusted_package", lambda _: None):
         publish_active_route(route)
