@@ -146,10 +146,15 @@ def _observe_path(path: Path, owner: Connection) -> None:
 
 
 class _PathObservation(threading.Thread):
-    """One native observer per path; cancellation never waits on recursive IO."""
+    """One native observer per path; cancellation never waits on recursive IO.
+
+    The thread and its process are daemons: stopping only frees memory, pipes
+    and a child that exits by itself once this process is gone, so a close
+    that failed before reaching stop() must not keep the interpreter alive.
+    """
 
     def __init__(self, path: Path) -> None:
-        super().__init__(name=f"Directory observation: {path}")
+        super().__init__(name=f"Directory observation: {path}", daemon=True)
         context = get_context("spawn")
         self.ready = threading.Event()
         self.stopped = threading.Event()
@@ -158,7 +163,7 @@ class _PathObservation(threading.Thread):
         self._parent, self._child = context.Pipe()
         self.process = context.Process(
             target=_observe_path, args=(path, self._child),
-            name=f"Directory observer: {path}",
+            name=f"Directory observer: {path}", daemon=True,
         )
 
     def run(self) -> None:
@@ -251,7 +256,8 @@ class DirectoryWatcher(threading.Thread):
         self._dirty = False
         self._observed_revision = 0
         self._delivery_lock = threading.Lock()
-        super().__init__(name=repr(self))
+        # Nothing here needs a clean finish, so a failed close can still exit.
+        super().__init__(name=repr(self), daemon=True)
 
     @property
     def enabled(self) -> bool:
@@ -314,14 +320,14 @@ class DirectoryWatcher(threading.Thread):
             _shared_observer_manager.unregister(self._path, self)
 
     def rebind(self, widget: Widget) -> None:
-        """Move notification custody without restarting the path observation."""
+        """Notify another widget without restarting the path observation."""
         with self._delivery_lock:
             self._widget.retire_core_observations(self.events)
             self._widget = widget
             widget.subscribe_core(self.events)
 
     async def aclose(self) -> None:
-        """End path observation and join its delivery thread before releasing custody."""
+        """End path observation and join its delivery thread."""
         self.stop()
         await asyncio.to_thread(self.join)
 
