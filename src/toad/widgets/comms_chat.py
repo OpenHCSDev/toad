@@ -292,6 +292,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         return history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:
+        """Read what changed in the conversation and draw it: the history's source work."""
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         try:
@@ -324,40 +325,59 @@ class CommsChatView(DeliveryFailureView, Conversation):
                     self.on_work_finished()
             # A sent message may now be drawn: composing resumes before the roster is read.
             self._settle_sent()
-            if not changed:
-                if newly_announced:
-                    # The history is as the stores are (it may have read them
-                    # before the observer announced the change), but the
-                    # participants line reads the observer's sidebar.
-                    await self.conversation_kind.update_roster(self, comms)
-                self.call_after_refresh(history.mark_visible)
-                return
-            if undrawn and (placeholder := self.query_one_optional("#history-loading")):
+            if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):
                 placeholder.remove()
-            # The newest messages are drawn before roster and sort metadata,
-            # which can scan a much larger coordination history. Drawing them
-            # moved the history on, so later checks compare against it as it is now.
-            snapshot = history.source_snapshot()
-            await self.conversation_kind.update_roster(self, comms)
-            if not await history.source_is_current(snapshot):
-                if snapshot.current(history):
-                    self.display = False
-                return
-            if (not self.is_attached or source is not history.source
-                    or not self.query_ancestor(SessionView).is_current):
-                return
-            self.call_after_refresh(history.mark_visible)
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         except (OSError, ValueError, RuntimeError) as error:
-            message = f"Wire error: {error}"
-            if message != self.status:
-                self.flash(message, style="error")
-            self.status = message
+            self._show_wire_error(error)
             return
+        # The participants line and the status line read the observer's sidebar
+        # and the agent records, which can take seconds on a busy bus. They are
+        # not this conversation's messages, so they run after this work ends
+        # and the history can load pages while they wait.
+        self.run_worker(partial(self._refresh_labels, comms, changed, newly_announced, read_only),
+                        group=self.LABELS_GROUP)
 
-        target = self.target
-        info = await self.conversation_kind.agent_info(comms, target)
+    LABELS_GROUP = "chat-labels"
+
+    def _show_wire_error(self, error: Exception) -> None:
+        message = f"Wire error: {error}"
+        if message != self.status:
+            self.flash(message, style="error")
+        self.status = message
+
+    async def _refresh_labels(self, comms, changed: bool, newly_announced: bool, read_only: bool) -> None:
+        """Show who is in the conversation and its status line, for the history as it is drawn now."""
+        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
+
+        history = self.message_history
+        snapshot = history.source_snapshot()
+        source, target = history.source, self.target
+        try:
+            # An unchanged history may have read the stores before the observer
+            # announced the change; the participants line reads the observer's sidebar.
+            if changed or newly_announced:
+                await self.conversation_kind.update_roster(self, comms)
+            if changed:
+                if not await history.source_is_current(snapshot):
+                    if snapshot.current(history):
+                        self.display = False
+                    return
+                if (not self.is_attached or source is not history.source
+                        or not self.query_ancestor(SessionView).is_current):
+                    return
+            self.call_after_refresh(history.mark_visible)
+            if not changed:
+                return
+            info = await self.conversation_kind.agent_info(comms, target)
+        except (CoordinationReadUnavailable, StaleRevision):
+            # The coordination store is busy or moved on: the observer's next
+            # announcement refreshes this view and reads the labels again.
+            return
+        except (OSError, ValueError, RuntimeError) as error:
+            self._show_wire_error(error)
+            return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
         if self._unknown_send is not None:

@@ -103,11 +103,12 @@ tests = [
 ]
 
 [reader-row-frame-during-page-load]
-defect = "While an earlier page of a thread's history is added above the reader, one painted frame sometimes shows the reader's row 50 rows lower before it returns (three of eight runs), then the row returns."
+defect = "While an earlier page of a thread's or a channel's history is added above the reader, one painted frame sometimes shows the reader's row lower by the rows added before it returns (thread: three of eight runs; channel: one of twelve, seen with the whole file running)."
 owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"
 intermittent = true
 tests = [
     "tests/textual/test_history_scroll_frames.py::test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_input_during_the_read",
+    "tests/textual/test_history_scroll_frames.py::test_channel_paging_keeps_the_reader_row_on_every_frame",
 ]
 
 [select-mounted-before-its-label]

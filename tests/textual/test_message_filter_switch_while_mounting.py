@@ -109,11 +109,14 @@ async def test_filter_change_during_mount_retires_the_old_projection(workspace, 
                 await pager.remove()
 
 
-async def test_filtered_history_arrives_in_small_batches_off_the_loop(workspace):
+MATCHES = 150
+
+
+async def test_filtered_history_arrives_in_batches_no_larger_than_the_rows_kept_ahead_off_the_loop(workspace):
     async with workspace.app(size=(120, 40)) as ui:
         view = ui.conversation
         view.visible_categories = all_categories()
-        events = tuple(event for index in range(20) for event in (
+        events = tuple(event for index in range(MATCHES) for event in (
             incoming(f"INBOUND_{index}"), ThinkingTranscript(f"THINKING_{index}"),
         )) + tuple(AssistantTranscript(f"tail {index}") for index in range(4))
         page = TranscriptPage(events, TranscriptCursor("batch-fixture", 0),
@@ -131,14 +134,19 @@ async def test_filtered_history_arrives_in_small_batches_off_the_loop(workspace)
             await view.contents.mount(pager)
             await ui.step()
             view.visible_categories = frozenset((InboundCategory,))
-            previous = 0
+            previous, batches = 0, 0
             while pager.filter.has_older:
                 await pager.filter.scan_older()
-                count = len(pager.filter.overlay.fragments_in_range)
-                assert 0 < count - previous <= 4, "Source-sized widget admission"
-                previous = count
+                overlay = pager.filter.overlay
+                count = len(overlay.fragments_in_range)
+                # One batch draws at most the fragments that fill the screen and the rows kept ahead of the reader.
+                limit = overlay.window.lookahead.fragments_for(
+                    overlay.prefetch_distance + overlay.window.outer_size.height)
+                assert 0 < count - previous <= limit < MATCHES, "one batch drew the whole source"
+                previous, batches = count, batches + 1
                 await ui.step()
-            assert texts(pager.filter.overlay) == [f"INBOUND_{i}" for i in range(20)]
+            assert batches > 1
+            assert texts(pager.filter.overlay) == [f"INBOUND_{i}" for i in range(MATCHES)]
             assert pager.pages[0].page is page, "Filtering replaced canonical source data"
             assert threads and all(thread != threading.get_ident() for thread in threads)
             assert not pager.filter.overlay.has_older

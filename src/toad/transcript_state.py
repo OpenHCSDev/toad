@@ -37,6 +37,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def request_latest(self, owner, request: "LatestViewportRequest") -> None:
         """Inactive source cases cannot admit a destination request."""
 
+    def check_edges(self, owner) -> None:
+        """A source that takes no work draws nothing beyond its edges."""
+
     def retirement_source(self) -> "TranscriptState":
         return self
 
@@ -99,6 +102,9 @@ class LiveTranscript(TranscriptState):
 
     def request_latest(self, owner, request: "LatestViewportRequest") -> None:
         owner.schedule_source_work(partial(owner._jump_latest, request))
+
+    def check_edges(self, owner) -> None:
+        owner._check_edges()
 
     @classmethod
     def successors(cls):
@@ -169,6 +175,8 @@ class WorkingTranscript(SuspendedTranscript):
         # The inherited source snapshot stays immutable. Only this operation's
         # bounded pending resource changes, never a second history-level flag.
         self.pending_request: ViewportRequest = IdleViewportRequest()
+        # The screen asked for rows beyond an edge while this work held the source.
+        self.edges_wait = False
 
     def blocks_visible_read(self, owner) -> bool:
         """An admitted source operation must settle before its cursor is read."""
@@ -182,12 +190,18 @@ class WorkingTranscript(SuspendedTranscript):
         because the source rows and edges stayed unchanged.
         """
         return (
-            self.window_before != owner.paging_window()
+            self.edges_wait
+            or self.window_before != owner.paging_window()
             or self.reader_revision != owner.window.scroll_revision
         )
 
     def request_latest(self, owner, request: LatestViewportRequest) -> None:
         self.pending_request = request
+
+    def check_edges(self, owner) -> None:
+        # One work at a time holds the source. The check is made again when
+        # this work ends, even if it changed nothing itself.
+        self.edges_wait = True
 
     def retirement_source(self) -> TranscriptState:
         # Cancellation ends this operation; a parked pager resumes its source,

@@ -86,6 +86,10 @@ async def refresh_chat(view) -> None:
         # Another read is in flight: read once it ends.
         await asyncio.sleep(0.01)
     await worker.wait()
+    # The participants and status lines are read after the history's own read.
+    for labels in tuple(view.workers):
+        if labels.node is view and labels.group == view.LABELS_GROUP:
+            await labels.wait()
 
 
 def text_rows_of(chat, message) -> range | None:

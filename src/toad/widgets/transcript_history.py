@@ -782,19 +782,10 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         if (not self.checkpoint_available
                 or not self.screen.is_active or not self.selected_categories):
             return
-        # Off-screen pagers must not ask for their region: after a scroll that
-        # falls back to rebuilding geometry for the *whole* mounted transcript.
-        # The layout signal also calls us once this pager enters the viewport.
-        geometry = self.screen._compositor.visible_widgets.get(self)
-        if geometry is None:
+        runway = self._runway()
+        if runway is None:
             return
-        region, _clip = geometry
-        window = self.screen._compositor.visible_widgets.get(self.window)
-        if window is None:
-            return
-        viewport = window[0]
-        if not region.overlaps(viewport):
-            return
+        above, below = runway
         # Original published geometry admits source work, even while a body is
         # preparing. Its worker owns read/prepare/native mutation; the existing
         # viewport frame owner alone decides when those bodies may be painted.
@@ -804,13 +795,31 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         if self.filter.active:
             self.filter.check_edges()
             return
-        if (self.has_older and region.y >= viewport.y - self.prefetch_distance
+        if (self.has_older and above <= self.prefetch_distance
                and not (self._follow_source_tail and (
                     self.fragment_count >= self.fragment_limit or len(self.pages) >= self.fragment_limit
               ))):
             self._request_page(True)
-        elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
+        elif self.has_newer and below <= self.prefetch_distance:
             self._request_page(False)
+
+    def _runway(self) -> tuple[int, int] | None:
+        """Drawn rows above and below the window's viewport; None while this history is off screen."""
+        # Off-screen pagers must not ask for their region: after a scroll that
+        # falls back to rebuilding geometry for the *whole* mounted transcript.
+        # The layout signal also calls us once this pager enters the viewport.
+        visible = self.screen._compositor.visible_widgets
+        geometry, window = visible.get(self), visible.get(self.window)
+        if geometry is None or window is None or not geometry[0].overlaps(window[0]):
+            return None
+        region, viewport = geometry[0], window[0]
+        return viewport.y - region.y, region.bottom - viewport.bottom
+
+    def _edge_batch(self, older: bool) -> int:
+        """How many fragments one load draws beyond an edge: those that fill the rows missing ahead of the reader."""
+        runway = self._runway()
+        missing = 0 if runway is None else self.prefetch_distance - runway[0 if older else 1]
+        return self.window.lookahead.fragments_for(missing)
 
     @on(JumpToLatest.Requested)
     def on_jump(self, event: JumpToLatest.Requested) -> None:
@@ -895,8 +904,11 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                         after=edge.page.after if not older else None,
                     ))
                 page, fragments = prepared.page, prepared.fragments
+            # One load fills the rows missing ahead of the reader, however
+            # few rows each fragment draws.
+            edge.batch_size = self._edge_batch(older)
             selected = (edge.prepared.extension_slice(older) if local
-                        else PreparedTranscriptPage.initial_slice(fragments, self.budget.batch_items, older))
+                        else PreparedTranscriptPage.initial_slice(fragments, edge.batch_size, older))
             await self.prepare_fragments(
                 (edge.fragments if local else fragments)[selected], lambda: snapshot.current(self),
             )
@@ -947,7 +959,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                 assert fragments is not None
                 page_range = edge.capture_range()
                 async with self.page_view.acquire(
-                    self, page, newest=older, fragments=fragments, batch_size=self.budget.batch_items,
+                    self, page, newest=older, fragments=fragments, batch_size=edge.batch_size,
                     prepared=prepared,
                     before=edge if older else self.newer,
                     current=lambda: snapshot.current(self) and edge.capture_range() == page_range,

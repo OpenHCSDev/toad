@@ -246,13 +246,16 @@ class DirectionalPreparation:
         return max(self.budget.runway_rows(viewport_rows),
                    ceil(abs(self.travel_rows)), ceil(abs(destination)))
 
-    def preparation_count(self, viewport_rows: int) -> int:
-        # Pure preparation can run beyond the smaller native widget working
-        # set. Its retained entries/bytes and concurrent work stay runtime-owned.
+    def fragments_for(self, rows: float) -> int:
+        """How many fragments fill `rows`, at the extent the drawn ones have."""
+        # Rows and source fragments are different units: a fragment is one
+        # row or a whole long answer. The preparation runtime bounds the count.
         return min(self.window.app.preparation.max_entries, max(
-            self.budget.batch_items,
-            ceil(self.ahead_rows(viewport_rows) / self.window.rows_per_fragment),
+            self.budget.batch_items, ceil(rows / self.window.rows_per_fragment),
         ))
+
+    def preparation_count(self, viewport_rows: int) -> int:
+        return self.fragments_for(self.ahead_rows(viewport_rows))
 
     def destination_batch(self, budget: PresentationBudget, viewport_rows: int) -> int:
         # Rows and source fragments are different units. Use the original

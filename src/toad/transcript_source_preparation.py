@@ -111,7 +111,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
             self.prepare_scroll()
-            self._check_edges()
+            self.state.check_edges(self)
 
     def _check_edges(self) -> None:
         """The source declaration admits pages from its committed native box."""
