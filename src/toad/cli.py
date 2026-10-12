@@ -129,37 +129,7 @@ def main(ctx, version):
 @main.command("run")
 @click.argument("project_dir", metavar="PATH", required=False, default=".")
 @click.option("-a", "--agent", metavar="AGENT", default="")
-@click.option(
-    "-p",
-    "--port",
-    metavar="PORT",
-    default=8000,
-    type=int,
-    help="Port to use in conjunction with --serve",
-)
-@click.option(
-    "-H",
-    "--host",
-    metavar="HOST",
-    default="localhost",
-    type=str,
-    help="Host to use in conjunction with --serve",
-)
-@click.option(
-    "--public-url",
-    metavar="URL",
-    default=None,
-    help="Public URL to use in conjunction with --serve",
-)
-@click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
-def run(
-    port: int,
-    host: str,
-    serve: bool,
-    project_dir: str = ".",
-    agent: str = "1",
-    public_url: str | None = None,
-):
+def run(project_dir: str = ".", agent: str = "1"):
     """Run an installed agent (same as `toad PATH`)."""
 
     check_directory(project_dir)
@@ -171,39 +141,14 @@ def run(
     else:
         agent_data = None
 
-    if serve:
-        import shlex
+    from toad.app import ToadApp
 
-        from toad.application_lifetime import ApplicationLifetime
-        from toad.web_server import ToadWebServer
-
-        command_args = list(sys.argv)
-        # Remove serve flag from args (could be either --serve or -s)
-        for flag in ["--serve", "-s"]:
-            try:
-                command_args.remove(flag)
-                break
-            except ValueError:
-                pass
-        serve_command = shlex.join(command_args)
-        server = ToadWebServer(
-            serve_command,
-            host=host,
-            port=port,
-            title=serve_command,
-            public_url=public_url,
-        )
-        ApplicationLifetime.set_process_title("toad --serve")
-        server.serve()
-    else:
-        from toad.app import ToadApp
-
-        app = ToadApp(
-            mode=None if agent_data else "store",
-            agent_data=agent_data,
-            project_dir=project_dir,
-        )
-        run_terminal(app)
+    app = ToadApp(
+        mode=None if agent_data else "store",
+        agent_data=agent_data,
+        project_dir=project_dir,
+    )
+    run_terminal(app)
 
 
 @main.command("acp", cls=AcpCommand)
@@ -223,29 +168,10 @@ def run(
     default=None,
 )
 @click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
-@click.option(
-    "-p",
-    "--port",
-    metavar="PORT",
-    default=8000,
-    type=int,
-    help="Port to use in conjunction with --serve",
-)
-@click.option(
-    "-H",
-    "--host",
-    metavar="HOST",
-    default="localhost",
-    help="Host to use in conjunction with --serve",
-)
-@click.option("-s", "--serve", is_flag=True, help="Serve Toad as a web application")
 def acp(
     command: str,
-    host: str,
-    port: int,
     title: str | None,
     project_dir: str | None,
-    serve: bool = False,
     session_id: str | None = None,
 ) -> None:
     """Run an ACP agent from a command."""
@@ -274,35 +200,12 @@ def acp(
         "run_command": {"*": command},
         "actions": {},
     })
-    if serve:
-        import shlex
+    from toad.app import ToadApp
 
-        from toad.application_lifetime import ApplicationLifetime
-        from toad.web_server import ToadWebServer
-
-        command_components = [sys.argv[0], "acp", command]
-        if session_id:
-            command_components.extend(["--session", session_id])
-        if project_dir:
-            command_components.append(f"--project-dir={project_dir}")
-        serve_command = shlex.join(command_components)
-
-        server = ToadWebServer(
-            serve_command,
-            host=host,
-            port=port,
-            title=serve_command,
-        )
-        ApplicationLifetime.set_process_title("toad acp --serve")
-        server.serve()
-
-    else:
-        from toad.app import ToadApp
-
-        app = ToadApp(
-            agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
-        )
-        run_terminal(app)
+    app = ToadApp(
+        agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
+    )
+    run_terminal(app)
 
     print("")
     print("[bold magenta]Thanks for trying out Toad!")
@@ -343,23 +246,32 @@ def replay(path: str) -> None:
             stdout.flush()
 
 
-@main.command("serve")
-@click.option("-p", "--port", metavar="PORT", default=8000, type=int)
-@click.option("-H", "--host", metavar="HOST", default="localhost")
-@click.option(
-    "--public-url",
-    metavar="URL",
-    default=None,
-    help="Public URL for textual_serve Server (e.g. https://example.com)",
+@main.command(
+    "serve",
+    context_settings={"allow_interspersed_args": False},
 )
-def serve(port: int, host: str, public_url: str | None = None) -> None:
-    """Serve Toad as a web application."""
+@click.option("-p", "--port", metavar="PORT", default=8000, type=int)
+@click.option(
+    "-H",
+    "--host",
+    metavar="HOST",
+    default="127.0.0.1",
+    help="Loopback address to listen on (127.0.0.1 or localhost).",
+)
+@click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
+def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
+    """Serve a Toad command line in a web browser.
+
+    Each browser tab runs `toad TOAD ARGS` as its own process, for example
+    `toad serve acp agent-comms-acp`.
+    """
+    import shlex
+
     from toad.application_lifetime import ApplicationLifetime
     from toad.web_server import ToadWebServer
 
-    server = ToadWebServer(
-        sys.argv[0], host=host, port=port, title="Toad", public_url=public_url
-    )
+    command = shlex.join([sys.executable, "-m", "toad", *toad_args])
+    server = ToadWebServer(command, host=host, port=port, title="Toad")
     ApplicationLifetime.set_process_title("toad serve")
     server.serve()
 
