@@ -38,16 +38,16 @@ class TranscriptPageWidth(unittest.TestCase):
         view = page_view(60)
         for width in (100, 63, 100):
             height = view.get_content_height(None, None, width)
-            lines = [lines for _index, _first, lines in view._layout]
+            lines = [lines for _fragment, _first, lines in view._layout]
             self.assertEqual(len(lines), len(view.fragments_in_range))
             self.assertEqual(height, sum(item.height for item in lines))
             self.assertTrue(all(item.width == width for item in lines))
             self.assertFalse(any("strips" in vars(item) or "rows" in vars(item) for item in lines),
                              "layout builds no rows or strips")
             # Drawing one row builds that fragment's strips only, at the laid-out width.
-            index, first, drawn = view._layout[len(lines) // 2]
+            fragment, first, drawn = view._layout[len(lines) // 2]
             row = view.render_line(first)
-            self.assertEqual(row, drawn.strips_at(view.fragments[index].link_place)[0])
+            self.assertEqual(row, drawn.strips_at(fragment.link_place)[0])
             self.assertEqual(row.cell_length, width)
             self.assertEqual([item for item in lines if "strips" in vars(item)], [drawn])
             # Every row of the page draws at exactly the width, and each
@@ -75,7 +75,7 @@ class TranscriptPageWidth(unittest.TestCase):
         shown = [fragment for fragment in view.fragments_in_range
                  if any(event_category(event) != user for event in fragment.events)]
         view.get_content_height(None, None, 80)
-        self.assertEqual([view.fragments[index] for index, _first, _lines in view._layout], shown)
+        self.assertEqual([fragment for fragment, _first, _lines in view._layout], shown)
         self.assertLess(len(shown), len(view.fragments_in_range))
 
     def test_plain_height_counts_the_rows_plain_mode_draws(self):

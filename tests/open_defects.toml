@@ -26,13 +26,6 @@ tests = [
     "tests/app/test_channel_tab_sharing.py::test_closing_one_session_keeps_the_channel_tab_another_session_opened",
 ]
 
-[filter-selection-before-layout]
-defect = "Choosing a message category while the filtered history has not been laid out yet finds nothing until the user scrolls: filter.changed() checks the edges once, before the pager has geometry, and nothing checks again after layout (the comment in widgets/transcript_history.py says a layout signal does; no such subscription exists)."
-owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"
-tests = [
-    "tests/textual/test_message_filter_switch_while_mounting.py::test_empty_filter_reads_no_history_and_a_later_selection_finds_the_match",
-]
-
 [key-burst-order]
 defect = "Typing while the history has focus: the first printable key moves focus to the editor, but a non-printable key that arrives before the focus change lands is handled by the history window instead. 'x', Left, 'y' sent in one burst gives 'xy', not 'yx' (Conversation.on_key forwards only printable keys)."
 owner = "unassigned: Toad input handling (widgets/conversation.py is being edited by the frame-time agent)"
@@ -54,28 +47,12 @@ tests = [
     "tests/textual/test_history_admission_budget.py::test_admitting_earlier_pages_repeatedly_keeps_admission_bounded_and_the_source_untruncated",
 ]
 
-[filter-reapplied-finds-nothing]
-defect = "Clearing a message filter and applying it again sometimes leaves the filtered history empty: the filter stays in its seeking state, nothing scans, and the history has no lines. Same cause as filter-selection-before-layout (the edge check runs once, while the history has no height)."
-owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"
-intermittent = true
-tests = [
-    "tests/textual/test_filtered_history_underfill.py::test_clearing_the_filter_restores_the_transcript_and_setting_it_again_finds_the_routed_message",
-]
-
 [model-picker-highlight]
 defect = "In the model picker the highlighted row is drawn with the same background as its neighbour, and moving the pointer over another row does not move the highlight."
 owner = "theming owner (the ui-theme colours work), widgets/model_switcher.py"
 tests = [
     "tests/textual/test_model_picker.py::test_hover_and_arrow_keys_move_the_highlight_without_taking_focus_from_search",
     "tests/textual/test_model_picker.py::test_opening_the_picker_focuses_search_and_lists_recent_models_first",
-]
-
-[reader-row-after-trim]
-defect = "After the history trims rows above the reader, the reader's marker is occasionally one row lower than before (26 instead of 25; about one run in nine)."
-owner = "frame-time / line-view owner (perf/line-history)"
-intermittent = true
-tests = [
-    "tests/textual/test_reflow_is_not_reader_travel.py::test_trim_and_resize_reflow_are_not_travel_samples_but_a_key_is",
 ]
 
 [tool-diff-after-modal]
@@ -117,4 +94,27 @@ owner = "Textual fork owner (OpenHCSDev/textual, widgets/_select.py); reached fr
 intermittent = true
 tests = [
     "tests/native/test_native_client_requests.py::test_client_requests_follow_the_session_they_belong_to",
+]
+
+[reader-place-after-filtered-matches]
+defect = "A reader scrolled up into the earlier matches of a message filter is sent to the latest message when the filter is cleared or changed. The earlier matches are drawn by the filter's own history (transcript_filter.py); when the filter changes, that history is removed and the thread's history has not loaded the message the reader was on, so the window has nothing to put the reader back on. The reader position names the message object; it needs the message's place in the saved history (page cursor and index) and the thread history loading back to it, as a returning tab already does with its page ranges."
+owner = "frame-time / line-view owner (perf/line-history), transcript_filter.py and widgets/history_anchor.py"
+tests = [
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[mid-page-clear-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[mid-page-change-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[page-boundary-clear-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[page-boundary-change-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[on-hidden-row-clear-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[on-hidden-row-change-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[with-selection-clear-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[with-selection-change-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[held-pageup-clear-filter]",
+    "tests/textual/test_reader_position.py::test_the_reader_keeps_its_place[held-pageup-change-filter]",
+]
+
+[reader-row-while-lines-restyle]
+defect = "Lines are drawn plain until their styled rows are ready, and a message's plain rows wrap to a different number of rows than its styled ones (a heading takes 4 rows plain and 3 styled; a list 121 and 122). The reader's place inside a message is a row counted from the message's first row, so while the message they are in is drawn plain (a theme change, a first draw) their line is one or more rows off, and returns when the styled rows arrive. This was the cause of the retired reader-row-after-trim entry (marker one row lower). The lines of a fragment do not say which source line a row draws, so no owner can map a plain row to its styled row."
+owner = "line renderer owner (perf/line-history), widgets/transcript_lines.py"
+tests = [
+    "tests/textual/test_history_scroll_frames.py::test_restyled_lines_keep_the_line_the_reader_is_on_in_every_frame",
 ]

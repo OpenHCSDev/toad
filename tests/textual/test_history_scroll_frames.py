@@ -5,6 +5,7 @@ fragment's row (history is line-drawn) rather than the first message widget.
 """
 
 import asyncio
+import re
 import threading
 from unittest.mock import patch
 
@@ -14,7 +15,6 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from support.textual_steps import refresh_chat
 from toad.transcript_preparation import PreparedTranscriptPage
 from toad.widgets.comms_chat import CommsChatView
-from toad.widgets.history_anchor import HistoryAnchor
 from toad.widgets.transcript_history import LineHistory, TranscriptHistory
 from toad.wire_history import WireSource
 
@@ -47,6 +47,7 @@ async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_i
         await ui.until(lambda: history.is_mounted, why="the history mounted")
         window = conversation.window
         for cycle in range(3):
+            await ui.until(lambda: history.state.accepts_source_work, why="the history's own reading to finish")
             positioning = history.reserve_source_work()
             window.scroll_to(y=1, animate=False, immediate=True)
             await ui.step()
@@ -54,9 +55,9 @@ async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_i
             fragment = view.fragments_in_range[0]
 
             def marker_row():
-                offset = HistoryAnchor._placed_offset(view, window)
-                line = view.fragment_line(fragment)
-                return None if offset is None or line is None else offset + line - window.scroll_y
+                offset = window.placed_row(view)
+                place = view.fragment_row(fragment)
+                return None if offset is None or place is None else offset + place[0] - window.scroll_y
 
             expected = marker_row()
             frames, stop = record_frames(app, marker_row)
@@ -85,6 +86,40 @@ async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_i
             stop()
             assert frames and set(frames) == {expected}, (expected, frames)
             assert not window.follows_tail
+
+
+async def test_restyled_lines_keep_the_line_the_reader_is_on_in_every_frame(workspace):
+    """A theme change draws every line plain first and styled when ready; the reader's line stays on its row."""
+    cursor = TranscriptCursor("fixture", 1)
+    text = "## Saved heading\n\n" + "\n".join(f"- saved row {row}" for row in range(120))
+    page = TranscriptPage((AssistantTranscript(text),), cursor, cursor, False, False)
+    async with workspace.app(size=(110, 38)) as ui:
+        app, _pilot = ui.textual
+        history = await ui.conversation.post(TranscriptHistory(page))
+        window = ui.conversation.window
+
+        def drawn_styled():
+            return history.is_mounted and window.reader_position is None and all(
+                view.line_width and fragment.lines_for(view.line_width, app.colours.line_theme) is not None
+                for view in history.pages for fragment in view.fragments_in_range)
+
+        def top_line():
+            region = window.region
+            written = (re.search(r"saved row \d+", line) for line in ui.visible_lines()[region.y:region.bottom])
+            return next((match.group(0) for match in written if match is not None), None)
+
+        await ui.until(drawn_styled, why="the history drawn styled")
+        window.scroll_to(y=40, animate=False, immediate=True)
+        await ui.step()
+        expected = top_line()
+        assert expected is not None and not window.follows_tail
+        frames, stop = record_frames(app, top_line)
+        app.theme = "ansi-light" if app.theme != "ansi-light" else "ansi-dark"
+        await ui.step()
+        await ui.until(drawn_styled, why="the new theme's lines drawn")
+        await ui.step()
+        stop()
+        assert frames and set(frames) == {expected}, (expected, frames)
 
 
 async def long_channel(workspace, ui):
@@ -117,9 +152,9 @@ async def test_channel_paging_keeps_the_reader_row_on_every_frame(workspace):
             oldest = fragment.message.seq
 
             def marker_row():
-                offset = HistoryAnchor._placed_offset(view, window)
-                line = view.fragment_line(fragment)
-                return None if offset is None or line is None else offset + line - window.scroll_y
+                offset = window.placed_row(view)
+                place = view.fragment_row(fragment)
+                return None if offset is None or place is None else offset + place[0] - window.scroll_y
 
             expected = marker_row()
             frames, stop = record_frames(app, marker_row)

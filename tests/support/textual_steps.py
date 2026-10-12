@@ -93,14 +93,18 @@ async def refresh_chat(view) -> None:
 
 
 def text_rows_of(chat, message) -> range | None:
-    """The rows of the chat window's scrolled content that draw a message's own text, if it is laid out."""
-    from toad.widgets.history_anchor import HistoryAnchor
+    """The rows of the chat window's scrolled content that draw a message's own text, if it is laid out.
 
+    None while a change to the history is still being laid out: its pages already hold the new rows, and
+    the window is not on them until that layout ends.
+    """
+    window = chat.window
+    if window.reader_position is not None or window.screen._stepped_layout is not None:
+        return None
     for page in chat.message_history.pages:
-        for index, first, lines in page._layout:
-            fragment = page.fragments[index]
+        for fragment, first, lines in page._layout:
             if fragment.message.view_key == message.view_key:
-                offset = HistoryAnchor._placed_offset(page, chat.window)
+                offset = chat.window.placed_row(page)
                 if offset is None:
                     return None
                 rows = fragment.text_rows(lines)

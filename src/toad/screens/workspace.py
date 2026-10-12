@@ -1,7 +1,6 @@
 """The one native workspace frame; session surfaces never own compositors."""
 
 import asyncio
-from contextlib import ExitStack
 from dataclasses import dataclass, replace
 from functools import cached_property
 from typing import TYPE_CHECKING
@@ -180,44 +179,44 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return self.is_current
 
     def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
-        from toad.widgets.history_anchor import WindowPosition
-
-        # Keep the last committed geometry: reading virtual_region here can
-        # itself rebuild Textual's invalidated map with the new child positions.
-        # Only the reader's current scroll/follow intent is refreshed pre-layout.
-        tracked = tuple((window, restoration, restoration.layout_requests)
-                        for window in self.history_windows
-                        if (restoration := window.history_restoration) is not None)
-        anchors = [
-            (window, restoration, position)
-            for window, restoration, _answered in tracked
-            if (position := restoration.prepare_layout(window)) is not None
-        ]
-        with ExitStack() as compensation:
-            # Only an actual anchor transaction compensates source placement.
-            # Native resize/clamping is owned by HistoryWindow._size_updated.
-            for window, _restoration, _position in anchors:
-                compensation.enter_context(WindowPosition.geometry(window))
-            if not anchors:
-                yield from super()._layout_steps(size, scroll, deadline)
-                for _window, restoration, answered in tracked:
-                    restoration.finish_layout(answered)
-                return
-            # Screen normally paints from inside _refresh_layout. Do not expose
-            # prepend/eviction coordinates before compensating for their height.
-            # The compensation holds the window's placement within one turn, so
-            # this layout does not pause.
+        changes = tuple((change, change.layout_requests) for window in self.history_windows
+                        if (change := window.history_change) is not None)
+        # Each window that keeps a reader position is put back on it by this
+        # layout. Only the kept position is read before layout: reading
+        # virtual_region here can itself rebuild Textual's invalidated map.
+        kept = tuple(window for window in self.history_windows if window.reader_for_layout() is not None)
+        if not kept:
+            # Resize and clamping alone are handled by HistoryWindow._size_updated.
+            yield from super()._layout_steps(size, scroll, deadline)
+        else:
+            # Screen normally paints from inside _refresh_layout. Do not show
+            # rows added or removed above the reader before the window has
+            # scrolled by their height.
             with self.app.batch_update():
-                yield from super()._layout_steps(size, scroll)
-                changed = False
-                for window, restoration, position in anchors:
-                    changed |= restoration.restore_layout(window, position)
-                if changed:
+                yield from super()._layout_steps(size, scroll, deadline)
+                if any([window.place_reader() for window in kept]):
                     yield from super()._layout_steps(size, scroll=True)
-                for _window, restoration, answered in tracked:
-                    restoration.finish_layout(answered)
+        for change, answered in changes:
+            change.finish_layout(answered)
+
+    def reader_kept(self) -> None:
+        """A history window just kept its reader, for a change about to be made.
+
+        A layout paused between its steps started without that position: it
+        would arrange the change and show it before the reader is put back.
+        The next layout replaces it and takes the requests it had not finished.
+        """
+        steps = self._stepped_layout
+        if steps is not None and not steps.gi_running:
+            self._stop_stepped_layout()
+            self._layout_required = True
+            self.check_idle()
 
     def _screen_resized(self, size: Size) -> None:
+        if size != self._size:
+            # Rows above the reader wrap differently at the new width.
+            for window in self.history_windows:
+                window.keep_reader()
         if self._navigation_layout.reusable(self, size, include_scroll=False):
             # A resumed mounted tab has already been measured at this width.
             # Textual's full reflow walks all descendants even when only the

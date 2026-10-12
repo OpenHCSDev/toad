@@ -155,10 +155,8 @@ class LatestViewportRequest(ViewportRequest):
         return window.scroll_revision == self.revision
 
     def restore(self, window) -> None:
-        from toad.widgets.history_anchor import TailReaderPosition
-
         if self.current(window):
-            TailReaderPosition().restore(window)
+            window.follow_latest()
 
     def apply(self, owner) -> None:
         if self.current(owner.window):

@@ -14,7 +14,6 @@ from textual.await_complete import AwaitComplete
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
-    from toad.widgets.history_anchor import ReaderPosition
     from toad.widgets.transcript_history import TranscriptHistory
     from toad.transcript_preparation import PreparedPageSource
 
@@ -149,7 +148,6 @@ class SnapshotPublication(TranscriptPublication):
     def __init__(self, owner, view, window, contents, page: TranscriptPage):
         super().__init__(owner, view, window, contents)
         self.page = page
-        self.scroll_revision = window.scroll_revision
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
@@ -195,7 +193,7 @@ class SnapshotPublication(TranscriptPublication):
         view = self.owner.view
         history = TranscriptHistory(self.page, self.agent.get_transcript_page,
                                     fragments=fragments, committed=False)
-        self.owner.prepare_reader(history)
+        self.window.prepare_history(history)
         await history.prepare_body(partial(self.source_current, self.page.after),
                                    selected=view.visible_categories)
         async with AsyncExitStack() as retirement:
@@ -208,7 +206,7 @@ class SnapshotPublication(TranscriptPublication):
                 if not self.source_current(self.page.after):
                     self.owner.require_checkpoint()
                     return
-                async with self.window.preserve_history(None, root=self.contents):
+                async with self.window.preserve_history(root=self.contents):
                     accepted = False
                     try:
                         await self.contents.mount(history)
@@ -238,7 +236,7 @@ class SnapshotPublication(TranscriptPublication):
                             retirement.push_async_callback(
                                 self.owner.retire_presentations(self.contents, view.output, [history])
                             )
-        self.owner.painted(self.page.after, reader_revision=self.scroll_revision)
+        self.owner.painted(self.page.after)
 
 
 class HandlingPublication(TranscriptPublication):
@@ -515,7 +513,6 @@ class TranscriptPresentation:
         self.checkpoint_required = False
         self.displayed_cursor: TranscriptCursor | None = None
         self.worker: Worker[None] | None = None
-        self.reader_position: ReaderPosition | None = None
         self.source_requests = SourcePublicationRequests(self)
 
     @property
@@ -555,7 +552,7 @@ class TranscriptPresentation:
             if not current() or source.closed:
                 return
             history = TranscriptHistory.from_source(source)
-            self.prepare_reader(history)
+            window.prepare_history(history)
             await history.prepare_body(current, selected=view.visible_categories)
             if not current():
                 return
@@ -608,12 +605,6 @@ class TranscriptPresentation:
     def invalidate(self) -> None:
         self.generation += 1
 
-    def prepare_reader(self, history: TranscriptHistory) -> None:
-        """Apply this source's owned reader intent before mounting its history."""
-        position = self.reader_position
-        if position is not None:
-            position.prepare_history(history)
-
     async def restore_native(self, agent) -> None:
         """The live calling actor owns retained reveal and source validation."""
         from toad.screens.session_view import SessionView
@@ -625,14 +616,14 @@ class TranscriptPresentation:
         history = next(iter(self.histories), None)
         source = view.query_ancestor(SessionView)
         generation, window, contents = self.generation, view.window, view.contents
-        position, revision, screen = self.reader_position, view.window.scroll_revision, view.screen
+        # The place the reader left with the tab; reaching it is not the reader moving.
+        position, revision, screen = window.reader_position, window.scroll_revision, view.screen
 
         def current():
             return (self.view is view and view.is_attached and not view._closing and not self.closed
                     and self.generation == generation
                     and view.window is window and view.contents is contents
                     and window.is_attached and contents.is_attached
-                    and self.reader_position is position
                     and window.scroll_revision == revision
                     and view.screen is screen and screen.is_current
                     and view.query_ancestor(SessionView) is source
@@ -666,7 +657,7 @@ class TranscriptPresentation:
         view = self.view
         if view is None or not view.is_attached:
             return
-        self.painted(history.committed_cursor, reader_revision=view.window.scroll_revision)
+        self.painted(history.committed_cursor)
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
             await loading.remove()
         view.remove_class("-initial-loading")
@@ -692,7 +683,7 @@ class TranscriptPresentation:
     async def snapshot(self, page: TranscriptPage) -> None:
         await self.publish(SnapshotPublication, page)
 
-    def painted(self, cursor: TranscriptCursor, *, reader_revision: int | None = None) -> None:
+    def painted(self, cursor: TranscriptCursor) -> None:
         from toad.widgets.conversation import Window, Contents
         view = self.view
         if view is None:
@@ -709,19 +700,6 @@ class TranscriptPresentation:
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
                 view.app.history_displayed()
-                if reader_revision is not None:
-                    position = self.reader_position
-                    if position is not None:
-                        if (window.scroll_revision != reader_revision
-                                or not position.current(window)):
-                            self.reader_position = None
-                        elif position.restore(window):
-                            self.reader_position = None
-                        else:
-                            # Native membership may precede its first measured
-                            # frame. Keep the original reader until that source
-                            # has placement; a preview/clamp cannot consume it.
-                            view.call_after_refresh(record)
         view.call_after_refresh(record)
 
     def source_changed(self, view: Conversation) -> None:
@@ -734,7 +712,10 @@ class TranscriptPresentation:
         self._close_documents()
         self.dirty = self.checkpoint_required = False
         self.displayed_cursor = None
-        self.reader_position = None
+        from toad.widgets.conversation import Window
+        if (window := view.query_one_optional(Window)) is not None:
+            # A kept reader position names messages of the source that was replaced.
+            window.reader_position = None
         worker, self.worker = self.worker, None
         if worker is not None:
             worker.cancel()
@@ -788,7 +769,6 @@ class TranscriptPresentation:
                 history._page_buffer.close()
         self._view = lambda: None
         self.displayed_cursor = None
-        self.reader_position = None
 
     def _close_documents(self) -> None:
         for source in self.documents:
@@ -881,6 +861,11 @@ class TranscriptPresentation:
         """
         if not candidates:
             return AwaitComplete.nothing()
+        from toad.widgets.history_anchor import HistoryWindow
+
+        if any(candidate.display for candidate in candidates):
+            # Their rows leave the window now; the reader stays on theirs.
+            contents.query_ancestor(HistoryWindow).keep_reader()
         for candidate in candidates:
             candidate.display = False
         retirement = asyncio.create_task(

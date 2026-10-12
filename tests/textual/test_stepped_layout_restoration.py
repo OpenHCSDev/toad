@@ -1,8 +1,8 @@
 """Textual-facing: a tab switch's layout runs over loop turns in the compositor; history work between its steps stays correct.
 
-- A history restoration that requests a layout while a stepped layout is paused
+- A history change that requests a layout while a stepped layout is paused
   waits for the layout that places its change, not the one already running.
-- Until the step that commits the arrangement, the history window's anchor reads
+- Until the step that commits the arrangement, the history window's row reads
   (_layout_map) are the previous scene's; published geometry (_published_map, hit
   testing) stays the previous scene's until the last step.
 - The stepped layout's scene equals a one-shot layout of the same change.
@@ -11,7 +11,7 @@
 from textual import messages
 from textual._compositor import StepDeadline
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.history_anchor import HistoryAnchor, WindowRestoration
+from toad.widgets.history_anchor import HistoryChange
 
 
 def drive(screen):
@@ -61,17 +61,17 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         await ui.step()
 
         # Stepped, with readers and a restoration request between steps.
-        restoration = WindowRestoration(None)
-        window.history_restoration = restoration
+        restoration = HistoryChange()
+        window.history_change = restoration
         restoration.request_layout(window)
         await widen(ui, screen, 100)
         layout_map, published = compositor._layout_map, compositor._published_map
         region = window.region
         hit = screen.get_widget_and_offset_at(region.x + 2, region.y + 2)
         placed = [child for child in window.walk_children() if child in layout_map]
-        offsets = [HistoryAnchor._placed_offset(child, window) for child in placed]
-        anchor = window.reader_anchor()
-        assert placed and anchor is not None
+        offsets = [window.placed_row(child) for child in placed]
+        block = window.top_block()
+        assert placed and block is not None
         with screen.hold_frames():
             steps = drive(screen)
             restoration.request_layout(window)  # made while the layout is paused
@@ -88,8 +88,8 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
                         published[window].clip)
                     assert screen.get_widget_and_offset_at(region.x + 2, region.y + 2) == hit
                     if committed is None:
-                        assert [HistoryAnchor._placed_offset(child, window) for child in placed] == offsets
-                        assert window.reader_anchor() is anchor
+                        assert [window.placed_row(child) for child in placed] == offsets
+                        assert window.top_block() is block
                     else:
                         assert compositor._layout_map is committed, "the arrangement changed again after its commit"
                     pauses += 1
@@ -101,4 +101,4 @@ async def test_stepped_layout_keeps_previous_scene_and_restoration_waits_for_the
         assert scene(screen) == one_shot
         assert not restoration.layout_ready.is_set(), "released by a layout that started before its request"
         await ui.until(restoration.layout_ready.is_set, why="the next layout to answer the request")
-        window.history_restoration = None
+        window.history_change = None

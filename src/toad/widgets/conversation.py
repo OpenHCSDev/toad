@@ -330,11 +330,7 @@ This is a view of your conversation with the agent.
 
 
 class AgentWindow(Window):
-    """Agent source custody shares the native window, not wire semantics."""
-
-    @property
-    def pending_reader_position(self):
-        return self.query_ancestor(Conversation).transcript.reader_position
+    """The window of an agent conversation: a drawn frame lets its transcript publish again."""
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
@@ -436,7 +432,6 @@ class ConversationSessionBinding(containers.Vertical):
         self.set_reactive(ConversationSessionBinding.working_directory, str(project_path))
         self.output = LiveOutput(self)
         self._loading: Loading | None = None
-        self._filter_reader_positions = {}
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self.submissions = ConversationSubmissions(self)
@@ -509,7 +504,6 @@ class ConversationSessionBinding(containers.Vertical):
         restyled the prompt and re-derived the title of a closing tab.
         """
         await self._release_source_resources()
-        self.window.settle_preparation()
         self.set_reactive(Conversation.agent, None)
         self.take_initial_prompt()
 
@@ -666,37 +660,17 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
         from toad.widgets.message_filter import apply_block_filter
-        from toad.widgets.history_anchor import ReaderPosition
 
+        # The reader stays on the message they are reading; when the new
+        # selection hides it, on the next message still shown.
         window = self.window
-        current = ReaderPosition.capture(window)
-        self._filter_reader_positions[previous] = current
-        position = self._filter_reader_positions.get(selected, current)
+        window.keep_reader()
         self.navigation.clear()
         self.screen.clear_selection()
         for block in self.contents.children:
             apply_block_filter(block, selected)
         for history in tuple(window.histories):
             history.projection_changed()
-        revision = window.scroll_revision
-
-        def restore_position():
-            if (
-                not self.is_attached
-                or self.visible_categories != selected
-                or window.scroll_revision != revision
-                or not position.current(window)
-            ):
-                return
-            if not position.restore(window):
-                self.call_after_refresh(restore_position)
-
-        self.call_after_refresh(restore_position)
-
-
-
-
-
 
     def remember_tool_expansion(self, tool_id: str, expanded: bool) -> None:
         """Retain bounded manual disclosure state across canonical transcript remounts."""
@@ -1445,7 +1419,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             or message.event.session_id != self.agent.session_id
         ):
             return
-        async with self.window.preserve_history(None, root=self.contents):
+        async with self.window.preserve_history(root=self.contents):
             for started in message.event.update.starts:
                 if (
                     message.publisher is not self.agent
@@ -1463,7 +1437,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         ):
             return
         if message.event.update.text is not None:
-            async with self.window.preserve_history(None, root=self.contents):
+            async with self.window.preserve_history(root=self.contents):
                 await self.present_started_input(message.event.update)
                 self.submissions.publish_pending()
 

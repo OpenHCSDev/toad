@@ -40,7 +40,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
             elif cause == "edge":
                 edge = history.pages[0]
                 async with view.window.history_lock:
-                    async with view.window.preserve_history(edge):
+                    async with view.window.preserve_history():
                         edge.prepared.trim(edge, 1, older=True)
                 fragments = history.fragments_in_range
             elif cause == "parked":

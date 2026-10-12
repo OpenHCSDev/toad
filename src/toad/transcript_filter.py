@@ -127,9 +127,7 @@ class SeekingFilter(NoFilter):
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False
-                async with snapshot.window.preserve_history(
-                    None, root=owner, position=owner.reader_position(snapshot.window),
-                ):
+                async with snapshot.window.preserve_history(root=owner):
                     with ExitStack() as acquisition:
                         filtering.state = admitted_state = Filtered(projection)
                         acquisition.callback(admitted_state.remove, filtering)
@@ -287,7 +285,7 @@ class TranscriptFilter:
 
     async def retire(self, retired: FilterState) -> None:
         async with self.owner.window.history_lock:
-            async with self.owner.window.preserve_history(None, root=self.owner):
+            async with self.owner.window.preserve_history(root=self.owner):
                 retired.remove(self)
         if self.owner.is_attached:
             self.owner.request_preparation()

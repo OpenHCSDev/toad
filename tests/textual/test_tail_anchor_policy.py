@@ -1,4 +1,4 @@
-"""Textual-facing: the history window's anchors depend on Textual's compositor geometry and published cells.
+"""Textual-facing: the history window's kept reader position depends on Textual's compositor geometry and published cells.
 
 Tail intent needs no record geometry; reader transitions still keep the painted position.
 """
@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from textual._compositor import ChopsUpdate, LayoutUpdate
 
-from toad.widgets.history_anchor import HistoryAnchor
+from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.note import Note
 
 
@@ -53,23 +53,23 @@ async def test_tail_intent_needs_no_record_geometry_and_reader_intent_keeps_the_
         marker = blocks[20]
         assert marker not in app.screen._compositor.visible_widgets
 
-        # A tail transaction's record can be offscreen; its position is not an input to bottom anchoring.
-        with patch.object(HistoryAnchor, "_offset", side_effect=AssertionError(
+        # A reader following the latest message needs no row of any record to stay there.
+        with patch.object(HistoryWindow, "row_of", side_effect=AssertionError(
                 "Tail intent requested unnecessary record geometry")):
             async with window.history_lock:
-                async with window.preserve_history(marker):
+                async with window.preserve_history():
                     await contents.mount(Note("New tail record\nsecond line"))
                     await ui.step()
             assert window.follows_tail and window.scroll_y == window.max_scroll_y
 
-        # Reader input can change the policy while admission is suspended: the intended
-        # position derives from the anchor's geometry before the held paint.
+        # The reader can leave the latest message during a change: from then on the row they
+        # are on is the one kept.
         async with window.history_lock:
-            async with window.preserve_history(marker):
+            async with window.preserve_history():
                 window.release_anchor()
                 window.scroll_to_widget(marker, animate=False, immediate=True)
                 await ui.step()
-                expected = HistoryAnchor._offset(marker, window) - window.scroll_y
+                expected = window.row_of(marker) - window.scroll_y
                 frames, stop = watch_marker_rows(app, window, marker)
                 await contents.mount(Note("Prepended one\nPrepended two"), before=0)
                 await ui.step()
@@ -80,11 +80,11 @@ async def test_tail_intent_needs_no_record_geometry_and_reader_intent_keeps_the_
 
         # Returning to the tail likewise retires the record dependency.
         async with window.history_lock:
-            async with window.preserve_history(marker):
+            async with window.preserve_history():
                 window.anchor()
-                with patch.object(HistoryAnchor, "_offset", side_effect=AssertionError(
+                with patch.object(HistoryWindow, "row_of", side_effect=AssertionError(
                         "Reader-to-tail transition retained a record geometry dependency")):
                     await contents.mount(Note("Latest tail record\nsecond line"))
                     await ui.step()
         assert window.follows_tail and window.scroll_y == window.max_scroll_y
-        assert window.history_restoration is None and not window.history_lock.locked()
+        assert window.history_change is None and not window.history_lock.locked()

@@ -582,3 +582,27 @@ Tristan: "frametimes are currently very good. it okay if focus switches to usabi
 **Frame work is parked, not finished.** The last series still had four in-app waits over 16 ms in six runs. Tested but unmeasured fixes stay on branches (see `frame-waits/RESUME.md` in the agent scratch directory) and are not merged until measured.
 
 **When frame work resumes,** the target moves from 60 Hz (16 ms) toward 144 Hz (about 7 ms per frame), measured the same way: worst event-loop lag in the fixed scroll scenario with snapshots left out, tab open, switch and close included.
+
+## 2026-10-12: The history window owns where the reader is
+
+Reported by Tristan: unticking message kinds in the thread sidebar while scrolled up crashed Toad (`LookupError: TranscriptPageView() is not placed in AgentWindow()'s layout`).
+
+Before, five places each held a copy of the reader's place and each had to do two things on its own: tell layout which off-screen widget to measure, and put the reader back afterwards. They were the history change in progress (`WindowRestoration.position`), the tab's presentation (`TranscriptPresentation.reader_position` and its retry loop in `painted`), the parked tab (`SessionViewState.reader_position`), the message filter (`Conversation._filter_reader_positions` and a callback after refresh) and the checkpoint plan. The filter did neither job, so its callback asked for a page that layout had not measured. Two class families described the same thing (`ReaderPosition` and `HistoryAnchor`).
+
+Now `HistoryWindow.reader_position` is the one place. A `ReaderPosition` names the message being read, the window row its first line had and the scroll offset at that moment. Anything about to change what the window draws calls `keep_reader()`; the workspace screen's layout measures the widgets the kept position names and scrolls the window back onto it in the same layout, before anything is painted. The reader scrolling moves the kept position by the same rows, so nothing reads the place again from a half-changed layout. A tab being left wraps the position with its loaded page ranges (`ParkedPosition`). The copies and `HistoryAnchor` are deleted.
+
+Product behaviour that changed, decided by the implementing agent as reversible: Toad no longer remembers a separate place per filter selection. Changing the filter keeps the reader on the message they are reading; when the new filter hides that message, the next message still shown starts at the top of the window.
+
+Also fixed here: a filter chosen while the history was reading a page found nothing until the user scrolled. An edge check that finds a read running is skipped, and the read asked again only if the loaded ranges or the reader had moved; the filter now counts (`TranscriptHistory.paging_window`). This was the cause recorded as "the edge check runs before layout" in `tests/open_defects.toml`.
+
+A page of line-drawn history now draws the rows layout last measured (`TranscriptPageView._measure`); a changed range, filter or theme marks them stale and the next layout measures the new ones. Before, the page rebuilt its rows as soon as its range changed and the screen could paint them in the old box before the layout that scrolls the reader back, which showed the reader a row 50 lower for one frame (`reader-row-frame-during-page-load`). A history also checks its edges again when layout changes its own box (`TranscriptHistory._size_updated`), so one shorter than its window is not left unread.
+
+A kept position ends with the change it was kept for: when the change's layout has finished the window puts the reader on it once more and lets it go, so the next change reads the place again instead of carrying a position from an earlier one.
+
+Because a kept position ends, every change to the rows above the reader keeps it itself: the filter's older/newer edge rows (`TranscriptHistory._update_edges`), a theme change, and hiding the live blocks a saved page has replaced (`retire_presentations`). A live block that holds other blocks is not the one the reader is on (`HistoryWindow.top_block`). The channel view is a line history too, so the same position keeps a channel reader's place; `tests/textual/test_reader_position.py` has channel cases.
+
+A position is placed only on rows the layout just measured (`ReaderPosition.laid_out`), and one the history is still too short to reach (a filter's matches are still being read) stays kept until a layout reaches it or the reader moves (`UnreachedPosition`; a parked tab's position is one of these). Before, such a position was let go at the clamped row and the reader ended some rows off once the matches arrived.
+
+Not done: a place cannot yet be kept when the message is not loaded after the change (the reader went up through older filtered matches, then cleared or changed the filter), because a position names a loaded message object and no history loads back to a message by its place in the saved file. That needs a per-message identity from Core's transcript pages.
+
+Also not done: lines drawn plain wrap to a different number of rows than the styled lines that replace them, so a reader inside a message being restyled is a row or more off until the styled rows arrive (`reader-row-while-lines-restyle` in `tests/open_defects.toml`; this was the cause of the retired `reader-row-after-trim`). The line renderer would have to say which source line each row draws.

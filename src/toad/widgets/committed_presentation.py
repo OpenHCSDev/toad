@@ -227,12 +227,9 @@ class CheckpointPlan(ABC):
     def commit(self, prepared: PreparedCommit, cursor: TranscriptCursor) -> None:
         """Apply source metadata only after the final retirement checks."""
 
-    def anchor(self, prepared: PreparedCommit) -> Widget | None:
-        return None
-
     @asynccontextmanager
     async def publication(self, view: Conversation, prepared: PreparedCommit):
-        async with view.window.preserve_history(self.anchor(prepared), root=view.contents):
+        async with view.window.preserve_history(root=view.contents):
             yield
 
     def finish(self, view: Conversation, cursor: TranscriptCursor) -> None:
@@ -315,9 +312,6 @@ class RetainViewportCheckpoint(CheckpointPlan):
     def commit(self, prepared, cursor):
         assert prepared.history is not None
         prepared.history.retain_committed(cursor)
-
-    def anchor(self, prepared):
-        return prepared.history
 
 
 def checkpoint_plan(window: HistoryWindow) -> CheckpointPlan:

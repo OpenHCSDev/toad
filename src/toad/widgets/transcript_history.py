@@ -116,13 +116,18 @@ class TranscriptPageView(LinkedRows, Widget):
         )
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
-        self._pending: set[int] = set()
+        # Fragments drawn as plain text until their styled lines arrive, by identity.
+        self._pending: dict[int, TranscriptFragment] = {}
         self._render_task: asyncio.Task[None] | None = None
+        # The rows this page draws are the rows layout last measured: each
+        # drawn fragment, its first row and its lines at the measured width.
+        # A changed range draws nothing new until layout has given it a box.
         self._width = 0
-        # Each admitted fragment's index, first row and lines at the laid-out width.
-        self._layout: list[tuple[int, int, Lines]] = []
+        self._layout: list[tuple[TranscriptFragment, int, Lines]] = []
         self._starts: list[int] = []
+        self._first_row: dict[int, int] = {}
         self._height = 0
+        self._measured = False
         super().__init__()
 
     @property
@@ -185,11 +190,20 @@ class TranscriptPageView(LinkedRows, Widget):
     def line_count(self) -> int:
         return self._height
 
+    @property
+    def rows_measured(self) -> bool:
+        """Whether the rows this page reports are those of the messages it has now."""
+        return self._measured
+
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self._theme_changed)
 
     def _theme_changed(self, _theme) -> None:
-        # Lines hold resolved theme colours; a new theme draws new lines.
+        from toad.widgets.history_anchor import HistoryWindow
+
+        # Lines hold resolved theme colours; a new theme draws new lines,
+        # plain ones first, which wrap to other rows than the styled ones.
+        self.query_ancestor(HistoryWindow).keep_reader()
         self.range_changed()
 
     def on_unmount(self) -> None:
@@ -197,34 +211,39 @@ class TranscriptPageView(LinkedRows, Widget):
             self._render_task.cancel()
 
     def range_changed(self) -> None:
-        """The prepared range moved; draw the new range's rows."""
-        self._relayout()
+        """The prepared range, its lines or the filter changed; the next layout measures the new rows.
+
+        The rows drawn stay the measured ones until then. Drawing the new
+        rows in the box of the old ones would show the reader other messages
+        for a frame, before layout puts them back on their row.
+        """
+        self._measured = False
         self.refresh(layout=True)
 
-    def _lines(self, index: int, width: int) -> Lines:
-        fragment, theme = self.fragments[index], self.app.colours.line_theme
+    def _lines(self, fragment: TranscriptFragment, width: int) -> Lines:
+        theme = self.app.colours.line_theme
         lines = fragment.lines_for(width, theme)
         if lines is None:
-            self._pending.add(index)
+            self._pending[id(fragment)] = fragment
             lines = fragment.plain_lines(width, theme)
         return lines
 
-    def _relayout(self, width: int | None = None) -> None:
-        width = self._width if width is None else width
-        self._width = width
+    def _measure(self, width: int) -> None:
+        self._width, self._measured = width, True
+        self._pending.clear()
         layout, starts, y = [], [], 0
         if width > 0:
-            for index in range(self.start, self.stop):
-                fragment = self.fragments[index]
+            for fragment in self.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
                     continue
                 # Layout needs only the row count; rows and strips are
                 # built when a row is drawn, so a width change draws no text.
-                lines = self._lines(index, width)
-                layout.append((index, y, lines))
+                lines = self._lines(fragment, width)
+                layout.append((fragment, y, lines))
                 starts.append(y)
                 y += lines.height
         self._layout, self._starts, self._height = layout, starts, y
+        self._first_row = {id(fragment): first for fragment, first, _lines in layout}
         if self._pending and self.is_attached and (self._render_task is None or self._render_task.done()):
             # Layout calls this to measure: start the renderer in its own loop
             # turn, not inside the measurement (the task factory is eager).
@@ -234,8 +253,8 @@ class TranscriptPageView(LinkedRows, Widget):
     def get_content_height(self, container, viewport, width: int) -> int:
         # The admitted fragments wrapped at this width: the container's height
         # is never read, so an arrangement measured at height 0 is reused.
-        if width != self._width:
-            self._relayout(width)
+        if width != self._width or not self._measured:
+            self._measure(width)
         return self._height
 
     def render_line(self, y: int) -> Strip:
@@ -245,34 +264,44 @@ class TranscriptPageView(LinkedRows, Widget):
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
             return self.blank_row(width)
-        index, first, lines = self._layout[slot]
+        fragment, first, lines = self._layout[slot]
         row = y - first
         if row >= lines.height:
             return self.blank_row(width)
         # Prepared rows span exactly this width (Lines.strips_at).
-        return self.on_background(lines.strips_at(self.fragments[index].link_place)[row])
+        return self.on_background(lines.strips_at(fragment.link_place)[row])
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text is read from the rows this page draws."""
         rows = "\n".join(self.render_line(y).text.rstrip() for y in range(self._height))
         return selection.extract(rows), "\n"
 
-    def fragment_line(self, fragment: TranscriptFragment) -> int | None:
-        """The first row of an admitted fragment within this page."""
-        for index, first, _lines in self._layout:
-            if self.fragments[index] is fragment:
-                return first
-        return None
+    def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, bool] | None:
+        """Where an admitted fragment is in this page: its first measured row, and whether it is drawn.
+
+        A fragment without rows of its own (the filter hides it, or layout
+        has not measured it yet) is where the next drawn fragment starts, or
+        at the page's end when none follows. None when the fragment is not
+        admitted here.
+        """
+        admitted = self.fragments_in_range
+        at = next((index for index, candidate in enumerate(admitted) if candidate is fragment), None)
+        if at is None:
+            return None
+        for candidate in admitted[at:]:
+            if (first := self._first_row.get(id(candidate))) is not None:
+                return first, candidate is fragment
+        return self._height, False
 
     @property
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
         """The fragments this page draws rows for, oldest first."""
-        return tuple(self.fragments[index] for index, _first, _lines in self._layout)
+        return tuple(fragment for fragment, _first, _lines in self._layout)
 
     def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
         """The rows of this page that draw a fragment."""
-        for index, first, lines in self._layout:
-            if self.fragments[index] is fragment:
+        for candidate, first, lines in self._layout:
+            if candidate is fragment:
                 return range(first, first + lines.height)
         return None
 
@@ -300,42 +329,38 @@ class TranscriptPageView(LinkedRows, Widget):
         slot = bisect_right(self._starts, row) - 1
         if slot < 0:
             return None
-        index, first, _lines = self._layout[slot]
-        return self.fragments[index], row - first
+        fragment, first, _lines = self._layout[slot]
+        return fragment, row - first
 
     def visible_rows(self, window) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each admitted fragment in the window's viewport, with its rows that are in view."""
-        from toad.widgets.history_anchor import HistoryAnchor
-
         # A page the viewport layout did not place is off screen; computing
         # its offset would rebuild the compositor's whole map.
-        offset = HistoryAnchor._placed_offset(self, window)
+        offset = window.placed_row(self)
         if offset is None:
             return
         top = int(window.scroll_y - offset)
         bottom = top + window.outer_size.height
-        for index, first, lines in self._layout:
+        for fragment, first, lines in self._layout:
             if first < bottom and first + lines.height > top:
-                yield (self.fragments[index],
-                       range(max(0, top - first), min(lines.height, bottom - first)), lines)
+                yield fragment, range(max(0, top - first), min(lines.height, bottom - first)), lines
 
     def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
-        """Admitted fragments overlapping the window's viewport."""
+        """The fragments this page draws inside the window's viewport."""
         return tuple(fragment for fragment, _rows, _lines in self.visible_rows(window))
 
-    def _nearest_pending(self) -> list[int]:
-        from toad.widgets.history_anchor import HistoryAnchor, HistoryWindow
+    def _nearest_pending(self) -> list[TranscriptFragment]:
+        from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
-        rows = {index: first for index, first, _lines in self._layout}
-        ready = [index for index in self._pending if index in rows]
-        self._pending.difference_update(set(self._pending) - set(ready))
+        rows = self._first_row
+        pending = list(self._pending.values())
         # On screen, style the rows nearest the reader first. An off-screen
         # page (prepared ahead) has no reader row; its order does not matter.
-        if (offset := HistoryAnchor._placed_offset(self, window)) is not None:
+        if (offset := window.placed_row(self)) is not None:
             reader = window.scroll_y - offset
-            ready.sort(key=lambda index: abs(rows[index] - reader))
-        return ready[:self.RENDER_BATCH]
+            pending.sort(key=lambda fragment: abs(rows[id(fragment)] - reader))
+        return pending[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
         renderer = self.app.render_processes
@@ -343,22 +368,22 @@ class TranscriptPageView(LinkedRows, Widget):
             batch = self._nearest_pending()
             if not batch:
                 return
-            self._pending.difference_update(batch)
+            for fragment in batch:
+                del self._pending[id(fragment)]
             width, theme = self._width, self.app.colours.line_theme
-            tasks = tuple(TranscriptLinesRenderTask(self.fragments[index].line_blocks, width, theme)
-                          for index in batch)
+            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme)
+                          for fragment in batch)
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
             if not self.is_attached or width != self._width:
                 continue
-            await self._publish([(self.fragments[index], task.blocks, lines)
-                                 for index, task, lines in zip(batch, tasks, results)])
+            await self._publish([(fragment, task.blocks, lines)
+                                 for fragment, task, lines in zip(batch, tasks, results)])
 
     async def _publish(self, ready: list[tuple[TranscriptFragment, tuple[LineBlock, ...], PreparedLines]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
-        history = self.query_ancestor(LineHistory)
-        async with window.preserve_history(None, root=self, position=history.reader_position(window)):
+        async with window.preserve_history(root=self):
             theme = self.app.colours.line_theme
             for fragment, blocks, lines in ready:
                 fragment.hold_lines(theme, lines, blocks)
@@ -412,8 +437,7 @@ class TranscriptPageView(LinkedRows, Widget):
         async with window.history_lock:
             if not current():
                 return False
-            history = self.query_ancestor(LineHistory)
-            async with window.preserve_history(None, root=self, position=history.reader_position(window)):
+            async with window.preserve_history(root=self):
                 return await self.prepared.replace_range(self, self.fragments, selected, None, current)
 
 
@@ -518,7 +542,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         if not self.state.can_draw:
             return
         ready = {id(fragment): rows for (fragment, _shown), rows in zip(drawn, lines)}
-        async with self.window.preserve_history(None, root=self, position=self.reader_position(self.window)):
+        async with self.window.preserve_history(root=self):
             for fragment, shown in changes:
                 fragment.show(shown, theme, ready.get(id(fragment)))
             for page in self.pages:
@@ -571,11 +595,9 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         Layout places only the pages near the screen. Pages follow one another
         without a gap, so one placed page gives the rows of every other.
         """
-        from toad.widgets.history_anchor import HistoryAnchor
-
         y, rows, shift = 0, None, None
         for page in self.pages:
-            if shift is None and (placed := HistoryAnchor._placed_offset(page, self.window)) is not None:
+            if shift is None and (placed := self.window.placed_row(page)) is not None:
                 shift = placed - y
             if rows is None and (within := page.fragment_rows(fragment)) is not None:
                 rows = range(y + within.start, y + within.stop)
@@ -599,38 +621,16 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         window.release_anchor()
         window.scroll_to(y=destination, animate=False, immediate=True)
 
-    def reader_position(self, window):
-        """The reader's row as a position that survives rows changing above it.
-
-        On a page, the row inside its fragment; anywhere else, what the window
-        shows the reader (the window itself when following the tail).
-        """
-        from toad.widgets.history_anchor import HistoryAnchor, LineAnchor
-
-        if not window.follows_tail:
-            # The reader's row is on screen, so only placed pages can hold it.
-            for page in self.pages:
-                if (offset := HistoryAnchor._placed_offset(page, window)) is None:
-                    continue
-                # Above this page (on the earlier-history edge), the reader
-                # keeps this page's first row where it is shown: rows the page
-                # gains above it are added out of view, not under the reader.
-                row = max(0, int(window.scroll_y - offset))
-                if row < page.line_count and (found := page.fragment_at(row)) is not None:
-                    fragment, _within = found
-                    return LineAnchor(page, window.scroll_y, window.scroll_revision,
-                                      fragment=fragment, virtual_y=offset + page.fragment_line(fragment))
-        anchor = window.reader_anchor()
-        return None if anchor is None else HistoryAnchor.capture(anchor, window)
-
     @property
     def source_identity(self):
         return self.loader, self.through, self.selected_categories
 
     def paging_window(self):
-        # Source progress observes admission; only an actual reader capture
-        # takes custody of the native producers' resolved acquisitions.
-        return self.through, tuple(page.capture_range() for page in self.pages)
+        # What an edge check decides from: the saved extent, the pages'
+        # loaded ranges and the filter. A check that finds a read running is
+        # skipped, and the read asks again only when one of these changed
+        # under it, so a filter chosen during a read must count.
+        return self.through, self.filter.state, tuple(page.capture_range() for page in self.pages)
 
     def capture_reader_ranges(self) -> tuple[PageFragmentRange, ...]:
         """Retain the original source ranges that a returning reader needs."""
@@ -756,11 +756,12 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         self.observe_source()
 
     def _update_edges(self) -> None:
-        if not self.selected_categories:
-            self.older.display = self.newer.display = False
-            return
-        self.older.display = self.filter.older_visible
-        self.newer.display = self.has_newer
+        shown = bool(self.selected_categories)
+        older, newer = shown and self.filter.older_visible, shown and self.has_newer
+        if (older, newer) != (self.older.display, self.newer.display):
+            # The edge rows are above and below the reader's.
+            self.window.keep_reader()
+            self.older.display, self.newer.display = older, newer
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
@@ -829,6 +830,15 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                 and snapshot.window.lookahead.accepts(demand)
                 and all(page.capture_range() == page_range
                         for page, page_range in zip(pages, ranges)))
+
+    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
+        # Edges are read from this history's laid-out box. A check made
+        # before layout gave it one (a filter just chosen, a first page) finds
+        # none, and a history shorter than its window changes no size but its own.
+        changed = super()._size_updated(size, virtual_size, container_size, layout)
+        if changed:
+            self.request_preparation()
+        return changed
 
     def _check_edges(self) -> None:
         if (not self.checkpoint_available
@@ -919,7 +929,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         async with window.history_lock:
             if not snapshot.current(self) or not request.current(window):
                 return False
-            async with window.preserve_history(None, root=self):
+            async with window.preserve_history(root=self):
                 previous = tuple(self.pages)
                 if prepared is view.prepared:
                     self.pages = deque([view])
@@ -971,11 +981,10 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                     return
                 if edge.capture_range() != page_range:
                     return
-                # Source admission survives reader movement. Keep the reader's
-                # row and the visible fragments, chosen after preparation.
-                position = self.reader_position(window)
+                # The fragments the reader sees stay admitted; they are chosen
+                # after preparation, which the reader may have scrolled through.
                 protected = {id(fragment) for fragment in self.visible_fragments()}
-                async with self.window.preserve_history(None, root=self, position=position):
+                async with self.window.preserve_history(root=self):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
                     self._require_can_draw()
         except _DrawingStopped:
@@ -1089,7 +1098,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
         for page in self.pages:
             page.retain_sources()
         pages = tuple(page.prepared for page in self.pages)
-        position = self.window.pending_reader_position
+        position = self.window.reader_position
         await source.runtime.run_thread(source.measure_held, pages, projected,
                                         () if position is None else position.ranges)
         source.park(pages, projected)

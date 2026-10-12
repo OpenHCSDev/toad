@@ -148,7 +148,7 @@ class WireHistory(LineHistory):
     async def _clear(self) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
         async with self.window.history_lock:
-            async with self.window.preserve_history(None, root=self):
+            async with self.window.preserve_history(root=self):
                 self._generation += 1
                 if self._page_buffer is not None:
                     self._page_buffer.close()

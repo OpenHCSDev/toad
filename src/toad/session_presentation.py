@@ -16,7 +16,7 @@ from agent_comms.acp_extension import CoordinationChangedUpdate
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.widgets.conversation import Conversation
-from toad.widgets.history_anchor import ReaderPosition
+from toad.widgets.history_anchor import ParkedPosition
 from toad.widgets.message_filter import MessageCategory
 
 if TYPE_CHECKING:
@@ -36,7 +36,7 @@ class SessionViewState:
 
     editor: TextAreaState
     visible_categories: frozenset[type[MessageCategory]]
-    reader_position: ReaderPosition
+    reader_position: ParkedPosition
     shell_mode: bool
     input_histories: InputHistories
     initial_prompt: str | None
@@ -46,20 +46,19 @@ class SessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
-            conversation.transcript.reader_position or ReaderPosition.capture(conversation.window),
+            conversation.window.park_reader(),
             editor.shell_mode, conversation.input_histories, conversation.take_initial_prompt(),
         )
 
     def prepare_transcript(self, conversation: Conversation) -> None:
         conversation.visible_categories = self.visible_categories
-        conversation.transcript.reader_position = self.reader_position
+        conversation.window.reader_position = self.reader_position
 
     def restore(self, conversation: Conversation) -> None:
         conversation.input_histories = self.input_histories
         editor = conversation.prompt.prompt_text_area
         editor.restore_editor_state(self.editor)
         editor.shell_mode = self.shell_mode
-        self.reader_position.restore(conversation.window)
 
 
 class SessionSurfaceLifetime(ABC):
@@ -259,9 +258,9 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         await self.remove_native_tree()
 
     def capture_reader(self) -> None:
-        """Retain the source point before retirement can discard native placement."""
+        """The tab is being left: its window keeps the reader's place until it is drawn again."""
         if (conversation := self.widget) is not None:
-            self.transcript.reader_position = ReaderPosition.capture(conversation.window)
+            conversation.window.park_reader()
 
     async def remove_native_tree(self) -> None:
         if (conversation := self.widget) is None:

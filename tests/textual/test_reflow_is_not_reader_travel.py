@@ -28,8 +28,22 @@ async def test_trim_and_resize_reflow_are_not_travel_samples_but_a_key_is(worksp
             await view.contents.mount(history)
         await ui.until(lambda: all(history.is_mounted for history in histories), why="three histories")
         marker = histories[-1]
+        # Styled lines wrap differently from the plain ones drawn first; they
+        # must all have arrived, or their arrival is another change to the rows.
+        theme = ui.textual[0].colours.line_theme
+        await ui.until(lambda: all(page.line_width and fragment.lines_for(page.line_width, theme) is not None
+                                   for history in histories for page in history.pages
+                                   for fragment in page.fragments_in_range), why="every line styled")
+        await ui.until(lambda: window.reader_position is None, why="the styled rows laid out")
         window.release_anchor()
-        window.scroll_to_widget(marker, animate=False, immediate=True, top=True)
+
+        def reader_is_below_the_first_history():
+            # The history removed below must be above the reader, not the one they read.
+            window.scroll_to_widget(marker, animate=False, immediate=True, top=True)
+            row = window.placed_row(marker)
+            return row is not None and window.scroll_y >= row - histories[1].outer_size.height
+
+        await ui.until(reader_is_below_the_first_history, why="the reader below the first history")
         await ui.step()
 
         # Removing an earlier history makes Textual clamp the reader before the anchor compensates.
@@ -45,7 +59,7 @@ async def test_trim_and_resize_reflow_are_not_travel_samples_but_a_key_is(worksp
         window.lookahead.observe = sample
         window.watch(window, "scroll_y", lambda old, new: changes.append(window._restoring), init=False)
         demand = window.lookahead.demand
-        async with window.preserve_history(marker, root=view.contents):
+        async with window.preserve_history(root=view.contents):
             await histories[0].remove()
         await ui.step()
         assert changes, "The clamp and compensation boundary was not exercised"
