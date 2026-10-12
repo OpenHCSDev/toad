@@ -1480,7 +1480,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         from toad.widgets.committed_presentation import StartedInputClaim
 
         self.output.boundary()
-        await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
+        if not self.transcript.covers_input(started.native_id):
+            await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
         self.submissions.native_input_presented(started)
 
     def on_input_failed(self, message: CoreEventMessage) -> None:

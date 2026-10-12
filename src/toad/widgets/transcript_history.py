@@ -674,6 +674,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             return True
         return self.filter.covers_incoming(sequence)
 
+    def covers_input(self, native_id: str | None) -> bool:
+        """Whether the loaded saved pages hold the input Core started under this identity."""
+        return (self._source_state.reports_coverage
+                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+
     @property
     def committed_cursor(self) -> TranscriptCursor:
         return self.through

@@ -22,8 +22,12 @@ def assistant_entry(text: str, *, id: str, parent: str | None = None) -> dict:
     return message_entry("assistant", text, id=id, parent=parent)
 
 
-def user_entry(text: str, *, id: str, parent: str | None = None) -> dict:
-    return message_entry("user", text, id=id, parent=parent)
+def user_entry(text: str, *, id: str, parent: str | None = None, input_id: str | None = None) -> dict:
+    """A user line; `input_id` is the identity Core gave the input when it sent it to the agent."""
+    entry = message_entry("user", text, id=id, parent=parent)
+    if input_id is not None:
+        entry["message"]["inputId"] = input_id
+    return entry
 
 
 def write_journal(path: Path, *entries: dict) -> Path:

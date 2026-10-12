@@ -596,6 +596,15 @@ class TranscriptPresentation:
     def reports_coverage(self) -> bool:
         return any(history.state.reports_coverage for history in self.histories)
 
+    def covers_input(self, native_id: str | None) -> bool:
+        """Whether saved history already draws the input Core started under this identity.
+
+        A page read can reach the saved input before its start notice reaches
+        the conversation. Retirement only removes live blocks that exist when
+        a page is accepted, so a start arriving afterwards asks here first.
+        """
+        return any(history.covers_input(native_id) for history in self.histories)
+
     def invalidate(self) -> None:
         self.generation += 1
 

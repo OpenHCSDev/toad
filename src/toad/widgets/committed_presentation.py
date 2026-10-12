@@ -173,6 +173,9 @@ class CommittedHistory(SnapshotPresentation):
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
 
+    def covers_input(self, native_id: str | None) -> bool:
+        raise NotImplementedError
+
 
 
 def retirement_candidates(widgets: Iterable[Widget], evidence: CommitEvidence) -> list[Widget]:
