@@ -572,3 +572,13 @@ Core already answered a bounded page with its evidence (`MessagePage`). It gaine
 **The block cursor rests on one message.** `FragmentBlockCursor` is the cursor of every `LineHistory` (it replaced the one-block `SavedHistoryBlockCursor`): Alt+Up/Down move message by message, a click selects the message clicked, and the cursor's menu copies that message. What a message offers is declared on its fragment: `clipboard_text`, `block_menu` (a channel message adds "Open sender" and "Open destination"), `timestamp` (the page's tooltip shows the full time of the message under the pointer). A link that leads somewhere is underlined (`LineLink.underlined`).
 
 Enter on the cursor opens its menu, as on every block; "Open sender" (s) and "Open destination" (d) are entries of it. The old direct Enter / Shift+Enter belonged to Textual focus on a per-message widget, a second kind of focus beside the block cursor; rows have one cursor.
+
+## 2026-10-12: Current goal (amended by Tristan)
+
+Tristan: "frametimes are currently very good. it okay if focus switches to usability/bugs/crashes for a little bit since performance is very acceptable, we can resume grinding frametimes down later to get closer to 144hz instead of 60hz."
+
+**Now:** usability, bugs and crashes in the installed `toad` come first. Each verified fix is merged to main, installed in the default runtime and checked in the real app.
+
+**Frame work is parked, not finished.** The last series still had four in-app waits over 16 ms in six runs. Tested but unmeasured fixes stay on branches (see `frame-waits/RESUME.md` in the agent scratch directory) and are not merged until measured.
+
+**When frame work resumes,** the target moves from 60 Hz (16 ms) toward 144 Hz (about 7 ms per frame), measured the same way: worst event-loop lag in the fixed scroll scenario with snapshots left out, tab open, switch and close included.
