@@ -105,8 +105,8 @@ class WireHistory(LineHistory):
         return self.loader, self.selected_categories
 
     @property
-    def source_publication_available(self) -> bool:
-        return (super().source_publication_available
+    def can_draw_on_screen(self) -> bool:
+        return (super().can_draw_on_screen
                 and self.view.query_ancestor(SessionView).is_current)
 
     async def bus_is_current(self, comms) -> bool:
@@ -190,7 +190,7 @@ class WireHistory(LineHistory):
                     return
                 retired = tuple(self.pages)
                 view = self.page_view(WirePage.unread(), fragments=(),
-                                      batch_size=self.budget.admission_items)
+                                      batch_size=self.budget.batch_items)
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=self.newer)
                 self.pages = deque([view])
@@ -249,7 +249,7 @@ class WireHistory(LineHistory):
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
-        if self.source_publication_available:
+        if self.can_draw_on_screen:
             # What is on screen changed: mark it read and check its notifications.
             self.mark_visible()
             self.check_notifications()
@@ -263,7 +263,7 @@ class WireHistory(LineHistory):
     @property
     def messages(self) -> tuple[Message, ...]:
         """The messages the drawn rows show, oldest first."""
-        return tuple(fragment.message for fragment in self.admitted_fragments)
+        return tuple(fragment.message for fragment in self.fragments_in_range)
 
     def draws(self, message: Message) -> bool:
         """Whether the drawn rows include this message."""
@@ -271,7 +271,7 @@ class WireHistory(LineHistory):
 
     def read_fragments(self) -> tuple[WireFragment, ...]:
         """Fragments whose own text has a row in the viewport."""
-        if not self.is_attached or not self.source_publication_available:
+        if not self.is_attached or not self.can_draw_on_screen:
             return ()
         return tuple(
             fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
@@ -283,24 +283,24 @@ class WireHistory(LineHistory):
         if not changes:
             return
         width, theme = self.line_width, self.app.colours.line_theme
-        admitted = {id(fragment) for fragment in self.admitted_fragments}
-        drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in admitted and width > 0]
+        in_range = {id(fragment) for fragment in self.fragments_in_range}
+        drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
         lines = await self.app.render_processes.submit(TranscriptLinesBatchRenderTask(tuple(
             TranscriptLinesRenderTask(fragment.blocks(shown), width, theme)
             for fragment, shown in drawn))) if drawn else ()
-        if not self.state.accepts_publication:
+        if not self.state.can_draw:
             return
         ready = {id(fragment): rows for (fragment, _shown), rows in zip(drawn, lines)}
         async with self.window.preserve_history(None, root=self, position=self.reader_position(self.window)):
             for fragment, shown in changes:
                 fragment.show(shown, theme, ready.get(id(fragment)))
             for page in self.pages:
-                page.admission_changed()
+                page.range_changed()
         self.window.check_follow()
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
-        if self.source is None or not self.source_publication_available:
+        if self.source is None or not self.can_draw_on_screen:
             return
         style = self.style.next()
         self.open(self.source.restyled(style))
@@ -359,12 +359,12 @@ class WireHistory(LineHistory):
                 statuses = [CheckedNotifications(
                     results.get((fragment.message.seq, fragment.message.message_id), ()))
                     for fragment in fragments]
-            if not await self.bus_is_current(comms) or not self.state.accepts_publication:
+            if not await self.bus_is_current(comms) or not self.state.can_draw:
                 return
             visible = {id(fragment) for fragment in self._notified_fragments()}
             await self._show([(fragment, replace(fragment.shown, status=status))
                               for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
-            if not self.state.accepts_publication:
+            if not self.state.can_draw:
                 return
             # Messages that came into view during the read are asked about next.
             fragments = tuple(fragment for fragment in self._notified_fragments()

@@ -352,7 +352,7 @@ class ContentNavigation:
         return False
 
 
-def admitted_blocks(widgets):
+def require_blocks(widgets):
     """Decode the Textual mount boundary once before category consumers."""
     for widget in widgets:
         if not isinstance(widget, ConversationBlock):

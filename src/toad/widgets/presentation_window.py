@@ -38,7 +38,7 @@ class PresentationBudget:
     """
 
     max_items: int = 24
-    admission_items: int = 4
+    batch_items: int = 4
     reserve_batches: int = 4
     minimum_widgets: int = 300
     widgets_per_row: int = 10
@@ -47,7 +47,7 @@ class PresentationBudget:
     scroll_idle_seconds: float = 0.2
 
     def __post_init__(self) -> None:
-        for name in ("max_items", "admission_items", "minimum_widgets", "buffer_viewports"):
+        for name in ("max_items", "batch_items", "minimum_widgets", "buffer_viewports"):
             value = getattr(self, name)
             if type(value) is not int or value < 1:
                 raise ValueError(f"{name} must be a positive integer")
@@ -59,7 +59,7 @@ class PresentationBudget:
             raise ValueError("Preparation timing must be positive")
 
     def item_limit(self, protected_items: int) -> int:
-        return max(self.max_items, protected_items + self.reserve_batches * self.admission_items)
+        return max(self.max_items, protected_items + self.reserve_batches * self.batch_items)
 
     def widget_limit(self, viewport_rows: int) -> int:
         return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
@@ -250,11 +250,11 @@ class DirectionalPreparation:
         # Pure preparation can run beyond the smaller native widget working
         # set. Its retained entries/bytes and concurrent work stay runtime-owned.
         return min(self.window.app.preparation.max_entries, max(
-            self.budget.admission_items,
+            self.budget.batch_items,
             ceil(self.ahead_rows(viewport_rows) / self.window.rows_per_fragment),
         ))
 
-    def admission(self, budget: PresentationBudget, viewport_rows: int) -> int:
+    def destination_batch(self, budget: PresentationBudget, viewport_rows: int) -> int:
         # Rows and source fragments are different units. Use the original
         # native body's measured extent for both page and body lookahead.
         return min(budget.item_limit(0), self.preparation_count(viewport_rows))

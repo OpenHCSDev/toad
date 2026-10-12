@@ -39,7 +39,7 @@ class TranscriptPageWidth(unittest.TestCase):
         for width in (100, 63, 100):
             height = view.get_content_height(None, None, width)
             lines = [lines for _index, _first, lines in view._layout]
-            self.assertEqual(len(lines), len(view.admitted_fragments))
+            self.assertEqual(len(lines), len(view.fragments_in_range))
             self.assertEqual(height, sum(item.height for item in lines))
             self.assertTrue(all(item.width == width for item in lines))
             self.assertFalse(any("strips" in vars(item) or "rows" in vars(item) for item in lines),
@@ -70,13 +70,13 @@ class TranscriptPageWidth(unittest.TestCase):
         from toad.widgets.message_filter import all_categories, event_category
 
         view = page_view(60)
-        user = event_category(view.admitted_fragments[0].events[0])
+        user = event_category(view.fragments_in_range[0].events[0])
         view.visible_categories = all_categories() - {user}
-        shown = [fragment for fragment in view.admitted_fragments
+        shown = [fragment for fragment in view.fragments_in_range
                  if any(event_category(event) != user for event in fragment.events)]
         view.get_content_height(None, None, 80)
         self.assertEqual([view.fragments[index] for index, _first, _lines in view._layout], shown)
-        self.assertLess(len(shown), len(view.admitted_fragments))
+        self.assertLess(len(shown), len(view.fragments_in_range))
 
     def test_plain_height_counts_the_rows_plain_mode_draws(self):
         theme = active_app.get().colours.line_theme

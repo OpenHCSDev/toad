@@ -27,7 +27,7 @@ class HistorySourceSnapshot:
     source: object
 
     def current(self, owner: TranscriptSourcePreparation) -> bool:
-        if not owner.source_publication_available:
+        if not owner.can_draw_on_screen:
             return False
         return self == owner.source_snapshot()
 
@@ -49,8 +49,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         return self._source_state.observed(self)
 
     @property
-    def source_publication_available(self) -> bool:
-        if not self.state.accepts_publication:
+    def can_draw_on_screen(self) -> bool:
+        if not self.state.can_draw:
             return False
         return self.screen.is_current
 
@@ -104,12 +104,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         callback scope so a held sibling cannot block its source publication.
         The frame owns deduplication, including work requested during I/O.
         """
-        if self.source_publication_available:
+        if self.can_draw_on_screen:
             self.screen.frame_presentation.defer(self, self.prepare_viewport)
 
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
-        if self.source_publication_available:
+        if self.can_draw_on_screen:
             self.prepare_scroll()
             self._check_edges()
 
@@ -134,7 +134,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         native geometry after publication. Neither restoration is another user
         scroll; movement during I/O revokes this request at its original revision.
         """
-        if not self.source_publication_available or not request.current(self.window):
+        if not self.can_draw_on_screen or not request.current(self.window):
             return
         self._generation += 1
         request.restore(self.window)
@@ -177,7 +177,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self._source_state is operation:
             self._source_state = operation.source
             operation.pending_request.apply(self)
-            if self.state.accepts_publication:
+            if self.state.can_draw:
                 self.window.check_follow()
                 # The admitted operation owns source and reader progress.
                 # Native compensation and unchanged reads cannot rearm it.

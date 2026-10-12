@@ -92,7 +92,7 @@ from toad.widgets.wire_message_handling import WireMessageHandling
 from toad.widgets.observed_thread_activity import ThreadStatusOwner
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
-from toad.block_navigation import admitted_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
@@ -244,7 +244,7 @@ class CategorizedMount:
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
         selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
-        for widget in admitted_blocks(widgets):
+        for widget in require_blocks(widgets):
             classes = {"-unrouted": not keep_live_block(widget)}
             if category := block_category(widget):
                 classes[f"-message-{category.declared_name}"] = True

@@ -27,7 +27,7 @@ def incoming(text):
 
 
 def texts(history):
-    return [fragment.events[0].text for fragment in history.admitted_fragments]
+    return [fragment.events[0].text for fragment in history.fragments_in_range]
 
 
 @pytest.mark.parametrize("stage", ["prepare", "container"])
@@ -134,7 +134,7 @@ async def test_filtered_history_arrives_in_small_batches_off_the_loop(workspace)
             previous = 0
             while pager.filter.has_older:
                 await pager.filter.scan_older()
-                count = len(pager.filter.overlay.admitted_fragments)
+                count = len(pager.filter.overlay.fragments_in_range)
                 assert 0 < count - previous <= 4, "Source-sized widget admission"
                 previous = count
                 await ui.step()

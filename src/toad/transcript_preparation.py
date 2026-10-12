@@ -38,9 +38,9 @@ class PreparedTranscriptPage:
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     retained_bytes: int
-    admission: tuple[int, int] | None = None
+    fragment_range: tuple[int, int] | None = None
     batch_size: int = field(default=BATCH, kw_only=True)
-    admitted: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
+    in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
@@ -49,42 +49,42 @@ class PreparedTranscriptPage:
 
     def configure(self, *, batch_size, newest=True):
         self.batch_size = batch_size
-        if self.admission is None:
-            self.select_admission(self.initial_slice(self.fragments, batch_size, newest))
+        if self.fragment_range is None:
+            self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
 
     @property
     def start(self):
-        return self.admission[0]
+        return self.fragment_range[0]
 
     @start.setter
     def start(self, start):
-        self.admission = start, self.admission[1] if self.admission is not None else start
+        self.fragment_range = start, self.fragment_range[1] if self.fragment_range is not None else start
 
     @property
     def stop(self):
-        return self.admission[1]
+        return self.fragment_range[1]
 
     @stop.setter
     def stop(self, stop):
-        self.admission = self.start, stop
+        self.fragment_range = self.start, stop
 
     def extension_slice(self, older: bool) -> slice:
         return (slice(max(0, self.start - self.batch_size), self.start) if older
                 else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
 
-    def select_admission(self, selected: slice) -> None:
-        self.admission = selected.start, selected.stop
-        self.admitted = self.fragments[selected]
+    def set_fragment_range(self, selected: slice) -> None:
+        self.fragment_range = selected.start, selected.stop
+        self.in_range = self.fragments[selected]
 
-    def capture_admission(self) -> TranscriptPageAdmission:
-        return TranscriptPageAdmission(ref(self), self.start, self.stop, self.fragments[self.start:self.stop])
+    def capture_range(self) -> PageFragmentRange:
+        return PageFragmentRange(ref(self), self.start, self.stop, self.fragments[self.start:self.stop])
 
-    def restore_admission(self, admission: TranscriptPageAdmission) -> None:
-        if admission.page() is not self:
+    def restore_range(self, fragment_range: PageFragmentRange) -> None:
+        if fragment_range.page() is not self:
             return
-        if len(admission.members) != admission.stop - admission.start:
+        if len(fragment_range.members) != fragment_range.stop - fragment_range.start:
             raise RuntimeError("Original transcript suppliers do not cover their admission")
-        self.select_admission(slice(admission.start, admission.stop))
+        self.set_fragment_range(slice(fragment_range.start, fragment_range.stop))
 
     def publish_fragments(self, fragments):
         if fragments is not self.fragments:
@@ -107,9 +107,9 @@ class PreparedTranscriptPage:
         if not current():
             return False
         self.publish_fragments(fragments)
-        self.select_admission(selected)
+        self.set_fragment_range(selected)
         self.retain_sources(view)
-        view.admission_changed()
+        view.range_changed()
         return True
 
     def trim(self, view, count: int, *, older: bool) -> None:
@@ -118,23 +118,23 @@ class PreparedTranscriptPage:
         else:
             self.stop -= count
         self.retain_sources(view)
-        view.admission_changed()
+        view.range_changed()
 
     def retain_sources(self, view) -> None:
-        self.admitted = self.fragments[self.start:self.stop]
+        self.in_range = self.fragments[self.start:self.stop]
 
-    def admit(self) -> PreparedTranscriptPage:
+    def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns admission and resolved source acquisitions.
 
         The worker's immutable source/syntax remains reusable. Its stored page
         never acquires a frontend document or another projection's lifetime.
         """
         return replace(self, fragments=self.fragments,
-                       admission=None, admitted=())
+                       fragment_range=None, in_range=())
 
 
 @dataclass(frozen=True, eq=False)
-class TranscriptPageAdmission:
+class PageFragmentRange:
     """Reading demand holds this actual page's bounded source acquisitions.
 
     Reader intent retains its bounded original members, never the whole page.
@@ -149,7 +149,7 @@ class TranscriptPageAdmission:
     members: tuple[TranscriptFragment, ...] = field(repr=False)
 
     def __eq__(self, other):
-        if not isinstance(other, TranscriptPageAdmission):
+        if not isinstance(other, PageFragmentRange):
             return NotImplemented
         return ((page := self.page()) is not None and page is other.page()
                 and self.start == other.start and self.stop == other.stop)
@@ -204,18 +204,18 @@ class PreparedPageSource(ABC):
     def __init__(self) -> None:
         # Custody moves here when native membership is revoked. These are the
         # original admitted resources, not another cache of transport pages.
-        self.admitted: tuple[PreparedTranscriptPage, ...] = ()
+        self.held_pages: tuple[PreparedTranscriptPage, ...] = ()
         self.projection_source: ProjectedTranscriptSource | None = None
 
     @property
     def retained_source_bytes(self) -> int:
-        return sum(page.retained_bytes for page in self.admitted) + (
+        return sum(page.retained_bytes for page in self.held_pages) + (
             self.projection_source.retained_source_bytes if self.projection_source is not None else 0
         )
 
-    def measure_admission(self, pages: tuple[PreparedTranscriptPage, ...],
+    def measure_held(self, pages: tuple[PreparedTranscriptPage, ...],
                           projection: ProjectedTranscriptSource | None = None,
-                          admissions: tuple[TranscriptPageAdmission, ...] = (),
+                          ranges: tuple[PageFragmentRange, ...] = (),
                           *, seen: set[int] | None = None) -> None:
         """Partition retained source custody in the existing preparation worker.
 
@@ -228,25 +228,25 @@ class PreparedPageSource(ABC):
         if seen is None:
             seen = set()
         for page in pages:
-            readers = tuple(member for admission in admissions if admission.page() is page
-                            for member in admission.members)
+            readers = tuple(member for page_range in ranges if page_range.page() is page
+                            for member in page_range.members)
             page.retained_bytes = retained_bytes(
                 (page.page, page.fragments, readers),
                 seen=seen,
             )
         if projection is not None:
-            projection.measure_admission(projection.admitted, projection.projection_source,
-                                         admissions, seen=seen)
+            projection.measure_held(projection.held_pages, projection.projection_source,
+                                         ranges, seen=seen)
 
     def park(self, pages: tuple[PreparedTranscriptPage, ...],
              projection: ProjectedTranscriptSource | None = None) -> None:
         if self.closed:
             raise ValueError("Cannot retain a revoked transcript source")
-        self.admitted, self.projection_source = pages, projection
+        self.held_pages, self.projection_source = pages, projection
 
-    def release_admission(self) -> None:
+    def release_held(self) -> None:
         """Native acquisition takes these same resources, not materialized copies."""
-        self.admitted, self.projection_source = (), None
+        self.held_pages, self.projection_source = (), None
 
     @property
     def closed(self) -> bool:
@@ -267,7 +267,7 @@ class PreparedPageSource(ABC):
         self.runtime.discard_scope(self.scope)
         if self.projection_source is not None:
             self.projection_source.close()
-        self.release_admission()
+        self.release_held()
 
 
 class TranscriptPageProjection(ABC):
@@ -287,7 +287,7 @@ class CategoryProjection(TranscriptPageProjection):
             page.fragments, self.selected, len(page.fragments), len(page.fragments),
         ))
         return replace(page, fragments=matches.fragments,
-                       admission=None, admitted=())
+                       fragment_range=None, in_range=())
 
 
 @dataclass(frozen=True)
@@ -356,7 +356,7 @@ class TranscriptPageBuffer(PreparedPageSource):
         if self.loader is None:
             raise ValueError("This transcript has no saved-source reader")
         result = await self.runtime.submit(self.work(self.scope, self.loader, self.through, request))
-        return result.admit()
+        return result.for_view()
 
     async def prefetch(
         self, before: TranscriptCursor | None, after: TranscriptCursor | None,

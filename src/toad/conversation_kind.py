@@ -12,11 +12,11 @@ from agent_comms.message_page import MessagePage
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
-    def admitted_threads(cls, snapshot, me, target):
+    def threads_needed(cls, snapshot, me, target):
         return ()
 
     @classmethod
-    def admitted_channels(cls, root, target):
+    def channels_needed(cls, root, target):
         return ()
 
     @classmethod
@@ -117,7 +117,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 class ChannelConversation(ConversationKind):
     @classmethod
-    def admitted_channels(cls, root, target):
+    def channels_needed(cls, root, target):
         return ((root, target),)
 
     @classmethod
@@ -242,7 +242,7 @@ class DmConversation(ConversationKind):
         await screen.action_back_to_agent()
 
     @classmethod
-    def admitted_threads(cls, snapshot, me, target):
+    def threads_needed(cls, snapshot, me, target):
         return (snapshot.require(me).incarnation, snapshot.require(target).incarnation)
 
     @classmethod

@@ -640,7 +640,7 @@ class TranscriptPresentation:
 
         if position is not None:
             for retained in self.histories:
-                if not await retained.restore_reader_ranges(position.admissions, current):
+                if not await retained.restore_reader_ranges(position.ranges, current):
                     return
         if not current():
             return

@@ -16,7 +16,7 @@ async def test_reader_keeps_position_through_geometry_and_rejoins_the_tail_on_in
             AssistantTranscript(f"Saved record {i}\n\n" + "\n".join(f"- saved item {j}" for j in range(20)))
             for i in range(8)), cursor, cursor, False, False)
         history = await conversation.post(
-            TranscriptHistory(page, budget=PresentationBudget(max_items=240, admission_items=240)))  # every record drawn at once
+            TranscriptHistory(page, budget=PresentationBudget(max_items=240, batch_items=240)))  # every record drawn at once
         window = conversation.window
         paints = []
         display = app._display

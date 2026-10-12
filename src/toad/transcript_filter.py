@@ -111,7 +111,7 @@ class SeekingFilter(NoFilter):
         return owner.window.scroll_y <= owner.prefetch_distance
 
     async def advance(self, filtering, snapshot):
-        from toad.widgets.transcript_history import ProjectedTranscriptHistory, _PublicationRetired
+        from toad.widgets.transcript_history import ProjectedTranscriptHistory, _DrawingStopped
 
         owner = filtering.owner
         source = owner.projected_source(owner.selected_categories)
@@ -135,15 +135,15 @@ class SeekingFilter(NoFilter):
                         acquisition.callback(admitted_state.remove, filtering)
                         await owner.mount(projection, before=owner.pages[0])
                         filtering.require_projection(snapshot, projection)
-                        await projection.admit_initial()
+                        await projection.draw_initial()
                         filtering.require_projection(snapshot, projection)
                         acquisition.pop_all()
-                admitted = bool(projection.admitted_fragments)
+                drew = bool(projection.fragments_in_range)
                 owner._update_edges()
-                if not admitted:
+                if not drew:
                     projection.request_older()
-                return admitted
-        except _PublicationRetired:
+                return drew
+        except _DrawingStopped:
             return False
         finally:
             if not filtering.state.owns_source(source):
@@ -207,17 +207,17 @@ class Filtered(FilterState):
         owner.invalidate_projection()
 
     async def advance(self, filtering, snapshot):
-        previous = {id(fragment) for fragment in self.view.admitted_fragments}
+        previous = {id(fragment) for fragment in self.view.fragments_in_range}
         await self.view.load_older()
-        return any(id(fragment) not in previous for fragment in self.view.admitted_fragments)
+        return any(id(fragment) not in previous for fragment in self.view.fragments_in_range)
 
 
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):
     forced = False
 
-    def resume(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot, admitted: bool) -> None:
+    def resume(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot, drew: bool) -> None:
         owner = filtering.owner
-        if snapshot.current(owner) and admitted and filtering.has_older:
+        if snapshot.current(owner) and drew and filtering.has_older:
             # Committed painted height decides whether this batch fills the view.
             owner.call_after_refresh(owner._check_edges)
         else:
@@ -326,21 +326,21 @@ class TranscriptFilter:
         return self.worker
 
     def require_projection(self, snapshot, projection) -> None:
-        from toad.widgets.transcript_history import _PublicationRetired
+        from toad.widgets.transcript_history import _DrawingStopped
         if not snapshot.current(self.owner) or not self.owns_projection(projection):
-            raise _PublicationRetired
+            raise _DrawingStopped
 
     async def scan_older(self) -> None:
         snapshot = self.owner.source_snapshot()
-        admitted = False
+        drew = False
         try:
             if snapshot.current(self.owner):
-                admitted = await self.state.advance(self, snapshot)
+                drew = await self.state.advance(self, snapshot)
         except (OSError, ValueError) as error:
             if snapshot.current(self.owner):
                 self.owner.notify(str(error), title="Filtered history", severity="error")
         finally:
             if snapshot.current(self.owner):
-                if admitted or not self.has_older:
+                if drew or not self.has_older:
                     self.demand = AutomaticScanDemand()
-            self.demand.resume(self, snapshot, admitted)
+            self.demand.resume(self, snapshot, drew)

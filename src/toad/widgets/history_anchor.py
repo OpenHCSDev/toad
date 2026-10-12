@@ -17,7 +17,7 @@ from toad.widgets.presentation_window import DirectionalPreparation, Presentatio
 
 if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
-    from toad.transcript_preparation import TranscriptPageAdmission
+    from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
 
@@ -126,7 +126,7 @@ class WindowRestoration:
 class ReaderPosition(WindowPosition):
     """Source-owned reader intent, independent of retired widget geometry."""
 
-    admissions: tuple["TranscriptPageAdmission", ...] = ()
+    ranges: tuple["PageFragmentRange", ...] = ()
 
     @staticmethod
     def _translate_motion(window: "HistoryWindow", destination: float, compensation: float) -> None:
@@ -141,9 +141,9 @@ class ReaderPosition(WindowPosition):
         # their original admitted pages remain in the native tree. Capture
         # those page ranges before eviction, including the parked resource.
         histories = tuple(window.line_histories())
-        admissions = tuple(
-            admission for history in histories
-            for admission in history.capture_reader_admissions()
+        ranges = tuple(
+            page_range for history in histories
+            for page_range in history.capture_reader_ranges()
         )
         for history in histories:
             for page in history.pages:
@@ -156,12 +156,12 @@ class ReaderPosition(WindowPosition):
                 row = int(window.scroll_y - offset) - above
                 if row < page.line_count and (found := page.fragment_at(row)) is not None:
                     fragment, within = found
-                    return FragmentReaderPosition(fragment, within + above, admissions)
-        return OffsetReaderPosition(window.scroll_y, admissions)
+                    return FragmentReaderPosition(fragment, within + above, ranges)
+        return OffsetReaderPosition(window.scroll_y, ranges)
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Restore admitted source ranges; tail readers have no older admission."""
-        history.restore_reader_admissions(self.admissions)
+        history.set_reader_ranges(self.ranges)
 
     @staticmethod
     def _restore_row(window: "HistoryWindow", destination: float | None) -> bool:
@@ -184,7 +184,7 @@ class TailReaderPosition(ReaderPosition):
 @dataclass(frozen=True)
 class OffsetReaderPosition(ReaderPosition):
     y: float
-    admissions: tuple["TranscriptPageAdmission", ...]
+    ranges: tuple["PageFragmentRange", ...]
 
     def _restore(self, window: "HistoryWindow") -> bool:
         return self._restore_row(window, self.y)
@@ -200,7 +200,7 @@ class FragmentReaderPosition(ReaderPosition):
 
     fragment: TranscriptFragment
     offset: float
-    admissions: tuple["TranscriptPageAdmission", ...]
+    ranges: tuple["PageFragmentRange", ...]
 
     def record(self, window: "HistoryWindow"):
         """The page that draws this fragment, if it is admitted."""

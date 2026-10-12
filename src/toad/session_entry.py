@@ -177,7 +177,7 @@ class HistorySessionEntry(SessionEntry):
         return tuple((self.key.root, participant) for participant in self.participants)
 
     def original_channels(self):
-        return self.kind.admitted_channels(self.key.root, self.key.target)
+        return self.kind.channels_needed(self.key.root, self.key.target)
 
     def __call__(self):
         from toad.screens.comms import CommsScreen

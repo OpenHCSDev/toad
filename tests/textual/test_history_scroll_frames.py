@@ -51,7 +51,7 @@ async def test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_i
             window.scroll_to(y=1, animate=False, immediate=True)
             await ui.step()
             view = history.pages[0]
-            fragment = view.admitted_fragments[0]
+            fragment = view.fragments_in_range[0]
 
             def marker_row():
                 offset = HistoryAnchor._placed_offset(view, window)
@@ -113,7 +113,7 @@ async def test_channel_paging_keeps_the_reader_row_on_every_frame(workspace):
             window.scroll_to(y=1, animate=False, immediate=True)
             await ui.step()
             view = history.pages[0]
-            fragment = view.admitted_fragments[0]
+            fragment = view.fragments_in_range[0]
             oldest = fragment.message.seq
 
             def marker_row():

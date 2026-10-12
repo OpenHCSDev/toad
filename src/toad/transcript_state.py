@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
-    accepts_publication: ClassVar[bool] = False
+    can_draw: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
     accepts_source_work: ClassVar[bool] = False
 
@@ -69,7 +69,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 
     def for_projection(self, projection, owner) -> "TranscriptState":
         """A view may publish only while its source still owns that projection."""
-        if owner is None or not owner.state.accepts_publication or not owner.filter.owns_projection(projection):
+        if owner is None or not owner.state.can_draw or not owner.filter.owns_projection(projection):
             return RetiredProjectionTranscript(self)
         return self
 
@@ -87,7 +87,7 @@ class ProvisionalTranscript(TranscriptState):
 
 
 class LiveTranscript(TranscriptState):
-    accepts_publication = True
+    can_draw = True
     reports_coverage = True
     accepts_source_work = True
 
@@ -195,8 +195,8 @@ class WorkingTranscript(SuspendedTranscript):
         return self.source.retirement_source()
 
     @property
-    def accepts_publication(self) -> bool:
-        return self.source.accepts_publication
+    def can_draw(self) -> bool:
+        return self.source.can_draw
 
     @classmethod
     def successors(cls):

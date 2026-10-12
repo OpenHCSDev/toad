@@ -37,7 +37,7 @@ from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from toad.transcript_preparation import (
-    CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, TranscriptPageAdmission, TranscriptPageBuffer,
+    CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -62,7 +62,7 @@ from toad.widgets.transcript_fragments import (
 if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
 
-class _PublicationRetired(Exception):
+class _DrawingStopped(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
 
 class HistoryEdge(Static, can_focus=True):
@@ -161,7 +161,7 @@ class TranscriptPageView(LinkedRows, Widget):
         self.prepared.batch_size = size
 
     @property
-    def admitted_fragments(self) -> tuple[TranscriptFragment, ...]:
+    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
         return self.fragments[self.start:self.stop]
 
     @property
@@ -178,13 +178,13 @@ class TranscriptPageView(LinkedRows, Widget):
 
     def _theme_changed(self, _theme) -> None:
         # Lines hold resolved theme colours; a new theme draws new lines.
-        self.admission_changed()
+        self.range_changed()
 
     def on_unmount(self) -> None:
         if self._render_task is not None:
             self._render_task.cancel()
 
-    def admission_changed(self) -> None:
+    def range_changed(self) -> None:
         """The prepared range moved; draw the new range's rows."""
         self._relayout()
         self.refresh(layout=True)
@@ -314,14 +314,14 @@ class TranscriptPageView(LinkedRows, Widget):
 
         window = self.query_ancestor(HistoryWindow)
         rows = {index: first for index, first, _lines in self._layout}
-        admitted = [index for index in self._pending if index in rows]
-        self._pending.difference_update(set(self._pending) - set(admitted))
+        ready = [index for index in self._pending if index in rows]
+        self._pending.difference_update(set(self._pending) - set(ready))
         # On screen, style the rows nearest the reader first. An off-screen
         # page (prepared ahead) has no reader row; its order does not matter.
         if (offset := HistoryAnchor._placed_offset(self, window)) is not None:
             reader = window.scroll_y - offset
-            admitted.sort(key=lambda index: abs(rows[index] - reader))
-        return admitted[:self.RENDER_BATCH]
+            ready.sort(key=lambda index: abs(rows[index] - reader))
+        return ready[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
         renderer = self.app.render_processes
@@ -347,7 +347,7 @@ class TranscriptPageView(LinkedRows, Widget):
             theme = self.app.colours.line_theme
             for index, lines in ready:
                 self.fragments[index].hold_lines(theme, lines)
-            self.admission_changed()
+            self.range_changed()
 
     def retain_sources(self) -> None:
         """Pages hold immutable fragments; nothing native to transfer."""
@@ -363,23 +363,23 @@ class TranscriptPageView(LinkedRows, Widget):
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire a page until its original source transfers native custody."""
         view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest)
-        view.prepared.select_admission(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
+        view.prepared.set_fragment_range(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
         view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
         with ExitStack() as acquisition:
             acquisition.callback(owner.remove_children, (view,))
             await owner.mount(view, before=before)
             if not current():
-                raise _PublicationRetired
+                raise _DrawingStopped
             yield view
             acquisition.pop_all()
 
-    def capture_admission(self) -> TranscriptPageAdmission:
-        return self.prepared.capture_admission()
+    def capture_range(self) -> PageFragmentRange:
+        return self.prepared.capture_range()
 
     def set_categories(self, selected: frozenset[type[MessageCategory]]) -> None:
         self.visible_categories = selected
-        self.admission_changed()
+        self.range_changed()
 
     async def prepare_adjacent(self, preparation, demand, count: int, keep_going) -> None:
         """Warm unadmitted fragments beside this page's admission."""
@@ -432,10 +432,10 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, page.after
         self.budget = budget or PresentationBudget(
-            max_items=self.MAX_FRAGMENTS, admission_items=PreparedTranscriptPage.BATCH,
+            max_items=self.MAX_FRAGMENTS, batch_items=PreparedTranscriptPage.BATCH,
         )
         self.pages = deque([self.page_view(
-            page, fragments=fragments, prepared=prepared, batch_size=self.budget.admission_items,
+            page, fragments=fragments, prepared=prepared, batch_size=self.budget.batch_items,
         )])
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
@@ -460,10 +460,10 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         todo = [fragment for fragment in fragments
                 if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
         renderer = self.app.render_processes
-        for first in range(0, len(todo), self.budget.admission_items):
+        for first in range(0, len(todo), self.budget.batch_items):
             if not current():
                 return
-            batch = todo[first:first + self.budget.admission_items]
+            batch = todo[first:first + self.budget.batch_items]
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
                 TranscriptLinesRenderTask(fragment.line_blocks, width, theme)
                 for fragment in batch)))
@@ -480,12 +480,12 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         if (projection := self.filter.state.overlay) is not None:
             await projection.prepare_body(current)
         for page in self.pages:
-            await self.prepare_fragments(page.admitted_fragments,
+            await self.prepare_fragments(page.fragments_in_range,
                                          current, selected=selected)
 
     @property
-    def admitted_fragments(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for page in self.pages for fragment in page.admitted_fragments)
+    def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for page in self.pages for fragment in page.fragments_in_range)
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
@@ -578,22 +578,22 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
     def paging_window(self):
         # Source progress observes admission; only an actual reader capture
         # takes custody of the native producers' resolved acquisitions.
-        return self.through, tuple(page.capture_admission() for page in self.pages)
+        return self.through, tuple(page.capture_range() for page in self.pages)
 
-    def capture_reader_admissions(self) -> tuple[TranscriptPageAdmission, ...]:
+    def capture_reader_ranges(self) -> tuple[PageFragmentRange, ...]:
         """Retain the original source ranges that a returning reader needs."""
         for page in self.pages:
             page.retain_sources()
-        return tuple(page.prepared.capture_admission() for page in self.pages)
+        return tuple(page.prepared.capture_range() for page in self.pages)
 
-    def restore_reader_admissions(self, admissions) -> None:
+    def set_reader_ranges(self, ranges) -> None:
         for page in self.pages:
-            for admission in admissions:
-                page.prepared.restore_admission(admission)
+            for page_range in ranges:
+                page.prepared.restore_range(page_range)
         if (projection := self.filter.state.overlay) is not None:
-            projection.restore_reader_admissions(admissions)
+            projection.set_reader_ranges(ranges)
 
-    async def restore_reader_ranges(self, admissions, current: Callable[[], bool]) -> bool:
+    async def restore_reader_ranges(self, ranges, current: Callable[[], bool]) -> bool:
         """A retained native view admits the same source suppliers before paint.
 
         Parked reconstruction sets source demand before composition. A live
@@ -601,22 +601,22 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         transaction to join new membership before evaluating reader placement.
         """
         for page in self.pages:
-            for admission in admissions:
-                if admission.page() is not page.prepared:
+            for page_range in ranges:
+                if page_range.page() is not page.prepared:
                     continue
                 if not current():
                     return False
-                if (page.start == admission.start and page.stop == admission.stop
-                        and len(page.admitted_fragments) == len(admission.members)
+                if (page.start == page_range.start and page.stop == page_range.stop
+                        and len(page.fragments_in_range) == len(page_range.members)
                         and all(fragment is member for fragment, member in
-                                zip(page.admitted_fragments, admission.members))):
+                                zip(page.fragments_in_range, page_range.members))):
                     continue
-                await self.prepare_fragments(admission.members, current)
-                if not await page.select_range(slice(admission.start, admission.stop), current,
-                                               suppliers=admission.members):
+                await self.prepare_fragments(page_range.members, current)
+                if not await page.select_range(slice(page_range.start, page_range.stop), current,
+                                               suppliers=page_range.members):
                     return False
         if (projection := self.filter.state.overlay) is not None:
-            if not await projection.restore_reader_ranges(admissions, current):
+            if not await projection.restore_reader_ranges(ranges, current):
                 return False
         if not current():
             return False
@@ -626,9 +626,9 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
     def projection_changed(self) -> None:
         self.filter.changed()
 
-    def _require_publication(self) -> None:
-        if not self.state.accepts_publication:
-            raise _PublicationRetired
+    def _require_can_draw(self) -> None:
+        if not self.state.can_draw:
+            raise _DrawingStopped
 
     def invalidate_projection(self) -> None:
         self._generation += 1
@@ -671,7 +671,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
 
     @property
     def retained_source_bytes(self) -> int:
-        return sum(fragment.retained_bytes for fragment in self.admitted_fragments)
+        return sum(fragment.retained_bytes for fragment in self.fragments_in_range)
 
     def compose(self) -> ComposeResult:
         yield self.older
@@ -740,7 +740,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         return sum(page.line_count for page in pages), sum(page.stop - page.start for page in pages)
 
     def prepare_scroll(self) -> None:
-        if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
+        if (self.loader is None or not self.is_mounted or not self.state.can_draw or not self.screen.is_current
                 or not self.selected_categories):
             return
         reader = self._reader()
@@ -757,12 +757,12 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         # transport rounds and storage independently of native admission.
         fragments_per_page = max(1, min(len(page.fragments) for page in pages))
         rounds = max(1, (count + fragments_per_page - 1) // fragments_per_page)
-        admissions = tuple(page.capture_admission() for page in pages)
-        self.request_lookahead((reader, edges, rounds, count, demand, pages, admissions,
+        ranges = tuple(page.capture_range() for page in pages)
+        self.request_lookahead((reader, edges, rounds, count, demand, pages, ranges,
                                 self.source_snapshot()))
 
     async def prepare_lookahead(self, intent) -> None:
-        reader, edges, rounds, count, demand, pages, admissions, snapshot = intent
+        reader, edges, rounds, count, demand, pages, ranges, snapshot = intent
         current = partial(self.lookahead_current, intent)
         for page in pages:
             await page.prepare_adjacent(self, demand, count, current)
@@ -772,11 +772,11 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
             )
 
     def lookahead_current(self, intent) -> bool:
-        reader, _edges, _rounds, _count, demand, pages, admissions, snapshot = intent
+        reader, _edges, _rounds, _count, demand, pages, ranges, snapshot = intent
         return (snapshot.current(self)
                 and snapshot.window.lookahead.accepts(demand)
-                and all(page.capture_admission() == admission
-                        for page, admission in zip(pages, admissions)))
+                and all(page.capture_range() == page_range
+                        for page, page_range in zip(pages, ranges)))
 
     def _check_edges(self) -> None:
         if (not self.checkpoint_available
@@ -828,7 +828,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
     async def _publish_latest(self, request: LatestViewportRequest) -> bool:
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
-        destination_admission = window.lookahead.admission(self.budget, window.outer_size.height)
+        destination_batch = window.lookahead.destination_batch(self.budget, window.outer_size.height)
         view = self.pages[-1]
         if loader is None or view.page.after == self.through:
             # The original source already supplies the newest cut. End moves
@@ -837,7 +837,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         else:
             prepared = await self._reader().get(PageRequest(before=self.through))
         page, fragments = prepared.page, prepared.fragments
-        selected = PreparedTranscriptPage.initial_slice(fragments, destination_admission, True)
+        selected = PreparedTranscriptPage.initial_slice(fragments, destination_batch, True)
         await self.prepare_fragments(
             fragments[selected],
             lambda: snapshot.current(self) and request.current(window),
@@ -850,7 +850,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         if prepared is view.prepared:
             # End changes the original admission, without locking the window
             # around pending body writers or replacing their paint resources.
-            view.batch_size = destination_admission
+            view.batch_size = destination_batch
             if not await view.select_range(
                 selected, lambda: snapshot.current(self) and request.current(window),
             ):
@@ -865,12 +865,12 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                 else:
                     try:
                         async with self.page_view.acquire(
-                            self, page, fragments=fragments, batch_size=destination_admission,
+                            self, page, fragments=fragments, batch_size=destination_batch,
                             prepared=prepared,
                             before=self.newer, current=lambda: snapshot.current(self) and request.current(window),
                         ) as view:
                             self.pages = deque([view])
-                    except _PublicationRetired:
+                    except _DrawingStopped:
                         return False
                 self.remove_children(tuple(retired for retired in previous if retired is not view))
                 self._update_edges()
@@ -881,7 +881,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
         edge = self.pages[0] if older else self.pages[-1]
-        admission = edge.capture_admission()
+        page_range = edge.capture_range()
         try:
             local = edge.start > 0 if older else edge.stop < len(edge.fragments)
             page = None
@@ -896,7 +896,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                     ))
                 page, fragments = prepared.page, prepared.fragments
             selected = (edge.prepared.extension_slice(older) if local
-                        else PreparedTranscriptPage.initial_slice(fragments, self.budget.admission_items, older))
+                        else PreparedTranscriptPage.initial_slice(fragments, self.budget.batch_items, older))
             await self.prepare_fragments(
                 (edge.fragments if local else fragments)[selected], lambda: snapshot.current(self),
             )
@@ -905,7 +905,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                     return
                 if (self.pages[0] if older else self.pages[-1]) is not edge:
                     return
-                if edge.capture_admission() != admission:
+                if edge.capture_range() != page_range:
                     return
                 # Source admission survives reader movement. Keep the reader's
                 # row and the visible fragments, chosen after preparation.
@@ -913,11 +913,11 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                 protected = {id(fragment) for fragment in self.visible_fragments()}
                 async with self.window.preserve_history(None, root=self, position=position):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
-                    self._require_publication()
-        except _PublicationRetired:
+                    self._require_can_draw()
+        except _DrawingStopped:
             return
         finally:
-            if self.state.accepts_publication:
+            if self.state.can_draw:
                 self.window.check_follow()
 
     async def _extend_and_trim(
@@ -937,26 +937,26 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
             snapshot = self.source_snapshot()
             protected_pages: set[TranscriptPageView] = set()
             if local:
-                previous = {id(fragment) for fragment in edge.admitted_fragments}
+                previous = {id(fragment) for fragment in edge.fragments_in_range}
                 if not await edge.prepared.extend(edge, older, lambda: snapshot.current(self)):
-                    raise _PublicationRetired
-                self._require_publication()
-                protected.update(id(fragment) for fragment in edge.admitted_fragments
+                    raise _DrawingStopped
+                self._require_can_draw()
+                protected.update(id(fragment) for fragment in edge.fragments_in_range
                                  if id(fragment) not in previous)
             elif page is not None:
                 assert fragments is not None
-                admission = edge.capture_admission()
+                page_range = edge.capture_range()
                 async with self.page_view.acquire(
-                    self, page, newest=older, fragments=fragments, batch_size=self.budget.admission_items,
+                    self, page, newest=older, fragments=fragments, batch_size=self.budget.batch_items,
                     prepared=prepared,
                     before=edge if older else self.newer,
-                    current=lambda: snapshot.current(self) and edge.capture_admission() == admission,
+                    current=lambda: snapshot.current(self) and edge.capture_range() == page_range,
                 ) as view:
                     if older:
                         self.pages.appendleft(view)
                     else:
                         self.pages.append(view)
-                protected.update(id(fragment) for fragment in view.admitted_fragments)
+                protected.update(id(fragment) for fragment in view.fragments_in_range)
                 protected_pages.add(view)
                 await self._page_added(page, fragments)
             self._fragment_budget = limit = max(
@@ -974,7 +974,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
                     candidate = self.pages[0] if side else self.pages[-1]
                     if candidate in protected_pages:
                         continue
-                    members = list(candidate.admitted_fragments)
+                    members = list(candidate.fragments_in_range)
                     if not side:
                         members.reverse()
                     available = 0
@@ -1026,15 +1026,15 @@ class TranscriptHistory(LineHistory, CommittedHistory):
             page.retain_sources()
         pages = tuple(page.prepared for page in self.pages)
         position = self.window.pending_reader_position
-        await source.runtime.run_thread(source.measure_admission, pages, projected,
-                                        () if position is None else position.admissions)
+        await source.runtime.run_thread(source.measure_held, pages, projected,
+                                        () if position is None else position.ranges)
         source.park(pages, projected)
         return source
 
     @classmethod
     def from_source(cls, source: PreparedPageSource) -> TranscriptHistory:
         """Rebuild a parked history from its pages; it covers no live blocks until it resumes."""
-        pages = source.admitted
+        pages = source.held_pages
         if not pages or source.closed:
             raise ValueError("No retained transcript admission")
         history = cls(pages[0].page, source.loader, prepared=pages[0])
@@ -1042,7 +1042,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
         history._page_buffer = source
         history._source_state = ParkedSourceTranscript(LiveTranscript())
         history.pages.extend(TranscriptPageView(
-            page.page, prepared=page, batch_size=history.budget.admission_items,
+            page.page, prepared=page, batch_size=history.budget.batch_items,
         ) for page in pages[1:])
         projected = source.projection_source
         if projected is not None:
@@ -1054,7 +1054,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
         if self._page_buffer is not None:
-            self._page_buffer.release_admission()
+            self._page_buffer.release_held()
         if (projection := self.filter.state.overlay) is not None:
             projection.acquire_document()
 
@@ -1122,7 +1122,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
     async def _advance_committed(self, is_current: Callable[[], bool]) -> bool:
         while self.has_newer:
-            if not is_current() or not self.state.accepts_publication:
+            if not is_current() or not self.state.can_draw:
                 return False
             edge = self.pages[-1]
             previous = edge.page.after, edge.stop
@@ -1150,19 +1150,19 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         # Finish the container's native mount before awaiting row admission.
         # A slow/held row batch must not strand the page's own message pump in
         # Compose, where input-settlement barriers would wait on its startup.
-        if not source.admitted:
+        if not source.held_pages:
             page = self.pages[0]
-            page.prepared.select_admission(slice(page.start, page.start))
+            page.prepared.set_fragment_range(slice(page.start, page.start))
         self.add_class("filtered-history-results")
 
     @classmethod
     def from_source(cls, source: ProjectedTranscriptSource, *, owner: TranscriptHistory):
-        if not source.admitted or source.closed:
+        if not source.held_pages or source.closed:
             raise ValueError("No retained projected admission")
-        history = cls(owner, source, source.admitted[0])
+        history = cls(owner, source, source.held_pages[0])
         history.pages.extend(TranscriptPageView(
-            page.page, prepared=page, batch_size=owner.budget.admission_items,
-        ) for page in source.admitted[1:])
+            page.page, prepared=page, batch_size=owner.budget.batch_items,
+        ) for page in source.held_pages[1:])
         history._source_state = ParkedSourceTranscript(LiveTranscript())
         return history
 
@@ -1186,15 +1186,15 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         if self.older_page_available:
             await self.reserve_source_work().execute(self, partial(self._load_page, True))
 
-    async def admit_initial(self) -> None:
-        await self._source_state.execute(self, self._admit_initial)
+    async def draw_initial(self) -> None:
+        await self._source_state.execute(self, self._draw_initial)
 
-    async def _admit_initial(self) -> None:
-        self._require_publication()
+    async def _draw_initial(self) -> None:
+        self._require_can_draw()
         snapshot = self.source_snapshot()
         if not await self.pages[0].prepared.extend(self.pages[0], False, lambda: snapshot.current(self)):
-            raise _PublicationRetired
-        self._require_publication()
+            raise _DrawingStopped
+        self._require_can_draw()
         self._update_edges()
 
     @property

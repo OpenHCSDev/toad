@@ -17,13 +17,13 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 
 def test_an_invalid_presentation_budget_is_refused():
-    for field, value in (("max_items", 0), ("admission_items", -1), ("reserve_batches", True), ("widgets_per_row", -1)):
+    for field, value in (("max_items", 0), ("batch_items", -1), ("reserve_batches", True), ("widgets_per_row", -1)):
         with pytest.raises(ValueError):
             PresentationBudget(**{field: value})
 
 
 def shown_texts(projection):
-    return [fragment.events[0].text for fragment in projection.admitted_fragments]
+    return [fragment.events[0].text for fragment in projection.fragments_in_range]
 
 
 @pytest.mark.parametrize("count,matches", [(80, True), (800, True), (8000, True), (8000, False)])
@@ -45,7 +45,7 @@ async def test_projection_scans_older_history_within_bounds_and_revisits_every_m
     async with workspace.app(size=(100, 26)) as ui:
         view = ui.conversation
         view.visible_categories = all_categories()
-        budget = PresentationBudget(max_items=6, admission_items=2, reserve_batches=0)
+        budget = PresentationBudget(max_items=6, batch_items=2, reserve_batches=0)
         canonical = await load()
         history = TranscriptHistory(canonical, load, budget=budget)
         seen, returned = set(), set()
@@ -66,7 +66,7 @@ async def test_projection_scans_older_history_within_bounds_and_revisits_every_m
                 seen.update(shown_texts(overlay))
                 # Each fixture row occupies at least one line. The viewport can protect its rows,
                 # partially clipped ends and one new batch.
-                bound = budget.item_limit(view.window.size.height + 2 + budget.admission_items)
+                bound = budget.item_limit(view.window.size.height + 2 + budget.batch_items)
                 assert overlay.fragment_count <= bound, (count, overlay.fragment_count, bound)
                 assert len(overlay.pages) <= bound, (count, len(overlay.pages), bound)
                 assert history.pages[0].page is canonical

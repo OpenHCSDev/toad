@@ -98,7 +98,7 @@ async def test_cancelling_after_acceptance_still_finishes_retiring_the_old_histo
                 await asyncio.wait_for(entered.wait(), 5)
                 accepted = next(h for h in view.window.histories if h is not old)
                 assert accepted.is_attached and accepted.state.reports_coverage
-                assert not old.state.accepts_publication
+                assert not old.state.can_draw
                 task.cancel()
                 await ui.step(0.05)
                 assert accepted.is_attached and accepted in view.window.histories

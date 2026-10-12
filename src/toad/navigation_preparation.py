@@ -57,7 +57,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         return CommsNavigation(
             CommsViewKey(str(root), self.owner_mode, me, self.kind, target),
             recovery_root,
-            self.kind.admitted_threads(comms.registry.snapshot(), me, target),
+            self.kind.threads_needed(comms.registry.snapshot(), me, target),
         )
 
 

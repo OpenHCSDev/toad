@@ -43,10 +43,10 @@ async def test_late_older_page_from_a_previous_filter_is_not_shown(workspace):
 
             def thinking_shown():
                 return pager.filter.overlay is not None and any(
-                    fragment.events[0].text == "OLDER_THINKING" for fragment in pager.filter.overlay.admitted_fragments)
+                    fragment.events[0].text == "OLDER_THINKING" for fragment in pager.filter.overlay.fragments_in_range)
 
             await ui.until(thinking_shown, seconds=8, why="the selected thinking page in older history")
-            assert all(fragment.events[0].text != "OLD_INBOUND" for fragment in pager.filter.overlay.admitted_fragments)
+            assert all(fragment.events[0].text != "OLD_INBOUND" for fragment in pager.filter.overlay.fragments_in_range)
             assert len(calls) <= 2 and view.window.follows_tail is False
         finally:
             release.set()

@@ -16,15 +16,15 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
     page = workspace.comms.transcripts.thread_transcript_page("source")
     history = TranscriptHistory(page, committed=False)
     assert isinstance(history.state, DetachedTranscript)
-    assert not history.state.accepts_publication
+    assert not history.state.can_draw
     async with workspace.app() as ui:
         await ui.conversation.post(history)
         await ui.until(lambda: history.is_mounted, why="the history mounted")
         assert isinstance(history.state, ProvisionalTranscript)
-        assert not history.state.accepts_publication
+        assert not history.state.can_draw
         history.publish_committed()
         assert isinstance(history.state, LiveTranscript)
-        assert history.state.accepts_publication
+        assert history.state.can_draw
         assert history.state.reports_coverage
         assert history.checkpoint_available
 
@@ -38,7 +38,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         operation = history.reserve_source_work()
         operation.schedule(history, pending_source_read)
         await entered.wait()
-        assert history.state.accepts_publication
+        assert history.state.can_draw
         assert history.state.reports_coverage
         assert not history.state.accepts_source_work
         assert not history.checkpoint_available
@@ -46,7 +46,7 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         # A parked tab cancels its running operation and the pending End.
         # Resuming accepts work on the same source, never a dead worker.
         await history.retire_source(parked=True)
-        assert not history.state.accepts_publication
+        assert not history.state.can_draw
         history.resume_source()
         await ui.until(lambda: history.state.accepts_source_work, why="source work accepted after resume")
         assert history.checkpoint_available
@@ -54,12 +54,12 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         # cannot restore the earlier live source.
         await history.retire_source()
         await ui.until(lambda: not history.state.accepts_source_work, why="source work refused after retirement")
-        assert not history.state.accepts_publication
+        assert not history.state.can_draw
         assert not history.state.reports_coverage
         # remove() marks the node before its Prune message is processed; publication is refused in between.
         removal = history.remove()
-        assert not history.state.accepts_publication
+        assert not history.state.can_draw
         await removal
         await ui.until(lambda: not history.is_attached, why="the history removed")
-        assert not history.state.accepts_publication
+        assert not history.state.can_draw
     assert "Retain the source" in source.read_text()

@@ -34,7 +34,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
         task = asyncio.create_task(history._load_page(True))
         try:
             await asyncio.wait_for(entered.wait(), 5)
-            pages, fragments = tuple(history.pages), history.admitted_fragments
+            pages, fragments = tuple(history.pages), history.fragments_in_range
             if cause == "revision":
                 history.invalidate_projection()
             elif cause == "edge":
@@ -42,7 +42,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
                 async with view.window.history_lock:
                     async with view.window.preserve_history(edge):
                         edge.prepared.trim(edge, 1, older=True)
-                fragments = history.admitted_fragments
+                fragments = history.fragments_in_range
             elif cause == "parked":
                 await history.retire_source(parked=True)
             elif cause == "loader":
@@ -58,7 +58,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
                 assert len(history.pages) > len(pages)
             else:
                 assert tuple(history.pages) == pages
-                assert history.admitted_fragments == fragments
+                assert history.fragments_in_range == fragments
         finally:
             release.set()
             if not task.done():
