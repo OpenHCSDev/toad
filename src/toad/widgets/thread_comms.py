@@ -271,7 +271,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         """Busy rows repaint from the app's spinner clock; a shown panel refreshes on_show."""
 
     def on_show(self):
-        if not self.is_attached or self.screen is not self.app.screen:
+        if not self.is_attached or not self.screen.is_current:
             return
         # Background tabs retain their source and per-view filter state. Apply
         # the latest owner/selection once they become visible rather than doing
@@ -313,13 +313,13 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
     @handles(core_events.ThreadActionsChanged)
     async def _actions_changed(self, event: CoreEventMessage) -> None:
         """Pending actions decorate rows; they are not a relationship read."""
-        if self.is_attached and self.screen is self.app.screen:
+        if self.is_attached and self.screen.is_current:
             for group in self.groups.values():
                 group.sync_members()
 
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.CoordinationObserved)
     async def _observed(self, event: CoreEventMessage) -> None:
-        if not self.is_attached or self.screen is not self.app.screen:
+        if not self.is_attached or not self.screen.is_current:
             return
         if not self.query_ancestor(SideBar).presentation_visible:
             return
@@ -361,7 +361,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self.set_identity(*self.query_ancestor(SessionView).relationship_context())
 
     def _visible(self):
-        return (self.is_attached and self.screen is self.app.screen
+        return (self.is_attached and self.screen.is_current
                 and self in self.screen._compositor.visible_widgets
                 and not self.query_ancestor(SideBarCollapsible).collapsed)
 
@@ -503,7 +503,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         try:
             snapshot = await asyncio.to_thread(service.snapshot, owner)
             if (generation != self._generation or not self.is_attached
-                    or self.screen is not self.app.screen):
+                    or not self.screen.is_current):
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")

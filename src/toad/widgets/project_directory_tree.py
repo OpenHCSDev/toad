@@ -108,12 +108,12 @@ This shows the files in your project directory.
 
     def refresh_if_visible(self) -> None:
         if (self._directory_dirty and not self._refresh_scheduled and self.is_attached
-                and self.is_on_screen and self.screen is self.app.screen):
+                and self.is_on_screen and self.screen.is_current):
             self._refresh_scheduled = True
             self.call_after_refresh(self._begin_refresh)
 
     def _begin_refresh(self) -> None:
-        if not self.is_attached or not self.is_on_screen or self.screen is not self.app.screen:
+        if not self.is_attached or not self.is_on_screen or not self.screen.is_current:
             self._refresh_scheduled = False
             return
         self._directory_dirty = False

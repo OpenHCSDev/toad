@@ -287,7 +287,7 @@ class PathSearch(CompletionPopup):
 
     def invalidate_paths(self) -> None:
         self._paths_dirty = True
-        if self.is_on_screen and self.screen is self.app.screen:
+        if self.is_on_screen and self.screen.is_current:
             self.refresh_paths()
 
     def focus_content(self, scroll_visible: bool) -> None:

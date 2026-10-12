@@ -53,7 +53,7 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
             assert read.call_count == 0, "Collapsed right panel fetched source data"
             assert not main.query_one("#thread-sidebar", SideBar)._panels_loaded
             tree = await reveal(ui, main)
-            assert not main.query_one("#thread-comms-panel", SideBarCollapsible).collapsed
+            assert not tree.query_ancestor(SideBarCollapsible).collapsed
             assert read.call_count >= 1
         assert tree._snapshot.owner == "owner"
         assert tree.groups["parent"].model.entries[0].target == "origin"
@@ -124,7 +124,9 @@ async def test_relationship_groups_follow_core_edits_tools_sorting_and_renames(w
         comms.registry.declare(Thread("peer", frozenset(), project, created_at=old_peer.created_at + 1))
         open_item = next(item for item in app.screen.query(ContextMenuItem) if item.action == "open")
         assert await pilot.click(open_item)
-        await ui.until(lambda: not row.available, why="the replaced peer to be unavailable")
+        await ui.until(lambda: not tree.groups["collaborating"].rows["thread", "peer"].available,
+                       why="the replaced peer to be unavailable")
+        row = tree.groups["collaborating"].rows["thread", "peer"]
         assert "Unavailable" in row.render().plain
         assert "Review the sidebar" in str(row.tooltip)
         row.action_open_selected()

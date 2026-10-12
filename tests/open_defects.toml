@@ -26,14 +26,6 @@ tests = [
     "tests/app/test_channel_tab_sharing.py::test_closing_one_session_keeps_the_channel_tab_another_session_opened",
 ]
 
-[relationships-revision]
-defect = "The thread sidebar's Relationships panel never refreshes: toad/widgets/thread_comms.py asks Core for ThreadRelationships.revision(), which Core deleted as unused (agent-comms b8b5ba0ef, 2026-10-09). The refresh task raises AttributeError and the panel keeps its first content. Core should answer whether what the panel shows has changed; Toad should ask that."
-owner = "Core (agent-comms) owner for the answer, then Toad's thread_comms_source"
-tests = [
-    "tests/textual/test_sidebar_retirement.py::test_panels_restore_selection_scroll_and_plan_after_release_and_collect_the_old_widgets",
-    "tests/textual/test_thread_relationship_sidebar.py::test_relationship_groups_follow_core_edits_tools_sorting_and_renames",
-]
-
 [filter-selection-before-layout]
 defect = "Choosing a message category while the filtered history has not been laid out yet finds nothing until the user scrolls: filter.changed() checks the edges once, before the pager has geometry, and nothing checks again after layout (the comment in widgets/transcript_history.py says a layout signal does; no such subscription exists)."
 owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"

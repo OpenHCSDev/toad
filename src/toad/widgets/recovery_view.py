@@ -95,11 +95,11 @@ class RecoveryView(CoreEventReceiver, Static):
             self.action_refresh()
 
     def _after_paint_read(self) -> None:
-        if self._enabled and self.is_attached and self.screen is self.app.screen:
+        if self._enabled and self.is_attached and self.screen.is_current:
             self.call_after_refresh(self._fetch_if_visible)
 
     def _fetch_if_visible(self) -> None:
-        if (not self._enabled or not self.is_attached or self.screen is not self.app.screen
+        if (not self._enabled or not self.is_attached or not self.screen.is_current
                 or self not in self.screen._compositor.visible_widgets):
             return
         if self._wire_root is None:
@@ -118,7 +118,7 @@ class RecoveryView(CoreEventReceiver, Static):
         # Core owns the unavailable state for every transport/schema failure.
         dto = await read_gateway_projection(root / ".recovery-viewer" / "gateway.sock", thread)
         if (generation != self._generation or not self.is_attached or not self._enabled
-                or self.screen is not self.app.screen):
+                or not self.screen.is_current):
             return
         if dto.get("availability") != "available" or dto.get("owner") != thread:
             self.update(_UNAVAILABLE, layout=False)

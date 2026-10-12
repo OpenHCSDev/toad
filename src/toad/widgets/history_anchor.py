@@ -384,7 +384,7 @@ class HistoryWindow(VerticalScroll):
         return WeakSet()
 
     def hydrate_visible_tools(self, _position: float = 0) -> None:
-        if not self.pending_tool_content or self.screen is not self.app.screen:
+        if not self.pending_tool_content or not self.screen.is_current:
             return
         for tool in tuple(self.pending_tool_content):
             tool.hydrate_if_visible()
