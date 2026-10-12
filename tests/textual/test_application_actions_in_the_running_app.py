@@ -10,9 +10,8 @@ from support.applications import record_notifications
 from support.agents import peer
 from support.completion_record import completion_prompts
 from toad.application_actions import ApplicationAction, PaletteAction
-from toad.preferences import UiSettings
+from toad.preferences import SETTINGS
 from toad.screens.settings import SettingsScreen
-from toad.setting_widgets import InputEditor
 from toad.widgets.comms_sidebar import CommsSidebar, NewSessionButton
 from toad.widgets.session_tabs import SessionTabClose
 
@@ -51,12 +50,11 @@ async def running_session(workspace):
 async def open_column_width_editor(ui, app):
     await ui.press('f2')
     await ui.until(lambda: isinstance(app.screen, SettingsScreen), why="the settings screen")
-    search = app.screen.query_one('#search', Input)
-    assert await ui.textual[1].click(search)
+    assert await ui.textual[1].click(app.screen.search)
     await ui.type('Width of the column')
-    await ui.until(lambda: any(w.bound.kind is UiSettings.column_width for w in app.screen.query(InputEditor)),
+    await ui.until(lambda: app.screen.form.values["ui.column_width"].editor.is_mounted,
                    why="the column width editor")
-    width = next(w for w in app.screen.query(InputEditor) if w.bound.kind is UiSettings.column_width)
+    width = app.screen.form.values["ui.column_width"].editor
     width.scroll_visible(animate=False, immediate=True)
     await ui.step()
     assert await ui.textual[1].click(width)
@@ -133,16 +131,16 @@ async def test_a_settings_file_that_cannot_be_written_is_reported_kept_dirty_and
         original = path.read_bytes()
         path.unlink()
         path.mkdir()
-        app.settings.ui.footer = False
-        await app.settings.save()
-        assert app.settings.changed and path.is_dir()
+        app.saved_settings.set(SETTINGS.ui.footer, False)
+        await app.saved_settings.save()
+        assert app.saved_settings.unsaved and path.is_dir()
         await ui.until(lambda: any(n.title == 'Settings' and n.severity == 'error' for n in app._notifications),
                        why="the error notification")
         assert not list(config.glob('.toad.json_tmp_*'))
         path.rmdir()
         path.write_bytes(original)
-        await app.settings.save()
-        assert json.loads(path.read_text())['ui']['footer'] is False and not app.settings.changed
+        await app.saved_settings.save()
+        assert json.loads(path.read_text())['ui']['footer'] is False and not app.saved_settings.unsaved
 
 
 async def test_quitting_from_a_focused_editor_saves_it_and_the_reopened_app_replies(workspace):

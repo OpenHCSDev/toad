@@ -1,4 +1,5 @@
-from toad.preferences import SidebarSettings
+from toad.forms import field_path
+from toad.preferences import SETTINGS
 
 """Shared sorting control for model-owned channel and member ordering."""
 
@@ -150,18 +151,18 @@ class ChannelListSort(SortControl[ChannelSort]):
             order, implicit=implicit_root(),
         )
 
-    _visibility_fields = (SidebarSettings.show_stopped, SidebarSettings.show_archived)
+    _visibility_fields = (SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived)
 
     def extra_items(self) -> list[tuple[str, str]]:
+        shown = self.app.saved_settings.state.get_resolved_value
         return [
-            (field.name, ("✓ " if field.__get__(self.app.settings.sidebar) else "  ") + field.title)
+            (str(field), ("✓ " if shown(str(field)) else "  ") + field_path.label(field))
             for field in self._visibility_fields
         ]
 
     def choose_extra(self, value: str) -> None:
         for field in self._visibility_fields:
-            if field.name == value:
-                group = self.app.settings.sidebar
-                field.toggle(group)
-                self.run_worker(self.app.settings.save, group="channel-visibility")
+            if str(field) == value:
+                self.app.saved_settings.toggle(field)
+                self.run_worker(self.app.saved_settings.save, group="channel-visibility")
                 return

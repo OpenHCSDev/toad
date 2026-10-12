@@ -38,7 +38,7 @@ from toad.navigation_preparation import (
     NavigationReader,
 )
 from toad.db import DB
-from toad.preferences import ToadSettings
+from toad.preferences import SavedSettings, ToadSettings
 from toad.session_tracker import (
     OpenTab,
     SessionDetails,
@@ -278,7 +278,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
 
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
-        self.settings = ToadSettings.open(self)
+        self.saved_settings = SavedSettings.open(self)
         self.preparation = PreparationRuntime(RenderProcessPool())
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
@@ -349,6 +349,11 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
 
 
     @property
+    def settings(self) -> ToadSettings:
+        """The settings in use, to read from; `saved_settings` changes and saves them."""
+        return self.saved_settings.current
+
+    @property
     def _background_screens(self) -> list[Screen]:
         background_screens = super()._background_screens
         if self.temporary_background_screen:
@@ -378,9 +383,9 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         self._prewarm_conversation_css()
         db = await self.get_db()
         await db.create()
-        self.settings.ensure_file(self)
+        self.saved_settings.ensure_file(self)
         self.colours.start()
-        self.settings.apply_all()
+        self.saved_settings.apply_all()
 
     def _prewarm_conversation_css(self) -> None:
         """Load known conversation classes' default CSS in one parse.

@@ -73,7 +73,7 @@ class ApplicationLifetime:
 
     async def start(self) -> None:
         app = self.app
-        if app.settings.ensure_installation():
+        if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
         if self.initial_mode:
@@ -97,14 +97,11 @@ class ApplicationLifetime:
             self.app.notify("Press [b]ctrl+c[/b] again to quit the app", title="Do you want to quit?")
 
     def quit(self) -> None:
-        from toad.setting_widgets import InputEditor
-
         app = self.app
-        InputEditor.finish_focused(app.screen)
         app.screen.set_focus(None)
-        # Blur messages run on the widget queue, independently of App callbacks.
-        # The editor family commits first; the persisted tree alone permits exit.
+        # Saving first sends what the user has typed into an open settings form;
+        # the app closes only once the file holds the settings in use.
         app.call_later(self.save_and_exit)
 
     async def save_and_exit(self) -> None:
-        await self.app.settings.save_before_exit(self.app.exit)
+        await self.app.saved_settings.save_before_exit(self.app.exit)

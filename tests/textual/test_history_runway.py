@@ -5,6 +5,7 @@ visible-body readiness (history is line-drawn; there are no per-message bodies).
 """
 
 from toad.widgets.agent_response import AgentResponse
+from toad.preferences import SETTINGS
 
 
 async def long_window(ui):
@@ -22,10 +23,10 @@ async def test_buffer_viewport_setting_sets_the_lookahead_and_can_be_restored(wo
         rows = window.size.height
         assert window.lookahead.travel_rows == 0
         assert window.lookahead.ahead_rows(rows) >= window.presentation_budget.runway_rows(rows)
-        app.settings.ui.history_buffer_viewports = 1
+        app.saved_settings.set(SETTINGS.ui.history_buffer_viewports, 1)
         await ui.until(lambda: window.presentation_budget.buffer_viewports == 1, why="the setting reaching the window")
         assert window.lookahead.ahead_rows(rows) == rows
-        app.settings.ui.history_buffer_viewports = 3
+        app.saved_settings.set(SETTINGS.ui.history_buffer_viewports, 3)
         await ui.until(lambda: window.presentation_budget.buffer_viewports == 3, why="the setting restored")
         assert window.lookahead.ahead_rows(rows) == 3 * rows
 

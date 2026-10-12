@@ -10,12 +10,13 @@ from support.textual_steps import tool_status, wait_for_tool_diff
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolCallDiff
+from toad.preferences import SETTINGS
 
 
 async def test_drag_across_clipped_diff_matches_the_full_walker(workspace):
     async with workspace.app(size=(100, 35)) as ui:
         app, _ = ui.textual
-        app.settings.ui.auto_copy = False
+        app.saved_settings.set(SETTINGS.ui.auto_copy, False)
         conversation = ui.conversation
         source = await conversation.post(AgentResponse("START marker\n\nBefore the diff."))
         text = "very_long_identifier_" * 9

@@ -10,6 +10,7 @@ from support.textual_steps import coordination_update
 from toad.app import ToadApp
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.preferences import SETTINGS
 
 
 class PaintCounter(ToadApp):
@@ -70,7 +71,7 @@ async def recovery_session(workspace):
 
 
 async def enable_and_reveal(app, panel):
-    app.settings.ui.recovery_view = True
+    app.saved_settings.set(SETTINGS.ui.recovery_view, True)
     app.selected_session.query_one("#thread-sidebar", SideBar).reveal()
     panel.collapsed = False
 
@@ -116,7 +117,7 @@ async def test_turning_the_view_off_hides_it_and_a_channel_tab_reads_its_owner_t
         await app.selected_session.on_coordination_update(coordination_update(workspace.roots.wire, 'fixture'))
         await enable_and_reveal(app, panel)
         await ui.until(lambda: "Recovery: recovered" in view.render().plain, why="the first read")
-        app.settings.ui.recovery_view = False
+        app.saved_settings.set(SETTINGS.ui.recovery_view, False)
         await ui.step()
         assert not panel.display
         assert view.render().plain.startswith("Recovery unavailable")

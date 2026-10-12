@@ -3,7 +3,7 @@ from agent_comms.field_codec import FieldCodec
 from toad.core.preference_events import PreferenceChanged
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.mro_dispatch import handles
-from toad.preferences import LauncherSettings
+from toad.preferences import SETTINGS
 from contextlib import suppress
 from itertools import zip_longest
 from pathlib import Path
@@ -201,7 +201,7 @@ Your favorite agents.
         except IndexError:
             pass
         else:
-            self.app.settings.launcher.agents = "\n".join(agents)
+            self.app.saved_settings.set(SETTINGS.launcher.agents, "\n".join(agents))
 
     def action_launch(self) -> None:
         if self.highlighted is None:
@@ -520,7 +520,7 @@ class StoreScreen(CoreEventReceiver, Screen):
         from toad.screens.agent_modal import AgentModal
 
         modal_response = await self.app.push_screen_wait(AgentModal(agent))
-        await self.app.settings.save()
+        await self.app.saved_settings.save()
         if modal_response is not None:
             self.app.session_navigation.events.publish(modal_response)
 
@@ -531,7 +531,7 @@ class StoreScreen(CoreEventReceiver, Screen):
 
     @work
     async def on_mount(self) -> None:
-        self.observe_core(self.app.settings.events)
+        self.observe_core(self.app.saved_settings.events)
         try:
             self._agents = await read_agents()
         except AgentReadError as error:
@@ -548,7 +548,7 @@ class StoreScreen(CoreEventReceiver, Screen):
 
     @handles(PreferenceChanged)
     async def _preferences_changed(self, message: CoreEventMessage) -> None:
-        if message.event.field is LauncherSettings.agents:
+        if message.event.path == SETTINGS.launcher.agents:
             await self.launcher.recompose()
 
             def focus_screen():

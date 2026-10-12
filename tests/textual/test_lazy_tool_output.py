@@ -5,6 +5,7 @@ from toad.setting_choices import NeverExpansion
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall, ToolCallHeader
 from toad.widgets.tool_content import MarkdownContent
+from toad.preferences import SETTINGS
 
 TEXT = "\n\n".join(f"## Section {i}\n\nOutput paragraph {i}" for i in range(40))
 
@@ -17,7 +18,7 @@ def read_call(name, text):
 async def test_collapsed_tool_output_is_not_parsed_and_expands_on_demand(workspace):
     async with workspace.app(size=(120, 40)) as ui:
         app, _ = ui.textual
-        app.settings.tools.expand = NeverExpansion
+        app.saved_settings.set(SETTINGS.tools.expand, NeverExpansion)
         tools = [ToolCall(read_call(f"tool-{i}", TEXT)) for i in range(40)]
         await ui.conversation.contents.mount(*tools)
         await ui.step()

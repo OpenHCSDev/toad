@@ -9,7 +9,7 @@ from toad.goal_interaction import GoalSession
 from toad.widgets.message_filter import OtherCategory
 
 from toad.core.preference_events import PreferenceChanged
-from toad.preferences import ShellSettings
+from toad.preferences import SETTINGS
 
 import asyncio
 from abc import abstractmethod
@@ -1730,7 +1730,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         self.prompt.focus()
         self.update_slash_commands()
         self.call_after_refresh(self.post_welcome)
-        self.observe_core(self.app.settings.events)
+        self.observe_core(self.app.saved_settings.events)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
         self.refresh_thread_status()
@@ -1831,7 +1831,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if message.event.field is ShellSettings.allow_commands:
+        if message.event.path == SETTINGS.shell.allow_commands:
             self.input_histories.shell.complete.add_words(
                 self.app.settings.shell.allow_commands.split()
             )

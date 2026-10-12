@@ -2,7 +2,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 from toad.core.preference_events import PreferenceChanged
-from toad.preferences import SidebarSettings
+from toad.preferences import SETTINGS
 from dataclasses import dataclass
 import asyncio
 from typing import TYPE_CHECKING, ClassVar, cast
@@ -684,7 +684,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         self.trap_focus()
         app = cast("ToadApp", self.app)
         if self._navigation is None:
-            self.observe_core(app.settings.events)
+            self.observe_core(app.saved_settings.events)
             self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
         else:
             self.collapsed = self.hide
@@ -919,7 +919,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if message.event.field is SidebarSettings.hide:
+        if message.event.path == SETTINGS.sidebar.hide:
             self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
 
     @on(SideBarToggle.Pressed)
@@ -952,7 +952,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 screen.set_focus(target, scroll_visible=False)
         if self._navigation is None:
             app = cast("ToadApp", self.app)
-            app.settings.sidebar.hide = collapsed
+            app.saved_settings.set(SETTINGS.sidebar.hide, collapsed)
             # Project this input on its visible owner immediately. The shared
             # settings signal still updates other views, idempotently.
             self.collapsed = app.settings.sidebar.hide
@@ -972,7 +972,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
 
     def reveal(self) -> None:
         if self._navigation is None:
-            cast("ToadApp", self.app).settings.sidebar.hide = False
+            cast("ToadApp", self.app).saved_settings.set(SETTINGS.sidebar.hide, False)
         else:
             self.collapsed = False
 

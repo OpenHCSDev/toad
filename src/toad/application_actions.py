@@ -10,7 +10,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider
-from toad.preferences import UiSettings
+from toad.preferences import SETTINGS
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -87,7 +87,7 @@ class SettingsAction(ApplicationAction, KeyboundAction, PaletteAction):
     async def edit(self, app: ToadApp) -> None:
         from toad.screens.settings import SettingsScreen
         await app.push_screen_wait(SettingsScreen())
-        await app.settings.save()
+        await app.saved_settings.save()
 
 
 class SetFooterAction(ApplicationAction):
@@ -102,8 +102,8 @@ class SetFooterAction(ApplicationAction):
         raise ValueError("set_footer requires one boolean")
 
     async def apply(self, app: ToadApp) -> None:
-        app.settings.ui.footer = self.visible
-        await app.settings.save()
+        app.saved_settings.set(SETTINGS.ui.footer, self.visible)
+        await app.saved_settings.save()
         app.notify("Footer shortcut bar shown" if self.visible else "Footer shortcut bar hidden",
                    title="Interface")
 
@@ -115,8 +115,7 @@ class ToggleFooterAction(ApplicationAction, PaletteAction):
         return "Hide footer shortcut bar" if app.settings.ui.footer else "Show footer shortcut bar"
 
     async def apply(self, app: ToadApp) -> None:
-        UiSettings.footer.toggle(app.settings.ui)
-        await SetFooterAction(app.settings.ui.footer).apply(app)
+        await SetFooterAction(not app.settings.ui.footer).apply(app)
 
 
 class QuitAction(ApplicationAction, KeyboundAction, PaletteAction):

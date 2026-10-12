@@ -1,13 +1,13 @@
-"""Preference observations identify the original declaration, not another value."""
+"""A setting changed: which one, named through its declaration."""
 
 from dataclasses import dataclass
 
-from toad.settings import SettingKind
+from toad.forms.field_path import FieldPath
 from .events import CoreEvent
 
 
 @dataclass(frozen=True)
 class PreferenceChanged(CoreEvent):
-    """Read this original setting again after its owned effect was applied."""
+    """Read this setting again; what the app does on the change has been done."""
 
-    field: SettingKind
+    path: FieldPath

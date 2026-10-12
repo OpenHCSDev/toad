@@ -16,6 +16,7 @@ from toad.agent_schema import AgentDefinition, OS
 from toad.catalog_actions import CatalogCommandAction, LaunchAction
 from toad.core.session_requests import LaunchAgent
 from toad.app import ToadApp
+from toad.preferences import SETTINGS
 
 
 class DescriptionContainer(containers.VerticalScroll):
@@ -87,7 +88,7 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
             launcher_agents.remove(agent_identity)
         if event.value:
             launcher_agents.insert(0, agent_identity)
-        self.app.settings.launcher.agents = "\n".join(launcher_agents)
+        self.app.saved_settings.set(SETTINGS.launcher.agents, "\n".join(launcher_agents))
 
     @on(widgets.Select.Changed)
     def on_select_changed(self, event: widgets.Select.Changed) -> None:

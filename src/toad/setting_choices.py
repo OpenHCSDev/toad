@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
+from python_introspect import AnnotationChoices
 
 
 class Choice(ABC):
@@ -16,6 +18,28 @@ class Choice(ABC):
         return (
             cls.title or cls.declared_name.replace("-", " ").replace("_", " ").title()
         )
+
+
+@dataclass(frozen=True)
+class FamilyChoices(AnnotationChoices):
+    """A setting holding one member of a choice family: `Annotated[type[F], FamilyChoices(F)]`."""
+
+    family: type[DeclaredFamily]
+
+    def choices(self) -> tuple[object, ...]:
+        return tuple(self.family.members_with(self.family))
+
+    def label(self, choice: object) -> str:
+        return choice.label()  # type: ignore[attr-defined]
+
+
+@dataclass(frozen=True)
+class SchemeName:
+    """A setting holding a colour scheme's name: `Annotated[str, SchemeName()]`.
+
+    Any name can be stored; which schemes exist is known to the running app,
+    which offers them in the form and reports a stored one it does not have.
+    """
 
 
 class Expansion(Choice, DeclaredFamily, affix="Expansion"):

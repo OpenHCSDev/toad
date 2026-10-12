@@ -7,6 +7,7 @@ from support.catalog_steps import choose_action, open_agent
 from support.native import native_session
 from toad.screens.agent_modal import AgentModal
 from toad.screens.store import AgentItem, LauncherGridSelect, LauncherItem, StoreScreen
+from toad.preferences import SETTINGS
 
 
 async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(workspace, native_package):
@@ -44,7 +45,7 @@ async def test_store_launch_starts_a_session_and_leaves_the_open_one_alone(works
             modal = app.screen
             assert ui.shows("requires an ACP adapter")
             assert modal.agent is store.agents[IDENTITY]
-            app.settings.launcher.agents = IDENTITY  # as a successful install records it
+            app.saved_settings.set(SETTINGS.launcher.agents, IDENTITY)  # as a successful install records it
             await choose_action(ui, modal, None)
             await ui.until(lambda: ui.selected_tab not in {first_tab, "store"}, seconds=20, why="the launched session's tab")
             launched = ui.conversation

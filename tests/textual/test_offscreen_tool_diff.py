@@ -6,6 +6,7 @@ from support.textual_steps import tool_status, wait_for_tool_diff
 from toad.setting_choices import AlwaysExpansion
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.tool_content import ToolCallDiff
+from toad.preferences import SETTINGS
 
 PATCH = "--- first.py\n+++ first.py\n@@ -1,2 +1,2 @@\n context\n-old\n+new\n"
 
@@ -13,7 +14,7 @@ PATCH = "--- first.py\n+++ first.py\n@@ -1,2 +1,2 @@\n context\n-old\n+new\n"
 async def test_diff_of_an_offscreen_auto_expanded_tool_mounts_when_scrolled_into_view(workspace):
     async with workspace.app(size=(100, 35)) as ui:
         app, _ = ui.textual
-        app.settings.tools.expand = AlwaysExpansion
+        app.saved_settings.set(SETTINGS.tools.expand, AlwaysExpansion)
         tools = [ToolCall(tool_status({
             "toolCallId": f"edit-{index}", "title": f"Edit file {index}", "kind": "edit", "status": "completed",
             "content": tool_result_content(f"edit-{index}", "done", ToolDiff(PATCH))})) for index in range(28)]
