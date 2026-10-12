@@ -74,3 +74,9 @@ def test_tests_take_outside_requirements_from_fixtures():
                 for decorator in node.decorator_list:
                     assert "mark.skip" not in ast.unparse(decorator) and "mark.xfail" not in ast.unparse(decorator), (
                         f"{path.name}:{node.name} is skipped by decoration; a skip must name a requirement")
+
+
+def test_test_file_names_are_unique_across_layers():
+    """Test modules are imported by basename, so two layers cannot share one."""
+    names = [path.name for path in sorted(TESTS.rglob("test_*.py"))]
+    assert not {name for name in names if names.count(name) > 1}

@@ -110,3 +110,11 @@ intermittent = true
 tests = [
     "tests/textual/test_reflow_is_not_reader_travel.py::test_trim_and_resize_reflow_are_not_travel_samples_but_a_key_is",
 ]
+
+[tool-diff-after-modal]
+defect = "A tool call that expanded itself and was mounted while a modal screen covered the conversation sometimes never shows its diff after the modal closes (about one run in three under load): its output is not prepared again when it becomes visible."
+owner = "unassigned: Toad tool output (tool_output.py, widgets/tool_call.py)"
+intermittent = true
+tests = [
+    "tests/textual/test_tool_diff_lifecycle.py::test_remounting_an_auto_expanded_tool_while_hidden_registers_its_output_again",
+]

@@ -46,7 +46,7 @@ def test_two_sidebars_on_one_side_swap_inward_then_cross(side):
 
 
 @pytest.mark.parametrize(
-    "side, width, hide_left, hide_right", product(("left", "right"), (76, 120), (False, True), (False, True)))
+    "side, width, hide_left, hide_right", list(product(("left", "right"), (76, 120), (False, True), (False, True))))
 def test_float_keeps_order_and_swap_keeps_widths(side, width, hide_left, hide_right):
     pair = SidebarLayout()
     pair.move("channels-sidebar", side)
