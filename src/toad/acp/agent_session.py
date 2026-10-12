@@ -22,6 +22,9 @@ PROTOCOL_VERSION = 1
 
 class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     accepts_updates = False
+    # Whether the agent process may hold this session, so that leaving a
+    # shared process has to ask it to close the session.
+    held_by_agent = True
 
     def close(self, agent):
         return self
@@ -37,6 +40,12 @@ class ActiveSessionDisposition(SessionDisposition):
 
 class ClosedSessionDisposition(SessionDisposition):
     pass
+
+
+class RefusedSessionDisposition(SessionDisposition):
+    """The agent process answered the handshake with an error; it holds no session."""
+
+    held_by_agent = False
 
 
 class AgentSession:
@@ -194,6 +203,7 @@ class AgentSession:
                 failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
                                   input_state=NotSentInput)
                 self.session_failed(failure)
+                self.disposition = RefusedSessionDisposition()
                 return
         self.settled.set()
         self.agent.events.publish(AgentReady(reconnected=self.reconnecting))

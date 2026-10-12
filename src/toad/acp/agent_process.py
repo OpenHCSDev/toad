@@ -145,9 +145,11 @@ class AgentProcess:
             if session not in self.sessions:
                 return
             try:
-                if self.retirement is None and len(self.sessions) > 1:
+                if (self.retirement is None and len(self.sessions) > 1
+                        and session.disposition.held_by_agent):
                     # Only advertised scoped-close transports acquire multiple
                     # members. Revoke locally first, then join remote retirement.
+                    # A session the agent refused has nothing there to close.
                     with session.agent.request():
                         response = api.session_close(session.agent.session_id)
                     task = asyncio.create_task(response.wait())

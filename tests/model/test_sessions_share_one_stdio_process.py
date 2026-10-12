@@ -1,4 +1,4 @@
-"""Sessions attached to one stdio agent process share its connection; closing one session leaves the others and the process running."""
+"""Sessions attached to one stdio agent process share its connection; closing one session, or one the agent refused, leaves the others and the process running."""
 import asyncio
 
 import pytest
@@ -95,3 +95,31 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
         await asyncio.gather(*permissions, return_exceptions=True)
     assert shared is not None and shared.process is None and not shared.sessions
     assert not shared.custody._exit_callbacks
+
+
+async def test_stopping_a_session_the_agent_refused_leaves_the_shared_process(attachment_scope):
+    project, definition, comms = attachment_scope
+    alpha, refused = Agent(project, definition, 'alpha'), Agent(project, definition, 'never-declared')
+    shared = None
+    try:
+        async with threads_owned_here(comms, project):
+            await alpha.start()
+            async with asyncio.timeout(10):
+                await alpha.session.settled.wait()
+            assert alpha.ready
+            shared = alpha.process
+            await refused.start((shared,))
+            async with asyncio.timeout(10):
+                await refused.session.settled.wait()
+            assert not refused.ready and refused.process is shared
+            assert shared.sessions == {alpha.session, refused.session}
+
+            # The agent holds no session for it, so there is nothing to ask it to close.
+            await refused.stop()
+
+            assert alpha.ready and shared.sessions == {alpha.session}
+            assert shared.runner is not None and not shared.runner.done()
+    finally:
+        for agent in (alpha, refused):
+            await agent.stop()
+    assert shared is not None and shared.process is None and not shared.sessions
