@@ -80,3 +80,15 @@ def test_test_file_names_are_unique_across_layers():
     """Test modules are imported by basename, so two layers cannot share one."""
     names = [path.name for path in sorted(TESTS.rglob("test_*.py"))]
     assert not {name for name in names if names.count(name) > 1}
+
+
+def test_every_file_under_tests_is_a_test_or_support():
+    """Nothing sits in tests/ uncollected: a file is a test module, the conftest, or part of support."""
+    stray = [str(path.relative_to(TESTS)) for path in sorted(TESTS.rglob("*.py"))
+             if "support" not in path.relative_to(TESTS).parts
+             and path.name != "conftest.py" and not path.name.startswith("test_")]
+    assert not stray, stray
+
+
+def test_tests_live_in_a_layer_directory():
+    assert not sorted(path.name for path in TESTS.glob("test_*.py"))

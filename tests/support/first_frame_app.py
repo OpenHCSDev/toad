@@ -51,7 +51,7 @@ class FrameApp(ToadApp):
 
 
 if __name__ == "__main__":
-    peer = Path(__file__).parents[1] / "acp_first_frame_server.py"
+    peer = Path(__file__).with_name("peers") / "first_frame.py"
     app = FrameApp(project_dir=sys.argv[1], agent_data=AgentDefinition.decode({
         "name": "Physical frame peer", "identity": "frame-acceptance",
         "short_name": "Frame", "protocol": "acp",
