@@ -86,6 +86,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         return self.wire_root
 
     @property
+    def origin(self):
+        return self.app.workspace_sessions.origin(self.owner_mode)
+
+    @property
     def navigation_target_name(self) -> str:
         return self.target
 
@@ -269,10 +273,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         await self.open_sidebar_target(event.event.target)
 
     async def action_back_to_agent(self) -> None:
-        if self.app.session_tracker.get_session(self.owner_mode) is None:
-            await self.app.select_session("store")
-        else:
-            await self.app.select_session(self.owner_mode)
+        await self.app.session_navigation.return_from(self.id)
 
     async def action_toggle_irc(self) -> None:
         await self.kind.toggle_irc(self)

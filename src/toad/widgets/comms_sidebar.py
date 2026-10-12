@@ -335,7 +335,7 @@ class NewSessionButton(Static):
             self.action_create()
 
     def _sidebar(self):
-        return next((node for node in self.walk_ancestors() if isinstance(node, CommsSidebar)), None)
+        return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
 
     def on_focus(self) -> None:
         if (sidebar := self._sidebar()) is not None:
@@ -407,7 +407,88 @@ class CoordinationStatus(Static):
         )
 
 
-class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
+class SidebarModelView(CoreEventReceiver):
+    """A widget showing the observed service's sidebar model.
+
+    Core's model is observed only while a view shows it. Changes that arrive
+    while this one is hidden are applied in one pass when it shows again.
+    """
+
+    service: Comms | None = None
+    model: SidebarModel | None = None
+    # Model changes arrived while this view was hidden or disabled.
+    stale = False
+
+    def accepts_observation(self) -> bool:
+        """Whether this view shows the model now."""
+        raise NotImplementedError
+
+    def model_replaced(self) -> None:
+        """Retire what showed the previous service's rows."""
+
+    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+             reorder: bool = False) -> None:
+        """Apply model changes; ``None`` means every channel or thread changed."""
+        raise NotImplementedError
+
+    @property
+    def shows_model(self) -> bool:
+        return self.model is not None and self.model.snapshot is not None and not self.stale
+
+    def unsubscribe(self) -> None:
+        if self.model is not None:
+            self.model.channels.unsubscribe(self.channels_changed)
+            self.model.threads.unsubscribe(self.threads_changed)
+
+    def stop_showing(self) -> None:
+        self.app.coordination_access.show_sidebar(self, False)
+        self.unsubscribe()
+
+    def attach(self, service: Comms) -> None:
+        """Render ``service``'s shared model; another service's rows are retired first."""
+        observed = self.app.coordination_access.observation
+        if observed is None or observed.service is not service or observed.sidebar is self.model:
+            return  # A newer observed service attaches on its CoordinationObserved.
+        self.unsubscribe()
+        self.service, self.model = service, observed.sidebar
+        self.model.channels.subscribe(self.channels_changed)
+        self.model.threads.subscribe(self.threads_changed)
+        self.model_replaced()
+        self.stale = True
+        self.present()
+
+    def channels_changed(self, changes: Changes[str]) -> None:
+        if self.accepts_observation() and not self.stale:
+            self.sync(channels=frozenset((*changes.added, *changes.changed)), threads=frozenset(),
+                      reorder=bool(changes.added or changes.removed or changes.order is not None))
+        else:
+            self.stale = True
+            self.present()
+
+    def threads_changed(self, changes: Changes[str]) -> None:
+        if self.accepts_observation() and not self.stale:
+            self.sync(channels=frozenset(),
+                      threads=frozenset((*changes.added, *changes.removed, *changes.changed)))
+        else:
+            self.stale = True
+            self.present()
+
+    def present(self) -> None:
+        """Reconcile everything with the model once this view shows it again."""
+        shown = self.model is not None and self.accepts_observation()
+        self.app.coordination_access.show_sidebar(self, shown)
+        if shown and self.stale and self.model.snapshot is not None:
+            self.stale = False
+            self.sync(channels=None, threads=None, reorder=True)
+
+    @handles(CoordinationObserved)
+    async def coordination_observed(self, event: CoreEventMessage) -> None:
+        service = self.app.coordination_access.observed_service
+        if service is not None and service is not self.service:
+            self.attach(service)
+
+
+class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     """The view of the observed service's sidebar model: channel groups and their threads.
 
     It mounts or removes groups and rows only for added and removed keys,
@@ -434,16 +515,12 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self._cursor = 0
         self.navigation = SidebarNavigation(self)
         self.enabled = observe
-        self.service: Comms | None = None
-        self.model: SidebarModel | None = None
         self.groups: dict[str, ChannelGroup] = {}
         # Creates and mounts the model's channel groups this view lacks.
         self._group_mounting = None
         self.new_session: NewSessionButton | None = None
         # Thread name -> the mode of the tab that has it open.
         self.open_views: dict[str, str] = {}
-        # Model changes arrived while this view was hidden or disabled.
-        self.stale = False
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
@@ -455,10 +532,6 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
 
         return (self.enabled and self.accepts_publication()
                 and not self.query_ancestor(SideBar).collapsed)
-
-    @property
-    def shows_model(self) -> bool:
-        return self.model is not None and self.model.snapshot is not None and not self.stale
 
     async def on_mount(self) -> None:
         from toad.screens.comms import CommsScreen
@@ -483,59 +556,19 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         self.attach(service)
 
     def on_unmount(self) -> None:
-        self.app.coordination_access.show_sidebar(self, False)
-        self.unsubscribe()
+        self.stop_showing()
 
-    def unsubscribe(self) -> None:
-        if self.model is not None:
-            self.model.channels.unsubscribe(self.channels_changed)
-            self.model.threads.unsubscribe(self.threads_changed)
-
-    def attach(self, service: Comms) -> None:
-        """Render ``service``'s shared model; another service's rows are retired first."""
-        observed = self.app.coordination_access.observation
-        if observed is None or observed.service is not service or observed.sidebar is self.model:
-            return  # A newer observed service attaches on its CoordinationObserved.
-        self.unsubscribe()
-        self.service, self.model = service, observed.sidebar
-        self.model.channels.subscribe(self.channels_changed)
-        self.model.threads.subscribe(self.threads_changed)
+    def model_replaced(self) -> None:
         self.display = False
         self.navigation.reset()
         if self.groups:
             self.remove_children(list(self.groups.values()))
             self.groups.clear()
             self.navigation.rows_changed()
-        self.stale = True
-        self.present()
 
     def set_enabled(self, enabled: bool) -> None:
         self.enabled = enabled
         self.present()
-
-    def channels_changed(self, changes: Changes[str]) -> None:
-        if self.accepts_observation() and not self.stale:
-            self.sync(channels=frozenset((*changes.added, *changes.changed)), threads=frozenset(),
-                      reorder=bool(changes.added or changes.removed or changes.order is not None))
-        else:
-            self.stale = True
-            self.present()
-
-    def threads_changed(self, changes: Changes[str]) -> None:
-        if self.accepts_observation() and not self.stale:
-            self.sync(channels=frozenset(),
-                      threads=frozenset((*changes.added, *changes.removed, *changes.changed)))
-        else:
-            self.stale = True
-            self.present()
-
-    def present(self) -> None:
-        """Reconcile everything with the model once this view shows it again."""
-        shown = self.model is not None and self.accepts_observation()
-        self.app.coordination_access.show_sidebar(self, shown)
-        if shown and self.stale and self.model.snapshot is not None:
-            self.stale = False
-            self.sync(channels=None, threads=None, reorder=True)
 
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
@@ -651,12 +684,6 @@ class CommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
         if self.shows_model and self.accepts_observation():
             for group in self.groups.values():
                 group.sync_members()
-
-    @handles(CoordinationObserved)
-    async def coordination_observed(self, event: CoreEventMessage) -> None:
-        service = self.app.coordination_access.observed_service
-        if service is not None and service is not self.service:
-            self.attach(service)
 
     def sidebar_visibility_changed(self) -> None:
         self.present()

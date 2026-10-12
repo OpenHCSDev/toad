@@ -155,6 +155,8 @@ async def open_observer(case: str, artifact_dir: Path) -> AsyncIterator[Observer
     try:
         app = ToadApp(project_dir=str(root / "project"))
         async with app.run_test(size=(120, 40)) as pilot:
+            # Toad starts with no tab open; the observed session is opened here.
+            await app.session_navigation.new(app.session_navigation.default_source)
             session = app.selected_session
             assert isinstance(session, MainScreen)
             await session.wait_content_ready()

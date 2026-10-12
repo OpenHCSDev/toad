@@ -4,7 +4,36 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from toad.widgets.side_bar import SidebarFocusOwner
 from pathlib import Path
+from typing import TYPE_CHECKING
 from toad.project_path_owner import ProjectPathOwner
+
+if TYPE_CHECKING:
+    from toad.agent_schema import AgentDefinition
+    from toad.screens.main import MainScreen
+
+
+class SessionOrigin:
+    """A view sessions and histories are opened from: it names their agent, project and bus sender."""
+
+    _agent: "AgentDefinition | None"
+    _comms_thread: str
+
+    @property
+    def origin(self) -> "SessionOrigin":
+        return self
+
+    def has_agent(self) -> bool:
+        return self._agent is not None
+
+    def spawn(self, *, project: Path | None = None, session_id: str | None = None,
+              root: str | None = None) -> "MainScreen":
+        """Create a session of this view's agent, on its project unless another is named."""
+        from toad.screens.main import MainScreen
+
+        with self.app._context():
+            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id)
+        peer.initial_coordination_root = root
+        return peer
 
 
 class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
@@ -27,6 +56,11 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
 
     @property
     def coordination_root(self) -> str | None:
+        return None
+
+    @property
+    def origin(self) -> SessionOrigin | None:
+        """What a session or history requested from this view starts from."""
         return None
 
     def belongs_to_wire(self, root) -> bool:

@@ -31,7 +31,7 @@ from toad import messages
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.screens.session_view import SessionView
+from toad.screens.session_view import SessionOrigin, SessionView
 from toad.session_tracker import SidebarState
 from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.core.input_events import SelectTarget
@@ -108,7 +108,7 @@ class MCPInventoryProvider(Provider):
                            help="Read-only package snapshot")
 
 
-class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=False):
+class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -308,18 +308,6 @@ class MainScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fals
     def coordination_root(self) -> str | None:
         fact = self.app.coordination_facts.get(self)
         return fact.wire_root if fact is not None else self.initial_coordination_root
-
-    def has_agent(self) -> bool:
-        return self._agent is not None
-
-    def spawn(self, *, project: Path | None = None, session_id: str | None = None,
-              root: str | None = None) -> "MainScreen":
-        """Create a peer of this native source through its actual declaration."""
-        app = self.app
-        with app._context():
-            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id)
-        peer.initial_coordination_root = root
-        return peer
 
     @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:

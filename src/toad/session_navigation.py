@@ -24,11 +24,10 @@ if TYPE_CHECKING:
 
 
 class SessionNavigation:
-    def __init__(self, app: ToadApp, initial_session_id: str | None = None) -> None:
+    def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.events = CoreEventStream(self)
         self.identities = count(1)
-        self.initial_session_id = initial_session_id
         self._retire_task: asyncio.Task[None] | None = None
         self._retire_requested = False
         # The Core revision the last retirement pass started from.
@@ -39,13 +38,10 @@ class SessionNavigation:
         self.app.subscribe_core(self.events)
         self.app.observe_core_callback(self.app.coordination_access.events, self.observed)
 
-    def default_source(self) -> MainScreen:
+    def default_source(self, session_id: str | None = None) -> MainScreen:
         from toad.screens.main import MainScreen
         app = self.app
-        session_id = self.initial_session_id
-        self.initial_session_id = None
         return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id)
-
 
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
@@ -137,8 +133,8 @@ class SessionNavigation:
         return details
 
     async def create_from(self, owner_mode: str) -> None:
-        source = self.source(owner_mode)
-        await self.new(source.spawn if source is not None and source.has_agent() else self.default_source)
+        origin = self.app.workspace_sessions.origin(owner_mode)
+        await self.new(origin.spawn if origin is not None and origin.has_agent() else self.default_source)
 
     async def launch(self, agent_identity: str, *, agent_session_id: str | None = None,
                      session_pk: int | None = None, project_path: Path | None = None,
@@ -176,7 +172,7 @@ class SessionNavigation:
         from toad.thread_navigation import ThreadOrigin
 
         app = self.app
-        source = self.source(owner_mode)
+        source = app.workspace_sessions.origin(owner_mode)
         if source is None:
             app.notify("The owning agent tab was closed", title="Comms target unavailable", severity="error")
             return app.selected_mode

@@ -56,10 +56,8 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
 
-from ui_theme.splash import loading_splash
-
 from toad import jsonrpc, messages, paths
-from toad.textual_colours import Animated
+from toad.widgets.splash_text import SplashText
 
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
@@ -162,14 +160,10 @@ class Loading(ConversationBlock, Static):
     """
 
 
-class ThreadLoading(Animated, ConversationBlock, Static):
-    """The splash while a thread attaches: its label swept into the theme's colours.
+class ThreadLoading(ConversationBlock, SplashText):
+    """The splash while a thread attaches: its label swept into the theme's colours."""
 
-    The effect's frames are built in a render worker; until they arrive the
-    label shows plainly.
-    """
-
-    LABEL = "Loading thread and history…"
+    LABEL = TEXT = "Loading thread and history…"
 
     @classmethod
     def initial_contents(cls, agent):
@@ -188,25 +182,7 @@ class ThreadLoading(Animated, ConversationBlock, Static):
     """
 
     def on_mount(self) -> None:
-        self.run_worker(self._build_splash(), group="splash", exclusive=True)
-
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
-    async def _build_splash(self) -> None:
-        from toad.render_tasks import TextEffectRenderTask
-
-        colours = self.app.colours
-        played = await self.app.prepare_background(
-            TextEffectRenderTask(loading_splash(self.LABEL), colours.scheme))
-        if self.is_attached:
-            self.run_effect(played)
-
-    def render(self) -> Content:
-        animation = self.animation
-        if animation is None:
-            return Content(self.LABEL)
-        return self.app.colours.paint_text(animation.frame(), None)
+        self.play()
 
 
 class TurnActivity(Static):

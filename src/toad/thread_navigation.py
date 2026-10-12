@@ -11,24 +11,25 @@ from toad.navigation_preparation import OpenThread, ThreadNavigationRequest, Thr
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
+    from toad.screens.session_view import SessionOrigin
     from toad.navigation_preparation import NativeThreadNavigation
 
 
 @dataclass(frozen=True)
 class ThreadOrigin:
-    source: MainScreen
+    source: SessionOrigin
     selected_mode: str
     root: str | None
     identity: str
 
     @classmethod
-    def capture(cls, app: ToadApp, source: MainScreen) -> ThreadOrigin:
+    def capture(cls, app: ToadApp, source: SessionOrigin) -> ThreadOrigin:
         return cls(source, app.selected_mode, source.coordination_root, source._comms_thread)
 
     def current(self, navigator: ThreadNavigator, owner_mode: str) -> bool:
         app = navigator.app
         if app.is_running and self.source.is_attached:
-            if owner_mode in app.workspace_sessions.factories:
+            if app.workspace_sessions.origin(owner_mode) is self.source:
                 return self == self.capture(app, self.source)
         return False
 
@@ -38,12 +39,9 @@ class ThreadNavigator:
         self.app = app
         self.pending: dict[tuple[str, str, str], ThreadOpening] = {}
 
-    def source(self, owner_mode: str) -> MainScreen | None:
-        return self.app.session_navigation.source(owner_mode)
-
     async def open(self, *, owner_mode: str, project_path: Path, target: str) -> str:
         app = self.app
-        source = self.source(owner_mode)
+        source = app.workspace_sessions.origin(owner_mode)
         if source is None:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)

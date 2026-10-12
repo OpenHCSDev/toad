@@ -6,9 +6,17 @@ from textual._time import after_input
 from textual.containers import Container
 from agent_comms.declared_family import DeclaredFamily
 
+from toad.constants import WELCOME
+
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.screens.session_view import SessionView
+    from toad.screens.session_view import SessionOrigin, SessionView
+
+
+def welcome_view() -> "SessionView":
+    from toad.screens.welcome import WelcomeScreen
+
+    return WelcomeScreen()
 
 
 class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
@@ -124,6 +132,8 @@ class WorkspaceSessions:
     def __init__(self, app: "ToadApp") -> None:
         self.app = app
         self.factories: dict[str, Callable[[], SessionView]] = {}
+        # Views the workspace always has; they are not tabs and never close.
+        self.resident: dict[str, Callable[[], SessionView]] = {WELCOME: welcome_view}
         self.views: dict[str, SessionView] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
 
@@ -135,10 +145,17 @@ class WorkspaceSessions:
     def require(self, identity: str) -> "SessionView":
         return self.views[identity]
 
+    def origin(self, identity: str) -> "SessionOrigin | None":
+        """What sessions and histories requested from ``identity`` start from; None once it closed."""
+        if identity in self.factories or identity in self.resident:
+            if view := self.views.get(identity):
+                return view.origin
+        return None
+
     async def prepare(self, identity: str) -> "SessionView":
         if view := self.views.get(identity):
             return view
-        view = self.factories[identity]()
+        view = (self.factories.get(identity) or self.resident[identity])()
         view.id = identity
         view.display = False
         self.views[identity] = view

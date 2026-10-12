@@ -7,8 +7,10 @@ from toad.core.events import CoreEventStream, TabHistoryChanged
 
 class TabOrder:
     def __init__(
-        self, focus: Callable[[str, int | None], object]
+        self, focus: Callable[[str, int | None], object], home: str
     ) -> None:
+        # What is shown while no tab is open.
+        self.home = home
         self._open: list[str] = []
         self._visits: list[str] = []
         self._cursor = -1
@@ -36,26 +38,21 @@ class TabOrder:
     def project[T](self, values: Mapping[str, T]) -> tuple[T, ...]:
         return tuple(values[mode] for mode in self._open if mode in values)
 
-    def previous(
-        self,
-        current: str,
-        *,
-        eligible: Collection[str] | None = None,
-        excluded: Collection[str] = (),
-    ) -> str:
+    def previous(self, current: str, *, eligible: Collection[str] | None = None) -> str:
+        """The tab to show on leaving ``current``; home once no tab is open."""
+        if not self._open:
+            return self.home
         candidates = [
             mode
             for mode in self._open
-            if mode not in excluded
-            and mode != current
-            and (eligible is None or mode in eligible)
+            if mode != current and (eligible is None or mode in eligible)
         ]
         preceding = (
             self._open[: self._open.index(current)] if current in self else self._open
         )
         return next(
             (mode for mode in reversed(preceding) if mode in candidates),
-            candidates[0] if candidates else "store",
+            candidates[0] if candidates else current if current in self else self._open[-1],
         )
 
     def history_target(self, direction: int) -> tuple[int, str] | None:

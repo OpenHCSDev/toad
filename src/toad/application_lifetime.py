@@ -64,9 +64,10 @@ class ApplicationLifetime:
 
         setproctitle.setproctitle(title)
 
-    def __init__(self, app: ToadApp, initial_mode: str | None) -> None:
+    def __init__(self, app: ToadApp, resumed_session: str | None) -> None:
         self.app = app
-        self.initial_mode = initial_mode
+        # The agent session the launch asked to resume, if it named one.
+        self.resumed_session = resumed_session
         self.quit_warning_deadline = 0.0
         self.usage = UsageReports(app)
         self.version = VersionMonitor()
@@ -76,10 +77,12 @@ class ApplicationLifetime:
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")
         self.usage.publish("toad-run")
-        if self.initial_mode:
-            await app.select_session(self.initial_mode)
+        if self.resumed_session is None:
+            # No tab is open: the launch starts no agent and registers no thread.
+            await app.select_session(app.tab_order.home)
         else:
-            await app.session_navigation.new(app.session_navigation.default_source)
+            await app.session_navigation.new(
+                partial(app.session_navigation.default_source, self.resumed_session))
         app.terminal_attention.attach()
         app.set_timer(1, self.check_version)
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)

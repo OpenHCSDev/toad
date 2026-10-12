@@ -151,16 +151,10 @@ class NativeSessionEntry(SessionEntry):
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
+        # Another session is preferred to a file or history tab between them.
         remaining = [details.mode_name for details in app.session_tracker.ordered_sessions
                      if details.mode_name != self.mode]
-        if remaining:
-            await app.select_session(app.tab_order.previous(self.mode, eligible=remaining))
-            return
-        source = self.source(sessions)
-        if source is not None and source.has_agent():
-            await sessions.new(source.spawn)
-        else:
-            await app.select_session("store")
+        await app.select_session(app.tab_order.previous(self.mode, eligible=remaining or None))
 
     def forget(self, sessions: SessionNavigation) -> None:
         sessions.app.session_tracker.close_session(self.mode)
@@ -206,8 +200,9 @@ class HistorySessionEntry(SessionEntry):
         return super().depends_on(mode) or self.key.owner_mode == mode
 
     async def return_to(self, sessions: SessionNavigation) -> None:
-        owner = self.key.owner_mode
-        await sessions.app.select_session(owner if owner in sessions.app.workspace_sessions.factories else "store")
+        app, owner = sessions.app, self.key.owner_mode
+        await app.select_session(owner if owner in app.workspace_sessions.factories
+                                 else app.tab_order.previous(self.mode))
 
     def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         if self.key.owner_mode != owner:

@@ -19,6 +19,10 @@ async def test_first_frame_is_written_before_the_agent_starts_and_input_works_th
         return json.loads((project / "current-ui.json").read_text())
 
     async with terminal_running(workspace, terminal_emulator, (sys.executable, str(APP), str(project))) as terminal:
+        # Toad starts with no tab open; Enter on the welcome view's New Session starts the agent.
+        await terminal.until_shows("New Session")
+        assert not wire_path.exists()
+        await terminal.send("\r")
         await terminal.until(wire_path.exists, why="the agent to start")
         first = json.loads(wire_path.read_text().splitlines()[0])
         assert first["new_session_after_frame"]["time_ns"] < first["peer_time_ns"], first

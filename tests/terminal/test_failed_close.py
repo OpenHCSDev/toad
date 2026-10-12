@@ -15,6 +15,9 @@ async def test_a_close_step_that_raises_still_ends_the_process_and_saves_the_fai
     logs = workspace.roots.attempt / "state" / "toad" / "logs"
     async with terminal_running(workspace, terminal_emulator, (sys.executable, str(APP), str(workspace.project)),
                                 size=(43, 140)) as terminal:
+        # Toad starts with no tab open; Enter on the welcome view's New Session opens the conversation.
+        await terminal.until_shows("New Session")
+        await terminal.send("\r")
         await terminal.until((workspace.project / "watching").exists, seconds=60,
                              why="a conversation to watch the project directory")
         started = psutil.Process(terminal.process.pid).children(recursive=True)

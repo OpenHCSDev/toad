@@ -2,6 +2,7 @@
 from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.containers import Horizontal
+from textual.geometry import Spacing
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from textual.widgets import Footer
 from toad.session_presentation import NativeSessionSurface
@@ -47,9 +48,9 @@ class WorkspaceChrome:
 
     def layout_sidebars(self, screen) -> bool:
         """Resolve and publish one mounted sidebar cohort in native frame order."""
-        bars = tuple(bar for bar in (
-            self.channels, *screen.app.workspace_sessions.source.sidebars())
-            if bar.is_mounted and bar.id in screen.app.sidebar_layout.placements)
+        source = screen.app.workspace_sessions.source
+        bars = tuple(bar for bar in (self.channels, *source.sidebars())
+                     if bar.is_mounted and bar.id in screen.app.sidebar_layout.placements)
         visible = tuple(bar for bar in bars if bar.presentation_visible)
         resolved = screen.app.sidebar_layout.resolve(
             screen.size.width, {bar.id: bar.collapsed for bar in visible})
@@ -57,6 +58,15 @@ class WorkspaceChrome:
         with screen.app.batch_update():
             for bar in bars:
                 changed |= bar._apply_layout(resolved)
+            if (view := source.view) is not None:
+                # A view's own bar keeps the view's content clear of every bar.
+                # A view with no bar of its own is kept clear of the shared one here.
+                own = any(bar is not self.channels for bar in visible)
+                margin = Spacing(0, 0 if own else resolved.right_gutter,
+                                 0, 0 if own else resolved.left_gutter)
+                if view.styles.margin != margin:
+                    view.styles.margin = margin
+                    changed = True
             # Sibling order belongs to their shared placement, not to each bar.
             order = {identity: index for index, identity in
                      enumerate(screen.app.sidebar_layout.ordered())}

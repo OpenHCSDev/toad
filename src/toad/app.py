@@ -48,6 +48,7 @@ from toad.session_tracker import (
 )
 from toad.sidebar_layout import SidebarLayout
 from toad.clipboard import Clipboard
+from toad.constants import WELCOME
 from toad.tab_order import TabOrder
 from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionNavigation
@@ -287,12 +288,12 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         self.navigation_reader = NavigationReader()
         self.agent_data = agent_data
 
-        self.application = ApplicationLifetime(self, mode)
+        self.application = ApplicationLifetime(self, agent_session_id)
         self.clipboard_transport = Clipboard.for_platform()
         self.terminal_attention = TerminalAttention(self)
 
         self._session_tracker = SessionTracker()
-        self.session_navigation = SessionNavigation(self, agent_session_id)
+        self.session_navigation = SessionNavigation(self)
         self.thread_navigation = ThreadNavigator(self)
         self.thread_actions = ThreadActions(self)
         self.transfers = Transfers(self)
@@ -300,7 +301,8 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         self.sidebar_layout = SidebarLayout()
         self._mode_switch_lock = asyncio.Lock()
         self.tab_order = TabOrder(
-            lambda mode, index: self.select_session(mode, history_index=index)
+            lambda mode, index: self.select_session(mode, history_index=index),
+            home=mode or WELCOME,
         )
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_access = CoordinationAccess(self)
