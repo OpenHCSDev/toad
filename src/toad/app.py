@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, TypeVar, cast
 from weakref import WeakKeyDictionary
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
+from textual._time import after_input
 from textual import events, on, work
 from textual.actions import ActionError, parse as parse_action
 from textual.app import App
@@ -455,14 +456,14 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
                     if self.current_mode != "workspace":
                         await super().switch_mode("workspace")
                     # A switch is several frames of work: hold the workspace's
-                    # frames and give the loop each step's turn, so input is
+                    # frames and let the loop run due input and timers between steps, so input is
                     # never held behind the whole switch and no half-switched
                     # scene is written. Layout still runs for steps that measure.
                     with self.workspace_screen.hold_frames():
                         await self.workspace_sessions.select(mode)
-                        await asyncio.sleep(0)
+                        await after_input()
                         await self.workspace_screen.prepare_navigation()
-                        await asyncio.sleep(0)
+                        await after_input()
                         await self.workspace_screen.layout_navigation()
                 if mode != previous:
                     self.tab_order.record_visit(mode, history_index)
