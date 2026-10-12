@@ -222,3 +222,32 @@ async def test_stopped_owner_restarts_without_replaying_and_then_idles(workspace
         await ui.step(2)
         assert len(provider.requests) == asked
         assert not native.executing
+
+
+async def test_a_second_thread_opened_from_the_app_answers_its_first_message(workspace, native_package):
+    from agent_comms.threads import Thread
+    from support.native import MODEL
+
+    async def declare_second(comms, project, _provider):
+        comms.registry.declare(Thread("gamma", frozenset({"team"}), str(project), model=MODEL, thinking_level="off"))
+
+    async with native_session(workspace, native_package, prepare=declare_second) as native:
+        ui, provider = native.ui, native.provider
+        app, _pilot = ui.textual
+        owner_tab = ui.selected_tab
+        await ui.until_agent_ready()
+        opened = await app.thread_navigation.open(owner_mode=owner_tab, project_path=native.project, target="gamma")
+        assert opened != owner_tab and ui.selected_tab == opened
+        assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
+        view = ui.conversation
+        await ui.until(lambda: view.agent is not None and view.agent is not native.agent, seconds=20,
+                       why="the second thread's agent")
+        await ui.until_agent_ready()
+        await ui.write_draft("FIRST_MESSAGE_TO_GAMMA")
+        await ui.press("enter")
+        await ui.until(lambda: "NATIVE_RESPONSE_1" in ui.painted(view.window), seconds=40, why="the first answer")
+        await ui.until(lambda: not native.comms.registry.require("gamma").executing, seconds=20, why="the turn to finish")
+        assert len(provider.requests) == 1
+        assert ui.painted(view.window).count("NATIVE_RESPONSE_1") == 1
+        assert [tab.identity for tab in ui.tabs()] == [owner_tab, opened]
+        await view.agent.stop()
