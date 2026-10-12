@@ -45,3 +45,22 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
         await ui.until(lambda: session.project_path == launched, seconds=10, why="the project change from the wire")
         await ui.until(lambda: conversation.project_path == launched, why="the conversation's project")
         assert Path(session.query_one(ProjectDirectoryTree).path) == launched
+
+
+async def test_a_project_change_reported_by_the_agent_moves_the_session(workspace, native_package):
+    from support.coordination import coordination_fact
+
+    moved = workspace.roots.attempt / "moved-project"
+    moved.mkdir()
+    without_provider()
+    comms = start_private_native_wire(workspace.roots.wire, native_package)
+    comms.registry.declare(Thread("saved", frozenset({"acp"}), str(workspace.project)))
+    async with attached_app(workspace, comms, "saved", size=(100, 35)) as (ui, agent):
+        app, _pilot = ui.textual
+        await ui.until_agent_ready()
+        session = app.selected_session
+        agent.comms_consumer_class(agent, agent.session_id).dispatch_sync(
+            coordination_fact("saved", str(workspace.roots.wire), worktree=str(moved)))
+        await ui.until(lambda: session.project_path == moved, why="the session's project to follow the agent's report")
+        await ui.until(lambda: ui.conversation.project_path == moved, why="the conversation's project")
+        assert ui.failure() is None

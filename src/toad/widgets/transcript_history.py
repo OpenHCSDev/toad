@@ -383,7 +383,8 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
         self.newer = JumpToLatest("↓ Jump to latest")
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
-        self.window: HistoryWindow
+        # Bound when mounted; a history closed before its mount has no window to leave.
+        self.window: HistoryWindow | None = None
 
     async def park_document(self) -> PreparedPageSource:
         """Transfer original data and admission out of disposable native pages."""

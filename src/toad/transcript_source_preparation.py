@@ -22,7 +22,7 @@ class HistorySourceSnapshot:
     """One original source/view identity for page and filter publication."""
 
     generation: int
-    window: HistoryWindow
+    window: HistoryWindow | None
     screen: Screen
     source: object
 
@@ -193,7 +193,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                               else RetiredSourceTranscript(source))
         self._generation += 1
         self._prefetch_intent = None
-        self.window.histories.discard(self)
+        if self.window is not None:
+            self.window.histories.discard(self)
         self._source_state.retire_preparation(self._page_buffer)
         for worker in self.workers.cancel_node(self):
             try:
