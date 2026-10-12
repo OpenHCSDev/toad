@@ -328,9 +328,12 @@ class HistoryWindow(VerticalScroll):
     @property
     def rows_per_fragment(self) -> float:
         """Average drawn rows per admitted fragment, for converting rows to fragments."""
-        pages = [page for history in self.histories for page in history.pages if page.line_count]
-        fragments = sum(page.stop - page.start for page in pages)
-        return sum(page.line_count for page in pages) / fragments if fragments else max(1, self.outer_size.height)
+        rows = items = 0
+        for history in self.histories:
+            drawn_rows, drawn_items = history.drawn_extent
+            rows += drawn_rows
+            items += drawn_items
+        return rows / items if rows and items else max(1, self.outer_size.height)
 
     def request_preparation(self) -> None:
         """Histories prepare around the reader after the next published frame."""

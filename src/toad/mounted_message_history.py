@@ -2,7 +2,7 @@
 from __future__ import annotations
 import asyncio
 from abc import abstractmethod
-from functools import cached_property
+from functools import cached_property, partial
 from contextlib import AsyncExitStack, asynccontextmanager
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.message_page import MessagePage
@@ -323,6 +323,42 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         elif self.has_newer and region.bottom <= viewport.bottom + self.prefetch_distance:
             self._request_page(False)
 
+    @property
+    def drawn_extent(self) -> tuple[int, int]:
+        return sum(widget.outer_size.height for _, widget in self.rows), len(self.rows)
+
+    def edges_ahead(self, demand) -> tuple:
+        """The cursors history continues from in the directions `demand` travels."""
+        if not self.rows:
+            return None, None
+        return demand.edges(self.rows[0][0].view_cursor if self.has_older else None,
+                            self.rows[-1][0].view_cursor if self.has_newer else None)
+
+    def prepare_scroll(self) -> None:
+        reader = self.reader
+        if reader is None or not self.checkpoint_available:
+            return
+        lookahead = self.window.lookahead
+        demand = lookahead.demand
+        edges = self.edges_ahead(demand)
+        if edges == (None, None):
+            return
+        count = lookahead.preparation_count(max(1, self.window.outer_size.height))
+        self.request_lookahead((reader, edges, count, demand, self.source_snapshot()))
+
+    async def prepare_lookahead(self, intent) -> None:
+        reader, edges, count, _demand, _snapshot = intent
+        current = partial(self.lookahead_current, intent)
+        for older, edge in zip((True, False), edges):
+            if edge is not None:
+                await reader.read_ahead(older, edge, count, current)
+
+    def lookahead_current(self, intent) -> bool:
+        reader, edges, _count, demand, snapshot = intent
+        return (reader is self.reader and snapshot.current(self)
+                and snapshot.window.lookahead.accepts(demand)
+                and edges == self.edges_ahead(demand))
+
     @on(WorkerStatic.ExtentReady)
     def _row_extent_ready(self) -> None:
         self.request_preparation()
@@ -332,10 +368,10 @@ class MountedMessageHistory(TranscriptSourcePreparation, ConversationBlock, Cate
         reader = self.reader
         if reader is None or not self.rows:
             return
-        # This read is a native admission, not the transport's incremental
-        # scan. Its result mounts immediately. Use the window's existing
-        # admission budget so one edge read cannot arrange and start rendering
-        # an entire transport page before pointer input gets another frame.
+        # The reader reads transport pages; this takes the next rows to mount.
+        # They mount immediately, so use the window's admission budget: one
+        # admission cannot arrange and start rendering an entire transport
+        # page before pointer input gets another frame.
         limit = min(HISTORY_PAGE_SIZE,
                     self.window.presentation_budget.admission_items)
         if older and self.window.follows_tail:

@@ -211,8 +211,14 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.request_preparation()
 
 
+    @property
+    def drawn_extent(self) -> tuple[int, int]:
+        """Rows drawn and the source items they show, for converting rows to items."""
+        raise NotImplementedError
+
     def prepare_scroll(self) -> None:
-        """Sources with data lookahead supply it independently of page reads."""
+        """Ask for lookahead in the direction of travel, independently of page admission."""
+        raise NotImplementedError
 
     def request_lookahead(self, intent) -> None:
         """One worker prepares ahead for the latest request.

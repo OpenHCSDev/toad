@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
+from collections import deque
 from collections.abc import Callable
 from functools import partial
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from agent_comms.comms import Comms
@@ -148,11 +149,57 @@ class HistoryReadResult:
     follow_tail: bool
 
 
+class PagesAhead:
+    """Transport pages read beyond one edge of the mounted rows, nearest first.
+
+    A Core page read costs about the same for four messages as for forty.
+    The mounted history admits a few rows per frame, so the reader reads
+    whole transport pages and hands them out in parts.
+    """
+
+    def __init__(self, older: bool, edge) -> None:
+        self.older = older
+        # The cursor the next part continues from, and the one the next read does.
+        self.edge = self.far = edge
+        self.more = True
+        self.pages: deque[MessagePage] = deque()
+        self.reading = asyncio.Lock()
+
+    @property
+    def count(self) -> int:
+        return sum(len(page.messages) for page in self.pages)
+
+    def bounds(self) -> dict:
+        return {"before": self.far, "after": None} if self.older else {"before": None, "after": self.far}
+
+    def add(self, page: MessagePage) -> None:
+        self.pages.append(page)
+        self.more = bool(page.messages) and (page.has_older if self.older else page.has_newer)
+        if page.messages:
+            self.far = page.oldest_cursor if self.older else page.newest_cursor
+
+    def take(self, limit: int) -> MessagePage:
+        """The next `limit` messages from the edge, as a page that says whether more follow."""
+        page = self.pages[0]
+        if len(page.messages) <= limit:
+            part = self.pages.popleft()
+        elif self.older:
+            part = replace(page, messages=page.messages[-limit:], has_older=True)
+            self.pages[0] = replace(page, messages=page.messages[:-limit], has_newer=True)
+        else:
+            part = replace(page, messages=page.messages[:limit], has_newer=True)
+            self.pages[0] = replace(page, messages=page.messages[limit:], has_older=True)
+        if part.messages:
+            self.edge = part.oldest_cursor if self.older else part.newest_cursor
+        return part
+
+
 class ChannelHistoryReader:
     """Own one logical source and its reads until their actual I/O completes."""
 
     def __init__(self, source: HistoryReadRequest) -> None:
         self.source = source
+        self._ahead: dict[bool, PagesAhead] = {}
         self._pending: set[asyncio.Task[HistoryReadResult] | asyncio.Task[MessagePage] | asyncio.Task[bool]] = set()
         self._closed = False
 
@@ -165,16 +212,40 @@ class ChannelHistoryReader:
 
     def accept(self, result: HistoryReadResult, follow_tail: bool) -> None:
         self.source = result.request.advance(result, follow_tail)
+        # The accepted read may have added messages after the newest page held.
+        # Older pages stay as valid as the rows already mounted from this source.
+        self._ahead.pop(False, None)
 
     def restart(self) -> None:
         self.source = self.source.restart()
+        self._ahead.clear()
 
     async def read(self, follow_tail: bool) -> HistoryReadResult:
         return await self._run(partial(self.source.read, follow_tail))
 
     async def page(self, *, before: int | None = None, after: int | None = None,
                    limit: int) -> MessagePage:
-        return await self._run(partial(self.source.page, before=before, after=after, limit=limit))
+        """Up to `limit` messages next to one edge of the mounted rows."""
+        older = before is not None
+        ahead = await self._read_ahead(older, before if older else after, 1, lambda: True)
+        return ahead.take(limit)
+
+    async def read_ahead(self, older: bool, edge, count: int, current: Callable[[], bool]) -> None:
+        """Hold `count` messages beyond `edge` while the request stays current."""
+        if current():
+            await self._read_ahead(older, edge, count, current)
+
+    async def _read_ahead(self, older: bool, edge, count: int, current: Callable[[], bool]) -> PagesAhead:
+        ahead = self._ahead.get(older)
+        if ahead is None or ahead.edge != edge or not (ahead.pages or ahead.more):
+            ahead = self._ahead[older] = PagesAhead(older, edge)
+        source = self.source
+        while ahead.count < count and ahead.more and current():
+            async with ahead.reading:
+                # The read this one waited for may have brought enough.
+                if ahead.count < count and ahead.more:
+                    ahead.add(await self._run(partial(source.page, **ahead.bounds(), limit=source.page_limit)))
+        return ahead
 
     async def route_current(self) -> bool:
         """Read the route on this reader's joined I/O lifetime."""

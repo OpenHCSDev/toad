@@ -735,6 +735,11 @@ class TranscriptHistory(TranscriptSourcePreparation, ConversationBlock, Committe
             self._prefetch_intent = None
         return reader
 
+    @property
+    def drawn_extent(self) -> tuple[int, int]:
+        pages = [page for page in self.pages if page.line_count]
+        return sum(page.line_count for page in pages), sum(page.stop - page.start for page in pages)
+
     def prepare_scroll(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.accepts_publication or not self.screen.is_current
                 or not self.selected_categories):

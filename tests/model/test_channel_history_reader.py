@@ -127,3 +127,55 @@ async def test_unchanged_revision_is_reused_and_a_cancelled_read_stays_joined_un
         release.set()
         await reader.aclose()
     assert not reader._pending
+
+
+async def test_rows_next_to_an_edge_come_from_transport_pages_that_are_read_once_and_can_be_read_ahead(tmp_path):
+    comms = wire(tmp_path / "wire")
+    comms.registry.declare(Thread("sender", frozenset({"one"}), str(tmp_path)))
+    for index in range(100):
+        comms.messaging.send("sender", "#one", f"Message {index}")
+    comms.messaging.user_identity(str(tmp_path))
+    reader = ChannelHistoryReader(InitialHistoryReadRequest(comms, ChannelConversation, "#one", tmp_path, 8, 40, 256 * 1024))
+    try:
+        with patch.object(comms.views, "channel_display_page", wraps=comms.views.channel_display_page) as core_read:
+            tail = await reader.read(True)
+            reader.accept(tail, True)
+            assert [message.body for message in tail.page.messages] == [f"Message {index}" for index in range(92, 100)]
+            reads, edge, bodies = core_read.call_count, tail.page.oldest_cursor, []
+
+            # Ten admissions of four rows cost one Core read, not ten.
+            for _ in range(10):
+                part = await reader.page(before=edge, limit=4)
+                assert len(part.messages) == 4 and part.has_older
+                bodies[:0] = [message.body for message in part.messages]
+                edge = part.oldest_cursor
+            assert bodies == [f"Message {index}" for index in range(52, 92)]
+            assert core_read.call_count == reads + 1
+
+            # A request that is no longer current reads nothing.
+            await reader.read_ahead(True, edge, 60, lambda: False)
+            assert core_read.call_count == reads + 1
+            # Reading ahead stops at the start of history: 52 older messages are two reads.
+            await reader.read_ahead(True, edge, 60, lambda: True)
+            assert core_read.call_count == reads + 3
+            await reader.read_ahead(True, edge, 60, lambda: True)
+            assert core_read.call_count == reads + 3
+
+            # A new message at the tail leaves the older pages held.
+            comms.messaging.send("sender", "#one", "arrived while scrolled up")
+            reader.accept(await reader.read(False), False)
+            reads = core_read.call_count
+            while part.has_older:
+                part = await reader.page(before=edge, limit=4)
+                bodies[:0] = [message.body for message in part.messages]
+                edge = part.oldest_cursor
+            assert bodies == [f"Message {index}" for index in range(92)]
+            assert core_read.call_count == reads
+
+            # A restarted source reads again.
+            reader.restart()
+            again = await reader.page(before=tail.page.oldest_cursor, limit=4)
+            assert [message.body for message in again.messages] == [f"Message {index}" for index in range(88, 92)]
+            assert core_read.call_count == reads + 1
+    finally:
+        await reader.aclose()
