@@ -1,8 +1,11 @@
-"""Textual-facing: closing a tab with a long mounted history drops it from the strip before its widgets are torn down."""
+"""Textual-facing: closing a tab with a long mounted history drops it from the strip before its widgets are torn down, and the closing view is not drawn up again on the way out."""
 
 from unittest.mock import patch
 
+from support import agents
 from toad.widgets.agent_response import AgentResponse
+from toad.widgets.conversation import Conversation
+from toad.widgets.prompt import Prompt
 
 
 async def test_closed_tab_leaves_the_strip_before_its_view_is_removed(workspace):
@@ -25,3 +28,32 @@ async def test_closed_tab_leaves_the_strip_before_its_view_is_removed(workspace)
                 await ui.close_tab(identity)
             assert visible_at_teardown == [False], "Closed tab remained visible during view teardown"
             assert ui.selected_tab == base and identity not in app.tab_order.names
+
+
+async def test_closing_a_tab_releases_its_agent_without_titling_or_configuring_the_closing_view(workspace):
+    async with workspace.app(size=(110, 35)) as ui:
+        app, _ = ui.textual
+        identity = await ui.new_session()
+        conversation = ui.conversation
+        # A bound agent, as an open native tab has: releasing it must not become another update of the view.
+        ui.attach_agent(agents.detached(workspace.project))
+        await ui.step()
+        prompt = conversation.prompt
+        updated = []
+        update_title, sync_configuration = Conversation.update_title, Prompt.sync_configuration
+
+        def titled(view, *args, **kwargs):
+            if view is conversation:
+                updated.append("title")
+            return update_title(view, *args, **kwargs)
+
+        def configured(view, *args, **kwargs):
+            if view is prompt:
+                updated.append("prompt configuration")
+            return sync_configuration(view, *args, **kwargs)
+
+        with (patch.object(Conversation, "update_title", titled),
+              patch.object(Prompt, "sync_configuration", configured)):
+            await ui.close_tab(identity)
+        assert not updated, ("The closing view was updated again", updated)
+        assert conversation.agent is None and not conversation.is_attached
