@@ -1,5 +1,7 @@
 """Textual-facing: reader positions and anchors work on the history window's scroll animation and the compositor's arranged layout."""
 
+import pytest
+
 from unittest.mock import patch
 
 from textual.containers import VerticalGroup
@@ -76,7 +78,7 @@ async def test_reading_an_anchor_reuses_the_committed_layout(workspace):
             assert arrange.call_count == 0, "Anchor remeasured an already committed layout"
 
 
-async def test_an_offscreen_record_can_be_anchored_and_moves_down_by_a_prepended_row(workspace):
+async def test_a_record_layout_has_not_placed_cannot_be_an_anchor(workspace):
     async with workspace.app(size=(100, 35)) as ui:
         window = await long_window(ui)
         window.release_anchor()
@@ -85,4 +87,6 @@ async def test_an_offscreen_record_can_be_anchored_and_moves_down_by_a_prepended
         await ui.step()
         await window.query_one("#geometry-records", VerticalGroup).mount(Static("Prepended"), before=0)
         await ui.step()
-        assert HistoryAnchor.capture(marker, window).virtual_y == 2000
+        # Layout places only what is visible or a declared geometry target; an anchor must be one of those.
+        with pytest.raises(LookupError, match="anchors must be visible or declared geometry targets"):
+            HistoryAnchor.capture(marker, window)

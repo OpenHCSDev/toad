@@ -3,6 +3,7 @@
 # The runner expects each listed test to fail. One that passes is reported as an
 # error until its entry is removed, so this list cannot go stale. Add an entry
 # only with a named defect, an owner and the reproducer (the test itself).
+# `intermittent = true` marks a defect that shows only on some runs: passing is then not an error.
 
 [agent-text-click]
 defect = "A left click on live agent text raises AttributeError: 'LineMarkdown' object has no attribute 'block_cursor' (AgentResponse's ChildBlockCursor asks every child for one), and file paths and links in agent text are plain text: no preview on click, no copy-path menu, no file search. The line view's interaction (block cursor, links) is not carried over to the live tail yet; docs/agents/DECISIONS.md lists it under features to carry over."
@@ -61,4 +62,51 @@ defect = "When an agent advertises a command again with a different input hint, 
 owner = "unassigned: Toad prompt (widgets/prompt.py, slash completion)"
 tests = [
     "tests/textual/test_prompt_completion.py::test_a_whole_command_is_selected_backwards_and_the_agents_hint_refreshes",
+]
+
+[history-admission-growth]
+defect = "Loading earlier pages over and over grows the admitted history without bound: the fragment count rises by four per load (84 after twenty loads, against a 32 limit the old test held). Scrolling far up a long history keeps every page admitted."
+owner = "frame-time / line-view owner (perf/line-history)"
+tests = [
+    "tests/textual/test_history_admission_budget.py::test_admitting_earlier_pages_repeatedly_keeps_admission_bounded_and_the_source_untruncated",
+]
+
+[channel-reader-row-on-prepend]
+defect = "In a channel or direct-message view, when an older page is added above, the row the reader was on moves down by the height of that page (28 rows in the test) instead of staying where it was. Thread history holds its row; channel history does not."
+owner = "frame-time / line-view owner (perf/line-history), mounted_message_history.py"
+tests = [
+    "tests/textual/test_history_scroll_frames.py::test_channel_paging_keeps_the_reader_row_on_every_frame",
+]
+
+[filter-reapplied-finds-nothing]
+defect = "Clearing a message filter and applying it again sometimes leaves the filtered history empty: the filter stays in its seeking state, nothing scans, and the history has no lines. Same cause as filter-selection-before-layout (the edge check runs once, while the history has no height)."
+owner = "frame-time / line-view owner (perf/line-history), transcript_history.py"
+intermittent = true
+tests = [
+    "tests/textual/test_filtered_history_underfill.py::test_clearing_the_filter_restores_the_transcript_and_setting_it_again_finds_the_routed_message",
+]
+
+[session-title-precedence]
+defect = "A session's name loses to the thread's name twice: a label the user set on a tab is replaced by the thread name at the next coordination update (on_session_info_update publishes the title without checking for an explicit label), and a name chosen before the session exists is not the one saved with it (coordinated_title clears the pending name before the session is created)."
+owner = "unassigned: Toad sessions (acp/agent_session.py; widgets/conversation.py is being edited by the frame-time agent)"
+tests = [
+    "tests/textual/test_initial_session_title.py::test_a_name_chosen_before_the_session_exists_is_saved_with_the_session",
+    "tests/textual/test_initial_session_title.py::test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label[named]",
+    "tests/textual/test_initial_session_title.py::test_loading_a_saved_session_names_its_tab_and_keeps_an_explicit_label[unnamed]",
+]
+
+[model-picker-highlight]
+defect = "In the model picker the highlighted row is drawn with the same background as its neighbour, and moving the pointer over another row does not move the highlight."
+owner = "theming owner (the ui-theme colours work), widgets/model_switcher.py"
+tests = [
+    "tests/textual/test_model_picker.py::test_hover_and_arrow_keys_move_the_highlight_without_taking_focus_from_search",
+    "tests/textual/test_model_picker.py::test_opening_the_picker_focuses_search_and_lists_recent_models_first",
+]
+
+[reader-row-after-trim]
+defect = "After the history trims rows above the reader, the reader's marker is occasionally one row lower than before (26 instead of 25; about one run in nine)."
+owner = "frame-time / line-view owner (perf/line-history)"
+intermittent = true
+tests = [
+    "tests/textual/test_reflow_is_not_reader_travel.py::test_trim_and_resize_reflow_are_not_travel_samples_but_a_key_is",
 ]

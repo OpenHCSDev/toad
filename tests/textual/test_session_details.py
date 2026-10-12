@@ -33,7 +33,8 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
             yield details
             yield Input("Untouched draft", id="composer")
 
-    async with workspace.app(size=(90, 30)) as ui:
+    # Wide enough for the whole collapsed summary, which now also names the latest inbound message.
+    async with workspace.app(size=(140, 30)) as ui:
         app, pilot = ui.textual
         app.ansi_color = ansi
         await app.push_screen(Example())

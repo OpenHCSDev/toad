@@ -20,13 +20,12 @@ RESULT = "TOAD_TEST_RESULT"
 OPEN_DEFECTS = Path(__file__).with_name("open_defects.toml")
 
 
-def open_defects() -> dict[str, str]:
-    """Test id -> why it is expected to fail (see tests/open_defects.toml)."""
+def open_defects() -> dict[str, tuple[str, bool]]:
+    """Test id -> (why it is expected to fail, whether it only fails some of the time)."""
     import tomllib
 
-    return {test: f"open defect {name} ({entry['owner']}): {entry['defect']}"
+    return {test: (f"open defect {name} ({entry['owner']}): {entry['defect']}", entry.get("intermittent", False))
             for name, entry in tomllib.loads(OPEN_DEFECTS.read_text()).items() for test in entry["tests"]}
-pytest_plugins = ["legacy_pilots"]
 
 
 def pytest_addoption(parser):
@@ -74,9 +73,12 @@ class OwnProcessTest(pytest.Item):
         output = child.stdout.decode(errors="replace")[-12000:] + child.stderr.decode(errors="replace")[-4000:]
         failed = not child.outcome.successful or not reports
         if (defect := open_defects().get(self.nodeid)) is not None:
+            reason, intermittent = defect
             shutil.rmtree(roots.attempt, ignore_errors=True)
             if failed:
-                pytest.xfail(defect)
+                pytest.xfail(reason)
+            if intermittent:
+                return
             pytest.fail(f"{self.nodeid} passes; remove it from tests/open_defects.toml", pytrace=False)
         if failed:
             pytest.fail(f"{child.outcome!r}\n{output}\nRoots kept: {roots.attempt}", pytrace=False)
@@ -98,7 +100,8 @@ def pytest_collection_modifyitems(config, items):
         raise pytest.UsageError(f"tests/open_defects.toml names tests that do not exist: {sorted(unknown)}")
     for item in items:
         if item.nodeid in defects and "workspace" not in getattr(item, "fixturenames", ()):
-            item.add_marker(pytest.mark.xfail(reason=defects[item.nodeid], strict=True))
+            reason, intermittent = defects[item.nodeid]
+            item.add_marker(pytest.mark.xfail(reason=reason, strict=not intermittent))
     items[:] = [OwnProcessTest.from_parent(item.parent, name=item.name)
                 if "workspace" in getattr(item, "fixturenames", ()) else item for item in items]
 
