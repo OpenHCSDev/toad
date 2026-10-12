@@ -563,13 +563,12 @@ A channel is not a saved transcript, so `WireHistory` is not a `TranscriptHistor
 
 Two hooks carry what differs at a shared step: `_page_added` (a transcript reports coverage) and `source_resumed` (a transcript reports coverage, a channel marks what is on screen read).
 
-Core was not changed: `MessagePage` already answers a bounded page with its evidence.
+Core already answered a bounded page with its evidence (`MessagePage`). It gained one answer: `comms.views.latest_sequence()`, how far the bus has grown, which `WireSource.observe` asks instead of reading the bus log.
 
-**Deleted.** `mounted_message_history.py`, `channel_preparation.py`, `message_viewport.py`, `widgets/irc_message.py`, `HistoryWindow.protect_history`.
+**Deleted.** `mounted_message_history.py`, `channel_preparation.py`, `message_viewport.py`, `widgets/irc_message.py`, `HistoryWindow.protect_history`, `WorkerStatic.preparation_publication`.
 
-**What the reader loses.** A channel's history is one block, like a thread's: no per-message block cursor, no Enter on a focused message to open its sender, no per-message copy (text selection copies), no clock tooltip on the caption. Names, mentions and URLs are still clickable.
+**Rows are drawn on the widget's background.** Rendered rows carry text colours only, and Textual fills a widget's background around its content, not under rows the widget draws itself. `LinkedRows` (the base of every widget that draws rendered rows: history pages and `LineMarkdown`) applies the widget's own style to each row, so thread and channel rows sit on the theme background.
 
-**Left open.**
-- `WireSource.observe` asks how far the bus has grown through `comms.bus.log.latest_sequence()`, as the deleted reader did; that is Toad reaching into a Core store and should become an answer of `comms.views` (a Core change and a new Core pin).
-- The line history's rows carry no background colour, so they are drawn on the terminal's own background, not the theme's (seen in `st` with its default colours, 2026-10-12). The thread view draws through the same code, so it should show the same (not checked on screen).
-- `WorkerStatic.preparation_publication` has no override left now that the per-message widget is gone.
+**The block cursor rests on one message.** `FragmentBlockCursor` is the cursor of every `LineHistory` (it replaced the one-block `SavedHistoryBlockCursor`): Alt+Up/Down move message by message, a click selects the message clicked, and the cursor's menu copies that message. What a message offers is declared on its fragment: `clipboard_text`, `block_menu` (a channel message adds "Open sender" and "Open destination"), `timestamp` (the page's tooltip shows the full time of the message under the pointer). A link that leads somewhere is underlined (`LineLink.underlined`).
+
+Enter on the cursor opens its menu, as on every block; "Open sender" (s) and "Open destination" (d) are entries of it. The old direct Enter / Shift+Enter belonged to Textual focus on a per-message widget, a second kind of focus beside the block cursor; rows have one cursor.

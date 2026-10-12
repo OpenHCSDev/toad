@@ -61,7 +61,8 @@ class LineTheme:
 
 def _click(link: LineLink | None) -> Style:
     """The style that makes text run a link's action when clicked."""
-    return Style.null() if link is None else Style(meta={"@click": link.click})
+    return Style.null() if link is None else Style(
+        underline=link.underlined or None, meta={"@click": link.click})
 
 
 def _fit(text: str, width: int) -> str:
@@ -95,7 +96,20 @@ def _clickable(rows: list[Row]) -> list[Row]:
 
 
 class LinkedRows:
-    """A widget that draws rendered rows opens the links clicked in them."""
+    """A widget that draws rendered rows: on its own background, opening the links clicked in them."""
+
+    def on_background(self, strip: Strip) -> Strip:
+        """A row as this widget draws it.
+
+        Rendered rows carry text colours only. Textual fills a widget's
+        background around its content, not under the rows it draws itself, so
+        each row takes the widget's style here. A strip remembers the styles
+        applied to it, so a repaint reuses the same drawn row.
+        """
+        return strip.apply_style(self.rich_style)
+
+    def blank_row(self, width: int) -> Strip:
+        return Strip.blank(width, self.rich_style)
 
     async def action_link(self, href: str) -> None:
         from toad.project_path_owner import ProjectPathOwner

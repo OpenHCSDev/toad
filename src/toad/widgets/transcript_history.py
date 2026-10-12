@@ -1,7 +1,7 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationBlock, SavedHistoryBlockCursor
+from toad.block_navigation import ConversationBlock, FragmentBlockCursor
 
 from toad.widgets.message_filter import OtherCategory
 
@@ -25,6 +25,7 @@ from textual import events, on
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
+from textual.geometry import Region
 from textual.message import Message
 from textual.selection import Selection
 from textual.widget import Widget
@@ -231,11 +232,11 @@ class TranscriptPageView(LinkedRows, Widget):
         width = self._width
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
-            return Strip.blank(width)
+            return self.blank_row(width)
         _index, first, lines = self._layout[slot]
         row = y - first
         # Prepared rows span exactly this width (PreparedLines.strips).
-        return lines.strips[row] if row < lines.height else Strip.blank(width)
+        return self.on_background(lines.strips[row]) if row < lines.height else self.blank_row(width)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text is read from the rows this page draws."""
@@ -248,6 +249,37 @@ class TranscriptPageView(LinkedRows, Widget):
             if self.fragments[index] is fragment:
                 return first
         return None
+
+    @property
+    def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
+        """The fragments this page draws rows for, oldest first."""
+        return tuple(self.fragments[index] for index, _first, _lines in self._layout)
+
+    def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
+        """The rows of this page that draw a fragment."""
+        for index, first, lines in self._layout:
+            if self.fragments[index] is fragment:
+                return range(first, first + lines.height)
+        return None
+
+    @property
+    def screen_region(self) -> Region | None:
+        """Where the screen shows this page, including the part scrolled out of view."""
+        geometry = self.screen._compositor.visible_widgets.get(self)
+        return None if geometry is None else geometry[0]
+
+    def fragment_under_mouse(self) -> TranscriptFragment | None:
+        if (region := self.screen_region) is None:
+            return None
+        row = self.app.mouse_position.y - region.y
+        found = self.fragment_at(row) if 0 <= row < self._height else None
+        return None if found is None else found[0]
+
+    @property
+    def tooltip(self) -> str | None:
+        """The full time of the message under the pointer."""
+        fragment = self.fragment_under_mouse()
+        return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
 
     def fragment_at(self, row: int) -> tuple[TranscriptFragment, int] | None:
         """The admitted fragment drawn at a row of this page, and the row within it."""
@@ -390,7 +422,7 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
 
     @cached_property
     def block_cursor(self):
-        return SavedHistoryBlockCursor(self)
+        return FragmentBlockCursor(self)
 
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                   *, fragments: tuple[TranscriptFragment, ...] | None = None,
@@ -457,6 +489,63 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
+
+    # The message cursor
+
+    @property
+    def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
+        """Every fragment the pages draw rows for, oldest first."""
+        return tuple(fragment for page in self.pages for fragment in page.drawn_fragments)
+
+    def draws_fragment(self, fragment: TranscriptFragment) -> bool:
+        return any(page.fragment_rows(fragment) is not None for page in self.pages)
+
+    def fragment_under_mouse(self, widget: Widget) -> TranscriptFragment | None:
+        """The fragment drawn under the pointer, when `widget` is one of this history's pages."""
+        return next((page.fragment_under_mouse() for page in self.pages if page is widget), None)
+
+    def fragment_region(self, fragment: TranscriptFragment) -> Region | None:
+        """Where the screen shows a fragment's rows; None while its page is off screen."""
+        for page in self.pages:
+            if (rows := page.fragment_rows(fragment)) is not None:
+                if (region := page.screen_region) is None:
+                    return None
+                return Region(region.x, region.y + rows.start, region.width, len(rows))
+        return None
+
+    def fragment_window_rows(self, fragment: TranscriptFragment) -> range | None:
+        """The rows of the window's content that draw a fragment.
+
+        Layout places only the pages near the screen. Pages follow one another
+        without a gap, so one placed page gives the rows of every other.
+        """
+        from toad.widgets.history_anchor import HistoryAnchor
+
+        y, rows, shift = 0, None, None
+        for page in self.pages:
+            if shift is None and (placed := HistoryAnchor._placed_offset(page, self.window)) is not None:
+                shift = placed - y
+            if rows is None and (within := page.fragment_rows(fragment)) is not None:
+                rows = range(y + within.start, y + within.stop)
+            y += page.line_count
+        if rows is None or shift is None:
+            return None
+        return range(rows.start + shift, rows.stop + shift)
+
+    def show_fragment(self, fragment: TranscriptFragment) -> None:
+        """Scroll just far enough that a fragment's rows are on screen, its first row before its last."""
+        window = self.window
+        if (rows := self.fragment_window_rows(fragment)) is None:
+            return
+        top, height = int(window.scroll_y), window.scrollable_content_region.height
+        if rows.start < top:
+            destination = rows.start
+        elif rows.stop > top + height:
+            destination = min(rows.start, rows.stop - height)
+        else:
+            return
+        window.release_anchor()
+        window.scroll_to(y=destination, animate=False, immediate=True)
 
     def reader_position(self, window):
         """The reader's row as a position that survives rows changing above it.

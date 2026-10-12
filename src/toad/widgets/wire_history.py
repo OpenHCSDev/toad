@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
+from toad.line_blocks import LineLink
 from toad.navigation_target import linked_target
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
@@ -37,6 +38,11 @@ class WirePageView(TranscriptPageView):
     @property
     def history(self) -> WireHistory:
         return self.query_ancestor(WireHistory)
+
+    def open_link(self, link: LineLink) -> None:
+        """Do what clicking a link drawn on this page does."""
+        action, arguments = link.click
+        getattr(self, f"action_{action}")(*arguments)
 
     def action_open_target(self, target: str) -> None:
         self.history.publish_core(SelectTarget(linked_target(target)))
@@ -305,6 +311,19 @@ class WireHistory(LineHistory):
     async def toggle_details(self, key: tuple[str, int]) -> None:
         await self._show([(fragment, replace(fragment.shown, details_open=not fragment.shown.details_open))
                           for fragment in self.wire_fragments if fragment.message.view_key == key])
+
+    # The message under the cursor
+
+    def _open_name(self, target: str, message: Message) -> None:
+        self.pages[-1].open_link(self.style.name(target, message).link)
+
+    def action_open_sender(self) -> None:
+        if (fragment := self.block_cursor.current) is not None:
+            self._open_name(fragment.message.sender, fragment.message)
+
+    def action_open_destination(self) -> None:
+        if (fragment := self.block_cursor.current) is not None:
+            self._open_name(fragment.message.target, fragment.message)
 
     # Notifications
 

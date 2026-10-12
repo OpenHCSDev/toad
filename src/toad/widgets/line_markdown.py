@@ -170,9 +170,9 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         width = self._width
         strips = self._lines(width).strips if width else ()
         if y >= len(strips):
-            return Strip.blank(width)
+            return self.blank_row(width)
         # Prepared rows span exactly this width (PreparedLines.strips).
-        return strips[y]
+        return self.on_background(strips[y])
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text comes from the source text, not from drawn cells."""

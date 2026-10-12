@@ -11,6 +11,7 @@ from agent_comms.transcript_events import (
     TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, MarkdownTranscript, ToolTranscript,
 )
 
+from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
@@ -172,6 +173,22 @@ class TranscriptFragment:
     def categories(self) -> frozenset[type[MessageCategory]]:
         """The message categories of this fragment's events, derived once."""
         return frozenset(map(event_category, self.events))
+
+    @property
+    def timestamp(self) -> float | None:
+        """When this fragment's first event happened."""
+        return self.events[0].timestamp
+
+    @property
+    def clipboard_text(self) -> str | None:
+        """What copying this fragment gives: its text as written."""
+        return "\n\n".join(event.text for event in self.events
+                           if isinstance(event, TextTranscript)) or None
+
+    @property
+    def block_menu(self) -> tuple[MenuItem, ...]:
+        """What the cursor's menu offers on this fragment, besides copying."""
+        return ()
 
     def shown_in(self, selected: frozenset[type[MessageCategory]]) -> bool:
         """A fragment shows when a filter selects any of its events' categories."""

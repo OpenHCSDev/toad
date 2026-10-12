@@ -155,18 +155,78 @@ class AtomicBlockCursor(BlockCursor):
         return self.block.outer_size, compositor.render_full_update()
 
 
-class SavedHistoryBlockCursor(AtomicBlockCursor):
-    """The saved history is one block; its rows are reached by scrolling it.
+class FragmentBlockCursor(BlockCursor):
+    """The cursor inside a line history rests on one drawn message.
 
-    Selecting it never scrolls: the reader's place in it belongs to the window,
-    and the block's own top is the oldest loaded row, not what was clicked.
+    The history draws messages as rows, not widgets, so the cursor holds the
+    message (its fragment) and asks the history where its rows are.
     """
 
-    def show_moved_to(self, window):
-        pass
+    def __init__(self, block):
+        super().__init__(block)
+        self.fragment = None
 
-    def show_clicked(self, window):
-        pass
+    @property
+    def current(self):
+        """The message the cursor rests on, while the history still draws it."""
+        fragment = self.fragment
+        return fragment if fragment is not None and self.block.draws_fragment(fragment) else None
+
+    @property
+    def selected(self):
+        return self.block if self.current is not None else None
+
+    def enter(self, direction):
+        # The cursor arrives at the reader's side of the screen, not at an
+        # end of the loaded history the reader may be far from.
+        fragments = self.block.visible_fragments() or self.block.drawn_fragments
+        if not fragments:
+            return False
+        self.fragment = fragments[direction.entry(len(fragments))]
+        return True
+
+    def move(self, direction):
+        fragments = self.block.drawn_fragments
+        current = self.current
+        if current is None or all(current is not seen for seen in self.block.visible_fragments()):
+            # The reader scrolled away from the cursor: it starts again from what they see.
+            return self.enter(direction)
+        index = next(index for index, drawn in enumerate(fragments) if drawn is current) + direction.step
+        if 0 <= index < len(fragments):
+            self.fragment = fragments[index]
+            return True
+        # At a loaded edge with more history beyond it the cursor waits there:
+        # scrolling to it loads the next page.
+        return self.block.has_older if direction.step < 0 else self.block.has_newer
+
+    def select(self, widget):
+        fragment = self.block.fragment_under_mouse(widget)
+        if fragment is None:
+            return False
+        self.fragment = fragment
+        return True
+
+    def clear(self):
+        self.fragment = None
+
+    def get_clipboard_text(self):
+        fragment = self.current
+        return None if fragment is None else fragment.clipboard_text
+
+    def get_block_menu(self):
+        fragment = self.current
+        return () if fragment is None else fragment.block_menu
+
+    @property
+    def region(self):
+        fragment = self.current
+        return None if fragment is None else self.block.fragment_region(fragment)
+
+    visible_region = region
+
+    def show_moved_to(self, window):
+        if (fragment := self.current) is not None:
+            self.block.show_fragment(fragment)
 
 
 class ChildBlockCursor(BlockCursor):

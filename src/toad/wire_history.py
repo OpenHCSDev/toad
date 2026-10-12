@@ -27,6 +27,7 @@ from toad.line_blocks import (
     Body, Divider, Gap, LineBlock, LineLink, MutedRole, NameRole, NoticeRole, OpenHistoricalTarget,
     OpenTarget, Span, Spans, Summary, ToggleDetails, WorkingRole,
 )
+from toad.menus import MenuItem
 from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
@@ -114,6 +115,10 @@ class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
     @abstractmethod
     def next(self) -> WireMessageStyle: ...
 
+    @abstractmethod
+    def clipboard(self, message: Message) -> str:
+        """What copying a message drawn in this style gives."""
+
     @staticmethod
     def name(target: str, message: Message) -> Span:
         link: LineLink = (OpenHistoricalTarget(target, message.source.key)
@@ -136,6 +141,9 @@ class IrcMessageStyle(WireMessageStyle):
     def next(self):
         return MarkdownMessageStyle()
 
+    def clipboard(self, message):
+        return f"{message.sender} → {message.target}: {message.body}"
+
 
 class MarkdownMessageStyle(WireMessageStyle):
     """The route on its own line, then the text as Markdown and who it mentions."""
@@ -152,6 +160,9 @@ class MarkdownMessageStyle(WireMessageStyle):
 
     def next(self):
         return IrcMessageStyle()
+
+    def clipboard(self, message):
+        return message.body
 
 
 @dataclass(frozen=True)
@@ -191,6 +202,14 @@ class WireFragment(TranscriptFragment):
     @cached_property
     def retained_bytes(self) -> int:
         return len(self.message.body) + 256
+
+    @property
+    def timestamp(self) -> float | None:
+        return self.message.timestamp
+
+    @property
+    def clipboard_text(self) -> str:
+        return self.message.body
 
     @property
     def leading(self) -> tuple[LineBlock, ...]:
@@ -243,6 +262,12 @@ class MessageFragment(WireFragment):
 
     direction: str
     checks_notifications = True
+    block_menu = (MenuItem("Open [u]s[/u]ender", "block.open_sender", "s"),
+                  MenuItem("Open [u]d[/u]estination", "block.open_destination", "d"))
+
+    @property
+    def clipboard_text(self):
+        return self.shown.style.clipboard(self.message)
 
     @property
     def leading(self):
@@ -294,7 +319,7 @@ class WireSource:
         revision = self.comms.views.revision()
         if revision == seen:
             return None
-        high = AfterSequence(self.comms.bus.log.latest_sequence())
+        high = AfterSequence(self.comms.views.latest_sequence())
         # Without new messages the viewer, peer or channel scope may still
         # have been replaced: the pages drawn then belong to another reading.
         replaced = seen is None or (

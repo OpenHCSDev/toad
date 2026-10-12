@@ -110,6 +110,8 @@ class LineLink:
     """What clicking a piece of text does: the frontend runs `action` with the link's fields."""
 
     action: ClassVar[str]
+    # Whether the text is underlined to show that it leads somewhere.
+    underlined: ClassVar[bool] = True
 
     @property
     def click(self) -> tuple[str, tuple]:
@@ -144,6 +146,7 @@ class ToggleDetails(LineLink):
     """Show or hide the details under the message with this key."""
 
     action = "toggle_details"
+    underlined = False
     key: tuple[str, int]
 
 

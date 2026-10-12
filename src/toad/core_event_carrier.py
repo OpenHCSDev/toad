@@ -108,7 +108,13 @@ class CoreEventReceiver(MroDispatch):
         return subscription
 
     def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
-        return self.post_message(CoreEventMessage(event, subscription))
+        message = CoreEventMessage(event, subscription)
+        # Textual records whichever widget's handler is running as the sender
+        # and stops a bubbling message at that widget. This widget publishes
+        # the event, so an ancestor that asked for it (a menu choice run by
+        # the conversation) still lets it travel on to the screen.
+        message._sender = self
+        return self.post_message(message)
 
     def post_core_observation(self, event: CoreEvent, subscription: Subscription) -> bool:
         message = CoreEventMessage(event, subscription)
