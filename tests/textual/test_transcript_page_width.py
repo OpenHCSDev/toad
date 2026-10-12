@@ -9,6 +9,7 @@ from agent_comms.transcript_events import AssistantTranscript, UserTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual._context import active_app
 from textual.app import App
+from textual.selection import Selection
 
 from toad.widgets.transcript_history import TranscriptPageView
 from toad.line_blocks import AgentRole, Body, Divider, Gap, Summary, UserRole
@@ -56,6 +57,14 @@ class TranscriptPageWidth(unittest.TestCase):
             for item in lines:
                 vars(item).pop("strips", None)
                 vars(item).pop("rows", None)
+
+    def test_selected_text_is_the_text_the_page_draws(self):
+        view = page_view(3)
+        view.get_content_height(None, None, 80)
+        text, ending = view.get_selection(Selection(None, None))
+        self.assertIn("Message 0", text)
+        self.assertIn("Message 2", text)
+        self.assertEqual(ending, "\n")
 
     def test_filtered_page_lays_out_only_shown_fragments(self):
         from toad.widgets.message_filter import all_categories, event_category

@@ -26,6 +26,7 @@ from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from textual.message import Message
+from textual.selection import Selection
 from textual.widget import Widget
 from textual.walk import walk_depth_first
 from textual.strip import Strip
@@ -113,7 +114,7 @@ class TranscriptPageView(LinkedRows, Widget):
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
         self._pending: set[int] = set()
-        self._render: asyncio.Task[None] | None = None
+        self._render_task: asyncio.Task[None] | None = None
         self._width = 0
         # Each admitted fragment's index, first row and lines at the laid-out width.
         self._layout: list[tuple[int, int, Lines]] = []
@@ -179,8 +180,8 @@ class TranscriptPageView(LinkedRows, Widget):
         self.admission_changed()
 
     def on_unmount(self) -> None:
-        if self._render is not None:
-            self._render.cancel()
+        if self._render_task is not None:
+            self._render_task.cancel()
 
     def admission_changed(self) -> None:
         """The prepared range moved; draw the new range's rows."""
@@ -211,10 +212,10 @@ class TranscriptPageView(LinkedRows, Widget):
                 starts.append(y)
                 y += lines.height
         self._layout, self._starts, self._height = layout, starts, y
-        if self._pending and self.is_attached and (self._render is None or self._render.done()):
+        if self._pending and self.is_attached and (self._render_task is None or self._render_task.done()):
             # Layout calls this to measure: start the renderer in its own loop
             # turn, not inside the measurement (the task factory is eager).
-            self._render = asyncio.create_task(self._render_pending(), eager_start=False)
+            self._render_task = asyncio.create_task(self._render_pending(), eager_start=False)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container, viewport, width: int) -> int:
@@ -235,6 +236,11 @@ class TranscriptPageView(LinkedRows, Widget):
         row = y - first
         # Prepared rows span exactly this width (PreparedLines.strips).
         return lines.strips[row] if row < lines.height else Strip.blank(width)
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        """Selected text is read from the rows this page draws."""
+        rows = "\n".join(self.render_line(y).text.rstrip() for y in range(self._height))
+        return selection.extract(rows), "\n"
 
     def fragment_line(self, fragment: TranscriptFragment) -> int | None:
         """The first row of an admitted fragment within this page."""

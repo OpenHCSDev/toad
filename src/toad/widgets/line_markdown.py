@@ -44,7 +44,7 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         self._styled: PreparedLines | None = None
         self._plain: PreparedLines | None = None
         self._width = 0
-        self._render: Worker[None] | None = None
+        self._render_worker: Worker[None] | None = None
 
     @property
     def block(self) -> Body:
@@ -119,9 +119,9 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
     _plain_key: tuple | None = None
 
     def _request_render(self) -> None:
-        if self._width and self.is_attached and (self._render is None or self._render.is_finished):
+        if self._width and self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
             # A widget worker: unmount cancels it and a failure is an app error.
-            self._render = self.run_worker(self._render_latest(), group="restyle")
+            self._render_worker = self.run_worker(self._render_latest(), group="restyle")
 
     @staticmethod
     def _complete_paragraphs(text: str) -> str:
