@@ -63,12 +63,12 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
                 await asyncio.gather(task, return_exceptions=True)
         await ui.step()
         histories = view.transcript.histories
-        responses = [item for item in view.contents.query(AgentResponse)
-                     if item.body.text == "FIRST_SAVED_NATIVE_RESPONSE"]
         replacement = histories[0]
         assert len(view.window.histories) == len(histories) == 1
         assert not old.is_attached and not live.is_attached
-        assert len(responses) == 1 and ui.shows("FIRST_SAVED_NATIVE_RESPONSE")
+        assert not list(view.contents.query(AgentResponse)), "the covered live response is still mounted"
+        await ui.until(lambda: ui.painted(view.window).count("FIRST_SAVED_NATIVE_RESPONSE") == 1,
+                       why="the saved response drawn exactly once")
         assert replacement.committed_cursor == page.after
         assert replacement.loader == agent.get_transcript_page
         assert replacement.covers_incoming(notice.seq)

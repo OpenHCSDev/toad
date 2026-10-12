@@ -9,11 +9,13 @@ from unittest.mock import patch
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.threads import Thread
+import pytest
 from textual.await_complete import AwaitComplete
+from textual.worker import WorkerCancelled
 
 from support import agents, journals
 from toad.live_output import ResponseStream
-from toad.transcript_publication import CheckpointPublication, SnapshotPublication
+from toad.transcript_publication import SnapshotPublication
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -133,7 +135,6 @@ async def retire_while_output_is_busy(workspace, *, checkpoint):
             view.set_reactive(type(view).agent_ready, True)
             # A live stream block that the saved page already covers.
             block = await view.output.append(ResponseStream(), new_page.events[0].text)
-            view.transcript.dirty = view.transcript.checkpoint_required = True
             view.window.anchor()
             view.prompt.focus()
         entered = asyncio.Event()
@@ -147,13 +148,16 @@ async def retire_while_output_is_busy(workspace, *, checkpoint):
             entered.set()
             await retire(candidates)
 
-        publication = (CheckpointPublication(view.transcript, view, view.window, view.contents) if checkpoint
-                       else SnapshotPublication(view.transcript, view, view.window, view.contents, new_page))
-        task = None
+        task = worker = None
         try:
             with patch.object(view.output, "retire_presentations", observe_retirement):
                 async with view.output.lock:
-                    task = asyncio.create_task(publication.publish())
+                    if checkpoint:
+                        # The transcript owner runs its own checkpoint; a second one built here would race it.
+                        view.transcript.require_checkpoint()
+                    else:
+                        task = asyncio.create_task(SnapshotPublication(
+                            view.transcript, view, view.window, view.contents, new_page).publish())
                     await asyncio.wait_for(entered.wait(), 5)
                     # While the output owner is held, finishing must still be able to take the source and tree locks.
                     async with asyncio.timeout(5):
@@ -161,10 +165,17 @@ async def retire_while_output_is_busy(workspace, *, checkpoint):
                             async with view.window.lock:
                                 pass
                     assert not old.display
-                    task.cancel()
+                    if checkpoint:
+                        # The owner may have restarted its checkpoint; the one retiring now is its current worker.
+                        worker = view.transcript.worker
+                    (worker or task).cancel()
                     await ui.step(0.05)
-                result = await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 5)
-                assert isinstance(result[0], asyncio.CancelledError), result
+                if checkpoint:
+                    with pytest.raises(WorkerCancelled):
+                        await asyncio.wait_for(worker.wait(), 5)
+                else:
+                    result = await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 5)
+                    assert isinstance(result[0], asyncio.CancelledError), result
                 await ui.step(0.1)
                 assert covered["old"], "The source did not cover the old history"
                 if checkpoint:

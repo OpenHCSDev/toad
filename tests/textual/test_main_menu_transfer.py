@@ -15,6 +15,8 @@ async def open_main_menu(ui):
     await ui.until(lambda: app.screen.query_one_optional(MainMenuButton) is not None, why="the main menu button")
     app.screen.query_one(MainMenuButton).action_open_menu()
     await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the menu")
+    # The menu focuses its first choice once mounted; choosing before that chooses nothing.
+    await ui.until(lambda: isinstance(app.screen.focused, ContextMenuItem), why="the menu's first choice focused")
     return app.screen
 
 
