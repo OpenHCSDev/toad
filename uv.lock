@@ -33,7 +33,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=d5edca116113f77932d3cf5811ceec1a6d1bc6b4#d5edca116113f77932d3cf5811ceec1a6d1bc6b4" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=1b499049cca81558ecfd0fb775ef9d3e3363630e#1b499049cca81558ecfd0fb775ef9d3e3363630e" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "nominal-refactor-audit" },
@@ -315,7 +315,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=d5edca116113f77932d3cf5811ceec1a6d1bc6b4" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=1b499049cca81558ecfd0fb775ef9d3e3363630e" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
