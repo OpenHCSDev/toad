@@ -142,3 +142,11 @@ intermittent = true
 tests = [
     "tests/textual/test_history_scroll_frames.py::test_transcript_paging_keeps_the_reader_row_on_every_frame_even_with_input_during_the_read",
 ]
+
+[select-mounted-before-its-label]
+defect = "Opening the permission screen sometimes exits Toad with NoMatches: No nodes match '#label' on SelectCurrent. Textual's Select sets its first value in its own mount handler (widgets/_select.py, _init_selected_option), and the SelectCurrent child is present but has not composed its label yet. Seen once in three full runs of the suite."
+owner = "Textual fork owner (OpenHCSDev/textual, widgets/_select.py); reached from toad/screens/permissions.py"
+intermittent = true
+tests = [
+    "tests/native/test_native_client_requests.py::test_client_requests_follow_the_session_they_belong_to",
+]

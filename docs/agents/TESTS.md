@@ -136,7 +136,7 @@ While frame time is being measured on the development machine, run at most three
 
 `tests/open_defects.toml` lists the tests that fail because the product is wrong: the defect in plain words, its owner, and the tests that reproduce it. The runner expects each listed test to fail. A listed test that passes is reported as an error until its entry is removed, so the list cannot go stale. An entry marked `intermittent` reproduces only on some runs; for it, passing is not an error. Do not add an entry without a named defect and owner, and never add one to quiet a test you have not read.
 
-At the time of the consolidation the list holds 17 defects covering 31 tests:
+At the time of the consolidation the list holds 18 defects covering 32 tests:
 
 | Defect | Tests | Owner |
 |---|---|---|
@@ -157,6 +157,7 @@ At the time of the consolidation the list holds 17 defects covering 31 tests:
 | `late-goal-notice` | 1 | Core goal owner (agent_comms GoalSnapshot), then the Toad goal bar (GoalObservation.receive) |
 | `late-answer-drawn-twice` (intermittent) | 2 | frame-time / line-view owner (perf/line-history), transcript_publication.py |
 | `reader-row-frame-during-page-load` (intermittent) | 1 | frame-time / line-view owner (perf/line-history), transcript_history.py |
+| `select-mounted-before-its-label` (intermittent) | 1 | Textual fork owner (OpenHCSDev/textual, widgets/_select.py); reached from toad/screens/permissions.py |
 
 ## What the suite does not cover
 
