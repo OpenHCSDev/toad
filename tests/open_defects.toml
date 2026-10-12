@@ -43,13 +43,6 @@ tests = [
     "tests/textual/test_message_filter_switch_while_mounting.py::test_empty_filter_reads_no_history_and_a_later_selection_finds_the_match",
 ]
 
-[route-publication-while-toad-runs]
-defect = "Publishing a new default comms route does not complete while a Toad is mounted on the default root: the app's coordination access holds the route's shared lock for its lifetime, so publish_active_route waits. Views therefore never reach the refusal of writes selected before the publication. Either the lock is meant to be held only per operation, or publication is meant to wait for every client to exit; Core's route owner decides."
-owner = "Core (agent-comms) route owner, with Toad's CoordinationAccess"
-tests = [
-    "tests/textual/test_stale_route_writes.py::test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused",
-]
-
 [key-burst-order]
 defect = "Typing while the history has focus: the first printable key moves focus to the editor, but a non-printable key that arrives before the focus change lands is handled by the history window instead. 'x', Left, 'y' sent in one burst gives 'xy', not 'yx' (Conversation.on_key forwards only printable keys)."
 owner = "unassigned: Toad input handling (widgets/conversation.py is being edited by the frame-time agent)"
