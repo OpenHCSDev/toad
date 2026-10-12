@@ -31,4 +31,5 @@ async def test_hidden_channel_refresh_does_no_root_check_and_resumed_window_fetc
         await ui.select_tab(first)
         await ui.until(lambda: any(m.body == "ARRIVED-WHILE-HIDDEN" for m in history.messages),
                        why="the resumed channel to fetch the current message")
-        assert ui.shows("ARRIVED-WHILE-HIDDEN")
+        # The history holds the message before layout has measured its rows; the next layout draws it.
+        await ui.until(lambda: ui.shows("ARRIVED-WHILE-HIDDEN"), why="the fetched message drawn")

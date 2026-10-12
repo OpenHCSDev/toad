@@ -95,6 +95,22 @@ class Reader:
     def window(self):
         return self.ui.conversation.window
 
+    def idle(self) -> bool:
+        """Nothing is laid out or put back, and nothing is read but what a cell holds: the window keeps what it draws."""
+        screen, history = self.window.screen, self.history
+        reading = history.is_attached and not (history.state.accepts_source_work and not history.filter.scanning)
+        return (screen._stepped_layout is None and not screen._layout_required
+                and (not reading or self.reads_waiting > 0))
+
+    def drawn(self) -> bool:
+        """The first pages are drawn in full, with more than two windows of rows above the latest message.
+
+        A reader who travels up before that stands on the newest rows, where hiding a kind of message leaves
+        less than a window of rows below them and no window can keep their line on its row.
+        """
+        window = self.window
+        return self.history.is_mounted and self.idle() and window.max_scroll_y >= 2 * window.size.height
+
     def lines(self) -> list[Line]:
         region = self.window.region
         found = []
@@ -109,7 +125,7 @@ class Reader:
         return next(iter(self.lines()), None)
 
     async def settled(self) -> Line | None:
-        """Wait until the window draws the same thing three times running."""
+        """Wait until nothing is at work and the window draws the same thing three times running."""
         _app, pilot = self.ui.textual
         seen, same, samples = object(), 0, []
         try:
@@ -119,7 +135,7 @@ class Reader:
                     await self.ui.step(0.15)
                     now = (self.top(), self.window.scroll_y, self.window.max_scroll_y)
                     samples.append(now)
-                    seen, same = now, same + 1 if now == seen else 0
+                    seen, same = now, same + 1 if now == seen and self.idle() else 0
         except TimeoutError:
             raise AssertionError(f"the window kept changing; last samples: {samples[-8:]}") from None
         return self.top()
@@ -347,7 +363,7 @@ async def test_the_reader_keeps_its_place(workspace, state_name, change_name):
         reader.history = await ui.conversation.post(
             TranscriptHistory(page(PAGES - 1), loader=reader.load, budget=change.budget))
         window = reader.window
-        await ui.until(lambda: reader.history.is_mounted and window.max_scroll_y > 0, why="the history drawn")
+        await ui.until(reader.drawn, why="the history drawn")
         if change.before is not None:
             await change.before(reader)
             await reader.settled()
@@ -404,7 +420,7 @@ async def test_unticking_message_kinds_in_the_sidebar_while_scrolled_up_keeps_to
         reader = Reader(ui)
         reader.history = await ui.conversation.post(TranscriptHistory(page(PAGES - 1), loader=reader.load))
         window = reader.window
-        await ui.until(lambda: reader.history.is_mounted and window.max_scroll_y > 0, why="the history drawn")
+        await ui.until(reader.drawn, why="the history drawn")
         sidebar = app.screen.query_one("#thread-sidebar", SideBar)
         sidebar.reveal()
         await sidebar.wait_content_ready()
@@ -444,7 +460,8 @@ async def channel_settled(ui, window) -> tuple[str, int] | None:
             await pilot.wait_for_scheduled_animations()
             await ui.step(0.15)
             now = (channel_top(ui, window), window.scroll_y, window.max_scroll_y)
-            seen, same = now, same + 1 if now == seen else 0
+            laid_out = window.screen._stepped_layout is None and not window.screen._layout_required
+            seen, same = now, same + 1 if now == seen and laid_out else 0
     return channel_top(ui, window)
 
 
