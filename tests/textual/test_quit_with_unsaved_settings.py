@@ -5,7 +5,8 @@ import json
 from textual.widgets import Input
 
 from support.applications import record_notifications
-from support.completion_agent import completion_agent, completion_prompts
+from support.agents import peer
+from support.completion_record import completion_prompts
 from toad.preferences import UiSettings
 from toad.screens.settings import SettingsScreen
 from toad.setting_widgets import InputEditor
@@ -17,7 +18,7 @@ async def test_quit_that_cannot_save_stays_open_and_a_retry_saves_the_edit_and_e
     path = config / 'toad.json'
     path.write_text(json.dumps({'anon_id': 'quit-save-durable', 'statistics': {'allow_collect': False},
                                 'ui': {'column-width': 100}}))
-    async with workspace.app(size=(130, 44), agent=completion_agent("Quit save peer", "quit-save-peer")) as ui:
+    async with workspace.app(size=(130, 44), agent=peer("completion", name="Quit save peer", identity="quit-save-peer")) as ui:
         app, pilot = ui.textual
         view = ui.conversation
         record_notifications(app)
