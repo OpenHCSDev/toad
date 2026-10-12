@@ -25,7 +25,7 @@ from toad.conversation_kind import ConversationKind
 from toad.inline_spans import inline_spans
 from toad.line_blocks import (
     Body, Divider, Gap, LineBlock, LineLink, MutedRole, NameRole, NoticeRole, OpenHistoricalTarget,
-    OpenTarget, Span, Spans, Summary, ToggleDetails, WorkingRole,
+    OpenTarget, Span, Spans, WorkingRole,
 )
 from toad.menus import MenuItem
 from toad.notification_status import NotificationStatus, UncheckedNotifications
@@ -33,7 +33,7 @@ from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
-from toad.widgets.transcript_fragments import TranscriptFragment
+from toad.widgets.transcript_fragments import Shown, TranscriptFragment
 from toad.work_preparation import WorkKey
 
 if TYPE_CHECKING:
@@ -166,12 +166,11 @@ class MarkdownMessageStyle(WireMessageStyle):
 
 
 @dataclass(frozen=True)
-class Shown:
+class MessageShown(Shown):
     """What a reader chose or learned about one drawn message."""
 
     style: WireMessageStyle
     status: NotificationStatus = field(default_factory=UncheckedNotifications)
-    details_open: bool = False
 
 
 @dataclass(kw_only=True)
@@ -182,7 +181,7 @@ class WireFragment(TranscriptFragment):
     read; it is None when the page carried none and once the mark is written.
     """
 
-    shown: Shown
+    shown: MessageShown
     evidence: MessagePage | None
     checks_notifications: ClassVar[bool] = False
 
@@ -216,28 +215,16 @@ class WireFragment(TranscriptFragment):
         """Blocks above the message's own text."""
         return ()
 
-    def trailing(self, shown: Shown) -> tuple[LineBlock, ...]:
+    def trailing(self, shown: MessageShown) -> tuple[LineBlock, ...]:
         """Blocks below the message's own text."""
         return ()
 
-    def text(self, shown: Shown) -> tuple[LineBlock, ...]:
+    def text(self, shown: MessageShown) -> tuple[LineBlock, ...]:
         """The message's own text."""
         raise NotImplementedError
 
-    def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
+    def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
-
-    @cached_property
-    def line_blocks(self):
-        return self.blocks(self.shown)
-
-    def show(self, shown: Shown, theme=None, lines: Lines | None = None) -> None:
-        """Draw `shown` from now on, with its already rendered lines when there are some."""
-        self.shown = shown
-        for held in ("line_blocks", "_lines", "_plain"):
-            self.__dict__.pop(held, None)
-        if lines is not None:
-            self.hold_lines(theme, lines)
 
     def text_rows(self, lines: Lines) -> range:
         """The rows of `lines` that draw the message's own text: seeing one is reading it."""
@@ -262,6 +249,7 @@ class MessageFragment(WireFragment):
 
     direction: str
     checks_notifications = True
+    has_details = True
     block_menu = (MenuItem("Open [u]s[/u]ender", "block.open_sender", "s"),
                   MenuItem("Open [u]d[/u]estination", "block.open_destination", "d"))
 
@@ -283,8 +271,7 @@ class MessageFragment(WireFragment):
     def trailing(self, shown):
         status = shown.status
         role = NoticeRole if status.unavailable else WorkingRole if status.working else MutedRole
-        summary = Summary(("▼ " if shown.details_open else "▶ ") + status.title, role,
-                          ToggleDetails(self.message.view_key))
+        summary = shown.summary(status.title, role)
         if not shown.details_open:
             return (summary,)
         details = "\n".join("  " + line for line in status.details.splitlines())
@@ -346,7 +333,7 @@ class WireSource:
             if len(kept) < len(page.messages):
                 page = replace(page, messages=kept, has_newer=False)
         evidence = page if self.kind.display_identity(page) is not None else None
-        shown = Shown(self.style)
+        shown = MessageShown(self.style)
         fragments = tuple(
             WireFragment.of(message, shown=shown, evidence=evidence,
                             **({} if message.membership is not None

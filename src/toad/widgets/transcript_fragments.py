@@ -4,13 +4,14 @@ import asyncio
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     TranscriptEvent, TextTranscript, ContextTranscript, UserTranscript, MarkdownTranscript, ToolTranscript,
 )
 
+from toad.line_blocks import Body, FragmentLineConsumer, LineBlock, LineRole, MutedRole, Summary, ToggleDetails
 from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
@@ -147,27 +148,53 @@ class RenderBudget:
             yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
 
 
+@dataclass(frozen=True, kw_only=True)
+class Shown:
+    """What a reader chose about one drawn fragment."""
+
+    details_open: bool = False
+
+    def summary(self, title: str, role: type[LineRole] = MutedRole) -> Summary:
+        """The line that names a fragment's details; clicking it shows or hides them."""
+        return Summary(("▼ " if self.details_open else "▶ ") + title, role, ToggleDetails())
+
+    def toggled(self) -> "Shown":
+        return replace(self, details_open=not self.details_open)
+
+
 @dataclass
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
     starts_agent_activity: bool = False
+    shown: Shown = field(default_factory=Shown, kw_only=True)
+    # Whether the fragment has details a reader can show and hide.
+    has_details: ClassVar[bool] = False
 
-    @cached_property
-    def line_blocks(self):
-        """What this fragment shows in committed history, one block per visual part.
+    def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
+        """What this fragment draws in committed history when shown so, one block per visual part.
 
         A continuation of the previous fragment has no divider. The blocks do
         not depend on the width: each width's lines are built from them.
         """
-        from toad.line_blocks import FragmentLineConsumer, Summary
-
         consumer = FragmentLineConsumer(show_divider=not self.continuation)
         if self.starts_agent_activity and not self.continuation:
             consumer.blocks.append(Summary("· Agent activity"))
         for event in self.events:
             consumer.dispatch_sync(event)
         return tuple(consumer.blocks)
+
+    @cached_property
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return self.blocks(self.shown)
+
+    def show(self, shown: Shown, theme=None, lines=None) -> None:
+        """Draw `shown` from now on, with its already rendered lines when there are some."""
+        self.shown = shown
+        for held in ("line_blocks", "_lines", "_plain"):
+            self.__dict__.pop(held, None)
+        if lines is not None:
+            self.__dict__["_lines"] = theme, lines
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -206,8 +233,10 @@ class TranscriptFragment:
         held = self.__dict__.get("_lines")
         return held[1] if held is not None and held[0] == theme and held[1].width == width else None
 
-    def hold_lines(self, theme, lines) -> None:
-        self.__dict__["_lines"] = theme, lines
+    def hold_lines(self, theme, lines, blocks: tuple[LineBlock, ...]) -> None:
+        """Keep the lines rendered from `blocks`, unless the fragment shows something else by now."""
+        if blocks is self.line_blocks:
+            self.__dict__["_lines"] = theme, lines
 
     def plain_lines(self, width: int, theme):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
@@ -229,30 +258,35 @@ class TranscriptFragment:
 
 @dataclass(kw_only=True)
 class ToolTranscriptFragment(TranscriptFragment):
-    """One original grouped tool and its worker-acquired ACP presentation."""
+    """One tool call with everything it reported: a title line, and its output when opened."""
 
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
-    @cached_property
-    def line_blocks(self):
-        from toad.line_blocks import Summary
+    @property
+    def has_details(self) -> bool:
+        return any(part.available for part in self.output_parts)
 
-        return (Summary(f"▶ {self.tool_call.call.title or 'Tool'}"),)
+    def blocks(self, shown):
+        title = self.tool_call.call.title or "Tool"
+        if not self.has_details:
+            return (Summary(f"· {title}"),)
+        if not shown.details_open:
+            return (shown.summary(title),)
+        return (shown.summary(title), *(block for part in self.output_parts for block in part.line_blocks()))
 
 
-@dataclass(kw_only=True)
 class ContextTranscriptFragment(TranscriptFragment):
-    """One original lazy disclosure and its two distinct source ranges."""
+    """The coordination context an agent was given: one line, and its text when opened."""
 
-    formatted: str | None = field(default=None, compare=False, repr=False)
+    has_details = True
 
-    @cached_property
-    def line_blocks(self):
-        from toad.line_blocks import Summary
-
-        return (Summary("▶ Agent coordination context"),)
-
+    def blocks(self, shown):
+        summary = shown.summary("Agent coordination context")
+        if not shown.details_open:
+            return (summary,)
+        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole, markdown=False)
+                           for event in self.events))
 
 
 class TranscriptFragmentConsumer(MroDispatch):

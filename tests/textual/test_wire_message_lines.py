@@ -5,13 +5,13 @@ from textual.app import App
 
 from toad.line_blocks import OpenTarget
 from toad.widgets.transcript_lines import LineTheme, PlainLines, PlainRowCount, RichLineRenderer
-from toad.wire_history import IrcMessageStyle, MarkdownMessageStyle, MessageFragment, Shown
+from toad.wire_history import IrcMessageStyle, MarkdownMessageStyle, MessageFragment, MessageShown
 
 
 def fragment(target, style=IrcMessageStyle()):
     message = Message(sender="explorer-grandchild", target=target,
                       body="payload " * 30 + "\nsecond paragraph [literal markup]", type=MessageType.INFO)
-    return MessageFragment((message,), shown=Shown(style), evidence=None, direction="Inbound")
+    return MessageFragment((message,), shown=MessageShown(style), evidence=None, direction="Inbound")
 
 
 def theme():
@@ -49,6 +49,6 @@ def test_the_rows_that_count_as_reading_are_the_text_between_caption_and_notific
             assert (rows.start, rows.stop) == (2, lines.height - 1)
             # With its details open the notification takes more rows below the text.
             opened = fragment("#all", style)
-            opened.show(Shown(style, details_open=True))
+            opened.show(MessageShown(style, details_open=True))
             taller = PlainLines(width, theme(), opened.line_blocks)
             assert opened.text_rows(taller) == rows and taller.height > lines.height

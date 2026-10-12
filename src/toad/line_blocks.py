@@ -8,6 +8,7 @@ imports a terminal or rendering library.
 from __future__ import annotations
 
 from dataclasses import astuple, dataclass
+import re
 
 from typing import ClassVar
 
@@ -17,8 +18,8 @@ from ui_theme.scheme import (
     ThemeColour, WarningColour,
 )
 from agent_comms.transcript_events import (
-    AgentTextTranscript, ContextTranscript, IncomingTranscript, SentTranscript,
-    ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
+    AgentTextTranscript, IncomingTranscript, SentTranscript, ThinkingTranscript, TranscriptEvent,
+    UserTranscript,
 )
 
 
@@ -143,11 +144,10 @@ class OpenUrl(LineLink):
 
 @dataclass(frozen=True)
 class ToggleDetails(LineLink):
-    """Show or hide the details under the message with this key."""
+    """Show or hide the details of the fragment this is drawn in."""
 
     action = "toggle_details"
     underlined = False
-    key: tuple[str, int]
 
 
 @dataclass(frozen=True)
@@ -206,6 +206,12 @@ class Body(LineBlock):
     bar: type[LineRole] | None = None
     markdown: bool = True
 
+    @classmethod
+    def code(cls, text: str, language: str = "", **shown) -> Body:
+        """Text drawn as it is written, in a language's colours when the language is known."""
+        ticks = "`" * max(3, 1 + max(map(len, re.findall("`+", text)), default=0))
+        return cls(f"{ticks}{language}\n{text}\n{ticks}", **shown)
+
 
 class FragmentLineConsumer(MroDispatch):
     """Turn a fragment's events into line blocks, one handler per event family."""
@@ -251,11 +257,3 @@ class FragmentLineConsumer(MroDispatch):
         targets = ", ".join(reply.targets) if reply is not None else ""
         self.divider(f"Sent → {targets}" if targets else "Sent", event.timestamp, OutgoingRole)
         self.blocks += [Body(event.text, bar=OutgoingRole), Gap()]
-
-    @handles(ContextTranscript)
-    def context(self, event: ContextTranscript) -> None:
-        self.blocks.append(Summary("▶ Agent coordination context"))
-
-    @handles(ToolTranscript)
-    def tool(self, event: ToolTranscript) -> None:
-        self.blocks.append(Summary(f"▶ {event.tool_name}"))

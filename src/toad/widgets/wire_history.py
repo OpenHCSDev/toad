@@ -21,9 +21,8 @@ from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.transcript_history import LineHistory, TranscriptPageView
-from toad.widgets.transcript_lines import TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask
 from toad.wire_history import (
-    AfterSequence, IrcMessageStyle, Shown, WireFragment, WireMessageStyle, WirePage,
+    AfterSequence, IrcMessageStyle, WireFragment, WireMessageStyle, WirePage,
     WirePageBuffer, WireSource,
 )
 
@@ -34,10 +33,6 @@ if TYPE_CHECKING:
 
 class WirePageView(TranscriptPageView):
     """A page of wire messages: its names, URLs and notification lines can be clicked."""
-
-    @property
-    def history(self) -> WireHistory:
-        return self.query_ancestor(WireHistory)
 
     def open_link(self, link: LineLink) -> None:
         """Do what clicking a link drawn on this page does."""
@@ -52,10 +47,6 @@ class WirePageView(TranscriptPageView):
 
     def action_open_url(self, url: str) -> None:
         self.app.open_url(url)
-
-    def action_toggle_details(self, key: tuple[str, int]) -> None:
-        history = self.history
-        history.run_worker(history.toggle_details(tuple(key)), group="message-details")
 
 
 class WireHistory(LineHistory):
@@ -277,27 +268,6 @@ class WireHistory(LineHistory):
             fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
             if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
 
-    async def _show(self, changes: list[tuple[WireFragment, Shown]]) -> None:
-        """Change what fragments draw: render the new lines first, then swap them in one frame."""
-        changes = [(fragment, shown) for fragment, shown in changes if shown != fragment.shown]
-        if not changes:
-            return
-        width, theme = self.line_width, self.app.colours.line_theme
-        in_range = {id(fragment) for fragment in self.fragments_in_range}
-        drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
-        lines = await self.app.render_processes.submit(TranscriptLinesBatchRenderTask(tuple(
-            TranscriptLinesRenderTask(fragment.blocks(shown), width, theme)
-            for fragment, shown in drawn))) if drawn else ()
-        if not self.state.can_draw:
-            return
-        ready = {id(fragment): rows for (fragment, _shown), rows in zip(drawn, lines)}
-        async with self.window.preserve_history(None, root=self, position=self.reader_position(self.window)):
-            for fragment, shown in changes:
-                fragment.show(shown, theme, ready.get(id(fragment)))
-            for page in self.pages:
-                page.range_changed()
-        self.window.check_follow()
-
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
         if self.source is None or not self.can_draw_on_screen:
@@ -307,10 +277,6 @@ class WireHistory(LineHistory):
         await self._show([(fragment, replace(fragment.shown, style=style))
                           for fragment in self.wire_fragments])
         self.window.scroll_end(animate=False)
-
-    async def toggle_details(self, key: tuple[str, int]) -> None:
-        await self._show([(fragment, replace(fragment.shown, details_open=not fragment.shown.details_open))
-                          for fragment in self.wire_fragments if fragment.message.view_key == key])
 
     # The message under the cursor
 

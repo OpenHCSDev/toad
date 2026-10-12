@@ -9,7 +9,9 @@ import asyncio
 from abc import abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
+from difflib import unified_diff
 from functools import partial
+from pathlib import PurePath
 import re
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -24,6 +26,7 @@ from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
+from toad.line_blocks import Body, FragmentLineConsumer, LineBlock, MutedRole
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -48,6 +51,10 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
 
     @abstractmethod
     def compose(self, view: Widget) -> tuple[Widget, ...]: ...
+
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        """What this output draws under its tool call in committed history."""
+        return ()
 
     def permission_preview(self) -> ToolOutputPart | None:
         """Permission previews admit only text and file diffs."""
@@ -117,6 +124,9 @@ class RetainedTextToolOutputPart(TextToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (TextContent(self.render_source),)
 
+    def line_blocks(self):
+        return (Body(self.render_source.materialize().plain, bar=MutedRole, markdown=False),)
+
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         if not isinstance(previous, RetainedTextToolOutputPart) or type(widget) is not TextContent:
             return False
@@ -156,6 +166,9 @@ class MarkdownToolOutputPart(SpecificTextToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (MarkdownContent(self.text),)
 
+    def line_blocks(self):
+        return (Body(self.text, bar=MutedRole),)
+
 
 @dataclass(frozen=True)
 class ReadToolOutputPart(SpecificTextToolOutputPart):
@@ -173,6 +186,9 @@ class ReadToolOutputPart(SpecificTextToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (WorkerStatic.code(self.text, filename=self.path, line_numbers=False,
                                   filename_only=True),)
+
+    def line_blocks(self):
+        return (Body.code(self.text, PurePath(self.path).suffix.removeprefix("."), bar=MutedRole),)
 
 
 class PatchPreparation:
@@ -227,6 +243,9 @@ class PatchToolOutputPart(ToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (ToolCallDiff(self.source, preparation=self.preparation),)
 
+    def line_blocks(self):
+        return (Body.code(self.source, "diff", bar=MutedRole),)
+
     def begin_preparation(self, syntax: SyntaxPalette) -> bool:
         self.preparation.begin(self.source, syntax)
         return True
@@ -253,6 +272,11 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
         return (OutgoingMessage(self.message),)
 
+    def line_blocks(self):
+        consumer = FragmentLineConsumer(show_divider=True)
+        consumer.dispatch_sync(self.message)
+        return tuple(consumer.blocks)
+
 
 @dataclass(frozen=True)
 class FileDiffToolOutputPart(ToolOutputPart):
@@ -270,6 +294,11 @@ class FileDiffToolOutputPart(ToolOutputPart):
         mode = view.app.settings.diff.view
         diff.split, diff.auto_split = mode.split, mode.auto_split
         return (diff,)
+
+    def line_blocks(self):
+        lines = unified_diff((self.old_text or "").splitlines(), self.new_text.splitlines(),
+                             self.path, self.path, lineterm="")
+        return (Body.code("\n".join(lines), "diff", bar=MutedRole),)
 
 
 @dataclass(frozen=True)

@@ -56,10 +56,11 @@ from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
 from toad.widgets.transcript_fragments import (
-    TranscriptFragment, transcript_fragments,
+    Shown, TranscriptFragment, transcript_fragments,
 )
 
 if TYPE_CHECKING:
+    from toad.line_blocks import LineBlock
     from toad.widgets.history_anchor import HistoryWindow
 
 class _DrawingStopped(Exception):
@@ -122,6 +123,15 @@ class TranscriptPageView(LinkedRows, Widget):
         self._starts: list[int] = []
         self._height = 0
         super().__init__()
+
+    @property
+    def history(self) -> LineHistory:
+        return self.query_ancestor(LineHistory)
+
+    def action_toggle_details(self) -> None:
+        """Show or hide the details of the fragment whose line was clicked."""
+        history = self.history
+        history.run_worker(history.toggle_details(self.fragment_under_mouse()), group="message-details")
 
     @property
     def page(self) -> TranscriptPage:
@@ -333,22 +343,23 @@ class TranscriptPageView(LinkedRows, Widget):
                 return
             self._pending.difference_update(batch)
             width, theme = self._width, self.app.colours.line_theme
-            results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
-                TranscriptLinesRenderTask(self.fragments[index].line_blocks, width, theme)
-                for index in batch)))
+            tasks = tuple(TranscriptLinesRenderTask(self.fragments[index].line_blocks, width, theme)
+                          for index in batch)
+            results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
             if not self.is_attached or width != self._width:
                 continue
-            await self._publish(list(zip(batch, results)))
+            await self._publish([(self.fragments[index], task.blocks, lines)
+                                 for index, task, lines in zip(batch, tasks, results)])
 
-    async def _publish(self, ready: list[tuple[int, PreparedLines]]) -> None:
+    async def _publish(self, ready: list[tuple[TranscriptFragment, tuple[LineBlock, ...], PreparedLines]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
         history = self.query_ancestor(LineHistory)
         async with window.preserve_history(None, root=self, position=history.reader_position(window)):
             theme = self.app.colours.line_theme
-            for index, lines in ready:
-                self.fragments[index].hold_lines(theme, lines)
+            for fragment, blocks, lines in ready:
+                fragment.hold_lines(theme, lines, blocks)
             self.range_changed()
 
     def retain_sources(self) -> None:
@@ -466,11 +477,10 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
             if not current():
                 return
             batch = todo[first:first + self.budget.batch_items]
-            results = await renderer.submit(TranscriptLinesBatchRenderTask(tuple(
-                TranscriptLinesRenderTask(fragment.line_blocks, width, theme)
-                for fragment in batch)))
-            for fragment, lines in zip(batch, results):
-                fragment.hold_lines(theme, lines)
+            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme) for fragment in batch)
+            results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
+            for fragment, task, lines in zip(batch, tasks, results):
+                fragment.hold_lines(theme, lines, task.blocks)
 
     @property
     def line_width(self) -> int:
@@ -491,6 +501,46 @@ class LineHistory(TranscriptSourcePreparation, ConversationBlock, CategorizedBlo
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
+
+    # What a fragment shows
+
+    async def _show(self, changes: list[tuple[TranscriptFragment, Shown]]) -> None:
+        """Change what fragments draw: render the new lines first, then swap them in one frame."""
+        changes = [(fragment, shown) for fragment, shown in changes if shown != fragment.shown]
+        if not changes:
+            return
+        width, theme = self.line_width, self.app.colours.line_theme
+        in_range = {id(fragment) for fragment in self.fragments_in_range}
+        drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
+        lines = await self.app.render_processes.submit(TranscriptLinesBatchRenderTask(tuple(
+            TranscriptLinesRenderTask(fragment.blocks(shown), width, theme)
+            for fragment, shown in drawn))) if drawn else ()
+        if not self.state.can_draw:
+            return
+        ready = {id(fragment): rows for (fragment, _shown), rows in zip(drawn, lines)}
+        async with self.window.preserve_history(None, root=self, position=self.reader_position(self.window)):
+            for fragment, shown in changes:
+                fragment.show(shown, theme, ready.get(id(fragment)))
+            for page in self.pages:
+                page.range_changed()
+        self.window.check_follow()
+
+    async def toggle_details(self, fragment: TranscriptFragment) -> None:
+        """Show a fragment's details, or hide them when they are shown."""
+        await self._show([(fragment, fragment.shown.toggled())])
+
+    def can_expand(self) -> bool | None:
+        fragment = self.block_cursor.current
+        return None if fragment is None or not fragment.has_details else not fragment.shown.details_open
+
+    def is_block_expanded(self) -> bool:
+        return self.can_expand() is False
+
+    def expand_block(self) -> None:
+        self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
+
+    def collapse_block(self) -> None:
+        self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
 
     # The message cursor
 
