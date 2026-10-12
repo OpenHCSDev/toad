@@ -209,16 +209,16 @@ class AgentSession:
         self.agent.events.publish(AgentReady(reconnected=self.reconnecting))
 
 
-    @property
-    def needs_reattachment(self) -> bool:
-        return not self.connected and self.settled.is_set() and not self.reconnecting
-
     async def observe_owner(self, presentation) -> None:
-        """A new canonical owner may repair this failed read-only attachment."""
-        if not self.needs_reattachment or presentation is None:
+        """Load again when Core shows a newer owner process than the one this session loaded.
+
+        A restarted owner answers through the still-open connection, but the queue
+        and cursor views are bound to the process named in the load response and
+        refuse the new one's updates until a new load binds them.
+        """
+        if not self.settled.is_set() or self.reconnecting or presentation is None:
             return
-        coordination = self.agent.coordination
-        if coordination is None:
+        if self.agent.coordination is None:
             return
         binding = presentation.binding
         if not self.load_admission.superseded_by(binding):

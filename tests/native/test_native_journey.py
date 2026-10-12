@@ -9,7 +9,7 @@ from pathlib import Path
 
 import psutil
 from agent_comms.acp_extension import QueuePromptRequest
-from agent_comms.cli_commands import StartCliCommand
+from agent_comms.cli_commands import RestartCliCommand, StartCliCommand
 from agent_comms.input_disposition import InputDispositions
 
 from support.native import ControlledProvider, native_session
@@ -222,6 +222,32 @@ async def test_stopped_owner_restarts_without_replaying_and_then_idles(workspace
         await ui.step(2)
         assert len(provider.requests) == asked
         assert not native.executing
+
+
+async def test_queue_line_follows_the_owner_after_restart_process(workspace, native_package):
+    async with native_session(workspace, native_package) as native:
+        ui, agent, comms = native.ui, native.agent, native.comms
+        app, _pilot = ui.textual
+        view = ui.conversation
+        await ui.until_agent_ready()
+        await ui.until(lambda: view.submissions.queue_projection.status == "available", seconds=20,
+                       why="the queue view before the restart")
+        first_owner = comms.registry.require("beta").process_identity
+
+        request_target_command(app, RestartCliCommand, "beta")
+        await ui.until(lambda: "beta" not in app.thread_actions.pending, seconds=60, why="Restart process to finish")
+        restarted = comms.registry.require("beta").process_identity
+        assert restarted is not None and restarted != first_owner, "Restart process did not replace the owner"
+
+        def queue_of_the_new_owner():
+            scope = agent.queue_attachment.scope
+            return (view.submissions.queue_projection.status == "available"
+                    and scope is not None and scope.owner_pid == restarted.pid)
+
+        await ui.until(queue_of_the_new_owner, seconds=30, why="the queue view of the restarted owner")
+        await ui.step()
+        assert "Remote queue unavailable" not in view.query_one(QueueSummary).render().plain
+        assert comms.registry.require("beta").process_identity == restarted
 
 
 async def test_a_second_thread_opened_from_the_app_answers_its_first_message(workspace, native_package):
