@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import asynccontextmanager
 
 from agent_comms.input_disposition import InputDispositions
 from toad.conversation_kind import ChannelConversation, DmConversation
@@ -138,3 +139,41 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     notification = feedback_of(chat, sent)
     await ui.until(lambda: "Checked" in str(notification.title), seconds=10, why="'Checked' under the message")
     assert "no response" in str(notification.title).lower(), notification.title
+
+
+@asynccontextmanager
+async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 35), arrange=None):
+    """A real owner (Core's ACP server in this process, no model) with an active goal, shown in Toad
+    through an agent object bound to the owner's session.
+
+    `arrange(comms, session, goal)` may change the goal on the owner before Toad starts.
+    Yields (ui, agent, comms, session, goal as first set).
+    """
+    import os
+
+    from agent_comms.goal_actions import SetGoalAction
+
+    from support.agents import detached
+    from support.native import owner_server, start_private_native_wire
+    from support.textual_steps import coordination_update
+
+    os.environ["AGENT_COMMS_AGENT_MODELS"] = "openrouter/fake"
+    comms = start_private_native_wire(workspace.roots.wire, package)
+    owner = owner_server(comms, package)
+    try:
+        session = (await owner.new_session(cwd=str(workspace.project))).session_id
+        agent = detached(workspace.project)
+        agent.coordination = coordination_update(str(comms.root), session)
+        goal = await agent.update_goal(SetGoalAction, objective)
+        if arrange is not None:
+            arrange(comms, session, goal)
+        async with workspace.app(size=size) as ui:
+            conversation = ui.conversation
+            conversation.set_reactive(type(conversation).agent, agent)
+            conversation.bind_agent(agent)
+            conversation.agent_ready = True
+            await conversation.goal_observation.refresh()
+            await ui.step()
+            yield ui, agent, comms, session, goal
+    finally:
+        await owner.shutdown()

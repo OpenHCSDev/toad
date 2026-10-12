@@ -196,15 +196,3 @@ def viewport_text(widget) -> str:
 def painted_text(widget, text) -> bool:
     """Whether `widget` is on screen and draws `text`."""
     return widget in widget.screen._compositor.visible_widgets and text in viewport_text(widget)
-
-
-async def tool_diff(ui, tool):
-    """Wait until an expanded edit tool call has drawn its diff, and return the diff widget."""
-    from toad.widgets.tool_content import ToolCallDiff
-
-    await ui.until(lambda: tool.query_one_optional(ToolCallDiff) is not None, why="the tool's diff widget")
-    diff = tool.query_one(ToolCallDiff)
-    await diff.prepared.wait()
-    await ui.until(lambda: bool(diff.query("PatchDiffView DiffCode, TextContent")), why="the diff rows")
-    await ui.step()
-    return diff

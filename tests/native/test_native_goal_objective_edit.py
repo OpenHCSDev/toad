@@ -1,51 +1,33 @@
 """Editing a goal's objective in Toad saves through the real owner and redraws the goal bar; progress stays separate."""
 
 import asyncio
-from contextlib import asynccontextmanager
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_actions import ActiveGoalAction, ClearGoalAction, GoalPrecondition, PausedGoalAction, SetGoalAction
+from agent_comms.goal_actions import ActiveGoalAction, ClearGoalAction, GoalPrecondition, PausedGoalAction
 from textual.widgets import Static
 
-from support.agents import detached
-from support.native import owner_server, start_private_native_wire
-from support.textual_steps import coordination_update
+from support.native_steps import goal_on_real_owner
 from toad.core.events import CommsUpdated
 from toad.screens.goal_details import GoalDetails
 from toad.screens.goal_edit import GoalEdit
 from toad.widgets.goal_text import GoalText
 
 
-PROGRESS = "Renamed parent thread to pr17 and forked implementation."
+OBJECTIVE = "Work on draft PR #17 and report remaining gaps. " + "Detailed acceptance criteria. " * 30
 
 
-@asynccontextmanager
-async def goal_in_toad(workspace, native_package, monkeypatch):
-    """A real owner with an active goal and progress, shown in Toad through an agent object on its session."""
-    monkeypatch.setenv("AGENT_COMMS_AGENT_MODELS", "openrouter/fake")
-    comms = start_private_native_wire(workspace.roots.wire, native_package)
-    owner = owner_server(comms, native_package)
-    try:
-        session = (await owner.new_session(cwd=str(workspace.project))).session_id
-        agent = detached(workspace.project)
-        agent.coordination = coordination_update(str(comms.root), session)
-        first = await agent.update_goal(
-            SetGoalAction, "Work on draft PR #17 and report remaining gaps. " + "Detailed acceptance criteria. " * 30)
-        comms.goals.update_goal(session, ActiveGoalAction(progress=PROGRESS, expect=GoalPrecondition(goal_id=first.id)))
-        async with workspace.app(size=(110, 35)) as ui:
-            conversation = ui.conversation
-            conversation.set_reactive(type(conversation).agent, agent)
-            conversation.bind_agent(agent)
-            conversation.agent_ready = True
-            await conversation.goal_observation.refresh()
-            await ui.step()
-            yield ui, agent, comms, session, first
-    finally:
-        await owner.shutdown()
+def with_progress(comms, session, goal):
+    comms.goals.update_goal(session, ActiveGoalAction(
+        progress="Renamed parent thread to pr17 and forked implementation.",
+        expect=GoalPrecondition(goal_id=goal.id)))
 
 
-async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspace, native_package, monkeypatch):
-    async with goal_in_toad(workspace, native_package, monkeypatch) as (ui, agent, comms, session, first):
+def goal_in_toad(workspace, native_package):
+    return goal_on_real_owner(workspace, native_package, OBJECTIVE, arrange=with_progress)
+
+
+async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspace, native_package):
+    async with goal_in_toad(workspace, native_package) as (ui, agent, comms, session, first):
         app, pilot = ui.textual
         conversation = ui.conversation
         current = first
@@ -89,8 +71,8 @@ async def test_objective_edits_save_to_the_owner_and_redraw_the_goal_bar(workspa
         await ui.until_shows("Objective: Work on draft PR #17.")
 
 
-async def test_a_slow_goal_read_does_not_bring_back_a_goal_paused_then_cleared(workspace, native_package, monkeypatch):
-    async with goal_in_toad(workspace, native_package, monkeypatch) as (ui, agent, comms, session, _first):
+async def test_a_slow_goal_read_does_not_bring_back_a_goal_paused_then_cleared(workspace, native_package):
+    async with goal_in_toad(workspace, native_package) as (ui, agent, comms, session, _first):
         conversation = ui.conversation
         started, release = asyncio.Event(), asyncio.Event()
         read_snapshot = agent.get_goal_snapshot
@@ -119,8 +101,8 @@ async def test_a_slow_goal_read_does_not_bring_back_a_goal_paused_then_cleared(w
         assert conversation.goal_display.snapshot is None and conversation.goal_execution is None
 
 
-async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(workspace, native_package, monkeypatch):
-    async with goal_in_toad(workspace, native_package, monkeypatch) as (ui, agent, comms, session, first):
+async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(workspace, native_package):
+    async with goal_in_toad(workspace, native_package) as (ui, agent, comms, session, first):
         conversation = ui.conversation
         older = comms.registry.require(session).goal
         current = await agent.edit_goal(older, "Short updated goal")

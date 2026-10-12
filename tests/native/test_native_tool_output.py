@@ -5,7 +5,7 @@ import json
 import threading
 
 from support.native import ControlledProvider, native_session
-from support.textual_steps import tool_diff
+from support.textual_steps import wait_for_tool_diff
 from textual.selection import SELECT_ALL
 from toad.widgets.patch_diff import PatchDiffView
 from toad.widgets.tool_call import ToolCall
@@ -66,7 +66,7 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
 
             edit.set_expanded(True)
             edit.scroll_visible(animate=False)
-            diff = await tool_diff(ui, edit)
+            diff = await wait_for_tool_diff(ui, edit)
             assert diff.query_one(PatchDiffView).counts == (1, 1)
             await ui.until(lambda: drawn(edit, "value = 2"), why="the diff on screen")
             edit.set_expanded(False)
@@ -74,7 +74,7 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
             assert not edit.query(ToolCallDiff)
             edit.set_expanded(True)
             edit.scroll_visible(animate=False)
-            await tool_diff(ui, edit)
+            await wait_for_tool_diff(ui, edit)
             await ui.until(lambda: drawn(edit, "value = 2"), why="the diff after expanding again")
 
             bash.set_expanded(True)
