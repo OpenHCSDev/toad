@@ -380,6 +380,48 @@ def install(*, expected_pid, seconds, output):
     asyncio.get_running_loop().call_later(seconds, finish)
 
 
+def sample_threads(*, expected_pid, output, seconds=150):
+    """Record what every thread but the UI thread runs, every 5 ms, in full.
+
+    The stall watcher in ``install`` keeps eight frames per thread and only
+    while a callback is long; this keeps each busy thread's whole stack for
+    the whole window, to name the caller of work that shares the interpreter
+    lock with the UI thread. Sampling takes the lock itself: use it to find
+    the work, not to time a run.
+    """
+    if os.getpid() != expected_pid:
+        raise RuntimeError("Unexpected capture process")
+    ui_thread = threading.main_thread().ident
+    idle = ("wait", "_worker", "select", "get", "_wait_for_tstate_lock", "do_poll", "_do_waitpid", "poll",
+            "_recv", "_recv_bytes", "process_selector_events", "_write", "watch_stalls")
+    stacks: dict[str, int] = {}
+    samples = []
+    end = time.monotonic() + seconds
+
+    def run():
+        own = threading.get_ident()
+        while time.monotonic() < end:
+            time.sleep(0.005)
+            now = time.monotonic_ns()
+            for ident, frame in sys._current_frames().items():
+                if ident in (ui_thread, own) or frame.f_code.co_name in idle:
+                    continue
+                chain = []
+                while frame is not None:
+                    code = frame.f_code
+                    chain.append(f"{code.co_qualname} {code.co_filename.rsplit('/', 2)[-1]}:{frame.f_lineno}")
+                    frame = frame.f_back
+                thread = threading._active.get(ident)
+                samples.append((now, thread.name if thread is not None else str(ident),
+                                stacks.setdefault(" < ".join(chain), len(stacks))))
+        partial = output + ".partial"
+        with open(partial, "w") as file:
+            json.dump({"stacks": sorted(stacks, key=stacks.get), "samples": samples}, file)
+        os.rename(partial, output)
+
+    threading.Thread(target=run, name="frame-meter-thread-stacks", daemon=True).start()
+
+
 def targets(*, expected_pid, output):
     """Write where sidebar thread rows and session tabs are, in screen cells."""
     with measuring_pause():
