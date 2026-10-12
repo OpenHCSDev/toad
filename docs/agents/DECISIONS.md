@@ -533,3 +533,11 @@ What Textual's API puts into Toad at `782c0e18d` (regex counts, approximate): 33
 Each mechanism is replaced separately: the typed form goes into the fork, every Toad consumer moves, and the string path is deleted in the same change. Typed handles and typed signals come first.
 
 Limits that remain: formats owned by others (terminal protocols) are honoured exactly; `textual-speedups`, `textual-serve` and `textual_diff_view` import `textual` and are forked or dropped before an API they use breaks; behaviour is checked in the installed app. The fork's test suite has 282 failing tests on `1ae64fbe5` and is classified first (tests of deliberately changed upstream behaviour are deleted, the rest are defects), because until then it cannot catch a regression. The package keeps the name `textual` until such a break forces a rename.
+
+## 2026-10-12: Toad as the Textual counterpart of pyqt-reactive (proposed by Tristan)
+
+Tristan: "maybe we should refactor toad into the textual version of pyqt-reactive and hunt down all the webdev inspired stuff".
+
+Direction, following the 2026-10-09 layering decision: pyqt-reactive renders an `ObjectState` ("the state is the model; the form is a view over it") and takes its toolkit-neutral declarations from formbridge. Toad becomes the same thing for the terminal: generic widgets, form lifecycle, field-change dispatch, theming and window infrastructure over the same formbridge contracts and ObjectState, with comms meaning in Core and nothing comms-specific in the generic layer.
+
+Not started. First step when the frame goal and the open defects are closed: one form (session details or settings) rendered in Toad from formbridge declarations and an `ObjectState`, to find what in formbridge still assumes Qt. The name-based API removal in the entry above proceeds independently.
