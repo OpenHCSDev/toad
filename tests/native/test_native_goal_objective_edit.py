@@ -108,7 +108,10 @@ async def test_a_late_notice_of_an_older_goal_does_not_replace_the_current_one(w
         current = await agent.edit_goal(older, "Short updated goal")
         await conversation.goal_observation.refresh()
         assert conversation.goal_display.snapshot == current
+        shown = []
+        conversation.watch(conversation, "goal_display", lambda display: shown.append(display.snapshot), init=False)
         agent.events.publish(CommsUpdated(GoalChangedUpdate(older, None), session_id=agent.session_id))
-        await ui.step()
-        assert conversation.goal_display.snapshot == current, (
-            f"A notice of revision {older.revision} replaced the shown revision {current.revision}")
+        await ui.step(1)
+        assert older not in shown, (
+            f"A notice of revision {older.revision} was shown over revision {current.revision}")
+        assert conversation.goal_display.snapshot == current
