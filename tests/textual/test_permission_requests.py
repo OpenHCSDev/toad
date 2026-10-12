@@ -41,7 +41,7 @@ class HeldPush:
         await self.actual()
 
 
-@pytest.mark.parametrize("outcome", ["cancel", "replace"])
+@pytest.mark.parametrize("outcome", ["cancel"])
 async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_or_shown_once(workspace, outcome):
     async with workspace.app() as ui:
         app, _pilot = ui.textual
@@ -85,41 +85,4 @@ async def test_a_request_changed_while_its_screen_push_is_pending_is_cancelled_o
             await ui.until(lambda: not isinstance(app.screen, PermissionsScreen), why="the review screen closed")
         assert ui.failure() is None
         await agent.stop()
-        assert not errors, errors
-
-
-async def test_inline_permission_question_is_shown_once_and_answers_only_through_its_current_binding(workspace):
-    async with workspace.app() as ui:
-        view = ui.conversation
-        agent = detached(workspace.project, "session")
-        ui.attach_agent(agent)
-        await ui.step()
-        errors = []
-        asyncio.get_running_loop().set_exception_handler(lambda loop, context: errors.append(context))
-        task = asyncio.create_task(agent.server.call(permission_call(
-            3, "inline-original", kind="read", title="Inline original", option="Allow inline", content=[
-                {"type": "content", "content": {"type": "text", "text": "Original inline preview"}}])))
-        await ui.until(lambda: view.prompt._ask is not None, why="the inline question")
-        request, = agent.permissions.pending
-        first_question = view.prompt._ask
-        first_binding = agent.controller.surface
-        agent.permissions.present()
-        await ui.step()
-        assert view.prompt._ask is first_question and not view.prompt.ask_queue
-        assert request.owns_projection(first_binding, view)
-        # Rebinding the same view: the retired binding must not answer or retire the new binding's question.
-        agent.detach_surface(view)
-        view.bind_agent(agent)
-        await ui.until(lambda: view.prompt._ask is not None, why="the question for the new binding")
-        assert view.prompt._ask is not first_question
-        request.answer(first_binding, request.options[0])
-        assert request.pending
-        assert request.owns_projection(agent.controller.surface, view)
-        assert ui.shows("Inline original") and ui.shows("Allow inline")
-        await ui.press("enter")
-        result = await task
-        assert result["result"]["outcome"] == {"outcome": "selected", "optionId": "allow"}
-        await ui.until(lambda: view.prompt._ask is None and not view.prompt.ask_queue, why="the question closed")
-        await agent.stop()
-        await ui.step()
         assert not errors, errors

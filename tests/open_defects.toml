@@ -48,3 +48,17 @@ owner = "Core (agent-comms) route owner, with Toad's CoordinationAccess"
 tests = [
     "tests/textual/test_stale_route_writes.py::test_delayed_view_writes_wait_out_a_route_publication_and_are_then_refused",
 ]
+
+[key-burst-order]
+defect = "Typing while the history has focus: the first printable key moves focus to the editor, but a non-printable key that arrives before the focus change lands is handled by the history window instead. 'x', Left, 'y' sent in one burst gives 'xy', not 'yx' (Conversation.on_key forwards only printable keys)."
+owner = "unassigned: Toad input handling (widgets/conversation.py is being edited by the frame-time agent)"
+tests = [
+    "tests/textual/test_key_bursts_move_focus_to_the_editor.py::test_a_character_a_left_arrow_and_a_character_in_one_burst_keep_their_order",
+]
+
+[command-hint-refresh]
+defect = "When an agent advertises a command again with a different input hint, the editor keeps showing the first hint after '/command '."
+owner = "unassigned: Toad prompt (widgets/prompt.py, slash completion)"
+tests = [
+    "tests/textual/test_prompt_completion.py::test_a_whole_command_is_selected_backwards_and_the_agents_hint_refreshes",
+]

@@ -16,6 +16,7 @@ from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from support.agents import detached
 from support.textual_steps import reveal_session_details
 from toad.widgets.native_history import NativeHistory
+from toad.jsonrpc import InvalidParams
 
 
 def response(session):
@@ -71,7 +72,9 @@ async def test_late_answer_to_a_replaced_session_request_cannot_change_session_o
             current_session = agent.session_id
             status = view.native_history_status
             first.result.set_result(response("old-session"))
-            await pending
+            # The replaced request's late answer is refused to its caller and changes nothing.
+            with pytest.raises(InvalidParams, match="retired session"):
+                await pending
             await ui.step()
         assert agent.session_id == current_session
         assert agent._private_cursor_sequence == sequence

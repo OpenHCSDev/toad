@@ -15,6 +15,7 @@ from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from support.agents import deliver, detached
 from toad.conversation_submission import DeferredInputSubmission
 from toad.widgets.prompt import QueueSummary
+from toad.jsonrpc import InvalidParams
 
 
 def response(session, next_owner=False):
@@ -64,7 +65,9 @@ async def test_late_answer_to_a_replaced_session_request_changes_neither_session
                 await ui.step()
             before = (agent.session_id, agent.queue_attachment.current, view.submissions.queue_projection)
             first.result.set_result(response("old-session"))
-            await pending
+            # The replaced request's late answer is refused to its caller and changes nothing.
+            with pytest.raises(InvalidParams, match="retired session"):
+                await pending
             await ui.step()
             assert (agent.session_id, agent.queue_attachment.current, view.submissions.queue_projection) == before
             assert ui.draft() == "untouched local draft"
