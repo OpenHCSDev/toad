@@ -521,3 +521,15 @@ Tristan decided (through the coordinator): Toad's single `gc.freeze()` moves fro
 Why: Python 3.14's cyclic collector periodically scans the whole live, unfrozen heap. After startup that heap was about 70,000 objects (lazily imported modules and their type caches, the workspace, the first tab's history), and each such pass took 12-18 ms inside whatever callback was running; those passes were the remaining waits over 16 ms at the sidebar roster mount. Offline, a 60,000-object live heap gives a 28 ms pass and 20,000 gives 5 ms. Freezing once after the first tab loaded left no collection over 7.5 ms in three scenario runs.
 
 Accepted cost: objects alive at the freeze that later die in a reference cycle (for example the first tab's widgets after that tab is closed) are never collected. That strands at most the heap as it was at the freeze, about 6-10 MB.
+
+## 2026-10-12: The Textual fork is our own library (Tristan)
+
+Tristan: "can't our textual-fork just become our own thing? do we need to care about being textual compliant?" and "we can be extremely authoritarian about this its our fork".
+
+The fork is not kept compatible with upstream Textual. Duplication, competing owners and name-based lookups are removed outright; upstream or web-UI convention is not a reason to keep any of them. The target is an engine-style library, as pyqt-reactive is: typed child handles, typed signals, action objects, owned state shared with PyQt through formbridge, typed layout and theme surfaces, explicit frame phases.
+
+What Textual's API puts into Toad at `782c0e18d` (regex counts, approximate): 336 handlers matched by method name, 153 actions matched by method name, 123 widget lookups by selector string, 93 CSS blocks in Python, 74 action strings, 60 watchers matched by name, 50 `@on` selector strings, 38 class-name strings, and 1,341 lines of tcss. In each, two places must agree on a spelling and nothing checks it until the path runs.
+
+Each mechanism is replaced separately: the typed form goes into the fork, every Toad consumer moves, and the string path is deleted in the same change. Typed handles and typed signals come first.
+
+Limits that remain: formats owned by others (terminal protocols) are honoured exactly; `textual-speedups`, `textual-serve` and `textual_diff_view` import `textual` and are forked or dropped before an API they use breaks; behaviour is checked in the installed app. The fork's test suite has 282 failing tests on `1ae64fbe5` and is classified first (tests of deliberately changed upstream behaviour are deleted, the rest are defects), because until then it cannot catch a regression. The package keeps the name `textual` until such a break forces a rename.
