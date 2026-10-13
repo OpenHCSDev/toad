@@ -109,16 +109,17 @@ class OperationalSessionSources:
             from toad.widgets.conversation import ConversationSessionBinding
 
             conversation.set_reactive(ConversationSessionBinding.agent, self.agent)
-        if self.directory_watcher is not None:
-            conversation._directory_watcher = self.directory_watcher
-            self.directory_watcher.rebind(conversation)
+        watcher, self.directory_watcher = self.directory_watcher, None
+        if watcher is not None:
+            conversation._directory_watcher = watcher
+            watcher.rebind(conversation)
+            conversation.call_after_refresh(watcher.notify_if_visible)
 
     async def present(self, conversation: Conversation) -> None:
-        if self.directory_watcher is not None:
-            conversation.call_after_refresh(self.directory_watcher.notify_if_visible)
-        if self.shell is not None:
-            conversation._shell = self.shell
-            await self.shell.attach(AttachedSurfaceBinding(conversation, self.shell.events))
+        shell, self.shell = self.shell, None
+        if shell is not None:
+            conversation._shell = shell
+            await shell.attach(AttachedSurfaceBinding(conversation, shell.events))
         if self.agent is not None:
             conversation.agent = self.agent
             conversation.bind_agent(self.agent)
