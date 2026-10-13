@@ -801,7 +801,7 @@ class HoldingInspection(InspectionState):
         return (*self.inspection.core.groups(self.inspection),
                 *self.inspection.working_memory(),
                 ("Imported instructions · historical, not current", self.inspection.imported(), False),
-                ("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False))
+                ("Recorded requests · this page's source evidence", self.inspection.recorded(), False))
 
     def prepare_native(self, consumer) -> None:
         consumer(self)
