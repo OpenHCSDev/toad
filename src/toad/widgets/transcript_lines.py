@@ -75,7 +75,7 @@ class LineTheme:
         ), color_system)
 
 
-def _click(link: LineLink | None) -> Style:
+def link_style(link: LineLink | None) -> Style:
     """The style that makes text run a link's action when clicked."""
     return Style.null() if link is None else Style(
         underline=link.underlined or None, meta={"@click": link.click})
@@ -303,7 +303,7 @@ class RichLineRenderer(MroDispatch):
             text = _fit(span.text, room)
             room -= len(text)
             title.append(Segment(text, (rule if span.link is None else self.theme.style(span.role))
-                                 + bold + _click(span.link)))
+                                 + bold + link_style(span.link)))
             if text != span.text:
                 break
         title.append(Segment(" ", rule))
@@ -315,7 +315,7 @@ class RichLineRenderer(MroDispatch):
     @handles(Summary)
     def summary(self, block: Summary) -> None:
         self.output.append((Segment(_fit(block.text, self.width),
-                                    self.theme.style(block.role) + _click(block.link)),))
+                                    self.theme.style(block.role) + link_style(block.link)),))
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:
@@ -329,7 +329,7 @@ class RichLineRenderer(MroDispatch):
 
         console = Console(width=self.width, color_system=self.theme.color_system,  # type: ignore[arg-type]
                           force_terminal=True, file=io.StringIO(), legacy_windows=False)
-        text = Text.assemble(*((span.text, self.theme.style(span.role) + _click(span.link))
+        text = Text.assemble(*((span.text, self.theme.style(span.role) + link_style(span.link))
                                for span in block.spans), tab_size=4)
         self.output.extend(tuple(line.render(console)) for line in text.wrap(console, self.width))
 
