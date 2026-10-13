@@ -52,8 +52,8 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         return (Body(text, role=self.role, bar=self.bar, markdown=self.markdown),)
 
     @property
-    def block(self) -> Body:
-        return Body(self.text, role=self.role, bar=self.bar, markdown=self.markdown)
+    def block(self) -> LineBlock:
+        return self.line_blocks(self.text)[0]
 
     def get_clipboard_text(self) -> str | None:
         return self.text or None
