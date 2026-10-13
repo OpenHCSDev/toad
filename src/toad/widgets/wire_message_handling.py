@@ -3,6 +3,7 @@
 from agent_comms.message_reference import MessageReference
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventReceiver
+from toad.notification_status import CheckedNotifications
 
 
 class WireMessageHandling(CoreEventReceiver):
@@ -43,6 +44,4 @@ class WireMessageHandling(CoreEventReceiver):
 
         feedback = self.query_one_optional(MessageNotifications)
         if feedback is not None:
-            notifications = tuple(item for reference in self.handling_references
-                                  for item in results.get((reference.seq, reference.message_id), ()))
-            feedback.show_result(notifications)
+            feedback.show(CheckedNotifications.for_references(self.handling_references, results))
