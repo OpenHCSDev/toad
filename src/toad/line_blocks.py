@@ -7,7 +7,7 @@ imports a terminal or rendering library.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import re
 
 from typing import ClassVar
@@ -205,6 +205,19 @@ class Spans(LineBlock):
     @property
     def text(self) -> str:
         return "".join(span.text for span in self.spans)
+
+    @classmethod
+    def from_lines(cls, lines: tuple[tuple[Span, ...], ...], indent: str = "") -> "Spans":
+        """One block out of lines of spans, each line starting at ``indent``."""
+        drawn: list[Span] = []
+        for index, line in enumerate(lines):
+            if not line:
+                continue
+            first, *rest = line
+            leading = indent if index == 0 else f"\n{indent}"
+            drawn.append(replace(first, text=leading + first.text) if first.text else first)
+            drawn.extend(rest)
+        return cls(tuple(drawn))
 
 
 @dataclass(frozen=True)

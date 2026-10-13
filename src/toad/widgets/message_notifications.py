@@ -6,8 +6,18 @@ from textual.content import Content
 from textual.widgets import Collapsible, Static
 
 from toad.notification_status import (
-    CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications, DetailLines, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
+from toad.widgets.transcript_lines import OpensLinks, link_style
+
+
+class NotificationDetails(OpensLinks, Static):
+    """The feedback lines behind a message's notification state; a name opens its thread."""
+
+    def show(self, lines: DetailLines) -> None:
+        self.update(Content("\n").join(
+            Content.assemble(*(Content.styled(span.text, link_style(span.link)) for span in line))
+            for line in lines))
 
 
 class MessageNotifications(Collapsible):
@@ -34,13 +44,13 @@ class MessageNotifications(Collapsible):
             yield self.Contents(self._details)
 
     @property
-    def details(self) -> Static:
+    def details(self) -> NotificationDetails:
         """The details body, created only when it is first shown."""
         if self._details is None:
-            self._details = Static(markup=False)
+            self._details = NotificationDetails(markup=False)
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
-        self._details.update(self.status.details)
+        self._details.show(self.status.details)
         return self._details
 
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
