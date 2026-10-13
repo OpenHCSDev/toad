@@ -27,7 +27,6 @@ from textual.await_complete import AwaitComplete
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.line_blocks import Body, LineBlock, MutedRole
-from toad.message_rows import MarkdownMessageStyle, MessageRow
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -45,6 +44,9 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     """A captured output value; a case owns rendering and preparation hooks."""
 
     available = True
+
+    def has_saved_details(self) -> bool:
+        return False
 
     def admit(self) -> ToolOutputPart:
         """Borrow immutable source; mutable preparation belongs to its view."""
@@ -76,6 +78,16 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     @property
     def preview_dimensions(self) -> tuple[int, int] | None:
         return None
+
+
+class CommittedToolOutputPart(ToolOutputPart):
+    """Static output owns saved tool details; live-only output does not."""
+
+    def has_saved_details(self) -> bool:
+        return self.available
+
+    @abstractmethod
+    def line_blocks(self) -> tuple[LineBlock, ...]: ...
 
 
 @dataclass(frozen=True)
@@ -117,7 +129,7 @@ class LiteralTextToolOutputPart(TextToolOutputPart):
     """The remaining text is literal; member order is never priority."""
 
 
-class RetainedTextToolOutputPart(TextToolOutputPart):
+class RetainedTextToolOutputPart(TextToolOutputPart, CommittedToolOutputPart):
     @property
     @abstractmethod
     def render_source(self) -> NativeContentSource: ...
@@ -157,7 +169,7 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
         return AnsiContentSource(self.text)
 
 
-class MarkdownToolOutputPart(SpecificTextToolOutputPart):
+class MarkdownToolOutputPart(SpecificTextToolOutputPart, CommittedToolOutputPart):
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (
@@ -172,7 +184,7 @@ class MarkdownToolOutputPart(SpecificTextToolOutputPart):
 
 
 @dataclass(frozen=True)
-class ReadToolOutputPart(SpecificTextToolOutputPart):
+class ReadToolOutputPart(SpecificTextToolOutputPart, CommittedToolOutputPart):
     path: str
 
     @classmethod
@@ -232,7 +244,7 @@ class PatchPreparation:
 
 
 @dataclass(frozen=True)
-class PatchToolOutputPart(ToolOutputPart):
+class PatchToolOutputPart(CommittedToolOutputPart):
     source: str
     preparation: PatchPreparation = field(default_factory=PatchPreparation, compare=False)
 
@@ -273,13 +285,8 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
         return (OutgoingMessage(self.message),)
 
-    def line_blocks(self):
-        row = MessageRow.sent(self.message)
-        return (row.header, *MarkdownMessageStyle().body(row))
-
-
 @dataclass(frozen=True)
-class FileDiffToolOutputPart(ToolOutputPart):
+class FileDiffToolOutputPart(CommittedToolOutputPart):
     path: str
     old_text: str | None
     new_text: str
