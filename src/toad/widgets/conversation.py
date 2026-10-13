@@ -82,7 +82,7 @@ from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import Throbber, ObservedThrobber
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
-from toad.session_observation import GoalObservation, InputDeliveryObservation
+from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.transcript_history import TranscriptHistory
@@ -460,7 +460,7 @@ class ConversationSessionBinding(containers.Vertical):
         self._source_resources = AsyncExitStack()
         self._source_resources.push_async_callback(self._close_directory_watcher)
         self._source_resources.push_async_callback(
-            lambda: asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
+            SessionObservation.close_all, self.goal_observation, self.delivery_observation,
         )
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
