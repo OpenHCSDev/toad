@@ -136,11 +136,18 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
         terminal = subprocess.Popen(['st', '-g', '150x48', '-e', 'toad-comms', thread], env=env, stdout=log, stderr=log)
         try:
             window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=30).strip()
+            launch_title = subprocess.check_output(['xdotool', 'getwindowname', window], env=env, text=True)
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
             while not (children := [child for child in process.children() if child.name() == 'toad']):
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
+                time.sleep(0.1)
+            # The app titles its terminal once its driver runs. A script sent to
+            # the interpreter before that is lost while the process still starts.
+            while subprocess.check_output(['xdotool', 'getwindowname', window], env=env, text=True) == launch_title:
+                if terminal.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError(f'SavedThreadOpenFailed: {thread} never started its terminal; see {output / "st.log"}')
                 time.sleep(0.1)
             targets = output / 'targets.json'
             remote = output / 'capture.py'
