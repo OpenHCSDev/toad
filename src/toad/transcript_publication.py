@@ -4,7 +4,8 @@ from __future__ import annotations
 import weakref
 import asyncio
 from abc import ABC, abstractmethod
-from contextlib import AsyncExitStack, ExitStack
+from contextlib import AsyncExitStack
+from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -763,7 +764,7 @@ class TranscriptPresentation:
     async def close(self) -> None:
         self.closed = True
         try:
-            async with AsyncExitStack() as release:
+            async with AsyncResourceRelease() as release:
                 for history in reversed(tuple(self.histories)):
                     if history._page_buffer is not None:
                         release.callback(history._page_buffer.close)
@@ -775,7 +776,7 @@ class TranscriptPresentation:
 
     def _close_documents(self) -> None:
         documents, self.documents = self.documents, ()
-        with ExitStack() as release:
+        with ResourceRelease() as release:
             for source in reversed(documents):
                 release.callback(source.close)
 

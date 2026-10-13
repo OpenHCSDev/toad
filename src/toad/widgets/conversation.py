@@ -13,7 +13,8 @@ from toad.preferences import SETTINGS
 
 import asyncio
 from abc import abstractmethod
-from contextlib import AsyncExitStack, suppress
+from contextlib import suppress
+from toad.resource_release import AsyncResourceRelease
 from functools import partial
 from itertools import filterfalse
 
@@ -457,7 +458,7 @@ class ConversationSessionBinding(containers.Vertical):
         self.tool_expansions: dict[str, bool] = {}
         # Both explicit eviction and Textual unmount consume this same lifetime.
         # The stack removes callbacks before calling them and continues on error.
-        self._source_resources = AsyncExitStack()
+        self._source_resources = AsyncResourceRelease()
         self._source_resources.push_async_callback(self._close_directory_watcher)
         self._source_resources.push_async_callback(
             SessionObservation.close_all, self.goal_observation, self.delivery_observation,
@@ -488,7 +489,7 @@ class ConversationSessionBinding(containers.Vertical):
         dropping the agent projects nothing: setting it through its watchers
         restyled the prompt and re-derived the title of a closing tab.
         """
-        async with AsyncExitStack() as release:
+        async with AsyncResourceRelease() as release:
             release.callback(self.take_initial_prompt)
             release.callback(self.set_reactive, Conversation.agent, None)
             await self._release_source_resources()
@@ -1018,7 +1019,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self.publish_core(SessionThreadTitle(title))
 
     async def on_unmount(self) -> None:
-        async with AsyncExitStack() as release:
+        async with AsyncResourceRelease() as release:
             release.callback(self._publish_session_end)
             if self.agent is not None:
                 release.push_async_callback(self.agent.retire_surface, self)

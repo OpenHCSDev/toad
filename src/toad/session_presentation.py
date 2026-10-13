@@ -2,7 +2,8 @@
 
 import asyncio
 from abc import ABC, abstractmethod
-from contextlib import AsyncExitStack, asynccontextmanager
+from contextlib import asynccontextmanager
+from toad.resource_release import AsyncResourceRelease
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -139,7 +140,7 @@ class OperationalSessionSources:
         watcher, self.directory_watcher = self.directory_watcher, None
         agent, self.agent = self.agent, None
         shell, self.shell = self.shell, None
-        async with AsyncExitStack() as release:
+        async with AsyncResourceRelease() as release:
             if shell is not None:
                 release.push_async_callback(shell.close)
             if agent is not None:
@@ -247,7 +248,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     async def close(self, screen: "MainScreen") -> None:
         self.state = None
-        async with AsyncExitStack() as release:
+        async with AsyncResourceRelease() as release:
             release.push_async_callback(self.sources.close)
             release.push_async_callback(self.transcript.close)
             await screen.app.workspace_chrome.native.dispose(screen)
@@ -268,7 +269,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         if (conversation := self.widget) is None:
             return
         self.widget = None
-        async with AsyncExitStack() as release:
+        async with AsyncResourceRelease() as release:
             release.push_async_callback(conversation.remove)
             await conversation.release_native_session()
 
@@ -347,7 +348,7 @@ class NativeSessionSurface:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             owner = screen.presentation
-            async with AsyncExitStack() as release:
+            async with AsyncResourceRelease() as release:
                 release.push_async_callback(owner.remove_native_tree)
                 if self.view is screen:
                     self.view = None
