@@ -98,6 +98,7 @@ from toad.conversation_turn import TurnOwner, ConversationTurn
 from toad.shell import Shell
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
+    DetailAction,
     InputDeliveryBar,
     InputDeliveryDetails,
 )
@@ -1693,8 +1694,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     ) -> None:
         self.delivery_observation.invalidate()
 
-    @on(InputDeliveryBar.Inspect)
-    async def inspect_input_delivery(self, event: InputDeliveryBar.Inspect) -> None:
+    @on(DetailAction.Activated, "#session-inspect")
+    async def inspect_session(self, event: DetailAction.Activated) -> None:
         event.stop()
         await self.delivery_observation.refresh()
         details = InputDeliveryDetails(

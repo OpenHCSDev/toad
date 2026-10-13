@@ -16,40 +16,36 @@ from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
 
 
-class DeliveryInspect(Static, can_focus=True):
-    """An inline text action without a button's border or minimum height."""
+class DetailAction(Static, can_focus=True):
+    """An inline detail action owns keyboard, pointer and activation behavior."""
+
+    class Activated(Message):
+        def __init__(self, control: DetailAction):
+            self._control = control
+            super().__init__()
+
+        @property
+        def control(self) -> DetailAction:
+            return self._control
 
     BINDINGS: ClassVar[list[tuple[str, str, str]]] = [
-        ("enter,space", "inspect", "Inspect delivery")
+        ("enter,space", "activate", "Activate")
     ]
     DEFAULT_CSS = """
-    DeliveryInspect {
+    DetailAction {
         width: auto; height: 1; margin-left: 1;
         color: $text-accent; text-style: underline; pointer: pointer;
     }
-    DeliveryInspect:hover, DeliveryInspect:focus { text-style: bold reverse; }
+    DetailAction:hover, DetailAction:focus { text-style: bold reverse; }
     """
 
-    def action_inspect(self) -> None:
+    def action_activate(self) -> None:
         if not self.disabled:
-            self.post_message(InputDeliveryBar.Inspect())
+            self.post_message(self.Activated(self))
 
     def on_click(self, event: events.Click) -> None:
         event.stop()
-        self.action_inspect()
-
-
-class DeliveryHistoryAction(DeliveryInspect):
-    """Keyboard and pointer action for historical notices only."""
-
-    class Activated(Message):
-        def __init__(self, action: DeliveryHistoryAction):
-            self.action = action
-            super().__init__()
-
-    def action_inspect(self) -> None:
-        if not self.disabled:
-            self.post_message(self.Activated(self))
+        self.action_activate()
 
 
 class InputDeliveryBar(HorizontalGroup):
@@ -62,14 +58,10 @@ class InputDeliveryBar(HorizontalGroup):
     delivery: var[InputDelivery] = var(InputDelivery())
     error: var[str] = var("")
 
-    class Inspect(Message):
-        pass
-
     def compose(self) -> ComposeResult:
         yield Static(markup=False, id="delivery-summary")
         yield Static(markup=False, id="delivery-history-summary")
         yield Static(markup=False, id="delivery-error")
-        yield DeliveryInspect("Inspect", markup=False, id="delivery-inspect")
 
     def watch_delivery(self) -> None:
         self._refresh_summary()
@@ -154,12 +146,12 @@ class InputDeliveryDetails(ModalScreen[None]):
                     markup=False,
                     id="delivery-history-explanation",
                 )
-                yield DeliveryHistoryAction(
+                yield DetailAction(
                     "Load earlier notices",
                     markup=False,
                     id="delivery-load-history",
                 )
-                yield DeliveryHistoryAction(
+                yield DetailAction(
                     "Clear earlier notices",
                     markup=False,
                     id="delivery-clear-history",
@@ -210,10 +202,10 @@ class InputDeliveryDetails(ModalScreen[None]):
         self.query_one("#delivery-history-explanation").display = bool(
             count or dismissed
         )
-        load = self.query_one("#delivery-load-history", DeliveryHistoryAction)
+        load = self.query_one("#delivery-load-history", DetailAction)
         load.display = bool(count or dismissed) and self._historical_inputs is None
         load.disabled = self._busy
-        clear = self.query_one("#delivery-clear-history", DeliveryHistoryAction)
+        clear = self.query_one("#delivery-clear-history", DetailAction)
         clear.display = bool(count)
         clear.disabled = self._busy
         self.query_one("#delivery-historical-records", Static).update(
@@ -224,8 +216,9 @@ class InputDeliveryDetails(ModalScreen[None]):
         self._refresh_records()
         self.watch_error()
 
-    @on(DeliveryHistoryAction.Activated)
-    async def historical_action(self, event: DeliveryHistoryAction.Activated) -> None:
+    @on(DetailAction.Activated, "#delivery-load-history")
+    @on(DetailAction.Activated, "#delivery-clear-history")
+    async def historical_action(self, event: DetailAction.Activated) -> None:
         event.stop()
         if self._busy:
             return
@@ -233,7 +226,7 @@ class InputDeliveryDetails(ModalScreen[None]):
         self.error = ""
         self._refresh_records()
         try:
-            if event.action.id == "delivery-load-history":
+            if event.control.id == "delivery-load-history":
                 self._historical_inputs = await self._load_history()
             else:
                 await self._dismiss_history()
