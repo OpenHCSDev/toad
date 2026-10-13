@@ -149,6 +149,8 @@ class SavedThreadObservation:
                 agent = source.presentation.operational_agent
                 if agent is not None:
                     observation.custody.enter_context(agent.events.subscribe(self.event))
+                    if failure := agent.session.disposition.current_failure():
+                        self.failed(failure)
                 self.covered()
 
             @handles(TranscriptCoverage)
