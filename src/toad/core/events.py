@@ -226,9 +226,6 @@ class AgentFail(CoreEvent):
     details: str
 
     async def present(self, view) -> None:
-        await self.show_notice(view)
-
-    async def show_notice(self, view) -> None:
         from textual.content import Content
         from toad.widgets.note import Note
 
@@ -323,7 +320,7 @@ class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
 
     @handles(UnrecordedFailureSource)
     async def show_unrecorded(self, source, view) -> None:
-        await self.show_notice(view)
+        await super().present(view)
         await self.show_log(view)
 
     @handles(NativeMessageFailureSource)
