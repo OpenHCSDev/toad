@@ -183,12 +183,9 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         padding: 0;
     }
     CommsRow.-selected, CommsRow.-selected:hover, CommsRow.-selected:focus {
-        background: $accent;
-        color: $background !important;
-    }
-    CommsRow:ansi.-selected, CommsRow:ansi.-selected:hover, CommsRow:ansi.-selected:focus {
-        background: ansi_blue;
-        color: ansi_bright_white !important;
+        background: $block-cursor-background;
+        color: $block-cursor-foreground !important;
+        text-style: $block-cursor-text-style;
     }
     CommsRow.-unread { text-style: bold; }
     CommsRow.-current { color: $text; text-style: bold; }
@@ -305,14 +302,9 @@ class NewSessionButton(Static):
     }
     NewSessionButton:hover,
     NewSessionButton:focus {
-        background: $surface-lighten-2;
-        color: $text;
-    }
-    NewSessionButton:ansi:hover,
-    NewSessionButton:ansi:focus {
-        background: ansi_bright_white;
-        color: ansi_black;
-        text-style: bold;
+        background: $block-cursor-background;
+        color: $block-cursor-foreground;
+        text-style: $block-cursor-text-style;
     }
     """
 

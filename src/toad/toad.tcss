@@ -1,3 +1,19 @@
+/* Schemes own these paired roles. All views use the same selection pair. */
+Screen > .screen--selection,
+Input > .input--selection,
+TextArea > .text-area--selection {
+    color: $block-cursor-foreground;
+    background: $block-cursor-background;
+    text-style: $block-cursor-text-style;
+}
+
+/* A scrollbar is a navigation mark, not a translucent surface tint. */
+Widget {
+    scrollbar-color: $secondary;
+    scrollbar-color-hover: $primary;
+    scrollbar-color-active: $primary;
+}
+
 .block {
     margin: 0 1 1 0;
 }
@@ -170,7 +186,7 @@ Footer {
 
 HelpPanel {    
     
-    border-left: solid $primary 30%;
+    border-left: solid $primary;
     padding-right: 0;
     # color: $text-secondary;
     

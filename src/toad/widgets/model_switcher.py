@@ -97,11 +97,6 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         color: $block-cursor-foreground;
         text-style: $block-cursor-text-style;
     }
-    ModelSwitcher:ansi OptionList > .option-list--option-highlighted {
-        background: ansi_blue;
-        color: ansi_bright_white;
-        text-style: bold;
-    }
     """
 
     search_input = getters.query_one(Input)

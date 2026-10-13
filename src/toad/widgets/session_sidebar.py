@@ -24,25 +24,10 @@ class ThreadStatusRow(HoverSelection):
     }
     ThreadStatusRow.-wire-thread.-busy { color: $warning; }
     ThreadStatusRow.-wire-thread.-unread { text-style: bold; }
-    ThreadStatusRow:hover {
-        background: transparent;
-        color: $accent !important;
-        text-style: underline;
-    }
-    ThreadStatusRow:ansi:hover {
-        background: transparent;
-        color: ansi_magenta !important;
-        text-style: underline;
-    }
-    ThreadStatusRow:focus {
-        background: transparent;
-        color: $accent !important;
-        text-style: underline;
-    }
-    ThreadStatusRow:ansi:focus {
-        background: transparent;
-        color: ansi_magenta !important;
-        text-style: underline;
+    ThreadStatusRow:hover, ThreadStatusRow:focus {
+        background: $block-cursor-background;
+        color: $block-cursor-foreground !important;
+        text-style: $block-cursor-text-style;
     }
     """
 

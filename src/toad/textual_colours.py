@@ -20,6 +20,7 @@ from rich.terminal_theme import TerminalTheme
 from textual.app import App, ScreenStackError, UnknownModeError
 from textual.color import Color
 from textual.content import Content
+from textual.css.styles import Styles
 from textual.style import Style as VisualStyle
 from textual.strip import Strip
 from textual.theme import Theme
@@ -144,9 +145,19 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def theme(self, scheme: ColourScheme) -> Theme:
         colours = {colour.name: value.native(self) for colour, value in scheme.colours.items()
                    if issubclass(colour, (CoreColour, LayerColour))}
-        return Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
-                     variables={name: _element(value, self) for name, value in scheme.elements.items()},
-                     **colours)
+        theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
+                      variables={name: _element(value, self) for name, value in scheme.elements.items()},
+                      **colours)
+        # Resolve the scheme's paired cursor colours at the backend boundary.
+        # Content rows must not re-evaluate `auto` against an inherited surface
+        # after the cursor background has already been applied.
+        variables = theme.to_color_system().generate()
+        cursor = Styles.parse(f"color: {variables['block-cursor-foreground']}; "
+                              f"background: {variables['block-cursor-background']};",
+                              read_from=(__file__, f"{scheme.name} selection"))
+        if cursor.auto_color:
+            theme.variables['block-cursor-foreground'] = cursor.background.get_contrast_text(cursor.color.a).hex
+        return theme
 
     def palette(self, palette: TerminalPalette) -> TerminalTheme:
         ansi = [colour.triple for colour in palette.ansi]

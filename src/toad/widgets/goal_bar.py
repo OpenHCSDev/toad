@@ -62,7 +62,7 @@ class StandbyPulse(Static):
 
 class GoalBar(VerticalGroup):
     DEFAULT_CSS = """
-    GoalBar { height: auto; padding: 0 1; border-top: solid $secondary 30%; }
+    GoalBar { height: auto; padding: 0 1; border-top: solid $secondary; }
     GoalBar .goal-header { height: auto; }
     GoalBar .goal-document { height: 1; max-height: 50vh; scrollbar-gutter: stable; }
     GoalBar .goal-summary { height: auto; }
