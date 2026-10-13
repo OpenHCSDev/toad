@@ -93,7 +93,21 @@ class SavedThreadObservation:
     def __init__(self, app, pid: int, thread: str, output: str) -> None:
         self.app, self.pid, self.thread, self.output = app, pid, thread, output
 
+    def failed(self, details: str) -> None:
+        if self.completed.done():
+            return
+        Path(self.output).write_text(json.dumps({'error': details}))
+        self.completed.set_result(None)
+
     async def wait(self) -> None:
+        import traceback
+        try:
+            await self.observe()
+        except BaseException:
+            Path(self.output).write_text(json.dumps({'error': traceback.format_exc()}))
+            raise
+
+    async def observe(self) -> None:
         import asyncio
         import traceback
         from agent_comms.mro_dispatch import MroDispatch, handles
@@ -103,19 +117,27 @@ class SavedThreadObservation:
         from toad.screens.main import MainScreen
 
         observation = self
+        self.completed = asyncio.get_running_loop().create_future()
 
         class Events(MroDispatch):
             def __init__(self) -> None:
                 self.transcript = self.agent = None
 
             def event(self, event, subscription) -> None:
-                self.dispatch_sync(event)
+                try:
+                    self.dispatch_sync(event)
+                except BaseException:
+                    observation.failed(traceback.format_exc())
 
             @handles(SessionSelected, SessionAgentAttached)
             def selected(self, event=None) -> None:
                 source = observation.app.selected_session
-                if (not isinstance(source, MainScreen)
-                        or source.agent_session_id != observation.thread):
+                if not isinstance(source, MainScreen):
+                    return
+                if source.agent_session_id != observation.thread:
+                    observation.failed(
+                        f"SavedThreadSelectionMismatch: requested {observation.thread!r}; "
+                        f"selected {source.agent_session_id!r}")
                     return
                 transcript = source.presentation.transcript
                 if self.transcript is not transcript:
@@ -144,22 +166,13 @@ class SavedThreadObservation:
 
             @handles(AgentFail)
             def failed(self, event) -> None:
-                if observation.completed.done():
-                    return
-                Path(observation.output).write_text(json.dumps(
-                    {'error': f'{event.message}: {event.details}'}))
-                observation.completed.set_result(None)
+                observation.failed(f'{event.message}: {event.details}')
 
-        self.completed = asyncio.get_running_loop().create_future()
-        try:
-            with ExitStack() as self.subscriptions:
-                events = Events()
-                self.subscriptions.enter_context(self.app.events.subscribe(events.event))
-                events.selected()
-                await self.completed
-        except BaseException:
-            Path(self.output).write_text(json.dumps({'error': traceback.format_exc()}))
-            raise
+        with ExitStack() as self.subscriptions:
+            events = Events()
+            self.subscriptions.enter_context(self.app.events.subscribe(events.event))
+            events.selected()
+            await self.completed
 
 
 def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
