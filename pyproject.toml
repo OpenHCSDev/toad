@@ -42,20 +42,6 @@ agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "47
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "97d73d0d5d30d9766d2c5ea9844bfa30ae96a908" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 
-# formbridge and objectstate declare the dependencies of formbridge's bridge
-# server and of objectstate's code generation and history files. The settings
-# form imports none of them (formbridge issue #2, ObjectState issue #43), so
-# the lock states what the form imports and nothing else.
-[[tool.uv.dependency-metadata]]
-name = "formbridge"
-version = "0.1.0"
-requires-dist = ["metaclass-registry>=0.1.5", "objectstate>=2.0,<3", "python-introspect>=0.2.7,<0.3"]
-
-[[tool.uv.dependency-metadata]]
-name = "objectstate"
-version = "2.1.1"
-requires-dist = ["python-introspect>=0.2.0,<0.3"]
-
 [project.scripts]
 toad = "toad.cli:main"
 
