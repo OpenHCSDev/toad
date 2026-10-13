@@ -13,6 +13,7 @@ from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from toad.owner_preparation import ExistingOwnerAdmission
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
@@ -110,27 +111,28 @@ class OperationalSessionSources:
     def agent_info(self, conversation: Conversation) -> str:
         return "shell"
 
-    def input_ready(self, conversation: Conversation) -> bool:
-        from agent_comms.thread_presentation import LiveThreadOwnerBinding
+    def accepts_inbox_submission(self, event) -> bool:
+        return False
 
+    def input_ready(self, conversation: Conversation) -> bool:
         agent = conversation.agent
         if agent is None or not agent.ready:
             return False
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
-            return presentation is not None and isinstance(presentation.binding, LiveThreadOwnerBinding)
+            return (presentation is not None
+                    and ExistingOwnerAdmission.from_binding(presentation.binding) is not None)
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
-        if conversation.transcript.readable and conversation.thread_presentation is not None:
-            from agent_comms.thread_presentation import LiveThreadOwnerBinding
-
-            if not isinstance(conversation.thread_presentation.binding, LiveThreadOwnerBinding):
-                return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+        presentation = conversation.thread_presentation
+        if (conversation.transcript.readable and presentation is not None
+                and ExistingOwnerAdmission.from_binding(presentation.binding) is None):
+            return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
         return "Agent is not ready. Please wait while the agent connects…"
 
     def start_agent(self, conversation: Conversation) -> None:
-        """The operational source owns connection creation and its original admission."""
+        """The operational source owns connection creation and load admission."""
         from toad.acp.agent import Agent
         from toad.core import events as core_events
 
@@ -211,6 +213,9 @@ class MailboxSessionSources(OperationalSessionSources):
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable and conversation.user_message_ready
+
+    def accepts_inbox_submission(self, event) -> bool:
+        return not event.shell and bool(event.body.strip())
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):

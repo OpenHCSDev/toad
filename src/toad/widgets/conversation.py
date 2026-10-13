@@ -926,6 +926,15 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                    for history in self.transcript.histories
                    for fragment in history.visible_fragments())
 
+    def transcript_scope(self) -> tuple[str, str] | None:
+        """The native session identity whose canonical transcript this view shows."""
+        from toad.screens.session_view import SessionView
+
+        origin = self.query_ancestor(SessionView).origin
+        if origin is None or origin.coordination_root is None or not origin._comms_thread:
+            return None
+        return origin.coordination_root, origin._comms_thread
+
     def status_thread(self) -> tuple[str, str] | None:
         return self.transcript.thread_scope
 
@@ -948,16 +957,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             prompt.sync_session()
 
     async def read_foreign_thread(self):
-        from toad.owner_preparation import read_thread_presentation
-
-        scope = self.transcript.thread_scope
-        if scope is None:
-            return None
-        async with self.transcript.reader.bind(scope[0]) as reader:
-            presentation = await asyncio.to_thread(read_thread_presentation, reader, scope[1])
-        if self.transcript.thread_scope != scope:
-            raise ValueError("Thread source changed")
-        return presentation
+        if self.agent is not None:
+            return await self.agent.get_thread_presentation()
+        return await super().read_foreign_thread()
 
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)
@@ -967,7 +969,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         from toad.screens.session_view import SessionView
 
         self.thread_presentation = presentation
-        if presentation is None:
+        if presentation is None or not self.transcript.readable:
             return
         if self.query_ancestor(SessionView).is_current:
             from toad.transcript_publication import ObservedSourcePublication

@@ -39,7 +39,6 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
-from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 from toad.widget_actions import DeclaredWidgetActions
 from toad.prompt_actions import PromptAction, SubmitNowAction
@@ -302,9 +301,7 @@ See on-screen instructions for details.
             self.app.bell()
             self.post_message(
                 messages.Flash(
-                    (self.query_ancestor(Prompt).submissions.unavailable_reason
-                     if self.query_ancestor(Prompt).submissions is not None
-                     else "Agent is not ready. Please wait while the agent connects…"),
+                    self.query_ancestor(Prompt).operational_submissions.unavailable_reason,
                     "error",
                 )
             )
@@ -492,10 +489,14 @@ class Prompt(containers.VerticalGroup):
         return self.turns.owner.busy if self.turns is not None else False
 
     @property
+    def operational_submissions(self):
+        if self.submissions is None:
+            raise RuntimeError("Operational prompt requires its submission owner")
+        return self.submissions
+
+    @property
     def agent_ready(self) -> bool:
-        return (self.simple_input or self.shell_mode
-                or (self.submissions.ready if self.submissions is not None
-                    else self.agent is not None and self.agent.ready))
+        return self.simple_input or self.shell_mode or self.operational_submissions.ready
 
     @property
     def queue_supported(self) -> bool:
@@ -612,11 +613,12 @@ class Prompt(containers.VerticalGroup):
     def _update_queue_summary(self) -> None:
         if self.simple_input:
             return
-        projection = self.submissions.queue_projection if self.submissions else PendingQueueProjection()
-        queued = [row.text for row in self.submissions.queued_inputs] if self.submissions else []
+        submissions = self.operational_submissions
+        projection = submissions.queue_projection
+        queued = [row.text for row in submissions.queued_inputs]
         restored = [row.text for row in projection.restored]
         feedback = projection.feedback(self.queue_supported)
-        delivering = self.submissions.delivering if self.submissions else ()
+        delivering = submissions.delivering
         self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []
         if feedback:
@@ -661,8 +663,7 @@ class Prompt(containers.VerticalGroup):
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
         else:
-            self.query_one(AgentInfo).update(
-                self.submissions.unavailable_reason if self.submissions is not None else "Initializing…")
+            self.query_one(AgentInfo).update(self.operational_submissions.unavailable_reason)
 
     def watch_multiline(self) -> None:
         self.update_prompt()

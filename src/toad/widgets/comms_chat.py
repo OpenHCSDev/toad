@@ -9,7 +9,6 @@ from toad.wire_history import WireSource
 
 import asyncio
 import re
-from collections.abc import Callable
 from pathlib import Path
 
 from agent_comms.comms import Comms
@@ -35,7 +34,6 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.owner_preparation import read_thread_presentation
 from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
 
@@ -257,25 +255,15 @@ class CommsChatView(Conversation):
     def _target_label(self) -> str:
         return self.conversation_kind.label(self.target)
 
+    def transcript_scope(self) -> None:
+        """DM/channel history belongs to WireHistory, not a native transcript."""
+        return None
+
     def status_thread(self) -> tuple[str, str] | None:
-        """A direct conversation shows its peer thread's status."""
+        """Peer status does not grant access to the peer's full transcript."""
         name = self.conversation_kind.historical_thread(self.target)
         source = self.message_history.source
         return (str(source.comms.root), name) if name is not None and source is not None else None
-
-    async def read_foreign_thread(self):
-        history = self.message_history
-        source = history.source
-        if source is None:
-            return None
-        snapshot = history.source_snapshot()
-        comms, target = source.comms, self.target
-        if not await history.source_is_current(snapshot):
-            raise ValueError("Comms route changed")
-        presentation = await asyncio.to_thread(read_thread_presentation, comms, target)
-        if not await history.source_is_current(snapshot) or target != self.target:
-            raise ValueError("Comms route changed")
-        return presentation
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history
@@ -408,64 +396,35 @@ class CommsChatView(Conversation):
             return
         if not event.body.strip():
             return
-        if self._unknown_send is not None or self._send_block_reason:
-            self.flash("Send pending/UNKNOWN/blocked; inspect, do not retry", style="error")
+        history = self.message_history
+        source, target = history.source, self.target
+        if source is None:
+            self.delivery_refused("Conversation source is not ready", event.body)
             return
+        comms = source.comms
         try:
-            from agent_comms.route_selection import root_is_current
-
-            source = self.message_history.source
-            if (source is None
-                    or not await self.app.preparation.run_thread(root_is_current, source.comms.root)
-                    or source.comms is not self.message_history.source.comms):
-                raise ValueError("Comms route changed; reopen this view before sending")
-            comms = source.comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
-            if self.conversation_kind.read_only(catalog, self.target):
-                self.prompt.text = event.body
-                self.prompt.prompt_text_area.disabled = True
-                self.status = "Read-only saved view; open an exact channel to send"
-                self.flash(self.status, style="error")
-                return
-            sent = await self.commit_user_message(
-                comms, self.conversation_kind.send_target(self.target), event.body)
-            if sent is None:
-                return
-        except Exception as error:
-            from agent_comms.delivery_failure import delivery_failure
-
-            delivery_failure(error).present(self, event.body)
+        except (OSError, ValueError, RuntimeError) as error:
+            self.delivery_refused(str(error), event.body)
             return
-        try:
-            await self._show_sent(comms, sent, event.body, root_is_current)
-        except (asyncio.CancelledError, Exception) as error:
-            reason = (
-                "interrupted" if isinstance(error, asyncio.CancelledError) else "failed"
-            )
-            self._sent_undrawn = None
-            self._send_block_reason = (
-                f"Committed send {comms.root}/{sent.seq}/{sent.message_id}; "
-                f"drawing it {reason}, inspect before composing"
-            )
-            self.status = self._send_block_reason
-            self.prompt.prompt_text_area.tooltip = self.status
+        if self.conversation_kind.read_only(catalog, target):
+            self.prompt.text = event.body
+            self.prompt.prompt_text_area.disabled = True
+            self.status = "Read-only saved view; open an exact channel to send"
+            self.flash(self.status, style="error")
+            return
 
-    async def _show_sent(
-        self, comms: Comms, sent: WireMessage, body: str,
-        root_is_current: Callable[[str | Path], bool],
-    ) -> None:
+        def current() -> bool:
+            return self.is_attached and source is history.source and target == self.target
+
+        await self.deliver_user_message(
+            comms.root, self.conversation_kind.send_target(target), event.body, current,
+            partial(self._show_sent, body=event.body),
+        )
+
+    async def _show_sent(self, sent: WireMessage, body: str) -> None:
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
-        if not await self.app.preparation.run_thread(root_is_current, comms.root):
-            # The send may already have reached the former wire. Do not
-            # duplicate it on the successor or draw it under the new route.
-            self.display = False
-            self.flash(
-                "Comms route changed during send; outcome may be uncertain",
-                style="error",
-            )
-            return
         self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
-        self._sent_undrawn = sent
         self.window.jump_to_latest()
         await self._refresh()
         self.settle_user_message()

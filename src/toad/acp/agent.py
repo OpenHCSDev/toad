@@ -293,13 +293,9 @@ class Agent(AgentBase):
                                                 turn_token=self.presentation.turns.sequence))
 
     async def get_thread_presentation(self):
-        from toad.owner_preparation import read_thread_presentation
-
         if (read := self.thread_read()) is None:
             return None
-        root, thread = read.thread
-        async with self.controller.transcripts.bind(root) as reader:
-            presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
+        presentation = await self.controller.transcripts.thread_presentation(*read.thread)
         return read.settle(presentation)
 
     async def observe_thread_presentation(self, presentation) -> None:

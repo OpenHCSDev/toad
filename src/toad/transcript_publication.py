@@ -6,7 +6,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from contextlib import AsyncExitStack
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from functools import partial, cached_property
+from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -535,26 +535,20 @@ class TranscriptPresentation:
 
     @property
     def thread_scope(self) -> tuple[str, str] | None:
-        """The session identity, not a native process, owns readable history."""
-        from toad.screens.session_view import SessionView
-
+        """The view declares the thread whose canonical history it presents."""
         view = self.view
-        if view is None or not view.is_attached:
-            return None
-        origin = view.query_ancestor(SessionView).origin
-        if origin is None or origin.coordination_root is None or not origin._comms_thread:
-            return None
-        return origin.coordination_root, origin._comms_thread
+        return view.transcript_scope() if view is not None and view.is_attached else None
 
     @property
     def readable(self) -> bool:
         return self.thread_scope is not None
 
-    @cached_property
+    @property
     def reader(self):
-        from toad.acp.transcript_reader import ObservedTranscriptReader
-
-        return ObservedTranscriptReader(self.view.app.coordination_access)
+        view = self.view
+        if view is None:
+            raise ValueError("Transcript reader requires a bound view")
+        return view.app.coordination_access.transcripts
 
     async def get_transcript_page(self, *, before=None, after=None, through=None,
                                   read_identity=None) -> TranscriptPage:
@@ -570,7 +564,7 @@ class TranscriptPresentation:
     async def get_message_notifications(self, references):
         scope = self.thread_scope
         if scope is None:
-            return {}
+            raise ValueError("Notification reads require a bound thread")
         results = await self.reader.notifications(scope[0], references)
         if self.thread_scope != scope:
             raise ValueError("Thread source changed during notification read")
