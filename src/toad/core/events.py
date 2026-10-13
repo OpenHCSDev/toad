@@ -328,7 +328,7 @@ class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
         # message_end precedes the journal append. The existing source observer
         # resolves the saved row and its time; this event mounts no tail copy.
         view.transcript.require_checkpoint()
-        # Open ACP log remains available in the existing input-delivery details.
+        # Session inspection keeps ACP log access independent of delivery notices.
 
 
 @dataclass(eq=False)
