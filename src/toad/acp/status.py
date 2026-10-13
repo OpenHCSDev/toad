@@ -51,12 +51,13 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         borrow the final ACP state, including an end without its earlier start.
         """
         first = events[0]
-        call = ToolCall(tool_call_id=first.tool_call_id,
-                        title=first.tool_name or 'Tool', status='completed',
-                        kind=NativeTool.start(first.tool_call_id, first.tool_name, {}).kind)
+        call = ToolCall(tool_call_id=first.tool_call_id, title='', status='completed')
         consumer = cls(call)
         for event in events:
             consumer.dispatch_sync(event)
+        start = NativeTool.start(first.tool_call_id, first.tool_name, call.raw_input or {})
+        call.title = start.title
+        call.kind = start.kind
         return cls.from_acp(call)
 
     @handles(ToolStartTranscript)
