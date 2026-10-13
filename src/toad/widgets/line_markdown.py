@@ -19,7 +19,7 @@ from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.block_content import BlockContent
-from toad.line_blocks import Body, LineRole, TextRole
+from toad.line_blocks import Body, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
     LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
 )
@@ -47,9 +47,13 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         self._link_place = link_place()
         self._render_worker: Worker[None] | None = None
 
+    def line_blocks(self, text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
+        """Semantic rows for this text; streaming subclasses may add a final row."""
+        return (Body(text, role=self.role, bar=self.bar, markdown=self.markdown),)
+
     @property
-    def block(self) -> Body:
-        return Body(self.text, role=self.role, bar=self.bar, markdown=self.markdown)
+    def block(self) -> LineBlock:
+        return self.line_blocks(self.text)[0]
 
     def get_clipboard_text(self) -> str | None:
         return self.text or None
@@ -66,6 +70,14 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         """Replace the text; the drawn rows follow without blocking."""
         if text != self.text:
             rows = self._row_count()
+            # A completed stream may own a final semantic row (for example the
+            # gap after thinking). It cannot remain inside a styled prefix once
+            # more text follows it.
+            if self.line_blocks(self.text, complete=True) != self.line_blocks(
+                self.text, complete=False
+            ):
+                self._styled, self._styled_text = None, ""
+            self._plain = None
             self.text = text
             self._request_render()
             self._redraw(rows)
@@ -84,9 +96,10 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
     def append(self, text: str) -> None:
         self.update(self.text + text)
 
-    def _plain_rows(self, text: str, width: int):
-        return RichLineRenderer(self.app.colours.line_theme, width, plain=True).rows((
-            Body(text, role=self.role, bar=self.bar, markdown=False),))
+    def _plain_rows(self, text: str, width: int, *, complete: bool = True):
+        return RichLineRenderer(self.app.colours.line_theme, width, plain=True).rows(
+            self.line_blocks(text, complete=complete)
+        )
 
     def _lines(self, width: int) -> PreparedLines:
         """Styled rows for the text they cover, then plain rows for anything newer.
@@ -107,7 +120,7 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
                 # Styled rows end at a paragraph boundary; the plain tail is
                 # the following paragraphs, after the blank row between them.
                 self._plain = PreparedLines(width, styled.rows + ((),) + self._plain_rows(
-                    self.text[len(covered):].lstrip("\n"), width))
+                    self.text[len(covered):].lstrip("\n"), width, complete=True))
                 self._plain_key = key
             return self._plain
         key = (width, len(self.text), None)
@@ -142,14 +155,19 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
             seen = text
             styled = self._styled
             if target and (target != self._styled_text or styled is None or styled.width != width):
-                block = Body(target, role=self.role, bar=self.bar, markdown=self.markdown)
-                lines = await renderer.submit(TranscriptLinesRenderTask((block,), width, theme))
+                complete = target == self.text
+                blocks = self.line_blocks(target, complete=complete)
+                lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme))
                 if not self.is_attached:
                     return
-                if width == self._width and theme is self.app.colours.line_theme and self.text.startswith(target):
-                    rows = self._row_count()
-                    self._styled, self._styled_text = lines, target
-                    self._redraw(rows)
+                source_current = width == self._width and theme is self.app.colours.line_theme
+                if source_current and self.text.startswith(target):
+                    # A completed render includes final spacing; unlike a
+                    # prefix render, it belongs only to that exact text.
+                    if not complete or self.text == target:
+                        rows = self._row_count()
+                        self._styled, self._styled_text = lines, target
+                        self._redraw(rows)
             if (target, width) == (self.text, self._width):
                 return
             # Text is still arriving. The plain tail already shows it, so
