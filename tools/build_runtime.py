@@ -125,7 +125,7 @@ class SavedThreadObservation:
                     if conversation is not None:
                         observation.subscriptions.enter_context(
                             conversation.core_publications.subscribe(self.event))
-                agent = source.attached_agent
+                agent = source.presentation.operational_agent
                 if agent is not None and self.agent is not agent:
                     self.agent = agent
                     observation.subscriptions.enter_context(agent.events.subscribe(self.event))

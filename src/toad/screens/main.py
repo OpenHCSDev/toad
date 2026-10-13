@@ -217,11 +217,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         """The saved ACP session this screen owns."""
         return self._agent_session_id
 
-    @property
-    def attached_agent(self):
-        """The operational agent currently attached to this session."""
-        return self.presentation.operational_agent
-
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()
 
