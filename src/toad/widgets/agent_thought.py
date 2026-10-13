@@ -1,97 +1,45 @@
-from __future__ import annotations
 from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ThinkingCategory
+from typing import Iterable
 
-from typing import ClassVar
-
-from textual.binding import Binding, BindingType
-from textual.containers import VerticalGroup
-from toad.line_blocks import ThinkingRole
+from toad.line_blocks import LineBlock
+from toad.menus import MenuItem
+from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
+class AgentThought(
+    ConversationBlock,
+    SnapshotPresentation,
+    CategorizedBlock,
+    LineMarkdown,
+    can_focus=True,
+):
+    """A live thought drawn from the same semantic rows as saved thinking."""
 
-class AgentThought(ConversationBlock, SnapshotPresentation, CategorizedBlock, VerticalGroup, can_focus=True):
-    """The agent's 'thoughts', drawn as prepared lines; saved history that covers them replaces them."""
-
-    DEFAULT_CSS = """
-    AgentThought {
-        background: $primary-muted 20%;
-        color: $text-primary;
-        min-height: 1;
-        margin: 0 1 1 0;
-        padding:  0 1 0 1;
-        border: none;
-        border-left: tall $primary;
-        height: auto;
-
-        &.-loading {
-            background: transparent !important;
-            padding: 0;
-            margin: 0;
-        }
-        overflow-y: hidden;
-
-        &.-maximized {
-            max-height: 100h;
-            margin: 1 2;
-            scrollbar-visibility: visible;
-            &>* {
-                padding-right: 1;
-            }
-        }
-        &:focus {
-            border-left: tall $primary;
-        }
-        &:ansi {
-            background: ansi_default;
-            border-left: tall ansi_blue;
-        }
-    }
-    """
-
+    DEFAULT_CSS = "AgentThought { width: 1fr; height: auto; }"
 
     @property
     def message_category(self) -> type[MessageCategory]:
         return ThinkingCategory
 
-    HELP = """
-## Agent thoughts
+    def __init__(self, thought: str):
+        super().__init__(thought)
 
-- **cursor keys** Scroll text
-"""
+    def line_blocks(self, text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
+        return AgentActivityPresentation.thinking(text, complete=complete)
 
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("up", "scroll_up", "Scroll Up", show=False),
-        Binding("down", "scroll_down", "Scroll Down", show=False),
-        Binding("left", "scroll_left", "Scroll Left", show=False),
-        Binding("right", "scroll_right", "Scroll Right", show=False),
-        Binding("home", "scroll_home", "Scroll Home", show=False),
-        Binding("end", "scroll_end", "Scroll End", show=False),
-        Binding("pageup", "page_up", "Page Up", show=False),
-        Binding("pagedown", "page_down", "Page Down", show=False),
-        Binding("ctrl+pageup", "page_left", "Page Left", show=False),
-        Binding("ctrl+pagedown", "page_right", "Page Right", show=False),
-    ]
-
-    ALLOW_MAXIMIZE = True
-
-    def watch_loading(self, loading: bool) -> None:
-        self.set_class(loading, "-loading")
-
-    def __init__(self, markdown: str | None = None) -> None:
-        super().__init__()
-        self.body = LineMarkdown(markdown or "", role=ThinkingRole)
-
-    def compose(self):
-        yield self.body
+    def on_click(self) -> None:
+        self.focus()
 
     async def append_fragment(self, fragment: str) -> None:
-        self.loading = False
-        self.body.append(fragment)
+        self.append(fragment)
 
     async def finish_stream(self) -> None:
-        """Appends draw as they arrive; there is no stream to flush."""
+        pass
+
+    def get_block_menu(self) -> Iterable[MenuItem]:
+        yield MenuItem("Copy thinking", "block.copy", "y")

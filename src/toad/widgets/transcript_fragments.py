@@ -14,8 +14,7 @@ from agent_comms.transcript_events import (
 )
 
 from toad.line_blocks import (
-    AgentRole, Body, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ThinkingRole, ToggleDetails,
-    UserRole,
+    AgentRole, Body, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ToggleDetails, UserRole,
 )
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
@@ -23,7 +22,7 @@ from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
-from toad.widgets.agent_activity import AgentActivityBoundary
+from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPresentation
 from toad.widgets.message_filter import MessageCategory, event_category
 
 if TYPE_CHECKING:
@@ -183,7 +182,7 @@ class FragmentLineConsumer(MroDispatch):
     @handles(ThinkingTranscript)
     def thinking(self, event: ThinkingTranscript) -> None:
         if event.text.strip():
-            self.blocks += [Body(event.text, role=ThinkingRole), Gap()]
+            self.blocks += AgentActivityPresentation.thinking(event.text)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -232,7 +231,7 @@ class TranscriptFragment:
         """
         consumer = FragmentLineConsumer(show_divider=not self.continuation)
         if self.starts_agent_activity and not self.continuation:
-            consumer.blocks.append(Summary("· Agent activity"))
+            consumer.blocks.extend(AgentActivityPresentation.group)
         for event in self.events:
             consumer.dispatch_sync(event)
         return tuple(consumer.blocks)
@@ -320,19 +319,17 @@ class ToolTranscriptFragment(TranscriptFragment):
     def has_details(self) -> bool:
         # A multiline title needs disclosure even before output arrives. Core's
         # sent-message output still does not become a second saved message.
-        title = self.tool_call.call.title or "Tool"
-        return len(title.splitlines()) > 1 or any(
-            part.has_saved_details() for part in self.output_parts
+        return AgentActivityPresentation.tool_has_details(
+            self.tool_call, any(part.has_saved_details() for part in self.output_parts)
         )
 
     def blocks(self, shown):
-        title = self.tool_call.call.title or "Tool"
-        if not self.has_details:
-            return (Summary(f"· {title}"),)
-        if not shown.details_open:
-            return (shown.summary(title),)
-        return (shown.summary(title), Body(title, markdown=False),
-                *(block for part in self.output_parts for block in part.line_blocks()))
+        return AgentActivityPresentation.tool(
+            self.tool_call,
+            has_details=self.has_details,
+            details_open=shown.details_open,
+            details=(block for part in self.output_parts for block in part.line_blocks()),
+        )
 
 
 @dataclass(kw_only=True)
