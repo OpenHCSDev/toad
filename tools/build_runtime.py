@@ -68,58 +68,90 @@ def verify_route() -> dict:
     return FieldCodec.encode(route)
 
 
-def observe_saved_thread(pid: int, thread: str, output: str) -> None:
-    """Ask the running App's source now, then await its original publications."""
-    import asyncio
-    from agent_comms.mro_dispatch import MroDispatch, handles
-    from performance.frame_meter import _running_app, targets
-    from toad.core.events import AgentFail, SessionSelected
-    from toad.core.source_events import TranscriptCoverage
-    from toad.screens.main import MainScreen
+def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
+    """Install before App startup, or ask an already-running App immediately."""
+    from performance.frame_meter import _running_app
 
-    app = _running_app(pid)
+    try:
+        app = _running_app(pid)
+    except RuntimeError as error:
+        if str(error) != "No application context":
+            raise
+        from toad.application_lifetime import ApplicationLifetime
 
-    class Observation(MroDispatch):
-        async def wait(self) -> None:
-            self.completed = asyncio.get_running_loop().create_future()
-            with ExitStack() as self.custody:
-                self.custody.enter_context(app.events.subscribe(self.event))
-                self.selected()
-                await self.completed
+        start = ApplicationLifetime.start
 
-        def event(self, event, subscription) -> None:
-            self.dispatch_sync(event)
+        async def observed_start(lifetime) -> None:
+            ApplicationLifetime.start = start
+            lifetime.app.run_worker(
+                SavedThreadObservation(lifetime.app, pid, thread, output).wait(),
+                group='saved-thread-observation',
+            )
+            await start(lifetime)
 
-        @handles(SessionSelected)
-        def selected(self, event=None) -> None:
-            source = app.selected_session
-            if not isinstance(source, MainScreen) or source._session_thread != thread:
-                return
-            transcript = source.presentation.transcript
-            self.custody.enter_context(transcript.events.subscribe(self.event))
-            agent = source.presentation.operational_agent
-            if agent is not None:
-                self.custody.enter_context(agent.events.subscribe(self.event))
-            self.covered()
+        ApplicationLifetime.start = observed_start
+    else:
+        app.call_later(lambda: app.run_worker(
+            SavedThreadObservation(app, pid, thread, output).wait(),
+            group='saved-thread-observation',
+        ))
 
-        @handles(TranscriptCoverage)
-        def covered(self, event=None) -> None:
-            source = app.selected_session
-            if (not self.completed.done() and isinstance(source, MainScreen)
-                    and source._session_thread == thread
-                    and source.presentation.transcript.reports_coverage):
-                targets(expected_pid=pid, output=output)
-                self.completed.set_result(None)
 
-        @handles(AgentFail)
-        def failed(self, event) -> None:
-            if self.completed.done():
-                return
-            Path(output).write_text(json.dumps({'error': f'{event.message}: {event.details}'}))
-            self.completed.set_result(None)
+class SavedThreadObservation:
+    """One accepted session's source readiness and failure publications."""
 
-    # The App owns this operation and its callback context, independent of paint.
-    app.call_later(lambda: app.run_worker(Observation().wait(), group='saved-thread-observation'))
+    def __init__(self, app, pid: int, thread: str, output: str) -> None:
+        self.app, self.pid, self.thread, self.output = app, pid, thread, output
+
+    async def wait(self) -> None:
+        import asyncio
+        from agent_comms.mro_dispatch import MroDispatch, handles
+        from performance.frame_meter import targets
+        from toad.core.events import AgentFail, SessionSelected
+        from toad.core.source_events import TranscriptCoverage
+        from toad.screens.main import MainScreen
+
+        observation = self
+
+        class Events(MroDispatch):
+            def event(self, event, subscription) -> None:
+                self.dispatch_sync(event)
+
+            @handles(SessionSelected)
+            def selected(self, event=None) -> None:
+                source = observation.app.selected_session
+                if not isinstance(source, MainScreen) or source._session_thread != observation.thread:
+                    return
+                transcript = source.presentation.transcript
+                observation.custody.enter_context(transcript.events.subscribe(self.event))
+                agent = source.presentation.operational_agent
+                if agent is not None:
+                    observation.custody.enter_context(agent.events.subscribe(self.event))
+                self.covered()
+
+            @handles(TranscriptCoverage)
+            def covered(self, event=None) -> None:
+                source = observation.app.selected_session
+                if (not observation.completed.done() and isinstance(source, MainScreen)
+                        and source._session_thread == observation.thread
+                        and source.presentation.transcript.reports_coverage):
+                    targets(expected_pid=observation.pid, output=observation.output)
+                    observation.completed.set_result(None)
+
+            @handles(AgentFail)
+            def failed(self, event) -> None:
+                if observation.completed.done():
+                    return
+                Path(observation.output).write_text(json.dumps(
+                    {'error': f'{event.message}: {event.details}'}))
+                observation.completed.set_result(None)
+
+        self.completed = asyncio.get_running_loop().create_future()
+        with ExitStack() as self.custody:
+            events = Events()
+            self.custody.enter_context(self.app.events.subscribe(events.event))
+            events.selected()
+            await self.completed
 
 
 def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
@@ -137,13 +169,16 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
         try:
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
-            while not (children := [child for child in process.children() if child.name() == 'toad']):
+            def toad_child():
+                return [child for child in process.children()
+                        if any(part.endswith('/bin/toad') for part in child.cmdline())]
+            while not (children := toad_child()):
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
                 time.sleep(0.1)
             targets = output / 'targets.json'
             remote = output / 'capture.py'
-            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import observe_saved_thread\nobserve_saved_thread({children[0].pid}, {thread!r}, {str(targets)!r})\n')
+            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import install_saved_thread_observer\ninstall_saved_thread_observer({children[0].pid}, {thread!r}, {str(targets)!r})\n')
             while True:
                 try:
                     sys.remote_exec(children[0].pid, str(remote))
