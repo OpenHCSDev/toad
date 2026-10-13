@@ -318,7 +318,9 @@ class ToolTranscriptFragment(TranscriptFragment):
 
     @property
     def has_details(self) -> bool:
-        return any(part.available for part in self.output_parts)
+        # Core emits sent rows as their own SentTranscript. The tool's live
+        # outgoing widget is not another committed message or receipt source.
+        return any(part.has_saved_details and part.available for part in self.output_parts)
 
     def blocks(self, shown):
         title = self.tool_call.call.title or "Tool"
