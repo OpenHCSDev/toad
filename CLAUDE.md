@@ -26,6 +26,8 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 - Use plan mode before changing the scroll path (`widgets/viewport_body.py`, `presentation_window.py`, `prepared_markdown.py`, `streaming_markdown.py`, `transcript_history.py`, `transcript_fragments.py`) or the Textual fork. Tristan approves the plan.
 - One checkout and one branch for this work. No new worktrees, no evidence-only PRs.
 - Delete your own generated output when done with it. Never delete raw failures, saved sessions or other agents' work.
+- Reports to coach must include the supporting artifact in the same message: built means the runtime path printed by `/home/ts/wt/toad-live/tools/build_runtime.py` with this branch as `--core-ref` or `--toad-ref`; verified means the command and its last output line, or the screenshot path; measured means the command, numbers and sample length. Otherwise say "not run". Do not merge without the builder's runtime path for the branch.
+- Decide reversible steps and keep working. Ask coach only about live-bus writes, pins/routes or another owner's work. After finishing an item, continue the next owned item rather than waiting for an acknowledgement.
 
 ## Background
 
