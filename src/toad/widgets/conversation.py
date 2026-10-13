@@ -473,6 +473,26 @@ class ConversationSessionBinding(containers.Vertical):
         if watcher is not None:
             await watcher.aclose()
 
+    async def on_unmount(self) -> None:
+        async with AsyncResourceRelease() as release:
+            release.callback(self._publish_session_end)
+            if self.agent is not None:
+                release.push_async_callback(self.agent.retire_surface, self)
+            release.push_async_callback(self._release_source_resources)
+            self.app.coordination_access.show_thread(self, None)
+
+    def _publish_session_end(self) -> None:
+        if self._agent_data is not None and self.session_start_time is not None:
+            session_time = monotonic() - self.session_start_time
+            self.app.application.usage.publish(
+                "agent-session-end",
+                agent=self._agent_data.identity,
+                duration=session_time,
+                agent_session_fail=self._agent_fail,
+                shell_count=self._shell_count,
+                turn_count=self._turn_count,
+            )
+
     async def _release_source_resources(self) -> None:
         """Release the view's acquired sources once, completing every step."""
         await self._source_resources.aclose()
@@ -1017,26 +1037,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self._auto_title_eligible = False
             title = message.event.title or ""
             self.publish_core(SessionThreadTitle(title))
-
-    async def on_unmount(self) -> None:
-        async with AsyncResourceRelease() as release:
-            release.callback(self._publish_session_end)
-            if self.agent is not None:
-                release.push_async_callback(self.agent.retire_surface, self)
-            release.push_async_callback(self._release_source_resources)
-            self.app.coordination_access.show_thread(self, None)
-
-    def _publish_session_end(self) -> None:
-        if self._agent_data is not None and self.session_start_time is not None:
-            session_time = monotonic() - self.session_start_time
-            self.app.application.usage.publish(
-                "agent-session-end",
-                agent=self._agent_data.identity,
-                duration=session_time,
-                agent_session_fail=self._agent_fail,
-                shell_count=self._shell_count,
-                turn_count=self._turn_count,
-            )
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
