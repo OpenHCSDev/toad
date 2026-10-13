@@ -507,10 +507,6 @@ class ContextInspection:
     imported_sources: tuple[CodexRolloutProvenance, ...] = ()
     core: CoreInspection = field(default_factory=UnavailableCoreInspection)
 
-    @property
-    def manifests(self):
-        return tuple(resource.value for resource in self.page.resources)
-
     @classmethod
     def read(cls, comms, owner, *, before_offset=None, previous=()):
         thread = comms.registry.require(owner)
@@ -529,8 +525,8 @@ class ContextInspection:
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
-        turns = {manifest.turn.require_recorded().identity.value: manifest
-                 for manifest in self.manifests}
+        turns = {resource.value.turn.require_recorded().identity.value: resource.value
+                 for resource in self.page.resources}
         return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
 
