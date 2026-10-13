@@ -212,6 +212,11 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             resources.append((self, sidebar))
         return tuple(resources)
 
+    @property
+    def agent_session_id(self) -> str | None:
+        """The saved ACP session this screen owns."""
+        return self._agent_session_id
+
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()
 

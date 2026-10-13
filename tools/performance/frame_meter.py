@@ -22,6 +22,10 @@ from contextlib import contextmanager
 PAUSES: list[tuple[int, int]] = []
 
 
+class CaptureProcessMismatch(RuntimeError):
+    """Remote capture entered a process other than the requested application."""
+
+
 @contextmanager
 def measuring_pause():
     begin = time.monotonic_ns()
@@ -33,18 +37,11 @@ def measuring_pause():
 
 def _running_app(expected_pid):
     """The application running in this process (remote code runs outside its context)."""
-    import asyncio
-    from textual._context import active_app
+    from textual.app import App
 
     if os.getpid() != expected_pid:
-        raise RuntimeError("Unexpected capture process")
-    app = active_app.get(None)
-    for task in () if app is not None else asyncio.all_tasks():
-        if (app := task.get_context().get(active_app, None)) is not None:
-            break
-    if app is None:
-        raise RuntimeError("No application context")
-    return app
+        raise CaptureProcessMismatch("Unexpected capture process")
+    return App.running_app()
 
 
 def install(*, expected_pid, seconds, output):
