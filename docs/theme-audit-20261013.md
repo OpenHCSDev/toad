@@ -1,123 +1,132 @@
-# Toad theme audit — 2026-10-13
+# Toad theme audit and role-consumer change
 
-Scope: the live `wal` theme (Tristan's default; no `theme` key in `toad.json`), measured on
-the published runtime `toad-f9107b8ab`, rendered in real `st` on an isolated Xvfb display
-against a fork of saved session `perf-base-20261009`. Contrast computed from the theme
-variables the app itself resolves (same code path, true colour), composited and rated with
-WCAG relative luminance. Screenshots: `/home/ts/.cache/agent-scratch/toad-theme/shots/run1/`.
+Draft #595. The implementation preserves the chosen wallpaper palette. It changes
+how consumers use existing roles, not the meaning or hue of the roles. No fixed
+palette, new setting, Textual-fork edit or scroll-path edit is introduced.
 
-## 1. Owner map
+## Correction to the first audit
 
-Fact: every semantic colour and effect is declared in the standalone `ui-theme` package
-(git rev `71d088ec`); it imports nothing from Toad, Textual or Rich. Reality matches
-Tristan's direction, with these deviations:
+The original variable-only contrast table was wrong in two important ways:
 
-| What | Owner | Where reality differs |
+- Textual's `auto 60%` chooses contrast black/white. It does not mean the
+  wallpaper foreground at 60%. The rendered muted text here is `#9D9D9E`, not
+  `#757576`. The claimed 4.55:1 muted-text limit was therefore incorrect.
+- `:ansi` rules are inactive in `wal`. The 1.52:1 and 2.01:1 ANSI combinations
+  were possible terminal-palette combinations, not observed wal row colours.
+  The first drag screenshot selected sidebar **text**, not a CommsRow target.
+
+A faint decorative tint is not itself a WCAG non-text failure. Meaningful marks
+and readable text are evaluated separately below. Disabled controls are exempt
+from the text requirement. The later snapshots contain actual compositor segment
+colours and samples, not guessed foreground/background combinations.
+
+## Owners and source evidence
+
+| Fact | Owner | Consumers |
 |---|---|---|
-| Semantic roles (foreground, background, primary, secondary, accent, success, warning, error, surface, panel, boost, muted) | `ui_theme.scheme` (`ThemeColour` classes, `scheme_of_palette`) | Clean |
-| Schemes catalogue (textual-dark, nord, dracula, wal, …) | `ui_theme.catalog.SCHEMES` | Clean |
-| Effects and the animation clock (`GradientSweep`, `Fade`, `Wipe`, `PlayedText`, `AnimationClock`) | `ui_theme.effects`, `ui_theme.clock` | Clean |
-| Textual adaptation (themes, palette, line styles, effect painting, one timer) | `src/toad/textual_colours.py` (`TextualColours`, `Animated`) | Clean — the only adapter |
-| Transcript role → colour mapping | `toad.line_blocks.LineRole.colour` → `ui_theme` classes; styles resolved once per theme in `LineTheme` | Clean |
-| Widget/screen CSS | all `.tcss` and `DEFAULT_CSS` use `$variables`; no hex literals | Clean |
-| ANSI stream decoder (SGR from agent output) | `src/toad/ansi/_ansi.py` | Legitimate boundary — external input decoded once |
-| **StandbyPulse (goal bar)** | should be `ui_theme` clock; instead `set_interval`-driven `styles.opacity` flips every 0.8 s | Off-owner animation mechanism |
-| **future_text fade** | should be `Fade`/clock; instead `set_interval(1/60)` hand-built fade | Off-owner animation mechanism |
-| **activity_spinner** | should be an effect; instead per-widget `set_interval(fps)` | Off-owner animation mechanism |
-| **Mandelbrot demo gradient** | 12 literal hex values in `widgets/mandelbrot.py` | Only hex literals in the tree; demo, not themed |
-| Terminal-palette reads (`ansi_blue`, `ansi_default`, …) in CSS | `ui_theme` palette via Textual variables | Same colour twice under two names (`ansi_blue` == `$primary` under wal): two authorities for one colour |
+| Palette, semantic colours, scheme element overrides | standalone `ui_theme.scheme`, `catalog`, `wal` | `TextualColours.theme`, transcript `LineRole.colour` |
+| Backend adaptation, resolved line styles and effect painting | `toad.textual_colours.TextualColours` | CSS variables, `LineTheme`, `Animated` widgets |
+| Paired selection foreground/background/text style | existing scheme block-cursor elements and Textual's generated defaults | row selection, menus, model list, navigation controls, screen/input/TextArea selection |
+| Status text and marks | existing success/error/secondary/primary roles | TerminalTool, GoalBar, prompt info line, HelpPanel, scrollbars |
+| Effects and animation time | `ui_theme.effects`, `AnimationClock` | `Animated`, message divider, throbber, tab underline, splash |
 
-## 2. Rendered contrast (wal scheme, background `#0B0B0D`)
+`ui_theme` has no imports from Toad, Textual or Rich. All theme literals remain
+there; this change adds none. ANSI SGR decoding in `toad.ansi` is an external
+input boundary, not theme policy. The Mandelbrot demo has its own art gradient.
 
-Limits: 4.5:1 text, 3:1 UI marks. Effective colours composite alpha over the painted background.
+Before editing, refactor-audit's AST overlay enumerated Toad and the Textual
+checkout. Its `ParsedModule` machinery also parsed all 280 Toad production
+modules and all 10 installed ui_theme modules with zero omissions. Relevant
+inheritance: CommsRow -> ThreadStatusRow -> HoverSelection -> Static;
+MenuOption -> SelectionListItem -> ListItem; ModelSwitcher -> InfoPopup;
+TextualColours -> Backend + TerminalBackend. Reads covered those declarations,
+CSS strings, Theme/ColorSystem, Styles.parse, PaintState and Content/DOM colour
+resolution. The installed ui_theme directory is not a Git checkout, so the
+Git-backed overlay cannot load it; direct parsing reused ParsedModule instead.
+Runtime CSS specificity and Content's auto-colour handling needed live evidence.
 
-### Failing pairs
+### Replaced decisions
 
-| Pair | fg | bg | Ratio | Limit | Where |
-|---|---|---|---|---|---|
-| Sidebar focused row (ansi_bright_white on ansi_blue) | `#C3C3C3` | `#90A827` | **1.52** | 4.5 | `comms_sidebar.py:190` — the selected thread/channel row |
-| Sidebar hover row (ansi_white on ansi_bright_black) | `#C3C3C3` | `#888888` | **2.01** | 4.5 | `side_bar.py` inverse rows |
-| Disabled text (38 % alpha) | `#515152` | `#0B0B0D` | **2.48** | 4.5 | disabled controls |
-| Input placeholder / dim detail (40 % alpha) | `#555556` | `#0B0B0D` | **2.62** | 4.5 | `main.tcss:269`, `side_bar.py:215` |
-| Message-area text selection | `#ABABAC` | `#4D591A` (`#90A8277F`) | **3.67** | 4.5 | `screen-selection-background` |
-| Goal-bar top border (`$secondary 30 %`) | `#2A2C30` | `#0B0B0D` | **1.44** | 3.0 | `goal_bar.py` DEFAULT_CSS |
-| Row side-rules (`$primary 30 %`, `50 %` of `secondary 15 %`) | — | `#0B0B0D` | **1.16–2.60** | 3.0 | `main.tcss`, `toad.tcss` |
-| Error-row border (`$error-muted`) | `#2F2B2A` | `#0B0B0D` | **1.40** | 3.0 | `main.tcss:189` — the only mark distinguishing an error row |
-| Success-row border (`$success-muted`) | `#2B3214` | `#0B0B0D` | **1.47** | 3.0 | `main.tcss:176` |
-| Scrollbar thumb on gutter | `#39430F` | `#000000` | **1.98** | 3.0 | `scrollbar` variables |
-| Muted text on surface | `#757576` | `#1E1E1E` | **4.28** | 4.5 | panel content |
-| Footer key hint bg vs background | `#26282C` | `#0B0B0D` | **1.33** | 3.0 | `toad.tcss:114` |
+The existing owners now carry the work:
 
-### Passing but fragile
+- CommsRow, ThreadStatusRow, NewSessionButton, sidebar/navigation controls,
+  context menus and model selection read the same block-cursor pair. Their
+  separate ANSI choices and foreground-alpha inversions are deleted.
+- Menu descriptions inherit selection colour rather than forcing dim text over
+  the highlighted row. Focused menus use the focused pair, not a further-dimmed
+  blurred pair.
+- Screen, Input and TextArea selection read that same pair in one CSS rule.
+- The adapter resolves a scheme's `auto` selection foreground once against its
+  paired background through **Textual's existing Styles parser and Color
+  contrast behaviour**. Scheme-supplied concrete colours stay untouched.
+  This deletes the consumer's need to re-evaluate `auto` against its inherited
+  surface. No new palette policy or colour decoder is introduced.
+- Prompt completion and TextArea placeholders read text-muted; the info line
+  reads text-secondary. Blurring the prompt no longer halves readable text.
+- Tool success/error borders and the goal separator use full-strength status
+  roles; additional whole-row opacity and light-theme border branches are gone.
+- Scrollbar thumbs use secondary, with primary for hover/active. Background
+  tints remain decoration, not the only meaningful status mark.
 
-- `muted` text on background: **4.55** (limit 4.5) — any dimmer wallpaper breaks it.
-- Status text colours `text-success #A5B370` 8.69, `text-error #AEA5A0` 8.14 — pass, but see §3.
+## Real-application evidence
 
-## 3. Meaning collisions (wal-specific)
+Plain st on private Xvfb :147, current installed entrypoint
+`toad-6e05712f2-core-948fec866`, true-colour wal, fresh forks of saved
+`perf-base-20261009`. Candidate runs use this draft's source on PYTHONPATH with
+that installed interpreter/dependencies; they are **not an installed candidate**.
+Each run uses an isolated copy of toad.json via XDG_CONFIG_HOME. User settings
+were never rewritten. No new provider input was submitted. Displays closed and
+all owned forks stopped/deleted, freeing each 147 MB history copy.
 
-`scheme_of_palette` maps roles to fixed ANSI slots: error→color1, success→color2,
-warning→color3, primary→color4, accent→color5, secondary→color6. Tristan's wallpaper
-palette is muted moss, so the status roles collapse into greys:
+Actual paired cell colours, WCAG relative luminance:
 
-- `error #857870`, `accent #8F9466`, `secondary #797E87`, `warning #77866F` — four
-  "different" roles within a handful of grey-green steps; error text `#AEA5A0` is within
-  ~4 % luminance of body text `#ABABAC`. An error is distinguishable only by its words.
-- `success #778D27` ≈ `primary #90A827` — near-duplicate hues.
-- One colour, many meanings: `#90A827` is simultaneously `$primary`, `border`,
-  `block-cursor-background`, `screen-selection-background`, `scrollbar-active`,
-  `ansi_blue` (focused row) and the tab underline.
-- One meaning, many colours: "selected row" is drawn four ways (comms focus inverse,
-  side_bar inverse, screen-selection tint, block-cursor pair); "dim text" is drawn at
-  six ad-hoc alpha levels (`auto 60 %`, `38 %`, `$text 40 %`, `$text-muted 40 %`,
-  `$text 70/80 %`, `$foreground 4–10 %` backgrounds).
-
-## 4. Proposed role palette (each role defined once, widgets read roles only)
-
-Text levels (owned by `ui_theme` `MutedColour`-style derivation, never raw alpha):
-
-| Role | Definition | wal now | on `#0B0B0D` |
+| Element | Before | Draft | Evidence |
 |---|---|---|---|
-| `text` | foreground @ 87 % | `#ABABAC` | 8.57 |
-| `text-muted` | background→foreground blend 0.6 | `#757576` | 4.55 → raise to 0.65 ⇒ ~5.2 |
-| `text-faint` (disabled only) | blend 0.45 | `#5F5F60` | ~3.2 (exempt: disabled) |
-| `placeholder` | = `text-muted` (kills `$text 40 %`) | — | 4.55 |
+| Info-line status | `#585B62` / `#0B0B0D`, **2.89:1** | `#A6A9AF` / `#0B0B0D`, **8.35:1** | installed and current candidate cells |
+| Menu focused item | `#0B0B0D` / `#8F9466`, **6.18:1** | `#131605` / `#90A827`, **6.83:1** | installed and current candidate physical popup |
+| Loaded-history selection | old claim withdrawn; installed baseline did not load | intermediate draft `#121505` / `#90A827`, **6.89:1** | first candidate loaded-history snapshot; final adapter still needs this loaded journey |
+| Scrollbar thumb | generated default `#39430F` / black, **1.98:1** (source-derived) | `#797E87` / `#0B0B0D`, **4.82:1** | first candidate loaded-history cells |
+| Prompt border (focused) | `#797E87` / `#1E1E1E`, **4.09:1** | unchanged role pair | actual input box |
+| Tool error border | muted role `#2F2B2A` / background, **1.40:1** (source-derived) | full error role **4.61:1** (source-derived) | no tool-error row in captured history |
+| Goal separator | secondary 30%, **1.44:1** (source-derived) | full secondary **4.82:1** (source-derived) | no goal bar in captured fork |
 
-Marks and status (selection/status read one role each):
+The first candidate exposed white auto text on olive hover at **2.38:1**. That
+is why the final adapter resolves the pair once; the final physical menu confirms
+its concrete dark text. The final loaded-history row/selection acceptance is
+not complete because of the startup failure below.
 
-| Change | Before | After |
-|---|---|---|
-| Comms focused row: `$background` text on `$accent`/`$primary` bg (not bright_white on ansi_blue) | 1.52 | **6.18 / 7.30** |
-| Message selection: text on selection bg 35 % (or full `$accent` + dark text) | 3.67 | **5.02 / 7.32** |
-| Sidebar hover: `$background` on `$accent` (same pair as focus) | 2.01 | **6.18** |
-| Status-row borders: full role colour (`$error`, `$success`, `$secondary`) | 1.40–1.47 | **4.61 / 4.65 / 4.82** |
-| Goal-bar border, side-rules: full `$secondary` or `$secondary-muted`-derived mark ≥ 3:1 | 1.44 | **4.82** |
-| Scrollbar thumb: `$secondary` on `scrollbar-background` | 1.98 | **5.15** |
-| Footer key bg: `$secondary 25 %` → `$surface` | 1.33 | pass |
+Retained evidence, owner/purpose recorded in each directory:
 
-The status-colour collapse cannot be fixed in Toad: the wal role→slot mapping lives in
-`ui_theme.scheme.scheme_of_palette` (the owner). Proposed there: pick status slots by
-chroma and hue separation from the wallpaper palette, and synthesize a distinct error hue
-when the palette has none (it stays derived from the palette, so pywal still works).
-Toad-side changes are only role-strength and role-choice fixes in CSS.
+- `~/.cache/agent-scratch/toad-theme/roles-20261013-131035/`: installed startup
+  failure and first source candidate with loaded DM/channel/history selection.
+- `.../roles-20261013-131806/`: installed startup still empty after 165 seconds;
+  candidate constructor failure (missing Styles.parse read_from, now fixed).
+- `.../roles-20261013-132305/`: final source candidate, readable status and
+  focused menu, but empty sidebar/history after 165 seconds too.
 
-## 5. Animations
+No automated tests, fixtures or synthetic apps were run. Python AST parsing,
+`git diff --check`, and the actual application/physical screenshots were used.
+No performance result is claimed; the fixed scroll scenario was not completed.
 
-Owner: `ui_theme.effects` + `AnimationClock`; Toad consumes through `Animated`/`run_effect`
-with one Textual timer in `TextualColours`. Existing: `ACTIVITY_SWEEP` (throbber, runs while
-busy), `NEW_MESSAGE` fade (message divider, 0.4 s @ 30 fps — over the 200 ms target; halve),
-`TAB_WIPE` (session tab underline, 0.25 s), `PlayedText` (splash). Candidates (new-message
-arrival in the channel view belongs to toad-ui-2 — coordinate, no second implementation):
-row expand/collapse, status change, focus change — all as clock effects, paint-derived, each
-≤ 200 ms, off by one setting (`animation_level == "none"` already disables the clock).
-Deviations to fold into the owner: StandbyPulse, future_text, activity_spinner (§1).
+## Remaining gap and palette decision
 
-## Method note
+The retained startup failure affects both the installed application and the
+final source candidate: empty sidebar and "Saved history not loaded" after
+165 seconds. It was reported to toad-ui-2 with the reproducer and these original
+captures; the acceptance check is populated sidebar and saved history through
+the actual installed entrypoint. This draft cannot claim full installed/live
+acceptance until that journey works and final row/selection paint is checked.
 
-Captures: fork `perf-base-20261009` → real `st` on `:147` (Xvfb, no WM), published runtime
-`toad-f9107b8ab`, true-colour `wal` (copy of `~/.cache/wal/colors.json` via
-`PYWAL_CACHE_DIR`), `toad.json` restored byte-identical afterwards, fork stopped and
-deleted (147 MB freed). Views captured: DM tail/history/End, sidebar expanded + selection
-drag, channel/IRC view with saved-sessions popup and roster, collapsed/expanded sidebar,
-tab bar. Not captured: goal bar (fork has no goal; setting one for another thread needs its
-agent started), tool rows and error rows (none in the fork's history) — their pairs are
-computed from the CSS/theme resolution above, which is exact for these variables.
+The exact product decision for a subsequent palette change is: **should wal
+preserve wallpaper-selected status hues, or should error/warning/success have
+standardised hues even when the wallpaper palette contains none?** Current
+reversible default: preserve wal. Selecting/synthesising different hues belongs
+in `ui_theme.scheme.scheme_of_palette`, not this adapter. The original moss
+palette still makes several status hues similar; that is not fixed here.
+
+Animations remain with their existing owners. Channel arrival remains toad-ui-2's
+piece. NEW_MESSAGE (400 ms) and TAB_WIPE (250 ms) are declared in ui_theme;
+shortening them or adding effects needs that package's change. StandbyPulse and
+FutureText use separate repaint mechanisms. BusyRows already has **one shared
+app timer**, not one per row as the first audit incorrectly suggested. This
+contrast checkpoint does not duplicate or change any of those mechanisms.

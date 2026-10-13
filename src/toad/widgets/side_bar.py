@@ -128,25 +128,11 @@ class SideBarToggle(widgets.Static):
         layer: sidebar-toggle;
     }
     SideBarToggle:hover,
-    SideBarToggle:focus {
-        color: $text;
-        background: $primary 18%;
-        text-style: bold;
-    }
-    SideBarToggle:ansi {
-        color: ansi_white;
-        background: ansi_black;
-    }
-    SideBarToggle:ansi:hover,
-    SideBarToggle:ansi:focus,
-    SideBarToggle:ansi.-gutter-hover {
-        color: ansi_white;
-        background: ansi_bright_black;
-    }
+    SideBarToggle:focus,
     SideBarToggle.-gutter-hover {
-        color: $text;
-        background: $primary 18%;
-        text-style: bold;
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
     }
     """
 
@@ -207,34 +193,13 @@ class TabHistoryButton(widgets.Static, can_focus=True):
         pointer: pointer;
     }
     TabHistoryButton:hover, TabHistoryButton:focus {
-        color: $background;
-        background: $foreground 80%;
-        text-style: bold;
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
     }
     TabHistoryButton.-unavailable {
-        color: $text-muted 40%;
+        color: $text-disabled;
         pointer: default;
-    }
-    TabHistoryButton.-unavailable:hover, TabHistoryButton.-unavailable:focus {
-        color: $background;
-        background: $foreground 80%;
-    }
-    TabHistoryButton:ansi {
-        color: ansi_white;
-        background: ansi_black;
-    }
-    TabHistoryButton:ansi:hover, TabHistoryButton:ansi:focus {
-        color: ansi_black;
-        background: ansi_white;
-    }
-    TabHistoryButton.-unavailable:ansi {
-        color: ansi_bright_black;
-        background: ansi_black;
-    }
-    TabHistoryButton.-unavailable:ansi:hover,
-    TabHistoryButton.-unavailable:ansi:focus {
-        color: ansi_black;
-        background: ansi_white;
     }
     """
 
@@ -272,13 +237,9 @@ class MainMenuButton(widgets.Static, can_focus=True):
         pointer: pointer;
     }
     MainMenuButton:hover, MainMenuButton:focus {
-        color: $background;
-        background: $foreground 80%;
-    }
-    MainMenuButton:ansi { color: ansi_white; background: ansi_black; }
-    MainMenuButton:ansi:hover, MainMenuButton:ansi:focus {
-        color: ansi_black;
-        background: ansi_white;
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
     }
     """
 
@@ -474,11 +435,9 @@ class SidebarAction(widgets.Static, can_focus=True):
     SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
     SidebarAction.-direction { width: 7; content-align: center middle; text-style: bold; }
     SidebarAction:hover, SidebarAction:focus {
-        color: $background; background: $foreground 80%;
-    }
-    SidebarAction:ansi { color: ansi_white; background: ansi_black; }
-    SidebarAction:ansi:hover, SidebarAction:ansi:focus {
-        color: ansi_black; background: ansi_white;
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
     }
     """
 

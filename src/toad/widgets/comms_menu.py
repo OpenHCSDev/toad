@@ -78,20 +78,11 @@ class ContextMenu(ModalScreen[str]):
         height: 1;
         padding: 0 1;
     }
-    ContextMenu .item:focus {
-        background: $accent;
-        color: $background;
-        text-style: bold;
-    }
+    ContextMenu .item:focus,
     ContextMenu .item.-pressed {
-        background: $primary;
-        color: $background;
-    }
-    ContextMenu:ansi .item:focus,
-    ContextMenu:ansi .item.-pressed {
-        background: ansi_default;
-        color: ansi_default;
-        text-style: bold reverse;
+        background: $block-cursor-background;
+        color: $block-cursor-foreground;
+        text-style: $block-cursor-text-style;
     }
     """
 

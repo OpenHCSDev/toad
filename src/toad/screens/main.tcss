@@ -5,7 +5,7 @@ Note,MarkdownNote {
         border: heavy $error;
     }    
     &.-stop-reason {        
-        border: wide $error 50%;        
+        border: wide $error;
         padding: 0 1;
     }
 }
@@ -166,35 +166,25 @@ Conversation {
 
     TerminalTool {
         height: auto;   
-        border: panel $primary 50%;                  
+        border: panel $primary;
         border-title-color: $text-primary;
         background: $primary 10%;        
         padding: 1 1 0 1;              
         border-title-style: bold;
 
         &.-success {            
-            border: panel $success-muted;                  
+            border: panel $success;
             border-title-color: $text-success;
             background: $success 7%;        
-            opacity: 90%;
-            border-title-style: not bold;                                 
-            &:light {
-                border: panel $success 50%;                  
-                border-title-color: auto 90%;
-            }
+            border-title-style: not bold;
         }
         
 
         &.-error {            
-            border: panel $error-muted;                  
+            border: panel $error;
             border-title-color: $text-error;
-            background: $error 7%;        
-            opacity: 90%;
-            border-title-style: not bold;                                 
-            &:light {
-                border: panel $error-muted;                  
-                border-title-color: auto 90%;
-            }
+            background: $error 7%;
+            border-title-style: not bold;
         }
                   
     }
@@ -266,7 +256,7 @@ Prompt {
         }
         .message {
             background: $foreground 8%;
-            color: $text 40%;
+            color: $text-muted;
             margin: 0 1;    
             padding: 0 1;        
         }
@@ -343,16 +333,12 @@ Prompt {
         &:focus-within {
             border: tall $secondary;            
             #prompt {
-                text-opacity: 100%;
+                color: $text;
             }
         }
-        &:ansi:focus-within {
-            border: tall ansi_bright_blue;
-        }
-        
         #prompt {
             padding: 0 1;
-            text-opacity: 30%;
+            color: $text-muted;
         }
         
         PromptTextArea {
@@ -362,8 +348,8 @@ Prompt {
             height: auto;
             max-height: 50vh;
 
-            &:blur {
-                text-opacity: 0.5;
+            & > .text-area--placeholder {
+                color: $text-muted;
             }
         }
     }
@@ -404,7 +390,7 @@ Prompt {
         }
 
         StatusLine {            
-            color: $secondary 70%;    
+            color: $text-secondary;
             margin: 0 1;
             width: auto;
             height: 1;    

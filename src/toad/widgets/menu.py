@@ -59,7 +59,6 @@ class Menu(ListView, can_focus=True):
             overflow: auto;
             expand: optimal;            
             #description {                        
-                color: $text 80%;
                 width: 1fr;                    
             }
             #key {                
@@ -73,7 +72,7 @@ class Menu(ListView, can_focus=True):
             background-tint: transparent;
             & > ListItem.-highlight {
                 color: $block-cursor-blurred-foreground;
-                background: $block-cursor-blurred-background 30%;
+                background: $block-cursor-blurred-background;
                 text-style: $block-cursor-blurred-text-style;
             }
         }
@@ -81,9 +80,9 @@ class Menu(ListView, can_focus=True):
         &:focus {
             background-tint: transparent;
             & > ListItem.-highlight {
-                color: $block-cursor-blurred-foreground;
-                background: $block-cursor-blurred-background;
-                text-style: $block-cursor-blurred-text-style;
+                color: $block-cursor-foreground;
+                background: $block-cursor-background;
+                text-style: $block-cursor-text-style;
             }
         }
     }
