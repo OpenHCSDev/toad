@@ -18,6 +18,8 @@ from threading import local
 from rich.segment import Segment
 from rich.style import Style
 from textual.strip import Strip
+from textual.visual import Visual
+from textual.widget import Widget
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
@@ -199,6 +201,50 @@ class MessageRowBlock(OpensMessageNames):
 
     def get_block_menu(self) -> tuple[MenuItem, ...]:
         return self.message_row.menu
+
+
+def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
+    """The canonical paint-time selection projection for drawn rows.
+
+    The live selection is read last, never cached: a selected row takes the
+    screen's selection component over its span, and an unselected row is
+    returned unchanged.
+    """
+    selection = widget.text_selection
+    if selection is None:
+        return strip
+    span = selection.get_span(row)
+    if span is None:
+        return strip
+    start, end = span
+    if end == -1:
+        end = strip.cell_length
+    start, end = max(0, start), min(end, strip.cell_length)
+    # The fork's divide yields only the pieces before each cut, so the strip's
+    # own end is the final cut that keeps the tail.
+    cuts = sorted({cut for cut in (start, end, strip.cell_length) if 0 < cut <= strip.cell_length})
+    pieces = strip.divide(cuts) if cuts else [strip]
+    head, body, tail = [], [], []
+    position = 0
+    for piece in pieces:
+        following = position + piece.cell_length
+        if following <= start:
+            head.append(piece)
+        elif position >= end:
+            tail.append(piece)
+        else:
+            body.append(piece)
+        position = following
+    if not body:
+        return strip
+    selection_style = Visual.selection_style(widget).rich_style
+    if selection_style is None:
+        return strip
+    painted = Strip(
+        list(Segment.apply_style(Strip.join(body), None, selection_style)),
+        sum(piece.cell_length for piece in body),
+    )
+    return Strip.join((*head, painted, *tail))
 
 
 class LinkedRows(OpensLinks):
