@@ -1,8 +1,8 @@
 """Read-only notification feedback attached to its chat message."""
 
 from agent_comms.presentation import MessageNotification
+from rich.text import Text
 from textual.app import ComposeResult
-from textual.content import Content
 from textual.widgets import Collapsible, Static
 
 from toad.notification_status import (
@@ -15,9 +15,8 @@ class NotificationDetails(OpensLinks, Static):
     """The feedback lines behind a message's notification state; a name opens its thread."""
 
     def show(self, lines: DetailLines) -> None:
-        self.update(Content("\n").join(
-            Content.assemble(*(Content.styled(span.text, link_style(span.link)) for span in line))
-            for line in lines))
+        self.update(Text("\n").join(
+            Text.assemble(*((span.text, link_style(span.link)) for span in line)) for line in lines))
 
 
 class MessageNotifications(Collapsible):
