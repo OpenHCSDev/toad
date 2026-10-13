@@ -217,8 +217,17 @@ class InputDeliveryDetails(ModalScreen[None]):
         self.watch_error()
 
     @on(DetailAction.Activated, "#delivery-load-history")
+    async def load_history(self, event: DetailAction.Activated) -> None:
+        await self.update_history(event, self._load_history)
+
     @on(DetailAction.Activated, "#delivery-clear-history")
-    async def historical_action(self, event: DetailAction.Activated) -> None:
+    async def clear_history(self, event: DetailAction.Activated) -> None:
+        await self.update_history(event, self._dismiss_history)
+
+    async def update_history(
+        self, event: DetailAction.Activated,
+        operation: Callable[[], Awaitable[tuple[dict, ...] | None]],
+    ) -> None:
         event.stop()
         if self._busy:
             return
@@ -226,11 +235,7 @@ class InputDeliveryDetails(ModalScreen[None]):
         self.error = ""
         self._refresh_records()
         try:
-            if event.control.id == "delivery-load-history":
-                self._historical_inputs = await self._load_history()
-            else:
-                await self._dismiss_history()
-                self._historical_inputs = None
+            self._historical_inputs = await operation()
         except (OSError, ValueError, RuntimeError) as error:
             self.error = f"Delivery history unavailable: {error}"
         finally:
@@ -244,4 +249,6 @@ class InputDeliveryDetails(ModalScreen[None]):
     @on(Button.Pressed, "#delivery-log")
     async def open_log(self) -> None:
         if self.log_path is not None:
-            await self.app.session_navigation.preview(self.log_path)
+            app = self.app
+            self.dismiss(None)
+            await app.session_navigation.preview(self.log_path)
