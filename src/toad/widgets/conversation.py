@@ -13,7 +13,7 @@ from toad.preferences import SETTINGS
 
 import asyncio
 from abc import abstractmethod
-from contextlib import suppress
+from contextlib import AsyncExitStack, suppress
 from functools import partial
 from itertools import filterfalse
 
@@ -455,17 +455,26 @@ class ConversationSessionBinding(containers.Vertical):
         self.transcript = transcript if transcript is not None else TranscriptPresentation()
         self.transcript.bind(self)
         self.tool_expansions: dict[str, bool] = {}
+        # Both explicit eviction and Textual unmount consume this same lifetime.
+        # The stack removes callbacks before calling them and continues on error.
+        self._source_resources = AsyncExitStack()
+        self._source_resources.push_async_callback(self._close_directory_watcher)
+        self._source_resources.push_async_callback(
+            lambda: asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
+        )
+        self._source_resources.callback(self.output.retire)
+        self._source_resources.push_async_callback(self.transcript.detach, self)
+        self._source_resources.callback(self.goal_controls.close)
 
+    async def _close_directory_watcher(self) -> None:
+        # A parked session takes the handle out of this view before release.
+        watcher, self._directory_watcher = self._directory_watcher, None
+        if watcher is not None:
+            await watcher.aclose()
 
     async def _release_source_resources(self) -> None:
-        """Join original publications for explicit release and native unmount."""
-        self.goal_controls.close()
-        await self.transcript.detach(self)
-        self.output.retire()
-        await asyncio.gather(self.goal_observation.close(), self.delivery_observation.close())
-        if self._directory_watcher is not None:
-            await self._directory_watcher.aclose()
-            self._directory_watcher = None
+        """Release the view's acquired sources once, completing every step."""
+        await self._source_resources.aclose()
 
     def take_initial_prompt(self) -> str | None:
         """Transfer pending input to its consumer before releasing this view."""
@@ -479,9 +488,10 @@ class ConversationSessionBinding(containers.Vertical):
         dropping the agent projects nothing: setting it through its watchers
         restyled the prompt and re-derived the title of a closing tab.
         """
-        await self._release_source_resources()
-        self.set_reactive(Conversation.agent, None)
-        self.take_initial_prompt()
+        async with AsyncExitStack() as release:
+            release.callback(self.take_initial_prompt)
+            release.callback(self.set_reactive, Conversation.agent, None)
+            await self._release_source_resources()
 
     async def prepare_retained_session(self) -> None:
         """The actual source chooses restoration; a history widget is not an actor."""
@@ -1008,11 +1018,14 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self.publish_core(SessionThreadTitle(title))
 
     async def on_unmount(self) -> None:
-        self.app.coordination_access.show_thread(self, None)
-        await self._release_source_resources()
-        if self.agent is not None:
-            await self.agent.retire_surface(self)
+        async with AsyncExitStack() as release:
+            release.callback(self._publish_session_end)
+            if self.agent is not None:
+                release.push_async_callback(self.agent.retire_surface, self)
+            release.push_async_callback(self._release_source_resources)
+            self.app.coordination_access.show_thread(self, None)
 
+    def _publish_session_end(self) -> None:
         if self._agent_data is not None and self.session_start_time is not None:
             session_time = monotonic() - self.session_start_time
             self.app.application.usage.publish(

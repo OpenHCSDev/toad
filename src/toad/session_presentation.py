@@ -2,7 +2,7 @@
 
 import asyncio
 from abc import ABC, abstractmethod
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -136,15 +136,16 @@ class OperationalSessionSources:
             self.agent.detach_surface(conversation)
 
     async def close(self) -> None:
-        if self.directory_watcher is not None:
-            await self.directory_watcher.aclose()
-            self.directory_watcher = None
-        if self.agent is not None:
-            await self.agent.stop()
-            self.agent = None
-        if self.shell is not None:
-            await self.shell.close()
-        self.shell = None
+        watcher, self.directory_watcher = self.directory_watcher, None
+        agent, self.agent = self.agent, None
+        shell, self.shell = self.shell, None
+        async with AsyncExitStack() as release:
+            if shell is not None:
+                release.push_async_callback(shell.close)
+            if agent is not None:
+                release.push_async_callback(agent.stop)
+            if watcher is not None:
+                release.push_async_callback(watcher.aclose)
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
@@ -245,10 +246,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         conversation.prompt.focus()
 
     async def close(self, screen: "MainScreen") -> None:
-        await screen.app.workspace_chrome.native.dispose(screen)
-        await self.transcript.close()
         self.state = None
-        await self.sources.close()
+        async with AsyncExitStack() as release:
+            release.push_async_callback(self.sources.close)
+            release.push_async_callback(self.transcript.close)
+            await screen.app.workspace_chrome.native.dispose(screen)
 
     async def evict(self) -> None:
         """Release the owned native tree while retaining its actual editor resource."""
@@ -265,9 +267,10 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     async def remove_native_tree(self) -> None:
         if (conversation := self.widget) is None:
             return
-        await conversation.release_native_session()
-        await conversation.remove()
         self.widget = None
+        async with AsyncExitStack() as release:
+            release.push_async_callback(conversation.remove)
+            await conversation.release_native_session()
 
 
 class NativeSessionSurface:
@@ -344,10 +347,11 @@ class NativeSessionSurface:
         """Finalize a live tree before pruning; a closed tab retains no editor."""
         async with self._lock:
             owner = screen.presentation
-            if self.view is screen:
-                await owner.release_binding(owner.widget, screen)
-                self.view = None
-            await owner.remove_native_tree()
+            async with AsyncExitStack() as release:
+                release.push_async_callback(owner.remove_native_tree)
+                if self.view is screen:
+                    self.view = None
+                    await owner.release_binding(owner.widget, screen)
 
     async def close(self) -> None:
         async with self._lock:

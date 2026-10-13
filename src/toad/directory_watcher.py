@@ -328,8 +328,10 @@ class DirectoryWatcher(threading.Thread):
 
     async def aclose(self) -> None:
         """End path observation and join its delivery thread."""
-        self.stop()
-        await asyncio.to_thread(self.join)
+        try:
+            self.stop()
+        finally:
+            await asyncio.to_thread(self.join)
 
     def stop(self) -> None:
         """Stop the watcher."""
