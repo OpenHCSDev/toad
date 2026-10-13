@@ -24,7 +24,7 @@ from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
+from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, RequestFailure
 from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.observation import ReadInputDelivery
@@ -285,10 +285,10 @@ class AgentController(OperationalTerminalOwner):
         except jsonrpc.APIError as error:
             if authority.retired:
                 return None
-            receipt = PromptFailureReceipt.from_error(error.code, error.message, error.data)
-            failure = receipt.failure
+            request_failure = RequestFailure.from_error(error.code, error.message, error.data)
+            failure = request_failure.failure
             self._prompt_failed(command, authority, queue_scope, failure,
-                failure.title, failure.feedback, published=receipt.notification_published)
+                failure.title, failure.feedback, published=request_failure.notification_published)
             return None
         except jsonrpc.JSONRPCError as error:
             if authority.retired:
