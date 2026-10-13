@@ -114,7 +114,17 @@ The retained startup failure affects both the installed application and the
 final source candidate: empty sidebar and "Saved history not loaded" after
 165 seconds. It was reported to toad-ui-2 with the reproducer and these original
 captures; the acceptance check is populated sidebar and saved history through
-the actual installed entrypoint. This draft cannot claim full installed/live
+the actual installed entrypoint. Follow-up on the newer installed runtime narrowed
+this to Core: the observer is alive and has delivered a revision, but
+`sidebar_current` is None and three reads remain pending. Its actual stack at
+65 seconds is `json.loads -> BusActivityIndex.snapshot:74 -> last_sent_timestamps
+-> HistoryViews.viewer_snapshot:387 -> ObservationService.observe:460`. The
+original bus is about 4 GB and an activity checkpoint exists. This demonstrates
+a cold scan delaying publication; why its checkpoint is not reused is not yet
+established. The trace, state and physical screenshots are retained in
+`~/.cache/agent-scratch/toad-theme/accept-20261013-134203/`. This source-level
+reproducer was sent to the existing Core integration owner, agent-comms-ux; no
+Core or observer code was edited here. This draft cannot claim full installed/live
 acceptance until that journey works and final row/selection paint is checked.
 
 The exact product decision for a subsequent palette change is: **should wal
