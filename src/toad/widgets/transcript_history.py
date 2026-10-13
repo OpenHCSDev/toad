@@ -49,6 +49,7 @@ from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
+from toad.notification_status import CheckedNotifications, UnavailableNotifications, UncheckedNotifications
 from toad.widgets.transcript_lines import (
     LinkedRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
@@ -454,6 +455,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
+    NOTIFICATION_GROUP = "message-notifications"
 
     @property
     def message_category(self) -> None:
@@ -527,6 +529,63 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
+
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        self.check_notifications()
+
+    # Core feedback for every visible bus message, native or wire.
+
+    def check_notifications(self) -> None:
+        if not self.can_draw_on_screen or any(
+            worker.node is self and worker.group == self.NOTIFICATION_GROUP and not worker.is_finished
+            for worker in self.workers
+        ):
+            return
+        fragments = self._notified_fragments()
+        if fragments:
+            self.run_worker(self._read_notifications(fragments), group=self.NOTIFICATION_GROUP)
+
+    def _notified_fragments(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for fragment in self.visible_fragments() if fragment.checks_notifications)
+
+    async def source_is_current(self, snapshot) -> bool:
+        return snapshot.current(self)
+
+    async def read_notifications(self, references):
+        from toad.widgets.conversation import Conversation
+
+        agent = self.query_ancestor(Conversation).agent
+        if agent is None:
+            raise RuntimeError("No agent is attached to this message history")
+        return await agent.get_message_notifications(references)
+
+    async def _read_notifications(self, fragments: tuple[TranscriptFragment, ...]) -> None:
+        snapshot = self.source_snapshot()
+        while fragments:
+            if not await self.source_is_current(snapshot):
+                return
+            references = tuple(dict.fromkeys(
+                reference for fragment in fragments for reference in fragment.notification_references))
+            try:
+                results = await self.read_notifications(references)
+            except (OSError, ValueError, RuntimeError) as failure:
+                statuses = [UnavailableNotifications(str(failure))] * len(fragments)
+            else:
+                statuses = [CheckedNotifications(tuple(
+                    item for reference in fragment.notification_references
+                    for item in results.get((reference.seq, reference.message_id), ())))
+                    for fragment in fragments]
+            if not await self.source_is_current(snapshot):
+                return
+            visible = {id(fragment) for fragment in self._notified_fragments()}
+            await self._show([(fragment, replace(fragment.shown, status=status))
+                              for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
+            if not await self.source_is_current(snapshot):
+                return
+            # Geometry may have admitted other messages while Core answered.
+            fragments = tuple(fragment for fragment in self._notified_fragments()
+                              if isinstance(fragment.shown.status, UncheckedNotifications))
 
     # What a fragment shows
 

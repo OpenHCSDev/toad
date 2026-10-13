@@ -5,10 +5,13 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections import Counter
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.presentation import MessageNotification
-from toad.line_blocks import MutedRole, NameRole, OpenTarget, Span
+from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, Spans, WorkingRole
+
+if TYPE_CHECKING:
+    from toad.widgets.transcript_fragments import Shown
 
 
 DetailLines = tuple[tuple[Span, ...], ...]
@@ -39,6 +42,13 @@ class NotificationStatus(ABC):
     @abstractmethod
     def details(self) -> DetailLines: ...
 
+    def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
+        """The feedback row and its disclosure, shared by every message fragment."""
+        role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
+        summary = shown.summary(self.title, role)
+        return ((summary, Spans.from_lines(self.details, indent="  "))
+                if shown.details_open else (summary,))
+
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
@@ -68,12 +78,20 @@ class CheckedNotifications(NotificationStatus):
         summary = " · ".join(f"{state} ({counts[state]})" for state in states[:3])
         if len(states) > 3:
             summary += f" · {sum(counts[state] for state in states[3:])} others"
+        read = sum(bool(item.displayed_to) for item in self.ordered)
+        if read:
+            summary = " · ".join(filter(None, (summary, f"Read ({read})")))
         return summary or "No recorded notification result"
 
     @property
     def details(self) -> DetailLines:
-        lines = [recipient_line(item.recipient, f": {item.state}" + (f" — {item.detail}" if item.detail else ""))
-                 for item in self.ordered]
+        lines = []
+        for item in self.ordered:
+            line = recipient_line(item.recipient, f": {item.state}" + (f" — {item.detail}" if item.detail else ""))
+            for reader in item.displayed_to:
+                line += (Span(" · Read by ", MutedRole),
+                         Span(reader.name, NameRole, OpenTarget(reader.name)))
+            lines.append(line)
         return (tuple(lines) if lines else (
             (Span("No notification result is recorded for this message. "
                   "This does not confirm the message was received.", MutedRole),),))

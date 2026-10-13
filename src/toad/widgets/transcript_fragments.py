@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.message_reference import MessageReference
 from agent_comms.transcript_events import (
     AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
     TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
@@ -16,7 +17,8 @@ from toad.line_blocks import (
     AgentRole, Body, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ThinkingRole, ToggleDetails,
     UserRole,
 )
-from toad.message_rows import MarkdownMessageStyle, MessageRow
+from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
+from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
@@ -198,14 +200,29 @@ class Shown:
         return replace(self, details_open=not self.details_open)
 
 
+@dataclass(frozen=True, kw_only=True)
+class MessageShown(Shown):
+    """Style and Core's feedback for one bus message, in any conversation."""
+
+    style: WireMessageStyle = field(default_factory=MarkdownMessageStyle)
+    status: NotificationStatus = field(default_factory=UncheckedNotifications)
+
+
 @dataclass
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
+    # The producer knows whether more pieces of this source text follow.
+    continues: bool = field(default=False, kw_only=True)
     starts_agent_activity: bool = False
     shown: Shown = field(default_factory=Shown, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
+    checks_notifications: ClassVar[bool] = False
+
+    @property
+    def notification_references(self) -> tuple[MessageReference, ...]:
+        return ()
 
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
@@ -312,21 +329,49 @@ class ToolTranscriptFragment(TranscriptFragment):
         return (shown.summary(title), *(block for part in self.output_parts for block in part.line_blocks()))
 
 
+@dataclass(kw_only=True)
 class BusMessageFragment(TranscriptFragment):
-    """A message on the bus in a thread's saved history: the row every view draws, in the Markdown style."""
+    """One bus-message builder: header, styled body and Core notification feedback."""
+
+    shown: MessageShown = field(default_factory=MessageShown)
 
     @cached_property
     def row(self) -> MessageRow:
         raise NotImplementedError
 
     @property
+    def checks_notifications(self) -> bool:
+        # One footer per original message, not one per Markdown piece.
+        return not self.continues
+
+    @property
+    def has_details(self) -> bool:
+        return self.checks_notifications
+
+    @property
+    def notification_references(self) -> tuple[MessageReference, ...]:
+        return (self.events[0].source,)
+
+    @property
     def block_menu(self):
         return self.row.menu
 
+    @property
+    def clipboard_text(self):
+        return self.shown.style.clipboard(self.row)
+
+    @property
+    def leading(self):
+        return () if self.continuation else (Gap(), self.row.header)
+
+    def text(self, shown):
+        return shown.style.body(self.row)
+
+    def trailing(self, shown):
+        return () if self.continues else shown.status.blocks(shown)
+
     def blocks(self, shown):
-        row = self.row
-        # Text too long for one fragment continues in the next, under the first one's header.
-        return (*(() if self.continuation else (row.header,)), *MarkdownMessageStyle().body(row), Gap())
+        return (*self.leading, *self.text(shown), *self.trailing(shown))
 
 
 class IncomingMessageFragment(BusMessageFragment):
@@ -380,10 +425,12 @@ class TranscriptFragmentConsumer(MroDispatch):
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment):
         starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
+        parts = tuple(self.budget.split(source)) if self.split_text else (source,)
         self.fragments.extend(
             kind((replace(event, text=part.text),), continuation=self.continuation or index > 0,
-                               starts_agent_activity=starts_activity and index == 0)
-            for index, part in enumerate(self.budget.split(source) if self.split_text else (source,))
+                 continues=index < len(parts) - 1,
+                 starts_agent_activity=starts_activity and index == 0)
+            for index, part in enumerate(parts)
         )
 
     @handles(ToolTranscript)

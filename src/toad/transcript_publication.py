@@ -245,7 +245,10 @@ class HandlingPublication(TranscriptPublication):
 
     async def publish_applied(self) -> bool:
         from toad.widgets.wire_message_handling import WireMessageHandling
+        from toad.widgets.transcript_history import LineHistory
 
+        for history in self.contents.query(LineHistory):
+            history.check_notifications()
         if self.agent is None:
             return True
         bodies = WireMessageHandling.within(self.contents)

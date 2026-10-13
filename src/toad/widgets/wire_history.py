@@ -9,9 +9,6 @@ from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
 
-from toad.notification_status import (
-    CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
-)
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import PageRequest, PreparedPageSource
 from toad.transcript_source_preparation import HistorySourceSnapshot
@@ -23,7 +20,6 @@ from toad.wire_history import AfterSequence, WireFragment, WirePage, WirePageBuf
 
 if TYPE_CHECKING:
     from agent_comms.presentation import WireRevision
-    from textual.worker import Worker
 
 
 class WireHistory(LineHistory):
@@ -45,7 +41,6 @@ class WireHistory(LineHistory):
         self.identity: tuple | None = None
         # A read mark is being written; the next one waits for it.
         self.marking = False
-        self._notification_check: Worker | None = None
 
     # The source
 
@@ -217,9 +212,8 @@ class WireHistory(LineHistory):
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
         if self.can_draw_on_screen:
-            # What is on screen changed: mark it read and check its notifications.
+            # The shared pager already checked feedback; wire pages also mark paint.
             self.mark_visible()
-            self.check_notifications()
 
     # What is drawn
 
@@ -254,50 +248,12 @@ class WireHistory(LineHistory):
                           for fragment in self.wire_fragments])
         self.window.scroll_end(animate=False)
 
-    # Notifications
+    async def read_notifications(self, references):
+        """Wire and native messages ask the same Core observation service."""
+        from agent_comms.ui_model.observation import ReadNotifications
 
-    def check_notifications(self) -> None:
-        """Read the notification state of the messages on screen, one read at a time."""
-        if (self.source is None or not self.view.display
-                or self._notification_check is not None and not self._notification_check.is_finished):
-            return
-        fragments = self._notified_fragments()
-        if fragments:
-            self._notification_check = self.run_worker(
-                self._read_notifications(fragments), group="message-notifications")
-
-    def _notified_fragments(self) -> tuple[WireFragment, ...]:
-        return tuple(fragment for fragment in self.visible_fragments() if fragment.checks_notifications)
-
-    async def _read_notifications(self, fragments: tuple[WireFragment, ...]) -> None:
-        # The states belong to the messages, whatever style or pages draw
-        # them: only another bus makes this read worthless.
-        comms = self.source.comms
-        while fragments:
-            if not await self.bus_is_current(comms):
-                return
-            try:
-                results = await asyncio.to_thread(
-                    comms.views.message_notifications,
-                    tuple(fragment.message for fragment in fragments))
-            except (OSError, ValueError, RuntimeError) as failure:
-                # A failed Core read is shown on each message it was for.
-                status = UnavailableNotifications(str(failure))
-                statuses: list[NotificationStatus] = [status] * len(fragments)
-            else:
-                statuses = [CheckedNotifications(
-                    results.get((fragment.message.seq, fragment.message.message_id), ()))
-                    for fragment in fragments]
-            if not await self.bus_is_current(comms) or not self.state.can_draw:
-                return
-            visible = {id(fragment) for fragment in self._notified_fragments()}
-            await self._show([(fragment, replace(fragment.shown, status=status))
-                              for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
-            if not self.state.can_draw:
-                return
-            # Messages that came into view during the read are asked about next.
-            fragments = tuple(fragment for fragment in self._notified_fragments()
-                              if isinstance(fragment.shown.status, UncheckedNotifications))
+        return await self.app.coordination_access.read(
+            ReadNotifications(str(self.source.comms.root), references))
 
     # Read marks
 
