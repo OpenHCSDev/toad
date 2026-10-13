@@ -14,13 +14,14 @@ class CompleteRelease:
         # This is contextlib's registration hook for both sync and async exits.
         # Recording here covers every callback without repeating error handling
         # at the resource owners. The inherited stack still owns order/consumption.
+        errors = self._errors
         if is_sync:
             @wraps(callback)
             def complete(*details):
                 try:
                     return callback(*details)
                 except BaseException as error:
-                    self._errors.append(error)
+                    errors.append(error)
                     return False
         else:
             @wraps(callback)
@@ -28,12 +29,18 @@ class CompleteRelease:
                 try:
                     return await callback(*details)
                 except BaseException as error:
-                    self._errors.append(error)
+                    errors.append(error)
                     return False
         super()._push_exit_callback(complete, is_sync)
 
+    def pop_all(self):
+        release = super().pop_all()
+        release._errors, self._errors = self._errors, []
+        return release
+
     def _raise_errors(self):
-        errors, self._errors = self._errors, []
+        errors = self._errors.copy()
+        self._errors.clear()
         if len(errors) == 1:
             raise errors[0]
         if errors:
