@@ -19,13 +19,15 @@ class SessionHistoryDetails:
         if self.transcript is not None:
             parts.append("Saved history available" if self.transcript.reports_coverage
                          else "Saved history not loaded")
-        if self.attention:
-            parts.append("Bus input verification unavailable")
+        status = self.native.status if self.native is not None else None
+        if status is not None and status.summary:
+            parts.append(status.summary)
         return parts
 
     @property
     def attention(self):
-        return self.native is not None and self.native.status == "unavailable"
+        status = self.native.status if self.native is not None else None
+        return status is not None and status.attention
 
     def overview(self, activity):
         return "\n\n".join([

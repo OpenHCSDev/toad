@@ -3,7 +3,7 @@
 from textual.reactive import var
 from textual.widgets import Static
 
-from toad.private_native_cursor import LABELS, TOOLTIP, CursorStatus
+from toad.private_native_cursor import TOOLTIP, CursorStatus
 
 
 class NativeHistory(Static):
@@ -19,4 +19,4 @@ class NativeHistory(Static):
 
     def watch_status(self, status: CursorStatus | None) -> None:
         self.display = status is not None
-        self.update(LABELS.get(status, LABELS["unavailable"]) if status else "")
+        self.update(status.label if status is not None else "")

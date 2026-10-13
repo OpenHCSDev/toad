@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from toad.private_native_cursor import CursorStatus
+
 from agent_comms.acp_extension import (
     CursorEnvelope,
     CursorScope,
@@ -37,12 +39,12 @@ class ProjectionAttachment:
         self._session_id: str | None = None
 
     @property
-    def status(self) -> str | None:
-        if self.current is None and not self._buffer and not self._prebind_floors:
-            return None
-        if self.quarantined or self._pending or self._uncertain or self._evidence_lost:
-            return "unavailable"
-        return self.current.status
+    def status(self) -> CursorStatus | None:
+        if self._pending:
+            return CursorStatus.PENDING
+        if self.quarantined or self._uncertain or self._evidence_lost:
+            return CursorStatus.UNAVAILABLE
+        return CursorStatus.decode(self.current.status if self.current is not None else None)
 
     def begin(self, session_id: str | None) -> int:
         self._token += 1
