@@ -237,8 +237,11 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
         position = following
     if not body:
         return strip
+    selection_style = Visual.selection_style(widget).rich_style
+    if selection_style is None:
+        return strip
     painted = Strip(
-        list(Segment.apply_style(Strip.join(body), None, Visual.selection_style(widget))),
+        list(Segment.apply_style(Strip.join(body), None, selection_style)),
         sum(piece.cell_length for piece in body),
     )
     return Strip.join((*head, painted, *tail))
