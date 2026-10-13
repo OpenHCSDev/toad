@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
+from typing import ClassVar
 from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
@@ -286,6 +287,10 @@ class ChildBlockCursor(BlockCursor):
 
 class ConversationBlock(BlockContent):
     """Nominal content admission, with an owned atomic cursor by default."""
+
+    # Saved source blocks precede this live tail; equal orders retain arrival order.
+    conversation_order: ClassVar[int] = 1
+
     @cached_property
     def block_cursor(self) -> BlockCursor:
         return AtomicBlockCursor(self)
