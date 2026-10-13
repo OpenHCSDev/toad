@@ -51,6 +51,7 @@ from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
 from toad.widgets.transcript_lines import (
     LinkedRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
 from toad.core.source_events import TranscriptCoverage
@@ -264,13 +265,13 @@ class TranscriptPageView(LinkedRows, Widget):
         width = self._width
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
-            return self.blank_row(width)
+            return selection_painted(self, self.blank_row(width), y)
         fragment, first, lines = self._layout[slot]
         row = y - first
         if row >= lines.height:
-            return self.blank_row(width)
+            return selection_painted(self, self.blank_row(width), y)
         # Prepared rows span exactly this width (Lines.strips_at).
-        return self.on_background(lines.strips_at(fragment.link_place)[row])
+        return selection_painted(self, self.on_background(lines.strips_at(fragment.link_place)[row]), y)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text is read from the rows this page draws."""
@@ -552,7 +553,25 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     async def toggle_details(self, fragment: TranscriptFragment) -> None:
         """Show a fragment's details, or hide them when they are shown."""
+        self.hold_fragment_top(fragment)
         await self._show([(fragment, fragment.shown.toggled())])
+
+    def hold_fragment_top(self, fragment: TranscriptFragment) -> None:
+        """Row activation owns the reader: the activated row's top stays visible.
+
+        Activation is the reader's own choice of place; the layout keeps the
+        row's top on screen across the rows the toggle adds or removes.
+        """
+        from toad.widgets.history_anchor import FragmentPosition
+
+        for page in self.pages:
+            placed = page.fragment_row(fragment)
+            if placed is None:
+                continue
+            first, drawn = placed
+            if drawn:
+                self.window.reader_position = FragmentPosition(fragment, first, first)
+            return
 
     def can_expand(self) -> bool | None:
         fragment = self.block_cursor.current
