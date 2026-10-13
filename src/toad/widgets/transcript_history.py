@@ -561,9 +561,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         # Outcomes belong to original references, not a page generation or
         # its growing tail. The read binding fences the bus; visible membership
         # and this publisher's lifetime fence where its answer can be drawn.
-        while fragments:
-            if not self.can_draw_on_screen:
-                return
+        while fragments and self.can_draw_on_screen:
             revision = self.app.coordination_access.revision
             references = tuple(dict.fromkeys(
                 reference for fragment in fragments for reference in fragment.notification_references))
