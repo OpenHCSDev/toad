@@ -472,8 +472,15 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             self._change_page()
 
     def _change_page(self):
+        # Destination selection ends the acquired page's lifetime now, not
+        # when the replacement read finishes. Unacquired inspection states
+        # cannot publish old groups, searches or native results.
+        self.state = InspectionState.for_owner(self.state.name, self.state.root)
+        self.workers.cancel_group(self, "context-presentation")
+        self.workers.cancel_group(self, "context-native")
         self.workers.cancel_group(self, "context-search")
         self.workers.cancel_group(self, "context-detail")
+        self.query_one("#context-older", Button).disabled = True
         self.query_one(ContextTree).clear()
         self._show_placeholder("Loading recorded request page…")
         self._read()
