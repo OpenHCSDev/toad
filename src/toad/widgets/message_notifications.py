@@ -3,6 +3,7 @@
 from agent_comms.presentation import MessageNotification
 from rich.text import Text
 from textual.app import ComposeResult
+from textual.content import Content
 from textual.widgets import Collapsible, Static
 
 from toad.notification_status import (
