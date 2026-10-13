@@ -41,6 +41,20 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
+def verify_route() -> dict:
+    """Core owns route decoding, root identity and the selected native tree."""
+    from agent_comms.active_route import read_active_route
+    from agent_comms.field_codec import FieldCodec
+    from agent_comms.native_package import verify_native_package
+
+    route = read_active_route()
+    if route is None:
+        raise RuntimeError('No active route is installed')
+    route.observe_root()
+    verify_native_package(route.native_package)
+    return FieldCodec.encode(route)
+
+
 @dataclass(frozen=True)
 class GitExport:
     repository: Path
@@ -122,7 +136,6 @@ class RuntimeBuild:
     toad: GitExport
     core: GitExport
     baseline: Path
-    native: Path
     scratch: Path
     runtimes: Path
 
@@ -157,7 +170,7 @@ class RuntimeBuild:
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
                 raise RuntimeError('Installed Core native pin differs from the clean export')
-            run(python, '-c', 'from agent_comms.native_package import verify_native_package; from pathlib import Path; import sys; verify_native_package(Path(sys.argv[1]))', self.native)
+            route = json.loads(run(python, Path(__file__).resolve(), '--verify-route'))
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             # Hatch owns static and dynamic versions; consume its wheel metadata.
@@ -171,7 +184,7 @@ class RuntimeBuild:
             record = {
                 'owner': 'toad-close-lifecycle', 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
-                'native_manifest_sha256': native_pin, 'native_package': str(self.native),
+                'native_manifest_sha256': native_pin, 'active_route': route,
                 'packages': installed, 'runtime': str(destination),
                 'live_acceptance': 'not run; coach owns relink/restart',
             }
@@ -186,14 +199,13 @@ def main() -> None:
     parser.add_argument('--toad-ref', default='origin/main')
     parser.add_argument('--core-ref', default='origin/main')
     parser.add_argument('--baseline', type=Path, required=True)
-    parser.add_argument('--native-package', type=Path, required=True)
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
     build = RuntimeBuild(
         GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad'),
         GitExport(args.core_repo.resolve(), args.core_ref, 'core'),
-        args.baseline.resolve(strict=True), args.native_package.resolve(strict=True),
+        args.baseline.resolve(strict=True),
         args.scratch.resolve(), args.runtimes.resolve(),
     )
     print(build.build())
@@ -202,5 +214,7 @@ def main() -> None:
 if __name__ == '__main__':
     if sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
+    elif sys.argv[1:] == ['--verify-route']:
+        print(json.dumps(verify_route()))
     else:
         main()
