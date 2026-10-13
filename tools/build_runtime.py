@@ -17,6 +17,8 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 import zipfile
 
 
@@ -93,7 +95,17 @@ class DependencySet:
                     raise RuntimeError(f'No cached wheel for {name} at {commit}; build it from its owned checkout first')
                 requirements.append(str(matches[0]))
             else:
-                raise RuntimeError(f'{name} has a local/editable source; supply a reviewed wheel baseline')
+                # Our preceding build records reviewed wheels as file URLs.
+                # Preserve that exact source, never rebuild a local checkout.
+                if 'dir_info' in source or 'archive_info' not in source:
+                    raise RuntimeError(f'{name} has a directory/editable source; supply a reviewed wheel baseline')
+                url = urlsplit(source['url'])
+                if url.scheme != 'file' or url.netloc not in ('', 'localhost'):
+                    raise RuntimeError(f'{name} is not a local wheel source: {source["url"]}')
+                wheel = Path(url2pathname(url.path))
+                if url.query or wheel.suffix != '.whl' or not wheel.is_file():
+                    raise RuntimeError(f'{name} wheel source is missing or is not a wheel: {source["url"]}')
+                requirements.append(source['url'])
         return requirements
 
     def verify(self, installed: dict) -> None:
