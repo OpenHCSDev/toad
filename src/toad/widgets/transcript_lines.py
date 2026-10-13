@@ -18,6 +18,8 @@ from threading import local
 from rich.segment import Segment
 from rich.style import Style
 from textual.strip import Strip
+from textual.visual import Visual
+from textual.widget import Widget
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
@@ -199,6 +201,33 @@ class MessageRowBlock(OpensMessageNames):
 
     def get_block_menu(self) -> tuple[MenuItem, ...]:
         return self.message_row.menu
+
+
+def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
+    """The canonical paint-time selection projection for drawn rows.
+
+    The live selection is read last, never cached: a selected row takes the
+    screen's selection component over its span, and an unselected row is
+    returned unchanged.
+    """
+    selection = widget.text_selection
+    if selection is None:
+        return strip
+    span = selection.get_span(row)
+    if span is None:
+        return strip
+    start, end = span
+    if end == -1:
+        end = strip.cell_length
+    start, end = max(0, start), min(end, strip.cell_length)
+    if start >= end:
+        return strip
+    head, body, tail = strip.divide([start, end])
+    painted = Strip(
+        list(Segment.apply_style(body, None, Visual.selection_style(widget))),
+        body.cell_length,
+    )
+    return Strip.join((head, painted, tail))
 
 
 class LinkedRows(OpensLinks):
