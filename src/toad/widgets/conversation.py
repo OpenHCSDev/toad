@@ -328,6 +328,7 @@ class ConversationSessionBinding(containers.Vertical):
         from toad.agent_surface import AttachedSurfaceBinding
 
         agent.attach_surface(AttachedSurfaceBinding(self, agent.events))
+        self.publish_core(core_events.SessionAgentAttached())
 
     @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:

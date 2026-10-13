@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build an immutable Toad/Core checkpoint; publication stays with the coach.
 
-Uses clean git exports and wheels, preserving the baseline's dependency set.
+Uses clean git exports and wheels, with dependencies owned by Toad's locked graph.
 Native package verification belongs to Core's native_package module.
 """
 from __future__ import annotations
@@ -19,8 +19,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from urllib.parse import urlsplit
-from urllib.request import url2pathname
 import zipfile
 
 from performance.capture_live import XvfbDisplay
@@ -68,58 +66,113 @@ def verify_route() -> dict:
     return FieldCodec.encode(route)
 
 
-def observe_saved_thread(pid: int, thread: str, output: str) -> None:
-    """Ask the running App's source now, then await its original publications."""
-    import asyncio
-    from agent_comms.mro_dispatch import MroDispatch, handles
-    from performance.frame_meter import _running_app, targets
-    from toad.core.events import AgentFail, SessionSelected
-    from toad.core.source_events import TranscriptCoverage
-    from toad.screens.main import MainScreen
+def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
+    """Install before App startup, or ask an already-running App immediately."""
+    from functools import partial
+    from textual._context import NoActiveAppError
+    from performance.frame_meter import _running_app
+    from toad.application_lifetime import ApplicationLifetime
 
-    app = _running_app(pid)
+    def start(app) -> None:
+        app.run_worker(
+            SavedThreadObservation(app, pid, thread, output).wait(),
+            group='saved-thread-observation',
+        )
 
-    class Observation(MroDispatch):
-        async def wait(self) -> None:
-            self.completed = asyncio.get_running_loop().create_future()
-            with ExitStack() as self.subscriptions:
-                self.subscriptions.enter_context(app.events.subscribe(self.event))
-                self.selected()
-                await self.completed
+    try:
+        app = _running_app(pid)
+    except NoActiveAppError:
+        ApplicationLifetime.observe_next_start(lambda lifetime: start(lifetime.app))
+    else:
+        app.schedule_from_thread(partial(start, app))
 
-        def event(self, event, subscription) -> None:
-            self.dispatch_sync(event)
 
-        @handles(SessionSelected)
-        def selected(self, event=None) -> None:
-            source = app.selected_session
-            if not isinstance(source, MainScreen) or source._session_thread != thread:
-                return
-            transcript = source.presentation.transcript
-            self.subscriptions.enter_context(transcript.events.subscribe(self.event))
-            agent = source.presentation.operational_agent
-            if agent is not None:
-                self.subscriptions.enter_context(agent.events.subscribe(self.event))
-            self.covered()
+class SavedThreadObservation:
+    """One accepted session's source readiness and failure publications."""
 
-        @handles(TranscriptCoverage)
-        def covered(self, event=None) -> None:
-            source = app.selected_session
-            if (not self.completed.done() and isinstance(source, MainScreen)
-                    and source._session_thread == thread
-                    and source.presentation.transcript.reports_coverage):
-                targets(expected_pid=pid, output=output)
-                self.completed.set_result(None)
+    def __init__(self, app, pid: int, thread: str, output: str) -> None:
+        self.app, self.pid, self.thread, self.output = app, pid, thread, output
 
-        @handles(AgentFail)
-        def failed(self, event) -> None:
-            if self.completed.done():
-                return
-            Path(output).write_text(json.dumps({'error': f'{event.message}: {event.details}'}))
-            self.completed.set_result(None)
+    def failed(self, details: str) -> None:
+        if self.completed.done():
+            return
+        Path(self.output).write_text(json.dumps({'error': details}))
+        self.completed.set_result(None)
 
-    # The App owns this operation and its callback context, independent of paint.
-    app.call_later(lambda: app.run_worker(Observation().wait(), group='saved-thread-observation'))
+    async def wait(self) -> None:
+        import traceback
+        try:
+            await self.observe()
+        except BaseException:
+            Path(self.output).write_text(json.dumps({'error': traceback.format_exc()}))
+            raise
+
+    async def observe(self) -> None:
+        import asyncio
+        import traceback
+        from agent_comms.mro_dispatch import MroDispatch, handles
+        from performance.frame_meter import targets
+        from toad.core.events import AgentFail, SessionAgentAttached, SessionSelected
+        from toad.core.source_events import TranscriptCoverage
+        from toad.screens.main import MainScreen
+
+        observation = self
+        self.completed = asyncio.get_running_loop().create_future()
+
+        class Events(MroDispatch):
+            def __init__(self) -> None:
+                self.transcript = self.agent = None
+
+            def event(self, event, subscription) -> None:
+                try:
+                    self.dispatch_sync(event)
+                except BaseException:
+                    observation.failed(traceback.format_exc())
+
+            @handles(SessionSelected, SessionAgentAttached)
+            def selected(self, event=None) -> None:
+                source = observation.app.selected_session
+                if not isinstance(source, MainScreen):
+                    return
+                if source.agent_session_id != observation.thread:
+                    observation.failed(
+                        f"SavedThreadSelectionMismatch: requested {observation.thread!r}; "
+                        f"selected {source.agent_session_id!r}")
+                    return
+                transcript = source.presentation.transcript
+                if self.transcript is not transcript:
+                    self.transcript = transcript
+                    observation.subscriptions.enter_context(transcript.events.subscribe(self.event))
+                    conversation = source.presentation.widget
+                    if conversation is not None:
+                        observation.subscriptions.enter_context(
+                            conversation.core_publications.subscribe(self.event))
+                agent = source.presentation.operational_agent
+                if agent is not None and self.agent is not agent:
+                    self.agent = agent
+                    observation.subscriptions.enter_context(agent.events.subscribe(self.event))
+                    if failure := agent.session.disposition.current_failure():
+                        self.failed(failure)
+                self.covered()
+
+            @handles(TranscriptCoverage)
+            def covered(self, event=None) -> None:
+                source = observation.app.selected_session
+                if (not observation.completed.done() and isinstance(source, MainScreen)
+                        and source.agent_session_id == observation.thread
+                        and source.presentation.transcript.reports_coverage):
+                    targets(expected_pid=observation.pid, output=observation.output)
+                    observation.completed.set_result(None)
+
+            @handles(AgentFail)
+            def failed(self, event) -> None:
+                observation.failed(f'{event.message}: {event.details}')
+
+        with ExitStack() as self.subscriptions:
+            events = Events()
+            self.subscriptions.enter_context(self.app.events.subscribe(events.event))
+            events.selected()
+            await self.completed
 
 
 def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
@@ -135,24 +188,55 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
     with (output / 'st.log').open('w') as log:
         terminal = subprocess.Popen(['st', '-g', '150x48', '-e', 'toad-comms', thread], env=env, stdout=log, stderr=log)
         try:
-            window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=30).strip()
-            launch_title = subprocess.check_output(['xdotool', 'getwindowname', window], env=env, text=True)
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
-            while not (children := [child for child in process.children() if child.name() == 'toad']):
+            while not (children := [child for child in process.children()
+                                    if child.name() == 'toad']):
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
                 time.sleep(0.1)
-            # The app titles its terminal once its driver runs. A script sent to
-            # the interpreter before that is lost while the process still starts.
-            while subprocess.check_output(['xdotool', 'getwindowname', window], env=env, text=True) == launch_title:
-                if terminal.poll() is not None or time.monotonic() >= deadline:
-                    raise RuntimeError(f'SavedThreadOpenFailed: {thread} never started its terminal; see {output / "st.log"}')
-                time.sleep(0.1)
             targets = output / 'targets.json'
-            remote = output / 'capture.py'
-            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import observe_saved_thread\nobserve_saved_thread({children[0].pid}, {thread!r}, {str(targets)!r})\n')
-            sys.remote_exec(children[0].pid, str(remote))
+            attempt = 0
+            while True:
+                attempt += 1
+                remote = output / f'capture-{attempt}.py'
+                status = output / f'capture-{attempt}.status'
+                remote.write_text(f'''import sys
+_ready = (hasattr(sys.modules.get("pathlib"), "PurePosixPath")
+          and hasattr(sys.modules.get("textual.app"), "App")
+          and hasattr(sys.modules.get("toad.application_lifetime"), "ApplicationLifetime"))
+if not _ready:
+    open({str(status)!r}, "w").write("not-ready")
+else:
+    import json, traceback
+    try:
+        sys.path.insert(0, {str(Path(__file__).resolve().parent)!r})
+        from build_runtime import install_saved_thread_observer
+        install_saved_thread_observer({children[0].pid}, {thread!r}, {str(targets)!r})
+    except BaseException:
+        open({str(targets)!r}, "w").write(json.dumps({{"error": traceback.format_exc()}}))
+    open({str(status)!r}, "w").write("installed")
+''')
+                try:
+                    sys.remote_exec(children[0].pid, str(remote))
+                except RuntimeError as error:
+                    if str(error) not in (
+                        "Can't find the main thread in the remote process",
+                        "Can't find a running interpreter in the remote process",
+                    ):
+                        raise
+                else:
+                    while not status.exists():
+                        if terminal.poll() is not None or time.monotonic() >= deadline:
+                            raise RuntimeError(f'SavedThreadOpenFailed: observer injection did not settle for {thread}; see {output}')
+                        time.sleep(0.1)
+                    if status.read_text() == 'installed':
+                        break
+                if terminal.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError(f'SavedThreadOpenFailed: no ready Python main thread for {thread}; see {output}')
+                time.sleep(0.1)
+            remaining = max(0.1, deadline - time.monotonic())
+            window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=remaining).strip()
             while not targets.exists():
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
@@ -183,9 +267,6 @@ class GitExport:
         return run('git', '-C', self.repository, 'rev-parse', self.revision + '^{commit}')
 
     def wheel(self, commit: str, exports: Path, cache: Path) -> Path:
-        wheels = cache / f'{self.label}-{commit}'
-        if wheels.exists():
-            return self.only_wheel(wheels)
         source = exports / self.label
         source.mkdir()
         # Streaming the archive avoids retaining another source copy in memory.
@@ -196,7 +277,9 @@ class GitExport:
             archive.stdout.close()
             if archive.wait():
                 raise RuntimeError(f'git archive failed for {self.label}')
-        run('uv', 'build', '--wheel', '--out-dir', wheels, source)
+        wheels = cache / f'{self.label}-{commit}'
+        if not wheels.exists():
+            run('uv', 'build', '--wheel', '--out-dir', wheels, source)
         return self.only_wheel(wheels)
 
     def verify_wheel(self, wheel: Path, installed: dict) -> None:
@@ -215,54 +298,6 @@ class GitExport:
 
 
 @dataclass(frozen=True)
-class DependencySet:
-    packages: dict
-    replacements: tuple[GitExport, ...]
-
-    @property
-    def replaced_names(self) -> frozenset[str]:
-        return frozenset(export.package_name for export in self.replacements)
-
-    def requirements(self) -> list[str]:
-        requirements = []
-        replaced = self.replaced_names
-        for name, package in sorted(self.packages.items()):
-            if name in replaced:
-                continue
-            source = package['source']
-            if source is None:
-                requirements.append(f"{name}=={package['version']}")
-            elif 'vcs_info' in source:
-                # uv owns its cache and reuse; pass the recorded full commit.
-                commit = source['vcs_info']['commit_id']
-                url = source['url']
-                subdirectory = source.get('subdirectory')
-                fragment = f'#subdirectory={subdirectory}' if subdirectory else ''
-                requirements.append(f"{name} @ git+{url}@{commit}{fragment}")
-            else:
-                # Our preceding build records reviewed wheels as file URLs.
-                # Preserve that exact source, never rebuild a local checkout.
-                if 'dir_info' in source or 'archive_info' not in source:
-                    raise RuntimeError(f'{name} has a directory/editable source; supply a reviewed wheel baseline')
-                url = urlsplit(source['url'])
-                if url.scheme != 'file' or url.netloc not in ('', 'localhost'):
-                    raise RuntimeError(f'{name} is not a local wheel source: {source["url"]}')
-                wheel = Path(url2pathname(url.path))
-                if url.query or wheel.suffix != '.whl' or not wheel.is_file():
-                    raise RuntimeError(f'{name} wheel source is missing or is not a wheel: {source["url"]}')
-                requirements.append(source['url'])
-        return requirements
-
-    def verify(self, installed: dict) -> None:
-        expected = {name: p['version'] for name, p in self.packages.items()}
-        observed = {name: p['version'] for name, p in installed.items()}
-        for name in self.replaced_names:
-            expected[name] = observed[name]  # Their versions come from the exports.
-        if expected != observed:
-            raise RuntimeError(f'Dependency set changed: baseline={expected!r}, built={observed!r}')
-
-
-@dataclass(frozen=True)
 class RuntimeBuild:
     toad: GitExport
     core: GitExport
@@ -275,7 +310,6 @@ class RuntimeBuild:
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
         self.runtimes.mkdir(parents=True, exist_ok=True)
-        dependencies = DependencySet(read_inventory(self.baseline / 'bin/python'), (self.toad, self.core))
         toad_commit, core_commit = self.toad.commit, self.core.commit
         manifest = subprocess.check_output([
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'
@@ -289,17 +323,23 @@ class RuntimeBuild:
             toad_wheel = self.toad.wheel(toad_commit, exports, cache)
             core_wheel = self.core.wheel(core_commit, exports, cache)
             requirements = exports / 'requirements.txt'
-            requirements.write_text('\n'.join(dependencies.requirements()) + '\n')
+            run(
+                'uv', 'export', '--frozen', '--no-dev', '--no-header', '--no-annotate',
+                '--no-emit-package', self.toad.package_name,
+                '--no-emit-package', self.core.package_name,
+                '--output-file', requirements,
+                cwd=exports / self.toad.label,
+            )
             # Atomic acquisition: an existing/borrowed prefix never enters cleanup.
             destination.mkdir()
             cleanup.callback(shutil.rmtree, destination)
             run('uv', 'venv', '--allow-existing', '--python', (self.baseline / 'bin/python').resolve(), destination)
             python = destination / 'bin/python'
-            # Exact baseline dependencies are deliberate; pip check rejects skew.
+            # The clean Toad lock owns the complete dependency set; the two reviewed
+            # source exports replace only their own packages.
             run('uv', 'pip', 'install', '--python', python, '--no-deps', '-r', requirements, toad_wheel, core_wheel)
             run('uv', 'pip', 'check', '--python', python)
             installed = read_inventory(python)
-            dependencies.verify(installed)
             # Locate through Core, not an assumed interpreter/version layout.
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:

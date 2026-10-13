@@ -6,7 +6,8 @@ from functools import partial
 from importlib import import_module
 import platform
 from time import monotonic
-from typing import TYPE_CHECKING
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Callable, ClassVar
 
 from toad.version import VersionMonitor
 
@@ -54,8 +55,42 @@ class UsageReports:
             return
 
 
+class ApplicationStartupObserverAlreadyInstalled(RuntimeError):
+    """Only one external observer may await the next application startup."""
+
+
+class ApplicationStartupHook:
+    """One-shot startup observation state owned by the application lifetime."""
+
+    def install(self, observer: Callable[[ApplicationLifetime], None]) -> ApplicationStartupHook:
+        return PendingApplicationStartupHook(observer)
+
+    def notify(self, lifetime: ApplicationLifetime) -> ApplicationStartupHook:
+        return self
+
+
+@dataclass(frozen=True)
+class PendingApplicationStartupHook(ApplicationStartupHook):
+    observer: Callable[[ApplicationLifetime], None]
+
+    def install(self, observer: Callable[[ApplicationLifetime], None]) -> ApplicationStartupHook:
+        raise ApplicationStartupObserverAlreadyInstalled(
+            "An application startup observer is already installed")
+
+    def notify(self, lifetime: ApplicationLifetime) -> ApplicationStartupHook:
+        self.observer(lifetime)
+        return ApplicationStartupHook()
+
+
 class ApplicationLifetime:
     """A confirmed quit and explicit quit share the same save-after-blur path."""
+
+    _startup_hook: ClassVar[ApplicationStartupHook] = ApplicationStartupHook()
+
+    @classmethod
+    def observe_next_start(cls, observer: Callable[[ApplicationLifetime], None]) -> None:
+        """Install the sole one-shot observer for the next owned startup."""
+        cls._startup_hook = cls._startup_hook.install(observer)
 
     @staticmethod
     def set_process_title(title: str) -> None:
@@ -73,6 +108,7 @@ class ApplicationLifetime:
         self.version = VersionMonitor()
 
     async def start(self) -> None:
+        type(self)._startup_hook = type(self)._startup_hook.notify(self)
         app = self.app
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")

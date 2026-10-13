@@ -307,7 +307,8 @@ class AgentController(OperationalTerminalOwner):
         if user_text:
             agent.events.publish(core_events.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
-            agent.events.publish(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+            agent.session.record_failure(
+                LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())
