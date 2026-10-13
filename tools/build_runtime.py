@@ -128,26 +128,36 @@ class SavedThreadObservation:
         import traceback
         from agent_comms.mro_dispatch import MroDispatch, handles
         from performance.frame_meter import targets
-        from toad.core.events import AgentFail, SessionSelected
+        from toad.core.events import AgentFail, SessionSelected, SessionSubtitleChanged
         from toad.core.source_events import TranscriptCoverage
         from toad.screens.main import MainScreen
 
         observation = self
 
         class Events(MroDispatch):
+            def __init__(self) -> None:
+                self.transcript = self.agent = None
+
             def event(self, event, subscription) -> None:
                 self.dispatch_sync(event)
 
-            @handles(SessionSelected)
+            @handles(SessionSelected, SessionSubtitleChanged)
             def selected(self, event=None) -> None:
                 source = observation.app.selected_session
                 if (not isinstance(source, MainScreen)
                         or source._agent_session_id != observation.thread):
                     return
                 transcript = source.presentation.transcript
-                observation.custody.enter_context(transcript.events.subscribe(self.event))
+                if self.transcript is not transcript:
+                    self.transcript = transcript
+                    observation.custody.enter_context(transcript.events.subscribe(self.event))
+                    conversation = source.presentation.widget
+                    if conversation is not None:
+                        observation.custody.enter_context(
+                            conversation.core_publications.subscribe(self.event))
                 agent = source.presentation.operational_agent
-                if agent is not None:
+                if agent is not None and self.agent is not agent:
+                    self.agent = agent
                     observation.custody.enter_context(agent.events.subscribe(self.event))
                     if failure := agent.session.disposition.current_failure():
                         self.failed(failure)
