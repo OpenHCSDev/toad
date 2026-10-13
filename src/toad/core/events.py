@@ -217,18 +217,48 @@ class AgentReady(CoreEvent):
     reconnected: bool = False
 
 
-@dataclass(frozen=True)
 class AgentFail(CoreEvent):
-    """Agent failed to start."""
+    """Failure feedback; its source owns any persistent presentation."""
+
+    message: str
+    details: str
+
+    @abstractmethod
+    async def present(self, view) -> None: ...
+
+
+@dataclass(frozen=True)
+class TextAgentFail(AgentFail):
+    """A failure without a saved journal row owns its visible notice."""
 
     message: str
     details: str = ""
 
+    async def present(self, view) -> None:
+        from textual.content import Content
+        from toad.widgets.note import Note
 
-class HelpAgentFail(AgentFail):
+        if self.message:
+            error = Content.assemble(
+                Content.from_markup(self.message).stylize("$text-error"),
+                " — ",
+                Content(self.details.strip()).stylize("dim"),
+            )
+        else:
+            error = Content(self.details.strip()).stylize("$text-error")
+        await view.post(Note(error, classes="-error"))
+
+
+class HelpAgentFail(TextAgentFail):
     @property
     @abstractmethod
     def help_text(self) -> str: ...
+
+    async def present(self, view) -> None:
+        from toad.widgets.markdown_note import MarkdownNote
+
+        await super().present(view)
+        await view.post(MarkdownNote(self.help_text))
 
 class UnsupportedResumeAgentFail(HelpAgentFail):
     help_text = """## Agent does not support resume
@@ -247,8 +277,19 @@ If that fails, ask for help in [Discussions](https://github.com/batrachianai/toa
 
 
 @dataclass(frozen=True)
-class LogAgentFail(AgentFail):
+class LogAgentFail(TextAgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
+
+    async def present(self, view) -> None:
+        from toad.project_link import AcpLogLink
+        from toad.widgets.agent_response import AgentResponse
+        from toad.widgets.message_filter import OtherCategory
+
+        await super().present(view)
+        link = AgentResponse(AcpLogLink(self.log_path).markdown,
+                             show_divider=False, category=OtherCategory)
+        link.add_class("-error-log-link")
+        await view.post(link)
 
 @dataclass(eq=False)
 class Subscription:

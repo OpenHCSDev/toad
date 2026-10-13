@@ -1056,17 +1056,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                 details=message.event.details,
             )
 
-        if message.event.message:
-            error = Content.assemble(
-                Content.from_markup(message.event.message).stylize("$text-error"),
-                " — ",
-                Content(message.event.details.strip()).stylize("dim"),
-            )
-        else:
-            error = Content(message.event.details.strip()).stylize("$text-error")
-        await self.post(Note(error, classes="-error"))
-
-        await message.publisher.controller.surface.present_failure(message.event, self)
+        await message.event.present(self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
