@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from textual.reactive import var
 from textual.widgets import Collapsible
 
-from toad.widgets.input_delivery import InputDeliveryBar
+from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
@@ -48,8 +48,11 @@ class SessionDetails(Collapsible):
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
-        super().__init__(self.activity, *(item for item in (history, delivery) if item is not None),
-                         title="Session details", collapsed=True, id="session-details")
+        super().__init__(
+            DetailAction("Inspect session", markup=False, id="session-inspect"),
+            self.activity, *(item for item in (history, delivery) if item is not None),
+            title="Session details", collapsed=True, id="session-details",
+        )
 
     def on_mount(self) -> None:
         self.query_children(self.Contents).first().styles.max_height = self.DETAIL_ROWS

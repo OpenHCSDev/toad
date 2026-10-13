@@ -16,7 +16,9 @@ from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream
-from agent_comms.acp_extension import AgentCommsUpdate, QueueScope
+from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, RequestFailedUpdate
+from agent_comms.acp_failure import NativeMessageFailureSource, UnrecordedFailureSource
+from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 
@@ -217,18 +219,45 @@ class AgentReady(CoreEvent):
     reconnected: bool = False
 
 
-@dataclass(frozen=True)
 class AgentFail(CoreEvent):
-    """Agent failed to start."""
+    """Failure feedback; its source owns any persistent presentation."""
+
+    message: str
+    details: str
+
+    async def present(self, view) -> None:
+        from textual.content import Content
+        from toad.widgets.note import Note
+
+        if self.message:
+            error = Content.assemble(
+                Content.from_markup(self.message).stylize("$text-error"),
+                " — ",
+                Content(self.details.strip()).stylize("dim"),
+            )
+        else:
+            error = Content(self.details.strip()).stylize("$text-error")
+        await view.post(Note(error, classes="-error"))
+
+
+@dataclass(frozen=True)
+class TextAgentFail(AgentFail):
+    """A failure without a saved journal row owns its visible notice."""
 
     message: str
     details: str = ""
 
 
-class HelpAgentFail(AgentFail):
+class HelpAgentFail(TextAgentFail):
     @property
     @abstractmethod
     def help_text(self) -> str: ...
+
+    async def present(self, view) -> None:
+        from toad.widgets.markdown_note import MarkdownNote
+
+        await super().present(view)
+        await view.post(MarkdownNote(self.help_text))
 
 class UnsupportedResumeAgentFail(HelpAgentFail):
     help_text = """## Agent does not support resume
@@ -246,9 +275,61 @@ If that fails, ask for help in [Discussions](https://github.com/batrachianai/toa
 """
 
 
+class FailureLog:
+    """Log access shared by failures without copying their feedback."""
+
+    log_path: Path
+
+    async def show_log(self, view) -> None:
+        from toad.project_link import AcpLogLink
+        from toad.widgets.agent_response import AgentResponse
+        from toad.widgets.message_filter import OtherCategory
+
+        link = AgentResponse(AcpLogLink(self.log_path).markdown,
+                             show_divider=False, category=OtherCategory)
+        link.add_class("-error-log-link")
+        await view.post(link)
+
+
 @dataclass(frozen=True)
-class LogAgentFail(AgentFail):
+class LogAgentFail(FailureLog, TextAgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
+
+    async def present(self, view) -> None:
+        await super().present(view)
+        await self.show_log(view)
+
+
+@dataclass(frozen=True)
+class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
+    """The decoded request failure retains its source through presentation."""
+
+    update: RequestFailedUpdate
+    log_path: Annotated[Path, PathText]
+
+    @property
+    def message(self) -> str:
+        return self.update.failure.title
+
+    @property
+    def details(self) -> str:
+        return self.update.failure.feedback
+
+    async def present(self, view) -> None:
+        await self.dispatch(self.update.source, view)
+
+    @handles(UnrecordedFailureSource)
+    async def show_unrecorded(self, source, view) -> None:
+        await super().present(view)
+        await self.show_log(view)
+
+    @handles(NativeMessageFailureSource)
+    async def show_native(self, source, view) -> None:
+        # message_end precedes the journal append. The existing source observer
+        # resolves the saved row and its time; this event mounts no tail copy.
+        view.transcript.require_checkpoint()
+        # Session inspection keeps ACP log access independent of delivery notices.
+
 
 @dataclass(eq=False)
 class Subscription:

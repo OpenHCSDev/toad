@@ -31,9 +31,6 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def permission_changed(self, view) -> None:
         """An absent frontend has no permission bindings to invalidate."""
 
-    async def present_failure(self, failure, view) -> None:
-        """An absent frontend keeps the original failure without native work."""
-
     def schedule_terminal_presentation(self, controller):
         controller.start_terminal_presentation(self.target)
 

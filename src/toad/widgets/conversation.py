@@ -98,6 +98,7 @@ from toad.conversation_turn import TurnOwner, ConversationTurn
 from toad.shell import Shell
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.input_delivery import (
+    DetailAction,
     InputDeliveryBar,
     InputDeliveryDetails,
 )
@@ -1056,17 +1057,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                 details=message.event.details,
             )
 
-        if message.event.message:
-            error = Content.assemble(
-                Content.from_markup(message.event.message).stylize("$text-error"),
-                " — ",
-                Content(message.event.details.strip()).stylize("dim"),
-            )
-        else:
-            error = Content(message.event.details.strip()).stylize("$text-error")
-        await self.post(Note(error, classes="-error"))
-
-        await message.publisher.controller.surface.present_failure(message.event, self)
+        await message.event.present(self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
@@ -1703,8 +1694,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     ) -> None:
         self.delivery_observation.invalidate()
 
-    @on(InputDeliveryBar.Inspect)
-    async def inspect_input_delivery(self, event: InputDeliveryBar.Inspect) -> None:
+    @on(DetailAction.Activated, "#session-inspect")
+    async def inspect_session(self, event: DetailAction.Activated) -> None:
         event.stop()
         await self.delivery_observation.refresh()
         details = InputDeliveryDetails(

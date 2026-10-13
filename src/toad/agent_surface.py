@@ -7,7 +7,6 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.surface_binding import SurfaceBinding
 from toad.acp.agent_controller import ApplicationValidationOwner
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
-from toad.core.events import HelpAgentFail, LogAgentFail
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
 
 class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
@@ -56,27 +55,6 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         if (target := self.target) is not None:
             target.app.notify(f"Unable to start shell: {error}\n\nCheck your settings.",
                               title="Shell", severity="error")
-
-    async def present_failure(self, failure, view) -> None:
-        if self.owns(view):
-            await self.dispatch(failure, view)
-
-    @handles(HelpAgentFail)
-    async def show_failure_help(self, failure, view):
-        from toad.widgets.markdown_note import MarkdownNote
-
-        await view.post(MarkdownNote(failure.help_text))
-
-    @handles(LogAgentFail)
-    async def show_failure_log(self, failure, view):
-        from toad.project_link import AcpLogLink
-        from toad.widgets.agent_response import AgentResponse
-        from toad.widgets.message_filter import OtherCategory
-
-        link = AgentResponse(AcpLogLink(failure.log_path).markdown,
-                             show_divider=False, category=OtherCategory)
-        link.add_class("-error-log-link")
-        await view.post(link)
 
     async def present_permission(self, request, view) -> None:
         await self.dispatch(request.presentation, view, request)
