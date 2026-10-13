@@ -45,14 +45,87 @@ def verify_route() -> dict:
     """Core owns route decoding, root identity and the selected native tree."""
     from agent_comms.active_route import read_active_route
     from agent_comms.field_codec import FieldCodec
-    from agent_comms.native_package import verify_native_package
+    from agent_comms.native_package import MANIFEST, NativePackageError, verify_native_package
 
     route = read_active_route()
     if route is None:
         raise RuntimeError('No active route is installed')
     route.observe_root()
-    verify_native_package(route.native_package)
+    try:
+        verify_native_package(route.native_package)
+    except NativePackageError as error:
+        pin = hashlib.sha256(MANIFEST.read_bytes()).hexdigest()
+        raise RuntimeError(
+            f'NativeRoutePinVerificationFailed: Core pin {pin}; '
+            f'route native_package {route.native_package}: {error}. '
+            'Run stack/bin/prepare-pi-native from the clean Core export, '
+            'then have the coach replace the route native_package. No old-package fallback.'
+        ) from error
     return FieldCodec.encode(route)
+
+
+def observe_saved_thread(pid: int, output: str) -> None:
+    """Enter the real App's next dispatch, not remote_exec's empty context."""
+    from performance.frame_meter import targets
+    from textual.app import App
+
+    dispatch = App._dispatch_message
+
+    async def observe(app, message):
+        App._dispatch_message = dispatch  # One observation on our own fresh App.
+        await dispatch(app, message)
+
+        def capture_ready() -> None:
+            agent = app.selected_session.presentation.operational_agent
+            if agent is None or not agent.ready:
+                app.set_timer(0.1, capture_ready)
+                return
+            targets(expected_pid=pid, output=output)
+
+        app.call_after_refresh(capture_ready)
+
+    App._dispatch_message = observe
+
+
+def open_saved_thread(runtime: Path, thread: str, display: str, output: Path) -> Path:
+    """Open only our own st on an explicitly isolated display, without input."""
+    import os
+    import psutil
+    import time
+
+    if display.split('.')[0] == ':0':
+        raise ValueError('Use an isolated Xvfb display, not the desktop')
+    output.mkdir()
+    env = dict(os.environ, DISPLAY=display, AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'), AGENT_COMMS_AGENT_BIN='pi')
+    for name in ('NO_COLOR', 'TOAD_VALIDATION'):
+        env.pop(name, None)
+    with (output / 'st.log').open('w') as log:
+        terminal = subprocess.Popen(['st', '-g', '150x48', '-e', 'toad-comms', thread], env=env, stdout=log, stderr=log)
+        try:
+            window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=30).strip()
+            deadline = time.monotonic() + 30
+            process = psutil.Process(terminal.pid)
+            while not (children := [child for child in process.children() if child.name() == 'toad']):
+                if terminal.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
+                time.sleep(0.1)
+            time.sleep(1)  # Allow the actual application's event loop to start.
+            targets = output / 'targets.json'
+            remote = output / 'capture.py'
+            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import observe_saved_thread\nobserve_saved_thread({children[0].pid}, {str(targets)!r})\n')
+            sys.remote_exec(children[0].pid, str(remote))
+            while not targets.exists():
+                if terminal.poll() is not None or time.monotonic() >= deadline:
+                    subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
+                    raise RuntimeError(f'SavedThreadAcceptanceFailed: no completed session observation for {thread}; see {output}')
+                time.sleep(0.1)
+            screenshot = output / 'saved-thread.png'
+            subprocess.run(['import', '-window', window, str(screenshot)], env=env, check=True)
+            return screenshot
+        finally:
+            if terminal.poll() is None:
+                terminal.terminate()  # Only this build's st, never a backend owner.
+                terminal.wait(timeout=5)
 
 
 @dataclass(frozen=True)
@@ -92,7 +165,7 @@ class GitExport:
 class DependencySet:
     packages: dict
 
-    def requirements(self, wheel_cache: Path) -> list[str]:
+    def requirements(self) -> list[str]:
         requirements = []
         for name, package in sorted(self.packages.items()):
             if name in ('agent-comms', 'batrachian-toad'):
@@ -101,13 +174,12 @@ class DependencySet:
             if source is None:
                 requirements.append(f"{name}=={package['version']}")
             elif 'vcs_info' in source:
-                # Reuse the already-built exact commit, not another VCS clone.
+                # uv owns its cache and reuse; pass the recorded full commit.
                 commit = source['vcs_info']['commit_id']
-                filename = f"{name.replace('-', '_')}-{package['version']}-*.whl"
-                matches = sorted(wheel_cache.glob(f'sdists-v9/git/*/{commit[:16]}/{filename}'))
-                if not matches:
-                    raise RuntimeError(f'No cached wheel for {name} at {commit}; build it from its owned checkout first')
-                requirements.append(str(matches[0]))
+                url = source['url']
+                subdirectory = source.get('subdirectory')
+                fragment = f'#subdirectory={subdirectory}' if subdirectory else ''
+                requirements.append(f"{name} @ git+{url}@{commit}{fragment}")
             else:
                 # Our preceding build records reviewed wheels as file URLs.
                 # Preserve that exact source, never rebuild a local checkout.
@@ -138,6 +210,8 @@ class RuntimeBuild:
     baseline: Path
     scratch: Path
     runtimes: Path
+    thread: str
+    display: str
 
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
@@ -158,7 +232,7 @@ class RuntimeBuild:
             toad_wheel = self.toad.wheel(toad_commit, exports, cache)
             core_wheel = self.core.wheel(core_commit, exports, cache)
             requirements = exports / 'requirements.txt'
-            requirements.write_text('\n'.join(dependencies.requirements(Path(run('uv', 'cache', 'dir')))) + '\n')
+            requirements.write_text('\n'.join(dependencies.requirements()) + '\n')
             run('uv', 'venv', '--python', (self.baseline / 'bin/python').resolve(), destination)
             python = destination / 'bin/python'
             # Exact baseline dependencies are deliberate; pip check rejects skew.
@@ -182,12 +256,12 @@ class RuntimeBuild:
                 if installed[name]['version'] != metadata['Version']:
                     raise RuntimeError(f'{name} version differs from its clean-export wheel')
             record = {
-                'owner': 'toad-close-lifecycle', 'baseline': str(self.baseline),
+                'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
                 'native_manifest_sha256': native_pin, 'active_route': route,
                 'packages': installed, 'runtime': str(destination),
-                'live_acceptance': 'not run; coach owns relink/restart',
             }
+            record['screenshot'] = str(open_saved_thread(destination, self.thread, self.display, self.scratch / f'acceptance-{destination.name}'))
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
         return destination
 
@@ -199,6 +273,8 @@ def main() -> None:
     parser.add_argument('--toad-ref', default='origin/main')
     parser.add_argument('--core-ref', default='origin/main')
     parser.add_argument('--baseline', type=Path, required=True)
+    parser.add_argument('--thread', required=True, help='Existing saved thread; no owner restart or new input')
+    parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
@@ -206,7 +282,7 @@ def main() -> None:
         GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad'),
         GitExport(args.core_repo.resolve(), args.core_ref, 'core'),
         args.baseline.resolve(strict=True),
-        args.scratch.resolve(), args.runtimes.resolve(),
+        args.scratch.resolve(), args.runtimes.resolve(), args.thread, args.display,
     )
     print(build.build())
 
