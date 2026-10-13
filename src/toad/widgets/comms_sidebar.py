@@ -35,7 +35,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import NavigationOwner, channel_target, thread_target
+from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.session_sort import SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
@@ -133,14 +133,14 @@ class ChannelGroup(SidebarGroup):
 
         def create(name: str) -> ThreadRow:
             row = threads[name]
-            return ThreadRow(thread_target(row.execution, name, row.active), name)
+            return ThreadRow(ThreadTarget(name), name)
 
         def update(name: str, view: ThreadRow) -> None:
             if changed is not None and name not in changed and view.thread_row is not None:
                 return
             row = threads[name]
             view.mode_name = sidebar.open_views.get(name)
-            view.target = thread_target(row.execution, name, row.active)
+            view.target = ThreadTarget(name)
             view.show(row, pinned=name in channel.pinned_members, action_status=actions.get(name))
 
         self.reconcile_rows(

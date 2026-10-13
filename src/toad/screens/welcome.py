@@ -22,7 +22,7 @@ from toad.core.events import SessionSelected, ThreadActionsChanged
 from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
-from toad.navigation_target import channel_target, thread_target
+from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, SidebarModelView, ThreadRow
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
@@ -134,11 +134,11 @@ class WelcomeThreads(WelcomeSection):
 
     def create(self, model, key):
         thread = model.threads.rows[key]
-        return ThreadRow(thread_target(thread.execution, key, thread.active), key)
+        return ThreadRow(ThreadTarget(key), key)
 
     def update(self, model, key, row):
         thread = model.threads.rows[key]
-        row.target = thread_target(thread.execution, key, thread.active)
+        row.target = ThreadTarget(key)
         row.show(thread, action_status=cast("ToadApp", self.app).thread_actions.pending.get(key))
 
 

@@ -102,8 +102,6 @@ class AgentInputSubmission(InputSubmission):
     async def execute(self, owner):
         view = owner.view
         view.transcript.invalidate()
-        if self.text.startswith('/') and await CommandCatalog.execute(self.text, view):
-            return
         execution = owner.begin(self)
         if execution is None:
             return
@@ -158,6 +156,24 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
     @property
     def request(self):
         return SteerPromptRequest(self.text)
+
+class InboxInputSubmission(InputSubmission):
+    priority = 85
+
+    @classmethod
+    def matches(cls, event, view):
+        from toad.session_presentation import MailboxSessionSources
+
+        return (not event.shell and bool(event.body.strip())
+                and isinstance(view.operational_sources, MailboxSessionSources))
+
+    async def execute(self, owner):
+        view = owner.view
+        if not view.user_message_ready:
+            owner.restore_draft(self.source_text)
+            return
+        return view.run_worker(partial(owner.send_inbox, self), group='inbox-submission')
+
 
 class SubmissionExecution:
     """Immutable source binding and the real outstanding local request."""
@@ -223,8 +239,48 @@ class ConversationSubmissions:
         self.active.append(execution)
         return execution
 
+    @property
+    def ready(self):
+        return self.view.operational_sources.input_ready(self.view)
+
+    @property
+    def unavailable_reason(self):
+        return self.view.operational_sources.unavailable_reason(self.view)
+
     async def submit(self, event):
+        text = event.body.strip()
+        if not event.shell and text.startswith('/') and await CommandCatalog.execute(text, self.view):
+            return
         return await InputSubmission.from_event(event, self.view).execute(self)
+
+    async def send_inbox(self, submission):
+        from toad.transcript_publication import CanonicalSourcePublication
+        from agent_comms.route_selection import root_is_current
+
+        view = self.view
+        scope = view.transcript.thread_scope
+        if scope is None:
+            self.restore_draft(submission.source_text)
+            return
+        try:
+            async with view.transcript.reader.bind(scope[0]) as comms:
+                if (view.transcript.thread_scope != scope
+                        or not await view.app.preparation.run_thread(root_is_current, scope[0])):
+                    raise ValueError("Thread route changed before send; reopen this view")
+                sent = await view.commit_user_message(comms, scope[1], submission.source_text)
+            if sent is None:
+                return
+            if view.transcript.thread_scope != scope:
+                view.delivery_blocked(f"Committed {scope[0]}/{sent.seq}/{sent.message_id} on the former thread route; inspect before composing", submission.source_text)
+                return
+            view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group='history')
+            view.jump_to_latest()
+            await view.transcript.publish(CanonicalSourcePublication)
+        except (OSError, ValueError, RuntimeError) as error:
+            if view._sent_undrawn is not None:
+                view.delivery_blocked(f"Committed send; history unavailable: {error}. Inspect before composing", submission.source_text)
+            else:
+                view.delivery_refused(str(error), submission.source_text)
 
     def accepts_failure(self, message):
         agent = self.view.agent

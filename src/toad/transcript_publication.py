@@ -6,7 +6,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from contextlib import AsyncExitStack
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
-from functools import partial
+from functools import partial, cached_property
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -27,6 +27,7 @@ class TranscriptPublication(ABC):
         self.owner = owner
         self.generation = owner.generation
         self.agent = view.agent
+        self.thread_scope = owner.thread_scope
         self.window, self.contents = window, contents
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
@@ -65,7 +66,8 @@ class TranscriptPublication(ABC):
         view = self.owner.view
         if view is None or not view.is_attached or view._closing:
             return False
-        if self.generation != self.owner.generation or view.agent is not self.agent:
+        if (self.generation != self.owner.generation or view.agent is not self.agent
+                or self.thread_scope != self.owner.thread_scope):
             return False
         return (self.window.is_attached and self.contents.is_attached
                 and view.query_one_optional(Window) is self.window
@@ -189,10 +191,10 @@ class SnapshotPublication(TranscriptPublication):
         fragments = await self.owner.view.app.preparation.submit(
             RenderPreparation(TranscriptRenderTask(self.page.events))
         )
-        if not self.current() or self.agent is None:
+        if not self.current():
             return
         view = self.owner.view
-        history = TranscriptHistory(self.page, self.agent.get_transcript_page,
+        history = TranscriptHistory(self.page, self.owner.get_transcript_page,
                                     fragments=fragments, committed=False)
         self.window.prepare_history(history)
         await history.prepare_body(partial(self.source_current, self.page.after),
@@ -249,13 +251,13 @@ class HandlingPublication(TranscriptPublication):
 
         for history in self.contents.query(LineHistory):
             history.check_notifications()
-        if self.agent is None:
+        if not self.owner.readable:
             return True
         bodies = WireMessageHandling.within(self.contents)
         references = WireMessageHandling.references_in(bodies)
         if not references:
             return True
-        results = await self.agent.get_message_notifications(references)
+        results = await self.owner.get_message_notifications(references)
         if self.current():
             for body in bodies:
                 if body.is_attached:
@@ -267,10 +269,10 @@ class CanonicalSourcePublication(TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_page(self) -> TranscriptPage:
-        return await self.agent.get_transcript_page()
+        return await self.owner.get_transcript_page()
 
     async def publish_applied(self) -> bool:
-        if self.agent is None or not self.agent.transcript_ready:
+        if not self.owner.readable:
             return True
         page = await self.read_page()
         # The known native cut and its applied original resources meet here.
@@ -281,7 +283,7 @@ class CanonicalSourcePublication(TranscriptPublication):
         bound = self.source_bound(page.after)
         if bound != page.after:
             self.owner.dirty = self.owner.checkpoint_required = True
-            page = await self.agent.get_transcript_page(through=bound)
+            page = await self.owner.get_transcript_page(through=bound)
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
                 return True
@@ -304,12 +306,11 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 
     async def read_page(self) -> TranscriptPage:
         identity = self.presentation.read_identity
-        return await self.agent.get_transcript_page(read_identity=identity)
+        return await self.owner.get_transcript_page(read_identity=identity)
 
     async def publish_applied(self) -> bool:
-        if self.agent is None:
-            return True
-        await self.agent.observe_thread_presentation(self.presentation)
+        if self.agent is not None:
+            await self.agent.observe_thread_presentation(self.presentation)
         if self.current():
             return await super().publish_applied()
         return True
@@ -388,7 +389,6 @@ class CheckpointPublication(CanonicalSourcePublication):
                 and self.plan.current(self.window))
 
     def admitted(self) -> bool:
-        from toad.acp.agent import Agent
         from toad.widgets.committed_presentation import (
             CheckpointBarrier, CommitParticipant, CommittedHistory,
         )
@@ -396,7 +396,7 @@ class CheckpointPublication(CanonicalSourcePublication):
         view = self.owner.view
         if not self.current() or not self.owner.dirty:
             return False
-        if not isinstance(self.agent, Agent) or not view.agent_ready or not self.agent.transcript_ready:
+        if not self.owner.readable:
             return False
         if any(isinstance(node, CheckpointBarrier) for node in self.contents.walk_children()):
             return False
@@ -452,7 +452,7 @@ class CheckpointPublication(CanonicalSourcePublication):
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                page, self.agent.get_transcript_page, fragments=prepared.fragments, committed=False,
+                page, self.owner.get_transcript_page, fragments=prepared.fragments, committed=False,
             )
             await replacement.prepare_body(is_current, selected=view.visible_categories)
         async with AsyncExitStack() as retirement:
@@ -534,6 +534,49 @@ class TranscriptPresentation:
         self._view = weakref.ref(view)
 
     @property
+    def thread_scope(self) -> tuple[str, str] | None:
+        """The session identity, not a native process, owns readable history."""
+        from toad.screens.session_view import SessionView
+
+        view = self.view
+        if view is None or not view.is_attached:
+            return None
+        origin = view.query_ancestor(SessionView).origin
+        if origin is None or origin.coordination_root is None or not origin._comms_thread:
+            return None
+        return origin.coordination_root, origin._comms_thread
+
+    @property
+    def readable(self) -> bool:
+        return self.thread_scope is not None
+
+    @cached_property
+    def reader(self):
+        from toad.acp.transcript_reader import ObservedTranscriptReader
+
+        return ObservedTranscriptReader(self.view.app.coordination_access)
+
+    async def get_transcript_page(self, *, before=None, after=None, through=None,
+                                  read_identity=None) -> TranscriptPage:
+        scope = self.thread_scope
+        if scope is None:
+            raise ValueError("Transcript paging requires a bound thread")
+        page = await self.reader.page(*scope, before=before, after=after, through=through,
+                                      read_identity=read_identity)
+        if self.thread_scope != scope:
+            raise ValueError("Thread source changed while reading transcript")
+        return page
+
+    async def get_message_notifications(self, references):
+        scope = self.thread_scope
+        if scope is None:
+            return {}
+        results = await self.reader.notifications(scope[0], references)
+        if self.thread_scope != scope:
+            raise ValueError("Thread source changed during notification read")
+        return results
+
+    @property
     def retained_source_bytes(self) -> int:
         return sum(source.retained_source_bytes for source in self.documents)
 
@@ -611,12 +654,15 @@ class TranscriptPresentation:
     def invalidate(self) -> None:
         self.generation += 1
 
-    async def restore_native(self, agent) -> None:
-        """The live calling actor owns retained reveal and source validation."""
+    async def restore(self) -> None:
+        """Restore the session's reader independently of native attachment readiness."""
         from toad.screens.session_view import SessionView
 
         view = self.view
         if view is None:
+            return
+        view.resume_retained_history()
+        if not self.readable:
             return
         await self.restore_documents()
         history = next(iter(self.histories), None)
@@ -647,8 +693,7 @@ class TranscriptPresentation:
         publication = self.capture(CanonicalSourcePublication)
 
         def refresh_after_paint() -> None:
-            if (publication is not None and publication.agent is agent
-                    and publication.current()
+            if (publication is not None and publication.current()
                     and view.app.workspace_sessions.owns(source)):
                 view.run_worker(publication.publish(),
                                 group="retained-native-refresh", exclusive=True)
@@ -706,6 +751,7 @@ class TranscriptPresentation:
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
                 view.app.history_displayed()
+                view.settle_user_message()
         view.call_after_refresh(record)
 
     def source_changed(self, view: Conversation) -> None:

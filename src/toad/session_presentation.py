@@ -100,9 +100,61 @@ class OperationalSessionSources:
     """Logical session custody of existing operational owners, without a view."""
 
     def __init__(self) -> None:
+        from agent_comms.session_load import EnsuringSessionLoadAdmission
+
         self.agent = None
         self.shell = None
         self.directory_watcher = None
+        self.load_admission = EnsuringSessionLoadAdmission()
+
+    def agent_info(self, conversation: Conversation) -> str:
+        return "shell"
+
+    def input_ready(self, conversation: Conversation) -> bool:
+        from agent_comms.thread_presentation import LiveThreadOwnerBinding
+
+        agent = conversation.agent
+        if agent is None or not agent.ready:
+            return False
+        if conversation.transcript.readable:
+            presentation = conversation.thread_presentation
+            return presentation is not None and isinstance(presentation.binding, LiveThreadOwnerBinding)
+        return True
+
+    def unavailable_reason(self, conversation: Conversation) -> str:
+        if conversation.transcript.readable and conversation.thread_presentation is not None:
+            from agent_comms.thread_presentation import LiveThreadOwnerBinding
+
+            if not isinstance(conversation.thread_presentation.binding, LiveThreadOwnerBinding):
+                return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+        return "Agent is not ready. Please wait while the agent connects…"
+
+    def start_agent(self, conversation: Conversation) -> None:
+        """The operational source owns connection creation and its original admission."""
+        from toad.acp.agent import Agent
+        from toad.core import events as core_events
+
+        if conversation.agent is not None:
+            return
+        assert conversation._agent_data is not None
+        agent = Agent(conversation.project_path, conversation._agent_data,
+                      conversation._agent_session_id, conversation._session_pk)
+        agent.session.load_admission = self.load_admission
+        conversation.agent = agent
+        conversation._native_agent_started_here = True
+        conversation.bind_agent(agent)
+        agent.controller.start_operation(agent.start(conversation.app.session_navigation.processes))
+        conversation.publish_core(core_events.SessionSubtitleChanged(conversation.agent_title))
+
+    def attach_started(self, screen: "MainScreen", admission) -> None:
+        """An explicit Start action may attach the same retained view to its new owner."""
+        self.load_admission = admission
+        screen._agent = screen._agent or screen.app.agent_data
+        conversation = screen.presentation.widget
+        if conversation is not None:
+            conversation._agent_data = screen._agent
+            if screen.is_current:
+                conversation.start_native_session()
 
     def wire(self, conversation: Conversation) -> None:
         if self.agent is not None:
@@ -148,6 +200,17 @@ class OperationalSessionSources:
                 release.push_async_callback(agent.stop)
             if watcher is not None:
                 release.push_async_callback(watcher.aclose)
+
+
+class MailboxSessionSources(OperationalSessionSources):
+    """CLI execution receives user messages through Core's inbox, not ACP."""
+
+    def agent_info(self, conversation: Conversation) -> str:
+        scope = conversation.transcript.thread_scope
+        return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
+
+    def input_ready(self, conversation: Conversation) -> bool:
+        return conversation.transcript.readable and conversation.user_message_ready
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):

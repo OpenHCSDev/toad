@@ -302,7 +302,9 @@ See on-screen instructions for details.
             self.app.bell()
             self.post_message(
                 messages.Flash(
-                    "Agent is not ready. Please wait while the agent connects…",
+                    (self.query_ancestor(Prompt).submissions.unavailable_reason
+                     if self.query_ancestor(Prompt).submissions is not None
+                     else "Agent is not ready. Please wait while the agent connects…"),
                     "error",
                 )
             )
@@ -491,7 +493,9 @@ class Prompt(containers.VerticalGroup):
 
     @property
     def agent_ready(self) -> bool:
-        return self.simple_input or self.shell_mode or (self.agent is not None and self.agent.ready)
+        return (self.simple_input or self.shell_mode
+                or (self.submissions.ready if self.submissions is not None
+                    else self.agent is not None and self.agent.ready))
 
     @property
     def queue_supported(self) -> bool:
@@ -657,7 +661,8 @@ class Prompt(containers.VerticalGroup):
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
         else:
-            self.query_one(AgentInfo).update("Initializing…")
+            self.query_one(AgentInfo).update(
+                self.submissions.unavailable_reason if self.submissions is not None else "Initializing…")
 
     def watch_multiline(self) -> None:
         self.update_prompt()

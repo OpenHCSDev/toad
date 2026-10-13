@@ -552,10 +552,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
     async def read_notifications(self, references):
         from toad.widgets.conversation import Conversation
 
-        agent = self.query_ancestor(Conversation).agent
-        if agent is None:
-            raise RuntimeError("No agent is attached to this message history")
-        return await agent.get_message_notifications(references)
+        return await self.query_ancestor(Conversation).transcript.get_message_notifications(references)
 
     async def _read_notifications(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         # Outcomes belong to original references, not a page generation or

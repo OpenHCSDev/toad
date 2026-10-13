@@ -121,6 +121,20 @@ class NativeSessionEntry(SessionEntry):
                             and any(binding.thread.matches_recorded_name(target, snapshot)
                                     for target in targets)):
                         await agent.session.reconnect()
+            else:
+                from agent_comms.thread_presentation import LiveThreadOwnerBinding
+                from agent_comms.session_load import ExistingSessionLoadAdmission
+
+                original = next((identity for root, identity in self.original_threads(sessions)
+                                 if Path(root).resolve() == selected.root
+                                 and any(identity.matches_recorded_name(target, snapshot)
+                                         for target in targets)), None)
+                if original is not None:
+                    thread = snapshot.require(source._comms_thread)
+                    binding = thread.execution.owner_binding(snapshot, thread)
+                    if isinstance(binding, LiveThreadOwnerBinding):
+                        source.presentation.sources.attach_started(
+                            source, ExistingSessionLoadAdmission(binding))
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)

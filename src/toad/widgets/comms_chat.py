@@ -3,7 +3,6 @@
 from __future__ import annotations
 from toad.core import input_events
 from functools import partial
-from toad.delivery_failure_view import DeliveryFailureView
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
@@ -94,7 +93,7 @@ class ChannelActivityTray(ConversationBlock, containers.VerticalGroup):
     """Channel activity has one declared navigation boundary."""
 
 
-class CommsChatView(DeliveryFailureView, Conversation):
+class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
     BINDINGS = Conversation.BINDINGS[:5]
@@ -112,11 +111,6 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self.target = target
         self.conversation_kind = kind
         self._me = me
-        self._unknown_send: tuple[str, int, str] | None = None
-        # A message this view sent that its history has not drawn yet.
-        self._sent_undrawn: WireMessage | None = None
-        # Why this view refuses to send now; empty when it can.
-        self._send_block_reason = ""
         # The observer's announcement the last refresh began from.
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
@@ -196,7 +190,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         access = self.app.coordination_access
         if event.publisher is not history or source is None:
             return
-        self._settle_sent()
+        self.settle_user_message()
         if (not history.state.accepts_source_work
                 or history.undrawn
                 or source.comms is not access.observed_service
@@ -325,7 +319,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 if undrawn:
                     self.on_work_finished()
             # A sent message may now be drawn: composing resumes before the roster is read.
-            self._settle_sent()
+            self.settle_user_message()
             if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):
                 placeholder.remove()
         except (CoordinationReadUnavailable, StaleRevision):
@@ -418,7 +412,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
             self.flash("Send pending/UNKNOWN/blocked; inspect, do not retry", style="error")
             return
         try:
-            from agent_comms.route_selection import implicit_root, root_is_current, run_selected_write
+            from agent_comms.route_selection import root_is_current
 
             source = self.message_history.source
             if (source is None
@@ -433,49 +427,15 @@ class CommsChatView(DeliveryFailureView, Conversation):
                 self.status = "Read-only saved view; open an exact channel to send"
                 self.flash(self.status, style="error")
                 return
-            # Disable compose through both the worker and the drawing of the
-            # sent message. Cancellation after a committed send must not
-            # leave an apparently fresh, send-ready draft.
-            self._send_block_reason = "Send pending; do not retry"
-            self.prompt.text = event.body
-            self.prompt.prompt_text_area.disabled = True
-            send_task = asyncio.create_task(
-                asyncio.to_thread(
-                    run_selected_write, comms.root, comms.messaging.send_user_message,
-                    self.conversation_kind.send_target(self.target), event.body,
-                    worktree=str(self.project_path), implicit=implicit_root(),
-                )
-            )
-            try:
-                sent = await asyncio.shield(send_task)
-            except asyncio.CancelledError:
-                # Cancelling the UI coroutine does not cancel the worker. The
-                # append may already have happened; never present this text as
-                # send-ready or launch a second attempt on a different root.
-                self.prompt.text = event.body
-                self.prompt.prompt_text_area.disabled = True
-                self._send_block_reason = (
-                    "Send cancelled while worker may still write; "
-                    "outcome UNKNOWN, inspect the bus, do not retry"
-                )
-                self.status = self._send_block_reason
-                self.prompt.prompt_text_area.tooltip = self.status
-                self.flash(self.status, style="error")
-                send_task.add_done_callback(
-                    lambda task: task.exception() if not task.cancelled() else None
-                )
+            sent = await self.commit_user_message(
+                comms, self.conversation_kind.send_target(self.target), event.body)
+            if sent is None:
                 return
         except Exception as error:
             from agent_comms.delivery_failure import delivery_failure
 
             delivery_failure(error).present(self, event.body)
             return
-        self._send_block_reason = (
-            f"Sent {comms.root}/{sent.seq}/{sent.message_id}; "
-            "waiting to be drawn, do not retry"
-        )
-        self.status = self._send_block_reason
-        self.prompt.prompt_text_area.tooltip = self.status
         try:
             await self._show_sent(comms, sent, event.body, root_is_current)
         except (asyncio.CancelledError, Exception) as error:
@@ -508,16 +468,7 @@ class CommsChatView(DeliveryFailureView, Conversation):
         self._sent_undrawn = sent
         self.window.jump_to_latest()
         await self._refresh()
-        self._settle_sent()
+        self.settle_user_message()
 
-    def _settle_sent(self) -> None:
-        """Let the reader compose again once the history draws the message they sent."""
-        sent = self._sent_undrawn
-        if sent is None or not self.message_history.draws(sent):
-            return
-        self._sent_undrawn = None
-        self._send_block_reason = ""
-        self.prompt.text = ""
-        self.prompt.prompt_text_area.disabled = False
-        self.prompt.prompt_text_area.tooltip = None
-        self.status = ""
+    def draws_user_message(self, sent) -> bool:
+        return self.message_history.draws(sent)
