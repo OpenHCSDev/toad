@@ -572,10 +572,8 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
             except (OSError, ValueError, RuntimeError) as failure:
                 statuses = [UnavailableNotifications(str(failure))] * len(fragments)
             else:
-                statuses = [CheckedNotifications(tuple(
-                    item for reference in fragment.notification_references
-                    for item in results.get((reference.seq, reference.message_id), ())))
-                    for fragment in fragments]
+                statuses = [CheckedNotifications.for_references(fragment.notification_references, results)
+                            for fragment in fragments]
             if not self.can_draw_on_screen:
                 return
             visible = {id(fragment) for fragment in self._notified_fragments()}
@@ -583,16 +581,11 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                               for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
             if not self.can_draw_on_screen:
                 return
-            current = self._notified_fragments()
-            if (revision != self.app.coordination_access.revision
-                    or {id(fragment) for fragment in current} != {id(fragment) for fragment in fragments}):
-                # A backend update or another visible cohort arrived during
-                # this read/paint. Its demand survives in those original owners,
-                # not in a second pending flag: ask for their latest answer.
-                fragments = current
-            else:
-                fragments = tuple(fragment for fragment in current
-                                  if isinstance(fragment.shown.status, UncheckedNotifications))
+            # Newcomers need their first check; checked rows need another
+            # answer only when Core changed during the read or paint.
+            fragments = tuple(fragment for fragment in self._notified_fragments()
+                              if revision != self.app.coordination_access.revision
+                              or isinstance(fragment.shown.status, UncheckedNotifications))
 
     # What a fragment shows
 
