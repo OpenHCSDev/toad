@@ -216,7 +216,7 @@ class TurnActivity(Static):
 
 
 class CategorizedMount:
-    """Apply the owning conversation category selection at widget admission."""
+    """Admit blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
@@ -230,7 +230,12 @@ class CategorizedMount:
             # attached blocks, Textual applies this class change as one batch.
             widget.update_classes(classes)
             apply_block_filter(widget, selected)
-        return super().mount(*widgets, **kwargs)
+        mounted = super().mount(*widgets, **kwargs)
+        # Registration is synchronous: establish document order before any
+        # new widget's mount task or paint can run. The stable sort preserves
+        # order within saved sources and within live output.
+        self.sort_children(key=lambda block: block.conversation_order)
+        return mounted
 
 
 class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):

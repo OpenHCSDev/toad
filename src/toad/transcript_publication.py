@@ -466,7 +466,7 @@ class CheckpointPublication(CanonicalSourcePublication):
                     accepted = False
                     try:
                         if replacement is not None:
-                            await contents.mount(replacement, before=0)
+                            await contents.mount(replacement)
                         if not is_current():
                             return True
                         # Identity-backed arrivals during a mount may now be covered;

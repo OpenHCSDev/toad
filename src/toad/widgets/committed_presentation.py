@@ -14,6 +14,7 @@ from agent_comms.transcript_events import UserTranscript
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
+from toad.block_navigation import ConversationBlock
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
@@ -142,8 +143,10 @@ CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
 
-class CommittedHistory(SnapshotPresentation):
-    """A presentation that retains access to an authoritative source frontier."""
+class CommittedHistory(ConversationBlock, SnapshotPresentation):
+    """A saved source block that precedes the conversation's live tail."""
+
+    conversation_order = 0
 
     @property
     def commit_claim(self) -> CommitClaim:
