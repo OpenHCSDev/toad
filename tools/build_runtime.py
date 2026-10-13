@@ -76,8 +76,9 @@ def observe_saved_thread(pid: int, output: str) -> None:
         await dispatch(app, message)
 
         def capture_ready() -> None:
-            agent = app.selected_session.presentation.operational_agent
-            if agent is None or not agent.ready:
+            presentation = app.selected_session.presentation
+            agent = presentation.operational_agent
+            if agent is None or not agent.ready or presentation.transcript.displayed_cursor is None:
                 app.set_timer(0.1, capture_ready)
                 return
             targets(expected_pid=pid, output=output)
