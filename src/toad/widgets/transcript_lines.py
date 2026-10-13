@@ -220,14 +220,28 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
     if end == -1:
         end = strip.cell_length
     start, end = max(0, start), min(end, strip.cell_length)
-    if start >= end:
+    # The fork's divide yields only the pieces before each cut, so the strip's
+    # own end is the final cut that keeps the tail.
+    cuts = sorted({cut for cut in (start, end, strip.cell_length) if 0 < cut <= strip.cell_length})
+    pieces = strip.divide(cuts) if cuts else [strip]
+    head, body, tail = [], [], []
+    position = 0
+    for piece in pieces:
+        following = position + piece.cell_length
+        if following <= start:
+            head.append(piece)
+        elif position >= end:
+            tail.append(piece)
+        else:
+            body.append(piece)
+        position = following
+    if not body:
         return strip
-    head, body, tail = strip.divide([start, end])
     painted = Strip(
-        list(Segment.apply_style(body, None, Visual.selection_style(widget))),
-        body.cell_length,
+        list(Segment.apply_style(Strip.join(body), None, Visual.selection_style(widget))),
+        sum(piece.cell_length for piece in body),
     )
-    return Strip.join((head, painted, tail))
+    return Strip.join((*head, painted, *tail))
 
 
 class LinkedRows(OpensLinks):
