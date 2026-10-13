@@ -77,6 +77,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     boundary = False
     completed = False
     failed = False
+    summary_suffix = ''
 
     @classmethod
     def activity(cls, turns, output, title):
@@ -88,15 +89,19 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
 class PendingToolCallStatus(ToolCallStatus):
     busy = True
+    summary_suffix = ' ⌛'
 
 
 class InProgressToolCallStatus(ToolCallStatus):
     busy = True
+    summary_suffix = ' · running'
 
 
 class CompletedToolCallStatus(ToolCallStatus):
     boundary = completed = True
+    summary_suffix = ' ✔'
 
 
 class FailedToolCallStatus(ToolCallStatus):
     boundary = failed = True
+    summary_suffix = ' · failed'

@@ -165,6 +165,10 @@ class Span:
 class LineBlock:
     """One visual part of a fragment."""
 
+    @property
+    def selection_text(self) -> str:
+        return ""
+
 
 @dataclass(frozen=True)
 class Divider(LineBlock):
@@ -186,6 +190,10 @@ class Divider(LineBlock):
     def label(self) -> str:
         return "".join(span.text for span in self.spans)
 
+    @property
+    def selection_text(self) -> str:
+        return self.label
+
 
 @dataclass(frozen=True)
 class Summary(LineBlock):
@@ -194,6 +202,10 @@ class Summary(LineBlock):
     text: str
     role: type[LineRole] = MutedRole
     link: LineLink | None = None
+
+    @property
+    def selection_text(self) -> str:
+        return self.text
 
 
 @dataclass(frozen=True)

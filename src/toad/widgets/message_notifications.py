@@ -1,13 +1,12 @@
 """Read-only notification feedback attached to its chat message."""
 
-from agent_comms.presentation import MessageNotification
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible, Static
 
 from toad.notification_status import (
-    CheckedNotifications, DetailLines, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    DetailLines, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
 from toad.widgets.transcript_lines import OpensLinks, link_style
 
@@ -68,9 +67,6 @@ class MessageNotifications(Collapsible):
             _ = self.details
         self.set_class(status.working, "-working")
         self.set_class(status.unavailable, "-unavailable")
-
-    def show_result(self, notifications: tuple[MessageNotification, ...]) -> None:
-        self.show(CheckedNotifications(notifications))
 
     def show_error(self, error: Exception) -> None:
         self.show(UnavailableNotifications(str(error)))

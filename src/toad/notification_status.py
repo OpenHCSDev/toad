@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import Counter
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import ClassVar, TYPE_CHECKING
 
+from agent_comms.message_reference import MessageReference
 from agent_comms.presentation import MessageNotification
 from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, Spans, WorkingRole
 
@@ -62,6 +64,12 @@ class UncheckedNotifications(NotificationStatus):
 @dataclass(frozen=True)
 class CheckedNotifications(NotificationStatus):
     notifications: tuple[MessageNotification, ...]
+
+    @classmethod
+    def for_references(cls, references: Iterable[MessageReference],
+                       results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> CheckedNotifications:
+        return cls(tuple(item for reference in references
+                         for item in results.get((reference.seq, reference.message_id), ())))
 
     @property
     def ordered(self) -> list[MessageNotification]:
