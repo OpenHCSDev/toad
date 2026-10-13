@@ -17,7 +17,7 @@ from textual.widget import Widget
 
 from ui_theme.effects import NEW_MESSAGE
 
-from toad.line_blocks import Divider, LineBlock, Summary
+from toad.line_blocks import Divider, LineBlock
 from toad.textual_colours import Animated
 from toad.message_rows import MessageRow
 from toad.widgets.transcript_lines import (
@@ -85,15 +85,6 @@ class SingleLineBlock(LinkedRows, BlockContent, Widget):
     def line_theme(self) -> LineTheme:
         return self.app.colours.line_theme
 
-    @property
-    def source_text(self) -> str:
-        block = self.block
-        if isinstance(block, Divider):
-            return block.label
-        if isinstance(block, Summary):
-            return block.text
-        return ""
-
     def update_block(self, block: LineBlock) -> None:
         if block != self.block:
             self.block, self._lines = block, None
@@ -112,7 +103,7 @@ class SingleLineBlock(LinkedRows, BlockContent, Widget):
         return self.on_background(self._lines[1].strips_at(self._link_place)[0])
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        return selection.extract(self.source_text), "\n"
+        return selection.extract(self.block.selection_text), "\n"
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:

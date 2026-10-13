@@ -15,6 +15,7 @@ from textual.widget import Widget
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.tool_content import ToolCallDiff
+from agent_comms.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import ToggleDetails
 from toad.menus import MenuItem
@@ -84,9 +85,8 @@ class ToolCallHeader(SingleLineBlock):
     }
     """
 
-    def action_open(self, link) -> None:
-        if not isinstance(link, ToggleDetails):
-            return
+    @handles(ToggleDetails)
+    def toggle_details(self, link: ToggleDetails) -> None:
         tool = self.query_ancestor(ToolCall)
         if tool.has_details:
             tool.set_expanded(not tool.expanded)
@@ -155,6 +155,12 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self._manual_expansion: bool | None = None
         self._auto_expanded = False
 
+    @property
+    def current_status(self) -> ToolCallStatus:
+        status = self.tool_call
+        assert status
+        return status
+
     def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
@@ -165,7 +171,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.replace(tool_call.call)
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
-        self.query_one("#tool-title", LineMarkdown).update(self.tool_call.call.title or "Tool")
+        self.query_one("#tool-title", LineMarkdown).update(self.current_status.call.title or "Tool")
         return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuItem]:
@@ -203,7 +209,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
             return
-        tool_id = self.tool_call.call.tool_call_id if self.tool_call else None
+        tool_id = self.current_status.call.tool_call_id
         if isinstance(tool_id, str):
             conversation.remember_tool_expansion(tool_id, expanded)
 
@@ -211,10 +217,9 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         return self.expanded
 
     def compose(self) -> ComposeResult:
-        assert self.tool_call is not None
         self._update_metadata()
         yield ToolCallHeader(self.activity_rows[0]).with_tooltip("Expand to see full title")
-        yield LineMarkdown(self.tool_call.call.title or "Tool", markdown=False, id="tool-title")
+        yield LineMarkdown(self.current_status.call.title or "Tool", markdown=False, id="tool-title")
         yield ToolContent(id="tool-content")
 
     def on_mount(self) -> None:
@@ -226,7 +231,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         except NoMatches:
             pass
         else:
-            tool_id = self.tool_call.call.tool_call_id if self.tool_call else None
+            tool_id = self.current_status.call.tool_call_id
             if isinstance(tool_id, str):
                 self._manual_expansion = conversation.tool_expansions.get(tool_id)
                 if self._manual_expansion is not None:
@@ -235,8 +240,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.sync()
 
     def _update_metadata(self) -> None:
-        assert self.tool_call is not None
-        self.set_class(self.tool_call.failed, "-failed")
+        self.set_class(self.current_status.failed, "-failed")
         self.has_content = self.output.has_content
         self.check_expand()
 
@@ -288,8 +292,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             return
         if not self.has_content:
             return
-        tool_call = self.tool_call
-        assert tool_call is not None
+        tool_call = self.current_status
         if self.output.suppress_auto_expansion:
             # Don't auto expand reads, as it can generate a lot of noise
             return
@@ -305,14 +308,12 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
 
     @property
     def has_details(self) -> bool:
-        assert self.tool_call is not None
-        return AgentActivityPresentation.tool_has_details(self.tool_call, self.has_content)
+        return AgentActivityPresentation.tool_has_details(self.current_status, self.has_content)
 
     @property
     def activity_rows(self):
-        assert self.tool_call is not None
         return AgentActivityPresentation.tool(
-            self.tool_call, has_details=self.has_details, details_open=self.expanded
+            self.current_status, has_details=self.has_details, details_open=self.expanded
         )
 
     def watch_expanded(self) -> None:

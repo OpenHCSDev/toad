@@ -53,9 +53,7 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
 
     @property
     def block(self) -> Body:
-        block = self.line_blocks(self.text)[0]
-        assert isinstance(block, Body)
-        return block
+        return Body(self.text, role=self.role, bar=self.bar, markdown=self.markdown)
 
     def get_clipboard_text(self) -> str | None:
         return self.text or None
@@ -99,12 +97,9 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         self.update(self.text + text)
 
     def _plain_rows(self, text: str, width: int, *, complete: bool = True):
-        blocks = tuple(
-            Body(block.text, role=block.role, bar=block.bar, markdown=False)
-            if isinstance(block, Body) else block
-            for block in self.line_blocks(text, complete=complete)
+        return RichLineRenderer(self.app.colours.line_theme, width, plain=True).rows(
+            self.line_blocks(text, complete=complete)
         )
-        return RichLineRenderer(self.app.colours.line_theme, width, plain=True).rows(blocks)
 
     def _lines(self, width: int) -> PreparedLines:
         """Styled rows for the text they cover, then plain rows for anything newer.
@@ -165,11 +160,14 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
                 lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme))
                 if not self.is_attached:
                     return
-                if (width == self._width and theme is self.app.colours.line_theme
-                        and self.text.startswith(target) and (not complete or self.text == target)):
-                    rows = self._row_count()
-                    self._styled, self._styled_text = lines, target
-                    self._redraw(rows)
+                source_current = width == self._width and theme is self.app.colours.line_theme
+                if source_current and self.text.startswith(target):
+                    # A completed render includes final spacing; unlike a
+                    # prefix render, it belongs only to that exact text.
+                    if not complete or self.text == target:
+                        rows = self._row_count()
+                        self._styled, self._styled_text = lines, target
+                        self._redraw(rows)
             if (target, width) == (self.text, self._width):
                 return
             # Text is still arriving. The plain tail already shows it, so
