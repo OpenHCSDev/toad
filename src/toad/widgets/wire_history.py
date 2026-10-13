@@ -252,8 +252,14 @@ class WireHistory(LineHistory):
         """Wire and native messages ask the same Core observation service."""
         from agent_comms.ui_model.observation import ReadNotifications
 
-        return await self.app.coordination_access.read(
-            ReadNotifications(str(self.source.comms.root), references))
+        source = self.source
+        if source is None or not await self.bus_is_current(source.comms):
+            raise asyncio.CancelledError()
+        results = await self.app.coordination_access.read(
+            ReadNotifications(str(source.comms.root), references))
+        if source is not self.source or not await self.bus_is_current(source.comms):
+            raise asyncio.CancelledError()
+        return results
 
     # Read marks
 

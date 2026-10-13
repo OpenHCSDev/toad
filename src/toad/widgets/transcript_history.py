@@ -549,9 +549,6 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
     def _notified_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for fragment in self.visible_fragments() if fragment.checks_notifications)
 
-    async def source_is_current(self, snapshot) -> bool:
-        return snapshot.current(self)
-
     async def read_notifications(self, references):
         from toad.widgets.conversation import Conversation
 
@@ -561,9 +558,11 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         return await agent.get_message_notifications(references)
 
     async def _read_notifications(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        snapshot = self.source_snapshot()
+        # Outcomes belong to original references, not a page generation or
+        # its growing tail. The read binding fences the bus; visible membership
+        # and this publisher's lifetime fence where its answer can be drawn.
         while fragments:
-            if not await self.source_is_current(snapshot):
+            if not self.can_draw_on_screen:
                 return
             references = tuple(dict.fromkeys(
                 reference for fragment in fragments for reference in fragment.notification_references))
@@ -576,12 +575,12 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                     item for reference in fragment.notification_references
                     for item in results.get((reference.seq, reference.message_id), ())))
                     for fragment in fragments]
-            if not await self.source_is_current(snapshot):
+            if not self.can_draw_on_screen:
                 return
             visible = {id(fragment) for fragment in self._notified_fragments()}
             await self._show([(fragment, replace(fragment.shown, status=status))
                               for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
-            if not await self.source_is_current(snapshot):
+            if not self.can_draw_on_screen:
                 return
             # Geometry may have admitted other messages while Core answered.
             fragments = tuple(fragment for fragment in self._notified_fragments()
