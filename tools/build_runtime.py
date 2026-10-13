@@ -24,6 +24,18 @@ import zipfile
 from performance.capture_live import XvfbDisplay
 
 
+class RemoteInterpreterUnavailable(RuntimeError):
+    """The target process has not admitted remote Python execution yet."""
+
+
+def remote_exec(pid: int, script: Path) -> None:
+    """Decode CPython's untyped remote-admission failure once at its boundary."""
+    try:
+        sys.remote_exec(pid, str(script))
+    except RuntimeError as error:
+        raise RemoteInterpreterUnavailable(str(error)) from error
+
+
 def run(*args: str | Path, cwd: Path | None = None) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
     return subprocess.check_output(list(map(str, args)), cwd=cwd, text=True).strip()
@@ -218,13 +230,9 @@ else:
     open({str(status)!r}, "w").write("installed")
 ''')
                 try:
-                    sys.remote_exec(children[0].pid, str(remote))
-                except RuntimeError as error:
-                    if str(error) not in (
-                        "Can't find the main thread in the remote process",
-                        "Can't find a running interpreter in the remote process",
-                    ):
-                        raise
+                    remote_exec(children[0].pid, remote)
+                except RemoteInterpreterUnavailable:
+                    pass
                 else:
                     while not status.exists():
                         if terminal.poll() is not None or time.monotonic() >= deadline:
