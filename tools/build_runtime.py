@@ -135,7 +135,6 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
     with (output / 'st.log').open('w') as log:
         terminal = subprocess.Popen(['st', '-g', '150x48', '-e', 'toad-comms', thread], env=env, stdout=log, stderr=log)
         try:
-            window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=30).strip()
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
             while not (children := [child for child in process.children() if child.name() == 'toad']):
@@ -145,7 +144,18 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
             targets = output / 'targets.json'
             remote = output / 'capture.py'
             remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import observe_saved_thread\nobserve_saved_thread({children[0].pid}, {thread!r}, {str(targets)!r})\n')
-            sys.remote_exec(children[0].pid, str(remote))
+            while True:
+                try:
+                    sys.remote_exec(children[0].pid, str(remote))
+                    break
+                except RuntimeError as error:
+                    if str(error) != "Can't find the main thread in the remote process":
+                        raise
+                    if terminal.poll() is not None or time.monotonic() >= deadline:
+                        raise RuntimeError(f'SavedThreadOpenFailed: no Python main thread for {thread}; see {output}') from error
+                    time.sleep(0.1)
+            remaining = max(0.1, deadline - time.monotonic())
+            window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=remaining).strip()
             while not targets.exists():
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
