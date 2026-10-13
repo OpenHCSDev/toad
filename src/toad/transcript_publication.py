@@ -5,6 +5,7 @@ import weakref
 import asyncio
 from abc import ABC, abstractmethod
 from contextlib import AsyncExitStack
+from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -762,18 +763,22 @@ class TranscriptPresentation:
 
     async def close(self) -> None:
         self.closed = True
-        await self.suspend()
-        self._close_documents()
-        for history in self.histories:
-            if history._page_buffer is not None:
-                history._page_buffer.close()
-        self._view = lambda: None
-        self.displayed_cursor = None
+        try:
+            async with AsyncResourceRelease() as release:
+                for history in reversed(tuple(self.histories)):
+                    if history._page_buffer is not None:
+                        release.callback(history._page_buffer.close)
+                release.callback(self._close_documents)
+                await self.suspend()
+        finally:
+            self._view = lambda: None
+            self.displayed_cursor = None
 
     def _close_documents(self) -> None:
-        for source in self.documents:
-            source.close()
-        self.documents = ()
+        documents, self.documents = self.documents, ()
+        with ResourceRelease() as release:
+            for source in reversed(documents):
+                release.callback(source.close)
 
     async def detach(self, view: Conversation) -> None:
         """A view-owned transcript has no remaining consumer after detach."""

@@ -53,6 +53,16 @@ class SessionObservation(ABC):
             await asyncio.gather(self.task, return_exceptions=True)
         self.task = None
 
+    @staticmethod
+    async def close_all(*observations: "SessionObservation") -> None:
+        """Join every independent observation before reporting close failures."""
+        results = await asyncio.gather(
+            *(observation.close() for observation in observations), return_exceptions=True,
+        )
+        errors = [result for result in results if isinstance(result, BaseException)]
+        if errors:
+            raise BaseExceptionGroup("Session observations failed to close", errors)
+
     def receive(self, agent, result):
         """An owner fact supersedes an older in-flight read of that source."""
         view = self.view
