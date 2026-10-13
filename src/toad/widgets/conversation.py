@@ -328,6 +328,7 @@ class ConversationSessionBinding(containers.Vertical):
         from toad.agent_surface import AttachedSurfaceBinding
 
         agent.attach_surface(AttachedSurfaceBinding(self, agent.events))
+        self.publish_core(core_events.SessionAgentAttached())
 
     @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:
@@ -1801,7 +1802,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         # revive proof after its reducer entered quarantine or evidence loss.
         if agent is not None:
             self.bind_agent(agent)
-            self.publish_core(core_events.SessionAgentAttached())
         attachments = (agent.presentation.attachments if agent is not None
                        else AgentAttachmentView(None, 0))
         self.native_history_status = attachments.cursor
