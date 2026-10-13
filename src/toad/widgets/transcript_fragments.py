@@ -318,9 +318,12 @@ class ToolTranscriptFragment(TranscriptFragment):
 
     @property
     def has_details(self) -> bool:
-        # Core already draws each sent message with its feedback. The tool's
-        # live outgoing widget is not another saved copy of that message.
-        return any(part.has_saved_details() for part in self.output_parts)
+        # A multiline title needs disclosure even before output arrives. Core's
+        # sent-message output still does not become a second saved message.
+        title = self.tool_call.call.title or "Tool"
+        return len(title.splitlines()) > 1 or any(
+            part.has_saved_details() for part in self.output_parts
+        )
 
     def blocks(self, shown):
         title = self.tool_call.call.title or "Tool"
@@ -328,7 +331,8 @@ class ToolTranscriptFragment(TranscriptFragment):
             return (Summary(f"· {title}"),)
         if not shown.details_open:
             return (shown.summary(title),)
-        return (shown.summary(title), *(block for part in self.output_parts for block in part.line_blocks()))
+        return (shown.summary(title), Body(title, markdown=False),
+                *(block for part in self.output_parts for block in part.line_blocks()))
 
 
 @dataclass(kw_only=True)
