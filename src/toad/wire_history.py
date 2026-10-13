@@ -20,7 +20,7 @@ from agent_comms.messages import Message
 from agent_comms.presentation import WireRevision
 
 from toad.conversation_kind import ConversationKind
-from toad.line_blocks import Body, Gap, LineBlock, MutedRole, NoticeRole, Summary, WorkingRole
+from toad.line_blocks import Body, Gap, LineBlock, MutedRole, NoticeRole, Spans, Summary, WorkingRole
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.transcript_preparation import (
@@ -215,8 +215,7 @@ class MessageFragment(WireFragment):
         summary = shown.summary(status.title, role)
         if not shown.details_open:
             return (summary,)
-        details = "\n".join("  " + line for line in status.details.splitlines())
-        return (summary, Body(details, role=MutedRole, markdown=False))
+        return (summary, Spans.from_lines(status.details, indent="  "))
 
 
 @dataclass(frozen=True, eq=False)
