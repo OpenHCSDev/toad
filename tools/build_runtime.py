@@ -23,6 +23,8 @@ from urllib.parse import urlsplit
 from urllib.request import url2pathname
 import zipfile
 
+from performance.capture_live import XvfbDisplay
+
 
 def run(*args: str | Path, cwd: Path | None = None) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
@@ -67,39 +69,36 @@ def verify_route() -> dict:
 
 
 def observe_saved_thread(pid: int, output: str) -> None:
-    """Enter the real App's next dispatch, not remote_exec's empty context."""
+    """Observe the real App's paint, not remote_exec's empty context."""
     from performance.frame_meter import targets
     from textual.app import App
 
-    dispatch = App._dispatch_message
+    paint = App._display
 
-    async def observe(app, message):
-        App._dispatch_message = dispatch  # One observation on our own fresh App.
-        await dispatch(app, message)
+    def observe(app, screen, renderable):
+        App._display = paint  # One observation on our own fresh App.
+        paint(app, screen, renderable)
 
         def capture_ready() -> None:
             presentation = app.selected_session.presentation
-            agent = presentation.operational_agent
-            if agent is None or not agent.ready or presentation.transcript.displayed_cursor is None:
+            if not presentation.transcript.reports_coverage:
                 app.set_timer(0.1, capture_ready)
                 return
             targets(expected_pid=pid, output=output)
 
         app.call_after_refresh(capture_ready)
 
-    App._dispatch_message = observe
+    App._display = observe
 
 
-def open_saved_thread(runtime: Path, thread: str, display: str, output: Path) -> Path:
+def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
     """Open only our own st on an explicitly isolated display, without input."""
     import os
     import psutil
     import time
 
-    if display.split('.')[0] == ':0':
-        raise ValueError('Use an isolated Xvfb display, not the desktop')
     output.mkdir()
-    env = dict(os.environ, DISPLAY=display, AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'), AGENT_COMMS_AGENT_BIN='pi')
+    env = dict(os.environ, DISPLAY=display.name, AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'), AGENT_COMMS_AGENT_BIN='pi')
     for name in ('NO_COLOR', 'TOAD_VALIDATION'):
         env.pop(name, None)
     with (output / 'st.log').open('w') as log:
@@ -230,7 +229,7 @@ class RuntimeBuild:
     scratch: Path
     runtimes: Path
     thread: str
-    display: str
+    display: XvfbDisplay
 
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
@@ -293,13 +292,14 @@ def main() -> None:
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
-    build = RuntimeBuild(
-        GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
-        GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
-        args.baseline.resolve(strict=True),
-        args.scratch.resolve(), args.runtimes.resolve(), args.thread, args.display,
-    )
-    print(build.build())
+    with XvfbDisplay(args.display) as display:
+        build = RuntimeBuild(
+            GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
+            GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
+            args.baseline.resolve(strict=True),
+            args.scratch.resolve(), args.runtimes.resolve(), args.thread, display,
+        )
+        print(build.build())
 
 
 if __name__ == '__main__':
