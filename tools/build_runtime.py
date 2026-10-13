@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build an immutable Toad/Core checkpoint; publication stays with the coach.
 
-Uses clean git exports and wheels, preserving the baseline's dependency set.
+Uses clean git exports and wheels, with dependencies owned by Toad's locked graph.
 Native package verification belongs to Core's native_package module.
 """
 from __future__ import annotations
@@ -19,8 +19,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from urllib.parse import urlsplit
-from urllib.request import url2pathname
 import zipfile
 
 from performance.capture_live import XvfbDisplay
@@ -256,9 +254,6 @@ class GitExport:
         return run('git', '-C', self.repository, 'rev-parse', self.revision + '^{commit}')
 
     def wheel(self, commit: str, exports: Path, cache: Path) -> Path:
-        wheels = cache / f'{self.label}-{commit}'
-        if wheels.exists():
-            return self.only_wheel(wheels)
         source = exports / self.label
         source.mkdir()
         # Streaming the archive avoids retaining another source copy in memory.
@@ -269,7 +264,9 @@ class GitExport:
             archive.stdout.close()
             if archive.wait():
                 raise RuntimeError(f'git archive failed for {self.label}')
-        run('uv', 'build', '--wheel', '--out-dir', wheels, source)
+        wheels = cache / f'{self.label}-{commit}'
+        if not wheels.exists():
+            run('uv', 'build', '--wheel', '--out-dir', wheels, source)
         return self.only_wheel(wheels)
 
     def verify_wheel(self, wheel: Path, installed: dict) -> None:
@@ -288,54 +285,6 @@ class GitExport:
 
 
 @dataclass(frozen=True)
-class DependencySet:
-    packages: dict
-    replacements: tuple[GitExport, ...]
-
-    @property
-    def replaced_names(self) -> frozenset[str]:
-        return frozenset(export.package_name for export in self.replacements)
-
-    def requirements(self) -> list[str]:
-        requirements = []
-        replaced = self.replaced_names
-        for name, package in sorted(self.packages.items()):
-            if name in replaced:
-                continue
-            source = package['source']
-            if source is None:
-                requirements.append(f"{name}=={package['version']}")
-            elif 'vcs_info' in source:
-                # uv owns its cache and reuse; pass the recorded full commit.
-                commit = source['vcs_info']['commit_id']
-                url = source['url']
-                subdirectory = source.get('subdirectory')
-                fragment = f'#subdirectory={subdirectory}' if subdirectory else ''
-                requirements.append(f"{name} @ git+{url}@{commit}{fragment}")
-            else:
-                # Our preceding build records reviewed wheels as file URLs.
-                # Preserve that exact source, never rebuild a local checkout.
-                if 'dir_info' in source or 'archive_info' not in source:
-                    raise RuntimeError(f'{name} has a directory/editable source; supply a reviewed wheel baseline')
-                url = urlsplit(source['url'])
-                if url.scheme != 'file' or url.netloc not in ('', 'localhost'):
-                    raise RuntimeError(f'{name} is not a local wheel source: {source["url"]}')
-                wheel = Path(url2pathname(url.path))
-                if url.query or wheel.suffix != '.whl' or not wheel.is_file():
-                    raise RuntimeError(f'{name} wheel source is missing or is not a wheel: {source["url"]}')
-                requirements.append(source['url'])
-        return requirements
-
-    def verify(self, installed: dict) -> None:
-        expected = {name: p['version'] for name, p in self.packages.items()}
-        observed = {name: p['version'] for name, p in installed.items()}
-        for name in self.replaced_names:
-            expected[name] = observed[name]  # Their versions come from the exports.
-        if expected != observed:
-            raise RuntimeError(f'Dependency set changed: baseline={expected!r}, built={observed!r}')
-
-
-@dataclass(frozen=True)
 class RuntimeBuild:
     toad: GitExport
     core: GitExport
@@ -348,7 +297,6 @@ class RuntimeBuild:
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
         self.runtimes.mkdir(parents=True, exist_ok=True)
-        dependencies = DependencySet(read_inventory(self.baseline / 'bin/python'), (self.toad, self.core))
         toad_commit, core_commit = self.toad.commit, self.core.commit
         manifest = subprocess.check_output([
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'
@@ -362,17 +310,23 @@ class RuntimeBuild:
             toad_wheel = self.toad.wheel(toad_commit, exports, cache)
             core_wheel = self.core.wheel(core_commit, exports, cache)
             requirements = exports / 'requirements.txt'
-            requirements.write_text('\n'.join(dependencies.requirements()) + '\n')
+            run(
+                'uv', 'export', '--frozen', '--no-dev', '--no-header', '--no-annotate',
+                '--no-emit-package', self.toad.package_name,
+                '--no-emit-package', self.core.package_name,
+                '--output-file', requirements,
+                cwd=exports / self.toad.label,
+            )
             # Atomic acquisition: an existing/borrowed prefix never enters cleanup.
             destination.mkdir()
             cleanup.callback(shutil.rmtree, destination)
             run('uv', 'venv', '--allow-existing', '--python', (self.baseline / 'bin/python').resolve(), destination)
             python = destination / 'bin/python'
-            # Exact baseline dependencies are deliberate; pip check rejects skew.
+            # The clean Toad lock owns the complete dependency set; the two reviewed
+            # source exports replace only their own packages.
             run('uv', 'pip', 'install', '--python', python, '--no-deps', '-r', requirements, toad_wheel, core_wheel)
             run('uv', 'pip', 'check', '--python', python)
             installed = read_inventory(python)
-            dependencies.verify(installed)
             # Locate through Core, not an assumed interpreter/version layout.
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
