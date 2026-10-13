@@ -70,51 +70,23 @@ def verify_route() -> dict:
 
 def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
     """Install before App startup, or ask an already-running App immediately."""
+    from functools import partial
+    from textual._context import NoActiveAppError
     from performance.frame_meter import _running_app
-
-    def schedule(app) -> None:
-        from functools import partial
-        if app._loop is None:
-            raise RuntimeError("App is not running")
-        app._loop.call_soon_threadsafe(partial(
-            app.run_worker,
-            SavedThreadObservation(app, pid, thread, output).wait(),
-            group='saved-thread-observation',
-        ))
-
-    try:
-        app = _running_app(pid)
-        schedule(app)
-        return
-    except RuntimeError as error:
-        if str(error) not in ("No application context", "App is not running"):
-            raise
-
     from toad.application_lifetime import ApplicationLifetime
 
-    start = ApplicationLifetime.start
-
-    async def observed_start(lifetime) -> None:
-        ApplicationLifetime.start = start
-        lifetime.app.run_worker(
-            SavedThreadObservation(lifetime.app, pid, thread, output).wait(),
+    def start(app) -> None:
+        app.run_worker(
+            SavedThreadObservation(app, pid, thread, output).wait(),
             group='saved-thread-observation',
         )
-        await start(lifetime)
 
-    ApplicationLifetime.start = observed_start
-    # Startup can cross the first observation while this remote callback is
-    # importing. The patched owner covers later entry; the running App covers
-    # earlier entry. Restoring before scheduling prevents duplicate observers.
     try:
         app = _running_app(pid)
-    except RuntimeError as error:
-        if str(error) != "No application context":
-            raise
+    except NoActiveAppError:
+        ApplicationLifetime.observe_next_start(lambda lifetime: start(lifetime.app))
     else:
-        if app._loop is not None:
-            ApplicationLifetime.start = start
-            schedule(app)
+        app.schedule_from_thread(partial(start, app))
 
 
 class SavedThreadObservation:
@@ -128,7 +100,7 @@ class SavedThreadObservation:
         import traceback
         from agent_comms.mro_dispatch import MroDispatch, handles
         from performance.frame_meter import targets
-        from toad.core.events import AgentFail, SessionSelected, SessionSubtitleChanged
+        from toad.core.events import AgentFail, SessionAgentAttached, SessionSelected
         from toad.core.source_events import TranscriptCoverage
         from toad.screens.main import MainScreen
 
@@ -141,24 +113,24 @@ class SavedThreadObservation:
             def event(self, event, subscription) -> None:
                 self.dispatch_sync(event)
 
-            @handles(SessionSelected, SessionSubtitleChanged)
+            @handles(SessionSelected, SessionAgentAttached)
             def selected(self, event=None) -> None:
                 source = observation.app.selected_session
                 if (not isinstance(source, MainScreen)
-                        or source._agent_session_id != observation.thread):
+                        or source.agent_session_id != observation.thread):
                     return
                 transcript = source.presentation.transcript
                 if self.transcript is not transcript:
                     self.transcript = transcript
-                    observation.custody.enter_context(transcript.events.subscribe(self.event))
+                    observation.subscriptions.enter_context(transcript.events.subscribe(self.event))
                     conversation = source.presentation.widget
                     if conversation is not None:
-                        observation.custody.enter_context(
+                        observation.subscriptions.enter_context(
                             conversation.core_publications.subscribe(self.event))
-                agent = source.presentation.operational_agent
+                agent = source.attached_agent
                 if agent is not None and self.agent is not agent:
                     self.agent = agent
-                    observation.custody.enter_context(agent.events.subscribe(self.event))
+                    observation.subscriptions.enter_context(agent.events.subscribe(self.event))
                     if failure := agent.session.disposition.current_failure():
                         self.failed(failure)
                 self.covered()
@@ -167,7 +139,7 @@ class SavedThreadObservation:
             def covered(self, event=None) -> None:
                 source = observation.app.selected_session
                 if (not observation.completed.done() and isinstance(source, MainScreen)
-                        and source._agent_session_id == observation.thread
+                        and source.agent_session_id == observation.thread
                         and source.presentation.transcript.reports_coverage):
                     targets(expected_pid=observation.pid, output=observation.output)
                     observation.completed.set_result(None)
@@ -182,9 +154,9 @@ class SavedThreadObservation:
 
         self.completed = asyncio.get_running_loop().create_future()
         try:
-            with ExitStack() as self.custody:
+            with ExitStack() as self.subscriptions:
                 events = Events()
-                self.custody.enter_context(self.app.events.subscribe(events.event))
+                self.subscriptions.enter_context(self.app.events.subscribe(events.event))
                 events.selected()
                 await self.completed
         except BaseException:
@@ -219,8 +191,7 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
                 remote = output / f'capture-{attempt}.py'
                 status = output / f'capture-{attempt}.status'
                 remote.write_text(f'''import sys
-_ready = (hasattr(sys.modules.get("asyncio"), "all_tasks")
-          and hasattr(sys.modules.get("pathlib"), "PurePosixPath")
+_ready = (hasattr(sys.modules.get("pathlib"), "PurePosixPath")
           and "textual.app" in sys.modules
           and "toad.application_lifetime" in sys.modules)
 if not _ready:

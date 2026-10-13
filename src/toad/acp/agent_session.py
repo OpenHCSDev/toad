@@ -142,20 +142,25 @@ class AgentSession:
         if error is not None:
             self.agent.log(f"[error] Session retirement failed: {error}")
 
-    def _record_failure(self, event: AgentFail, state: type[FailedSessionDisposition]) -> None:
+    def record_failure(
+        self,
+        event: AgentFail,
+        state: type[FailedSessionDisposition] = FailedSessionDisposition,
+    ) -> None:
+        """Retain and publish every terminal failure through the session owner."""
         self.close()
         self.failed()
         self.disposition = state(event)
         self.agent.events.publish(event)
 
     def session_failed(self, failure):
-        self._record_failure(
+        self.record_failure(
             LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path),
             RefusedSessionDisposition,
         )
 
     def startup_failed(self, details):
-        self._record_failure(
+        self.record_failure(
             LogAgentFail("ACP session startup failed", details=details,
                          log_path=self.agent.presentation.log_path),
             FailedSessionDisposition,
@@ -222,13 +227,10 @@ class AgentSession:
                 await self.initialize()
                 if self.agent.controller.session.bound:
                     if not self.supports_load:
-                        self.agent.events.publish(
-                            UnsupportedResumeAgentFail(
-                                "Resume not supported",
-                                f"{self.agent.definition.name} does not currently support resuming sessions.",
-                            )
-                        )
-                        self.settled.set()
+                        self.record_failure(UnsupportedResumeAgentFail(
+                            "Resume not supported",
+                            f"{self.agent.definition.name} does not currently support resuming sessions.",
+                        ))
                         return
                     await self.load()
                     await self.touch()

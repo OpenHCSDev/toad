@@ -173,6 +173,11 @@ class SessionSubtitleChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
+class SessionAgentAttached(CoreEvent):
+    """The selected session's operational agent is now attached."""
+
+
+@dataclass(frozen=True)
 class SessionPathChanged(CoreEvent):
     path: str
 

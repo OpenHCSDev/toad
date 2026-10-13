@@ -6,7 +6,7 @@ from functools import partial
 from importlib import import_module
 import platform
 from time import monotonic
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, ClassVar
 
 from toad.version import VersionMonitor
 
@@ -54,8 +54,22 @@ class UsageReports:
             return
 
 
+class ApplicationStartupObserverAlreadyInstalled(RuntimeError):
+    """Only one external observer may await the next application startup."""
+
+
 class ApplicationLifetime:
     """A confirmed quit and explicit quit share the same save-after-blur path."""
+
+    _startup_observer: ClassVar[Callable[[ApplicationLifetime], None] | None] = None
+
+    @classmethod
+    def observe_next_start(cls, observer: Callable[[ApplicationLifetime], None]) -> None:
+        """Install the sole one-shot observer for the next owned startup."""
+        if cls._startup_observer is not None:
+            raise ApplicationStartupObserverAlreadyInstalled(
+                "An application startup observer is already installed")
+        cls._startup_observer = observer
 
     @staticmethod
     def set_process_title(title: str) -> None:
@@ -73,6 +87,9 @@ class ApplicationLifetime:
         self.version = VersionMonitor()
 
     async def start(self) -> None:
+        observer, type(self)._startup_observer = type(self)._startup_observer, None
+        if observer is not None:
+            observer(self)
         app = self.app
         if app.saved_settings.ensure_installation():
             app.call_later(self.usage.publish, "toad-install")

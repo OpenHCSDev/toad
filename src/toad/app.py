@@ -15,7 +15,7 @@ import os
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
-from typing import TYPE_CHECKING, TypeVar, cast
+from typing import TYPE_CHECKING, Callable, TypeVar, cast
 from weakref import WeakKeyDictionary
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
@@ -241,6 +241,10 @@ class HeapFrozen:
 
     def history_displayed(self, app: ToadApp) -> None:
         pass
+
+
+class ApplicationNotRunningError(RuntimeError):
+    """The application has no event loop to accept cross-thread work."""
 
 
 class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
@@ -581,6 +585,18 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
             # Source replacement or deletion is resolved by the next snapshot.
             return
 
+
+    def schedule_from_thread(self, callback: Callable[[], object]) -> None:
+        """Schedule work with this App's context from outside its event loop."""
+        loop = self._loop
+        if loop is None:
+            raise ApplicationNotRunningError("App is not running")
+
+        def run() -> None:
+            with self._context():
+                callback()
+
+        loop.call_soon_threadsafe(run)
 
     async def on_mount(self) -> None:
         self.coordination_access.start()
