@@ -44,7 +44,9 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     """A captured output value; a case owns rendering and preparation hooks."""
 
     available = True
-    has_saved_details = False
+
+    def has_saved_details(self) -> bool:
+        return False
 
     def admit(self) -> ToolOutputPart:
         """Borrow immutable source; mutable preparation belongs to its view."""
@@ -81,7 +83,8 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
 class CommittedToolOutputPart(ToolOutputPart):
     """Static output owns saved tool details; live-only output does not."""
 
-    has_saved_details = True
+    def has_saved_details(self) -> bool:
+        return self.available
 
     @abstractmethod
     def line_blocks(self) -> tuple[LineBlock, ...]: ...
