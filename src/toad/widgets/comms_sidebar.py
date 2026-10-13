@@ -469,7 +469,7 @@ class SidebarModelView(CoreEventReceiver):
         """Reconcile everything with the model once this view shows it again."""
         shown = self.model is not None and self.accepts_observation()
         self.app.coordination_access.show_sidebar(self, shown)
-        if shown and self.stale and self.model.snapshot is not None:
+        if shown and self.stale:
             self.stale = False
             self.sync(channels=None, threads=None, reorder=True)
 
