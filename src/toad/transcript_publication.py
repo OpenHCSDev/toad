@@ -518,6 +518,8 @@ class TranscriptPresentation:
         self.displayed_cursor: TranscriptCursor | None = None
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
+        from toad.core.events import CoreEventStream
+        self.events = CoreEventStream(self)
 
     @property
     def view(self) -> Conversation | None:
@@ -829,6 +831,7 @@ class TranscriptPresentation:
             and history.is_attached
             and history.parent is contents
         ):
+            self.events.publish(coverage)
             candidates = retirement_candidates(
                 contents.children,
                 CommitEvidence(

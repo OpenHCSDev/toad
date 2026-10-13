@@ -68,27 +68,58 @@ def verify_route() -> dict:
     return FieldCodec.encode(route)
 
 
-def observe_saved_thread(pid: int, output: str) -> None:
-    """Observe the real App's paint, not remote_exec's empty context."""
-    from performance.frame_meter import targets
-    from textual.app import App
+def observe_saved_thread(pid: int, thread: str, output: str) -> None:
+    """Ask the running App's source now, then await its original publications."""
+    import asyncio
+    from agent_comms.mro_dispatch import MroDispatch, handles
+    from performance.frame_meter import _running_app, targets
+    from toad.core.events import AgentFail, SessionSelected
+    from toad.core.source_events import TranscriptCoverage
+    from toad.screens.main import MainScreen
 
-    paint = App._display
+    app = _running_app(pid)
 
-    def observe(app, screen, renderable):
-        App._display = paint  # One observation on our own fresh App.
-        paint(app, screen, renderable)
+    class Observation(MroDispatch):
+        async def wait(self) -> None:
+            self.completed = asyncio.get_running_loop().create_future()
+            with ExitStack() as self.custody:
+                self.custody.enter_context(app.events.subscribe(self.event))
+                self.selected()
+                await self.completed
 
-        def capture_ready() -> None:
-            presentation = app.selected_session.presentation
-            if not presentation.transcript.reports_coverage:
-                app.set_timer(0.1, capture_ready)
+        def event(self, event, subscription) -> None:
+            self.dispatch_sync(event)
+
+        @handles(SessionSelected)
+        def selected(self, event=None) -> None:
+            source = app.selected_session
+            if not isinstance(source, MainScreen) or source._session_thread != thread:
                 return
-            targets(expected_pid=pid, output=output)
+            transcript = source.presentation.transcript
+            self.custody.enter_context(transcript.events.subscribe(self.event))
+            agent = source.presentation.operational_agent
+            if agent is not None:
+                self.custody.enter_context(agent.events.subscribe(self.event))
+            self.covered()
 
-        app.call_after_refresh(capture_ready)
+        @handles(TranscriptCoverage)
+        def covered(self, event=None) -> None:
+            source = app.selected_session
+            if (not self.completed.done() and isinstance(source, MainScreen)
+                    and source._session_thread == thread
+                    and source.presentation.transcript.reports_coverage):
+                targets(expected_pid=pid, output=output)
+                self.completed.set_result(None)
 
-    App._display = observe
+        @handles(AgentFail)
+        def failed(self, event) -> None:
+            if self.completed.done():
+                return
+            Path(output).write_text(json.dumps({'error': f'{event.message}: {event.details}'}))
+            self.completed.set_result(None)
+
+    # The App owns this operation and its callback context, independent of paint.
+    app.call_later(lambda: app.run_worker(Observation().wait(), group='saved-thread-observation'))
 
 
 def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
@@ -111,16 +142,19 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
                 time.sleep(0.1)
-            time.sleep(1)  # Allow the actual application's event loop to start.
             targets = output / 'targets.json'
             remote = output / 'capture.py'
-            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import observe_saved_thread\nobserve_saved_thread({children[0].pid}, {str(targets)!r})\n')
+            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import observe_saved_thread\nobserve_saved_thread({children[0].pid}, {thread!r}, {str(targets)!r})\n')
             sys.remote_exec(children[0].pid, str(remote))
             while not targets.exists():
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
                     raise RuntimeError(f'SavedThreadAcceptanceFailed: no completed session observation for {thread}; see {output}')
                 time.sleep(0.1)
+            observation = json.loads(targets.read_text())
+            if 'error' in observation:
+                subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
+                raise RuntimeError(f'SavedThreadAcceptanceFailed: {thread}: {observation["error"]}; see {output}')
             screenshot = output / 'saved-thread.png'
             subprocess.run(['import', '-window', window, str(screenshot)], env=env, check=True)
             return screenshot
