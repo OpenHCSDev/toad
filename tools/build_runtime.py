@@ -82,8 +82,8 @@ def observe_saved_thread(pid: int, thread: str, output: str) -> None:
     class Observation(MroDispatch):
         async def wait(self) -> None:
             self.completed = asyncio.get_running_loop().create_future()
-            with ExitStack() as self.custody:
-                self.custody.enter_context(app.events.subscribe(self.event))
+            with ExitStack() as self.subscriptions:
+                self.subscriptions.enter_context(app.events.subscribe(self.event))
                 self.selected()
                 await self.completed
 
@@ -96,10 +96,10 @@ def observe_saved_thread(pid: int, thread: str, output: str) -> None:
             if not isinstance(source, MainScreen) or source._session_thread != thread:
                 return
             transcript = source.presentation.transcript
-            self.custody.enter_context(transcript.events.subscribe(self.event))
+            self.subscriptions.enter_context(transcript.events.subscribe(self.event))
             agent = source.presentation.operational_agent
             if agent is not None:
-                self.custody.enter_context(agent.events.subscribe(self.event))
+                self.subscriptions.enter_context(agent.events.subscribe(self.event))
             self.covered()
 
         @handles(TranscriptCoverage)
