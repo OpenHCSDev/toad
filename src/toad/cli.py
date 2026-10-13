@@ -256,10 +256,16 @@ def replay(path: str) -> None:
     "--host",
     metavar="HOST",
     default="127.0.0.1",
-    help="Loopback address to listen on (127.0.0.1 or localhost).",
+    help="Address to listen on (default 127.0.0.1).",
+)
+@click.option(
+    "--allow-network",
+    is_flag=True,
+    default=False,
+    help="Allow a non-loopback host (LAN). The page gives full control over plain HTTP.",
 )
 @click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
-def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
+def serve(port: int, host: str, allow_network: bool, toad_args: tuple[str, ...]) -> None:
     """Serve a Toad command line in a web browser.
 
     Each browser tab runs `toad TOAD ARGS` as its own process, for example
@@ -271,7 +277,9 @@ def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
     from toad.web_server import ToadWebServer
 
     command = shlex.join([sys.executable, "-m", "toad", *toad_args])
-    server = ToadWebServer(command, host=host, port=port, title="Toad")
+    server = ToadWebServer(
+        command, host=host, port=port, title="Toad", allow_network=allow_network
+    )
     ApplicationLifetime.set_process_title("toad serve")
     server.serve()
 
