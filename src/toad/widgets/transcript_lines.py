@@ -15,6 +15,7 @@ import io
 from itertools import count
 from threading import local
 
+from rich.cells import cell_len, set_cell_size
 from rich.segment import Segment
 from rich.style import Style
 from textual.strip import Strip
@@ -82,7 +83,11 @@ def link_style(link: LineLink | None) -> Style:
 
 
 def _fit(text: str, width: int) -> str:
-    return text if len(text) <= width else text[: max(0, width - 1)] + "…"
+    """A header occupies one physical row, clipped in terminal cells."""
+    text = " ".join(_plain_lines(text))
+    if width <= 0:
+        return ""
+    return text if cell_len(text) <= width else set_cell_size(text, width - 1) + "…"
 
 
 def _text_width(block: Body, width: int) -> int:
@@ -301,13 +306,13 @@ class RichLineRenderer(MroDispatch):
         for span in spans:
             # A title longer than the rule ends in an ellipsis; what follows is not drawn.
             text = _fit(span.text, room)
-            room -= len(text)
+            room -= cell_len(text)
             title.append(Segment(text, (rule if span.link is None else self.theme.style(span.role))
                                  + bold + link_style(span.link)))
-            if text != span.text:
+            if room == 0:
                 break
         title.append(Segment(" ", rule))
-        length = sum(len(segment.text) for segment in title)
+        length = sum(segment.cell_length for segment in title)
         left = max(0, (self.width - length) // 2)
         self.output.append((Segment("─" * left, rule), *title,
                             Segment("─" * max(0, self.width - left - length), rule)))
