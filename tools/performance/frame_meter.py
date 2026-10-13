@@ -39,7 +39,8 @@ def _running_app(expected_pid):
     if os.getpid() != expected_pid:
         raise RuntimeError("Unexpected capture process")
     app = active_app.get(None)
-    for task in () if app is not None else asyncio.all_tasks():
+    loop = None if app is not None else asyncio.get_event_loop()
+    for task in () if app is not None else asyncio.all_tasks(loop):
         if (app := task.get_context().get(active_app, None)) is not None:
             break
     if app is None:

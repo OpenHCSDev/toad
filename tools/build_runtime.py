@@ -73,16 +73,21 @@ def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
     from performance.frame_meter import _running_app
 
     def schedule(app) -> None:
-        app.call_later(lambda: app.run_worker(
+        from functools import partial
+        if app._loop is None:
+            raise RuntimeError("App is not running")
+        app._loop.call_soon_threadsafe(partial(
+            app.run_worker,
             SavedThreadObservation(app, pid, thread, output).wait(),
             group='saved-thread-observation',
         ))
 
     try:
-        schedule(_running_app(pid))
+        app = _running_app(pid)
+        schedule(app)
         return
     except RuntimeError as error:
-        if str(error) != "No application context":
+        if str(error) not in ("No application context", "App is not running"):
             raise
 
     from toad.application_lifetime import ApplicationLifetime
@@ -107,8 +112,9 @@ def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
         if str(error) != "No application context":
             raise
     else:
-        ApplicationLifetime.start = start
-        schedule(app)
+        if app._loop is not None:
+            ApplicationLifetime.start = start
+            schedule(app)
 
 
 class SavedThreadObservation:
@@ -135,7 +141,8 @@ class SavedThreadObservation:
             @handles(SessionSelected)
             def selected(self, event=None) -> None:
                 source = observation.app.selected_session
-                if not isinstance(source, MainScreen) or source._session_thread != observation.thread:
+                if (not isinstance(source, MainScreen)
+                        or source._agent_session_id != observation.thread):
                     return
                 transcript = source.presentation.transcript
                 observation.custody.enter_context(transcript.events.subscribe(self.event))
@@ -148,7 +155,7 @@ class SavedThreadObservation:
             def covered(self, event=None) -> None:
                 source = observation.app.selected_session
                 if (not observation.completed.done() and isinstance(source, MainScreen)
-                        and source._session_thread == observation.thread
+                        and source._agent_session_id == observation.thread
                         and source.presentation.transcript.reports_coverage):
                     targets(expected_pid=observation.pid, output=observation.output)
                     observation.completed.set_result(None)
@@ -188,26 +195,52 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
         try:
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
-            def toad_child():
-                return [child for child in process.children()
-                        if any(part.endswith('/bin/toad') for part in child.cmdline())]
-            while not (children := toad_child()):
+            while not (children := [child for child in process.children()
+                                    if child.name() == 'toad']):
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
                 time.sleep(0.1)
             targets = output / 'targets.json'
-            remote = output / 'capture.py'
-            remote.write_text(f'import sys\nsys.path.insert(0, {str(Path(__file__).resolve().parent)!r})\nfrom build_runtime import install_saved_thread_observer\ninstall_saved_thread_observer({children[0].pid}, {thread!r}, {str(targets)!r})\n')
+            attempt = 0
             while True:
+                attempt += 1
+                remote = output / f'capture-{attempt}.py'
+                status = output / f'capture-{attempt}.status'
+                remote.write_text(f'''import sys
+_ready = (hasattr(sys.modules.get("asyncio"), "all_tasks")
+          and hasattr(sys.modules.get("pathlib"), "PurePosixPath")
+          and "textual.app" in sys.modules
+          and "toad.application_lifetime" in sys.modules)
+if not _ready:
+    open({str(status)!r}, "w").write("not-ready")
+else:
+    import json, traceback
+    try:
+        sys.path.insert(0, {str(Path(__file__).resolve().parent)!r})
+        from build_runtime import install_saved_thread_observer
+        install_saved_thread_observer({children[0].pid}, {thread!r}, {str(targets)!r})
+    except BaseException:
+        open({str(targets)!r}, "w").write(json.dumps({{"error": traceback.format_exc()}}))
+    open({str(status)!r}, "w").write("installed")
+''')
                 try:
                     sys.remote_exec(children[0].pid, str(remote))
-                    break
                 except RuntimeError as error:
-                    if str(error) != "Can't find the main thread in the remote process":
+                    if str(error) not in (
+                        "Can't find the main thread in the remote process",
+                        "Can't find a running interpreter in the remote process",
+                    ):
                         raise
-                    if terminal.poll() is not None or time.monotonic() >= deadline:
-                        raise RuntimeError(f'SavedThreadOpenFailed: no Python main thread for {thread}; see {output}') from error
-                    time.sleep(0.1)
+                else:
+                    while not status.exists():
+                        if terminal.poll() is not None or time.monotonic() >= deadline:
+                            raise RuntimeError(f'SavedThreadOpenFailed: observer injection did not settle for {thread}; see {output}')
+                        time.sleep(0.1)
+                    if status.read_text() == 'installed':
+                        break
+                if terminal.poll() is not None or time.monotonic() >= deadline:
+                    raise RuntimeError(f'SavedThreadOpenFailed: no ready Python main thread for {thread}; see {output}')
+                time.sleep(0.1)
             remaining = max(0.1, deadline - time.monotonic())
             window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=remaining).strip()
             while not targets.exists():
