@@ -101,7 +101,7 @@ class CommittedToolOutputPart(SavedToolDetails, ToolOutputPart):
 
 
 @dataclass(frozen=True)
-class TextToolOutputPart(CommittedToolOutputPart):
+class TextToolOutputPart(LiveToolDetails, ToolOutputPart):
     text: str
 
     def permission_preview(self) -> ToolOutputPart:
@@ -139,7 +139,7 @@ class LiteralTextToolOutputPart(TextToolOutputPart):
     """The remaining text is literal; member order is never priority."""
 
 
-class RetainedTextToolOutputPart(TextToolOutputPart):
+class RetainedTextToolOutputPart(SavedToolDetails, TextToolOutputPart):
     @property
     @abstractmethod
     def render_source(self) -> NativeContentSource: ...
@@ -179,7 +179,7 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
         return AnsiContentSource(self.text)
 
 
-class MarkdownToolOutputPart(SpecificTextToolOutputPart):
+class MarkdownToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (
@@ -194,7 +194,7 @@ class MarkdownToolOutputPart(SpecificTextToolOutputPart):
 
 
 @dataclass(frozen=True)
-class ReadToolOutputPart(SpecificTextToolOutputPart):
+class ReadToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
     path: str
 
     @classmethod
