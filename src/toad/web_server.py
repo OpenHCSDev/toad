@@ -25,11 +25,15 @@ class LocalBrowserEndpoint:
     def __post_init__(self) -> None:
         if not 1 <= self.port <= 65535:
             raise ValueError("Browser serving requires a valid port")
-        if self.host not in {"localhost", "127.0.0.1"} and not self.allow_network:
+        if self.requires_network_opt_in and not self.allow_network:
             raise ValueError(
                 "Browser serving requires a loopback host; pass --allow-network "
                 "to serve a LAN address over plain HTTP"
             )
+
+    @property
+    def requires_network_opt_in(self) -> bool:
+        return self.host not in {"localhost", "127.0.0.1"}
 
     @property
     def authority(self) -> str:
@@ -158,7 +162,6 @@ class ToadWebServer(Server):
             command, host=host, port=port, title=title, public_url=endpoint.url
         )
         self.authentication = LocalBrowserAuthentication(endpoint)
-        self.lan_warning = host not in {"localhost", "127.0.0.1"}
 
     def initialize_logging(self) -> None:
         super().initialize_logging()
@@ -168,7 +171,7 @@ class ToadWebServer(Server):
     async def on_startup(self, app: web.Application) -> None:
         self.console.print("Toad local browser (keep this URL private):")
         self.console.print(self.authentication.bootstrap_url)
-        if self.lan_warning:
+        if self.authentication.endpoint.requires_network_opt_in:
             self.console.print(
                 "WARNING: serving a non-loopback address. The page gives full "
                 "control of the agents over plain HTTP; the one-time token in "
