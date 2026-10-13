@@ -8,7 +8,7 @@ Nothing here imports a terminal library.
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, replace
 from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -20,14 +20,13 @@ from agent_comms.messages import Message
 from agent_comms.presentation import WireRevision
 
 from toad.conversation_kind import ConversationKind
-from toad.line_blocks import Body, Gap, LineBlock, MutedRole, NoticeRole, Spans, Summary, WorkingRole
+from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
-from toad.notification_status import NotificationStatus, UncheckedNotifications
 from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
-from toad.widgets.transcript_fragments import Shown, TranscriptFragment
+from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
 from toad.work_preparation import WorkKey
 
 if TYPE_CHECKING:
@@ -98,14 +97,6 @@ class WirePage:
     def unread(cls) -> WirePage:
         """What is drawn before the first read: nothing, up to sequence zero."""
         return cls((), None, AfterSequence(0), False, False, None)
-
-
-@dataclass(frozen=True)
-class MessageShown(Shown):
-    """What a reader chose or learned about one drawn message."""
-
-    style: WireMessageStyle
-    status: NotificationStatus = field(default_factory=UncheckedNotifications)
 
 
 @dataclass(kw_only=True)
@@ -179,44 +170,26 @@ class MembershipFragment(WireFragment):
 
 
 @dataclass(kw_only=True)
-class MessageFragment(WireFragment):
+class MessageFragment(BusMessageFragment, WireFragment):
     """A sent message: its header, text and the state of its notifications."""
 
     outgoing: bool
-    checks_notifications = True
-    has_details = True
+
+    @property
+    def notification_references(self):
+        return self.message.notification_references()
 
     @cached_property
     def row(self) -> MessageRow:
         return MessageRow.of(self.message, outgoing=self.outgoing)
 
     @property
-    def block_menu(self):
-        return self.row.menu
-
-    @property
-    def clipboard_text(self):
-        return self.shown.style.clipboard(self.row)
-
-    @property
     def leading(self):
         message = self.message
         if not isinstance(message, HistoricalMessage):
-            return (Gap(), self.row.header)
+            return super().leading
         return (Gap(), Summary(f"History · {message.source.original_root} · @{message.sender} "
                                f"created {message.sender_created_at}"), self.row.header)
-
-    def text(self, shown):
-        return shown.style.body(self.row)
-
-    def trailing(self, shown):
-        status = shown.status
-        role = NoticeRole if status.unavailable else WorkingRole if status.working else MutedRole
-        summary = shown.summary(status.title, role)
-        if not shown.details_open:
-            return (summary,)
-        return (summary, Spans.from_lines(status.details, indent="  "))
-
 
 @dataclass(frozen=True, eq=False)
 class WireSource:
@@ -269,7 +242,7 @@ class WireSource:
             if len(kept) < len(page.messages):
                 page = replace(page, messages=kept, has_newer=False)
         evidence = page if self.kind.display_identity(page) is not None else None
-        shown = MessageShown(self.style)
+        shown = MessageShown(style=self.style)
         fragments = tuple(
             WireFragment.of(message, shown=shown, evidence=evidence,
                             **({} if message.membership is not None

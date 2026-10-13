@@ -984,6 +984,9 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:
         # The observed root can change; a foreign thread reads again.
         self.refresh_thread_status()
+        # Read/handling changes can leave source text unchanged. Ask the same
+        # publication owner to refresh both live bodies and saved message rows.
+        self.transcript.request_handling()
 
 
     @handles(AgentReady)
