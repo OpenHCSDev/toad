@@ -7,6 +7,7 @@ Native package verification belongs to Core's native_package module.
 from __future__ import annotations
 
 import argparse
+from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from email import message_from_bytes
@@ -14,6 +15,7 @@ import hashlib
 import importlib.metadata
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -134,6 +136,7 @@ class GitExport:
     repository: Path
     revision: str
     label: str
+    package_name: str
 
     @property
     def commit(self) -> str:
@@ -156,6 +159,15 @@ class GitExport:
         run('uv', 'build', '--wheel', '--out-dir', wheels, source)
         return self.only_wheel(wheels)
 
+    def verify_wheel(self, wheel: Path, installed: dict) -> None:
+        # Hatch owns static/dynamic versions; this export owns its package identity.
+        with zipfile.ZipFile(wheel) as archive:
+            metadata_path, = (name for name in archive.namelist() if name.endswith('.dist-info/METADATA'))
+            metadata = message_from_bytes(archive.read(metadata_path))
+        name = metadata['Name'].lower().replace('_', '-')
+        if name != self.package_name or installed[name]['version'] != metadata['Version']:
+            raise RuntimeError(f'{self.package_name} differs from its clean-export wheel')
+
     @staticmethod
     def only_wheel(directory: Path) -> Path:
         wheel, = directory.glob('*.whl')
@@ -165,12 +177,18 @@ class GitExport:
 @dataclass(frozen=True)
 class DependencySet:
     packages: dict
+    replacements: tuple[GitExport, ...]
+
+    @property
+    def replaced_names(self) -> frozenset[str]:
+        return frozenset(export.package_name for export in self.replacements)
 
     def requirements(self) -> list[str]:
         requirements = []
+        replaced = self.replaced_names
         for name, package in sorted(self.packages.items()):
-            if name in ('agent-comms', 'batrachian-toad'):
-                continue  # These are the two clean exports being replaced.
+            if name in replaced:
+                continue
             source = package['source']
             if source is None:
                 requirements.append(f"{name}=={package['version']}")
@@ -198,7 +216,7 @@ class DependencySet:
     def verify(self, installed: dict) -> None:
         expected = {name: p['version'] for name, p in self.packages.items()}
         observed = {name: p['version'] for name, p in installed.items()}
-        for name in ('agent-comms', 'batrachian-toad'):
+        for name in self.replaced_names:
             expected[name] = observed[name]  # Their versions come from the exports.
         if expected != observed:
             raise RuntimeError(f'Dependency set changed: baseline={expected!r}, built={observed!r}')
@@ -217,7 +235,7 @@ class RuntimeBuild:
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
         self.runtimes.mkdir(parents=True, exist_ok=True)
-        dependencies = DependencySet(read_inventory(self.baseline / 'bin/python'))
+        dependencies = DependencySet(read_inventory(self.baseline / 'bin/python'), (self.toad, self.core))
         toad_commit, core_commit = self.toad.commit, self.core.commit
         manifest = subprocess.check_output([
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'
@@ -225,16 +243,17 @@ class RuntimeBuild:
         native_pin = hashlib.sha256(manifest).hexdigest()
         stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
         destination = self.runtimes / f'toad-{toad_commit[:9]}-core-{core_commit[:9]}-native-{native_pin[:16]}-{stamp}'
-        if destination.exists():
-            raise FileExistsError(f'Refusing to change an existing runtime: {destination}')
         cache = self.scratch / 'wheels'
-        with tempfile.TemporaryDirectory(prefix='export-', dir=self.scratch) as temporary:
+        with tempfile.TemporaryDirectory(prefix='export-', dir=self.scratch) as temporary, ExitStack() as cleanup:
             exports = Path(temporary)
             toad_wheel = self.toad.wheel(toad_commit, exports, cache)
             core_wheel = self.core.wheel(core_commit, exports, cache)
             requirements = exports / 'requirements.txt'
             requirements.write_text('\n'.join(dependencies.requirements()) + '\n')
-            run('uv', 'venv', '--python', (self.baseline / 'bin/python').resolve(), destination)
+            # Atomic acquisition: an existing/borrowed prefix never enters cleanup.
+            destination.mkdir()
+            cleanup.callback(shutil.rmtree, destination)
+            run('uv', 'venv', '--allow-existing', '--python', (self.baseline / 'bin/python').resolve(), destination)
             python = destination / 'bin/python'
             # Exact baseline dependencies are deliberate; pip check rejects skew.
             run('uv', 'pip', 'install', '--python', python, '--no-deps', '-r', requirements, toad_wheel, core_wheel)
@@ -248,14 +267,8 @@ class RuntimeBuild:
             route = json.loads(run(python, Path(__file__).resolve(), '--verify-route'))
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
-            # Hatch owns static and dynamic versions; consume its wheel metadata.
-            for wheel in (toad_wheel, core_wheel):
-                with zipfile.ZipFile(wheel) as archive:
-                    metadata_path, = (name for name in archive.namelist() if name.endswith('.dist-info/METADATA'))
-                    metadata = message_from_bytes(archive.read(metadata_path))
-                name = metadata['Name'].lower().replace('_', '-')
-                if installed[name]['version'] != metadata['Version']:
-                    raise RuntimeError(f'{name} version differs from its clean-export wheel')
+            for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
+                export.verify_wheel(wheel, installed)
             record = {
                 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
@@ -264,6 +277,7 @@ class RuntimeBuild:
             }
             record['screenshot'] = str(open_saved_thread(destination, self.thread, self.display, self.scratch / f'acceptance-{destination.name}'))
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+            cleanup.pop_all()  # The completed immutable runtime leaves build custody.
         return destination
 
 
@@ -280,8 +294,8 @@ def main() -> None:
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
     build = RuntimeBuild(
-        GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad'),
-        GitExport(args.core_repo.resolve(), args.core_ref, 'core'),
+        GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
+        GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
         args.baseline.resolve(strict=True),
         args.scratch.resolve(), args.runtimes.resolve(), args.thread, args.display,
     )
