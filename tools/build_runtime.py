@@ -72,29 +72,43 @@ def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
     """Install before App startup, or ask an already-running App immediately."""
     from performance.frame_meter import _running_app
 
+    def schedule(app) -> None:
+        app.call_later(lambda: app.run_worker(
+            SavedThreadObservation(app, pid, thread, output).wait(),
+            group='saved-thread-observation',
+        ))
+
+    try:
+        schedule(_running_app(pid))
+        return
+    except RuntimeError as error:
+        if str(error) != "No application context":
+            raise
+
+    from toad.application_lifetime import ApplicationLifetime
+
+    start = ApplicationLifetime.start
+
+    async def observed_start(lifetime) -> None:
+        ApplicationLifetime.start = start
+        lifetime.app.run_worker(
+            SavedThreadObservation(lifetime.app, pid, thread, output).wait(),
+            group='saved-thread-observation',
+        )
+        await start(lifetime)
+
+    ApplicationLifetime.start = observed_start
+    # Startup can cross the first observation while this remote callback is
+    # importing. The patched owner covers later entry; the running App covers
+    # earlier entry. Restoring before scheduling prevents duplicate observers.
     try:
         app = _running_app(pid)
     except RuntimeError as error:
         if str(error) != "No application context":
             raise
-        from toad.application_lifetime import ApplicationLifetime
-
-        start = ApplicationLifetime.start
-
-        async def observed_start(lifetime) -> None:
-            ApplicationLifetime.start = start
-            lifetime.app.run_worker(
-                SavedThreadObservation(lifetime.app, pid, thread, output).wait(),
-                group='saved-thread-observation',
-            )
-            await start(lifetime)
-
-        ApplicationLifetime.start = observed_start
     else:
-        app.call_later(lambda: app.run_worker(
-            SavedThreadObservation(app, pid, thread, output).wait(),
-            group='saved-thread-observation',
-        ))
+        ApplicationLifetime.start = start
+        schedule(app)
 
 
 class SavedThreadObservation:
@@ -105,6 +119,7 @@ class SavedThreadObservation:
 
     async def wait(self) -> None:
         import asyncio
+        import traceback
         from agent_comms.mro_dispatch import MroDispatch, handles
         from performance.frame_meter import targets
         from toad.core.events import AgentFail, SessionSelected
@@ -147,11 +162,15 @@ class SavedThreadObservation:
                 observation.completed.set_result(None)
 
         self.completed = asyncio.get_running_loop().create_future()
-        with ExitStack() as self.custody:
-            events = Events()
-            self.custody.enter_context(self.app.events.subscribe(events.event))
-            events.selected()
-            await self.completed
+        try:
+            with ExitStack() as self.custody:
+                events = Events()
+                self.custody.enter_context(self.app.events.subscribe(events.event))
+                events.selected()
+                await self.completed
+        except BaseException:
+            Path(self.output).write_text(json.dumps({'error': traceback.format_exc()}))
+            raise
 
 
 def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
