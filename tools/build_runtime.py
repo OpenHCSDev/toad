@@ -190,8 +190,8 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
                 status = output / f'capture-{attempt}.status'
                 remote.write_text(f'''import sys
 _ready = (hasattr(sys.modules.get("pathlib"), "PurePosixPath")
-          and "textual.app" in sys.modules
-          and "toad.application_lifetime" in sys.modules)
+          and hasattr(sys.modules.get("textual.app"), "App")
+          and hasattr(sys.modules.get("toad.application_lifetime"), "ApplicationLifetime"))
 if not _ready:
     open({str(status)!r}, "w").write("not-ready")
 else:
