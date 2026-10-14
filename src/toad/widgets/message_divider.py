@@ -17,7 +17,7 @@ from textual.widget import Widget
 
 from ui_theme.effects import NEW_MESSAGE
 
-from toad.line_blocks import AgentRole, Divider
+from toad.line_blocks import Divider, LineBlock
 from toad.textual_colours import Animated
 from toad.message_rows import MessageRow
 from toad.widgets.transcript_lines import (
@@ -70,8 +70,48 @@ class UnknownMessageClock(MessageClock):
     timestamp = None
 
 
-class MessageDivider(LinkedRows, Animated, BlockContent, Widget):
-    """The rule above a live message: the same `Divider` block saved history draws, drawn the same way.
+class SingleLineBlock(LinkedRows, BlockContent, Widget):
+    """One semantic line block, drawn exactly as transcript history draws it."""
+
+    DEFAULT_CSS = "SingleLineBlock { width: 1fr; height: 1; }"
+
+    def __init__(self, block: LineBlock) -> None:
+        super().__init__()
+        self.block = block
+        self._link_place = link_place()
+        self._lines: tuple[LineTheme, PreparedLines] | None = None
+
+    @property
+    def line_theme(self) -> LineTheme:
+        return self.app.colours.line_theme
+
+    def update_block(self, block: LineBlock) -> None:
+        if block != self.block:
+            self.block, self._lines = block, None
+            self.refresh()
+
+    def _drawn(self, theme: LineTheme, width: int) -> PreparedLines:
+        return PreparedLines(width, RichLineRenderer(theme, width).rows((self.block,)))
+
+    def render_line(self, y: int) -> Strip:
+        width = self.size.width
+        if y or not width:
+            return self.blank_row(width)
+        theme = self.line_theme
+        if self._lines is None or self._lines[0] != theme or self._lines[1].width != width:
+            self._lines = theme, self._drawn(theme, width)
+        return self.on_background(self._lines[1].strips_at(self._link_place)[0])
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        return selection.extract(self.block.selection_text), "\n"
+
+    @height_dependency(INDEPENDENT_HEIGHT)
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        return 1
+
+
+class MessageDivider(Animated, SingleLineBlock):
+    """The rule above a live message: the same `Divider` block saved history draws.
 
     A message that has just arrived fades in from the accent colour.
     """
@@ -85,12 +125,19 @@ class MessageDivider(LinkedRows, Animated, BlockContent, Widget):
     """
 
     def __init__(self, block: Divider, *, clock: MessageClock = LiveMessageClock()) -> None:
-        super().__init__()
-        self.block = replace(block, timestamp=clock.timestamp)
+        super().__init__(replace(block, timestamp=clock.timestamp))
         self.fresh = clock.fresh
         self.tooltip = clock.display()[1]
-        self._link_place = link_place()
-        self._lines: tuple[LineTheme, PreparedLines] | None = None
+
+    @property
+    def line_theme(self) -> LineTheme:
+        theme = self.app.colours.line_theme
+        animation = self.animation
+        if animation is None:
+            return theme
+        mix = animation.frame()
+        colour = self.app.colours.mixed(mix.start, mix.end, mix.amount)
+        return theme.with_colour(self.block.role.colour, Style(color=colour.rich_color))
 
     def on_mount(self) -> None:
         if self.fresh:
@@ -101,32 +148,6 @@ class MessageDivider(LinkedRows, Animated, BlockContent, Widget):
     def on_unmount(self) -> None:
         self.stop_effect()
 
-    def _drawn(self, theme: LineTheme, width: int) -> PreparedLines:
-        return PreparedLines(width, RichLineRenderer(theme, width).rows((self.block,)))
-
-    def render_line(self, y: int) -> Strip:
-        width = self.size.width
-        if y or not width:
-            return self.blank_row(width)
-        theme = self.app.colours.line_theme
-        animation = self.animation
-        if animation is not None:
-            mix = animation.frame()
-            colour = self.app.colours.mixed(mix.start, mix.end, mix.amount)
-            lines = self._drawn(theme.with_colour(self.block.role.colour, Style(color=colour.rich_color)), width)
-        else:
-            if self._lines is None or self._lines[0] is not theme or self._lines[1].width != width:
-                self._lines = theme, self._drawn(theme, width)
-            lines = self._lines[1]
-        return self.on_background(lines.strips_at(self._link_place)[0])
-
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        return selection.extract(self.block.label), "\n"
-
-    @height_dependency(INDEPENDENT_HEIGHT)
-    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
-        return 1
-
 
 class MessageRowDivider(MessageRowBlock, MessageDivider):
     """The rule above a live bus message: the cursor's menu on it opens the sender or the destination."""
@@ -136,13 +157,15 @@ class MessageRowDivider(MessageRowBlock, MessageDivider):
         self.message_row = row
 
 
-class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, MessageDivider):
-    """A decorative role boundary filtered with the activity that follows it."""
+class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, SingleLineBlock):
+    """The shared activity-group row, filtered with the activity that follows it."""
 
     ALLOW_SELECT = False
 
-    def __init__(self, category: type[MessageCategory], *, clock: MessageClock = LiveMessageClock()) -> None:
-        super().__init__(Divider.titled("Agent", AgentRole), clock=clock)
+    def __init__(self, category: type[MessageCategory]) -> None:
+        from toad.widgets.agent_activity import AgentActivityPresentation
+
+        super().__init__(AgentActivityPresentation.group[0])
         self._category = category
 
     @property

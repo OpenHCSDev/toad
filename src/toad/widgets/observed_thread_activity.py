@@ -77,8 +77,14 @@ class ThreadStatusOwner:
         """Consume the observed thread's presentation, delivered once per store change."""
 
     async def read_foreign_thread(self) -> ThreadPresentation | None:
-        """Read a foreign thread's presentation (its root is not the observed one)."""
-        raise NotImplementedError
+        """Read only the status scope this view declares, through the shared reader."""
+        scope = self.status_thread()
+        if scope is None:
+            return None
+        presentation = await self.app.coordination_access.transcripts.thread_presentation(*scope)
+        if self.status_thread() != scope:
+            raise ValueError("Thread status source changed during read")
+        return presentation
 
     def foreign_thread_read(self, presentation: ThreadPresentation | None) -> None:
         """Consume a foreign thread's presentation after its own read."""

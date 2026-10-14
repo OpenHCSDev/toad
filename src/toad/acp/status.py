@@ -7,6 +7,7 @@ from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, T
 from dataclasses import dataclass
 from acp.schema import ToolCall
 from toad.jsonrpc import value_schema
+from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
@@ -77,6 +78,19 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     boundary = False
     completed = False
     failed = False
+    summary_suffix = ''
+    summary_role = WorkingRole
+
+    @property
+    def title(self) -> str:
+        return self.call.title or 'Tool'
+
+    @property
+    def summary(self) -> Summary:
+        """The argument may clip; the outcome keeps its space and meaning."""
+        verb, separator, argument = self.title.partition(' ')
+        return Summary((Span(verb, ToolVerbRole), Span(separator + argument, ToolArgumentRole)),
+                       kept=(Span(self.summary_suffix, self.summary_role),))
 
     @classmethod
     def activity(cls, turns, output, title):
@@ -88,15 +102,21 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
 class PendingToolCallStatus(ToolCallStatus):
     busy = True
+    summary_suffix = ' ⌛'
 
 
 class InProgressToolCallStatus(ToolCallStatus):
     busy = True
+    summary_suffix = ' · running'
 
 
 class CompletedToolCallStatus(ToolCallStatus):
     boundary = completed = True
+    summary_suffix = ' ✔'
+    summary_role = SuccessRole
 
 
 class FailedToolCallStatus(ToolCallStatus):
     boundary = failed = True
+    summary_suffix = ' · failed'
+    summary_role = FailureRole

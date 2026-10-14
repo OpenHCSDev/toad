@@ -1,7 +1,6 @@
 """Bounded route discovery without accessing widgets from a reader thread."""
 
 from __future__ import annotations
-from toad.navigation_target import NavigationContext
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -15,6 +14,7 @@ from agent_comms.comms import Comms
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.thread_execution import ConversationPreparation
+from agent_comms.session_load import ExistingSessionLoadAdmission
 
 from toad.session_tracker import CommsViewKey
 from toad.conversation_kind import ConversationKind
@@ -74,38 +74,45 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     thread: Thread
     project: Path
 
-    attachable = False
-
-    @abstractmethod
-    async def open(self, opening: ThreadOpening) -> str: ...
-
-
-class ExternalThreadNavigation(ThreadNavigation):
-    async def open(self, opening: ThreadOpening) -> str:
-        from toad.navigation_target import DirectTarget
-
-        return await DirectTarget(self.thread.name).open(NavigationContext(
-            opening.navigator.app, opening.owner_mode, opening.request.project,
-            opening.origin.source._comms_thread))
-
-
-class StoppedThreadNavigation(ExternalThreadNavigation):
-    async def open(self, opening: ThreadOpening) -> str:
-        app = opening.navigator.app
-        app.notify(f"@{self.thread.name} is stopped; choose Start thread to resume it",
-                   title="Thread view")
-        return await super().open(opening)
-
-
-class NativeThreadNavigation(ThreadNavigation):
-    attachable = True
-
     async def open(self, opening: ThreadOpening) -> str:
         return await opening.navigator.mount(self, opening)
 
+    def screen(self, opening: ThreadOpening):
+        from toad.screens.main import MainScreen
+
+        screen = MainScreen(self.project, agent_session_id=self.thread.name)
+        screen.initial_coordination_root = self.root
+        screen._comms_thread = self.thread.name
+        return screen
+
+
+class ExternalThreadNavigation(ThreadNavigation):
+    def screen(self, opening: ThreadOpening):
+        from toad.session_presentation import MailboxSessionSources
+
+        screen = super().screen(opening)
+        screen.presentation.sources = MailboxSessionSources()
+        return screen
+
 
 @dataclass(frozen=True)
-class ExistingThreadNavigation(NativeThreadNavigation):
+class NativeThreadNavigation(ThreadNavigation):
+    admission: ExistingSessionLoadAdmission
+
+    def screen(self, opening: ThreadOpening):
+        from toad.screens.main import MainScreen
+
+        screen = MainScreen(self.project,
+                            opening.origin.source._agent or opening.navigator.app.agent_data,
+                            agent_session_id=self.thread.name)
+        screen.initial_coordination_root = self.root
+        screen._comms_thread = self.thread.name
+        screen.presentation.sources.load_admission = self.admission
+        return screen
+
+
+@dataclass(frozen=True)
+class ExistingThreadNavigation(ThreadNavigation):
     existing: OpenThread
 
     async def open(self, opening: ThreadOpening) -> str:
@@ -135,8 +142,13 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
         project = Path(thread.worktree)
         if not project.is_dir():
             project = self.project
+        existing = next((view for view in self.open_threads
+                         if view.root == self.root
+                         and snapshot.canonical_name(view.name) == thread.name), None)
+        if existing is not None:
+            return ExistingThreadNavigation(self.root, thread, project, existing)
         return thread.execution.prepare_conversation(
-            ThreadConversationPreparation(self.root, thread, project, snapshot, self.open_threads))
+            ThreadConversationPreparation(self.root, thread, project, snapshot))
 
 
 @dataclass(frozen=True)
@@ -145,20 +157,18 @@ class ThreadConversationPreparation(ConversationPreparation):
     thread: Thread
     project: Path
     snapshot: RegistrySnapshot
-    open_threads: tuple[OpenThread, ...]
 
     def external(self) -> ThreadNavigation:
         return ExternalThreadNavigation(self.root, self.thread, self.project)
 
     def native(self) -> ThreadNavigation:
-        existing = next((view for view in self.open_threads
-                         if view.root == self.root
-                         and self.snapshot.canonical_name(view.name) == self.thread.name), None)
-        if not self.snapshot.status(self.thread.name).active:
-            return StoppedThreadNavigation(self.root, self.thread, self.project)
-        if existing is not None:
-            return ExistingThreadNavigation(self.root, self.thread, self.project, existing)
-        return NativeThreadNavigation(self.root, self.thread, self.project)
+        from toad.owner_preparation import ExistingOwnerAdmission
+
+        binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
+        admission = ExistingOwnerAdmission.from_binding(binding)
+        if admission is None:
+            return ThreadNavigation(self.root, self.thread, self.project)
+        return NativeThreadNavigation(self.root, self.thread, self.project, admission)
 
 
 class ThreadOpening:

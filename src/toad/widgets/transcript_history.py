@@ -552,18 +552,14 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
     async def read_notifications(self, references):
         from toad.widgets.conversation import Conversation
 
-        agent = self.query_ancestor(Conversation).agent
-        if agent is None:
-            raise RuntimeError("No agent is attached to this message history")
-        return await agent.get_message_notifications(references)
+        return await self.query_ancestor(Conversation).transcript.get_message_notifications(references)
 
     async def _read_notifications(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         # Outcomes belong to original references, not a page generation or
         # its growing tail. The read binding fences the bus; visible membership
         # and this publisher's lifetime fence where its answer can be drawn.
-        while fragments:
-            if not self.can_draw_on_screen:
-                return
+        while fragments and self.can_draw_on_screen:
+            revision = self.app.coordination_access.revision
             references = tuple(dict.fromkeys(
                 reference for fragment in fragments for reference in fragment.notification_references))
             try:
@@ -571,10 +567,8 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
             except (OSError, ValueError, RuntimeError) as failure:
                 statuses = [UnavailableNotifications(str(failure))] * len(fragments)
             else:
-                statuses = [CheckedNotifications(tuple(
-                    item for reference in fragment.notification_references
-                    for item in results.get((reference.seq, reference.message_id), ())))
-                    for fragment in fragments]
+                statuses = [CheckedNotifications.for_references(fragment.notification_references, results)
+                            for fragment in fragments]
             if not self.can_draw_on_screen:
                 return
             visible = {id(fragment) for fragment in self._notified_fragments()}
@@ -582,9 +576,11 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                               for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
             if not self.can_draw_on_screen:
                 return
-            # Geometry may have admitted other messages while Core answered.
+            # Newcomers need their first check; checked rows need another
+            # answer only when Core changed during the read or paint.
             fragments = tuple(fragment for fragment in self._notified_fragments()
-                              if isinstance(fragment.shown.status, UncheckedNotifications))
+                              if revision != self.app.coordination_access.revision
+                              or isinstance(fragment.shown.status, UncheckedNotifications))
 
     # What a fragment shows
 
@@ -1230,10 +1226,14 @@ class TranscriptHistory(LineHistory, CommittedHistory):
                     break
 
     def publish_committed(self) -> None:
-        """Acquire live-row ownership only after a provisional mount is accepted."""
+        """Acquire source ownership now; report coverage after its first painted frame."""
         self._source_state = self._source_state.publish()
-        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+        self.call_after_refresh(self.publish_coverage)
         self.request_preparation()
+
+    def publish_coverage(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:

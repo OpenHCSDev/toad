@@ -212,6 +212,11 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             resources.append((self, sidebar))
         return tuple(resources)
 
+    @property
+    def agent_session_id(self) -> str | None:
+        """The saved ACP session this screen owns."""
+        return self._agent_session_id
+
     def watch_title(self, title: str) -> None:
         self.app.terminal_attention.update()
 
@@ -384,7 +389,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         if self.id is not None:
             await self.open_sidebar_target(FeedTarget())
 
-    async def action_toggle_dm(self) -> None:
+    async def open_direct_messages(self) -> None:
         """Open the last-selected DM as a native Toad session."""
         target = self._last_dm_target
         if not target:

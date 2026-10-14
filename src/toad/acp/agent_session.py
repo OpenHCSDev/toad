@@ -4,14 +4,14 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.child_process import join_retirement
 import asyncio
 import os
-from dataclasses import replace
+from dataclasses import dataclass, replace
 import toad
 from toad import constants, jsonrpc
 from toad.core import events as core_events
 from toad.acp import api
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
-from toad.core.events import AgentReady, UnsupportedResumeAgentFail, LogAgentFail
+from toad.core.events import AgentFail, AgentReady, UnsupportedResumeAgentFail, LogAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
@@ -29,6 +29,9 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     def close(self, agent):
         return self
 
+    def current_failure(self) -> AgentFail | None:
+        return None
+
 
 class ActiveSessionDisposition(SessionDisposition):
     accepts_updates = True
@@ -42,7 +45,17 @@ class ClosedSessionDisposition(SessionDisposition):
     pass
 
 
-class RefusedSessionDisposition(SessionDisposition):
+@dataclass(frozen=True)
+class FailedSessionDisposition(SessionDisposition):
+    """The session's current terminal failure, retained by its lifecycle owner."""
+
+    failure: AgentFail
+
+    def current_failure(self) -> AgentFail:
+        return self.failure
+
+
+class RefusedSessionDisposition(FailedSessionDisposition):
     """The agent process answered the handshake with an error; it holds no session."""
 
     held_by_agent = False
@@ -129,15 +142,29 @@ class AgentSession:
         if error is not None:
             self.agent.log(f"[error] Session retirement failed: {error}")
 
-    def session_failed(self, failure):
+    def record_failure(
+        self,
+        event: AgentFail,
+        state: type[FailedSessionDisposition] = FailedSessionDisposition,
+    ) -> None:
+        """Retain and publish every terminal failure through the session owner."""
         self.close()
         self.failed()
-        self.agent.events.publish(LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path))
+        self.disposition = state(event)
+        self.agent.events.publish(event)
+
+    def session_failed(self, failure):
+        self.record_failure(
+            LogAgentFail(failure.title, failure.feedback, log_path=self.agent.presentation.log_path),
+            RefusedSessionDisposition,
+        )
 
     def startup_failed(self, details):
-        self.close()
-        self.failed()
-        self.agent.events.publish(LogAgentFail("ACP session startup failed", details=details, log_path=self.agent.presentation.log_path))
+        self.record_failure(
+            LogAgentFail("ACP session startup failed", details=details,
+                         log_path=self.agent.presentation.log_path),
+            FailedSessionDisposition,
+        )
 
     @property
     def supports_images(self):
@@ -200,13 +227,10 @@ class AgentSession:
                 await self.initialize()
                 if self.agent.controller.session.bound:
                     if not self.supports_load:
-                        self.agent.events.publish(
-                            UnsupportedResumeAgentFail(
-                                "Resume not supported",
-                                f"{self.agent.definition.name} does not currently support resuming sessions.",
-                            )
-                        )
-                        self.settled.set()
+                        self.record_failure(UnsupportedResumeAgentFail(
+                            "Resume not supported",
+                            f"{self.agent.definition.name} does not currently support resuming sessions.",
+                        ))
                         return
                     await self.load()
                     await self.touch()
@@ -219,7 +243,6 @@ class AgentSession:
                 failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
                                   input_state=NotSentInput)
                 self.session_failed(failure)
-                self.disposition = RefusedSessionDisposition()
                 return
         self.settled.set()
         self.agent.events.publish(AgentReady(reconnected=self.reconnecting))

@@ -13,7 +13,7 @@ import re
 from typing import ClassVar
 
 from ui_theme.scheme import (
-    AccentColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
+    AccentColour, ErrorColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour, SuccessColour,
     ThemeColour, WarningColour,
 )
 
@@ -37,7 +37,7 @@ class MutedRole(LineRole):
 
 
 class ThinkingRole(MutedRole):
-    """The model's visible reasoning."""
+    """Visible reasoning stays muted and italic, distinct from tool success."""
 
     italic = True
 
@@ -50,6 +50,32 @@ class UserRole(LineRole):
 
 class AgentRole(LineRole):
     colour = PrimaryColour
+
+
+class ToolVerbRole(AgentRole):
+    """The operation a tool performs, distinct from its argument."""
+
+    bold = True
+
+
+class ToolArgumentRole(LineRole):
+    """The path, command or other argument shown by a tool."""
+
+
+class ToolOutputRole(LineRole):
+    """Output disclosed beneath a tool call."""
+
+    colour = SecondaryColour
+
+
+class SuccessRole(LineRole):
+    colour = SuccessColour
+    bold = True
+
+
+class FailureRole(LineRole):
+    colour = ErrorColour
+    bold = True
 
 
 class IncomingRole(LineRole):
@@ -165,6 +191,10 @@ class Span:
 class LineBlock:
     """One visual part of a fragment."""
 
+    @property
+    def selection_text(self) -> str:
+        return ""
+
 
 @dataclass(frozen=True)
 class Divider(LineBlock):
@@ -186,25 +216,25 @@ class Divider(LineBlock):
     def label(self) -> str:
         return "".join(span.text for span in self.spans)
 
-
-@dataclass(frozen=True)
-class Summary(LineBlock):
-    """A single collapsed line, such as a tool call or coordination context."""
-
-    text: str
-    role: type[LineRole] = MutedRole
-    link: LineLink | None = None
+    @property
+    def selection_text(self) -> str:
+        return self.label
 
 
 @dataclass(frozen=True)
-class Spans(LineBlock):
-    """Wrapped text made of spans; line breaks in the text are kept."""
+class SpanText(LineBlock):
+    """Text made of spans; subclasses decide whether it wraps or clips."""
 
     spans: tuple[Span, ...]
 
     @property
     def text(self) -> str:
         return "".join(span.text for span in self.spans)
+
+
+@dataclass(frozen=True)
+class Spans(SpanText):
+    """Wrapped text made of spans; line breaks in the text are kept."""
 
     @classmethod
     def from_lines(cls, lines: tuple[tuple[Span, ...], ...], indent: str = "") -> "Spans":
@@ -218,6 +248,26 @@ class Spans(LineBlock):
             drawn.append(replace(first, text=leading + first.text) if first.text else first)
             drawn.extend(rest)
         return cls(tuple(drawn))
+
+
+@dataclass(frozen=True)
+class Summary(SpanText):
+    """One clipped row, followed by spans whose space is reserved first."""
+
+    kept: tuple[Span, ...] = ()
+
+    @property
+    def text(self) -> str:
+        return super().text + "".join(span.text for span in self.kept)
+
+    @classmethod
+    def titled(cls, title: str, role: type[LineRole] = MutedRole,
+               link: LineLink | None = None) -> Summary:
+        return cls((Span(title, role, link),))
+
+    @property
+    def selection_text(self) -> str:
+        return self.text
 
 
 @dataclass(frozen=True)

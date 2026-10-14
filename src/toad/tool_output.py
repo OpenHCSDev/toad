@@ -6,7 +6,7 @@ earlier dictionary or changes Read's filename without changing its text.
 """
 
 import asyncio
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from difflib import unified_diff
@@ -26,7 +26,7 @@ from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import Body, LineBlock, MutedRole
+from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -40,20 +40,36 @@ if TYPE_CHECKING:
     from toad.widgets.tool_call import ToolCall
 
 
+class LiveToolDetails(ABC):
+    """A part that offers its existing live output disclosure."""
+
+    @abstractmethod
+    def compose(self, view: Widget) -> tuple[Widget, ...]: ...
+
+
+class SavedToolDetails(LiveToolDetails):
+    """A live output whose original body also renders in saved history."""
+
+    @abstractmethod
+    def line_blocks(self) -> tuple[LineBlock, ...]: ...
+
+
 class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     """A captured output value; a case owns rendering and preparation hooks."""
 
-    available = True
+    @property
+    def available(self) -> bool:
+        return type(self) in ToolOutputPart.members_with(LiveToolDetails)
 
     def has_saved_details(self) -> bool:
-        return False
+        return type(self) in ToolOutputPart.members_with(SavedToolDetails)
 
     def admit(self) -> ToolOutputPart:
         """Borrow immutable source; mutable preparation belongs to its view."""
         return self
 
-    @abstractmethod
-    def compose(self, view: Widget) -> tuple[Widget, ...]: ...
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
+        return ()
 
     def line_blocks(self) -> tuple[LineBlock, ...]:
         """What this output draws under its tool call in committed history."""
@@ -80,18 +96,12 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
         return None
 
 
-class CommittedToolOutputPart(ToolOutputPart):
-    """Static output owns saved tool details; live-only output does not."""
-
-    def has_saved_details(self) -> bool:
-        return self.available
-
-    @abstractmethod
-    def line_blocks(self) -> tuple[LineBlock, ...]: ...
+class CommittedToolOutputPart(SavedToolDetails, ToolOutputPart):
+    """Static output composes live and saved disclosure contracts."""
 
 
 @dataclass(frozen=True)
-class TextToolOutputPart(ToolOutputPart):
+class TextToolOutputPart(LiveToolDetails, ToolOutputPart):
     text: str
 
     def permission_preview(self) -> ToolOutputPart:
@@ -129,7 +139,7 @@ class LiteralTextToolOutputPart(TextToolOutputPart):
     """The remaining text is literal; member order is never priority."""
 
 
-class RetainedTextToolOutputPart(TextToolOutputPart, CommittedToolOutputPart):
+class RetainedTextToolOutputPart(SavedToolDetails, TextToolOutputPart):
     @property
     @abstractmethod
     def render_source(self) -> NativeContentSource: ...
@@ -138,7 +148,7 @@ class RetainedTextToolOutputPart(TextToolOutputPart, CommittedToolOutputPart):
         return (TextContent(self.render_source),)
 
     def line_blocks(self):
-        return (Body(self.render_source.materialize().plain, bar=MutedRole, markdown=False),)
+        return (Body(self.render_source.materialize().plain, role=ToolOutputRole, bar=MutedRole, markdown=False),)
 
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         if not isinstance(previous, RetainedTextToolOutputPart) or type(widget) is not TextContent:
@@ -169,7 +179,7 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
         return AnsiContentSource(self.text)
 
 
-class MarkdownToolOutputPart(SpecificTextToolOutputPart, CommittedToolOutputPart):
+class MarkdownToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (
@@ -180,11 +190,11 @@ class MarkdownToolOutputPart(SpecificTextToolOutputPart, CommittedToolOutputPart
         return (MarkdownContent(self.text),)
 
     def line_blocks(self):
-        return (Body(self.text, bar=MutedRole),)
+        return (Body(self.text, role=ToolOutputRole, bar=MutedRole),)
 
 
 @dataclass(frozen=True)
-class ReadToolOutputPart(SpecificTextToolOutputPart, CommittedToolOutputPart):
+class ReadToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
     path: str
 
     @classmethod
@@ -275,7 +285,7 @@ class PatchToolOutputPart(CommittedToolOutputPart):
 
 
 @dataclass
-class SentMessageToolOutputPart(ToolOutputPart):
+class SentMessageToolOutputPart(LiveToolDetails, ToolOutputPart):
     """Render the send owner's original publication through the outgoing view."""
 
     message: SentTranscript
@@ -309,8 +319,8 @@ class FileDiffToolOutputPart(CommittedToolOutputPart):
 
 
 @dataclass(frozen=True)
-class UnrenderedToolOutputPart(ToolOutputPart):
-    """ACP media without an implemented viewer retains its expand affordance."""
+class UnrenderedToolOutputPart(LiveToolDetails, ToolOutputPart):
+    """Unviewed ACP media retains live expansion, not empty saved details."""
 
     source: object
 
@@ -323,10 +333,6 @@ class TerminalToolOutputPart(ToolOutputPart):
     """ACP terminal output is projected by its existing terminal owner."""
 
     terminal_id: str
-    available = False
-
-    def compose(self, view: Widget) -> tuple[Widget, ...]:
-        return ()
 
 
 class ToolContentDecoder(MroDispatch):

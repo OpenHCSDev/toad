@@ -38,14 +38,6 @@ class AgentBase(ABC):
         """Agents without a coordination identity read no thread presentation."""
         return None
 
-    async def get_thread_presentation(self) -> ThreadPresentation | None:
-        """Agents without a coordination identity have no observed thread status."""
-        return None
-
-    async def get_message_notifications(self, references):
-        """Uncoordinated agents have no durable wire notification source."""
-        return {}
-
     async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None:
         """Consume a published canonical change; unmanaged agents need no binding."""
 

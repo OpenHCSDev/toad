@@ -19,6 +19,10 @@ class GoalText(OpensLinks, Static):
         super().__init__(text, markup=False, **kwargs)
 
     def on_mount(self) -> None:
+        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self.update_goal_text(self.goal_text)
+
+    def _theme_changed(self, _theme) -> None:
         self.update_goal_text(self.goal_text)
 
     def update_goal_text(self, text: str) -> None:
@@ -27,4 +31,4 @@ class GoalText(OpensLinks, Static):
         mentions = ThreadMention.find(
             text, lambda name: name if name in names else None
         )
-        self.update(inline_message(text, mentions))
+        self.update(inline_message(text, self.app.colours, mentions))
