@@ -309,9 +309,9 @@ class RuntimeBuild:
     display: XvfbDisplay
     start_env: Path | None
 
-    def start_acceptance_thread(self, runtime: Path) -> None:
+    def start_acceptance_thread(self, runtime: Path) -> bool:
         if self.start_env is None:
-            return
+            return False
         environment = dict(os.environ)
         for entry in self.start_env.read_text().split():
             name, separator, value = entry.partition('=')
@@ -335,6 +335,7 @@ class RuntimeBuild:
                 f'AcceptanceThreadAlreadyRunning: {self.thread}; stop it before '
                 'using --start-thread'
             )
+        return True
 
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
@@ -384,7 +385,9 @@ class RuntimeBuild:
                 'native_manifest_sha256': native_pin, 'active_route': route,
                 'packages': installed, 'runtime': str(destination),
             }
-            self.start_acceptance_thread(destination)
+            if self.start_acceptance_thread(destination):
+                # The launched owner now borrows this runtime even if UI acceptance fails.
+                cleanup.pop_all()
             record['screenshot'] = str(open_saved_thread(destination, self.thread, self.display, self.scratch / f'acceptance-{destination.name}'))
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.
