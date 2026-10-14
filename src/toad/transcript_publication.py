@@ -323,6 +323,7 @@ class SourcePublicationRequests:
         self.owner = owner
         self.pending: asyncio.Queue[TranscriptPublication] = asyncio.Queue(maxsize=1)
         self.worker: Worker[None] | None = None
+        self.observation = ResourceRelease()
 
     def request(self, kind: type[TranscriptPublication], *args: object) -> None:
         publication = self.owner.capture(kind, *args)
@@ -344,8 +345,9 @@ class SourcePublicationRequests:
         view = self.owner.view
         if view is None:
             return
-        view.retire_core_observations(view.app.coordination_access.events)
-        view.observe_core_callback(view.app.coordination_access.events, self.resume)
+        self.observation.close()
+        self.observation.callback(view.retire_core,
+            view.observe_core_callback(view.app.coordination_access.events, self.resume))
 
     def resume(self, _event=None) -> bool:
         """Resume retained work only at an existing source/preparation signal."""
@@ -355,7 +357,7 @@ class SourcePublicationRequests:
             view = self.owner.view
             if view is None or not view.is_attached:
                 return False
-            view.retire_core_observations(view.app.coordination_access.events)
+            self.observation.close()
             self.worker = view.run_worker(self.publish, group="transcript-source")
         return True
 
@@ -366,9 +368,7 @@ class SourcePublicationRequests:
                 return
 
     def cancel(self) -> Worker[None] | None:
-        view = self.owner.view
-        if view is not None:
-            view.retire_core_observations(view.app.coordination_access.events)
+        self.observation.close()
         while not self.pending.empty():
             self.pending.get_nowait()
         worker, self.worker = self.worker, None

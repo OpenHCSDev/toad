@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import ClassVar, TYPE_CHECKING
@@ -54,7 +53,7 @@ class NotificationStatus(ABC):
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    title = "Notification status not checked"
+    title = "Sent"
 
     @property
     def details(self) -> DetailLines:
@@ -81,15 +80,10 @@ class CheckedNotifications(NotificationStatus):
 
     @property
     def title(self) -> str:
-        counts = Counter(item.state for item in self.ordered)
-        states = list(counts)
-        summary = " · ".join(f"{state} ({counts[state]})" for state in states[:3])
-        if len(states) > 3:
-            summary += f" · {sum(counts[state] for state in states[3:])} others"
-        read = sum(bool(item.displayed_to) for item in self.ordered)
-        if read:
-            summary = " · ".join(filter(None, (summary, f"Read ({read})")))
-        return summary or "No recorded notification result"
+        # Core owns receipt state, time and priority. Other recipients remain
+        # in the disclosure, not competing counters in the one-line caption.
+        ordered = self.ordered
+        return ordered[0].state if ordered else "No recorded notification result"
 
     @property
     def details(self) -> DetailLines:
