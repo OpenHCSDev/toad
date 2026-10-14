@@ -217,6 +217,13 @@ class MailboxSessionSources(OperationalSessionSources):
     def accepts_inbox_submission(self, event) -> bool:
         return not event.shell and bool(event.body.strip())
 
+    def unavailable_reason(self, conversation: Conversation) -> str:
+        # A CLI thread has no native owner to start; only its own send or
+        # history load can hold the prompt.
+        if not conversation.transcript.readable:
+            return "Loading thread history…"
+        return conversation.send_block_reason
+
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     """Own the editor and logical transcript independently of native membership."""

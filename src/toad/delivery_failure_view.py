@@ -17,6 +17,13 @@ class DeliveryFailureView:
     def user_message_ready(self) -> bool:
         return self._unknown_send is None and not self._send_block_reason
 
+    @property
+    def send_block_reason(self) -> str:
+        """Why this view's own send holds compose; empty when it does not."""
+        if self._unknown_send is not None:
+            return "Send UNKNOWN; inspect, do not retry"
+        return self._send_block_reason
+
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""
         from agent_comms.route_selection import root_is_current
