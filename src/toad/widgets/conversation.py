@@ -956,11 +956,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_session()
 
-    async def read_foreign_thread(self):
-        if self.agent is not None:
-            return await self.agent.get_thread_presentation()
-        return await super().read_foreign_thread()
-
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)
 

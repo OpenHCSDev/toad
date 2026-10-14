@@ -389,7 +389,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         if self.id is not None:
             await self.open_sidebar_target(FeedTarget())
 
-    async def action_toggle_dm(self) -> None:
+    async def open_direct_messages(self) -> None:
         """Open the last-selected DM as a native Toad session."""
         target = self._last_dm_target
         if not target:

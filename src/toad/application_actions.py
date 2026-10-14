@@ -169,6 +169,23 @@ class SessionsAction(ApplicationAction, KeyboundAction, PaletteAction):
         app.run_worker(app.session_navigation.reveal)
 
 
+class DirectMessagesAction(ApplicationAction, KeyboundAction, PaletteAction):
+    """Reach the pairwise message view without changing thread-row navigation."""
+
+    key = "ctrl+shift+d"
+    description = "Direct message"
+    tooltip = "Open direct messages"
+    help = "Open the most recently selected direct conversation"
+
+    def label(self, app: ToadApp) -> str:
+        return "Direct messages"
+
+    async def apply(self, app: ToadApp) -> None:
+        view = app.selected_session
+        if view is not None:
+            await view.open_direct_messages()
+
+
 class ApplicationCommands(Provider):
     """Discovery and search derive the same capability view; no command roster."""
 

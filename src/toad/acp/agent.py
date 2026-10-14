@@ -292,12 +292,6 @@ class Agent(AgentBase):
                           OwnerSnapshotConsumer(self, self.session_id,
                                                 turn_token=self.presentation.turns.sequence))
 
-    async def get_thread_presentation(self):
-        if (read := self.thread_read()) is None:
-            return None
-        presentation = await self.controller.transcripts.thread_presentation(*read.thread)
-        return read.settle(presentation)
-
     async def observe_thread_presentation(self, presentation) -> None:
         await self.session.observe_owner(presentation)
 
