@@ -10,7 +10,7 @@ from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBin
 
 @dataclass(frozen=True)
 class AgentAttachmentView:
-    cursor: CursorStatus | None
+    cursor: type[CursorStatus] | None
     cursor_sequence: int
 
 
