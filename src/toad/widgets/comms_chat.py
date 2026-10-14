@@ -429,7 +429,11 @@ class CommsChatView(Conversation):
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
         self.run_worker(partial(self.input_histories.prompt.record, body), group="history")
         self.window.jump_to_latest()
-        await self._refresh()
+        if worker := await self._refresh():
+            await worker.wait()
+        # The read admitted the sent row after the first destination was chosen.
+        # Follow the source's new end rather than leaving that row below the viewport.
+        self.window.jump_to_latest()
         self.settle_user_message()
 
     def draws_user_message(self, sent) -> bool:
