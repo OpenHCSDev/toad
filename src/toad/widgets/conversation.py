@@ -82,6 +82,7 @@ from toad.session_observation import GoalObservation, InputDeliveryObservation, 
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
+from toad.widgets.cli_draft import CliDraft
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
@@ -451,6 +452,7 @@ class ConversationSessionBinding(containers.Vertical):
         self.goal_controls = GoalSession(self)
         self.delivery_observation = InputDeliveryObservation(self)
         self.transcript = transcript if transcript is not None else TranscriptPresentation()
+        self.cli_draft = CliDraft()
         self.transcript.bind(self)
         self.tool_expansions: dict[str, bool] = {}
         # Both explicit eviction and Textual unmount consume this same lifetime.
@@ -745,6 +747,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
                     yield from ThreadLoading.initial_contents(self._agent_data)
+                    yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield TurnActivity(self.turns)
