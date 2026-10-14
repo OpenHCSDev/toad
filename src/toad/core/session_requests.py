@@ -56,7 +56,8 @@ class SessionCreate(WorkspaceSessionRequest):
     source_mode: str
 
     async def apply(self, admission) -> None:
-        await admission.create_from(self.source_mode)
+        admission.app.run_worker(admission.create_from(self.source_mode),
+                                 group="new-session", exclusive=True)
 
 
 @dataclass(frozen=True)

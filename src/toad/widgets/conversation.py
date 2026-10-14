@@ -564,6 +564,10 @@ class ConversationSessionBinding(containers.Vertical):
                 await self.post(MarkdownNote(welcome))
                 if self.transcript is not presentation or presentation.view is not self:
                     return
+        self._native_agent_started_here = False
+        if self.agent is not None and self.agent.configuration.model.requires_selection:
+            self.prompt.model_switcher.focus()
+            return
         if self._initial_prompt is not None:
             prompt = self._initial_prompt
             if prompt.startswith("!"):
@@ -575,7 +579,6 @@ class ConversationSessionBinding(containers.Vertical):
                     input_events.UserInputSubmitted(prompt, shell=False)
                 )
             self.take_initial_prompt()
-        self._native_agent_started_here = False
 
 
 from toad.widget_actions import DeclaredWidgetActions
@@ -1537,6 +1540,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self._update_model_info()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_configuration()
+            prompt.sync_session()
+        if self._initial_prompt is not None and self.agent is not None and self.agent.ready:
+            self._session_ready()
         self.refresh_bindings()
 
     def _update_model_info(self) -> None:

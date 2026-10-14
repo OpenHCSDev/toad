@@ -49,10 +49,11 @@ class SessionNavigation:
         self.app.subscribe_core(self.events)
         self.app.observe_core_callback(self.app.coordination_access.events, self.observed)
 
-    def default_source(self, session_id: str | None = None) -> MainScreen:
+    def default_source(self, session_id: str | None = None, *, project: Path | None = None) -> MainScreen:
         from toad.screens.main import MainScreen
         app = self.app
-        return MainScreen(app.project_dir, app.agent_data, agent_session_id=session_id)
+        return MainScreen(project if project is not None else app.project_dir,
+                          app.agent_data, agent_session_id=session_id)
 
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
@@ -144,8 +145,16 @@ class SessionNavigation:
         return details
 
     async def create_from(self, owner_mode: str) -> None:
+        from toad.screens.new_session import NewSessionModal
+
         origin = self.app.workspace_sessions.origin(owner_mode)
-        await self.new(origin.spawn if origin is not None and origin.has_agent() else self.default_source)
+        project = await self.app.push_screen_wait(NewSessionModal(
+            origin.project_path if origin is not None else self.app.project_dir), mode="workspace")
+        if project is None:
+            return
+        await self.new(partial(origin.spawn, project=project)
+                       if origin is not None and origin.has_agent()
+                       else partial(self.default_source, project=project))
 
     async def launch(self, agent_identity: str, *, agent_session_id: str | None = None,
                      session_pk: int | None = None, project_path: Path | None = None,

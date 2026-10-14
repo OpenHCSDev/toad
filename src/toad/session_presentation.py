@@ -117,6 +117,8 @@ class OperationalSessionSources:
         agent = conversation.agent
         if agent is None or not agent.ready:
             return False
+        if agent.configuration.model.requires_selection:
+            return False
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
             return (presentation is not None
@@ -128,6 +130,9 @@ class OperationalSessionSources:
         if (conversation.transcript.readable and presentation is not None
                 and ExistingOwnerAdmission.from_binding(presentation.binding) is None):
             return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+        agent = conversation.agent
+        if agent is not None and agent.configuration.model.requires_selection:
+            return "Choose a model or connect a provider (click here). Your draft is kept."
         return "Agent is not ready. Please wait while the agent connects…"
 
     def start_agent(self, conversation: Conversation) -> None:
