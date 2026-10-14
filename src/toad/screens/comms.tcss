@@ -12,10 +12,6 @@ CommsScreen {
     CommsChatView {
         height: 1fr;
 
-        ContentsGrid {
-            height: 1fr;
-        }
-
         #comms-activity {
             height: auto;
         }
