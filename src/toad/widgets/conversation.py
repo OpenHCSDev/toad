@@ -6,7 +6,6 @@ from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
 from toad.transcript_publication import TranscriptPresentation
 from toad.goal_interaction import GoalSession
-from toad.widgets.message_filter import OtherCategory
 
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -15,7 +14,6 @@ import asyncio
 from abc import abstractmethod
 from contextlib import suppress
 from toad.resource_release import AsyncResourceRelease
-from functools import partial
 from itertools import filterfalse
 
 from operator import attrgetter
@@ -32,8 +30,6 @@ from agent_comms.acp_extension import (
     InputStartedUpdate,
     PromptCancelledUpdate,
     McpClientReceiptUpdate,
-    PendingQueueProjection,
-    QueueProjection,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
@@ -42,10 +38,10 @@ from agent_comms.goal_presentation import GoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
 from rich.text import Text as RichText
-from textual import containers, events, getters, log, on, work
+from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
-from textual.app import ComposeResult, ScreenStackError, UnknownModeError
+from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.content import Content
 from toad.line_blocks import MutedRole, WorkingRole
@@ -64,7 +60,7 @@ from toad.widgets.splash_text import SplashText
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
-from toad.acp.status import StopReason, EndTurnStopReason
+from toad.acp.status import StopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.core.events import AgentFail, AgentReady
 from toad.agent import AgentBase
@@ -72,9 +68,7 @@ from toad.widgets.terminal_tool import TerminalTool
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
-from toad.directory_watcher import DirectoryWatcher
-from toad.core.source_events import DirectoryChanged, CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested
-from toad.format_path import format_path
+from toad.core.source_events import CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested
 from toad.input_history import InputHistories
 from toad.widgets.flash import Flash
 from toad.widgets.menu import Menu
@@ -85,10 +79,8 @@ from toad.widgets.throbber import Throbber, ObservedThrobber
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
-from toad.widgets.goal_bar import GoalBar, GoalControl
+from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.transcript_history import TranscriptHistory
-from toad.widgets.wire_message_handling import WireMessageHandling
 from toad.widgets.observed_thread_activity import ThreadStatusOwner
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
@@ -104,7 +96,6 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.user_input import UserInput
-from toad.response_delivery import ResponseDelivery
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
@@ -124,7 +115,6 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
-    from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
 
@@ -454,8 +444,6 @@ class ConversationSessionBinding(containers.Vertical):
         self._turn_count = 0
         self._shell_count = 0
 
-        self._directory_watcher: DirectoryWatcher | None = None
-
         self._initial_prompt = initial_prompt
         self._native_agent_started_here = False
 
@@ -468,19 +456,12 @@ class ConversationSessionBinding(containers.Vertical):
         # Both explicit eviction and Textual unmount consume this same lifetime.
         # The stack removes callbacks before calling them and continues on error.
         self._source_resources = AsyncResourceRelease()
-        self._source_resources.push_async_callback(self._close_directory_watcher)
         self._source_resources.push_async_callback(
             SessionObservation.close_all, self.goal_observation, self.delivery_observation,
         )
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
-
-    async def _close_directory_watcher(self) -> None:
-        # A parked session takes the handle out of this view before release.
-        watcher, self._directory_watcher = self._directory_watcher, None
-        if watcher is not None:
-            await watcher.aclose()
 
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
@@ -547,11 +528,6 @@ class ConversationSessionBinding(containers.Vertical):
 
 
     def start_native_session(self) -> None:
-        # Source identity must include its filesystem owner before the first
-        # saved-history publication, rather than changing after AgentReady.
-        if self._directory_watcher is None:
-            self._directory_watcher = DirectoryWatcher(self.project_path, self)
-            self._directory_watcher.start()
         if self.agent is None and self._agent_data is not None:
             from toad.screens.workspace import WorkspaceScreen
             screen = self.screen
@@ -714,10 +690,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.working_directory = str(path)
         self.project_data_path = paths.get_project_data(path)
         self.input_histories.bind_project(self.project_data_path)
-        if self._directory_watcher is not None:
-            await self._directory_watcher.aclose()
-            self._directory_watcher = DirectoryWatcher(path, self)
-            self._directory_watcher.start()
         if self._shell is not None and not self._shell.is_finished:
             with suppress(TimeoutError):
                 async with asyncio.timeout(2):
@@ -820,17 +792,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.navigation.clear()
             self.flash("Command interrupted", style="success")
 
-    @handles(DirectoryChanged)
-    def on_directory_changed(self, event: CoreEventMessage) -> None:
-        event.stop()
-        if self.turns.owner.accepts_prompt:
-            self.check_directory()
-
     def check_directory(self) -> None:
-        """Invalidate native projections from the original watcher, once consumed."""
-        watcher = self._directory_watcher
-        if watcher is not None and not watcher.consume_change(self) and watcher.enabled:
-            return
+        """A finished turn or command may have changed the project's files."""
         self.prompt.project_directory_updated()
         self.publish_core(input_events.ProjectDirectoryUpdated())
 
