@@ -63,11 +63,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     async def toggle_dm(cls, screen) -> None:
-        from toad.navigation_target import DirectTarget
-        peers = [name for name in sorted(await screen.app.registry_names())
-                 if name != screen.me]
-        if peers:
-            await screen.open_sidebar_target(DirectTarget(peers[0]))
+        await screen.action_back_to_agent()
+        screen.app.session_navigation.direct_messages()
 
     @classmethod
     def unread(cls, snapshot, target):

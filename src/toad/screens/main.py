@@ -393,12 +393,9 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         """Open the last-selected DM as a native Toad session."""
         target = self._last_dm_target
         if not target:
-            peers = [
-                name
-                for name in sorted(await self.app.registry_names())
-                if name != self._session_thread
-            ]
-            target = peers[0] if peers else ""
+            self.notify("Choose Direct messages from an agent's context menu",
+                        title="Direct messages")
+            return
         if target and self.id is not None:
             await self.open_sidebar_target(DirectTarget(target))
 

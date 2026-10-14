@@ -181,9 +181,7 @@ class DirectMessagesAction(ApplicationAction, KeyboundAction, PaletteAction):
         return "Direct messages"
 
     async def apply(self, app: ToadApp) -> None:
-        view = app.selected_session
-        if view is not None:
-            app.run_worker(view.open_direct_messages(), group="direct-messages")
+        app.session_navigation.direct_messages()
 
 
 class ApplicationCommands(Provider):

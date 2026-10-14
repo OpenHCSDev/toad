@@ -149,6 +149,16 @@ class ViewCommand(ContextualCommand, SlashCommand, LocalCommand):
         return self.help
 
 
+class DirectMessagesCommand(ViewCommand, declared_name="dm"):
+    help = "Direct messages"
+
+    def available(self, ctx: TargetContext) -> bool:
+        return len(ctx.selected_targets) == 1 and ctx.subject in ctx.comms.registry
+
+    def execute(self, ctx: TargetContext) -> None:
+        ctx.app.session_navigation.direct_messages(ctx.subject)
+
+
 class CopyCommand(ViewCommand, declared_name="copy"):
     help = "Copy name"
 
