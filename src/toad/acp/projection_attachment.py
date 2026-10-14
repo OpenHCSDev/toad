@@ -85,7 +85,7 @@ class ProjectionAttachment:
 
     @property
     def state(self) -> type[AttachmentState]:
-        if self._pending and self.current is None and not self._buffer and not self._prebind_floors:
+        if self._pending and self.current is None:
             return PendingAttachment
         if self.quarantined or self._pending or self._uncertain or self._evidence_lost:
             return UnavailableAttachment
