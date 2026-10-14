@@ -43,8 +43,14 @@ class NotificationStatus(ABC):
     @abstractmethod
     def details(self) -> DetailLines: ...
 
+    @property
+    def visible(self) -> bool:
+        return bool(self.title)
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
+        if not self.visible:
+            return ()
         role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
         summary = shown.summary(self.title, role)
         return ((summary, Spans.from_lines(self.details, indent="  "))
@@ -53,7 +59,7 @@ class NotificationStatus(ABC):
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    title = "Sent"
+    title = ""
 
     @property
     def details(self) -> DetailLines:
