@@ -1,4 +1,11 @@
 
+WorkspaceScreen {
+    /* The floating sidebars live on comms-sidebar: above content, below
+       the screen tooltip so thread-row tooltips paint. Keep in step with
+       WorkspaceScreen.layers, which covers the screen's direct children. */
+    layers: default _loading _toastrack comms-sidebar _tooltips;
+}
+
 Note,MarkdownNote {    
     padding: 0 1 0 0;
     &.-error {

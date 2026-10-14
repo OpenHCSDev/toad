@@ -99,13 +99,15 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         sidebar buried each thread-row tooltip behind its own background:
         the tooltip was placed on-screen with the right content yet never
         won a cell. The sidebars float by absolute position on their own
-        layer instead, keeping the tooltip layer front-most.
+        layer instead, keeping the tooltip layer front-most. This covers
+        the screen's direct children; nested widgets read the matching
+        WorkspaceScreen layers rule in main.tcss.
         """
         names = super().layers
         if "comms-sidebar" not in names:
             if "_tooltips" in names:
                 index = names.index("_tooltips")
-                return (*names[:index], "comms-sidebar", names[index:])
+                return (*names[:index], "comms-sidebar", *names[index:])
             return (*names, "comms-sidebar")
         return names
 
