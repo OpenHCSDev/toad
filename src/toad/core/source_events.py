@@ -7,12 +7,6 @@ from .events import CoreEvent
 
 
 @dataclass(frozen=True)
-class DirectoryChanged(CoreEvent):
-    def can_replace(self, event: CoreEvent) -> bool:
-        return self == event
-
-
-@dataclass(frozen=True)
 class CurrentWorkingDirectoryChanged(CoreEvent):
     path: str
 

@@ -105,7 +105,6 @@ class OperationalSessionSources:
 
         self.agent = None
         self.shell = None
-        self.directory_watcher = None
         self.load_admission = EnsuringSessionLoadAdmission()
 
     def agent_info(self, conversation: Conversation) -> str:
@@ -163,11 +162,6 @@ class OperationalSessionSources:
             from toad.widgets.conversation import ConversationSessionBinding
 
             conversation.set_reactive(ConversationSessionBinding.agent, self.agent)
-        watcher, self.directory_watcher = self.directory_watcher, None
-        if watcher is not None:
-            conversation._directory_watcher = watcher
-            watcher.rebind(conversation)
-            conversation.call_after_refresh(watcher.notify_if_visible)
 
     async def present(self, conversation: Conversation) -> None:
         shell, self.shell = self.shell, None
@@ -184,15 +178,10 @@ class OperationalSessionSources:
         conversation._shell = None
         if self.shell is not None:
             await self.shell.detach()
-        self.directory_watcher = conversation._directory_watcher
-        conversation._directory_watcher = None
-        if self.directory_watcher is not None:
-            self.directory_watcher.rebind(screen)
         if self.agent is not None:
             self.agent.detach_surface(conversation)
 
     async def close(self) -> None:
-        watcher, self.directory_watcher = self.directory_watcher, None
         agent, self.agent = self.agent, None
         shell, self.shell = self.shell, None
         async with AsyncResourceRelease() as release:
@@ -200,8 +189,6 @@ class OperationalSessionSources:
                 release.push_async_callback(shell.close)
             if agent is not None:
                 release.push_async_callback(agent.stop)
-            if watcher is not None:
-                release.push_async_callback(watcher.aclose)
 
 
 class MailboxSessionSources(OperationalSessionSources):

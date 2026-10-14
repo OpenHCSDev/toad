@@ -231,9 +231,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         # block the first frame of every navigation on store I/O.
         if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
             sidebar.session_thread = self._comms_thread
-        if conversation := self.query_one_optional(Conversation):
-            if watcher := conversation._directory_watcher:
-                self.call_after_refresh(watcher.notify_if_visible)
         if self._project_panel is not None:
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
