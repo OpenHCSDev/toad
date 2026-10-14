@@ -36,7 +36,6 @@ class MessageNotifications(Collapsible):
         self.status: NotificationStatus = UncheckedNotifications()
         self._details: Static | None = None
         super().__init__(title=self.status.title, collapsed=True)
-        self.display = self.status.visible
 
     def compose(self) -> ComposeResult:
         yield self._title
@@ -61,7 +60,6 @@ class MessageNotifications(Collapsible):
         if status == self.status:
             return
         self.status = status
-        self.display = status.visible
         title = Content(status.title)
         if not title.is_same(Content.from_text(self.title)):
             self.title = title
