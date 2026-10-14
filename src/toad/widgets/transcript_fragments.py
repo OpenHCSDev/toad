@@ -193,7 +193,7 @@ class Shown:
 
     def summary(self, title: str, role: type[LineRole] = MutedRole) -> Summary:
         """The line that names a fragment's details; clicking it shows or hides them."""
-        return Summary(("▼ " if self.details_open else "▶ ") + title, role, ToggleDetails())
+        return Summary.titled(("▼ " if self.details_open else "▶ ") + title, role, ToggleDetails())
 
     def toggled(self) -> "Shown":
         return replace(self, details_open=not self.details_open)

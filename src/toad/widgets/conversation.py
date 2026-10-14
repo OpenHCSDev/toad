@@ -48,6 +48,7 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult, ScreenStackError, UnknownModeError
 from textual.binding import Binding
 from textual.content import Content
+from toad.line_blocks import MutedRole, WorkingRole
 from textual.css.query import NoMatches
 from textual.geometry import Offset, Region
 from textual.layout import WidgetPlacement
@@ -188,7 +189,7 @@ class ThreadLoading(ConversationBlock, SplashText):
 
 
 class TurnActivity(Static):
-    DEFAULT_CSS = "TurnActivity { height: 1; padding: 0 1; color: $text-muted; text-overflow: ellipsis; }"
+    DEFAULT_CSS = "TurnActivity { height: 1; padding: 0 1; text-overflow: ellipsis; }"
 
     def __init__(self, turns: ConversationTurn):
         super().__init__()
@@ -208,11 +209,13 @@ class TurnActivity(Static):
         self.refresh()
 
     def render(self) -> Content:
-        text = " ".join(self.owner.activity.splitlines())
+        text = Content.styled(" ".join(self.owner.activity.splitlines()),
+                              self.app.colours.style(WorkingRole))
         if self.owner.started_at is not None:
             elapsed = max(0, int(time() - self.owner.started_at))
-            text += f" · {elapsed // 60}:{elapsed % 60:02d} elapsed"
-        return Content(text)
+            text += Content.styled(f" · {elapsed // 60}:{elapsed % 60:02d} elapsed",
+                                   self.app.colours.style(MutedRole))
+        return text
 
 
 class CategorizedMount:
@@ -1509,7 +1512,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         from toad.widgets.tool_call import ToolCall
 
         tool_call = message.event.tool_call
-        tool_call.activity(self.turns, self.output, tool_call.call.title or 'Using tool')
+        tool_call.activity(self.turns, self.output, tool_call.title)
 
         tool_id = message.event.tool_id
         try:

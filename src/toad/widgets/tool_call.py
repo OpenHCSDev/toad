@@ -17,7 +17,7 @@ from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.tool_content import ToolCallDiff
 from agent_comms.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import ToggleDetails
+from toad.line_blocks import ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
@@ -41,6 +41,13 @@ class ToolContent(containers.VerticalGroup):
     @property
     def output(self) -> ToolOutput:
         return self.query_ancestor(ToolCall).output
+
+    def on_mount(self) -> None:
+        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self._theme_changed(None)
+
+    def _theme_changed(self, _theme) -> None:
+        self.styles.color = self.app.colours.colour(ToolOutputRole.colour)
 
     def on_unmount(self) -> None:
         self._mounted_parts = None
@@ -171,7 +178,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.replace(tool_call.call)
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
-        self.query_one("#tool-title", LineMarkdown).update(self.current_status.call.title or "Tool")
+        self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
         return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuItem]:
@@ -219,7 +226,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def compose(self) -> ComposeResult:
         self._update_metadata()
         yield ToolCallHeader(self.activity_rows[0]).with_tooltip("Expand to see full title")
-        yield LineMarkdown(self.current_status.call.title or "Tool", markdown=False, id="tool-title")
+        yield LineMarkdown(self.current_status.title, role=ToolOutputRole,
+                           markdown=False, id="tool-title")
         yield ToolContent(id="tool-content")
 
     def on_mount(self) -> None:

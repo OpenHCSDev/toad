@@ -7,6 +7,7 @@ from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, T
 from dataclasses import dataclass
 from acp.schema import ToolCall
 from toad.jsonrpc import value_schema
+from toad.line_blocks import FailureRole, Span, SuccessRole, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
@@ -78,6 +79,18 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     completed = False
     failed = False
     summary_suffix = ''
+    summary_role = WorkingRole
+
+    @property
+    def title(self) -> str:
+        return self.call.title or 'Tool'
+
+    @property
+    def summary_spans(self) -> tuple[Span, ...]:
+        """Present the captured title once, with its operation, argument and outcome."""
+        verb, separator, argument = self.title.partition(' ')
+        return (Span(verb, ToolVerbRole), Span(separator + argument, ToolArgumentRole),
+                Span(self.summary_suffix, self.summary_role))
 
     @classmethod
     def activity(cls, turns, output, title):
@@ -100,8 +113,10 @@ class InProgressToolCallStatus(ToolCallStatus):
 class CompletedToolCallStatus(ToolCallStatus):
     boundary = completed = True
     summary_suffix = ' ✔'
+    summary_role = SuccessRole
 
 
 class FailedToolCallStatus(ToolCallStatus):
     boundary = failed = True
     summary_suffix = ' · failed'
+    summary_role = FailureRole
