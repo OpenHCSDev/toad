@@ -10,6 +10,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -153,7 +154,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     ) -> None:
         if snapshot.current(self):
             request.restore(snapshot.window)
-            snapshot.window.release_reader_destination(request.destination)
+            request.destination.release(snapshot.window)
             snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
@@ -197,7 +198,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 if operation.progressed(self):
                     self.request_preparation()
                 self.publish_core(TranscriptSourceWorkFinished())
-                self.window.settle_reader_destination()
+                HeldReaderDestination.settle(self.window)
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""

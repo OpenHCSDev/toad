@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
+from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
@@ -29,7 +30,7 @@ class TranscriptPublication(ABC):
         self.agent = view.agent
         self.thread_scope = owner.thread_scope
         self.window, self.contents = window, contents
-        self.destination = window.reader_destination()
+        self.destination = HeldReaderDestination.held(window)
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def native_current(self) -> bool:
@@ -290,7 +291,7 @@ class CanonicalSourcePublication(TranscriptPublication):
                 return True
         published = await self.publish_source_page(page)
         if published and self.current() and self.destination is not None:
-            self.window.release_reader_destination(self.destination)
+            self.destination.release(self.window)
         return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
@@ -694,8 +695,8 @@ class TranscriptPresentation:
             if not current():
                 return
             if publication is None:
-                if (destination := window.reader_destination()) is not None:
-                    window.release_reader_destination(destination)
+                if (destination := HeldReaderDestination.held(window)) is not None:
+                    destination.release(window)
                 return
             view.run_worker(publication.publish(),
                             group="retained-native-refresh", exclusive=True)
