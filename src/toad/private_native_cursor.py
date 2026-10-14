@@ -42,6 +42,10 @@ class NoneCursorStatus(CursorStatus):
     label = "Bus history: no verified input for this session yet"
 
 
+class BusyCursorStatus(CursorStatus):
+    label = "Bus history: checking…"
+
+
 class UnavailableCursorStatus(CursorStatus):
     label = "Bus input verification unavailable — check the ACP log; saved history is separate"
     summary = "Bus input verification unavailable"
