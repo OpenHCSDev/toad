@@ -996,25 +996,38 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         else:
             prepared = await self._reader().get(PageRequest(before=self.through))
 
-        # A transport page is not a viewport. Read older source pages into this
-        # same destination operation until its bounded fragment demand is full;
-        # none becomes native until every selected fragment is ready.
+        # A transport page is not a viewport. Prepare newest fragments in the
+        # existing render batch until their actual rows fill the destination,
+        # reading older source pages as part of this same unpublished change.
         destination: list[tuple[PreparedTranscriptPage, int]] = []
-        remaining = destination_batch
-        for _ in range(self.app.preparation.max_entries):
-            take = min(remaining, len(prepared.fragments))
+        viewport_rows = max(1, window.outer_size.height)
+        width, theme = self.line_width, self.app.colours.line_theme
+        rows = admitted = 0
+        while admitted < destination_batch:
+            take = 0
+            while (take < len(prepared.fragments) and admitted < destination_batch
+                   and rows < viewport_rows):
+                stop = len(prepared.fragments) - take
+                start = max(0, stop - min(
+                    self.budget.batch_items, destination_batch - admitted,
+                ))
+                batch = prepared.fragments[start:stop]
+                await self.prepare_fragments(batch, current)
+                if not current():
+                    return False
+                take += len(batch)
+                admitted += len(batch)
+                rows += sum(
+                    lines.height
+                    for fragment in batch if fragment.shown_in(self.selected_categories)
+                    if (lines := fragment.lines_for(width, theme)) is not None
+                )
             if take:
                 destination.insert(0, (prepared, take))
-                remaining -= take
-            if not remaining or loader is None or not prepared.page.has_older:
+            if (rows >= viewport_rows or loader is None
+                    or not prepared.page.has_older or admitted >= destination_batch):
                 break
-            if not current():
-                return False
             prepared = await self._reader().get(PageRequest(before=prepared.page.before))
-
-        for prepared, take in destination:
-            selected = PreparedTranscriptPage.initial_slice(prepared.fragments, take, True)
-            await self.prepare_fragments(prepared.fragments[selected], current)
         if not destination:
             return False
 
