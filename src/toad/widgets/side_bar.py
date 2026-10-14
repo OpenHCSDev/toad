@@ -752,7 +752,8 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                     geometry.x + width - self.screen.size.width)
         self.set_styles(width=width, min_width=width, max_width=width,
                         dock=placement.side if not shared else "none",
-                        position="absolute", overlay="screen", offset=(offset_x, 0))
+                        position="absolute", overlay="none", layer="comms-sidebar",
+                        offset=(offset_x, 0))
         if handle := self.query_one_optional(SidebarResizeHandle):
             handle.display = not self.collapsed
         if self._panels_loaded and (controls := self.query_one_optional("#sidebar-controls")):

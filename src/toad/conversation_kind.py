@@ -295,7 +295,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def agent_info(cls, comms, target):
-        return await asyncio.to_thread(comms.agents.agent_info_of, target)
+        return await asyncio.to_thread(comms.configuration.answer, target)
 
     @classmethod
     def seen_page(cls, history, seen):
