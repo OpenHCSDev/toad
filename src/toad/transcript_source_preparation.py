@@ -197,6 +197,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 if operation.progressed(self):
                     self.request_preparation()
                 self.publish_core(TranscriptSourceWorkFinished())
+                self.window.settle_reader_destination()
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""

@@ -492,6 +492,13 @@ class HistoryWindow(VerticalScroll):
         self.reader_position = destination.released()
         self.place_reader()
 
+    def settle_reader_destination(self) -> None:
+        """Resolve the destination after every mounted source has settled."""
+        destination = self.reader_destination()
+        if (destination is not None
+                and all(history.state.accepts_source_work for history in self.histories)):
+            self.release_reader_destination(destination)
+
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """A history about to be mounted loads the page ranges the kept position needs."""
         if self.reader_position is not None:
