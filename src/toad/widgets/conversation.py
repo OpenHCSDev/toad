@@ -81,7 +81,7 @@ from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.observed_thread_activity import ThreadStatusOwner
+from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
@@ -713,8 +713,20 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def make_throbber(self) -> ObservedThrobber:
         return ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy, id="throbber"
+            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
+            id="throbber",
         )
+
+    @property
+    def _observed_working(self) -> bool:
+        """Core's status row: the only turn source for a thread Toad does not run."""
+        activity = self.query_one_optional(ObservedThreadActivity)
+        return activity is not None and activity.working
+
+    @on(ObservedThreadActivity.Changed)
+    def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
+        event.stop()
+        self._sync_throbber()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
