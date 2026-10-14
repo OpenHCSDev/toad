@@ -374,7 +374,10 @@ class CommsChatView(Conversation):
         elif info is not None:
             self.status = " · ".join(
                 value
-                for value in (info.model or "", info.context_label)
+                for value in (
+                    info.model or "",
+                    info.context_usage.label if info.context_usage is not None else "",
+                )
                 if value
             )
         else:
