@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import asyncio
-from functools import partial
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -46,12 +45,11 @@ class ThreadNavigator:
         if source is None:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
-        try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.service)
-            requested_root = str(comms.root)
-        except (OSError, ValueError, RuntimeError) as error:
-            app.notify(str(error), title="Thread unavailable", severity="error")
+        comms = app.coordination_access.observed_service
+        if comms is None:
+            app.notify("The bus is not available", title="Thread unavailable", severity="error")
             return app.selected_mode
+        requested_root = str(comms.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
         mounted_root = str(Path(requested_root).expanduser())
@@ -84,11 +82,14 @@ class ThreadNavigator:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
+    async def mount_loading(self, opening: ThreadOpening) -> None:
+        await self.app.session_navigation.new(lambda: opening.view, title=opening.request.target)
+
     async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:
-        app = self.app
-        details = await app.session_navigation.new(partial(prepared.screen, opening), title=prepared.thread.name,
-                                                  original=(prepared.root, prepared.thread.incarnation))
-        view = app.session_navigation.source(details.mode_name)
-        if view is not None:
-            await view.wait_content_ready()
-        return details.mode_name if app.workspace_sessions.views.get(details.mode_name) else app.selected_mode
+        view = opening.view
+        prepared.configure(view, opening)
+        entry = self.app.session_navigation.get(view.id)
+        if entry is not None:
+            entry.original = (prepared.root, prepared.thread.incarnation)
+        await view.finish_opening()
+        return view.id if self.app.workspace_sessions.views.get(view.id) is view else self.app.selected_mode

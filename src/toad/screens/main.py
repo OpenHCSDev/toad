@@ -253,7 +253,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             with containers.Vertical(id="session-content"):
                 yield self.presentation.compose_content(self)
                 if self._agent is not None:
-                    yield Static("Opening thread…", id="session-opening")
+                    from toad.widgets.conversation import ThreadLoading
+                    yield Static(ThreadLoading.LABEL, id="session-opening")
 
     def _make_conversation(self) -> Conversation:
         with self._context():

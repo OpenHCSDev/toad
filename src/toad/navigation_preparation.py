@@ -77,38 +77,30 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     async def open(self, opening: ThreadOpening) -> str:
         return await opening.navigator.mount(self, opening)
 
-    def screen(self, opening: ThreadOpening):
-        from toad.screens.main import MainScreen
-
-        screen = MainScreen(self.project, agent_session_id=self.thread.name)
+    def configure(self, screen, opening: ThreadOpening) -> None:
+        screen.project_path = self.project
+        screen._agent = None
+        screen._agent_session_id = self.thread.name
         screen.initial_coordination_root = self.root
         screen._comms_thread = self.thread.name
-        return screen
 
 
 class ExternalThreadNavigation(ThreadNavigation):
-    def screen(self, opening: ThreadOpening):
+    def configure(self, screen, opening: ThreadOpening) -> None:
         from toad.session_presentation import MailboxSessionSources
 
-        screen = super().screen(opening)
+        super().configure(screen, opening)
         screen.presentation.sources = MailboxSessionSources()
-        return screen
 
 
 @dataclass(frozen=True)
 class NativeThreadNavigation(ThreadNavigation):
     admission: ExistingSessionLoadAdmission
 
-    def screen(self, opening: ThreadOpening):
-        from toad.screens.main import MainScreen
-
-        screen = MainScreen(self.project,
-                            opening.origin.source._agent or opening.navigator.app.agent_data,
-                            agent_session_id=self.thread.name)
-        screen.initial_coordination_root = self.root
-        screen._comms_thread = self.thread.name
+    def configure(self, screen, opening: ThreadOpening) -> None:
+        super().configure(screen, opening)
+        screen._agent = opening.origin.source._agent or opening.navigator.app.agent_data
         screen.presentation.sources.load_admission = self.admission
-        return screen
 
 
 @dataclass(frozen=True)
@@ -120,6 +112,7 @@ class ExistingThreadNavigation(ThreadNavigation):
         source = navigator.app.session_navigation.source(self.existing.mode)
         if source is not None:
             if (source.coordination_root, source._comms_thread) == (self.existing.root, self.existing.name):
+                await navigator.app.session_navigation.close_many((opening.view.id,))
                 await navigator.app.select_session(self.existing.mode)
         # An obsolete open-view identity must never manufacture a duplicate.
         return navigator.app.selected_mode
@@ -176,8 +169,11 @@ class ThreadOpening:
 
     def __init__(self, navigator: ThreadNavigator, owner_mode: str,
                  request: ThreadNavigationRequest, origin: ThreadOrigin) -> None:
+        from toad.screens.opening_thread import OpeningThreadScreen
+
         self.navigator, self.owner_mode = navigator, owner_mode
         self.request, self.origin = request, origin
+        self.view = OpeningThreadScreen(self)
         self.task = asyncio.create_task(self.run(), name="thread-navigation")
 
     @property
@@ -189,18 +185,17 @@ class ThreadOpening:
 
         navigator = self.navigator
         try:
+            await navigator.mount_loading(self)
             prepared = await navigator.app.navigation_reader.read(self.request)
             if prepared is None:
-                return navigator.app.selected_mode
-            if not self.origin.current(navigator, self.owner_mode):
+                raise RuntimeError("Thread opening was superseded")
+            if navigator.app.workspace_sessions.views.get(self.view.id) is not self.view:
                 return navigator.app.selected_mode
             if not await navigator.app.preparation.run_thread(root_is_current, self.request.root):
-                return navigator.app.selected_mode
-            if not self.origin.current(navigator, self.owner_mode):
-                return navigator.app.selected_mode
+                raise RuntimeError("The thread's bus route changed while opening")
             return await prepared.open(self)
         except (OSError, ValueError, RuntimeError) as error:
-            navigator.app.notify(str(error), title="Thread unavailable", severity="error")
+            self.view.opening_failed(error)
             return navigator.app.selected_mode
         finally:
             navigator.finished(self)

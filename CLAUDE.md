@@ -7,6 +7,7 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 ## How to work
 
 - One fact, one owner; derive the rest. Fix the owner and delete the copies in the same change.
+- Read work must not scale with thread length, bus length or message rate. Read newest to oldest and decode only the viewport; owners update aggregates incrementally and readers take the current value.
 - Read the source before editing: trace each fact through its declaration, storage, lifecycle and every consumer.
 - When behavior is hard to explain, simplify. Remove states, layers and distinctions; do not add new ones to cover the old ones.
 - Prefer deleting code to adding it. If the current design is the problem, say so and propose the replacement.
