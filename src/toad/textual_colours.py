@@ -213,6 +213,26 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         band = band.apply_style(RichStyle(color=self.colour(frame.colour).rich_color))
         return Strip.join((before, band, after))
 
+    def paint_rising(self, frame: Mix, target: Strip) -> Strip:
+        """Each run's own colour `amount` of the way up from the fade's start.
+
+        Unlike `paint_mix`, the runs keep their colours: a run with none rises
+        to the fade's end. Terminal colours cannot be blended; they step.
+        """
+        start = self.colour(frame.start)
+        if start.ansi is not None or frame.amount >= 1.0:
+            return target if frame.amount >= 0.5 else target.apply_style(RichStyle(color=start.rich_color))
+        end = self.colour(frame.end)
+
+        def risen(segment: Segment) -> Segment:
+            text, style, control = segment
+            own = (Color.from_rich_color(style.color) if style is not None and style.color is not None
+                   and not style.color.is_default else end)
+            colour = start.blend(own, frame.amount).rich_color
+            return Segment(text, (style or RichStyle()) + RichStyle(color=colour), control)
+
+        return Strip([risen(segment) for segment in target], target.cell_length)
+
     def paint_text(self, frame: TextFrame, target: None) -> Content:
         """Text in Textual's own styled text; each frame is built once."""
         return _text(frame)

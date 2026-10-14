@@ -46,6 +46,8 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
+from toad.textual_colours import Animated
+from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
@@ -99,11 +101,12 @@ class JumpToLatest(Static, can_focus=True):
         event.stop()
         self.action_jump()
 
-class TranscriptPageView(LinkedRows, Widget):
+class TranscriptPageView(Animated, LinkedRows, Widget):
     """One transcript page, drawn as its admitted fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
     processes; until they arrive a fragment draws its plain wrapped text.
+    A page that arrived on the live tail rises out of the background.
     """
 
     DEFAULT_CSS = "TranscriptPageView { height: auto; }"
@@ -112,7 +115,8 @@ class TranscriptPageView(LinkedRows, Widget):
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
                  fragments: tuple[TranscriptFragment, ...] | None = None,
                  batch_size: int = PreparedTranscriptPage.BATCH,
-                 prepared: PreparedTranscriptPage | None = None):
+                 prepared: PreparedTranscriptPage | None = None, fresh: bool = False):
+        self.fresh = fresh
         self.prepared = prepared if prepared is not None else PreparedTranscriptPage(
             page, transcript_fragments(page.events) if fragments is None else
             tuple(fragments), 0,
@@ -200,6 +204,10 @@ class TranscriptPageView(LinkedRows, Widget):
 
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        if self.fresh:
+            # Once: a page moved to another parent has not arrived again.
+            self.fresh = False
+            self.run_effect(NEW_TEXT)
 
     def _theme_changed(self, _theme) -> None:
         from toad.widgets.history_anchor import HistoryWindow
@@ -210,6 +218,7 @@ class TranscriptPageView(LinkedRows, Widget):
         self.range_changed()
 
     def on_unmount(self) -> None:
+        self.stop_effect()
         if self._render_task is not None:
             self._render_task.cancel()
 
@@ -272,7 +281,10 @@ class TranscriptPageView(LinkedRows, Widget):
         if row >= lines.height:
             return selection_painted(self, self.blank_row(width), y)
         # Prepared rows span exactly this width (Lines.strips_at).
-        return selection_painted(self, self.on_background(lines.strips_at(fragment.link_place)[row]), y)
+        strip = lines.strips_at(fragment.link_place)[row]
+        if self.animation is not None:
+            strip = self.app.colours.paint_rising(self.animation.frame(), strip)
+        return selection_painted(self, self.on_background(strip), y)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text is read from the rows this page draws."""
@@ -402,10 +414,11 @@ class TranscriptPageView(LinkedRows, Widget):
     async def acquire(
         cls, owner: LineHistory, page: TranscriptPage, *, fragments,
         batch_size: int, before: Widget, current: Callable[[], bool], newest: bool = True,
-        prepared: PreparedTranscriptPage | None = None,
+        prepared: PreparedTranscriptPage | None = None, fresh: bool = False,
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire a page until its original source transfers native custody."""
-        view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest)
+        view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest,
+                   fresh=fresh)
         view.prepared.set_fragment_range(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
         view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
@@ -1033,8 +1046,11 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                 self._update_edges()
             return True
 
-    async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None) -> None:
-        """Draw the next range beyond an edge; `prepared` is that page when the caller read it."""
+    async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None,
+                         *, fresh: bool = False) -> None:
+        """Draw the next range beyond an edge; `prepared` is that page when the caller read it.
+
+        `fresh` when the page just arrived on the live tail rather than being paged to."""
         initial_count = self.fragment_count
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
@@ -1072,7 +1088,8 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                 # after preparation, which the reader may have scrolled through.
                 protected = {id(fragment) for fragment in self.visible_fragments()}
                 async with self.window.preserve_history(root=self):
-                    await self._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
+                    await self._extend_and_trim(edge, older, local, page, protected, fragments, prepared,
+                                                fresh=fresh)
                     self._require_can_draw()
             # The destination request spans transport pages. Keep its one
             # admitted worker until the rendered bottom viewport is covered.
@@ -1088,7 +1105,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         self, edge: TranscriptPageView, older: bool, local: bool,
         page: TranscriptPage | None, protected: set[int],
         fragments: tuple[TranscriptFragment, ...] | None,
-        prepared: PreparedTranscriptPage | None = None,
+        prepared: PreparedTranscriptPage | None = None, *, fresh: bool = False,
     ) -> None:
         """Admit the next range and trim fragments the reader is not seeing.
 
@@ -1112,7 +1129,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                 page_range = edge.capture_range()
                 async with TranscriptPageView.acquire(
                     self, page, newest=older, fragments=fragments, batch_size=edge.batch_size,
-                    prepared=prepared,
+                    prepared=prepared, fresh=fresh,
                     before=edge if older else self.newer,
                     current=lambda: snapshot.current(self) and edge.capture_range() == page_range,
                 ) as view:

@@ -193,21 +193,23 @@ class WireHistory(LineHistory):
             edge.page = replace(edge.page, has_newer=True)
             self._update_edges()
         else:
-            await self._load_page(False, prepared)
+            await self._load_page(False, prepared, fresh=True)
             if self.pages[-1].page.has_newer and self.window.follows_tail:
                 # More arrived than one page holds: go to the newest instead
                 # of drawing every page between.
                 await self._jump_latest(LatestViewportRequest(self.window.scroll_revision))
         return True
 
-    async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None):
+    async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None,
+                               *, fresh=False):
         if page is not None and not fragments:
             # Nothing of this conversation lies in that range: the edge page covers it.
             edge.page = (replace(edge.page, before=page.before, has_older=page.has_older) if older
                          else replace(edge.page, after=page.after, has_newer=page.has_newer))
             self._update_edges()
             return
-        await super()._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
+        await super()._extend_and_trim(edge, older, local, page, protected, fragments, prepared,
+                                       fresh=fresh)
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
