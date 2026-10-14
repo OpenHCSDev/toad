@@ -12,7 +12,7 @@ from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.widget import Widget
 from textual.worker import WorkerCancelled
-from textual.widgets import Button, Static
+from textual.widgets import Static
 
 from toad import messages
 from toad.conversation_kind import ConversationKind
@@ -141,12 +141,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
                 right=True, hide=True, navigation=self._thread_sidebar_state,
             )
             with containers.Vertical(id="comms-content"):
-                yield Button("Saved sessions", id="historical-sessions")
-                with containers.Vertical(id="comms-chat-content"):
-                    if not self._content_loaded:
-                        yield Static(f"Opening {self.target}…", id="comms-opening")
-                    else:
-                        yield self.create_chat()
+                if not self._content_loaded:
+                    yield Static(f"Opening {self.target}…", id="comms-opening")
+                else:
+                    yield self.create_chat()
 
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""
@@ -167,7 +165,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             return
         self.app.push_screen(HistoricalSessions(comms, threads, name=event.event.name, source=event.event.source))
 
-    @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
         comms = self.app.coordination_access.service
@@ -208,7 +205,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             # The navigation/sidebar shell is already visible in its chosen
             # state. Hydrate only the conversation; retain those exact controls
             # and their scroll position throughout the opening transition.
-            content = self.query_one("#comms-chat-content", containers.Vertical)
+            content = self.query_one("#comms-content", containers.Vertical)
             await content.remove_children()
             await content.mount(self.create_chat())
             if self.is_attached:
