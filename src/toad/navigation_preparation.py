@@ -85,14 +85,22 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         screen._comms_thread = self.thread.name
         return screen
 
+    def launch_screen(self, app):
+        """The tab a launch naming this thread opens: its agent resumes the session."""
+        return app.session_navigation.default_source(self.thread.name)
+
 
 class ExternalThreadNavigation(ThreadNavigation):
-    def screen(self, opening: ThreadOpening):
+    def screen(self, opening: ThreadOpening | None):
         from toad.session_presentation import MailboxSessionSources
 
         screen = super().screen(opening)
         screen.presentation.sources = MailboxSessionSources()
         return screen
+
+    def launch_screen(self, app):
+        # A CLI thread has no agent to resume; its view reads Core like a sidebar open.
+        return self.screen(None)
 
 
 @dataclass(frozen=True)
