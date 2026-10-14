@@ -46,6 +46,10 @@ class BusyCursorStatus(CursorStatus):
     label = "Bus history: checking…"
 
 
+class ReplacedOwnerCursorStatus(CursorStatus, name="replaced"):
+    label = "Bus history: owner replaced"
+
+
 class UnavailableCursorStatus(CursorStatus):
     label = "Bus input verification unavailable — check the ACP log; saved history is separate"
     summary = "Bus input verification unavailable"
