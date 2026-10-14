@@ -156,13 +156,7 @@ class DirectMessagesCommand(ViewCommand, declared_name="dm"):
         return len(ctx.selected_targets) == 1 and ctx.subject in ctx.comms.registry
 
     def execute(self, ctx: TargetContext) -> None:
-        from toad.navigation_target import DirectTarget
-
-        source = ctx.app.selected_session
-        if source is None:
-            raise ValueError("Direct messages require an open session")
-        ctx.app.run_worker(source.open_sidebar_target(DirectTarget(ctx.subject)),
-                           group="direct-messages")
+        ctx.app.session_navigation.direct_messages(ctx.subject)
 
 
 class CopyCommand(ViewCommand, declared_name="copy"):

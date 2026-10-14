@@ -64,8 +64,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     async def toggle_dm(cls, screen) -> None:
         await screen.action_back_to_agent()
-        if (owner := screen.app.selected_session) is not None:
-            await owner.open_direct_messages()
+        screen.app.session_navigation.direct_messages()
 
     @classmethod
     def unread(cls, snapshot, target):
