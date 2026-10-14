@@ -2,83 +2,120 @@ from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ToolCategory
 from typing import Iterable
-from contextlib import asynccontextmanager
 
 from textual.app import ComposeResult
+from textual.await_complete import AwaitComplete
 from textual import getters
 
 from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
+from textual.geometry import Size
+from textual.selection import Selection
+from textual.strip import Strip
 from textual.widget import Widget
+from textual.worker import Worker
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
-from toad.widgets.tool_content import ToolCallDiff
 from agent_comms.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import ToggleDetails, ToolOutputRole
+from toad.line_blocks import LineBlock, ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
-from toad.layout import trim_trailing_margin
-from textual.layout import WidgetPlacement
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from textual.await_complete import AwaitComplete
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import SingleLineBlock
+from toad.widgets.transcript_lines import (
+    LinkedRows, Lines, PlainLines, PreparedLines, TranscriptLinesRenderTask, link_place,
+)
 
 
-class ToolContent(containers.VerticalGroup):
-    """The decoded output parts of one tool call."""
+class ToolContent(LinkedRows, Widget):
+    """One live details widget painting the parts' canonical line blocks."""
+
+    DEFAULT_CSS = "ToolContent { height: auto; }"
 
     def __init__(self, *args, **kwargs):
-        self._mounted_parts: tuple[ToolOutputPart, ...] | None = None
         super().__init__(*args, **kwargs)
-
-    @property
-    def output(self) -> ToolOutput:
-        return self.query_ancestor(ToolCall).output
+        self.blocks: tuple[LineBlock, ...] = ()
+        self._styled: PreparedLines | None = None
+        self._plain: PlainLines | None = None
+        self._width = 0
+        self._link_place = link_place()
+        self._render_worker: Worker[None] | None = None
 
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self._theme_changed)
-        self._theme_changed(None)
 
     def _theme_changed(self, _theme) -> None:
-        self.styles.color = self.app.colours.colour(ToolOutputRole.colour)
+        self._styled = None
+        self._plain = None
+        self._request_render()
+        self.refresh(layout=True)
 
-    def on_unmount(self) -> None:
-        self._mounted_parts = None
-
-    def sync(self) -> AwaitComplete:
-        if self._mounted_parts == self.output.displayed_parts:
-            return AwaitComplete()
-        return AwaitComplete(self._mount_parts())
-
-    async def recompose(self) -> None:
-        if not self.is_attached:
+    def update(self, blocks: tuple[LineBlock, ...]) -> None:
+        if blocks == self.blocks:
             return
-        async with self.lock:
-            self._mounted_parts = None
-            await self._mount_parts()
+        previous_height = self._lines(self._width).height if self._width else 0
+        self.blocks = blocks
+        self._styled = None
+        self._plain = None
+        self._request_render()
+        current_height = self._lines(self._width).height if self._width else 0
+        self.refresh(layout=previous_height != current_height)
 
-    async def _mount_parts(self) -> None:
-        output = self.output
-        parts = output.displayed_parts
-        if self._mounted_parts == parts:
-            return
-        with self.app.batch_update():
-            retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
-            if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
-                await self.remove_children()
-                await self.mount_all(widget for part in parts for widget in part.compose(output.view))
-            self._mounted_parts = parts
+    def _lines(self, width: int) -> Lines:
+        styled = self._styled
+        if styled is not None and styled.width == width:
+            return styled
+        if self._plain is None or self._plain.width != width:
+            self._plain = PlainLines(width, self.app.colours.line_theme, self.blocks)
+        return self._plain
+
+    def _request_render(self) -> None:
+        if self._width and self.is_attached:
+            self._render_worker = self.run_worker(
+                self._render(), group="tool-details", exclusive=True
+            )
+
+    async def _render(self) -> None:
+        blocks, width, theme = self.blocks, self._width, self.app.colours.line_theme
+        lines = await self.app.render_processes.submit(
+            TranscriptLinesRenderTask(blocks, width, theme)
+        )
+        if (
+            self.is_attached
+            and blocks == self.blocks
+            and width == self._width
+            and theme is self.app.colours.line_theme
+        ):
+            previous_height = self._lines(width).height
+            self._styled = lines
+            self.refresh(layout=previous_height != lines.height)
 
     @height_dependency(INDEPENDENT_HEIGHT)
-    def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
-        return trim_trailing_margin(placements)
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        if width != self._width:
+            self._width = width
+            self._styled = None
+            self._plain = None
+            self.call_later(self._request_render)
+        return self._lines(width).height
+
+    def render_line(self, y: int) -> Strip:
+        width = self._width
+        strips = self._lines(width).strips_at(self._link_place) if width else ()
+        if y >= len(strips):
+            return self.blank_row(width)
+        return self.on_background(strips[y])
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        text = "\n".join(block.selection_text for block in self.blocks)
+        return selection.extract(text), "\n"
 
 
 class ToolCallHeader(SingleLineBlock):
@@ -114,15 +151,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         }
         &.-has-content #tool-content {
             margin: 0 1 1 0;
-            DiffView {
-                margin: 0 1 1 0;
-            }
-
-            Markdown {
-                layout: stream;
-                padding: 0;
-                margin: 0;
-            }
         }
         &.-expanded {
             #tool-title, #tool-content {
@@ -207,9 +235,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self._manual_expansion = expanded
         self._auto_expanded = False
         self.expanded = expanded
-        if expanded:
-            for diff in self.query(ToolCallDiff):
-                diff.publish_if_ready()
         from toad.widgets.conversation import Conversation
 
         try:
@@ -233,7 +258,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
 
-        self.watch(self.app, "theme", self.output.theme_changed, init=False)
         try:
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
@@ -247,52 +271,13 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
                     self.expanded = self._manual_expansion
         self.output.sync()
 
+    def hydrate_if_visible(self) -> None:
+        self.output.sync()
+
     def _update_metadata(self) -> None:
         self.set_class(self.current_status.failed, "-failed")
         self.has_content = self.output.has_content
         self.check_expand()
-
-    def notify_style_update(self) -> None:
-        super().notify_style_update()
-        self.output.theme_changed()
-
-    async def on_show(self) -> None:
-        self.output.hydrate_if_visible()
-
-    def hydrate_if_visible(self) -> None:
-        self.output.hydrate_if_visible()
-
-    def on_unmount(self) -> None:
-        self.output.retire()
-
-    def _visible_in_window(self) -> bool:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        if not self.is_attached or not self.screen.is_active:
-            return False
-        geometry = self.screen._compositor.visible_widgets.get(self)
-        if geometry is None:
-            return False
-        try:
-            window = self.query_ancestor(HistoryWindow)
-        except NoMatches:
-            return True
-        region, _clip = geometry
-        return region.overlaps(window.content_region)
-
-    @property
-    def content_open(self) -> bool:
-        return self.is_mounted and self.is_attached and self.expanded
-
-    @property
-    def content_in_view(self) -> bool:
-        return self.content_open and self._visible_in_window()
-
-    @property
-    def content_presentable(self) -> bool:
-        if not self.expanded:
-            return False
-        return not self._auto_expanded or self._visible_in_window()
 
     def check_expand(self) -> None:
         """Check if the tool call should auto-expand."""
@@ -326,7 +311,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
 
     def watch_expanded(self) -> None:
         self.output.sync()
-        self._saved_page_changed()
         try:
             self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         except NoMatches:
@@ -339,17 +323,3 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             pass
         else:
             self.call_after_refresh(conversation.cursor.refresh)
-
-    def on_resize(self) -> None:
-        self._saved_page_changed()
-
-    def _saved_page_changed(self) -> None:
-        if not self.has_class("saved-tool-row"):
-            return
-        from toad.widgets.transcript_history import TranscriptPageView
-
-        try:
-            page = self.query_ancestor(TranscriptPageView)
-        except NoMatches:
-            return
-        page.range_changed()
