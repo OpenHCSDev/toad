@@ -290,36 +290,45 @@ class HistoryWindow(VerticalScroll):
 
     def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
         event.prevent_default()
-        if not self._prepare_older_at_boundary(-max(1, self.app.scroll_sensitivity_y)):
+        if not self._prepare_source_at_boundary(-max(1, self.app.scroll_sensitivity_y)):
             super()._on_mouse_scroll_up(event)
         event.stop()
 
     def action_page_up(self) -> None:
         # Textual skips an action with no native travel. A lazy destination
-        # must admit its older range before asking that native scroll owner.
-        travel = -max(1, self.scrollable_content_region.height)
-        if not self._prepare_older_at_boundary(travel):
+        # must admit its source range before asking that native scroll owner.
+        if not self._prepare_source_at_boundary(-max(1, self.scrollable_content_region.height)):
             super().action_page_up()
-
-    def _prepare_older_at_boundary(self, travel: float) -> bool:
-        """Measure upward input while a lazy edge has no native travel."""
-        if (
-            self.scroll_y > 0
-            or self.scroll_target_y > 0
-            or not any(history.has_older for history in self.histories)
-        ):
-            return False
-        self.lookahead.requested(travel)
-        self._schedule_settle()
-        if self.follows_tail:
-            self.release_anchor()
-        self.request_preparation()
-        return True
 
     def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
         event.prevent_default()
-        super()._on_mouse_scroll_down(event)
+        if not self._prepare_source_at_boundary(max(1, self.app.scroll_sensitivity_y)):
+            super()._on_mouse_scroll_down(event)
         event.stop()
+
+    def action_page_down(self) -> None:
+        if not self._prepare_source_at_boundary(max(1, self.scrollable_content_region.height)):
+            super().action_page_down()
+
+    def _prepare_source_at_boundary(self, travel: float) -> bool:
+        """Measure reader input while its lazy source edge has no native travel."""
+        older = travel < 0
+        boundary = (
+            self.scroll_y <= 0 and self.scroll_target_y <= 0
+            if older else
+            self.scroll_y >= self.max_scroll_y and self.scroll_target_y >= self.max_scroll_y
+        )
+        source_available = any(
+            history.has_older if older else history.has_newer for history in self.histories
+        )
+        if not boundary or not source_available:
+            return False
+        self.lookahead.requested(travel)
+        self._schedule_settle()
+        if older and self.follows_tail:
+            self.release_anchor()
+        self.request_preparation()
+        return True
 
     def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
         event.prevent_default()
@@ -551,7 +560,6 @@ class HistoryWindow(VerticalScroll):
         """End: prepare the destination in one burst, not every page between."""
         self.lookahead.observe(self.scroll_y)
         self.lookahead.destination(self.outer_size.height)
-        self._schedule_settle()
         self.request_preparation()
 
     _settle_timer = None

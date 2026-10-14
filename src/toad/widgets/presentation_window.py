@@ -233,6 +233,11 @@ class DirectionalPreparation:
         self.demand = DestinationPreparation(rows)
         self.sampled_at = monotonic()
 
+    def destination_complete(self) -> None:
+        """The bottom viewport painted; ordinary idle runway may resume."""
+        if isinstance(self.demand, DestinationPreparation):
+            self.settle()
+
     def delivered(self, seconds: float) -> None:
         self.delivery_seconds = seconds
 
@@ -272,9 +277,12 @@ class DirectionalPreparation:
         return self.fragments_for(self.ahead_rows(viewport_rows))
 
     def destination_batch(self, budget: PresentationBudget, viewport_rows: int) -> int:
-        # Rows and source fragments are different units. Use the original
-        # native body's measured extent for both page and body lookahead.
-        return min(budget.item_limit(0), self.preparation_count(viewport_rows))
+        # A bottom viewport must be complete before its one tree publication.
+        # One selected fragment supplies at least one drawn row; visible
+        # destination items may exceed the nominal working-set item budget.
+        return min(self.window.app.preparation.max_entries, max(
+            budget.item_limit(0), viewport_rows,
+        ))
 
     def accepts(self, demand: PreparationDemand) -> bool:
         """Baseline runway survives idle; reversal revokes the original batch."""

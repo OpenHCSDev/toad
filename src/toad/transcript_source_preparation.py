@@ -121,7 +121,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.schedule_source_work(partial(self._load_page, older))
 
     def request_latest(self) -> None:
-        self.window.destination()
+        # End supersedes any admitted edge publication. Its worker may finish
+        # the source read, but the old snapshot cannot paint an intermediate page.
+        self._generation += 1
         self.workers.cancel_group(self, self.LOOKAHEAD_GROUP)
         self._prefetch_intent = None
         self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
@@ -136,7 +138,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """
         if not self.can_draw_on_screen or not request.current(self.window):
             return
-        self._generation += 1
         request.restore(self.window)
         if await self._publish_latest(request):
             # Wire acceptance advances the original reader source. Capture the
@@ -152,6 +153,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     ) -> None:
         if snapshot.current(self):
             request.restore(snapshot.window)
+            snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
         """Keep the original read until the shared observer supplies relief.
@@ -171,12 +173,22 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.retire_core_observations(self.app.coordination_access.events)
         self.observe_core_callback(self.app.coordination_access.events, resume)
 
+    def supersede_source_work(
+        self, operation: WorkingTranscript, request: LatestViewportRequest,
+    ) -> None:
+        """Replace an edge read with End's destination without publishing it."""
+        if self._source_state is not operation:
+            return
+        self.retire_core_observations(self.app.coordination_access.events)
+        self._source_state = operation.source
+        self.workers.cancel_node(self)
+        request.apply(self)
+
     def finish_source_work(self, operation: WorkingTranscript) -> None:
         # Retirement or replacement revokes this exact admission. A cancelled
         # old operation cannot publish again or settle a newer source's work.
         if self._source_state is operation:
             self._source_state = operation.source
-            operation.pending_request.apply(self)
             if self.state.can_draw:
                 self.window.check_follow()
                 # The admitted operation owns source and reader progress.

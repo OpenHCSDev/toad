@@ -135,20 +135,8 @@ class SuspendedTranscript(TranscriptState):
     def successors(cls): ...
 
 
-class ViewportRequest(DeclaredFamily, affix="ViewportRequest"):
-    """One bounded destination intent belonging to an admitted operation."""
-
-    @abstractmethod
-    def apply(self, owner) -> None: ...
-
-
-class IdleViewportRequest(ViewportRequest):
-    def apply(self, owner) -> None:
-        pass
-
-
 @dataclass(frozen=True)
-class LatestViewportRequest(ViewportRequest):
+class LatestViewportRequest:
     revision: int
 
     def current(self, window) -> bool:
@@ -170,9 +158,6 @@ class WorkingTranscript(SuspendedTranscript):
         super().__init__(source)
         self.window_before = owner.paging_window()
         self.reader_revision = owner.window.scroll_revision
-        # The inherited source snapshot stays immutable. Only this operation's
-        # bounded pending resource changes, never a second history-level flag.
-        self.pending_request: ViewportRequest = IdleViewportRequest()
         # The screen asked for rows beyond an edge while this work held the source.
         self.edges_wait = False
 
@@ -194,7 +179,7 @@ class WorkingTranscript(SuspendedTranscript):
         )
 
     def request_latest(self, owner, request: LatestViewportRequest) -> None:
-        self.pending_request = request
+        owner.supersede_source_work(self, request)
 
     def check_edges(self, owner) -> None:
         # One work at a time holds the source. The check is made again when

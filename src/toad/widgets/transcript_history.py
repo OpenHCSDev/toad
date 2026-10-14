@@ -983,53 +983,59 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
             self._request_page(True)
 
     async def _publish_latest(self, request: LatestViewportRequest) -> bool:
+        """Prepare and publish the complete bottom destination as one tree change."""
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
         destination_batch = window.lookahead.destination_batch(self.budget, window.outer_size.height)
-        view = self.pages[-1]
-        if loader is None or view.page.after == self.through:
-            # The original source already supplies the newest cut. End moves
-            # its native demand; another read cannot improve its coverage.
-            prepared = view.prepared
+        current = lambda: snapshot.current(self) and request.current(window)
+        edge = self.pages[-1]
+        if loader is None or edge.page.after == self.through:
+            # Reuse immutable source/render inputs without sharing the old
+            # view's mutable admitted range.
+            prepared = edge.prepared.for_view()
         else:
             prepared = await self._reader().get(PageRequest(before=self.through))
-        page, fragments = prepared.page, prepared.fragments
-        selected = PreparedTranscriptPage.initial_slice(fragments, destination_batch, True)
-        await self.prepare_fragments(
-            fragments[selected],
-            lambda: snapshot.current(self) and request.current(window),
-        )
+
+        # A transport page is not a viewport. Read older source pages into this
+        # same destination operation until its bounded fragment demand is full;
+        # none becomes native until every selected fragment is ready.
+        destination: list[tuple[PreparedTranscriptPage, int]] = []
+        remaining = destination_batch
+        for _ in range(self.app.preparation.max_entries):
+            take = min(remaining, len(prepared.fragments))
+            if take:
+                destination.insert(0, (prepared, take))
+                remaining -= take
+            if not remaining or loader is None or not prepared.page.has_older:
+                break
+            if not current():
+                return False
+            prepared = await self._reader().get(PageRequest(before=prepared.page.before))
+
+        for prepared, take in destination:
+            selected = PreparedTranscriptPage.initial_slice(prepared.fragments, take, True)
+            await self.prepare_fragments(prepared.fragments[selected], current)
+        if not destination:
+            return False
+
         async with window.history_lock:
-            if not snapshot.current(self) or not request.current(window):
-                return False
-            if self.pages[-1] is not view:
-                return False
-        if prepared is view.prepared:
-            # End changes the original admission, without locking the window
-            # around pending body writers or replacing their paint resources.
-            view.batch_size = destination_batch
-            if not await view.select_range(
-                selected, lambda: snapshot.current(self) and request.current(window),
-            ):
-                return False
-        async with window.history_lock:
-            if not snapshot.current(self) or not request.current(window):
+            if not current() or self.pages[-1] is not edge:
                 return False
             async with window.preserve_history(root=self):
                 previous = tuple(self.pages)
-                if prepared is view.prepared:
-                    self.pages = deque([view])
-                else:
-                    try:
+                views = deque()
+                try:
+                    for prepared, take in destination:
                         async with TranscriptPageView.acquire(
-                            self, page, fragments=fragments, batch_size=destination_batch,
-                            prepared=prepared,
-                            before=self.newer, current=lambda: snapshot.current(self) and request.current(window),
+                            self, prepared.page, fragments=prepared.fragments,
+                            batch_size=take, prepared=prepared.for_view(),
+                            before=self.newer, current=current,
                         ) as view:
-                            self.pages = deque([view])
-                    except _DrawingStopped:
-                        return False
-                self.remove_children(tuple(retired for retired in previous if retired is not view))
+                            views.append(view)
+                except _DrawingStopped:
+                    return False
+                self.pages = views
+                self.remove_children(previous)
                 self._update_edges()
             return True
 
