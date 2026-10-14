@@ -49,6 +49,6 @@ def test_capture_after_a_replacement_begins_is_refused(tmp_path):
     attachment = QueueAttachment()
     token = attachment.begin("source")
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
-    attachment.begin("source")  # keeps the old observed scope but owns an unavailable projection
-    with pytest.raises(ValueError, match="Remote queue unavailable"):
+    attachment.begin("source")  # keeps the old observed scope behind a pending projection
+    with pytest.raises(ValueError, match="Checking input queue"):
         attachment.capture_human_input(comms, scope)

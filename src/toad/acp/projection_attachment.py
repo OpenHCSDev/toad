@@ -85,9 +85,9 @@ class ProjectionAttachment:
 
     @property
     def state(self) -> type[AttachmentState]:
-        if self._pending and self.current is None:
+        if self._pending:
             return PendingAttachment
-        if self.quarantined or self._pending or self._uncertain or self._evidence_lost:
+        if self.quarantined or self._uncertain or self._evidence_lost:
             return UnavailableAttachment
         return AvailableAttachment
 
@@ -264,12 +264,6 @@ class ProjectionAttachment:
 
 class CursorAttachment(ProjectionAttachment):
     """Cursor attachment lifecycle projected as named presentation states."""
-
-    @property
-    def state(self) -> type[AttachmentState]:
-        if self._pending:
-            return PendingAttachment
-        return super().state
 
     @property
     def status(self) -> type[CursorStatus] | None:
