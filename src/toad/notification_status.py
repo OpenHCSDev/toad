@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import ClassVar, TYPE_CHECKING
@@ -29,23 +28,20 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
     return (Span(recipient, NameRole, OpenTarget(recipient)), Span(text, MutedRole))
 
 
-class NotificationStatus(ABC):
+class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
+    visible: ClassVar[bool] = True
     working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
 
     @property
-    @abstractmethod
-    def title(self) -> str: ...
+    def title(self) -> str:
+        return ""
 
     @property
-    @abstractmethod
-    def details(self) -> DetailLines: ...
-
-    @property
-    def visible(self) -> bool:
-        return bool(self.title)
+    def details(self) -> DetailLines:
+        return ()
 
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
@@ -59,11 +55,7 @@ class NotificationStatus(ABC):
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    title = ""
-
-    @property
-    def details(self) -> DetailLines:
-        return ((Span("Not checked yet", MutedRole),),)
+    visible = False
 
 
 @dataclass(frozen=True)
