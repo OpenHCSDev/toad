@@ -122,7 +122,7 @@ class LiteralTextToolOutputPart(TextToolOutputPart):
     """The remaining text is literal; member order is never priority."""
 
 
-class RetainedTextToolOutputPart(LiveToolDetails, TextToolOutputPart):
+class RetainedTextToolOutputPart(TextToolOutputPart):
     @property
     @abstractmethod
     def render_source(self) -> NativeContentSource: ...
@@ -159,7 +159,7 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
         return AnsiContentSource(self.text)
 
 
-class MarkdownToolOutputPart(LiveToolDetails, SpecificTextToolOutputPart):
+class MarkdownToolOutputPart(SpecificTextToolOutputPart):
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (
@@ -171,7 +171,7 @@ class MarkdownToolOutputPart(LiveToolDetails, SpecificTextToolOutputPart):
 
 
 @dataclass(frozen=True)
-class ReadToolOutputPart(LiveToolDetails, SpecificTextToolOutputPart):
+class ReadToolOutputPart(SpecificTextToolOutputPart):
     path: str
 
     @classmethod
