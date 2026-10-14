@@ -84,7 +84,7 @@ class SessionSurfaceLifetime(ABC):
 
 
 class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
-    """Shared actual editor-state custody and active shell close semantics."""
+    """Own retained editor state and active shell close semantics."""
 
     def __init__(self) -> None:
         self.state: SessionViewState | None = None
@@ -98,7 +98,7 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
 
 
 class OperationalSessionSources:
-    """Logical session custody of existing operational owners, without a view."""
+    """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
         from agent_comms.session_load import EnsuringSessionLoadAdmission
@@ -235,7 +235,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @property
     def retained_widget_count(self) -> int:
-        """Native custody includes the complete tree, even while parked."""
+        """The retained native view includes its complete widget tree."""
         return 1 + self.widget.descendant_count if self.widget is not None else 0
 
     @property
