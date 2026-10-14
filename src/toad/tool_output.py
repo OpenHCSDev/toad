@@ -285,6 +285,19 @@ class PatchToolOutputPart(CommittedToolOutputPart):
         return len(self.source), self.source.count("\n")
 
 
+@dataclass(frozen=True)
+class NumberedPatchToolOutputPart(CommittedToolOutputPart):
+    """Pi's retained numbered edits already contain their reported line numbers."""
+
+    source: str
+
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
+        return (MarkdownContent(Body.code(self.source, "diff").text),)
+
+    def line_blocks(self):
+        return (Body.code(self.source, "diff", bar=MutedRole),)
+
+
 @dataclass
 class SentMessageToolOutputPart(LiveToolDetails, ToolOutputPart):
     """Render the send owner's original publication through the outgoing view."""
@@ -364,6 +377,8 @@ class ToolContentDecoder(MroDispatch):
             from agent_comms.transcript_events import SentTranscript
 
             self.part = SentMessageToolOutputPart(FieldCodec.decode(SentTranscript, json.loads(item.text)))
+        elif item.mime_type == 'application/vnd.agent-comms.numbered-diff':
+            self.part = NumberedPatchToolOutputPart(item.text)
         else:
             self.part = PatchToolOutputPart(item.text) if item.mime_type == 'text/x-diff' else UnrenderedToolOutputPart(item)
 
