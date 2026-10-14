@@ -61,11 +61,15 @@ class Throbber(Animated, Widget):
         self.stop_effect()
 
     def watch_busy(self, busy: bool) -> None:
+        # A computed busy changes when it is read, often by the clock's tick,
+        # which repaints only visible running animations: repaint here so the
+        # last sweep frame never stays on screen once work ends.
         if busy and self.is_mounted:
             if self.animation is None:
                 self.run_effect(ACTIVITY_SWEEP)
         else:
             self.stop_effect()
+        self.refresh()
 
     @property
     def animation_visible(self) -> bool:
@@ -97,4 +101,3 @@ class ObservedThrobber(Throbber):
 
     def sync(self) -> None:
         self.watch_busy(self.busy)
-        self.refresh()
