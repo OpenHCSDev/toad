@@ -295,18 +295,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def agent_info(cls, comms, target):
-        def read_info():
-            thread = comms.registry.require(target)
-            info = comms.agents.agent_info_of(thread.name)
-            if info is not None:
-                return replace(info, model=thread.model)
-            if thread.model is not None:
-                from agent_comms.runtime_info import AgentRuntimeInfo
-
-                return AgentRuntimeInfo(thread=thread.name, timestamp=0.0, model=thread.model)
-            return None
-
-        return await asyncio.to_thread(read_info)
+        return await asyncio.to_thread(comms.configuration.answer, target)
 
     @classmethod
     def seen_page(cls, history, seen):
