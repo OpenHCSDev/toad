@@ -319,6 +319,7 @@ class RuntimeBuild:
                 raise ValueError(f'Invalid environment entry in {self.start_env}')
             environment[name] = value
         environment['PATH'] = f'{runtime / "bin"}:{environment["PATH"]}'
+        environment['AGENT_COMMS_AGENT_BIN'] = str(runtime / 'bin/pi-comms-native')
         command = [runtime / 'bin/agent-comms', 'start', '--name', self.thread]
         print('+ ' + ' '.join(map(str, command)), file=sys.stderr, flush=True)
         started = subprocess.run(
