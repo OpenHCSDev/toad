@@ -38,7 +38,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("escape", "back_to_agent", "Agent session"),
-        Binding("ctrl+h", "historical_sessions", "Saved sessions", priority=True),
+        Binding("f8", "historical_sessions", "Saved sessions", priority=True),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+t", "message_style", "IRC / Markdown"),
         Binding(
