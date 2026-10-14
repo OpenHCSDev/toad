@@ -91,5 +91,7 @@ class ThreadNavigator:
         entry = self.app.session_navigation.get(view.id)
         if entry is not None:
             entry.original = (prepared.root, prepared.thread.incarnation)
+            entry.details.bind_initial_identity(prepared.thread.name)
+            self.app.session_navigation.publish()
         await view.finish_opening()
         return view.id if self.app.workspace_sessions.views.get(view.id) is view else self.app.selected_mode
