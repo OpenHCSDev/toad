@@ -785,14 +785,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         content = next((child for child in parent.children
                         if child.display and not isinstance(child, SideBar)), None)
         if content is not None:
-            local_dock = width if not shared else 0
+            # Bars are absolutely positioned and reserve no layout space; the
+            # resolved gutter is the whole clearance a pushed bar needs.
             content.styles.margin = (
                 0,
-                0 if shared else resolved.right_gutter
-                - (local_dock if placement.side == "right" else 0),
+                0 if shared else resolved.right_gutter,
                 0,
-                0 if shared else resolved.left_gutter
-                - (local_dock if placement.side == "left" else 0),
+                0 if shared else resolved.left_gutter,
             )
         return True
 
