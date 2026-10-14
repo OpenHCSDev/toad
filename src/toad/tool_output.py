@@ -27,6 +27,7 @@ from textual.await_complete import AwaitComplete
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
+from toad.widgets.patch_diff import parse_patch
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -267,7 +268,7 @@ class PatchToolOutputPart(CommittedToolOutputPart):
         return (ToolCallDiff(self.source, preparation=self.preparation),)
 
     def line_blocks(self):
-        return (Body.code(self.source, "diff", bar=MutedRole),)
+        return parse_patch(self.source).line_blocks()
 
     def begin_preparation(self, syntax: SyntaxPalette) -> bool:
         self.preparation.begin(self.source, syntax)
@@ -315,7 +316,8 @@ class FileDiffToolOutputPart(CommittedToolOutputPart):
     def line_blocks(self):
         lines = unified_diff((self.old_text or "").splitlines(), self.new_text.splitlines(),
                              self.path, self.path, lineterm="")
-        return (Body.code("\n".join(lines), "diff", bar=MutedRole),)
+        source = "\n".join(lines)
+        return parse_patch(source).line_blocks() if source else ()
 
 
 @dataclass(frozen=True)

@@ -77,6 +77,18 @@ class FailureRole(LineRole):
     bold = True
 
 
+class AddedCodeRole(LineRole):
+    """A reported added line, distinct from a tool's success status."""
+
+    colour = SuccessColour
+
+
+class RemovedCodeRole(LineRole):
+    """A reported removed line, distinct from a failed tool."""
+
+    colour = ErrorColour
+
+
 class IncomingRole(LineRole):
     """A message received from another participant."""
 
