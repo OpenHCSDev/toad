@@ -5,10 +5,13 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 from toad.core_event_carrier import CoreEventReceiver
 import asyncio
+from abc import abstractmethod
+from collections.abc import Awaitable, Callable
 from functools import partial
 from pathlib import Path
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -108,6 +111,87 @@ class MCPInventoryProvider(Provider):
                            help="Read-only package snapshot")
 
 
+class ScreenContent(DeclaredFamily, affix="Content"):
+    """Content state owns its label, preparation admission and completion."""
+
+    @abstractmethod
+    def render(self, screen: "MainScreen") -> Static: ...
+
+    @abstractmethod
+    async def wait(self, screen: "MainScreen") -> None: ...
+
+    @staticmethod
+    async def prepare(screen: "MainScreen") -> None:
+        await screen._prepare_content()
+
+    def finish(self, screen: "MainScreen", content: "ScreenContent") -> None:
+        screen.content = content
+        content.render(screen)
+
+    def close(self, screen: "MainScreen") -> None:
+        """Terminal content has no unfinished waiters to release."""
+
+    def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
+        label = screen.query_one_optional("#session-opening", Static)
+        if label is None:
+            label = Static(id="session-opening")
+        label.update(text)
+        label.display = visible
+        return label
+
+
+class OpeningContent(ScreenContent):
+    def __init__(self, preparation: Callable[["MainScreen"], Awaitable[None]]) -> None:
+        self.preparation = preparation
+        self.completion = asyncio.get_running_loop().create_future()
+
+    def render(self, screen: "MainScreen") -> Static:
+        from toad.widgets.conversation import ThreadLoading
+
+        return self.label(screen, ThreadLoading.LABEL, visible=True)
+
+    async def wait(self, screen: "MainScreen") -> None:
+        await asyncio.shield(self.completion)
+        await screen.content.wait(screen)
+
+    async def prepare(self, screen: "MainScreen") -> None:
+        await self.preparation(screen)
+
+    @staticmethod
+    async def retain(screen: "MainScreen") -> None:
+        """Navigation owns admission; selecting its shell must not wait for I/O."""
+
+    def finish(self, screen: "MainScreen", content: ScreenContent) -> None:
+        super().finish(screen, content)
+        self.completion.set_result(None)
+
+    def close(self, screen: "MainScreen") -> None:
+        self.finish(screen, ReadyContent())
+
+
+class ReadyContent(ScreenContent):
+    def render(self, screen: "MainScreen") -> Static:
+        return self.label(screen, "", visible=False)
+
+    async def wait(self, screen: "MainScreen") -> None:
+        """The content has already been admitted."""
+
+
+class FailedContent(ScreenContent):
+    def __init__(self, error: BaseException) -> None:
+        self.error = error
+
+    def render(self, screen: "MainScreen") -> Static:
+        return self.label(screen, f"Thread unavailable: {self.error}", visible=True)
+
+    async def wait(self, screen: "MainScreen") -> None:
+        if not screen._closing and not screen._closed:
+            raise self.error
+
+    async def prepare(self, screen: "MainScreen") -> None:
+        self.render(screen)
+
+
 class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
@@ -157,6 +241,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
         initial_prompt: str | None = None,
+        *,
+        content_preparation: Callable[["MainScreen"], Awaitable[None]] = ScreenContent.prepare,
     ) -> None:
         super().__init__()
         self.set_reactive(MainScreen.project_path, project_path)
@@ -172,13 +258,24 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
         self._project_panel: ProjectPanel | None = None
-        self._content_ready = asyncio.Event()
-        self._content_error: BaseException | None = None
+        self.content: ScreenContent = OpeningContent(content_preparation)
         from toad.session_presentation import OperationalSessionPresentation
 
         self.presentation = OperationalSessionPresentation()
 
+    @classmethod
+    def opening(cls, request, origin, app) -> "MainScreen":
+        screen = cls(request.project, origin.source._agent or app.agent_data,
+                     agent_session_id=request.target,
+                     content_preparation=OpeningContent.retain)
+        screen.initial_coordination_root = request.root
+        screen._comms_thread = request.target
+        return screen
+
     async def prepare_presentation(self) -> None:
+        await self.content.prepare(self)
+
+    async def _prepare_content(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         try:
@@ -186,12 +283,16 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             await super().prepare_presentation()
             if sidebar := self.query_one_optional(SessionThreadSidebar):
                 await sidebar.prepare_presentation()
-            await self.query("#session-opening").remove()
-        except BaseException as error:
-            self._content_error = error
+        except asyncio.CancelledError as error:
+            self.opening_failed(error)
             raise
-        finally:
-            self._content_ready.set()
+        except Exception as error:
+            self.opening_failed(error)
+        else:
+            self.content.finish(self, ReadyContent())
+
+    def opening_failed(self, error: BaseException) -> None:
+        self.content.finish(self, FailedContent(error))
 
     async def retire_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -252,9 +353,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
                 yield self.presentation.compose_content(self)
-                if self._agent is not None:
-                    from toad.widgets.conversation import ThreadLoading
-                    yield Static(ThreadLoading.LABEL, id="session-opening")
+                yield self.content.render(self)
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -273,16 +372,14 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
                       if self._agent is not None else "")
 
     async def wait_content_ready(self) -> None:
-        await self._content_ready.wait()
-        if self._content_error is not None and not self._closing and not self._closed:
-            raise self._content_error
+        await self.content.wait(self)
 
     async def close_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.evict()
-        self._content_ready.set()
+        self.content.close(self)
         await self.presentation.close(self)
 
     def on_comms_session_named(self, thread_name: str) -> None:

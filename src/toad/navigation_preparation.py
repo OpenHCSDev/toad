@@ -72,24 +72,18 @@ class OpenThread:
 class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     root: str
     thread: Thread
-    project: Path
 
     async def open(self, opening: ThreadOpening) -> str:
         return await opening.navigator.mount(self, opening)
 
-    def configure(self, screen, opening: ThreadOpening) -> None:
-        screen.project_path = self.project
-        screen._agent = None
-        screen._agent_session_id = self.thread.name
-        screen.initial_coordination_root = self.root
-        screen._comms_thread = self.thread.name
+    def bind(self, screen) -> None:
+        """Only execution-specific navigation admits an operational source."""
 
 
 class ExternalThreadNavigation(ThreadNavigation):
-    def configure(self, screen, opening: ThreadOpening) -> None:
+    def bind(self, screen) -> None:
         from toad.session_presentation import MailboxSessionSources
 
-        super().configure(screen, opening)
         screen.presentation.sources = MailboxSessionSources()
 
 
@@ -97,9 +91,7 @@ class ExternalThreadNavigation(ThreadNavigation):
 class NativeThreadNavigation(ThreadNavigation):
     admission: ExistingSessionLoadAdmission
 
-    def configure(self, screen, opening: ThreadOpening) -> None:
-        super().configure(screen, opening)
-        screen._agent = opening.origin.source._agent or opening.navigator.app.agent_data
+    def bind(self, screen) -> None:
         screen.presentation.sources.load_admission = self.admission
 
 
@@ -132,27 +124,23 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
     def read(self) -> ThreadNavigation:
         snapshot = self.comms.registry.snapshot()
         thread = snapshot.require(self.target)
-        project = Path(thread.worktree)
-        if not project.is_dir():
-            project = self.project
         existing = next((view for view in self.open_threads
                          if view.root == self.root
                          and snapshot.canonical_name(view.name) == thread.name), None)
         if existing is not None:
-            return ExistingThreadNavigation(self.root, thread, project, existing)
+            return ExistingThreadNavigation(self.root, thread, existing)
         return thread.execution.prepare_conversation(
-            ThreadConversationPreparation(self.root, thread, project, snapshot))
+            ThreadConversationPreparation(self.root, thread, snapshot))
 
 
 @dataclass(frozen=True)
 class ThreadConversationPreparation(ConversationPreparation):
     root: str
     thread: Thread
-    project: Path
     snapshot: RegistrySnapshot
 
     def external(self) -> ThreadNavigation:
-        return ExternalThreadNavigation(self.root, self.thread, self.project)
+        return ExternalThreadNavigation(self.root, self.thread)
 
     def native(self) -> ThreadNavigation:
         from toad.owner_preparation import ExistingOwnerAdmission
@@ -160,8 +148,8 @@ class ThreadConversationPreparation(ConversationPreparation):
         binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
         admission = ExistingOwnerAdmission.from_binding(binding)
         if admission is None:
-            return ThreadNavigation(self.root, self.thread, self.project)
-        return NativeThreadNavigation(self.root, self.thread, self.project, admission)
+            return ThreadNavigation(self.root, self.thread)
+        return NativeThreadNavigation(self.root, self.thread, admission)
 
 
 class ThreadOpening:
@@ -169,11 +157,11 @@ class ThreadOpening:
 
     def __init__(self, navigator: ThreadNavigator, owner_mode: str,
                  request: ThreadNavigationRequest, origin: ThreadOrigin) -> None:
-        from toad.screens.opening_thread import OpeningThreadScreen
+        from toad.screens.main import MainScreen
 
         self.navigator, self.owner_mode = navigator, owner_mode
         self.request, self.origin = request, origin
-        self.view = OpeningThreadScreen(self)
+        self.view = MainScreen.opening(request, origin, navigator.app)
         self.task = asyncio.create_task(self.run(), name="thread-navigation")
 
     @property
@@ -188,7 +176,8 @@ class ThreadOpening:
             await navigator.mount_loading(self)
             prepared = await navigator.app.navigation_reader.read(self.request)
             if prepared is None:
-                raise RuntimeError("Thread opening was superseded")
+                await navigator.app.session_navigation.close_many((self.view.id,))
+                return navigator.app.selected_mode
             if navigator.app.workspace_sessions.views.get(self.view.id) is not self.view:
                 return navigator.app.selected_mode
             if not await navigator.app.preparation.run_thread(root_is_current, self.request.root):

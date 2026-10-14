@@ -87,11 +87,11 @@ class ThreadNavigator:
 
     async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:
         view = opening.view
-        prepared.configure(view, opening)
-        entry = self.app.session_navigation.get(view.id)
-        if entry is not None:
-            entry.original = (prepared.root, prepared.thread.incarnation)
-            entry.details.bind_initial_identity(prepared.thread.name)
-            self.app.session_navigation.publish()
-        await view.finish_opening()
+        prepared.bind(view)
+        entry = self.app.workspace_sessions.factories[view.id]
+        entry.original = (prepared.root, prepared.thread.incarnation)
+        entry.details.bind_initial_identity(prepared.thread.name)
+        self.app.session_navigation.publish()
+        await view._prepare_content()
+        await view.wait_content_ready()
         return view.id if self.app.workspace_sessions.views.get(view.id) is view else self.app.selected_mode
