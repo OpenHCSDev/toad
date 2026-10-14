@@ -1812,7 +1812,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
         self.submissions.reset()
-        self.thread_presentation = self._unpublished_presentation = None
+        # The observed presentation is Core's answer for this thread, not the
+        # agent's; it stays until the next observation replaces it.
         self.arm_thread_read()
         if self.is_attached:
             self.refresh_thread_status()
