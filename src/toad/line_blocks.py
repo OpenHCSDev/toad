@@ -222,14 +222,19 @@ class Divider(LineBlock):
 
 
 @dataclass(frozen=True)
-class Spans(LineBlock):
-    """Wrapped text made of spans; line breaks in the text are kept."""
+class SpanText(LineBlock):
+    """Text made of spans; subclasses decide whether it wraps or clips."""
 
     spans: tuple[Span, ...]
 
     @property
     def text(self) -> str:
         return "".join(span.text for span in self.spans)
+
+
+@dataclass(frozen=True)
+class Spans(SpanText):
+    """Wrapped text made of spans; line breaks in the text are kept."""
 
     @classmethod
     def from_lines(cls, lines: tuple[tuple[Span, ...], ...], indent: str = "") -> "Spans":
@@ -246,7 +251,7 @@ class Spans(LineBlock):
 
 
 @dataclass(frozen=True)
-class Summary(Spans):
+class Summary(SpanText):
     """One clipped row, followed by spans whose space is reserved first."""
 
     kept: tuple[Span, ...] = ()
