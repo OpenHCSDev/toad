@@ -212,17 +212,15 @@ class MailboxSessionSources(OperationalSessionSources):
         return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
 
     def input_ready(self, conversation: Conversation) -> bool:
-        return conversation.transcript.readable and conversation.user_message_ready
+        # The view's own send holds compose itself (DeliveryFailureView).
+        return conversation.transcript.readable
 
     def accepts_inbox_submission(self, event) -> bool:
         return not event.shell and bool(event.body.strip())
 
     def unavailable_reason(self, conversation: Conversation) -> str:
-        # A CLI thread has no native owner to start; only its own send or
-        # history load can hold the prompt.
-        if not conversation.transcript.readable:
-            return "Loading thread history…"
-        return conversation.send_block_reason
+        # A CLI thread has no native owner to start; only its history load holds it.
+        return "Loading thread history…"
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
