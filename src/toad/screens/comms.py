@@ -126,8 +126,13 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         return (sidebar,) if sidebar is not None else ()
 
     def compose(self) -> ComposeResult:
-        with containers.Center():
-            yield ThreadSidebar(
+        content = (
+            (self.create_chat(),)
+            if self._content_loaded
+            else (Static(f"Opening {self.target}…", id="comms-opening"),)
+        )
+        yield containers.Center(
+            ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
                     CoordinationStatus(self.me),
@@ -139,12 +144,9 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
                     self.me, wire_root=self.recovery_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
                 right=True, hide=True, navigation=self._thread_sidebar_state,
-            )
-            with containers.Vertical(id="comms-content"):
-                if not self._content_loaded:
-                    yield Static(f"Opening {self.target}…", id="comms-opening")
-                else:
-                    yield self.create_chat()
+            ),
+            containers.Vertical(*content, id="comms-content"),
+        )
 
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""
