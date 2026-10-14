@@ -313,14 +313,10 @@ class RuntimeBuild:
         if self.start_env is None:
             return
         environment = dict(os.environ)
-        for line_number, line in enumerate(self.start_env.read_text().splitlines(), 1):
-            if not line or line.lstrip().startswith('#'):
-                continue
-            name, separator, value = line.partition('=')
+        for entry in self.start_env.read_text().split():
+            name, separator, value = entry.partition('=')
             if not separator or not name.isidentifier():
-                raise ValueError(
-                    f'Invalid environment entry at {self.start_env}:{line_number}'
-                )
+                raise ValueError(f'Invalid environment entry in {self.start_env}')
             environment[name] = value
         environment['PATH'] = f'{runtime / "bin"}:{environment["PATH"]}'
         command = [runtime / 'bin/agent-comms', 'start', '--name', self.thread]
@@ -406,7 +402,7 @@ def main() -> None:
     parser.add_argument('--start-thread', action='store_true',
                         help='Start the stopped acceptance thread from the built runtime')
     parser.add_argument('--start-env', type=Path,
-                        help='Environment entries for --start-thread, one NAME=VALUE per line')
+                        help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
