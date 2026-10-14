@@ -42,6 +42,13 @@ class ToolContent(containers.VerticalGroup):
     def output(self) -> ToolOutput:
         return self.query_ancestor(ToolCall).output
 
+    def on_mount(self) -> None:
+        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self._theme_changed(None)
+
+    def _theme_changed(self, _theme) -> None:
+        self.styles.color = self.app.colours.colour(ToolOutputRole.colour)
+
     def on_unmount(self) -> None:
         self._mounted_parts = None
 
