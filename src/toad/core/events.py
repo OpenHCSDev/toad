@@ -17,8 +17,6 @@ from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, RequestFailedUpdate
-from agent_comms.acp_failure import NativeMessageFailureSource, UnrecordedFailureSource
-from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 
@@ -306,8 +304,8 @@ class LogAgentFail(FailureLog, TextAgentFail):
 
 
 @dataclass(frozen=True)
-class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
-    """The decoded request failure retains its source through presentation."""
+class RequestAgentFail(FailureLog, AgentFail):
+    """The decoded request failure asks its source where feedback belongs."""
 
     update: RequestFailedUpdate
     log_path: Annotated[Path, PathText]
@@ -321,15 +319,10 @@ class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
         return self.update.failure.feedback
 
     async def present(self, view) -> None:
-        await self.dispatch(self.update.source, view)
-
-    @handles(UnrecordedFailureSource)
-    async def show_unrecorded(self, source, view) -> None:
-        await super().present(view)
-        await self.show_log(view)
-
-    @handles(NativeMessageFailureSource)
-    async def show_native(self, source, view) -> None:
+        if not self.update.source.retained_in_history:
+            await super().present(view)
+            await self.show_log(view)
+            return
         # message_end precedes the journal append. The existing source observer
         # resolves the saved row and its time; this event mounts no tail copy.
         view.transcript.require_checkpoint()
