@@ -295,7 +295,14 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def agent_info(cls, comms, target):
-        return await asyncio.to_thread(comms.agents.agent_info_of, target)
+        info = await asyncio.to_thread(comms.agents.agent_info_of, target)
+        if info is None:
+            return None
+        # The footer names the thread's configured model, the same Core
+        # answer the sidebar rows and tooltips read, while context usage
+        # still comes from the runtime observation.
+        model = await asyncio.to_thread(comms.threads.resolve_thread_model, target)
+        return replace(info, model=model)
 
     @classmethod
     def seen_page(cls, history, seen):

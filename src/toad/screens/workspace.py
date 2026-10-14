@@ -91,6 +91,24 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     CSS_PATH = ["main.tcss", "comms.tcss"]
 
+    @property
+    def layers(self) -> tuple[str, ...]:
+        """Float sidebars above content but below the screen tooltip layer.
+
+        An overlay subtree paints above every named layer, so the floating
+        sidebar buried each thread-row tooltip behind its own background:
+        the tooltip was placed on-screen with the right content yet never
+        won a cell. The sidebars float by absolute position on their own
+        layer instead, keeping the tooltip layer front-most.
+        """
+        names = super().layers
+        if "comms-sidebar" not in names:
+            if "_tooltips" in names:
+                index = names.index("_tooltips")
+                return (*names[:index], "comms-sidebar", names[index:])
+            return (*names, "comms-sidebar")
+        return names
+
     def compose(self):
         from textual.containers import Horizontal, Container
         chrome = self.app.workspace_chrome
