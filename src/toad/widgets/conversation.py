@@ -379,7 +379,7 @@ class ConversationSessionBinding(containers.Vertical):
     input_delivery_error: var[str] = var("")
 
 
-    native_history_status: var[CursorStatus | None] = var(None)
+    native_history_status: var[type[CursorStatus] | None] = var(None)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())
