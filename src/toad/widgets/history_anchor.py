@@ -295,20 +295,26 @@ class HistoryWindow(VerticalScroll):
         event.stop()
 
     def action_page_up(self) -> None:
-        super().action_page_up()
-        self._prepare_older_at_tail_boundary()
+        # Textual skips an action with no native travel. A lazy destination
+        # must admit its older range before asking that native scroll owner.
+        if not self._prepare_older_at_tail_boundary():
+            super().action_page_up()
 
-    def _prepare_older_at_tail_boundary(self) -> None:
-        """Upward input with no scroll travel leaves the tail and pages older rows."""
+    def _prepare_older_at_tail_boundary(self) -> bool:
+        """Leave a zero-travel tail and prepare older rows.
+
+        Return whether the input was consumed.
+        """
         if (
             not self.follows_tail
             or self.scroll_y > 0
             or self.scroll_target_y > 0
             or not any(history.has_older for history in self.histories)
         ):
-            return
+            return False
         self.release_anchor()
         self.request_preparation()
+        return True
 
     def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
         event.prevent_default()
