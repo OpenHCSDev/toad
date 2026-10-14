@@ -368,20 +368,13 @@ class TranscriptPageView(Animated, LinkedRows, Widget):
         from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
+        rows = self._first_row
         pending = list(self._pending.values())
-        # On screen, style what the reader sees first, newest (lowest) first,
-        # then outward from the viewport. An off-screen page (prepared ahead)
-        # has no viewport; its order does not matter.
+        # On screen, style the rows nearest the reader first. An off-screen
+        # page (prepared ahead) has no reader row; its order does not matter.
         if (offset := window.placed_row(self)) is not None:
-            top = int(window.scroll_y - offset)
-            bottom = top + window.outer_size.height
-            extent = {id(fragment): (first, first + lines.height) for fragment, first, lines in self._layout}
-
-            def priority(fragment: TranscriptFragment) -> tuple[int, int]:
-                first, end = extent[id(fragment)]
-                return max(top - end, first - bottom, 0), -first
-
-            pending.sort(key=priority)
+            reader = window.scroll_y - offset
+            pending.sort(key=lambda fragment: abs(rows[id(fragment)] - reader))
         return pending[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
