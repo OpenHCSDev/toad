@@ -1,9 +1,8 @@
 
 WorkspaceScreen {
-    /* The floating sidebars live on comms-sidebar: above content, below
-       the screen tooltip so thread-row tooltips paint. Keep in step with
-       WorkspaceScreen.layers, which covers the screen's direct children. */
-    layers: default _loading _toastrack comms-sidebar _tooltips;
+    /* Float sidebars above session content while keeping Screen's tooltip
+       layer front-most. */
+    layers: default comms-sidebar;
 }
 
 Note,MarkdownNote {    

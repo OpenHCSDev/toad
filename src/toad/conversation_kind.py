@@ -295,14 +295,18 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def agent_info(cls, comms, target):
-        info = await asyncio.to_thread(comms.agents.agent_info_of, target)
-        if info is None:
+        def read_info():
+            thread = comms.registry.require(target)
+            info = comms.agents.agent_info_of(thread.name)
+            if info is not None:
+                return replace(info, model=thread.model)
+            if thread.model is not None:
+                from agent_comms.runtime_info import AgentRuntimeInfo
+
+                return AgentRuntimeInfo(thread=thread.name, timestamp=0.0, model=thread.model)
             return None
-        # The footer names the thread's configured model, the same Core
-        # answer the sidebar rows and tooltips read, while context usage
-        # still comes from the runtime observation.
-        model = await asyncio.to_thread(comms.threads.resolve_thread_model, target)
-        return replace(info, model=model)
+
+        return await asyncio.to_thread(read_info)
 
     @classmethod
     def seen_page(cls, history, seen):
