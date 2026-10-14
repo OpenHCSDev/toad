@@ -25,15 +25,9 @@ import zipfile
 from performance.capture_live import XvfbDisplay
 
 
-def run(
-    *args: str | Path,
-    cwd: Path | None = None,
-    env: dict[str, str] | None = None,
-) -> str:
+def run(*args: str | Path, cwd: Path | None = None) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
-    return subprocess.check_output(
-        list(map(str, args)), cwd=cwd, env=env, text=True
-    ).strip()
+    return subprocess.check_output(list(map(str, args)), cwd=cwd, text=True).strip()
 
 
 def inventory() -> dict:
@@ -329,10 +323,17 @@ class RuntimeBuild:
                 )
             environment[name] = value
         environment['PATH'] = f'{runtime / "bin"}:{environment["PATH"]}'
-        result = json.loads(run(
-            runtime / 'bin/agent-comms', 'start', '--name', self.thread,
-            env=environment,
-        ))
+        command = [runtime / 'bin/agent-comms', 'start', '--name', self.thread]
+        print('+ ' + ' '.join(map(str, command)), file=sys.stderr, flush=True)
+        started = subprocess.run(
+            list(map(str, command)), env=environment,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+        if started.returncode:
+            raise RuntimeError(
+                f'AcceptanceThreadStartFailed: {self.thread}: {started.stdout.strip()}'
+            )
+        result = json.loads(started.stdout)
         if result.get('launched') is not True:
             raise RuntimeError(
                 f'AcceptanceThreadAlreadyRunning: {self.thread}; stop it before '
