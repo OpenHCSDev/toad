@@ -21,6 +21,7 @@ from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.private_path import FileRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
     AwaitedRead, ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
@@ -65,7 +66,7 @@ class CoordinationAccess(MroDispatch):
         self.observation: ObservedCommsService | None = None
         self.events = CoreEventStream(self)
         self.revision: WireRevision | None = None
-        self.route_stamp: tuple[tuple[int, int, int, int] | None, ...] | None = None
+        self.route_stamp: tuple[FileRevision | None, ...] | None = None
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
         self.loop: asyncio.AbstractEventLoop | None = None
@@ -310,13 +311,12 @@ class CoordinationAccess(MroDispatch):
         await asyncio.gather(*self.retiring, return_exceptions=True)
         self.custody.close()
 
-    def current_route_stamp(self) -> tuple[tuple[int, int, int, int] | None, ...]:
+    def current_route_stamp(self) -> tuple[FileRevision | None, ...]:
         from agent_comms.active_route import active_route_path
-        from agent_comms.store_files import file_revision
 
         service = self.observed_service
-        return (file_revision(active_route_path()),
-                file_revision(service.root / "bus_meta.json") if service else None)
+        return (FileRevision.capture(active_route_path()),
+                FileRevision.capture(service.root / "bus_meta.json") if service else None)
 
     async def route_changed(self) -> bool:
         stamp = await self.preparation.run_thread(self.current_route_stamp)
