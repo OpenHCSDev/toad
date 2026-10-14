@@ -363,14 +363,8 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
-        if self._unknown_send is not None:
-            root_id, sequence, message_id = self._unknown_send
-            self.status = (
-                f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
-                "inspect the bus, do not retry"
-            )
-        elif self._send_block_reason:
-            self.status = self._send_block_reason
+        if self.send_block_reason:
+            self.status = self.send_block_reason
         elif info is not None:
             self.status = " · ".join(
                 value
