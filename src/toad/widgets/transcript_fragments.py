@@ -309,27 +309,22 @@ class TranscriptFragment:
 
 
 @dataclass(kw_only=True)
-class ToolTranscriptFragment(TranscriptFragment):
-    """One tool call with everything it reported: a title line, and its output when opened."""
+class ToolWidgetFragment(TranscriptFragment):
+    """The bounded page position for the same ToolCall widget used by live output."""
 
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
     @property
     def has_details(self) -> bool:
-        # A multiline title needs disclosure even before output arrives. Core's
-        # sent-message output still does not become a second saved message.
         return AgentActivityPresentation.tool_has_details(
-            self.tool_call, any(part.has_saved_details() for part in self.output_parts)
+            self.tool_call, any(part.available for part in self.output_parts)
         )
 
     def blocks(self, shown):
-        return AgentActivityPresentation.tool(
-            self.tool_call,
-            has_details=self.has_details,
-            details_open=shown.details_open,
-            details=(block for part in self.output_parts for block in part.line_blocks()),
-        )
+        # TranscriptPageView mounts ToolCall itself. This fragment owns only
+        # its Core page position, never a second tool renderer.
+        return ()
 
 
 @dataclass(kw_only=True)
@@ -462,7 +457,7 @@ def transcript_fragments(
 
         source = consumer.fragments[index]
         call = ToolCallStatus.from_transcript(source.events)
-        consumer.fragments[index] = ToolTranscriptFragment(
+        consumer.fragments[index] = ToolWidgetFragment(
             source.events, continuation=source.continuation,
             starts_agent_activity=source.starts_agent_activity,
             tool_call=call, output_parts=ToolOutput.capture_parts(call.call),

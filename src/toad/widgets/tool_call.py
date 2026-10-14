@@ -326,6 +326,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
 
     def watch_expanded(self) -> None:
         self.output.sync()
+        self._saved_page_changed()
         try:
             self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         except NoMatches:
@@ -338,3 +339,17 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
             pass
         else:
             self.call_after_refresh(conversation.cursor.refresh)
+
+    def on_resize(self) -> None:
+        self._saved_page_changed()
+
+    def _saved_page_changed(self) -> None:
+        if not self.has_class("saved-tool-row"):
+            return
+        from toad.widgets.transcript_history import TranscriptPageView
+
+        try:
+            page = self.query_ancestor(TranscriptPageView)
+        except NoMatches:
+            return
+        page.range_changed()

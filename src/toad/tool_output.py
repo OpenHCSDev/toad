@@ -9,9 +9,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
-from difflib import unified_diff
 from functools import partial
-from pathlib import PurePath
 import re
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -26,7 +24,6 @@ from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -47,13 +44,6 @@ class LiveToolDetails(ABC):
     def compose(self, view: Widget) -> tuple[Widget, ...]: ...
 
 
-class SavedToolDetails(LiveToolDetails):
-    """A live output whose original body also renders in saved history."""
-
-    @abstractmethod
-    def line_blocks(self) -> tuple[LineBlock, ...]: ...
-
-
 class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     """A captured output value; a case owns rendering and preparation hooks."""
 
@@ -61,18 +51,11 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
     def available(self) -> bool:
         return type(self) in ToolOutputPart.members_with(LiveToolDetails)
 
-    def has_saved_details(self) -> bool:
-        return type(self) in ToolOutputPart.members_with(SavedToolDetails)
-
     def admit(self) -> ToolOutputPart:
         """Borrow immutable source; mutable preparation belongs to its view."""
         return self
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
-        return ()
-
-    def line_blocks(self) -> tuple[LineBlock, ...]:
-        """What this output draws under its tool call in committed history."""
         return ()
 
     def permission_preview(self) -> ToolOutputPart | None:
@@ -96,8 +79,8 @@ class ToolOutputPart(DeclaredFamily, affix="ToolOutputPart"):
         return None
 
 
-class CommittedToolOutputPart(SavedToolDetails, ToolOutputPart):
-    """Static output composes live and saved disclosure contracts."""
+class CommittedToolOutputPart(LiveToolDetails, ToolOutputPart):
+    """Static output composes the original tool disclosure contract."""
 
 
 @dataclass(frozen=True)
@@ -139,16 +122,13 @@ class LiteralTextToolOutputPart(TextToolOutputPart):
     """The remaining text is literal; member order is never priority."""
 
 
-class RetainedTextToolOutputPart(SavedToolDetails, TextToolOutputPart):
+class RetainedTextToolOutputPart(LiveToolDetails, TextToolOutputPart):
     @property
     @abstractmethod
     def render_source(self) -> NativeContentSource: ...
 
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (TextContent(self.render_source),)
-
-    def line_blocks(self):
-        return (Body(self.render_source.materialize().plain, role=ToolOutputRole, bar=MutedRole, markdown=False),)
 
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         if not isinstance(previous, RetainedTextToolOutputPart) or type(widget) is not TextContent:
@@ -179,7 +159,7 @@ class AnsiTextToolOutputPart(RetainedTextToolOutputPart, SpecificTextToolOutputP
         return AnsiContentSource(self.text)
 
 
-class MarkdownToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
+class MarkdownToolOutputPart(LiveToolDetails, SpecificTextToolOutputPart):
     @classmethod
     def accepts(cls, text: str, read_path: str | None) -> bool:
         return read_path is None and "\x1b" not in text and (
@@ -189,12 +169,9 @@ class MarkdownToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (MarkdownContent(self.text),)
 
-    def line_blocks(self):
-        return (Body(self.text, role=ToolOutputRole, bar=MutedRole),)
-
 
 @dataclass(frozen=True)
-class ReadToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
+class ReadToolOutputPart(LiveToolDetails, SpecificTextToolOutputPart):
     path: str
 
     @classmethod
@@ -209,9 +186,6 @@ class ReadToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (WorkerStatic.code(self.text, filename=self.path, line_numbers=False,
                                   filename_only=True),)
-
-    def line_blocks(self):
-        return (Body.code(self.text, PurePath(self.path).suffix.removeprefix("."), bar=MutedRole),)
 
 
 class PatchPreparation:
@@ -266,9 +240,6 @@ class PatchToolOutputPart(CommittedToolOutputPart):
     def compose(self, view: Widget) -> tuple[Widget, ...]:
         return (ToolCallDiff(self.source, preparation=self.preparation),)
 
-    def line_blocks(self):
-        return (Body.code(self.source, "diff", bar=MutedRole),)
-
     def begin_preparation(self, syntax: SyntaxPalette) -> bool:
         self.preparation.begin(self.source, syntax)
         return True
@@ -311,11 +282,6 @@ class FileDiffToolOutputPart(CommittedToolOutputPart):
         mode = view.app.settings.diff.view
         diff.split, diff.auto_split = mode.split, mode.auto_split
         return (diff,)
-
-    def line_blocks(self):
-        lines = unified_diff((self.old_text or "").splitlines(), self.new_text.splitlines(),
-                             self.path, self.path, lineterm="")
-        return (Body.code("\n".join(lines), "diff", bar=MutedRole),)
 
 
 @dataclass(frozen=True)

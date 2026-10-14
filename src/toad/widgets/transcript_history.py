@@ -47,11 +47,11 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.widgets.presentation_window import PresentationBudget
-from toad.line_blocks import ToggleDetails
+from toad.line_blocks import Gap, ToggleDetails
 from toad.message_rows import MessageRow
 from toad.notification_status import CheckedNotifications, UnavailableNotifications, UncheckedNotifications
 from toad.widgets.transcript_lines import (
-    LinkedRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    LinkedRows, Lines, OpensMessageNames, PlainLines, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
@@ -60,7 +60,7 @@ from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
 from toad.widgets.transcript_fragments import (
-    Shown, TranscriptFragment, transcript_fragments,
+    Shown, ToolWidgetFragment, TranscriptFragment, transcript_fragments,
 )
 
 if TYPE_CHECKING:
@@ -131,7 +131,22 @@ class TranscriptPageView(LinkedRows, Widget):
         self._first_row: dict[int, int] = {}
         self._height = 0
         self._measured = False
+        self._tools = {
+            id(fragment): ToolCall(
+                fragment.tool_call,
+                classes="saved-tool-row",
+                output_parts=fragment.output_parts,
+            )
+            for fragment in self.fragments
+            if isinstance(fragment, ToolWidgetFragment)
+        }
+        for tool in self._tools.values():
+            tool.styles.position = "absolute"
+            tool.display = False
         super().__init__()
+
+    def compose(self) -> ComposeResult:
+        yield from self._tools.values()
 
     @property
     def history(self) -> LineHistory:
@@ -225,6 +240,9 @@ class TranscriptPageView(LinkedRows, Widget):
 
     def _lines(self, fragment: TranscriptFragment, width: int) -> Lines:
         theme = self.app.colours.line_theme
+        if isinstance(fragment, ToolWidgetFragment):
+            height = max(1, self._tools[id(fragment)].outer_size.height)
+            return PlainLines(width, theme, tuple(Gap() for _ in range(height)))
         lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending[id(fragment)] = fragment
@@ -235,10 +253,16 @@ class TranscriptPageView(LinkedRows, Widget):
         self._width, self._measured = width, True
         self._pending.clear()
         layout, starts, y = [], [], 0
+        for tool in self._tools.values():
+            tool.display = False
         if width > 0:
             for fragment in self.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
                     continue
+                if isinstance(fragment, ToolWidgetFragment):
+                    tool = self._tools[id(fragment)]
+                    tool.styles.offset = (0, y)
+                    tool.display = True
                 # Layout needs only the row count; rows and strips are
                 # built when a row is drawn, so a width change draws no text.
                 lines = self._lines(fragment, width)
@@ -270,6 +294,8 @@ class TranscriptPageView(LinkedRows, Widget):
         fragment, first, lines = self._layout[slot]
         row = y - first
         if row >= lines.height:
+            return selection_painted(self, self.blank_row(width), y)
+        if isinstance(fragment, ToolWidgetFragment):
             return selection_painted(self, self.blank_row(width), y)
         # Prepared rows span exactly this width (Lines.strips_at).
         return selection_painted(self, self.on_background(lines.strips_at(fragment.link_place)[row]), y)
@@ -499,7 +525,8 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         theme = self.app.colours.line_theme
         selected = self.selected_categories if selected is None else selected
         todo = [fragment for fragment in fragments
-                if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
+                if not isinstance(fragment, ToolWidgetFragment)
+                and fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
         renderer = self.app.render_processes
         for first in range(0, len(todo), self.budget.batch_items):
             if not current():
