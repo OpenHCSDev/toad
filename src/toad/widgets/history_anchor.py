@@ -290,29 +290,29 @@ class HistoryWindow(VerticalScroll):
 
     def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
         event.prevent_default()
-        super()._on_mouse_scroll_up(event)
-        self._prepare_older_at_tail_boundary()
+        if not self._prepare_older_at_boundary(-max(1, self.app.scroll_sensitivity_y)):
+            super()._on_mouse_scroll_up(event)
         event.stop()
 
     def action_page_up(self) -> None:
         # Textual skips an action with no native travel. A lazy destination
         # must admit its older range before asking that native scroll owner.
-        if not self._prepare_older_at_tail_boundary():
+        travel = -max(1, self.scrollable_content_region.height)
+        if not self._prepare_older_at_boundary(travel):
             super().action_page_up()
 
-    def _prepare_older_at_tail_boundary(self) -> bool:
-        """Leave a zero-travel tail and prepare older rows.
-
-        Return whether the input was consumed.
-        """
+    def _prepare_older_at_boundary(self, travel: float) -> bool:
+        """Measure upward input while a lazy edge has no native travel."""
         if (
-            not self.follows_tail
-            or self.scroll_y > 0
+            self.scroll_y > 0
             or self.scroll_target_y > 0
             or not any(history.has_older for history in self.histories)
         ):
             return False
-        self.release_anchor()
+        self.lookahead.requested(travel)
+        self._schedule_settle()
+        if self.follows_tail:
+            self.release_anchor()
         self.request_preparation()
         return True
 
