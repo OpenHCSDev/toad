@@ -43,8 +43,7 @@ class ThinkingRole(MutedRole):
 
 
 class UserRole(LineRole):
-    # The live prompt (UserInput) is drawn in the secondary colour; a committed
-    # prompt keeps that colour.
+    # A user message, live (UserInput) or committed, is a Body with this bar.
     colour = SecondaryColour
 
 

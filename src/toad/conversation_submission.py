@@ -166,7 +166,7 @@ class InboxInputSubmission(InputSubmission):
 
     async def execute(self, owner):
         view = owner.view
-        if not view.user_message_ready:
+        if view.send_block_reason:
             owner.restore_draft(self.source_text)
             return
         return view.run_worker(partial(owner.send_inbox, self), group='inbox-submission')
