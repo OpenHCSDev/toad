@@ -806,10 +806,12 @@ class Prompt(containers.VerticalGroup):
             for kind in InfoPopup.members_with(InfoPopup):
                 if (popup := kind.for_prompt(self)) is not None:
                     yield popup
-            with containers.HorizontalGroup(id="info-container"):
+        with containers.HorizontalGroup(id="info-container"):
+            if not self.simple_input:
                 yield AgentInfo()
                 yield CondensedPath().data_bind(path=Prompt.display_directory)
-                yield StatusLine(markup=False).data_bind(status=Prompt.status)
+            yield StatusLine(markup=False).data_bind(status=Prompt.status)
+            if not self.simple_input:
                 yield ModeSwitcher()
                 yield ModeInfo("mode")
 
