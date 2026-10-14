@@ -1512,7 +1512,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         from toad.widgets.tool_call import ToolCall
 
         tool_call = message.event.tool_call
-        tool_call.activity(self.turns, self.output, tool_call.call.title or 'Using tool')
+        tool_call.activity(self.turns, self.output, tool_call.title)
 
         tool_id = message.event.tool_id
         try:
