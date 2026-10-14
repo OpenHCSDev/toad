@@ -1,9 +1,9 @@
 """One presentation for agent activity, shared by live and saved sources."""
 
 from collections.abc import Iterable
+from dataclasses import replace
 
 from toad.acp.status import ToolCallStatus
-from dataclasses import replace
 from toad.line_blocks import Body, Gap, LineBlock, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
 from toad.widgets.message_filter import MessageCategory
 
@@ -20,7 +20,7 @@ class AgentActivityPresentation:
 
     @staticmethod
     def tool_has_details(status: ToolCallStatus, details_available: bool) -> bool:
-        return len((status.call.title or "Tool").splitlines()) > 1 or details_available
+        return len(status.title.splitlines()) > 1 or details_available
 
     @staticmethod
     def tool(
@@ -30,7 +30,7 @@ class AgentActivityPresentation:
         details_open: bool,
         details: Iterable[LineBlock] = (),
     ) -> tuple[LineBlock, ...]:
-        title = status.call.title or "Tool"
+        title = status.title
         marker = ("▼ " if details_open else "▶ ") if has_details else "· "
         link = ToggleDetails() if has_details else None
         summary = Summary((Span(f"{marker}🔧 ", status.summary_role, link),

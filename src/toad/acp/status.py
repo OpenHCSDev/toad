@@ -82,9 +82,13 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     summary_role = WorkingRole
 
     @property
+    def title(self) -> str:
+        return self.call.title or 'Tool'
+
+    @property
     def summary_spans(self) -> tuple[Span, ...]:
         """Present the captured title once, with its operation, argument and outcome."""
-        verb, separator, argument = (self.call.title or 'Tool').partition(' ')
+        verb, separator, argument = self.title.partition(' ')
         return (Span(verb, ToolVerbRole), Span(separator + argument, ToolArgumentRole),
                 Span(self.summary_suffix, self.summary_role))
 

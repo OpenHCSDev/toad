@@ -178,7 +178,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.output.replace(tool_call.call)
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
-        self.query_one("#tool-title", LineMarkdown).update(self.current_status.call.title or "Tool")
+        self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
         return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuItem]:
@@ -226,7 +226,7 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def compose(self) -> ComposeResult:
         self._update_metadata()
         yield ToolCallHeader(self.activity_rows[0]).with_tooltip("Expand to see full title")
-        yield LineMarkdown(self.current_status.call.title or "Tool", role=ToolOutputRole,
+        yield LineMarkdown(self.current_status.title, role=ToolOutputRole,
                            markdown=False, id="tool-title")
         yield ToolContent(id="tool-content")
 
