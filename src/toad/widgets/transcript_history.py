@@ -422,6 +422,11 @@ class TranscriptPageView(Animated, LinkedRows, Widget):
         view.prepared.set_fragment_range(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
         view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
+        # Styled before it is drawn: a page drawn plain first rewraps under
+        # the reader as each styled batch arrives.
+        await owner.prepare_fragments(view.fragments_in_range, current)
+        if not current():
+            raise _DrawingStopped
         with ExitStack() as acquisition:
             acquisition.callback(owner.remove_children, (view,))
             await owner.mount(view, before=before)
