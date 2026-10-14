@@ -46,7 +46,7 @@ class BusyCursorStatus(CursorStatus):
     label = "Bus history: checking…"
 
 
-class ReplacedOwnerCursorStatus(CursorStatus, name="replaced"):
+class ReplacedOwnerCursorStatus(CursorStatus, declared_name="replaced"):
     label = "Bus history: owner replaced"
 
 
