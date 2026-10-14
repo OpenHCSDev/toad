@@ -319,12 +319,14 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Summary)
     def summary(self, block: Summary) -> None:
-        room = self.width
+        room = max(0, self.width - sum(cell_len(span.text) for span in block.kept))
         row: list[Segment] = []
         for span in block.spans:
             text = _fit(span.text, room)
             room -= cell_len(text)
             row.append(Segment(text, self.theme.style(span.role) + link_style(span.link)))
+        row.extend(Segment(span.text, self.theme.style(span.role) + link_style(span.link))
+                   for span in block.kept)
         self.output.append(tuple(row))
 
     @handles(Spans)
