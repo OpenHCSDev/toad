@@ -1226,10 +1226,14 @@ class TranscriptHistory(LineHistory, CommittedHistory):
                     break
 
     def publish_committed(self) -> None:
-        """Acquire live-row ownership only after a provisional mount is accepted."""
+        """Acquire source ownership now; report coverage after its first painted frame."""
         self._source_state = self._source_state.publish()
-        self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+        self.call_after_refresh(self.publish_coverage)
         self.request_preparation()
+
+    def publish_coverage(self) -> None:
+        if self._source_state.reports_coverage:
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
