@@ -134,7 +134,7 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
         label = screen.query_one_optional("#session-opening", Static)
         if label is None:
-            label = Static(id="session-opening")
+            label = Static(id="session-opening", markup=False)
         label.update(text)
         label.display = visible
         return label
