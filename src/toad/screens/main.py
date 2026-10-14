@@ -255,17 +255,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
                 if self._agent is not None:
                     yield Static("Opening thread…", id="session-opening")
 
-    def _make_conversation(self) -> Conversation:
-        with self._context():
-            conversation = Conversation(
-                self.project_path, self._agent, self._agent_session_id,
-                self._session_pk, self.app.session_tracker.sessions[self.id].initial_title,
-                initial_prompt=self._initial_prompt,
-                transcript=self.presentation.transcript,
-            )
-        self._initial_prompt = None
-        return conversation
-
     def update_title(self) -> None:
         """The screen's title names the agent and the project it presents."""
         self.title = (f"{self._agent.name} {format_path(self.project_path)}"
