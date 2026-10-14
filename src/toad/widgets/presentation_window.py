@@ -116,6 +116,9 @@ class PreparationDemand(ABC):
     def body_order(self, runway, predicted):
         return (*runway, *predicted)
 
+    def destination_painted(self) -> "PreparationDemand":
+        return self
+
 
 class StationaryPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
@@ -173,6 +176,9 @@ class DestinationPreparation(PreparationDemand):
     def edges(self, before, after):
         # The existing latest-page operation owns a jump, never edge traversal.
         return None, None
+
+    def destination_painted(self) -> PreparationDemand:
+        return StationaryPreparation()
 
 
 class DirectionalPreparation:
@@ -235,8 +241,8 @@ class DirectionalPreparation:
 
     def destination_complete(self) -> None:
         """The bottom viewport painted; ordinary idle runway may resume."""
-        if isinstance(self.demand, DestinationPreparation):
-            self.settle()
+        self.demand = self.demand.destination_painted()
+        self.delivery_seconds = 0.0
 
     def delivered(self, seconds: float) -> None:
         self.delivery_seconds = seconds
