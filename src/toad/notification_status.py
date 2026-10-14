@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections import Counter
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import ClassVar, TYPE_CHECKING
@@ -30,22 +28,25 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
     return (Span(recipient, NameRole, OpenTarget(recipient)), Span(text, MutedRole))
 
 
-class NotificationStatus(ABC):
+class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
+    visible: ClassVar[bool] = True
     working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
 
     @property
-    @abstractmethod
-    def title(self) -> str: ...
+    def title(self) -> str:
+        return ""
 
     @property
-    @abstractmethod
-    def details(self) -> DetailLines: ...
+    def details(self) -> DetailLines:
+        return ()
 
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
+        if not self.visible:
+            return ()
         role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
         summary = shown.summary(self.title, role)
         return ((summary, Spans.from_lines(self.details, indent="  "))
@@ -54,11 +55,7 @@ class NotificationStatus(ABC):
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    title = "Notification status not checked"
-
-    @property
-    def details(self) -> DetailLines:
-        return ((Span("Not checked yet", MutedRole),),)
+    visible = False
 
 
 @dataclass(frozen=True)
@@ -81,15 +78,10 @@ class CheckedNotifications(NotificationStatus):
 
     @property
     def title(self) -> str:
-        counts = Counter(item.state for item in self.ordered)
-        states = list(counts)
-        summary = " · ".join(f"{state} ({counts[state]})" for state in states[:3])
-        if len(states) > 3:
-            summary += f" · {sum(counts[state] for state in states[3:])} others"
-        read = sum(bool(item.displayed_to) for item in self.ordered)
-        if read:
-            summary = " · ".join(filter(None, (summary, f"Read ({read})")))
-        return summary or "No recorded notification result"
+        # Core owns receipt state, time and priority. Other recipients remain
+        # in the disclosure, not competing counters in the one-line caption.
+        ordered = self.ordered
+        return ordered[0].state if ordered else "No recorded notification result"
 
     @property
     def details(self) -> DetailLines:
