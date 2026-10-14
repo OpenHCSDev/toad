@@ -36,10 +36,9 @@ class MutedRole(LineRole):
     colour = MutedColour
 
 
-class ThinkingRole(LineRole):
-    """The model's visible reasoning, distinct from replies and tool output."""
+class ThinkingRole(MutedRole):
+    """Visible reasoning stays muted and italic, distinct from tool success."""
 
-    colour = AccentColour
     italic = True
 
 
