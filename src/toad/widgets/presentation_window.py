@@ -43,7 +43,7 @@ class PresentationBudget:
     minimum_widgets: int = 300
     widgets_per_row: int = 10
     buffer_viewports: int = 3
-    lookahead_seconds: float = 0.3
+    lookahead_seconds: float = 1.0
     scroll_idle_seconds: float = 0.2
 
     def __post_init__(self) -> None:
@@ -198,15 +198,24 @@ class DirectionalPreparation:
         return self.window.presentation_budget
 
     def observe(self, position: float) -> bool:
-        now = monotonic()
-        elapsed = now - self.sampled_at
         travel = position - self.position
         if travel:
-            elapsed = min(self.idle_seconds, max(elapsed, get_clock_info("monotonic").resolution))
-            self.demand = self.demand.moved(travel, elapsed)
-            self.sampled_at = now
+            self._moved(travel)
             self.position = position
         return bool(travel)
+
+    def requested(self, travel: float) -> None:
+        """Measure reader input whose lazy edge has no native travel yet."""
+        self._moved(travel)
+
+    def _moved(self, travel: float) -> None:
+        now = monotonic()
+        elapsed = min(
+            self.idle_seconds,
+            max(now - self.sampled_at, get_clock_info("monotonic").resolution),
+        )
+        self.demand = self.demand.moved(travel, elapsed)
+        self.sampled_at = now
 
     def relocated(self, compensation: float) -> None:
         """Translate measured travel by the applied reader compensation.
@@ -218,6 +227,7 @@ class DirectionalPreparation:
 
     def settle(self) -> None:
         self.demand = StationaryPreparation()
+        self.delivery_seconds = 0.0
 
     def destination(self, rows: int) -> None:
         self.demand = DestinationPreparation(rows)
@@ -243,8 +253,12 @@ class DirectionalPreparation:
         window = self.window
         destination = (window.scroll_target_y - window.scroll_y
                        if window.app.animator.is_being_animated(window, "scroll_y") else 0)
-        return max(self.budget.runway_rows(viewport_rows),
-                   ceil(abs(self.travel_rows)), ceil(abs(destination)))
+        baseline = self.budget.runway_rows(viewport_rows)
+        requested = max(baseline, ceil(abs(self.travel_rows)), ceil(abs(destination)))
+        # The shared preparation runtime is the admission bound. Express its
+        # fragment capacity in measured rows so source paging cannot outrun it.
+        capacity = ceil(self.window.app.preparation.max_entries * self.window.rows_per_fragment)
+        return min(requested, max(baseline, capacity))
 
     def fragments_for(self, rows: float) -> int:
         """How many fragments fill `rows`, at the extent the drawn ones have."""
