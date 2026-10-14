@@ -291,7 +291,24 @@ class HistoryWindow(VerticalScroll):
     def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
         event.prevent_default()
         super()._on_mouse_scroll_up(event)
+        self._prepare_older_at_tail_boundary()
         event.stop()
+
+    def action_page_up(self) -> None:
+        super().action_page_up()
+        self._prepare_older_at_tail_boundary()
+
+    def _prepare_older_at_tail_boundary(self) -> None:
+        """Upward input with no scroll travel leaves the tail and pages older rows."""
+        if (
+            not self.follows_tail
+            or self.scroll_y > 0
+            or self.scroll_target_y > 0
+            or not any(history.has_older for history in self.histories)
+        ):
+            return
+        self.release_anchor()
+        self.request_preparation()
 
     def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
         event.prevent_default()

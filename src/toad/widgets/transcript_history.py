@@ -936,10 +936,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         if self.filter.active:
             self.filter.check_edges()
             return
-        if (self.has_older and above <= self.prefetch_distance
-               and not (self._follow_source_tail and (
-                    self.fragment_count >= self.fragment_limit or len(self.pages) >= self.fragment_limit
-              ))):
+        if self.has_older and not self._follow_source_tail and above <= self.prefetch_distance:
             self._request_page(True)
         elif self.has_newer and below <= self.prefetch_distance:
             self._request_page(False)
