@@ -1,31 +1,16 @@
 import asyncio
 from pathlib import Path
-import os
 from multiprocessing import get_context
-from multiprocessing.connection import Connection
-from abc import ABC, abstractmethod
 import rich.repr
 
 import threading
 
 from toad.core.events import CoreEventStream
 from toad.core.source_events import DirectoryChanged
+from toad.directory_observer import ObserverEvent, observe_path
 from textual.dom import NoScreen
 from textual.widget import Widget
-
-
-from watchdog.events import (
-    FileSystemEvent,
-    FileSystemEventHandler,
-    FileCreatedEvent,
-    FileDeletedEvent,
-    FileMovedEvent,
-    DirCreatedEvent,
-    DirDeletedEvent,
-    DirMovedEvent,
-)
-from watchdog.observers import Observer
-from watchdog.observers.polling import PollingObserver
+from watchdog.events import FileSystemEvent, FileSystemEventHandler
 
 
 class _PathEventDispatcher(FileSystemEventHandler):
@@ -82,69 +67,6 @@ class _PathEventDispatcher(FileSystemEventHandler):
             watcher.on_any_event(event)
 
 
-class _ObserverEvent(ABC):
-    @abstractmethod
-    def apply(self, observation: "_PathObservation") -> None:
-        """Apply a notification from the owned observer process."""
-
-
-class _ObserverReady(_ObserverEvent):
-    def apply(self, observation: "_PathObservation") -> None:
-        observation.ready.set()
-
-
-class _ObserverChanged(_ObserverEvent):
-    def apply(self, observation: "_PathObservation") -> None:
-        observation.dispatcher.on_any_event(FileSystemEvent(str(observation.path)))
-
-
-class _ChangeSignal(FileSystemEventHandler):
-    """Only invalidation crosses the pipe; filesystem payload stays in the child."""
-
-    def __init__(self, connection: Connection) -> None:
-        self.connection = connection
-        self._send_lock = threading.Lock()
-
-    def notify(self, event: _ObserverEvent) -> None:
-        with self._send_lock:
-            try:
-                self.connection.send(event)
-            except ConnectionError:
-                os._exit(0)  # The parent no longer owns this observer.
-
-    def on_any_event(self, event: FileSystemEvent) -> None:
-        self.notify(_ObserverChanged())
-
-
-def _watch_owner(owner: Connection) -> None:
-    """An exited parent must not leave a recursive scan or native handles alive."""
-    try:
-        owner.recv_bytes()
-    except (EOFError, ConnectionError):
-        os._exit(0)
-
-
-def _observe_path(path: Path, owner: Connection) -> None:
-    """Own native watch handles in a process cancellable during recursive start."""
-    threading.Thread(target=_watch_owner, args=(owner,), daemon=True).start()
-    observer = Observer()
-    if isinstance(observer, PollingObserver):
-        return
-    handler = _ChangeSignal(owner)
-    observer.schedule(
-        handler, str(path), recursive=True,
-        event_filter=[
-            FileCreatedEvent, FileDeletedEvent, FileMovedEvent,
-            DirCreatedEvent, DirDeletedEvent, DirMovedEvent,
-        ],
-    )
-    observer.start()
-    handler.notify(_ObserverReady())
-    # The parent owns this process through the last subscriber. Terminating
-    # it closes all native handles even when observer.start() is still walking.
-    threading.Event().wait()
-
-
 class _PathObservation(threading.Thread):
     """One native observer per path; cancellation never waits on recursive IO.
 
@@ -162,7 +84,7 @@ class _PathObservation(threading.Thread):
         self.path = path
         self._parent, self._child = context.Pipe()
         self.process = context.Process(
-            target=_observe_path, args=(path, self._child),
+            target=observe_path, args=(path, self._child),
             name=f"Directory observer: {path}", daemon=True,
         )
 
@@ -175,7 +97,7 @@ class _PathObservation(threading.Thread):
             while not self.stopped.is_set() and self.process.is_alive():
                 if self._parent.poll(0.1):
                     try:
-                        event: _ObserverEvent = self._parent.recv()
+                        event: ObserverEvent = self._parent.recv()
                     except (EOFError, ConnectionError):
                         break
                     event.apply(self)
