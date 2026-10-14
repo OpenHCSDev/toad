@@ -157,7 +157,6 @@ class CommsChatView(Conversation):
             IrcMessageStyle(),
         ))
         self.agent_info = Content(self._target_label())
-        self.agent_ready = True
         self.refresh_thread_status()
         self.prepare_prompt()
         self.window.anchor()
@@ -247,10 +246,6 @@ class CommsChatView(Conversation):
     def watch_agent(self, agent) -> None:
         """Keep the inherited agent reactive from turning this into a shell session."""
         self.agent_info = Content(self._target_label())
-
-    @work
-    async def watch_agent_ready(self, ready: bool) -> None:
-        """Comms readiness has no shell process to await."""
 
     def _target_label(self) -> str:
         return self.conversation_kind.label(self.target)

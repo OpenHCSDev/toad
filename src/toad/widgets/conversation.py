@@ -359,7 +359,6 @@ class ConversationSessionBinding(containers.Vertical):
 
     agent: var[AgentBase | None] = var(None, bindings=True)
     agent_info: var[Content] = var(Content())
-    agent_ready: var[bool] = var(False)
     model_history_scope = var("")
     @property
     def queue_supported(self) -> bool:
@@ -560,25 +559,26 @@ class ConversationSessionBinding(containers.Vertical):
                 screen.frame_presentation.defer(self, self._start_agent)
             else:
                 self.call_after_refresh(self._start_agent)
-        else:
-            self.agent_ready = self.agent.ready if self.agent is not None else True
-            if self.agent is None:
-                self.agent_info = Content(self.operational_sources.agent_info(self))
+        elif self.agent is None:
+            self.agent_info = Content(self.operational_sources.agent_info(self))
+            self._session_ready()
+        elif self.agent.ready:
+            self._session_ready()
 
     def _start_agent(self) -> None:
         self.operational_sources.start_agent(self)
 
     @work
-    async def watch_agent_ready(self, ready: bool) -> None:
+    async def _session_ready(self) -> None:
+        """The agent (or the shell) can take input: drop loading, then post start content."""
         presentation = self.transcript
         if presentation.view is not self:
             return
-        if ready:
-            self.remove_class("-initial-loading")
-            await self.query(ThreadLoading).remove()
-            if self.transcript is not presentation or presentation.view is not self:
-                return
-        if ready and self._native_agent_started_here and (agent_data := self._agent_data) is not None:
+        self.remove_class("-initial-loading")
+        await self.query(ThreadLoading).remove()
+        if self.transcript is not presentation or presentation.view is not self:
+            return
+        if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
             if welcome is not None:
                 from toad.widgets.markdown_note import MarkdownNote
@@ -586,7 +586,7 @@ class ConversationSessionBinding(containers.Vertical):
                 await self.post(MarkdownNote(welcome))
                 if self.transcript is not presentation or presentation.view is not self:
                     return
-        if ready and self._initial_prompt is not None:
+        if self._initial_prompt is not None:
             prompt = self._initial_prompt
             if prompt.startswith("!"):
                 self.publish_core(
@@ -597,8 +597,7 @@ class ConversationSessionBinding(containers.Vertical):
                     input_events.UserInputSubmitted(prompt, shell=False)
                 )
             self.take_initial_prompt()
-        if ready:
-            self._native_agent_started_here = False
+        self._native_agent_started_here = False
 
 
 from toad.widget_actions import DeclaredWidgetActions
@@ -717,8 +716,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.input_histories.bind_project(self.project_data_path)
         if self._directory_watcher is not None:
             await self._directory_watcher.aclose()
-            self._directory_watcher = None
-        if self.agent_ready:
             self._directory_watcher = DirectoryWatcher(path, self)
             self._directory_watcher.start()
         if self._shell is not None and not self._shell.is_finished:
@@ -1008,7 +1005,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                         agent=self._agent_data.identity,
                     )
 
-        self.agent_ready = True
+        self._session_ready()
         self.prompt.sync_session()
         self.arm_thread_read()
         self.refresh_thread_status()
@@ -1058,7 +1055,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         self.turns.finish_client()
-        self.agent_ready = True
         self._agent_fail = True
         self.prompt.sync_session()
         self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
@@ -1823,9 +1819,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.agent_info = Content.styled("shell")
         else:
             self._update_model_info()
-            self.agent_ready = agent.ready
             self.status = agent.context_measurement.status()
-            if self.agent_ready:
+            if agent.ready:
+                self._session_ready()
                 self.call_later(self.goal_observation.invalidate)
                 self.call_later(self.delivery_observation.invalidate)
 
