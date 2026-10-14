@@ -1343,7 +1343,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         ):
             return
         self._private_cursor_sequence = message.event.sequence
-        self.native_history_status = CursorStatus.external(message.event.update.status)
+        self.native_history_status = message.event.update.status
 
     @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(

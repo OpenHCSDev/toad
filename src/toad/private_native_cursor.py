@@ -22,10 +22,7 @@ class CursorStatus(DeclaredFamily, affix="CursorStatus"):
     def external(cls, value: str | None) -> type[CursorStatus] | None:
         if value is None:
             return None
-        try:
-            return cls.decode(value)
-        except ValueError:
-            return UnavailableCursorStatus
+        return cls.decode(value)
 
 
 class PendingCursorStatus(CursorStatus):
