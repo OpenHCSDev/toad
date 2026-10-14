@@ -149,6 +149,22 @@ class ViewCommand(ContextualCommand, SlashCommand, LocalCommand):
         return self.help
 
 
+class DirectMessagesCommand(ViewCommand, declared_name="dm"):
+    help = "Direct messages"
+
+    def available(self, ctx: TargetContext) -> bool:
+        return len(ctx.selected_targets) == 1 and ctx.subject in ctx.comms.registry
+
+    def execute(self, ctx: TargetContext) -> None:
+        from toad.navigation_target import DirectTarget
+
+        source = ctx.app.selected_session
+        if source is None:
+            raise ValueError("Direct messages require an open session")
+        ctx.app.run_worker(source.open_sidebar_target(DirectTarget(ctx.subject)),
+                           group="direct-messages")
+
+
 class CopyCommand(ViewCommand, declared_name="copy"):
     help = "Copy name"
 
