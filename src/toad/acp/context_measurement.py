@@ -29,6 +29,13 @@ class ContextMeasurement(ABC):
     @abstractmethod
     def status(self) -> RichText: ...
 
+    def merge(self, incoming: ContextMeasurement) -> ContextMeasurement:
+        """Accept a new observation without erasing an existing measurement."""
+        return incoming.merge_into(self)
+
+    @abstractmethod
+    def merge_into(self, previous: ContextMeasurement) -> ContextMeasurement: ...
+
     @classmethod
     def saved(cls, usage):
         if usage is None:
@@ -48,6 +55,9 @@ class ContextMeasurement(ABC):
 class ContextUnavailable(ContextMeasurement):
     reason: str
 
+    def merge_into(self, previous: ContextMeasurement) -> ContextMeasurement:
+        return previous
+
     def status(self) -> RichText:
         return RichText(f"Context unavailable · {self.reason}")
 
@@ -59,6 +69,9 @@ class MeasuredContext(ContextMeasurement):
     cost: Cost | None = None
     available = True
     source_label = ""
+
+    def merge_into(self, previous: ContextMeasurement) -> ContextMeasurement:
+        return self
 
     @property
     def percentage_used(self):
