@@ -17,7 +17,7 @@ from toad.tool_output import ToolOutput, ToolOutputPart
 from toad.widgets.tool_content import ToolCallDiff
 from agent_comms.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import ToggleDetails
+from toad.line_blocks import ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
@@ -219,7 +219,8 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def compose(self) -> ComposeResult:
         self._update_metadata()
         yield ToolCallHeader(self.activity_rows[0]).with_tooltip("Expand to see full title")
-        yield LineMarkdown(self.current_status.call.title or "Tool", markdown=False, id="tool-title")
+        yield LineMarkdown(self.current_status.call.title or "Tool", role=ToolOutputRole,
+                           markdown=False, id="tool-title")
         yield ToolContent(id="tool-content")
 
     def on_mount(self) -> None:

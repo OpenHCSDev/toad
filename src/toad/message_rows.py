@@ -57,12 +57,12 @@ class MessageRow:
     def role(self) -> type[LineRole]:
         return OutgoingRole if self.outgoing else IncomingRole
 
-    def name(self, target: str) -> Span:
+    def name(self, target: str, role: type[LineRole] = NameRole) -> Span:
         """A thread or channel name that opens what it names."""
         link: LineLink = (OpenHistoricalTarget(target, self.history)
                           if self.history is not None and not target.startswith("#")
                           else OpenTarget(target))
-        return Span(target, NameRole, link)
+        return Span(target, role, link)
 
     @property
     def sender(self) -> LineLink:
@@ -87,7 +87,7 @@ class MessageRow:
 
     @property
     def header(self) -> Divider:
-        spans = [self.name(self.route.sender)]
+        spans = [self.name(self.route.sender, self.role)]
         for index, target in enumerate(self.route.targets):
             spans += [Span(", " if index else " → "), self.name(target)]
         return Divider(tuple(spans), self.role, self.timestamp)

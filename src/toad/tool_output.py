@@ -26,7 +26,7 @@ from textual.await_complete import AwaitComplete
 
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.line_blocks import Body, LineBlock, MutedRole
+from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -148,7 +148,7 @@ class RetainedTextToolOutputPart(SavedToolDetails, TextToolOutputPart):
         return (TextContent(self.render_source),)
 
     def line_blocks(self):
-        return (Body(self.render_source.materialize().plain, bar=MutedRole, markdown=False),)
+        return (Body(self.render_source.materialize().plain, role=ToolOutputRole, bar=MutedRole, markdown=False),)
 
     def update_widget(self, previous: ToolOutputPart, widget: Widget) -> bool:
         if not isinstance(previous, RetainedTextToolOutputPart) or type(widget) is not TextContent:
@@ -190,7 +190,7 @@ class MarkdownToolOutputPart(SavedToolDetails, SpecificTextToolOutputPart):
         return (MarkdownContent(self.text),)
 
     def line_blocks(self):
-        return (Body(self.text, bar=MutedRole),)
+        return (Body(self.text, role=ToolOutputRole, bar=MutedRole),)
 
 
 @dataclass(frozen=True)

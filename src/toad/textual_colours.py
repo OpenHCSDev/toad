@@ -37,6 +37,7 @@ from ui_theme.effects import Band, Effect, Gradient, Mix, TextFrame
 from ui_theme.scheme import ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme
+from toad.line_blocks import LineRole
 
 class _WalFileClosed(FileSystemEventHandler):
     """pywal rewrites `colors.json` in place; it is whole once the writer closes it."""
@@ -180,6 +181,10 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def colour(self, colour: type[ThemeColour]) -> Color:
         """A theme colour as the current CSS variables make it."""
         return Color.parse(self.variables[colour.name])
+
+    def style(self, role: type[LineRole]) -> VisualStyle:
+        """The same resolved line role for Textual content as for rendered rows."""
+        return VisualStyle.from_rich_style(self.line_theme.style(role), self.app.ansi_theme)
 
     def mixed(self, start: type[ThemeColour], end: type[ThemeColour], amount: float) -> Color:
         first, last = self.colour(start), self.colour(end)

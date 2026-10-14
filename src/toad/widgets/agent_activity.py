@@ -3,14 +3,15 @@
 from collections.abc import Iterable
 
 from toad.acp.status import ToolCallStatus
-from toad.line_blocks import Body, Gap, LineBlock, Summary, ThinkingRole, ToggleDetails
+from dataclasses import replace
+from toad.line_blocks import Body, Gap, LineBlock, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
 from toad.widgets.message_filter import MessageCategory
 
 
 class AgentActivityPresentation:
     """Construct the rows for thinking, tools and their common group header."""
 
-    group = (Summary("· Agent activity"),)
+    group = (Summary.titled("· Agent activity", ThinkingRole),)
 
     @staticmethod
     def thinking(text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
@@ -31,12 +32,12 @@ class AgentActivityPresentation:
     ) -> tuple[LineBlock, ...]:
         title = status.call.title or "Tool"
         marker = ("▼ " if details_open else "▶ ") if has_details else "· "
-        summary = Summary(f"{marker}🔧 {title}{status.summary_suffix}", link=(
-            ToggleDetails() if has_details else None
-        ))
+        link = ToggleDetails() if has_details else None
+        summary = Summary((Span(f"{marker}🔧 ", status.summary_role, link),
+                           *(replace(span, link=link) for span in status.summary_spans)))
         if not details_open:
             return (summary,)
-        return (summary, Body(title, markdown=False), *details)
+        return (summary, Body(title, role=ToolOutputRole, markdown=False), *details)
 
 
 class AgentActivityBoundary:
