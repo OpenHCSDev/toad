@@ -24,7 +24,7 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
     AwaitedRead, ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
-    SidebarObserved, ViewsRetired,
+    SidebarObserved, SidebarUnreadable, ViewsRetired,
     StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel
@@ -204,12 +204,30 @@ class CoordinationAccess(MroDispatch):
             app.notify(result.snapshot.read_marker_notice, title="Read positions", severity="warning")
         if app.open_tabs != tabs:
             app.events.publish(OpenTabsChanged())
-        waiting = [(request, waiter) for request, waiter in self.sidebar_waiters if request != result.request]
+        for waiter in self.take_sidebar_waiters(result.request):
+            waiter.set_result(None)
+
+    @handles(SidebarUnreadable)
+    def sidebar_unreadable(self, result: SidebarUnreadable, observed: ObservedCommsService) -> None:
+        if result.request != self.sidebar_interest:
+            return
+        observed.sidebar.clear()
+        self.sidebar_current = None
+        for waiter in self.take_sidebar_waiters(result.request):
+            waiter.set_exception(result.error)
+        self.app.notify(str(result.error), title="Sidebar unavailable", severity="error")
+
+    def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[None]]:
+        """Retire answered reads once, leaving other interests subscribed."""
+        remaining, answered_waiters = [], []
         for request, waiter in self.sidebar_waiters:
-            if request == result.request and not waiter.done():
-                waiter.set_result(None)
-        self.sidebar_waiters = waiting
+            if request != answered:
+                remaining.append((request, waiter))
+            elif not waiter.done():
+                answered_waiters.append(waiter)
+        self.sidebar_waiters = remaining
         self.update_sidebar_interest()
+        return answered_waiters
 
     @handles(ThreadsObserved)
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:

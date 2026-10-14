@@ -188,7 +188,7 @@ class MessageFragment(BusMessageFragment, WireFragment):
         message = self.message
         if not isinstance(message, HistoricalMessage):
             return super().leading
-        return (Gap(), Summary(f"History · {message.source.original_root} · @{message.sender} "
+        return (Gap(), Summary.titled(f"History · {message.source.original_root} · @{message.sender} "
                                f"created {message.sender_created_at}"), self.row.header)
 
 @dataclass(frozen=True, eq=False)
