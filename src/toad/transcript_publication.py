@@ -29,6 +29,7 @@ class TranscriptPublication(ABC):
         self.agent = view.agent
         self.thread_scope = owner.thread_scope
         self.window, self.contents = window, contents
+        self.destination = window.reader_destination()
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def native_current(self) -> bool:
@@ -287,7 +288,10 @@ class CanonicalSourcePublication(TranscriptPublication):
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
                 return True
-        return await self.publish_source_page(page)
+        published = await self.publish_source_page(page)
+        if published and self.current() and self.destination is not None:
+            self.window.release_reader_destination(self.destination)
+        return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         # Supplied snapshots capture their own application boundary. This
@@ -687,10 +691,14 @@ class TranscriptPresentation:
         publication = self.capture(CanonicalSourcePublication)
 
         def refresh_after_paint() -> None:
-            if (publication is not None and publication.current()
-                    and view.app.workspace_sessions.owns(source)):
-                view.run_worker(publication.publish(),
-                                group="retained-native-refresh", exclusive=True)
+            if not current():
+                return
+            if publication is None:
+                if (destination := window.reader_destination()) is not None:
+                    window.release_reader_destination(destination)
+                return
+            view.run_worker(publication.publish(),
+                            group="retained-native-refresh", exclusive=True)
 
         view.call_after_refresh(refresh_after_paint)
 

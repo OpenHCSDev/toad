@@ -229,8 +229,21 @@ class UnreachedPosition(ReaderPosition):
         return self.position.without_holder(window) and self
 
 
+class HeldReaderDestination:
+    """A reader destination retained through intermediate source layouts."""
+
+    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
+        return self
+
+    def moved(self, rows: float) -> None:
+        return None
+
+    @abstractmethod
+    def released(self) -> ReaderPosition: ...
+
+
 @dataclass(frozen=True)
-class ParkedPosition(UnreachedPosition):
+class ParkedPosition(HeldReaderDestination, UnreachedPosition):
     """A position the reader left with its tab, waiting for the history to be drawn again.
 
     It carries the page ranges that were loaded, so a rebuilt history loads
@@ -242,6 +255,29 @@ class ParkedPosition(UnreachedPosition):
     def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
         # Its pages are loaded after the tab returns.
         return self
+
+    def released(self) -> ReaderPosition:
+        return self.position
+
+
+@dataclass(frozen=True)
+class LatestPosition(HeldReaderDestination, TailPosition):
+    """The newest source row, held until the publication that supplies it settles."""
+
+    revision: int
+
+    def current(self, window: "HistoryWindow") -> bool:
+        return window.reader_position is self and window.scroll_revision == self.revision
+
+    def restore(self, window: "HistoryWindow") -> None:
+        if self.current(window):
+            window.follow_latest()
+
+    def left_tail(self, window: "HistoryWindow") -> None:
+        return None
+
+    def released(self) -> ReaderPosition:
+        return TailPosition()
 
 
 @dataclass(eq=False)
@@ -358,11 +394,18 @@ class HistoryWindow(VerticalScroll):
 
     def jump_to_latest(self) -> None:
         """Follow the source tail, including pages outside the mounted window."""
-        self.anchor()
+        latest = self.hold_latest()
         self.destination()
         for history in tuple(self.histories):
             if history.has_newer:
-                history.request_latest()
+                history.request_latest(latest)
+
+    def hold_latest(self) -> LatestPosition:
+        """Keep the newest-row destination until its source publication settles."""
+        self.anchor()
+        latest = LatestPosition(self.scroll_revision)
+        self.reader_position = latest
+        return latest
 
     @property
     def shown(self) -> bool:
@@ -436,6 +479,18 @@ class HistoryWindow(VerticalScroll):
                            for page_range in history.capture_reader_ranges())
             parked = self.reader_position = ParkedPosition(self.reader_position or ReaderPosition.of(self), ranges)
         return parked
+
+    def reader_destination(self) -> HeldReaderDestination | None:
+        """The destination a source publication must keep until it settles."""
+        position = self.reader_position
+        return position if isinstance(position, HeldReaderDestination) else None
+
+    def release_reader_destination(self, destination: HeldReaderDestination) -> None:
+        """Resolve a held destination once its source publication has painted."""
+        if self.reader_position is not destination:
+            return
+        self.reader_position = destination.released()
+        self.place_reader()
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """A history about to be mounted loads the page ranges the kept position needs."""

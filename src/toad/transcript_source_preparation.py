@@ -14,7 +14,7 @@ from toad.core.source_events import TranscriptSourceWorkFinished
 if TYPE_CHECKING:
     from collections.abc import Callable
     from textual.screen import Screen
-    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.history_anchor import HistoryWindow, LatestPosition
 
 
 @dataclass(frozen=True)
@@ -120,13 +120,13 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def _request_page(self, older: bool) -> None:
         self.schedule_source_work(partial(self._load_page, older))
 
-    def request_latest(self) -> None:
+    def request_latest(self, destination: LatestPosition) -> None:
         # End supersedes any admitted edge publication. Its worker may finish
         # the source read, but the old snapshot cannot paint an intermediate page.
         self._generation += 1
         self.workers.cancel_group(self, self.LOOKAHEAD_GROUP)
         self._prefetch_intent = None
-        self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
+        self.state.request_latest(self, LatestViewportRequest(destination))
 
     async def _jump_latest(self, request: LatestViewportRequest) -> None:
         """Publish one destination under its original source and reader intent.
@@ -153,6 +153,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     ) -> None:
         if snapshot.current(self):
             request.restore(snapshot.window)
+            snapshot.window.release_reader_destination(request.destination)
             snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:

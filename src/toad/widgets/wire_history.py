@@ -134,7 +134,7 @@ class WireHistory(LineHistory):
         """Replace what is drawn with the newest page of the source as read now."""
         await self._clear()
         self.extend_source(through)
-        await self._jump_latest(LatestViewportRequest(self.window.scroll_revision))
+        await self._jump_latest(LatestViewportRequest(self.window.hold_latest()))
         source = self.pages[-1].page.source
         if source is not None:
             self.identity = self.source.kind.display_identity(source)
@@ -197,7 +197,7 @@ class WireHistory(LineHistory):
             if self.pages[-1].page.has_newer and self.window.follows_tail:
                 # More arrived than one page holds: go to the newest instead
                 # of drawing every page between.
-                await self._jump_latest(LatestViewportRequest(self.window.scroll_revision))
+                await self._jump_latest(LatestViewportRequest(self.window.hold_latest()))
         return True
 
     async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None):

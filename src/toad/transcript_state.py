@@ -13,6 +13,7 @@ from textual.widget import Widget
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PreparedPageSource
+    from toad.widgets.history_anchor import LatestPosition
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -137,14 +138,13 @@ class SuspendedTranscript(TranscriptState):
 
 @dataclass(frozen=True)
 class LatestViewportRequest:
-    revision: int
+    destination: "LatestPosition"
 
     def current(self, window) -> bool:
-        return window.scroll_revision == self.revision
+        return self.destination.current(window)
 
     def restore(self, window) -> None:
-        if self.current(window):
-            window.follow_latest()
+        self.destination.restore(window)
 
     def apply(self, owner) -> None:
         if self.current(owner.window):
