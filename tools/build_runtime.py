@@ -14,6 +14,7 @@ from email import message_from_bytes
 import hashlib
 import importlib.metadata
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -24,9 +25,15 @@ import zipfile
 from performance.capture_live import XvfbDisplay
 
 
-def run(*args: str | Path, cwd: Path | None = None) -> str:
+def run(
+    *args: str | Path,
+    cwd: Path | None = None,
+    env: dict[str, str] | None = None,
+) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
-    return subprocess.check_output(list(map(str, args)), cwd=cwd, text=True).strip()
+    return subprocess.check_output(
+        list(map(str, args)), cwd=cwd, env=env, text=True
+    ).strip()
 
 
 def inventory() -> dict:
@@ -306,6 +313,31 @@ class RuntimeBuild:
     runtimes: Path
     thread: str
     display: XvfbDisplay
+    start_env: Path | None
+
+    def start_acceptance_thread(self, runtime: Path) -> None:
+        if self.start_env is None:
+            return
+        environment = dict(os.environ)
+        for line_number, line in enumerate(self.start_env.read_text().splitlines(), 1):
+            if not line or line.lstrip().startswith('#'):
+                continue
+            name, separator, value = line.partition('=')
+            if not separator or not name.isidentifier():
+                raise ValueError(
+                    f'Invalid environment entry at {self.start_env}:{line_number}'
+                )
+            environment[name] = value
+        environment['PATH'] = f'{runtime / "bin"}:{environment["PATH"]}'
+        result = json.loads(run(
+            runtime / 'bin/agent-comms', 'start', '--name', self.thread,
+            env=environment,
+        ))
+        if result.get('launched') is not True:
+            raise RuntimeError(
+                f'AcceptanceThreadAlreadyRunning: {self.thread}; stop it before '
+                'using --start-thread'
+            )
 
     def build(self) -> Path:
         self.scratch.mkdir(parents=True, exist_ok=True)
@@ -355,6 +387,7 @@ class RuntimeBuild:
                 'native_manifest_sha256': native_pin, 'active_route': route,
                 'packages': installed, 'runtime': str(destination),
             }
+            self.start_acceptance_thread(destination)
             record['screenshot'] = str(open_saved_thread(destination, self.thread, self.display, self.scratch / f'acceptance-{destination.name}'))
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.
@@ -368,17 +401,24 @@ def main() -> None:
     parser.add_argument('--toad-ref', default='origin/main')
     parser.add_argument('--core-ref', default='origin/main')
     parser.add_argument('--baseline', type=Path, required=True)
-    parser.add_argument('--thread', required=True, help='Existing saved thread; no owner restart or new input')
+    parser.add_argument('--thread', required=True, help='Existing saved thread; no new input')
+    parser.add_argument('--start-thread', action='store_true',
+                        help='Start the stopped acceptance thread from the built runtime')
+    parser.add_argument('--start-env', type=Path,
+                        help='Environment entries for --start-thread, one NAME=VALUE per line')
     parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
+    if args.start_thread != (args.start_env is not None):
+        parser.error('--start-thread and --start-env must be used together')
     with XvfbDisplay(args.display) as display:
         build = RuntimeBuild(
             GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
             GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
             args.baseline.resolve(strict=True),
             args.scratch.resolve(), args.runtimes.resolve(), args.thread, display,
+            args.start_env.resolve(strict=True) if args.start_env else None,
         )
         print(build.build())
 
