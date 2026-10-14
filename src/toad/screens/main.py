@@ -6,7 +6,6 @@ from toad.format_path import format_path
 from toad.core_event_carrier import CoreEventReceiver
 import asyncio
 from abc import abstractmethod
-from collections.abc import Awaitable, Callable
 from functools import partial
 from pathlib import Path
 
@@ -120,9 +119,8 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     @abstractmethod
     async def wait(self, screen: "MainScreen") -> None: ...
 
-    @staticmethod
-    async def prepare(screen: "MainScreen") -> None:
-        await screen._prepare_content()
+    @abstractmethod
+    async def prepare(self, screen: "MainScreen") -> None: ...
 
     def finish(self, screen: "MainScreen", content: "ScreenContent") -> None:
         screen.content = content
@@ -141,8 +139,7 @@ class ScreenContent(DeclaredFamily, affix="Content"):
 
 
 class OpeningContent(ScreenContent):
-    def __init__(self, preparation: Callable[["MainScreen"], Awaitable[None]]) -> None:
-        self.preparation = preparation
+    def __init__(self) -> None:
         self.completion = asyncio.get_running_loop().create_future()
 
     def render(self, screen: "MainScreen") -> Static:
@@ -155,11 +152,7 @@ class OpeningContent(ScreenContent):
         await screen.content.wait(screen)
 
     async def prepare(self, screen: "MainScreen") -> None:
-        await self.preparation(screen)
-
-    @staticmethod
-    async def retain(screen: "MainScreen") -> None:
-        """Navigation owns admission; selecting its shell must not wait for I/O."""
+        await screen._prepare_content()
 
     def finish(self, screen: "MainScreen", content: ScreenContent) -> None:
         super().finish(screen, content)
@@ -169,7 +162,15 @@ class OpeningContent(ScreenContent):
         self.finish(screen, ReadyContent())
 
 
+class NavigatedOpeningContent(OpeningContent):
+    async def prepare(self, screen: "MainScreen") -> None:
+        """Navigation runs _prepare_content after admission; selecting the shell does no I/O."""
+
+
 class ReadyContent(ScreenContent):
+    async def prepare(self, screen: "MainScreen") -> None:
+        await screen._prepare_content()
+
     def render(self, screen: "MainScreen") -> Static:
         return self.label(screen, "", visible=False)
 
@@ -241,8 +242,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         agent_session_id: str | None = None,
         session_pk: int | None = None,
         initial_prompt: str | None = None,
-        *,
-        content_preparation: Callable[["MainScreen"], Awaitable[None]] = ScreenContent.prepare,
     ) -> None:
         super().__init__()
         self.set_reactive(MainScreen.project_path, project_path)
@@ -258,7 +257,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
         self._project_panel: ProjectPanel | None = None
-        self.content: ScreenContent = OpeningContent(content_preparation)
+        self.content: ScreenContent = OpeningContent()
         from toad.session_presentation import OperationalSessionPresentation
 
         self.presentation = OperationalSessionPresentation()
@@ -266,8 +265,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
         screen = cls(request.project, origin.source._agent or app.agent_data,
-                     agent_session_id=request.target,
-                     content_preparation=OpeningContent.retain)
+                     agent_session_id=request.target)
+        screen.content = NavigatedOpeningContent()
         screen.initial_coordination_root = request.root
         screen._comms_thread = request.target
         return screen
