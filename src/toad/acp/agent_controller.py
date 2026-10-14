@@ -228,7 +228,10 @@ class AgentController(OperationalTerminalOwner):
         """Release snapshot ordering through a fresh read of the same owner."""
         try:
             self.require_owner(coordination, authority)
-            await self.agent.get_thread_presentation()
+            read = self.agent.thread_read()
+            if read is not None:
+                presentation = await self.transcripts.thread_presentation(*read.thread)
+                read.settle(presentation)
         except (CoordinationReadUnavailable, OSError, ValueError) as error:
             # A failed read cannot settle a turn or change input disposition.
             # The original coordination observer resumes reads on publication.

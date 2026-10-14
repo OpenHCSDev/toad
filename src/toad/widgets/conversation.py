@@ -522,12 +522,7 @@ class ConversationSessionBinding(containers.Vertical):
             await self._release_source_resources()
 
     async def prepare_retained_session(self) -> None:
-        """The actual source chooses restoration; a history widget is not an actor."""
-        agent = self.agent
-        if agent is None:
-            self.resume_retained_history()
-        elif agent.ready:
-            await agent.presentation.restore_saved_history(self)
+        await self.transcript.restore()
 
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
@@ -564,21 +559,11 @@ class ConversationSessionBinding(containers.Vertical):
                 self.call_after_refresh(self._start_agent)
         else:
             self.agent_ready = self.agent.ready if self.agent is not None else True
+            if self.agent is None:
+                self.agent_info = Content(self.operational_sources.agent_info(self))
 
     def _start_agent(self) -> None:
-        """Admit one operational startup after the source's written frame."""
-        if self.agent is not None:
-            return
-        assert self._agent_data is not None
-        from toad.acp.agent import Agent
-
-        self.agent = Agent(self.project_path, self._agent_data,
-                           self._agent_session_id, self._session_pk)
-        self._native_agent_started_here = True
-        self.bind_agent(self.agent)
-        self.agent.controller.start_operation(
-            self.agent.start(self.app.session_navigation.processes))
-        self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
+        self.operational_sources.start_agent(self)
 
     @work
     async def watch_agent_ready(self, ready: bool) -> None:
@@ -617,7 +602,10 @@ from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
 
 
-class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, ConversationSessionBinding):
+from toad.delivery_failure_view import DeliveryFailureView
+
+
+class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, ConversationSessionBinding):
     ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
@@ -924,8 +912,31 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     def cursor_block_child(self) -> Widget | None:
         return self.navigation.selected
 
+    @property
+    def operational_sources(self):
+        from toad.screens.session_view import SessionView
+
+        return self.query_ancestor(SessionView).presentation.sources
+
+    def draws_user_message(self, sent) -> bool:
+        from agent_comms.message_reference import MessageReference
+
+        reference = MessageReference(sent.seq, sent.message_id)
+        return any(reference in fragment.notification_references
+                   for history in self.transcript.histories
+                   for fragment in history.visible_fragments())
+
+    def transcript_scope(self) -> tuple[str, str] | None:
+        """The native session identity whose canonical transcript this view shows."""
+        from toad.screens.session_view import SessionView
+
+        origin = self.query_ancestor(SessionView).origin
+        if origin is None or origin.coordination_root is None or not origin._comms_thread:
+            return None
+        return origin.coordination_root, origin._comms_thread
+
     def status_thread(self) -> tuple[str, str] | None:
-        return self.agent.observed_thread() if self.agent is not None else None
+        return self.transcript.thread_scope
 
     def arm_thread_read(self) -> None:
         """Capture turn token and client authority for the next observed presentation."""
@@ -935,24 +946,15 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         """Settle the agent's turn from an observed presentation, as its own read would."""
         read = self._thread_read
         self.arm_thread_read()
-        if read is None:
-            return
-        try:
-            presentation = read.settle(presentation)
-        except ValueError as error:
-            # The attachment changed after the capture; the next observation settles.
-            self.log.warning("Observed thread presentation not settled", error)
-            return
+        if read is not None:
+            try:
+                presentation = read.settle(presentation)
+            except ValueError as error:
+                self.log.warning("Observed thread presentation not settled", error)
+                return
         self.thread_presented(presentation)
-
-    async def read_foreign_thread(self):
-        agent = self.agent
-        if agent is None:
-            return None
-        presentation = await agent.get_thread_presentation()
-        if agent is not self.agent:
-            raise ValueError("Agent attachment changed")
-        return presentation
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_session()
 
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)
@@ -962,7 +964,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         from toad.screens.session_view import SessionView
 
         self.thread_presentation = presentation
-        if presentation is None or self.agent is None:
+        if presentation is None or not self.transcript.readable:
             return
         if self.query_ancestor(SessionView).is_current:
             from toad.transcript_publication import ObservedSourcePublication
@@ -1909,7 +1911,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self._require_check_prune = False
             low_mark = self.app.settings.ui.prune_low_mark
             high_mark = low_mark + self.app.settings.ui.prune_excess
-            if self.agent is not None and self.agent.transcript_ready:
+            if self.transcript.readable:
                 # Height pressure is not source evidence. Dropping the source
                 # pager or an uncovered wire claim lets a later observation
                 # recreate the same record as a new tail arrival.

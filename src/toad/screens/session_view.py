@@ -69,6 +69,10 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
         source = self.coordination_root
         return source is None or Path(source).expanduser().resolve() == root
 
+    async def open_direct_messages(self) -> None:
+        """Open this session's direct-message destination when it has one."""
+        self.notify("Direct messages are unavailable from this view", title="Direct messages")
+
     def sidebar_focus_target(self) -> Widget | None:
         return None
 

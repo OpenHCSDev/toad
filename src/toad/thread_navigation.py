@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from functools import partial
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
     from toad.screens.session_view import SessionOrigin
-    from toad.navigation_preparation import NativeThreadNavigation
+    from toad.navigation_preparation import ThreadNavigation
 
 
 @dataclass(frozen=True)
@@ -83,22 +84,9 @@ class ThreadNavigator:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def mount(self, prepared: NativeThreadNavigation, opening: ThreadOpening) -> str:
-        from toad.screens.main import MainScreen
-
+    async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:
         app = self.app
-        source = opening.origin.source
-        if not source.has_agent():
-            app.notify("The owning agent session is unavailable", title="Thread unavailable", severity="error")
-            return opening.owner_mode
-
-        def get_screen() -> MainScreen:
-            screen = source.spawn(project=prepared.project, session_id=prepared.thread.name,
-                                  root=prepared.root)
-            screen._comms_thread = prepared.thread.name
-            return screen
-
-        details = await app.session_navigation.new(get_screen, title=prepared.thread.name,
+        details = await app.session_navigation.new(partial(prepared.screen, opening), title=prepared.thread.name,
                                                   original=(prepared.root, prepared.thread.incarnation))
         view = app.session_navigation.source(details.mode_name)
         if view is not None:

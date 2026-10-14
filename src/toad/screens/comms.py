@@ -278,7 +278,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     async def action_toggle_irc(self) -> None:
         await self.kind.toggle_irc(self)
 
-    async def action_toggle_dm(self) -> None:
+    async def open_direct_messages(self) -> None:
         await self.kind.toggle_dm(self)
 
     def action_session_previous(self) -> None:

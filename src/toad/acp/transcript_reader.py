@@ -38,8 +38,12 @@ class CoordinationTranscriptReader(ABC):
     async def service(self, root):
         return await asyncio.to_thread(wire, root)
 
-    def observed(self, access) -> CoordinationTranscriptReader:
-        return ObservedTranscriptReader(access)
+    async def thread_presentation(self, root: str, thread: str):
+        """Read one thread presentation through this reader's bound service."""
+        from toad.owner_preparation import read_thread_presentation
+
+        async with self.bind(root) as reader:
+            return await asyncio.to_thread(read_thread_presentation, reader, thread)
 
     @asynccontextmanager
     async def bind(self, root: str):
@@ -98,6 +102,3 @@ class ObservedTranscriptReader(CoordinationTranscriptReader):
         if shared is not None and shared.root == Path(root).expanduser():
             return shared
         return await super().service(root)
-
-    def observed(self, access):
-        return self if self.access is access else super().observed(access)

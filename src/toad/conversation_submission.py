@@ -102,8 +102,6 @@ class AgentInputSubmission(InputSubmission):
     async def execute(self, owner):
         view = owner.view
         view.transcript.invalidate()
-        if self.text.startswith('/') and await CommandCatalog.execute(self.text, view):
-            return
         execution = owner.begin(self)
         if execution is None:
             return
@@ -158,6 +156,21 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
     @property
     def request(self):
         return SteerPromptRequest(self.text)
+
+class InboxInputSubmission(InputSubmission):
+    priority = 85
+
+    @classmethod
+    def matches(cls, event, view):
+        return view.operational_sources.accepts_inbox_submission(event)
+
+    async def execute(self, owner):
+        view = owner.view
+        if not view.user_message_ready:
+            owner.restore_draft(self.source_text)
+            return
+        return view.run_worker(partial(owner.send_inbox, self), group='inbox-submission')
+
 
 class SubmissionExecution:
     """Immutable source binding and the real outstanding local request."""
@@ -223,8 +236,41 @@ class ConversationSubmissions:
         self.active.append(execution)
         return execution
 
+    @property
+    def ready(self):
+        return self.view.operational_sources.input_ready(self.view)
+
+    @property
+    def unavailable_reason(self):
+        return self.view.operational_sources.unavailable_reason(self.view)
+
     async def submit(self, event):
+        text = event.body.strip()
+        if not event.shell and text.startswith('/') and await CommandCatalog.execute(text, self.view):
+            return
         return await InputSubmission.from_event(event, self.view).execute(self)
+
+    async def send_inbox(self, submission):
+        from toad.transcript_publication import CanonicalSourcePublication
+
+        view = self.view
+        scope = view.transcript.thread_scope
+        if scope is None:
+            self.restore_draft(submission.source_text)
+            return
+
+        def current() -> bool:
+            return view.is_attached and view.transcript.thread_scope == scope
+
+        async def present(sent) -> None:
+            view.run_worker(partial(view.input_histories.prompt.record, submission.source_text),
+                            group='history')
+            view.jump_to_latest()
+            await view.transcript.publish(CanonicalSourcePublication)
+
+        await view.deliver_user_message(
+            scope[0], scope[1], submission.source_text, current, present,
+        )
 
     def accepts_failure(self, message):
         agent = self.view.agent

@@ -121,6 +121,19 @@ class NativeSessionEntry(SessionEntry):
                             and any(binding.thread.matches_recorded_name(target, snapshot)
                                     for target in targets)):
                         await agent.session.reconnect()
+            else:
+                from toad.owner_preparation import ExistingOwnerAdmission
+
+                original = next((identity for root, identity in self.original_threads(sessions)
+                                 if Path(root).resolve() == selected.root
+                                 and any(identity.matches_recorded_name(target, snapshot)
+                                         for target in targets)), None)
+                if original is not None:
+                    thread = snapshot.require(source._comms_thread)
+                    binding = thread.execution.owner_binding(snapshot, thread)
+                    admission = ExistingOwnerAdmission.from_binding(binding)
+                    if admission is not None:
+                        source.presentation.sources.attach_started(source, admission)
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)

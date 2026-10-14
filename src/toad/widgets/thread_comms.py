@@ -5,7 +5,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 
-from toad.navigation_target import NavigationTarget, linked_target, thread_target
+from toad.navigation_target import NavigationTarget, linked_target, ThreadTarget
 
 import asyncio
 from dataclasses import dataclass, field
@@ -37,7 +37,7 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     person = entry.person
     if person is None:
         return linked_target(entry.target)
-    return thread_target(person.thread.execution, person.thread.name, person.status.active)
+    return ThreadTarget(person.thread.name)
 
 
 def _update_content(widget: Static, content: Content) -> None:
