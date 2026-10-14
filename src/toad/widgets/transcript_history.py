@@ -871,6 +871,12 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         pages = [page for page in self.pages if page.line_count]
         return sum(page.line_count for page in pages), sum(page.stop - page.start for page in pages)
 
+    @property
+    def destination_needs_older(self) -> bool:
+        """Whether the followed destination still leaves viewport rows uncovered."""
+        return (self.has_older and self._follow_source_tail
+                and self.drawn_extent[0] < self.window.scrollable_content_region.height)
+
     def prepare_scroll(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.can_draw or not self.screen.is_current
                 or not self.selected_categories):
@@ -936,8 +942,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         if self.filter.active:
             self.filter.check_edges()
             return
-        if (self.has_older and self._follow_source_tail
-                and self.drawn_extent[0] < self.window.scrollable_content_region.height):
+        if self.destination_needs_older:
             # A destination is a bottom viewport, not one transport page. Fill
             # its visible rows before upward input has scroll travel to spend.
             self._request_page(True)
@@ -1030,6 +1035,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None) -> None:
         """Draw the next range beyond an edge; `prepared` is that page when the caller read it."""
+        initial_count = self.fragment_count
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
         edge = self.pages[0] if older else self.pages[-1]
@@ -1068,6 +1074,10 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                 async with self.window.preserve_history(root=self):
                     await self._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
                     self._require_can_draw()
+            # The destination request spans transport pages. Keep its one
+            # admitted worker until the rendered bottom viewport is covered.
+            if older and self.fragment_count > initial_count and self.destination_needs_older:
+                await self._load_page(True)
         except _DrawingStopped:
             return
         finally:
