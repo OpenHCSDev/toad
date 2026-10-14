@@ -247,7 +247,13 @@ class Spans(LineBlock):
 
 @dataclass(frozen=True)
 class Summary(Spans):
-    """One clipped row whose spans retain their meaning and click actions."""
+    """One clipped row, followed by spans whose space is reserved first."""
+
+    kept: tuple[Span, ...] = ()
+
+    @property
+    def text(self) -> str:
+        return super().text + "".join(span.text for span in self.kept)
 
     @classmethod
     def titled(cls, title: str, role: type[LineRole] = MutedRole,

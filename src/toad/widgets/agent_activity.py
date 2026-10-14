@@ -33,8 +33,10 @@ class AgentActivityPresentation:
         title = status.title
         marker = ("▼ " if details_open else "▶ ") if has_details else "· "
         link = ToggleDetails() if has_details else None
+        source = status.summary
         summary = Summary((Span(f"{marker}🔧 ", status.summary_role, link),
-                           *(replace(span, link=link) for span in status.summary_spans)))
+                           *(replace(span, link=link) for span in source.spans)),
+                          kept=tuple(replace(span, link=link) for span in source.kept))
         if not details_open:
             return (summary,)
         return (summary, Body(title, role=ToolOutputRole, markdown=False), *details)
