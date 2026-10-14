@@ -6,39 +6,50 @@ proof identifiers/content are not passed to the presentation layer.
 
 from __future__ import annotations
 
-from enum import Enum
+from typing import ClassVar
+
+from agent_comms.declared_family import DeclaredFamily
 
 
-class CursorStatus(str, Enum):
+class CursorStatus(DeclaredFamily, affix="CursorStatus"):
     """One decoded cursor state owns its full UI presentation."""
 
-    def __new__(cls, value: str, label: str, summary: str = "", attention: bool = False):
-        member = str.__new__(cls, value)
-        member._value_ = value
-        member.label = label
-        member.summary = summary
-        member.attention = attention
-        return member
-
-    PENDING = "pending", "Checking bus input verification…", "Bus input verification pending"
-    PROVEN = "proven", "Bus history: prior messages included in model input"
-    COVERAGE_ONLY = "coverage_only", "Bus history: checked; no model input yet"
-    NONE = "none", "Bus history: no verified input for this session yet"
-    UNAVAILABLE = (
-        "unavailable",
-        "Bus input verification unavailable — check the ACP log; saved history is separate",
-        "Bus input verification unavailable",
-        True,
-    )
+    label: ClassVar[str]
+    summary: ClassVar[str] = ""
+    attention: ClassVar[bool] = False
 
     @classmethod
-    def decode(cls, value: str | None) -> "CursorStatus | None":
+    def external(cls, value: str | None) -> type[CursorStatus] | None:
         if value is None:
             return None
         try:
-            return cls(value)
+            return cls.decode(value)
         except ValueError:
-            return cls.UNAVAILABLE
+            return UnavailableCursorStatus
+
+
+class PendingCursorStatus(CursorStatus):
+    label = "Checking bus input verification…"
+    summary = "Bus input verification pending"
+
+
+class ProvenCursorStatus(CursorStatus):
+    label = "Bus history: prior messages included in model input"
+
+
+class CoverageOnlyCursorStatus(CursorStatus):
+    label = "Bus history: checked; no model input yet"
+
+
+class NoneCursorStatus(CursorStatus):
+    label = "Bus history: no verified input for this session yet"
+
+
+class UnavailableCursorStatus(CursorStatus):
+    label = "Bus input verification unavailable — check the ACP log; saved history is separate"
+    summary = "Bus input verification unavailable"
+    attention = True
+
 
 TOOLTIP = (
     "Current bus-history verification for this agent session. Pending means the "

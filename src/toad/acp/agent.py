@@ -35,7 +35,7 @@ from toad.core import events as core_events
 from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer, ThreadRead
-from toad.acp.projection_attachment import ProjectionAttachment
+from toad.acp.projection_attachment import CursorAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.core.events import UnsupportedResumeAgentFail, AgentReady
 from toad.agent import AgentBase
@@ -101,7 +101,7 @@ class Agent(AgentBase):
             self.server.expose_instance(owner.resolve(self))
         self.session = AgentSession(self, session_pk)
         self.done_event = asyncio.Event()
-        self._private_cursor = ProjectionAttachment()
+        self._private_cursor = CursorAttachment()
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
         log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")

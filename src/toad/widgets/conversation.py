@@ -379,7 +379,7 @@ class ConversationSessionBinding(containers.Vertical):
     input_delivery_error: var[str] = var("")
 
 
-    native_history_status: var[CursorStatus | None] = var(None)
+    native_history_status: var[type[CursorStatus] | None] = var(None)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())
@@ -1343,7 +1343,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         ):
             return
         self._private_cursor_sequence = message.event.sequence
-        self.native_history_status = CursorStatus.decode(message.event.update.status)
+        self.native_history_status = CursorStatus.external(message.event.update.status)
 
     @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(

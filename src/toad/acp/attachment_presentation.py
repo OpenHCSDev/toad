@@ -9,7 +9,7 @@ from toad.private_native_cursor import CursorStatus
 
 @dataclass(frozen=True)
 class CursorPresentation:
-    status: CursorStatus | None
+    status: type[CursorStatus] | None
 
 
 @dataclass(frozen=True)

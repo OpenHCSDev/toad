@@ -2,7 +2,15 @@
 
 from __future__ import annotations
 
-from toad.private_native_cursor import CursorStatus
+from abc import ABC, abstractmethod
+from collections.abc import Callable
+from typing import TypeVar
+
+from toad.private_native_cursor import (
+    CursorStatus,
+    PendingCursorStatus,
+    UnavailableCursorStatus,
+)
 
 from agent_comms.acp_extension import (
     CursorEnvelope,
@@ -10,6 +18,43 @@ from agent_comms.acp_extension import (
     QueueChangedUpdate,
     QueueScope,
 )
+
+
+T = TypeVar("T")
+AttachmentValue = CursorEnvelope | QueueChangedUpdate
+
+
+class AttachmentState(ABC):
+    @classmethod
+    @abstractmethod
+    def project(
+        cls,
+        current: AttachmentValue | None,
+        *,
+        available: Callable[[AttachmentValue], T],
+        pending: T,
+        unavailable: T,
+    ) -> T: ...
+
+
+class PendingAttachment(AttachmentState):
+    @classmethod
+    def project(cls, current, *, available, pending, unavailable):
+        return pending
+
+
+class UnavailableAttachment(AttachmentState):
+    @classmethod
+    def project(cls, current, *, available, pending, unavailable):
+        return unavailable
+
+
+class AvailableAttachment(AttachmentState):
+    @classmethod
+    def project(cls, current, *, available, pending, unavailable):
+        if current is None:
+            raise RuntimeError("Available attachment has no projection")
+        return available(current)
 
 
 class ProjectionAttachment:
@@ -39,12 +84,12 @@ class ProjectionAttachment:
         self._session_id: str | None = None
 
     @property
-    def status(self) -> CursorStatus | None:
+    def state(self) -> type[AttachmentState]:
         if self._pending:
-            return CursorStatus.PENDING
+            return PendingAttachment
         if self.quarantined or self._uncertain or self._evidence_lost:
-            return CursorStatus.UNAVAILABLE
-        return CursorStatus.decode(self.current.status if self.current is not None else None)
+            return UnavailableAttachment
+        return AvailableAttachment
 
     def begin(self, session_id: str | None) -> int:
         self._token += 1
@@ -215,3 +260,16 @@ class ProjectionAttachment:
             )
         self.current = envelope
         return "accept"
+
+
+class CursorAttachment(ProjectionAttachment):
+    """Cursor attachment lifecycle projected as named presentation states."""
+
+    @property
+    def status(self) -> type[CursorStatus] | None:
+        return self.state.project(
+            self.current,
+            available=lambda current: CursorStatus.external(current.status),
+            pending=PendingCursorStatus,
+            unavailable=UnavailableCursorStatus,
+        )
