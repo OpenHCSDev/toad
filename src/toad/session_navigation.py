@@ -103,9 +103,10 @@ class SessionNavigation:
             await member.reconnect(self, selected, snapshot, targets)
 
     def bind_opened(self, view: MainScreen, *, original: tuple[str, ThreadIncarnation],
-                    name: str) -> None:
-        """Bind the admitted native entry and publish its canonical identity once."""
+                    name: str, project: Path) -> None:
+        """Bind the admitted source facts before preparing its native resources."""
         entry = cast(NativeSessionEntry, self.app.workspace_sessions.factories[view.id])
+        view.bind_project(project)
         entry.original = original
         entry.details.bind_initial_identity(name)
         self.publish()

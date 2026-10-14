@@ -351,8 +351,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         with containers.Center():
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
-                yield self.presentation.compose_content(self)
                 yield self.content.render(self)
+                yield self.presentation.compose_content(self)
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -415,20 +415,31 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
         await ScreenCommsConsumer(self).dispatch(event.event.update)
 
+    def bind_project(self, project: Path) -> None:
+        """The admitted source and later coordination updates use one project owner."""
+        if project != self.project_path:
+            self.project_path = project
+            if self._project_panel is not None:
+                self._project_panel.path = project
+            if self.id is not None:
+                self.app.session_navigation.sync_project(self.id, project)
+            self.update_title()
+
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         self.app.coordination_facts[self] = event
         if event.worktree is not None:
-            project = Path(event.worktree)
-            if project != self.project_path:
-                self.project_path = project
-                if self._project_panel is not None:
-                    self._project_panel.path = project
-                if self.id is not None:
-                    self.app.session_navigation.sync_project(self.id, project)
-                self.update_title()
+            self.bind_project(Path(event.worktree))
         self.on_comms_session_named(event.thread.name)
         await self.presentation.apply_coordination(self, event)
+
+    @handles(core_events.AgentFail)
+    def on_session_failure(self, message: CoreEventMessage) -> None:
+        agent = self.presentation.operational_agent
+        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
+            # Prompt/tool failures do not fail the session. Its disposition is
+            # the original handshake/connection authority, not this view.
+            self.opening_failed(RuntimeError(f"{failure.message}: {failure.details}"))
 
     _last_dm_target: str | None = None
 

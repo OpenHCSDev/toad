@@ -89,7 +89,8 @@ class ThreadNavigator:
         view = opening.view
         prepared.bind(view)
         self.app.session_navigation.bind_opened(
-            view, original=(prepared.root, prepared.thread.incarnation), name=prepared.thread.name,
+            view, original=(prepared.root, prepared.thread.incarnation),
+            name=prepared.thread.name, project=prepared.project,
         )
         await view._prepare_content()
         await view.wait_content_ready()

@@ -72,6 +72,7 @@ class OpenThread:
 class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     root: str
     thread: Thread
+    project: Path
 
     async def open(self, opening: ThreadOpening) -> str:
         return await opening.navigator.mount(self, opening)
@@ -124,23 +125,27 @@ class ThreadNavigationRequest(NavigationRequest[ThreadNavigation]):
     def read(self) -> ThreadNavigation:
         snapshot = self.comms.registry.snapshot()
         thread = snapshot.require(self.target)
+        project = Path(thread.worktree)
+        if not project.is_dir():
+            project = self.project
         existing = next((view for view in self.open_threads
                          if view.root == self.root
                          and snapshot.canonical_name(view.name) == thread.name), None)
         if existing is not None:
-            return ExistingThreadNavigation(self.root, thread, existing)
+            return ExistingThreadNavigation(self.root, thread, project, existing)
         return thread.execution.prepare_conversation(
-            ThreadConversationPreparation(self.root, thread, snapshot))
+            ThreadConversationPreparation(self.root, thread, project, snapshot))
 
 
 @dataclass(frozen=True)
 class ThreadConversationPreparation(ConversationPreparation):
     root: str
     thread: Thread
+    project: Path
     snapshot: RegistrySnapshot
 
     def external(self) -> ThreadNavigation:
-        return ExternalThreadNavigation(self.root, self.thread)
+        return ExternalThreadNavigation(self.root, self.thread, self.project)
 
     def native(self) -> ThreadNavigation:
         from toad.owner_preparation import ExistingOwnerAdmission
@@ -148,8 +153,8 @@ class ThreadConversationPreparation(ConversationPreparation):
         binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
         admission = ExistingOwnerAdmission.from_binding(binding)
         if admission is None:
-            return ThreadNavigation(self.root, self.thread)
-        return NativeThreadNavigation(self.root, self.thread, admission)
+            return ThreadNavigation(self.root, self.thread, self.project)
+        return NativeThreadNavigation(self.root, self.thread, self.project, admission)
 
 
 class ThreadOpening:
