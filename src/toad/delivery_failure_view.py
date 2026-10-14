@@ -19,7 +19,9 @@ class DeliveryFailureView:
 
     @property
     def send_block_reason(self) -> str:
-        """Why compose is blocked by this view's own send, or empty."""
+        """Why this view's own send holds compose; empty when it does not."""
+        if self._unknown_send is not None:
+            return "Send UNKNOWN; inspect, do not retry"
         return self._send_block_reason
 
     async def deliver_user_message(self, root, target, body, current, present):

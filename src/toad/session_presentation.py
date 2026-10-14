@@ -222,7 +222,7 @@ class MailboxSessionSources(OperationalSessionSources):
         # history load can hold the prompt.
         if not conversation.transcript.readable:
             return "Loading thread history…"
-        return conversation.send_block_reason or "Send UNKNOWN; inspect, do not retry"
+        return conversation.send_block_reason
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
