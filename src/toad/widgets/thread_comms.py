@@ -48,10 +48,10 @@ def _update_content(widget: Static, content: Content) -> None:
 
 @dataclass
 class RelationshipTreeState:
-    expanded: dict[str, bool] = field(default_factory=dict)
-    scroll: dict[str, float] = field(default_factory=dict)
-    selected: tuple[str, str] | None = None
-    selected_targets: tuple[tuple[str, str], ...] = ()
+    expanded: dict[type[RelationshipGroup], bool] = field(default_factory=dict)
+    scroll: dict[type[RelationshipGroup], float] = field(default_factory=dict)
+    selected: tuple[type[RelationshipGroup], str] | None = None
+    selected_targets: tuple[tuple[type[RelationshipGroup], str], ...] = ()
 
 
 class RelationshipSort(SortControl[ThreadSort]):
@@ -116,19 +116,19 @@ class RelationshipRows(SidebarGroup):
         self.model = model
         self.rows: dict[tuple[str, str], RelationshipRow] = {}
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
-                         id=f"relationships-{model.key}")
+                         id=f"relationships-{type(model).declared_name}")
 
     def toggle_members(self) -> None:
         super().toggle_members()
-        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[self.model.key] = self.expanded
+        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[type(self.model)] = self.expanded
 
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         state = self.query_ancestor(ThreadCommsSidebar).view_state
         if previous:
-            state.scroll[self.model.key] = self.member_container.scroll_y
+            state.scroll[type(self.model)] = self.member_container.scroll_y
         if expanded:
             self.member_container.scroll_to(
-                y=state.scroll.get(self.model.key, 0), animate=False)
+                y=state.scroll.get(type(self.model), 0), animate=False)
 
     def on_mount(self) -> None:
         self.sync_members()
@@ -220,7 +220,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
-        self.groups: dict[str, RelationshipRows] = {}
+        self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
         # Thread rows for this snapshot's people, keyed by thread name.
         self.thread_rows: dict[str, ThreadRowModel] = {}
 
@@ -285,7 +285,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
         for group in self.groups.values():
-            self.view_state.scroll[group.model.key] = group.member_container.scroll_y
+            self.view_state.scroll[type(group.model)] = group.member_container.scroll_y
         self._generation += 1
         self.owner, self.wire_root = owner, wire_root
         self._revision = None
@@ -387,7 +387,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 self.groups.clear()
                 if generation != self._generation or not self.is_attached:
                     return
-            absent = set(self.groups) - {model.key for model in snapshot.groups}
+            absent = set(self.groups) - {type(model) for model in snapshot.groups}
             if absent:
                 await self.remove_children([self.groups.pop(key) for key in absent])
                 if generation != self._generation or not self.is_attached:
@@ -429,14 +429,14 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             # From here to the end nothing awaits: rows, groups and models change together.
             self.thread_rows = thread_rows
             for model in snapshot.groups:
-                group = self.groups.get(model.key)
+                group = self.groups.get(type(model))
                 if group is None:
                     # A new group reconciles its members once composed (on_mount).
-                    group = self.groups[model.key] = RelationshipRows(
-                        model, self.view_state.expanded.get(model.key, True))
+                    group = self.groups[type(model)] = RelationshipRows(
+                        model, self.view_state.expanded.get(type(model), True))
                     self.mount(group)
                 group.display = True
-                group.expanded = self.view_state.expanded.get(model.key, True)
+                group.expanded = self.view_state.expanded.get(type(model), True)
                 group.present(model)
                 group.sync_members()
             self.sync_current()
@@ -461,7 +461,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         return self.view_state
 
     def selection_for(self, row):
-        return row.query_ancestor(RelationshipRows).model.key, row.target_name
+        return type(row.query_ancestor(RelationshipRows).model), row.target_name
 
     @property
     def navigation_root(self):
@@ -479,7 +479,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         expected = row.entry if entry is None else entry
         observed_generation = self._generation if generation is None else generation
-        group = row.query_ancestor(RelationshipRows).model.key
+        group = type(row.query_ancestor(RelationshipRows).model)
         self.run_worker(self._navigate_current(group, expected, observed_generation))
 
     async def _navigate_current(self, group_key, expected, generation):
@@ -493,7 +493,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
-            current = next((entry for group in snapshot.groups if group.key == group_key
+            current = next((entry for group in snapshot.groups if type(group) is group_key
                             for entry in group.entries
                             if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
             same_incarnation = (expected.person is None or
