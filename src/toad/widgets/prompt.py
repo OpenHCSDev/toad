@@ -230,6 +230,24 @@ See on-screen instructions for details.
     def on_mount(self) -> None:
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
+        self.apply_keyboard_profile()
+
+    def apply_keyboard_profile(self) -> None:
+        from textual.widgets.text_area import EditingMode, VimInsert
+        enabled = self.app.settings.ui.vim_keys
+        if self.editing_mode.modal != enabled:
+            self.editing_mode = VimInsert() if enabled else EditingMode()
+
+    @property
+    def submission_allowed(self) -> bool:
+        return self.editing_mode.accepts_text and not self.query_ancestor(Prompt).active_popup
+
+    def leave_modal_editor(self) -> None:
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).window.focus(scroll_visible=False)
+
+    async def read_editor_clipboard(self) -> str:
+        return await self.app.clipboard_transport.paste(self.app)
 
     def on_key(self, event: events.Key) -> None:
         if self.shell_mode and event.key == "tab":
@@ -257,6 +275,7 @@ See on-screen instructions for details.
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
         # forwarded back to the focused TextArea, inserting it a second time.
+        self.editing_mode = self.editing_mode.pasted()
         if result := self._replace_via_keyboard(text, *self.selection):
             self.move_cursor(result.end_location)
 
@@ -281,7 +300,7 @@ See on-screen instructions for details.
                 self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
                             title="Image attachment")
                 return
-            text = await self.app.clipboard_transport.paste(self.app)
+            text = await self.read_editor_clipboard()
             if text:
                 self._paste_clipboard_text(text)
             else:
@@ -293,7 +312,7 @@ See on-screen instructions for details.
     def _submit(self) -> None:
         self._submit_pending = False
         immediate, self._submit_immediate = self._submit_immediate, False
-        if not self.has_focus:
+        if not self.has_focus or not self.submission_allowed:
             return
         input_text = CommandText.decode_input(self.text, self.slash_commands)
         local_command = not input_text.requires_agent
@@ -340,6 +359,8 @@ See on-screen instructions for details.
 
     def action_cursor_line_end(self, select: bool = False) -> None:
         """Move the cursor to the end of the line."""
+        if not self.editing_mode.accepts_text:
+            return super().action_cursor_line_end(select)
         if not self._has_cursor:
             self.scroll_end()
             return
@@ -509,7 +530,11 @@ class Prompt(containers.VerticalGroup):
     @property
     def supports_completion(self) -> bool:
         """This composer owns whether its current input mode admits completion."""
-        return not self.simple_input and not self.shell_mode
+        return not self.simple_input and not self.shell_mode and self.prompt_text_area.editing_mode.accepts_text
+
+    @property
+    def active_popup(self) -> PromptPopup | None:
+        return next((popup for popup in self.query(PromptPopup) if popup.is_open), None)
 
     @text.setter
     def text(self, text: str) -> None:

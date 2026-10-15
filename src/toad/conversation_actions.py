@@ -44,12 +44,21 @@ class CancelAction(KeyboundAction, ConversationAction):
     description = "Cancel"
     tooltip = "Cancel agent's turn"
     show = True
+    vim_profile = False
 
     def available(self, conversation):
+        if conversation.app.settings.ui.vim_keys != self.vim_profile:
+            return False
         return True if conversation.agent and conversation.turns.owner.can_cancel else None
 
     async def apply(self, conversation):
-        conversation.cancel_turn()
+        conversation.cancel_turn(self.key_display or self.key)
+
+
+class VimCancelAction(CancelAction):
+    key = "alt+ctrl+x"
+    key_display = "Ctrl+Alt+X"
+    vim_profile = True
 
 
 class ExpandBlockAction(KeyboundAction, ConversationAction):

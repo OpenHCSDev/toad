@@ -14,17 +14,21 @@ class SubmitAction(KeyboundAction, PromptAction):
     tooltip = "Send the prompt to the agent"
     priority = True
 
+    def available(self, editor):
+        return editor.submission_allowed
+
     async def apply(self, editor):
         editor.schedule_submission()
 
 
-class SubmitNowAction(KeyboundAction, PromptAction):
+class SubmitNowAction(SubmitAction):
     key = "ctrl+enter,ctrl+y"
+    key_display = None
     description = "Send now"
     priority = True
 
     def available(self, editor):
-        return editor.agent_ready and editor.agent_busy and editor.queue_supported
+        return super().available(editor) and editor.agent_ready and editor.agent_busy and editor.queue_supported
 
     async def apply(self, editor):
         editor.schedule_submission(immediate=True)

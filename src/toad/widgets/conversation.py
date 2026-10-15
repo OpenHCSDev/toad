@@ -2026,7 +2026,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.move_cursor(DownCursor())
 
     @work
-    async def cancel_turn(self) -> None:
+    async def cancel_turn(self, shortcut: str) -> None:
         if monotonic() - self._last_escape_time < 3:
             if (agent := self.agent) is not None:
                 self.flash("Cancelling agent turn…")
@@ -2039,7 +2039,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     self.flash("Agent declined to cancel. Please wait.", style="error")
             self._last_escape_time = 0.0
         else:
-            self.flash("Press [b]esc[/] again to cancel agent's turn")
+            self.flash(f"Press [b]{shortcut}[/] again to cancel agent's turn")
             self._last_escape_time = monotonic()
 
     def focus_prompt(self, reset_cursor: bool = True, scroll_end: bool = True) -> None:
