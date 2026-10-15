@@ -209,17 +209,37 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
 @dataclass(frozen=True)
 class PublishedSentMessageToolOutputPart(ToolOutputPart):
-    """The normal message body is supplied separately; retain the tool outcome."""
+    """A proved publication retains its source even without a separate body."""
 
     message: PublishedSentMessage
+
+    def for_body_sources(self, supplied):
+        return (self.with_body() if self.message.reference in supplied
+                else self.without_body())
+
+    def with_body(self):
+        return SuppliedSentMessageToolOutputPart(self.message)
+
+    def without_body(self):
+        return self
+
+    @cached_property
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return SentMessageToolOutputPart(self.message.message).line_blocks
+
+
+class SuppliedSentMessageToolOutputPart(PublishedSentMessageToolOutputPart):
+    """Only a supplied normal body permits compact tool details."""
 
     @property
     def standalone_messages(self):
         return (self.message,)
 
-    def for_body_sources(self, supplied):
-        return (self if self.message.reference in supplied
-                else SentMessageToolOutputPart(self.message.message))
+    def with_body(self):
+        return self
+
+    def without_body(self):
+        return PublishedSentMessageToolOutputPart(self.message)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -315,7 +335,7 @@ class ToolContentDecoder(MroDispatch):
 
     @handles(PublishedSentMessage)
     def published_message(self, message):
-        self.part = PublishedSentMessageToolOutputPart(message)
+        self.part = SuppliedSentMessageToolOutputPart(message)
 
     @handles(schema.FileEditToolCallContent)
     def diff(self, item):
@@ -355,7 +375,7 @@ class ToolOutput:
             if isinstance(raw_input, dict) else None
         )
         read_path = path if tool_call.kind == "read" and isinstance(path, str) else None
-        contents = tool_call.content or () if content is None else content
+        contents = (tool_call.content or ()) if content is None else content
         return tuple(decode_content(item, read_path) for item in contents)
 
     @staticmethod
