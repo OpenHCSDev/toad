@@ -60,11 +60,7 @@ class WaitingRoute(RouteObservation):
 
 @dataclass(frozen=True)
 class ObservedRoute(RouteObservation):
-    revisions: tuple[FileRevision | None, ...]
-
-    @property
-    def stamp(self):
-        return self.revisions
+    stamp: tuple[FileRevision | None, ...] = field()
 
 
 @dataclass(frozen=True)

@@ -76,17 +76,21 @@ class GroupTitle(Static):
 class FieldView(containers.VerticalGroup, DeclaredViews):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
-    def __init__(self, field: DeclaredField, structure: FormStructure) -> None:
+    def __init__(self, field: DeclaredField, structure: FormStructure,
+                 included: frozenset[FieldPath] | None = None) -> None:
         super().__init__()
         self.field = field
 
     @staticmethod
-    def of(state: ObjectState, parent: FieldPath, structure: FormStructure) -> list[FieldView]:
+    def of(state: ObjectState, parent: FieldPath, structure: FormStructure,
+           included: frozenset[FieldPath] | None = None) -> list[FieldView]:
         """A view for each parameter formbridge lists, in its order."""
         views = []
         for parameter in structure.parameters:
-            field = DeclaredField.at(state, getattr(parent, parameter.name))
-            views.append(FieldView.showing(type(parameter).__mro__)(field, structure))
+            path = getattr(parent, parameter.name)
+            if included is None or path in included:
+                field = DeclaredField.at(state, path)
+                views.append(FieldView.showing(type(parameter).__mro__)(field, structure, included))
         return views
 
     def values(self) -> Iterator[ValueView]:
@@ -114,8 +118,9 @@ class ValueView(FieldView):
 
     CHANGED_MARK = " ●"
 
-    def __init__(self, field: DeclaredField, structure: FormStructure) -> None:
-        super().__init__(field, structure)
+    def __init__(self, field: DeclaredField, structure: FormStructure,
+                 included: frozenset[FieldPath] | None = None) -> None:
+        super().__init__(field, structure, included)
         self.editor = ValueEditor.declared_for(field)
         self.title = FieldTitle(field.label)
         self.search_text = " ".join(label(step) for step in steps(field.path)).lower()
@@ -170,10 +175,11 @@ class GroupView(FieldView):
     }
     """
 
-    def __init__(self, field: DeclaredField, structure: FormStructure) -> None:
-        super().__init__(field, structure)
+    def __init__(self, field: DeclaredField, structure: FormStructure,
+                 included: frozenset[FieldPath] | None = None) -> None:
+        super().__init__(field, structure, included)
         name = str(field.path).rpartition(".")[2]
-        self.parts = FieldView.of(field.state, field.path, structure.nested_forms[name])
+        self.parts = FieldView.of(field.state, field.path, structure.nested_forms[name], included)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -205,11 +211,13 @@ class FormView(containers.VerticalScroll, can_focus=False):
     }
     """
 
-    def __init__(self, state: ObjectState) -> None:
+    def __init__(self, state: ObjectState, *, paths: tuple[FieldPath, ...] | None = None) -> None:
         super().__init__()
         self.state = state
+        included = (None if paths is None else
+                    frozenset(step for path in paths for step in steps(path)))
         self.parts = FieldView.of(
-            state, FieldPath(type(state.object_instance)), form_structure(state)
+            state, FieldPath(type(state.object_instance)), form_structure(state), included
         )
         self.values = {
             str(view.field.path): view for part in self.parts for view in part.values()

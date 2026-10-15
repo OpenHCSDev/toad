@@ -14,7 +14,7 @@ from toad.core.events import LinkContextChanged
 from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.field_codec import FieldCodec
 from markdown_it import MarkdownIt
-from markdown_it.rules_core import StateCore, inline as inline_rule
+from markdown_it.rules_core import StateCore
 from markdown_it.token import Token
 
 from toad.line_blocks import LineLink, LinkHref, OpenReference
@@ -22,7 +22,7 @@ from toad.project_link import ProjectLink
 from toad.file_position import FilePosition
 
 _PATH_PATTERN = re.compile(
-    r"(?<![\w:/])"
+    r"(?<![\w:/@#])"
     r"(?P<path>(?:(?:~|\.{1,2})?/)?(?:[\w.@+-]+/)+[\w.@+-]+|[\w.@+-]+\.[A-Za-z0-9][\w+-]*)"
     rf"(?:{FilePosition.pattern})?"
     r"(?![\w/])"
@@ -84,10 +84,8 @@ class ReferenceRendering(CoreEventReceiver):
         self.app.coordination_access.show_references(self, owner.coordination_root is not None)
 
     def _on_unmount(self):
-        try:
-            self.app.coordination_access.show_references(self, False)
-        finally:
-            super()._on_unmount()
+        # Textual dispatches each class's handler, including CoreEventReceiver's.
+        self.app.coordination_access.show_references(self, False)
 
     @handles(LinkContextChanged)
     def reference_context_changed(self, message):
@@ -202,16 +200,15 @@ class _MarkdownParserState(local):
         self.parser.validateLink = ProjectLink.opens
         for rule in ProjectTokenRule.members_with(ProjectTokenRule):
             rule.register(self.parser)
-        rules = tuple(self.parser.core.ruler.getRules(""))
-        boundary = rules.index(inline_rule) + 1
-        self.syntax_rules, self.presentation_rules = rules[:boundary], rules[boundary:]
+        self.syntax_rules = tuple(self.parser.core.ruler.getRules(""))
 
 
 _parser_state = _MarkdownParserState()
 
 
-def parse_markdown_syntax(source, env=None):
+def parse_markdown_syntax(source, env=None, *, inline=False):
     state = StateCore(source, _parser_state.parser, {} if env is None else env)
+    state.inlineMode = inline
     for rule in _parser_state.syntax_rules:
         rule(state)
     return state.tokens
@@ -224,9 +221,9 @@ class MessageMarkdownParser:
     def parse(self, source, env=None):
         return self.resolve_tokens(parse_markdown_syntax(source, env))
 
+    def parse_inline(self, source):
+        return self.resolve_tokens(parse_markdown_syntax(source, inline=True))
+
     def resolve_tokens(self, tokens):
-        tokens = _parser_state.parser.renderer.resolve(tokens, _ProjectTokens(self.context))
-        state = StateCore("", _parser_state.parser, {}, tokens)
-        for rule in _parser_state.presentation_rules:
-            rule(state)
-        return state.tokens
+        # Linkify is syntax: resolve its URLs too, before any frontend sees them.
+        return _parser_state.parser.renderer.resolve(tokens, _ProjectTokens(self.context))

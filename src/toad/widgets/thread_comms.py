@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.presentation import CoordinationSnapshot
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual import on
 from textual.binding import Binding
@@ -22,16 +21,12 @@ from textual.widgets import Checkbox, Static
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow
 from toad.widgets.message_filter import MessageCategory
-from toad.widgets.session_sort import SortControl
+from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import (
     RelationshipEntry, RelationshipGroup, RelationshipSource, ThreadCommsSnapshot,
 )
-
-# Relationships on a wire other than the observed one have no unread counts here.
-NO_UNREAD = CoordinationSnapshot(threads=(), channels=(), unread={}, last_sent={})
-
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     person = entry.person
@@ -59,36 +54,25 @@ class RelationshipSort(SortControl[ThreadSort]):
     GROUPS = ("children", "collaborating")
 
     def __init__(self):
-        self._mixed = True
-        super().__init__(ThreadSort.CREATED, "children and collaborators")
-
-    @property
-    def selected_order(self):
-        return None if self._mixed else self.order
-
-    def _update_label(self) -> None:
-        if self._mixed:
-            self._set_label("Sort ▾", "Sort children and collaborators (currently different orders)")
-        else:
-            super()._update_label()
+        super().__init__(ThreadSortForm(None), "children and collaborators")
 
     def update_groups(self, groups):
         orders = {group.order for group in groups if group.key in self.GROUPS}
-        self._mixed = len(orders) != 1
-        if not self._mixed:
-            self.order = next(iter(orders))
-        self._update_label()
+        self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
-    async def persist_order(self, order: ThreadSort) -> ThreadSort:
+    def order_writer(self):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
         service, owner = tree.service, tree.owner
-        try:
-            for group in self.GROUPS:
-                await asyncio.to_thread(service.set_order, owner, group, order)
-        finally:
-            tree.refresh_relationships(force=True)
-        self._mixed = False
-        return order
+
+        async def write(order: type[ThreadSort]):
+            try:
+                for group in self.GROUPS:
+                    await self.app.preparation.run_thread(service.set_order, owner, group, order)
+            finally:
+                if tree.service is service and tree.owner == owner:
+                    tree.refresh_relationships(force=True)
+
+        return write
 
 
 class RelationshipRow(CommsRow):
@@ -410,7 +394,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             unread = (observed.sidebar.snapshot
                       if observed is not None and observed.sidebar.snapshot is not None
                       and Path(self.wire_root).resolve() == observed.service.root.resolve()
-                      else NO_UNREAD)
+                      else None)
             people = {entry.person.thread.name: entry.person for model in snapshot.groups
                       for entry in model.entries if entry.person is not None}
 

@@ -5,12 +5,13 @@ from __future__ import annotations
 import asyncio
 import os
 import re
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import ClassVar
+from typing import Annotated, ClassVar
+from agent_comms.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
@@ -44,12 +45,21 @@ class ProjectSearchLimit(ProjectLinkProblem):
         return f"Project file search is too large for {self.name}; use a full path."
 
 
-class EncodedProjectLink:
-    """Membership in the internal URI protocol derives from declarations."""
+class EncodedProjectLink(ABC):
+    """Membership and URI assembly derive from declarations, not caller rosters."""
+
+    @staticmethod
+    @abstractmethod
+    def decode_value(value): ...
 
     @classmethod
-    @abstractmethod
-    def from_uri(cls, uri: SplitResult, root: Path) -> ProjectLink: ...
+    def from_uri(cls, uri: SplitResult, root: Path) -> ProjectLink:
+        return cls(cls.decode_value(unquote(uri.path)), original_root=root,
+                   position=FilePosition.from_fragment(uri.fragment))
+
+    @classmethod
+    def uri_for(cls, value):
+        return f"{cls.declared_name}:{quote(str(value))}"
 
 
 class ProjectLink(LineLink):
@@ -128,7 +138,7 @@ class ProjectLink(LineLink):
 
 @dataclass(frozen=True, kw_only=True)
 class ProjectFileLink(ProjectLink):
-    original_root: Path
+    original_root: Annotated[Path, PathText]
     position: FilePosition | None = None
 
     def at_position(self, href):
@@ -180,16 +190,9 @@ class ProjectFileLink(ProjectLink):
 
 @dataclass(frozen=True)
 class DirectProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="toad-file"):
-    path: Path
+    path: Annotated[Path, PathText]
 
-    @classmethod
-    def from_uri(cls, uri: SplitResult, root: Path) -> DirectProjectFileLink:
-        return cls(Path(unquote(uri.path)), original_root=root,
-                   position=FilePosition.from_fragment(uri.fragment))
-
-    @classmethod
-    def uri_for(cls, path):
-        return f"{cls.declared_name}:{quote(str(path))}"
+    decode_value = Path
 
     @property
     def href(self) -> str:
@@ -231,14 +234,11 @@ class SearchProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
         return bool(name and Path(name).name == name and Path(name).suffix
                     and not name.startswith("."))
 
-    @classmethod
-    def from_uri(cls, uri: SplitResult, root: Path) -> SearchProjectFileLink:
-        return cls(unquote(uri.path), original_root=root,
-                   position=FilePosition.from_fragment(uri.fragment))
+    decode_value = str
 
     @property
     def href(self) -> str:
-        return self.at_position(f"{self.declared_name}:{quote(self.name)}")
+        return self.at_position(self.uri_for(self.name))
 
     async def resolve(self, root: Path) -> Path:
         return await asyncio.to_thread(self.search, root)
