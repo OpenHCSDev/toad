@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 from textual import containers, getters, on, widgets
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 
 from toad.db import DB, Session
 

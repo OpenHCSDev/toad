@@ -28,7 +28,7 @@ class KeyboundAction:
 
     @classmethod
     def binding(cls) -> Binding:
-        return Binding(cls.key, FieldCodec.encode(cls), cls.description, tooltip=cls.tooltip,
+        return Binding(cls.key, cls.binding_name(), cls.description, tooltip=cls.tooltip,
                        show=cls.show, priority=cls.priority, system=cls.system,
                        group=cls.group, key_display=cls.key_display)
 
@@ -51,6 +51,12 @@ Context = TypeVar("Context")
 class NativeAction(Command, Generic[Context]):
     """Only the Textual boundary decodes an external action name."""
 
+    binding_prefix: ClassVar[str] = ""
+
+    @classmethod
+    def binding_name(cls) -> str:
+        return cls.binding_prefix + FieldCodec.encode(cls)
+
     @classmethod
     def parse(cls, parameters: tuple[object, ...]):
         if parameters:
@@ -69,7 +75,9 @@ class NativeAction(Command, Generic[Context]):
 
 
 class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
-    """Application action membership is owned by its declarations."""
+    """Application action membership and native namespace belong here."""
+
+    binding_prefix = "app."
 
 
 class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction):

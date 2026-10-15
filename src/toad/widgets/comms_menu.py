@@ -11,7 +11,7 @@ from textual.containers import Container
 from textual.dom import DOMNode
 from textual.geometry import Offset, clamp
 from textual.message import Message
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
 from toad.widgets.selection import FocusSelection

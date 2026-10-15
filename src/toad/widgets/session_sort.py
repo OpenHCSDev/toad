@@ -15,7 +15,7 @@ from objectstate import ObjectState
 from python_introspect import FieldLabel
 from textual import events
 from textual.containers import VerticalScroll
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
 
