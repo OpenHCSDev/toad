@@ -935,7 +935,7 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
             self._request_page(True)
             return
         older, newer = self.window.lookahead.demand.edges(
-            self.has_older and not self._follow_source_tail and above <= self.prefetch_distance,
+            self.has_older and above <= self.prefetch_distance,
             self.has_newer and below <= self.prefetch_distance,
         )
         if older or newer:
