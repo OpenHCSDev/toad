@@ -40,9 +40,9 @@ class SessionToolCalls:
     def capture(self, call):
         return SessionToolCall(call, ClientSessionRequest(self.agent, self.agent.session_id), self.scope)
 
-    def owns_presentation(self, event):
+    def presentation(self, event):
         current = self.calls.get(event.tool_call.call.tool_call_id)
-        return current is not None and current.accepts(event, self.scope)
+        return current if current is not None and current.accepts(event, self.scope) else None
 
     def publish(self, current):
         self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current.call), current.scope))

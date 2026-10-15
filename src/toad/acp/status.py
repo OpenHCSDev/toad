@@ -2,11 +2,9 @@
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.native_tools import NativeTool
-from agent_comms.tool_results import tool_result_content
 from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
 from dataclasses import dataclass
 from acp.schema import ToolCall
-from toad.jsonrpc import value_schema
 from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
@@ -68,11 +66,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):
         self.call.status = "completed" if event.ok else "failed"
-        # Preserve strict decoding before the SDK's salvage validator can
-        # silently discard malformed content.
-        self.call.content = value_schema(ToolCall.model_fields["content"].annotation).validate_python(
-            tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
-        )
+        # Saved output stays on its already-decoded result, not a JSON/SDK copy.
 
     def project_output(self, parts, project):
         """Only completed sends may replace reported output with a proved body."""

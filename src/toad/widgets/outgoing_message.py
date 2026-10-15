@@ -21,10 +21,11 @@ from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessa
 class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, publication: PublishedSentMessage, *, binding, show_header: bool = True):
+    def __init__(self, publication: PublishedSentMessage, *, binding, request, show_header: bool = True):
         super().__init__()
         self.publication = publication
         self.binding = binding
+        self.request = request
         self.show_header = show_header
 
     @property

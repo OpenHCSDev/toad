@@ -27,7 +27,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             return False
         if message.publisher.controller.surface is not self:
             return False
-        return target.is_attached and message.publisher.tools.owns_presentation(message.event)
+        return target.is_attached and message.publisher.tools.presentation(message.event) is not None
 
     async def _post_native(self, message, target, widget, retirement):
         if not self.owns_publication(message, target):
@@ -45,6 +45,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         if not self.owns_publication(message, target):
             return
         event = message.event
+        request = message.publisher.tools.presentation(event).request
         status = event.tool_call
         status.activity(target.turns, target.output, status.title)
         parts = await target.app.preparation.run_thread(
@@ -59,10 +60,10 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
                         continue
                     bodies = [body for body in target.contents.query_children(OutgoingMessage)
                               if body.publication.reference == sent.reference]
-                    if any(body.binding is self for body in bodies):
+                    if any(body.binding is self and body.request is request for body in bodies):
                         continue
                     await target.transcript.retire_presentations(target.contents, target.output, bodies)
-                    body = OutgoingMessage(sent, binding=self)
+                    body = OutgoingMessage(sent, binding=self, request=request)
                     if not await self._post_native(message, target, body, retirement):
                         return
                     if target.transcript.covers_outgoing(sent):
@@ -70,13 +71,13 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             if not self.owns_publication(message, target):
                 return
             tool = target.contents.query_one_optional(f"#{event.tool_id}", ToolCall)
-            if tool is not None and tool.binding is not self:
+            if tool is not None and (tool.binding is not self or tool.request is not request):
                 await target.transcript.retire_presentations(target.contents, target.output, [tool])
                 tool = None
             if not self.owns_publication(message, target):
                 return
             if tool is None:
-                tool = ToolCall(status, id=event.tool_id, output_parts=parts, binding=self)
+                tool = ToolCall(status, id=event.tool_id, output_parts=parts, binding=self, request=request)
                 if not await self._post_native(message, target, tool, retirement):
                     return
             else:

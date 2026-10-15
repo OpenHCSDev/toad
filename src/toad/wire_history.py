@@ -256,8 +256,7 @@ class WireSource:
             AfterMessage(page.newest_cursor) if page.has_newer and page.messages else through,
             page.has_older and bool(page.messages), page.has_newer and bool(page.messages), page,
         )
-        return PreparedTranscriptPage(wire, fragments,
-                                      sum(fragment.retained_bytes for fragment in fragments))
+        return PreparedTranscriptPage.measured(wire, fragments)
 
     def restyled(self, style: WireMessageStyle) -> WireSource:
         return replace(self, style=style)

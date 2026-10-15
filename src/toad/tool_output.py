@@ -16,7 +16,8 @@ import re
 from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.transcript_events import SentTranscript
+from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
+from agent_comms.tool_results import ToolDiff
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_receipts import AssignedTranscriptSource
 from textual.await_complete import AwaitComplete
@@ -58,6 +59,9 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
         return ()
 
     def project_messages(self, resolved) -> ToolOutputPart:
+        return self
+
+    def for_body_sources(self, supplied) -> ToolOutputPart:
         return self
 
     @property
@@ -190,14 +194,17 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
     def project_messages(self, resolved):
         decoder = ToolContentDecoder()
-        decoder.dispatch_sync(resolved[self.message])
+        decoder.dispatch_sync(resolved[id(self.message)])
         return decoder.part
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
+        body = Body(self.message.text, role=ToolOutputRole, bar=MutedRole, markdown=False)
+        if not self.message.routed:
+            return (body,)
         header = MessageRow.sent(self.message).header
         header = replace(header, spans=tuple(replace(span, link=None) for span in header.spans))
-        return (header, Body(self.message.text, role=ToolOutputRole, bar=MutedRole, markdown=False))
+        return (header, body)
 
 
 @dataclass(frozen=True)
@@ -209,6 +216,10 @@ class PublishedSentMessageToolOutputPart(ToolOutputPart):
     @property
     def standalone_messages(self):
         return (self.message,)
+
+    def for_body_sources(self, supplied):
+        return (self if self.message.reference in supplied
+                else SentMessageToolOutputPart(self.message.message))
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -268,13 +279,17 @@ class ToolContentDecoder(MroDispatch):
 
     @handles(schema.TextContentBlock)
     def text(self, item):
-        self.part = TextToolOutputPart.from_text(item.text, self.read_path)
+        self.dispatch_sync(item.text)
+
+    @handles(str)
+    def plain_text(self, text):
+        self.part = TextToolOutputPart.from_text(text, self.read_path)
 
     @handles(schema.EmbeddedResourceContentBlock)
     def resource(self, item):
         self.dispatch_sync(item.resource)
 
-    @handles(schema.TextResourceContents)
+    @handles(schema.TextResourceContents, ToolDiff)
     def text_resource(self, item):
         from agent_comms.tool_results import SENT_MESSAGE_MIME
 
@@ -332,7 +347,7 @@ class ToolOutput:
         return view
 
     @staticmethod
-    def capture_parts(tool_call: schema.ToolCall) -> tuple[ToolOutputPart, ...]:
+    def capture_parts(tool_call: schema.ToolCall, *, content=None) -> tuple[ToolOutputPart, ...]:
         """Pure ACP interpretation, shared by live ingress and saved workers."""
         raw_input = tool_call.raw_input or {}
         path = (
@@ -340,19 +355,25 @@ class ToolOutput:
             if isinstance(raw_input, dict) else None
         )
         read_path = path if tool_call.kind == "read" and isinstance(path, str) else None
-        return tuple(decode_content(item, read_path) for item in tool_call.content or ())
+        contents = tool_call.content or () if content is None else content
+        return tuple(decode_content(item, read_path) for item in contents)
 
     @staticmethod
     def project_sent(parts, scope):
         reports = tuple(message for part in parts for message in part.sent_reports)
         if scope is None or not reports:
             return parts
-        resolved = dict(zip(reports, AssignedTranscriptSource.open(scope).resolve_sent(reports)))
+        resolved = dict(zip(map(id, reports), AssignedTranscriptSource.open(scope).resolve_sent(reports)))
         return ToolOutput.apply_sent(parts, resolved)
 
     @staticmethod
     def apply_sent(parts, resolved):
         return tuple(part.project_messages(resolved) for part in parts)
+
+    @classmethod
+    def capture_recorded(cls, status, events):
+        end = next((event for event in reversed(events) if isinstance(event, ToolEndTranscript)), None)
+        return cls.capture_parts(status.call, content=end.result_parts if end is not None else ())
 
     @classmethod
     def capture_projection(cls, status, scope):
