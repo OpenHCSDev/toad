@@ -493,9 +493,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
-            current = next((entry for group in snapshot.groups if type(group) is group_key
-                            for entry in group.entries
-                            if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
+            group = snapshot.groups_by_type.get(group_key)
+            current = (next((entry for entry in group.entries
+                             if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
+                       if group is not None else None)
             same_incarnation = (expected.person is None or
                 (current is not None and current.person is not None and
                  current.person.thread.created_at == expected.person.thread.created_at))
