@@ -186,7 +186,7 @@ class CategorizedMount:
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
+        selected = self.selected_categories
         for widget in require_blocks(widgets):
             classes = {"-unrouted": not keep_live_block(widget)}
             if category := block_category(widget):
@@ -212,13 +212,17 @@ class Contents(containers.VerticalGroup, can_focus=False):
         """The native width of full-width history rows prepared before mounting."""
         return self.content_size.width
 
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return all_categories()
+
     async def prepare_history(self, history: LineHistory, current: Callable[[], bool], *,
-                              window: HistoryWindow, selected: frozenset[type[MessageCategory]]) -> None:
+                              window: HistoryWindow) -> None:
         """Supply a laid-out native target before its detached history prepares rows."""
         if not self.line_width:
             await self.wait_for_refresh()
         rows, _limit = window.latest_limits(history.budget)
-        await history.prepare_rows(current, window=window, target=self, selected=selected,
+        await history.prepare_rows(current, window=window, target=self, selected=self.selected_categories,
                                    rows_needed=rows)
 
     @height_dependency(INDEPENDENT_HEIGHT)
@@ -230,6 +234,11 @@ class Contents(containers.VerticalGroup, can_focus=False):
 
 class ConversationContents(CategorizedMount, Contents):
     """Conversation ordering and categories compose with the native row container."""
+
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return (self.query_ancestor(Conversation).visible_categories
+                if self.is_attached else all_categories())
 
 
 class ContentsGrid(containers.Grid):

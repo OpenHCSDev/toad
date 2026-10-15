@@ -825,11 +825,11 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
-        from toad.widgets.conversation import Contents, Conversation
+        from toad.widgets.conversation import Contents
 
-        # A nested pager inherits the outer message's category, not the
-        # synthetic role of its Markdown fragments.
-        return (self.query_ancestor(Conversation).visible_categories
+        # Root containers own selection; nested pagers already inherit their
+        # outer message's category, not the synthetic Markdown fragment role.
+        return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
     @property

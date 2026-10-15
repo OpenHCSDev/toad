@@ -24,7 +24,6 @@ from toad.screens.workspace import WorkspaceScreen
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
-from toad.widgets.message_filter import all_categories
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.wire_message_handling import WireMessageHandling
 
@@ -155,7 +154,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             window.anchor()
             await content.prepare_history(
                 history, lambda: generation == self._selection_generation and self.is_attached,
-                window=window, selected=all_categories(),
+                window=window,
             )
             if generation != self._selection_generation or not self.is_attached:
                 return
