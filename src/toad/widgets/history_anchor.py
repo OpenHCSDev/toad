@@ -336,7 +336,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
         from toad.transcript_state import LatestViewportRequest
 
-        return await history._publish_latest(LatestViewportRequest(self))
+        return await history._jump_latest(LatestViewportRequest(self))
 
     def left_tail(self, window: "HistoryWindow") -> None:
         return None
@@ -521,10 +521,10 @@ class HistoryWindow(VerticalScroll):
             parked = self.reader_position = ParkedPosition(self.reader_position or ReaderPosition.of(self), ranges)
         return parked
 
-    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
-        """A history about to be mounted loads the page ranges the kept position needs."""
-        if self.reader_position is not None:
-            self.reader_position.prepare_history(history)
+    @property
+    def latest_rows(self) -> int:
+        """The destination's native row capacity, even before it has source rows."""
+        return max(1, self.outer_size.height)
 
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""

@@ -202,15 +202,24 @@ class CategorizedMount:
         return mounted
 
 
-class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
+class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
+
+    @property
+    def line_width(self) -> int:
+        """The native width of full-width history rows prepared before mounting."""
+        return self.content_size.width
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
         self, placements: list[WidgetPlacement]
     ) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
+
+
+class ConversationContents(CategorizedMount, Contents):
+    """Conversation ordering and categories compose with the native row container."""
 
 
 class ContentsGrid(containers.Grid):
@@ -881,7 +890,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with Contents(id="contents"):
+                with ConversationContents(id="contents"):
                     yield from ThreadLoading.initial_contents(self._agent_data)
                     yield self.cli_draft
         yield Flash()

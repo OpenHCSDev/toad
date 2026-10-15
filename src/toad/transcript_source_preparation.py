@@ -124,7 +124,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation += 1
         self.state.request_latest(self, LatestViewportRequest(destination))
 
-    async def _jump_latest(self, request: LatestViewportRequest) -> None:
+    async def _jump_latest(self, request: LatestViewportRequest,
+                           publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Publish one destination under its original source and reader intent.
 
         A preceding page's restoration may have left the window off its tail.
@@ -133,14 +134,17 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         scroll; movement during I/O revokes this request at its original revision.
         """
         if not self.can_draw_on_screen or not request.current(self.window):
-            return
+            return False
         request.restore(self.window)
-        if await self._publish_latest(request):
+        if await self._publish_latest(request, publication_current):
             # Wire acceptance advances the original reader source. Capture the
             # published source, rather than the request that acceptance replaced.
             self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
+            return True
+        return False
 
-    async def _publish_latest(self, request: LatestViewportRequest) -> bool:
+    async def _publish_latest(self, request: LatestViewportRequest,
+                              publication_current: Callable[[], bool]) -> bool:
         """The source leaf reads/prepares and fences its original publication."""
         raise NotImplementedError
 

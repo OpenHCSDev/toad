@@ -58,6 +58,27 @@ class PreparedTranscriptPage:
         if self.fragment_range is None:
             self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
 
+    async def prepare_latest(self, view, current, *, target, selected,
+                             rows_needed: int, limit: int) -> int:
+        """Own the bottom range, selected from rendered rows rather than transport size."""
+        take = rows = 0
+        while take < len(self.fragments) and take < limit and rows < rows_needed:
+            stop = len(self.fragments) - take
+            start = max(0, stop - min(view.budget.batch_items, limit - take))
+            batch = self.fragments[start:stop]
+            await view.prepare_fragments(batch, current, target=target, selected=selected)
+            if not current():
+                return 0
+            for fragment in reversed(batch):
+                lines = (fragment.lines_for(target.line_width, view.app.colours.line_theme)
+                         if fragment.shown_in(selected) else None)
+                take += 1
+                rows += 0 if lines is None else lines.height
+                if rows >= rows_needed:
+                    break
+        self.set_fragment_range(slice(len(self.fragments) - take, len(self.fragments)))
+        return rows
+
     @property
     def start(self):
         return self.fragment_range[0]
