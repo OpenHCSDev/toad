@@ -1224,7 +1224,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
     @property
     def outgoing_coverage(self):
-        return self._source_state.coverage(self).outgoing
+        return self._source_state.outgoing_coverage(self)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""

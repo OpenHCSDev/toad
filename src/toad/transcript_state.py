@@ -29,6 +29,13 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
             return TranscriptCoverage(tuple(owner.coverage_events), owner.committed_cursor.receipts.identity)
         return TranscriptCoverage(())
 
+    def outgoing_coverage(self, owner):
+        if self.reports_coverage:
+            scope = owner.committed_cursor.receipts.identity
+            return frozenset(reference for view in owner.pages
+                             for reference in view.prepared.outgoing_coverage if reference.scope == scope)
+        return frozenset()
+
     def checkpoint_available(self, owner) -> bool:
         """Source admission and its original resource govern checkpoint custody."""
         return self.accepts_source_work and owner.source_checkpoint_available

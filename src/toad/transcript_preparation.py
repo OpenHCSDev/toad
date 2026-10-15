@@ -6,6 +6,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
+from functools import cached_property
 from typing import ClassVar
 from weakref import ReferenceType, ref
 
@@ -47,6 +48,18 @@ class PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
         fragments = transcript_fragments(page.events, scope=page.after.receipts.identity)
         return cls(page, fragments, retained_bytes((page, fragments)))
+
+    @cached_property
+    def outgoing_coverage(self):
+        """Index supplied bodies once with their immutable prepared fragments.
+
+        Edge metadata/range changes do not change these source-qualified bodies.
+        A filtered preparation indexes only the fragments it actually supplies.
+        """
+        from toad.core.source_events import TranscriptCoverage
+
+        return TranscriptCoverage(tuple(event for fragment in self.fragments for event in fragment.events),
+                                  self.page.after.receipts.identity).outgoing
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
