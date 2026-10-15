@@ -8,7 +8,7 @@ from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, TypeVar, get_args, get_origin
 
 from formbridge.forms.ui_utils import FieldDisplayText
-from objectstate import ObjectState
+from objectstate import DottedFieldPath, ObjectState
 from python_introspect import (
     ParameterInfo,
     declared_field_label,
@@ -18,7 +18,6 @@ from python_introspect import (
 )
 from python_introspect.validation import validate_annotation_value
 
-from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Placeholder
 
 Metadata = TypeVar("Metadata")
@@ -80,11 +79,14 @@ class DeclaredField:
     """One field of an ObjectState: where its value lives and how it was declared."""
 
     state: ObjectState
-    path: FieldPath
+    path: DottedFieldPath
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "path", self.state.parameter_structure.path(self.path.value))
 
     @property
     def declaration(self) -> ParameterInfo:
-        return self.state.parameter_structure.declarations[str(self.path)]
+        return self.state.parameter_structure.declarations[self.path.value]
 
     @property
     def annotation(self) -> object:
@@ -101,7 +103,7 @@ class DeclaredField:
 
     @property
     def value(self) -> object:
-        return self.state.get_resolved_value(str(self.path))
+        return self.state.get_resolved_value(self.path.value)
 
     @property
     def default(self) -> object:
@@ -141,7 +143,7 @@ class DeclaredField:
         # ObjectState takes any value for a field of the root object and only
         # fails later, when the object is rebuilt (ObjectState issue #47).
         validate_annotation_value(self.annotation, value, path=self.label)
-        self.state.update_parameter(str(self.path), value)
+        self.state.update_parameter(self.path.value, value)
 
 
 class OptionalMemberField(DeclaredField):

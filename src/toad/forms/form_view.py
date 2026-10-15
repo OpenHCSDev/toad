@@ -6,7 +6,7 @@ from collections.abc import Iterator
 
 from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, GenericInfo
-from objectstate import ObjectState
+from objectstate import DottedFieldPath, ObjectState
 from textual import containers, events, lazy
 from textual.app import ComposeResult
 from textual.content import Content
@@ -19,7 +19,7 @@ from ui_theme.scheme import BackgroundColour, ForegroundColour, MutedColour, Pri
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews
 from toad.forms.editors import ValueEditor
-from toad.forms.field_path import FieldPath, steps
+from toad.forms.field_path import FieldPath
 from toad.forms.presentation import AUTO, FormPart
 
 
@@ -49,7 +49,7 @@ class FieldView(FormPart, containers.VerticalGroup, DeclaredViews):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
     def __init__(self, field: DeclaredField,
-                 included: frozenset[FieldPath] | None = None) -> None:
+                 included: frozenset[DottedFieldPath] | None = None) -> None:
         super().__init__()
         self.field = field
 
@@ -58,16 +58,15 @@ class FieldView(FormPart, containers.VerticalGroup, DeclaredViews):
         return Spacing(0, 0, 0 if self.last_child else 1, 0)
 
     @staticmethod
-    def of(state: ObjectState, parent: FieldPath,
-           included: frozenset[FieldPath] | None = None) -> list[FieldView]:
+    def of(state: ObjectState, parent: str = "",
+           included: frozenset[DottedFieldPath] | None = None) -> list[FieldView]:
         """Show ObjectState's direct children; FormBridge supplies each field's kind.
 
         ObjectState already extracted this topology. Reading it does not rebuild
         a second form tree or re-analyze the held object's values.
         """
         views = []
-        for parameter in ParameterFormService().parameters_for_state(state, str(parent)):
-            path = getattr(parent, parameter.name)
+        for path, parameter in ParameterFormService().parameters_for_state(state, parent):
             if included is None or path in included:
                 field = DeclaredField(state, path)
                 views.append(FieldView.showing(type(parameter).__mro__)(field, included))
@@ -90,12 +89,13 @@ class ValueView(FieldView):
     CHANGED_MARK = " ●"
 
     def __init__(self, field: DeclaredField,
-                 included: frozenset[FieldPath] | None = None) -> None:
+                 included: frozenset[DottedFieldPath] | None = None) -> None:
         super().__init__(field, included)
         self.editor = ValueEditor.declared_for(field)
         self.title = FieldTitle(field.label)
         self.search_text = " ".join(
-            DeclaredField(field.state, step).label for step in steps(field.path)
+            DeclaredField(field.state, step).label
+            for step in field.state.parameter_structure.ancestors(field.path)
         ).lower()
 
     def compose(self) -> ComposeResult:
@@ -142,9 +142,9 @@ class GroupView(FieldView):
         return Edges(*(("tall", colour),) * 4)
 
     def __init__(self, field: DeclaredField,
-                 included: frozenset[FieldPath] | None = None) -> None:
+                 included: frozenset[DottedFieldPath] | None = None) -> None:
         super().__init__(field, included)
-        self.parts = FieldView.of(field.state, field.path, included)
+        self.parts = FieldView.of(field.state, field.path.value, included)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -174,19 +174,19 @@ class FormView(FormPart, containers.VerticalScroll, can_focus=False):
     overflow_y = "scroll"
 
     def __init__(self, state: ObjectState, *, paths: tuple[FieldPath, ...] | None = None,
-                 focus: FieldPath | None = None) -> None:
+                 focus: DottedFieldPath | None = None) -> None:
         super().__init__()
         self.state = state
-        included = (None if paths is None else
-                    frozenset(step for path in paths for step in steps(path)))
-        self.parts = FieldView.of(
-            state, FieldPath(type(state.object_instance)), included
-        )
+        included = (None if paths is None else frozenset(
+            step for path in paths
+            for step in state.parameter_structure.ancestors(path.bind(state).path)
+        ))
+        self.parts = FieldView.of(state, included=included)
         self.values = {
-            str(view.field.path): view for part in self.parts for view in part.values()
+            view.field.path.value: view for part in self.parts for view in part.values()
         }
         if focus is not None:
-            editor = self.values[str(focus)].editor
+            editor = self.values[focus.value].editor
             editor.listen(events.Mount, lambda _: editor.focus())
         self.listen(events.Mount, self.follow_state)
         self.listen(events.Unmount, self.leave_state)
