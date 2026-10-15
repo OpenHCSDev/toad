@@ -367,6 +367,14 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     def status_thread(self) -> tuple[str, str] | None:
         return self.transcript.thread_scope
 
+    @handles(core_events.ExternalTranscriptChanged, core_events.SessionSelected)
+    def external_transcript_changed(self, message: CoreEventMessage) -> None:
+        """This binding receives Core observations and refreshes its visible CLI source."""
+        from toad.screens.session_view import SessionView
+
+        if self.query_ancestor(SessionView).is_current:
+            self.operational_sources.external_transcript_changed(self)
+
     def arm_thread_read(self) -> None:
         """Capture turn token and client authority for the next observed presentation."""
         self._thread_read = self.agent.thread_read() if self.agent is not None else None
