@@ -126,7 +126,7 @@ class CommsChatView(Conversation):
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield self.conversation_kind.activity_widget(self)
-            yield self.make_throbber()
+            yield self.throbber
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
