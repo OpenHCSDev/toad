@@ -189,8 +189,7 @@ class FailedContent(ScreenContent):
         return self.label(screen, f"Thread unavailable: {self.error}", visible=True)
 
     async def wait(self, screen: "MainScreen") -> None:
-        if not screen._closing and not screen._closed:
-            raise self.error
+        raise self.error
 
     async def prepare(self, screen: "MainScreen") -> None:
         agent = screen.presentation.operational_agent
@@ -386,6 +385,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
                       if self._agent is not None else "")
 
     async def wait_content_ready(self) -> None:
+        if self._closing or self._closed:
+            return
         await self.content.wait(self)
 
     async def close_presentation(self) -> None:
