@@ -302,6 +302,9 @@ class Animated:
             self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
             self.animation = None
 
+    def on_unmount(self) -> None:
+        self.stop_effect()
+
     @property
     def animation_visible(self) -> bool:
         # Only what the compositor last showed on the current screen. An

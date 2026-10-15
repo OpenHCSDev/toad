@@ -5,16 +5,19 @@ from weakref import ref
 
 from rich.cells import cell_len
 from textual import events
-from textual.app import ComposeResult, ScreenStackError, UnknownModeError
+from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.reactive import var
+from textual.strip import Strip
+from ui_theme.effects import STANDBY_PULSE
 from textual.widgets import Static
 
 from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
+from toad.textual_colours import Animated
 
 
 class GoalControl(CoreEventReceiver, Static, can_focus=True):
@@ -33,31 +36,29 @@ class GoalControl(CoreEventReceiver, Static, can_focus=True):
         self.action_activate()
 
 
-class StandbyPulse(Static):
-    """A quiet wait animation; the backend decides when it is active."""
+class StandbyPulse(Animated, Static):
+    """A goal's standby marker; its existing clock owns time and visibility."""
 
-    DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; color: $text-muted; }"
+    DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; }"
     active: var[bool] = var(False)
-    _dim = False
+
+    def on_mount(self) -> None:
+        self.watch_active()
 
     def watch_active(self) -> None:
-        self.auto_refresh = 0.8 if self.active else None
+        if self.active and self.is_mounted:
+            if self.animation is None:
+                self.run_effect(STANDBY_PULSE)
+        else:
+            self.stop_effect()
         self.update("◌" if self.active else "")
 
-    def automatic_refresh(self) -> None:
-        if not self.active or not self.is_attached:
-            return
-        try:
-            screen = self.screen
-            if (
-                screen is not self.app.screen
-                or self not in screen._compositor.visible_widgets
-            ):
-                return
-        except ScreenStackError, UnknownModeError:
-            return
-        self._dim = not self._dim
-        self.styles.opacity = 0.45 if self._dim else 1.0
+    def render_line(self, y: int) -> Strip:
+        strip = super().render_line(y)
+        if self.active:
+            frame = self.animation.frame() if self.animation is not None else STANDBY_PULSE.final
+            return frame.paint(self.app.colours, strip)
+        return strip
 
 
 class GoalBar(VerticalGroup):

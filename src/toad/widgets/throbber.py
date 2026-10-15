@@ -60,9 +60,6 @@ class Throbber(Animated, Widget):
     def on_mount(self) -> None:
         self.watch_busy(self.busy)
 
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
     def watch_busy(self, busy: bool) -> None:
         # A computed busy changes when it is read, often by the clock's tick,
         # which repaints only visible running animations: repaint here so the
