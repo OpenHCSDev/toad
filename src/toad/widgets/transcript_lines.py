@@ -737,9 +737,8 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
         return (self.context.current_for(view) and
                 self.preparation.matches(view.line_width, view.app.colours.line_theme))
 
-    def hold(self, view, fragment, lines) -> None:
-        if self.current_for(view):
-            fragment.hold_lines(self, lines)
+    def hold(self, view, fragment, lines) -> bool:
+        return self.current_for(view) and fragment.hold_lines(self, lines)
 
     @staticmethod
     def show(view, fragment, shown, rendered) -> None:
