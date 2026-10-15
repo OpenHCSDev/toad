@@ -151,7 +151,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     def toggle_details(self, link: ToggleDetails) -> None:
         """Show or hide the details of the fragment whose line was clicked."""
         history = self.history
-        history.run_worker(history.toggle_details(self.fragment_under_mouse()), group="message-details")
+        history.toggle_details(self.fragment_under_mouse())
 
     @property
     def page(self) -> TranscriptPage:
@@ -581,10 +581,16 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 page.range_changed()
         self.window.check_follow()
 
-    async def toggle_details(self, fragment: TranscriptFragment) -> None:
-        """Show a fragment's details, or hide them when they are shown."""
+    def toggle_details(self, fragment: TranscriptFragment | None) -> None:
+        """Admit a current drawn detail target before scheduling its mutation.
+
+        Pointer rows and the block cursor can disappear between native input
+        and action dispatch. Neither is authority to mutate an absent fragment.
+        """
+        if fragment is None or not self.state.can_draw or not self.draws_fragment(fragment):
+            return
         self.hold_fragment_top(fragment)
-        await self._show([(fragment, fragment.shown.toggled())])
+        self.run_worker(self._show([(fragment, fragment.shown.toggled())]), group="message-details")
 
     def hold_fragment_top(self, fragment: TranscriptFragment) -> None:
         """Row activation owns the reader: the activated row's top stays visible.
@@ -611,10 +617,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return self.can_expand() is False
 
     def expand_block(self) -> None:
-        self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
+        self.toggle_details(self.block_cursor.current)
 
     def collapse_block(self) -> None:
-        self.run_worker(self.toggle_details(self.block_cursor.current), group="message-details")
+        self.toggle_details(self.block_cursor.current)
 
     # The message cursor
 
