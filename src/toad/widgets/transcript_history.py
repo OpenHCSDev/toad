@@ -69,6 +69,7 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.conversation import Contents
 
 class _DrawingStopped(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
@@ -415,7 +416,6 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
         """Acquire a page until its original source transfers native custody."""
         view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest,
                    fresh=fresh)
-        view.prepared.set_fragment_range(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
         view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
         # Styled before it is drawn: a page drawn plain first rewraps under
@@ -498,36 +498,59 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         if (projection := self.filter.state.overlay) is not None:
             projection.resume_source()
 
-    async def prepare_fragments(self, fragments, current: Callable[[], bool], *, selected=None) -> None:
-        """Render fragments' lines at the page width before they are admitted."""
-        width = self.line_width
-        if width <= 0:
-            return
-        theme = self.app.colours.line_theme
+    async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
+                                current: Callable[[], bool], *, selected=None,
+                                target: LineHistory | Contents | None = None) -> None:
+        """Render against the native destination, including before history is mounted."""
+        target = self if target is None else target
         selected = self.selected_categories if selected is None else selected
-        todo = [fragment for fragment in fragments
-                if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
-        for first in range(0, len(todo), self.budget.batch_items):
+        while current():
+            width, theme = target.line_width, self.app.colours.line_theme
+            if width <= 0:
+                return
+            todo = [fragment for fragment in fragments
+                    if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
+            if not todo:
+                return
+            batch = todo[:self.budget.batch_items]
+            ready = await TranscriptLinesBatchRenderTask.render_for(target,
+                (fragment.plain_lines(width, theme).preparation for fragment in batch))
             if not current():
                 return
-            batch = todo[first:first + self.budget.batch_items]
-            ready = await TranscriptLinesBatchRenderTask.render_for(self,
-                (fragment.plain_lines(width, theme).preparation for fragment in batch))
             for fragment, (task, lines) in zip(batch, ready):
-                task.hold(self, fragment, lines)
+                task.hold(target, fragment, lines)
 
     @property
     def line_width(self) -> int:
         """The width pages draw at, as laid out; 0 before the first layout."""
         return next((page.line_width for page in self.pages if page.line_width), 0)
 
-    async def prepare_body(self, current: Callable[[], bool], *, selected=None) -> None:
-        """Warm the actual page admissions, including a restored reader range."""
-        if (projection := self.filter.state.overlay) is not None:
-            await projection.prepare_body(current)
-        for page in self.pages:
-            await self.prepare_fragments(page.fragments_in_range,
-                                         current, selected=selected)
+    async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
+                           target: Contents, selected: frozenset[type[MessageCategory]],
+                           rows_needed: int) -> None:
+        """Prepare the destination before its first native layout can expose raw rows."""
+        window.prepare_history(self)
+        if window.follows_tail and target.line_width > 0:
+            _capacity, limit = window.latest_limits(self.budget)
+            # A restored document keeps its original pages and older prefix.
+            # Prepare only the bottom viewport; older rows warm after first paint.
+            for page in reversed(self.pages):
+                rows_needed -= await page.prepared.prepare_latest(
+                    self, current, target=target, selected=selected,
+                    rows_needed=rows_needed, limit=limit,
+                )
+                if not current():
+                    return
+                limit -= page.stop - page.start
+                if rows_needed <= 0 or limit <= 0:
+                    break
+        else:
+            for page in self.pages:
+                await self.prepare_fragments(page.fragments_in_range, current,
+                                             selected=selected, target=target)
+        await self.filter.state.prepare_rows(
+            current, window=window, target=target, rows_needed=max(0, rows_needed),
+        )
 
     @property
     def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:
@@ -802,11 +825,11 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
-        from toad.widgets.conversation import Contents, Conversation
+        from toad.widgets.conversation import Contents
 
-        # A nested pager inherits the outer message's category, not the
-        # synthetic role of its Markdown fragments.
-        return (self.query_ancestor(Conversation).visible_categories
+        # Root containers own selection; nested pagers already inherit their
+        # outer message's category, not the synthetic Markdown fragment role.
+        return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
     @property
@@ -908,55 +931,32 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         elif self.has_older and self.state.accepts_source_work:
             self._request_page(True)
 
-    async def _publish_latest(self, request: LatestViewportRequest) -> bool:
+    async def _publish_latest(self, current: Callable[[], bool]) -> bool:
         """Prepare and publish the complete bottom destination as one tree change."""
-        snapshot = self.source_snapshot()
-        window, loader = snapshot.window, self.loader
-        destination_batch = window.lookahead.destination_batch(self.budget, window.outer_size.height)
-        current = lambda: snapshot.current(self) and request.current(window)
+        window = self.window
         edge = self.pages[-1]
-        if loader is None or edge.page.after == self.through:
-            # Reuse immutable source/render inputs without sharing the old
-            # view's mutable admitted range.
+        if self.loader is None or edge.page.after == self.through:
             prepared = edge.prepared.for_view()
         else:
-            prepared = await self._reader().get(PageRequest(before=self.through))
-
-        # A transport page is not a viewport. Prepare newest fragments in the
-        # existing render batch until their actual rows fill the destination,
-        # reading older source pages as part of this same unpublished change.
-        destination: list[tuple[PreparedTranscriptPage, int]] = []
-        viewport_rows = max(1, window.outer_size.height)
-        rows = admitted = 0
-        destination_full = False
-        while admitted < destination_batch:
-            take = 0
-            while (take < len(prepared.fragments) and admitted < destination_batch
-                   and not destination_full):
-                stop = len(prepared.fragments) - take
-                start = max(0, stop - min(
-                    self.budget.batch_items, destination_batch - admitted,
-                ))
-                batch = prepared.fragments[start:stop]
-                await self.prepare_fragments(batch, current)
-                if not current():
-                    return False
-                for fragment in reversed(batch):
-                    lines = (fragment.lines_for(self.line_width, self.app.colours.line_theme)
-                             if fragment.shown_in(self.selected_categories) else None)
-                    height = 0 if lines is None else lines.height
-                    if rows and rows + height > viewport_rows:
-                        destination_full = True
-                        break
-                    take += 1
-                    admitted += 1
-                    rows += height
+            prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
+        rows, limit = window.latest_limits(self.budget)
+        destination: list[PreparedTranscriptPage] = []
+        while rows > 0 and limit > 0:
+            rows -= await prepared.prepare_latest(
+                self, current, target=self, selected=self.selected_categories,
+                rows_needed=rows, limit=limit,
+            )
+            if not current():
+                return False
+            take = prepared.stop - prepared.start
             if take:
-                destination.insert(0, (prepared, take))
-            if (destination_full or loader is None
-                    or not prepared.page.has_older or admitted >= destination_batch):
+                destination.insert(0, prepared)
+            limit -= take
+            if rows <= 0 or self.loader is None:
                 break
-            prepared = await self._reader().get(PageRequest(before=prepared.page.before))
+            if not prepared.page.has_older or limit <= 0:
+                break
+            prepared = (await self._reader().get(PageRequest(before=prepared.page.before))).for_view()
         if not destination:
             return False
 
@@ -967,10 +967,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 previous = tuple(self.pages)
                 views = deque()
                 try:
-                    for prepared, take in destination:
+                    for prepared in destination:
                         async with TranscriptPageView.acquire(
                             self, prepared.page, fragments=prepared.fragments,
-                            batch_size=take, prepared=prepared.for_view(),
+                            batch_size=prepared.stop - prepared.start, prepared=prepared,
                             before=self.newer, current=current,
                         ) as view:
                             views.append(view)
@@ -979,7 +979,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self.pages = views
                 await self.remove_children(previous)
                 self._update_edges()
-                self.refresh(layout=True)
             return True
 
     async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None,
@@ -1241,7 +1240,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
     async def advance_committed(
         self, through: TranscriptCursor, is_current: Callable[[], bool],
     ) -> bool:
-        """Advance in bounded native pages and render batches, preserving loaded rows."""
+        """Show the new tail as one prepared destination, not a walk through the gap."""
         async with self.window.history_lock:
             if not self.checkpoint_available or not is_current():
                 return False
@@ -1252,23 +1251,12 @@ class TranscriptHistory(LineHistory, CommittedHistory):
         return await operation.execute(self, partial(self._advance_committed, is_current))
 
     async def _advance_committed(self, is_current: Callable[[], bool]) -> bool:
-        while self.has_newer:
-            if not is_current() or not self.state.can_draw:
-                return False
-            edge = self.pages[-1]
-            previous = edge.page.after, edge.stop
-            await self._load_page(False)
-            edge = self.pages[-1]
-            if previous == (edge.page.after, edge.stop):
-                return False
-            # Let the bounded batch paint before selecting the next batch's
-            # visible anchors. Never mount an entire oversized native row.
-            refreshed = asyncio.get_running_loop().create_future()
-            self.call_after_refresh(
-                lambda future=refreshed: future.done() or future.set_result(None)
-            )
-            await refreshed
-        return is_current()
+        if not is_current() or not self.state.can_draw:
+            return False
+        from toad.widgets.history_anchor import LatestPosition
+
+        request = LatestViewportRequest(LatestPosition.hold(self.window))
+        return await self._jump_latest(request, is_current)
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A source projection with the ordinary pager's admission and eviction policy."""
