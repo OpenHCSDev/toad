@@ -672,7 +672,10 @@ class LinePreparation(MroDispatch):
     prepared_blocks: tuple[LineBlock, ...] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        object.__setattr__(self, "prepared_blocks", tuple(self.dispatch_sync(block) for block in self.blocks))
+        # This is a factory: choose the most specific declared supply, not
+        # the event pipeline (whose replacements must keep event identity).
+        object.__setattr__(self, "prepared_blocks", tuple(
+            next(self.handlers_for(block))(block) for block in self.blocks))
 
     @handles(LineBlock)
     def unchanged(self, block: LineBlock) -> LineBlock:
