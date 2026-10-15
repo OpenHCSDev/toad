@@ -63,8 +63,8 @@ class ThreadStatusRow(HoverSelection):
         badge = f"{row.unread.label} " if row.unread.label else ""
         content = Content.assemble(
             (badge, "bold"),
-            f"{'* ' if self.pinned else ''}"
-            f"{animated_label(row, phase=self.app.busy_rows.phase)}"
+            "* " if self.pinned else "",
+            animated_label(row, phase=self.app.busy_rows.phase),
             f"\n  {summary}",
         )
         current = self.content

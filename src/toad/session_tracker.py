@@ -8,6 +8,7 @@ from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosed
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from toad.widgets.activity_spinner import animated_label
+from textual.content import Content
 from toad.conversation_kind import ConversationKind
 
 
@@ -27,8 +28,8 @@ class OpenTab(ABC):
     @abstractmethod
     def unread(self) -> UnreadPresentation: ...
 
-    def label(self, phase: int) -> str:
-        return self.title
+    def label(self, phase: int) -> Content:
+        return Content(self.title)
 
 
 @dataclass(frozen=True)
@@ -57,7 +58,7 @@ class ThreadTab(OpenTab):
     def busy(self) -> bool:
         return self.row.busy
 
-    def label(self, phase: int) -> str:
+    def label(self, phase: int) -> Content:
         return animated_label(self.row, phase=phase)
 
 

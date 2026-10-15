@@ -227,7 +227,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
         title = session.label(self.app.busy_rows.phase)
         if session.unread.label:
             return Content.assemble(title, (f" {session.unread.label}", "bold $accent"))
-        return Content(title)
+        return title
 
     def compose(self) -> ComposeResult:
         tabs = self.app.open_tabs

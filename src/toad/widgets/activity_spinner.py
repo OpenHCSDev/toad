@@ -1,9 +1,10 @@
-"""One-cell paint-only replacement for busy hourglass markers in Toad views."""
+"""Paint-only emphasis of Core's complete label in every busy thread view."""
 
 from __future__ import annotations
 
 from time import monotonic
 from agent_comms.ui_model.sidebar import ThreadRowModel
+from textual.content import Content
 from typing import TYPE_CHECKING
 from weakref import WeakSet
 
@@ -11,12 +12,12 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.widgets.session_sidebar import ThreadStatusRow
 
-FRAMES = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
+PHASES = 10
 
 
-def animated_label(row: ThreadRowModel, *, phase: int) -> str:
-    """Decorate Core's busy row without recovering state from its label text."""
-    return f"{FRAMES[phase % len(FRAMES)]} {row.title}" if row.busy else row.label
+def animated_label(row: ThreadRowModel, *, phase: int) -> Content:
+    """Emphasize activity without replacing Core's marker, including warnings."""
+    return Content.styled(row.label, "bold" if row.busy and phase < PHASES // 2 else "")
 
 
 class BusyRows:
@@ -33,7 +34,7 @@ class BusyRows:
 
     @property
     def phase(self) -> int:
-        return int(monotonic() * self.fps) % len(FRAMES)
+        return int(monotonic() * self.fps) % PHASES
 
     def track(self, row: ThreadStatusRow, busy: bool) -> None:
         if busy:
