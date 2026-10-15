@@ -81,8 +81,12 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         """Only execution-specific navigation admits an operational source."""
 
     def launch_screen(self, app):
-        """The tab a launch naming this thread opens: its agent resumes the session."""
-        return app.session_navigation.default_source(self.thread.name)
+        """A named launch retains the same acquired identity as a sidebar open."""
+        from toad.screens.main import MainScreen
+
+        screen = MainScreen.from_thread(self.project, self.root, self.thread.name, app.agent_data)
+        self.bind(screen)
+        return screen
 
 
 class ExternalThreadNavigation(ThreadNavigation):

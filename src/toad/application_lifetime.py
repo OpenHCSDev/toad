@@ -119,7 +119,10 @@ class ApplicationLifetime:
         else:
             # The thread's declaration decides how it opens, as from the sidebar.
             navigation = await app.preparation.run_thread(self.launch_navigation)
-            await app.session_navigation.new(partial(navigation.launch_screen, app))
+            await app.session_navigation.new(
+                partial(navigation.launch_screen, app),
+                original=(navigation.root, navigation.thread.incarnation),
+            )
         app.terminal_attention.attach()
         app.set_timer(1, self.check_version)
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)

@@ -1045,7 +1045,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 details=message.event.details,
             )
 
-        await message.event.present(self)
+        if self.agent is not None:
+            await self.agent.session.disposition.present_failure(message.event, self)
+        else:
+            await message.event.present(self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1

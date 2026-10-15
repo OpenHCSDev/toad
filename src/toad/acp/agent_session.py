@@ -32,6 +32,9 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     def current_failure(self) -> AgentFail | None:
         return None
 
+    async def present_failure(self, failure: AgentFail, view) -> None:
+        await failure.present(view)
+
 
 class ActiveSessionDisposition(SessionDisposition):
     accepts_updates = True
@@ -53,6 +56,12 @@ class FailedSessionDisposition(SessionDisposition):
 
     def current_failure(self) -> AgentFail:
         return self.failure
+
+    async def present_failure(self, failure: AgentFail, view) -> None:
+        if failure is self.failure:
+            await failure.present_session(view)
+        else:
+            await super().present_failure(failure, view)
 
 
 class RefusedSessionDisposition(FailedSessionDisposition):
@@ -266,6 +275,8 @@ class AgentSession:
 
     async def reconnect(self, admission: SessionLoadAdmission | None = None) -> None:
         """Reattach the existing view after login or an explicit owner start."""
+        if self.reconnecting:
+            return
         if self.agent.controller.session.bound and not self.supports_load:
             raise ValueError("This agent cannot resume its session.")
         from pathlib import Path
@@ -273,17 +284,17 @@ class AgentSession:
         from agent_comms.route_selection import RouteSelection
 
         requested_cwd = str(self.agent.project_root_path.resolve())
-        try:
-            selection = await asyncio.to_thread(
-                RouteSelection.for_child, os.environ.copy(), requested_cwd)
-            await AcpIngress(selection, Path(requested_cwd),
-                             self.agent.process.attached_root(self.agent)).preflight()
-        except Exception as error:
-            raise ValueError(
-                f"Reconnect not attempted: maintenance admission denied: {error}"
-            ) from error
         self.reconnecting = True
         try:
+            try:
+                selection = await asyncio.to_thread(
+                    RouteSelection.for_child, os.environ.copy(), requested_cwd)
+                await AcpIngress(selection, Path(requested_cwd),
+                                 self.agent.process.attached_root(self.agent)).preflight()
+            except Exception as error:
+                raise ValueError(
+                    f"Reconnect not attempted: maintenance admission denied: {error}"
+                ) from error
             await self.agent.stop()
             self.load_admission = admission or EnsuringSessionLoadAdmission()
             self.settled.clear()

@@ -129,6 +129,9 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     def close(self, screen: "MainScreen") -> None:
         """Terminal content has no unfinished waiters to release."""
 
+    async def attached(self, screen: "MainScreen") -> None:
+        """Admitted content already presents the live session."""
+
     def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
         label = screen.query_one_optional("#session-opening", Static)
         if label is None:
@@ -190,7 +193,16 @@ class FailedContent(ScreenContent):
             raise self.error
 
     async def prepare(self, screen: "MainScreen") -> None:
-        self.render(screen)
+        agent = screen.presentation.operational_agent
+        if agent is not None and agent.ready:
+            await self.attached(screen)
+        else:
+            self.render(screen)
+
+    async def attached(self, screen: "MainScreen") -> None:
+        self.finish(screen, ReadyContent())
+        if screen.is_current:
+            await screen.prepare_presentation()
 
 
 class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner, can_focus=False):
@@ -435,6 +447,10 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             self.bind_project(Path(event.worktree))
         self.on_comms_session_named(event.thread.name)
         await self.presentation.apply_coordination(self, event)
+
+    @handles(core_events.AgentReady)
+    async def on_session_attached(self, message: CoreEventMessage) -> None:
+        await self.content.attached(self)
 
     @handles(core_events.AgentFail)
     def on_session_failure(self, message: CoreEventMessage) -> None:
