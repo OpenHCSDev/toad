@@ -51,6 +51,9 @@ class ToolContent(HorizontalRows, BlockContent, Widget):
         styled = self._styled
         if styled is not None and styled.width == width:
             return styled
+        return self._plain_lines(width)
+
+    def _plain_lines(self, width: int) -> PlainLines:
         if self._plain is None or self._plain.width != width:
             self._plain = PlainLines(width, self.app.colours.line_theme, self.blocks)
         return self._plain
@@ -68,7 +71,7 @@ class ToolContent(HorizontalRows, BlockContent, Widget):
     async def _render(self) -> None:
         blocks, width, theme = self.blocks, self._width, self.app.colours.line_theme
         lines = await self.app.render_processes.submit(
-            TranscriptLinesRenderTask(blocks, width, theme)
+            TranscriptLinesRenderTask(self._plain_lines(width).preparation)
         )
         if self.is_attached and (blocks, width, theme) == (self.blocks, self._width, self.app.colours.line_theme):
             previous_height = self._lines(width).height
