@@ -273,6 +273,12 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
+    def capture_state(self) -> None:
+        state = self.view_state
+        for group in self.groups.values():
+            state.expanded[type(group.model)] = group.expanded
+            state.scroll[type(group.model)] = group.member_container.scroll_y
+
     def set_identity(self, owner: str, wire_root: str | None, *,
                      source: RelationshipSource | None = None):
         if self._live and source is None:
@@ -284,8 +290,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
-        for group in self.groups.values():
-            self.view_state.scroll[type(group.model)] = group.member_container.scroll_y
+        self.capture_state()
         self._generation += 1
         self.owner, self.wire_root = owner, wire_root
         self._revision = None
