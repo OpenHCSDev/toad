@@ -99,5 +99,5 @@ class SoftbreakSpanRule(HardbreakSpanRule):
 
 def inline_spans(body, context):
     state = InlineSpans()
-    state.consume(MessageMarkdownParser(context).parse(body))
+    state.consume(MessageMarkdownParser(context).parse_inline(body))
     return tuple(state.spans)
