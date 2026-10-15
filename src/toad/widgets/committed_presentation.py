@@ -208,9 +208,6 @@ class PreparedCommit:
 class CheckpointPlan(ABC):
     """A viewport-owned policy; the coordinator does not branch on block types."""
 
-    def __init__(self, window: HistoryWindow) -> None:
-        self.revision = window.scroll_revision
-
     @abstractmethod
     def current(self, window: HistoryWindow) -> bool:
         pass
@@ -240,6 +237,9 @@ class CheckpointPlan(ABC):
 
 
 class FollowTailCheckpoint(CheckpointPlan):
+    def __init__(self, window: HistoryWindow) -> None:
+        self.revision = window.scroll_revision
+
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
@@ -275,13 +275,10 @@ class FollowTailCheckpoint(CheckpointPlan):
 
 
 class RetainViewportCheckpoint(CheckpointPlan):
-    def __init__(self, window: HistoryWindow) -> None:
-        super().__init__(window)
-        self.scroll_y = window.scroll_y
-
     def current(self, window: HistoryWindow) -> bool:
-        return (not window.follows_tail and window.scroll_revision == self.revision
-                and window.scroll_y == self.scroll_y)
+        # Extending the source leaves the loaded rows and reader position intact.
+        # Retirement checks the current viewport again when applying the change.
+        return not window.follows_tail
 
     def ready(self, history: CommittedHistory | None) -> bool:
         return history is not None and history.checkpoint_available
@@ -318,4 +315,4 @@ class RetainViewportCheckpoint(CheckpointPlan):
 
 
 def checkpoint_plan(window: HistoryWindow) -> CheckpointPlan:
-    return FollowTailCheckpoint(window) if window.follows_tail else RetainViewportCheckpoint(window)
+    return FollowTailCheckpoint(window) if window.follows_tail else RetainViewportCheckpoint()
