@@ -21,12 +21,15 @@ class CoreEventMessage(Message):
         super().__init__()
         self.event = event
         self.subscription = subscription
+        # A queued/asynchronous delivery borrows this original producer, not
+        # whichever producer the target happens to expose after an await.
+        self._publisher = subscription.stream.publisher
         # The native pump owns this delivery callback, never the wire event.
         self.consume = consume
 
     @property
     def publisher(self) -> object:
-        return self.subscription.stream.publisher
+        return self._publisher
 
     def can_replace(self, message: Message) -> bool:
         return (isinstance(message, CoreEventMessage)
@@ -127,7 +130,9 @@ class CoreEventReceiver(MroDispatch):
             return
         await message.consume(self, message)
 
-    def _on_unmount(self) -> None:
+    def _message_pump_closing(self) -> None:
+        # Revoke delivery before child teardown can yield, not at late Unmount.
         for subscription in self._core_subscriptions:
             subscription.close()
         self._core_subscriptions.clear()
+        super()._message_pump_closing()

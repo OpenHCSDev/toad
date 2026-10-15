@@ -6,12 +6,12 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
-from functools import cached_property
 from typing import ClassVar
 from weakref import ReferenceType, ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.message_reference import OutgoingMessageReference
 
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
@@ -39,6 +39,7 @@ class PreparedTranscriptPage:
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     retained_bytes: int
+    outgoing_coverage: frozenset[OutgoingMessageReference] = field(kw_only=True)
     fragment_range: tuple[int, int] | None = None
     batch_size: int = field(default=BATCH, kw_only=True)
     in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
@@ -47,19 +48,35 @@ class PreparedTranscriptPage:
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
         fragments = transcript_fragments(page.events, scope=page.after.receipts.identity)
-        return cls(page, fragments, retained_bytes((page, fragments)))
+        coverage = cls.index_outgoing(page, fragments)
+        return cls.measured(page, fragments, coverage)
 
-    @cached_property
-    def outgoing_coverage(self):
-        """Index supplied bodies once with their immutable prepared fragments.
+    @classmethod
+    def measured(cls, page, fragments, coverage, **view):
+        return cls(page, fragments, retained_bytes((page, fragments, coverage)),
+                   outgoing_coverage=coverage, **view)
 
-        Edge metadata/range changes do not change these source-qualified bodies.
-        A filtered preparation indexes only the fragments it actually supplies.
-        """
+    @staticmethod
+    def index_outgoing(page, fragments):
         from toad.core.source_events import TranscriptCoverage
 
-        return TranscriptCoverage(tuple(event for fragment in self.fragments for event in fragment.events),
-                                  self.page.after.receipts.identity).outgoing
+        return TranscriptCoverage(tuple(event for fragment in fragments for event in fragment.events),
+                                  page.after.receipts.identity).outgoing
+
+    @classmethod
+    def empty(cls, page):
+        """A no-data marker has no source fragments or publications to prepare."""
+        coverage = frozenset()
+        return cls.measured(page, (), coverage)
+
+    def project(self, fragments):
+        """The filter worker owns changed-fragment indexing and graph accounting."""
+        if fragments == self.fragments:
+            return self.for_view()
+        # A channel/no-publication page has no native outgoing references to
+        # select. Its wire rows need no native-event decoding or scope guess.
+        coverage = self.index_outgoing(self.page, fragments) if self.outgoing_coverage else frozenset()
+        return type(self).measured(self.page, fragments, coverage, batch_size=self.batch_size)
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
@@ -182,7 +199,7 @@ class PageRequest:
 
 @dataclass(frozen=True)
 class FilteredTranscriptBatch:
-    fragments: tuple[TranscriptFragment, ...]
+    prepared: PreparedTranscriptPage
     stop: int
 
 
@@ -190,6 +207,7 @@ class FilteredTranscriptBatch:
 class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
     """Select the next bounded presentation batch off-loop from source data."""
 
+    page: PreparedTranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     selected: frozenset[type[MessageCategory]]
     stop: int
@@ -203,13 +221,13 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
         matches = []
         stop = self.stop
         if not self.selected:
-            return FilteredTranscriptBatch((), 0)
+            return FilteredTranscriptBatch(self.page.project(()), 0)
         while stop and len(matches) < self.limit:
             stop -= 1
             fragment = self.fragments[stop]
             if fragment.shown_in(self.selected):
                 matches.append(fragment)
-        return FilteredTranscriptBatch(tuple(reversed(matches)), stop)
+        return FilteredTranscriptBatch(self.page.project(tuple(reversed(matches))), stop)
 
 
 class PreparedPageSource(ABC):
@@ -292,14 +310,29 @@ class TranscriptPageProjection(ABC):
 class CategoryProjection(TranscriptPageProjection):
     selected: frozenset[type[MessageCategory]]
 
+    def fragments_for(self, page):
+        return page.fragments
+
     async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:
         # Project one source page on the model lane. Widget admission is owned
         # separately by the same bounded pager used for unfiltered history.
+        fragments = self.fragments_for(page)
         matches = await runtime.submit(TranscriptFilterWork(
-            page.fragments, self.selected, len(page.fragments), len(page.fragments),
+            page, fragments, self.selected, len(fragments), len(fragments),
         ))
-        return replace(page, fragments=matches.fragments,
-                       fragment_range=None, in_range=())
+        return matches.prepared
+
+
+@dataclass(frozen=True)
+class RangeCategoryProjection(CategoryProjection):
+    """Only the original boundary is a prefix; adjacent source pages are whole."""
+
+    boundary: PageFragmentRange
+
+    def fragments_for(self, page):
+        if self.boundary.page() is page:
+            return self.boundary.members
+        return super().fragments_for(page)
 
 
 @dataclass(frozen=True)

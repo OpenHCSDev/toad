@@ -21,24 +21,11 @@ from toad.widgets.wire_message_handling import WireMessageHandling
 class OutgoingMessage(MessageRowBlock, WireMessageHandling, ConversationBlock, CommitParticipant, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, event: SentTranscript, *, show_header: bool = True):
+    def __init__(self, event: SentTranscript, *, binding, show_header: bool = True):
         super().__init__()
         self.event = event
+        self.binding = binding
         self.show_header = show_header
-
-    @classmethod
-    async def present(cls, conversation, event):
-        if conversation.transcript.covers_outgoing(event):
-            return
-        if any(body.event.outgoing_sources == event.outgoing_sources
-               for body in conversation.contents.query_children(cls)):
-            return
-        body = await conversation.post(cls(event), new_block=True)
-        # A canonical page may arrive while native mount yields. Use the same
-        # retirement owner, not a second seen set or a high-water approximation.
-        if event.scope != conversation.agent.tools.scope or conversation.transcript.covers_outgoing(event):
-            await conversation.transcript.retire_presentations(
-                conversation.contents, conversation.output, [body])
 
     @property
     def commit_claim(self):

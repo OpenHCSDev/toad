@@ -93,9 +93,11 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         id: str | None = None,
         classes: str | None = None,
         output_parts: tuple[ToolOutputPart, ...] | None = None,
+        binding,
     ) -> None:
         self.set_reactive(ToolCall.tool_call, tool_call)
         super().__init__(id=id, classes=classes)
+        self.binding = binding
         self.output = ToolOutput(self)
         self.output.replace(tool_call.call, parts=output_parts)
         self._manual_expansion: bool | None = None
@@ -119,22 +121,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
         return self.output.sync()
-
-    @classmethod
-    async def present(cls, conversation, event):
-        if event.scope != conversation.agent.tools.scope:
-            return
-        status = event.tool_call
-        status.activity(conversation.turns, conversation.output, status.title)
-        parts = await ToolOutput.prepare_messages(conversation, status, event.scope)
-        if event.scope != conversation.agent.tools.scope:
-            return
-        try:
-            tool = conversation.contents.get_child_by_id(event.tool_id, cls)
-        except NoMatches:
-            await conversation.post(cls(status, id=event.tool_id, output_parts=parts), new_block=True)
-        else:
-            tool.update_tool_call(status, output_parts=parts)
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         if self.expanded:

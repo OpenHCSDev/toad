@@ -33,7 +33,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         if self.reports_coverage:
             scope = owner.committed_cursor.receipts.identity
             return frozenset(reference for view in owner.pages
-                             for reference in view.prepared.outgoing_coverage if reference.scope == scope)
+                             for reference in view.prepared.outgoing_coverage if scope.same_publication_source(reference.scope))
         return frozenset()
 
     def checkpoint_available(self, owner) -> bool:

@@ -1531,9 +1531,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     async def on_acp_tool_call_update(
         self, message: CoreEventMessage
     ):
-        from toad.widgets.tool_call import ToolCall
-
-        await ToolCall.present(self, message.event)
+        await message.publisher.controller.surface.present_tool(message, self)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(

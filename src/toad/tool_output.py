@@ -51,7 +51,7 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
     def preview_dimensions(self) -> tuple[int, int] | None:
         return None
 
-    def project_message(self, scope):
+    def project_message(self, scope, supplies=None):
         return self
 
     @property
@@ -178,11 +178,12 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
     message: SentTranscript
 
-    def project_message(self, scope):
+    def project_message(self, scope, supplies=None):
         if scope is None:
             return self
-        message = self.message.in_source(scope)
-        return ProjectedSentMessageToolOutputPart(message) if message.scope == scope else self
+        message = self.message.in_source(scope, supplies)
+        return (ProjectedSentMessageToolOutputPart(message)
+                if message.scope is not None and scope.same_publication_source(message.scope) else self)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -331,19 +332,8 @@ class ToolOutput:
         return tuple(block for part in self.parts for block in part.line_blocks)
 
     @classmethod
-    def capture_projection(cls, status, scope=None):
-        return status.project_output(cls.capture_parts(status.call), scope)
-
-    @classmethod
-    async def prepare_messages(cls, conversation, status, scope):
-        from toad.widgets.outgoing_message import OutgoingMessage
-
-        parts = cls.capture_projection(status, scope)
-        for part in parts:
-            for message in part.standalone_messages:
-                await OutgoingMessage.present(conversation, message)
-        # Publish compact details only after the standalone source exists.
-        return parts
+    def capture_projection(cls, status, scope=None, supplies=None):
+        return status.project_output(cls.capture_parts(status.call), scope, supplies)
 
     @property
     def has_content(self) -> bool:

@@ -19,6 +19,16 @@ class SessionToolCalls:
         coordination = self.agent.coordination
         return None if coordination is None else coordination.source_identity
 
+    def owns_presentation(self, event):
+        """Only this session's still-current SDK snapshot can publish native paint."""
+        call = event.tool_call.call
+        if self.calls.get(call.tool_call_id) is not call:
+            return False
+        scope = self.scope
+        if scope is None:
+            return event.scope is None
+        return event.scope is not None and scope.same_publication_source(event.scope)
+
     def publish(self, current):
         self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current), self.scope))
 

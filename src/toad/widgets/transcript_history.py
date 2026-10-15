@@ -38,7 +38,7 @@ from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation
 from toad.transcript_preparation import (
-    CategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
+    RangeCategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -64,7 +64,7 @@ from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
 from toad.widgets.transcript_fragments import (
-    Shown, TranscriptFragment, transcript_fragments,
+    Shown, TranscriptFragment,
 )
 
 if TYPE_CHECKING:
@@ -113,15 +113,10 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     DEFAULT_CSS = "TranscriptPageView { height: auto; overflow-x: auto; overflow-y: hidden; }"
     RENDER_BATCH = 8
 
-    def __init__(self, page: TranscriptPage, *, newest: bool = True,
-                 fragments: tuple[TranscriptFragment, ...] | None = None,
-                 batch_size: int = PreparedTranscriptPage.BATCH,
-                 prepared: PreparedTranscriptPage | None = None, fresh: bool = False):
+    def __init__(self, *, prepared: PreparedTranscriptPage, newest: bool = True,
+                 batch_size: int = PreparedTranscriptPage.BATCH, fresh: bool = False):
         self.fresh = fresh
-        self.prepared = prepared if prepared is not None else PreparedTranscriptPage(
-            page, transcript_fragments(page.events, scope=page.after.receipts.identity) if fragments is None else
-            tuple(fragments), 0,
-        )
+        self.prepared = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
         # Fragments drawn as plain text until their styled lines arrive, by identity.
@@ -408,12 +403,12 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     @classmethod
     @asynccontextmanager
     async def acquire(
-        cls, owner: LineHistory, page: TranscriptPage, *, fragments,
+        cls, owner: LineHistory, *, prepared: PreparedTranscriptPage,
         batch_size: int, before: Widget, current: Callable[[], bool], newest: bool = True,
-        prepared: PreparedTranscriptPage | None = None, fresh: bool = False,
+        fresh: bool = False,
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire a page until its original source transfers native custody."""
-        view = cls(page, fragments=fragments, prepared=prepared, batch_size=batch_size, newest=newest,
+        view = cls(prepared=prepared, batch_size=batch_size, newest=newest,
                    fresh=fresh)
         view.prepared.set_fragment_range(PreparedTranscriptPage.initial_slice(view.fragments, batch_size, newest))
         view.prepared.retain_sources(view)
@@ -473,9 +468,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return FragmentBlockCursor(self)
 
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
-                  *, fragments: tuple[TranscriptFragment, ...] | None = None,
+                  *, prepared: PreparedTranscriptPage,
                   budget: PresentationBudget | None = None,
-                  prepared: PreparedTranscriptPage | None = None,
                   source_state: TranscriptState | None = None):
         super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, page.after
@@ -483,7 +477,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             max_items=self.MAX_FRAGMENTS, batch_items=PreparedTranscriptPage.BATCH,
         )
         self.pages = deque([TranscriptPageView(
-            page, fragments=fragments, prepared=prepared, batch_size=self.budget.batch_items,
+            prepared=prepared, batch_size=self.budget.batch_items,
         )])
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
@@ -720,8 +714,9 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     def projected_source(self, selected) -> ProjectedTranscriptSource:
         page = self.pages[0]
         return ProjectedTranscriptSource(
-            PreparedTranscriptPage(page.page, page.fragments[:page.start], 0),
-            self.loader, self.app.preparation, CategoryProjection(selected),
+            page.prepared,
+            self.loader, self.app.preparation, RangeCategoryProjection(
+                selected, PageFragmentRange(ref(page.prepared), 0, page.start, page.fragments[:page.start])),
             upstream=self._reader() if self.loader is not None else None,
         )
 
@@ -969,7 +964,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 try:
                     for prepared, take in destination:
                         async with TranscriptPageView.acquire(
-                            self, prepared.page, fragments=prepared.fragments,
+                            self,
                             batch_size=take, prepared=prepared.for_view(),
                             before=self.newer, current=current,
                         ) as view:
@@ -1066,7 +1061,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 assert fragments is not None
                 page_range = edge.capture_range()
                 async with TranscriptPageView.acquire(
-                    self, page, newest=older, fragments=fragments, batch_size=edge.batch_size,
+                    self, newest=older, batch_size=edge.batch_size,
                     prepared=prepared, fresh=fresh,
                     before=edge if older else self.newer,
                     current=lambda: snapshot.current(self) and edge.capture_range() == page_range,
@@ -1169,7 +1164,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
         history._page_buffer = source
         history._source_state = ParkedSourceTranscript(LiveTranscript())
         history.pages.extend(TranscriptPageView(
-            page.page, prepared=page, batch_size=history.budget.batch_items,
+            prepared=page, batch_size=history.budget.batch_items,
         ) for page in pages[1:])
         projected = source.projection_source
         if projected is not None:
@@ -1297,7 +1292,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
             raise ValueError("No retained projected admission")
         history = cls(owner, source, source.held_pages[0])
         history.pages.extend(TranscriptPageView(
-            page.page, prepared=page, batch_size=owner.budget.batch_items,
+            prepared=page, batch_size=owner.budget.batch_items,
         ) for page in source.held_pages[1:])
         history._source_state = ParkedSourceTranscript(LiveTranscript())
         return history

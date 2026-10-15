@@ -39,7 +39,7 @@ class TranscriptCoverage(CoreEvent):
     @property
     def outgoing(self) -> frozenset[OutgoingMessageReference]:
         return frozenset(source for event in self.events for source in event.outgoing_sources
-                         if source.scope == self.scope)
+                         if self.scope is not None and self.scope.same_publication_source(source.scope))
 
     @property
     def sequences(self) -> frozenset[int]:

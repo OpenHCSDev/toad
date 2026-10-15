@@ -19,6 +19,9 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def prepare_shell(self, source) -> None:
         """A detached shell retains its original directory and terminal size."""
 
+    async def present_tool(self, message, target) -> None:
+        """An absent frontend never acquires tool or standalone-body resources."""
+
     async def present_shell(self, output) -> None:
         """An absent frontend never acquires shell projection resources."""
 

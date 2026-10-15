@@ -2,6 +2,7 @@
 
 from weakref import ref
 from functools import partial
+from contextlib import AsyncExitStack
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.surface_binding import SurfaceBinding
@@ -18,6 +19,71 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         app = self.target.app
         controller.transcripts = app.coordination_access.transcripts
         controller.validation = ApplicationValidationOwner(app.render_processes)
+
+    def owns_publication(self, message, target):
+        """Wire equality cannot substitute for this original acquired surface."""
+        if message.subscription is not self.subscription or not self.subscription.active:
+            return False
+        if not self.owns(target) or target.agent is not message.publisher:
+            return False
+        if message.publisher.controller.surface is not self:
+            return False
+        return target.is_attached and message.publisher.tools.owns_presentation(message.event)
+
+    async def _post_native(self, message, target, widget, retirement):
+        if not self.owns_publication(message, target):
+            return False
+        # Acquire teardown before mount can yield or fail. The whole projection
+        # transfers together; cancellation or replacement withdraws every body.
+        retirement.push_async_callback(target.transcript.retire_presentations,
+                                       target.contents, target.output, [widget])
+        await target.post(widget, new_block=True)
+        return self.owns_publication(message, target) and widget.is_attached
+
+    async def present_tool(self, message, target):
+        from toad.tool_output import ToolOutput
+        from toad.widgets.outgoing_message import OutgoingMessage
+        from toad.widgets.tool_call import ToolCall
+
+        if not self.owns_publication(message, target):
+            return
+        event = message.event
+        status = event.tool_call
+        status.activity(target.turns, target.output, status.title)
+        parts = ToolOutput.capture_projection(status, event.scope, target.transcript.covers_outgoing)
+        async with AsyncExitStack() as retirement:
+            for part in parts:
+                for sent in part.standalone_messages:
+                    if target.transcript.covers_outgoing(sent):
+                        continue
+                    bodies = [body for body in target.contents.query_children(OutgoingMessage)
+                              if body.event.outgoing_sources == sent.outgoing_sources]
+                    if any(body.binding is self for body in bodies):
+                        continue
+                    await target.transcript.retire_presentations(target.contents, target.output, bodies)
+                    body = OutgoingMessage(sent, binding=self)
+                    if not await self._post_native(message, target, body, retirement):
+                        return
+                    # Canonical publication can win while native mount yields.
+                    if target.transcript.covers_outgoing(sent):
+                        await target.transcript.retire_presentations(target.contents, target.output, [body])
+            if not self.owns_publication(message, target):
+                return
+            tool = target.contents.query_one_optional(f"#{event.tool_id}", ToolCall)
+            if tool is not None and tool.binding is not self:
+                await target.transcript.retire_presentations(target.contents, target.output, [tool])
+                tool = None
+            if not self.owns_publication(message, target):
+                return
+            if tool is None:
+                tool = ToolCall(status, id=event.tool_id, output_parts=parts, binding=self)
+                if not await self._post_native(message, target, tool, retirement):
+                    return
+            else:
+                tool.update_tool_call(status, output_parts=parts)
+            # Compact tool parts and all supplied bodies share this admission.
+            if self.owns_publication(message, target):
+                retirement.pop_all()
 
     def prepare_terminal(self, state) -> None:
         target = self.target

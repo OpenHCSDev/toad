@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PageRequest, PreparedPageSource
+from toad.transcript_preparation import PageRequest, PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
@@ -36,7 +36,8 @@ class WireHistory(LineHistory):
     def __init__(self, view) -> None:
         # The view's message filter is read while the line history is built.
         self.view = view
-        super().__init__(WirePage.unread(), None, fragments=())
+        unread = WirePage.unread()
+        super().__init__(unread, None, prepared=PreparedTranscriptPage.empty(unread))
         # The store revision and the viewer's reading the drawn pages belong to.
         self.revision: WireRevision | None = None
         self.identity: tuple | None = None
@@ -151,8 +152,8 @@ class WireHistory(LineHistory):
                 if len(self.pages) == 1 and self.pages[0].page.source is None:
                     return
                 retired = tuple(self.pages)
-                view = TranscriptPageView(WirePage.unread(), fragments=(),
-                                      batch_size=self.budget.batch_items)
+                view = TranscriptPageView(prepared=PreparedTranscriptPage.empty(WirePage.unread()),
+                                          batch_size=self.budget.batch_items)
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=self.newer)
                 self.pages = deque([view])
