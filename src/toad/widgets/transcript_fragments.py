@@ -278,10 +278,10 @@ class TranscriptFragment:
 
         return link_place()
 
-    def lines_for(self, view):
-        """The render request owns the width, theme and reference source of these rows."""
+    def lines_for(self, width: int, theme):
+        """Cached lookup is geometry-only; source changes use declared invalidation."""
         held = self.__dict__.get("_lines")
-        return held[1] if held is not None and held[0].current_for(view) else None
+        return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
 
     def invalidate_lines(self):
         self.__dict__.pop("_lines", None)

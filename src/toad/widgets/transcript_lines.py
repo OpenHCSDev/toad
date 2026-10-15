@@ -743,10 +743,15 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
         if self.current_for(view):
             fragment.hold_lines(self, lines)
 
-    def show(self, view, fragment, shown, lines) -> None:
+    @staticmethod
+    def show(view, fragment, shown, rendered) -> None:
+        """Apply the requested state, retaining rows only through their render request."""
         fragment.show(shown)
-        fragment.line_blocks = self.blocks
-        self.hold(view, fragment, lines)
+        if rendered is not None:
+            request, lines = rendered
+            if request.current_for(view):
+                fragment.line_blocks = request.blocks
+                fragment.hold_lines(request, lines)
 
     def execute(self) -> PreparedLines:
         preparation = self.preparation

@@ -240,7 +240,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
 
     def _lines(self, fragment: TranscriptFragment, width: int) -> Lines:
         theme = self.app.colours.line_theme
-        lines = fragment.lines_for(self)
+        lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending[id(fragment)] = fragment
             lines = fragment.plain_lines(width, theme)
@@ -506,7 +506,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         theme = self.app.colours.line_theme
         selected = self.selected_categories if selected is None else selected
         todo = [fragment for fragment in fragments
-                if fragment.shown_in(selected) and fragment.lines_for(self) is None]
+                if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
         for first in range(0, len(todo), self.budget.batch_items):
             if not current():
                 return
@@ -553,12 +553,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}
         async with self.window.preserve_history(root=self):
             for fragment, shown in changes:
-                result = ready.get(id(fragment))
-                if result is None:
-                    fragment.show(shown)
-                else:
-                    task, lines = result
-                    task.show(self, fragment, shown, lines)
+                TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))
             for page in self.pages:
                 page.range_changed()
         self.window.check_follow()
@@ -847,7 +842,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         fragment = edge.fragments[edge.start - 1]
         if not fragment.shown_in(self.selected_categories):
             return True
-        lines = fragment.lines_for(self)
+        lines = fragment.lines_for(self.line_width, self.app.colours.line_theme)
         return lines is None or lines.height <= missing
 
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
@@ -947,7 +942,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 if not current():
                     return False
                 for fragment in reversed(batch):
-                    lines = (fragment.lines_for(self)
+                    lines = (fragment.lines_for(self.line_width, self.app.colours.line_theme)
                              if fragment.shown_in(self.selected_categories) else None)
                     height = 0 if lines is None else lines.height
                     if rows and rows + height > viewport_rows:
