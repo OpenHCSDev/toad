@@ -5,8 +5,50 @@ Hover is an input to those owners, never another independently rendered state.
 """
 
 from textual import events, on
+from rich.segment import Segment
+from textual.content import Content
+from textual.strip import Strip
+from ui_theme.effects import SPINNER
+
+from toad.textual_colours import Animated
+from textual.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
+
+
+class ViewLabel(Animated):
+    """Native label paint: workspace emphasis and clock-driven activity ink."""
+
+    def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
+        """One activity slot, before decorations; idle keeps its declared marker."""
+        if not busy:
+            self.stop_effect()
+            return Content.assemble(prefix, label)
+        if self.animation is None:
+            self.run_effect(SPINNER)
+        return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
+
+    def render_line(self, y: int) -> Strip:
+        line = super().render_line(y)
+        animation = self.animation
+        if animation is None or y != 0:
+            return line
+        glyph = animation.frame().paint(self.app.colours, None)
+        style = next((segment.style for segment in line), None)
+        # Native clipping owns admission, including empty or partial lines.
+        return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
+                           line.crop(glyph.cell_length))).crop(0, line.cell_length)
+
+    def paint_current(self, current: bool) -> None:
+        content: Content = self.content
+        emphasis = Style(bold=current, underline=current)
+        # Native rendering merges existing spans first. Reassemble those runs so
+        # repeated selection changes replace paint instead of accumulating spans.
+        painted = Content.assemble(*(
+            (text, style + emphasis) for text, style in content.render(end="")
+        ))
+        if not content.is_same(painted):
+            self.update(painted, layout=False)
 
 
 class FocusSelection(Static, can_focus=True):
