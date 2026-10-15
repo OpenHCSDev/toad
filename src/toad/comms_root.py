@@ -134,7 +134,7 @@ class CoordinationAccess(MroDispatch):
             # Textual runs the models' flushes after the current message,
             # before the next frame is composed.
             self.observation = ObservedCommsService(
-                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.root))
+                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route))
             self.revision = None
             self.route_stamp = None
         if self.loop is not None:
