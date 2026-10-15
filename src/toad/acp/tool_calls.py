@@ -1,43 +1,72 @@
-"""One session owns SDK tool-call assembly for updates and permission admission."""
+"""One session owns SDK tool-call assembly and the session that supplied it."""
+from dataclasses import dataclass, replace
+
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
+from agent_comms.transcript_receipts import AssignedSourceIdentity
 from toad.core import events
-from toad.acp.status import ToolCallStatus, PendingToolCallStatus
+from toad.acp.client_session import ClientSessionRequest
+from toad.acp.status import ToolCallStatus
 
 
+@dataclass(frozen=True)
+class SessionToolCall:
+    call: ToolCall
+    request: ClientSessionRequest
+    scope: AssignedSourceIdentity | None
+
+    def update(self, value: ToolCallUpdate):
+        changes = {name: getattr(value, name) for name in value.model_fields_set
+                   if name in ToolCall.model_fields and getattr(value, name) is not None}
+        return replace(self, call=self.call.model_copy(update=changes, deep=True))
+
+    def accepts(self, event, scope):
+        return (self.request.current and self.call is event.tool_call.call
+                and event.in_native_source(scope))
 
 
 class SessionToolCalls:
     def __init__(self, agent):
         self.agent = agent
-        self.calls: dict[str, ToolCall] = {}
+        self.calls: dict[str, SessionToolCall] = {}
 
     def reset(self):
         self.calls.clear()
 
+    @property
+    def scope(self):
+        coordination = self.agent.coordination
+        return None if coordination is None else coordination.source_identity
+
+    def capture(self, call):
+        return SessionToolCall(call, ClientSessionRequest(self.agent, self.agent.session_id), self.scope)
+
+    def owns_presentation(self, event):
+        current = self.calls.get(event.tool_call.call.tool_call_id)
+        return current is not None and current.accepts(event, self.scope)
+
+    def publish(self, current):
+        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current.call), current.scope))
+
     def begin(self, value: ToolCallStart):
-        # The admitted SDK notification already validated every inherited
-        # ToolCall field. Assembly owns the canonical snapshot (without the
-        # wire discriminator), not a second parse of those same values.
-        current = ToolCall.model_construct(**{
+        # The boundary validated inherited SDK fields already. Keep that SDK
+        # snapshot with the exact existing session request, never inside it.
+        current = self.capture(ToolCall.model_construct(**{
             name: getattr(value, name) for name in ToolCall.model_fields
-        })
+        }))
         self.calls[value.tool_call_id] = current
-        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current)))
+        self.publish(current)
 
     def merge(self, value: ToolCallUpdate):
         tool_id = value.tool_call_id
         current = self.calls.get(tool_id)
-        if current is None:
-            current = ToolCall(tool_call_id=tool_id, title='Tool call')
-        changes = {name: getattr(value, name) for name in value.model_fields_set
-                   if name in ToolCall.model_fields and getattr(value, name) is not None}
-        current = current.model_copy(update=changes, deep=True)
+        if current is None or current.request.retired:
+            current = self.capture(ToolCall(tool_call_id=tool_id, title='Tool call'))
+        current = current.update(value)
         self.calls[tool_id] = current
         return current
 
     def update(self, value):
-        current = self.merge(value)
-        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current)))
+        self.publish(self.merge(value))
 
     def permission(self, value):
-        return self.merge(value)
+        return self.merge(value).call

@@ -74,6 +74,10 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
             tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
         )
 
+    def project_output(self, parts, project):
+        """Only completed sends may replace reported output with a proved body."""
+        return project(parts) if self.completed else parts
+
     busy = False
     boundary = False
     completed = False

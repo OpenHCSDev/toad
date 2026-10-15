@@ -19,7 +19,7 @@ from toad.acp.status import ToolCallStatus
 from toad.line_blocks import ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
-from toad.widgets.committed_presentation import SnapshotPresentation
+from toad.widgets.committed_presentation import SnapshotPresentation, ToolOutputClaim
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
@@ -93,8 +93,10 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         id: str | None = None,
         classes: str | None = None,
         output_parts: tuple[ToolOutputPart, ...] | None = None,
+        binding=None,
     ) -> None:
         self.set_reactive(ToolCall.tool_call, tool_call)
+        self.binding = binding
         super().__init__(id=id, classes=classes)
         self.output = ToolOutput(self)
         self.output.replace(tool_call.call, parts=output_parts)
@@ -107,14 +109,19 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         assert status
         return status
 
-    def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:
+    @property
+    def commit_claim(self):
+        return ToolOutputClaim(frozenset(message.reference for part in self.output.parts
+                                        for message in part.standalone_messages))
+
+    def update_tool_call(self, tool_call: ToolCallStatus, *, output_parts=None) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
         Args:
             tool_call: New Tool call data.
         """
         self.tool_call = tool_call
-        self.output.replace(tool_call.call)
+        self.output.replace(tool_call.call, parts=output_parts)
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
