@@ -332,8 +332,8 @@ class CoordinationAccess(MroDispatch):
         state = self.app.saved_settings.state
         return ObserveSidebar(
             str(self.app.project_dir),
-            DeclaredField.at(state, SETTINGS.sidebar.show_stopped).value,
-            DeclaredField.at(state, SETTINGS.sidebar.show_archived).value,
+            DeclaredField(state, SETTINGS.sidebar.show_stopped).value,
+            DeclaredField(state, SETTINGS.sidebar.show_archived).value,
         )
 
     def update_sidebar_interest(self) -> None:
