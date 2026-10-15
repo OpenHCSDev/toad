@@ -26,14 +26,14 @@ class ViewLabel(Animated):
             return Content.assemble(prefix, label)
         if self.animation is None:
             self.run_effect(SPINNER)
-        return Content.assemble(SPINNER.final.native(self.app.colours, None), " ", prefix, title)
+        return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
 
     def render_line(self, y: int) -> Strip:
         line = super().render_line(y)
         animation = self.animation
         if animation is None or y != 0:
             return line
-        glyph = animation.frame().native(self.app.colours, None)
+        glyph = animation.frame().paint(self.app.colours, None)
         style = next((segment.style for segment in line), None)
         # Native clipping owns admission, including empty or partial lines.
         return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
