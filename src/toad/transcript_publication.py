@@ -200,9 +200,9 @@ class SnapshotPublication(TranscriptPublication):
         view = self.owner.view
         history = TranscriptHistory(self.page, self.owner.get_transcript_page,
                                     prepared=prepared, committed=False)
-        self.window.prepare_history(history)
-        await history.prepare_body(partial(self.source_current, self.page.after),
-                                   selected=view.visible_categories)
+        await self.contents.prepare_history(
+            history, partial(self.source_current, self.page.after), window=self.window,
+        )
         async with AsyncExitStack() as retirement:
             async with self.window.history_lock:
                 # Preparation may yield to another accepted source publication.
@@ -491,7 +491,9 @@ class CheckpointPublication(CanonicalSourcePublication):
             replacement = TranscriptHistory(
                 page, self.owner.get_transcript_page, prepared=prepared.page, committed=False,
             )
-            await replacement.prepare_body(is_current, selected=view.visible_categories)
+            await contents.prepare_history(
+                replacement, is_current, window=window,
+            )
         async with AsyncExitStack() as retirement:
             async with window.history_lock:
                 retired = retirement_candidates(contents.children, evidence)
@@ -634,8 +636,9 @@ class TranscriptPresentation:
             if not current() or source.closed:
                 return
             history = TranscriptHistory.from_source(source)
-            window.prepare_history(history)
-            await history.prepare_body(current, selected=view.visible_categories)
+            await contents.prepare_history(
+                history, current, window=window,
+            )
             if not current():
                 return
             accepted = False
@@ -748,7 +751,6 @@ class TranscriptPresentation:
         self.painted(history.committed_cursor)
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
             await loading.remove()
-        view.remove_class("-initial-loading")
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:
