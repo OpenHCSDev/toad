@@ -18,7 +18,7 @@ from itertools import filterfalse
 
 from operator import attrgetter
 from pathlib import Path
-from time import monotonic, time, time_ns
+from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms import agent_events as comms_events
@@ -44,7 +44,6 @@ from textual.actions import SkipAction
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.content import Content
-from toad.line_blocks import MutedRole, WorkingRole
 from textual.css.query import NoMatches
 from textual.geometry import Offset, Region
 from textual.layout import WidgetPlacement
@@ -178,36 +177,6 @@ class ThreadLoading(ConversationBlock, SplashText):
 
     def on_mount(self) -> None:
         self.play()
-
-
-class TurnActivity(Static):
-    DEFAULT_CSS = "TurnActivity { height: 1; padding: 0 1; text-overflow: ellipsis; }"
-
-    def __init__(self, turns: ConversationTurn):
-        super().__init__()
-        self.turns = turns
-
-    @property
-    def owner(self) -> TurnOwner:
-        return self.turns.owner
-
-    def on_mount(self) -> None:
-        self.sync()
-
-    def sync(self) -> None:
-        owner = self.owner
-        self.visible = bool(owner.activity)
-        self.auto_refresh = 1 if owner.activity and owner.started_at is not None else None
-        self.refresh()
-
-    def render(self) -> Content:
-        text = Content.styled(" ".join(self.owner.activity.splitlines()),
-                              self.app.colours.style(WorkingRole))
-        if self.owner.started_at is not None:
-            elapsed = max(0, int(time() - self.owner.started_at))
-            text += Content.styled(f" · {elapsed // 60}:{elapsed % 60:02d} elapsed",
-                                   self.app.colours.style(MutedRole))
-        return text
 
 
 class CategorizedMount:
@@ -894,8 +863,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def _turn_changed(self, owner: TurnOwner) -> None:
         self._sync_throbber()
-        if (activity := self.query_one_optional(TurnActivity)) is not None:
-            activity.sync()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -911,7 +878,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @property
     def _observed_working(self) -> bool:
         """Core's status row: the only turn source for a thread Toad does not run."""
-        activity = self.query_one_optional(ObservedThreadActivity)
+        activity = self.thread_activity
         return activity is not None and activity.working
 
     @on(ObservedThreadActivity.Changed)
@@ -939,8 +906,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield TurnActivity(self.turns)
-            yield SessionDetails(
+            self.thread_activity = SessionDetails(
                 turns=self.turns,
                 transcript=self.transcript,
                 history=NativeHistory().data_bind(
@@ -951,6 +917,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     error=Conversation.input_delivery_error,
                 ),
             )
+            yield self.thread_activity
             yield self.make_throbber()
             yield GoalBar(self)
             yield Prompt(turns=self.turns, submissions=self.submissions).data_bind(

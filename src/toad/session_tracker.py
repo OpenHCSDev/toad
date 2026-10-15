@@ -5,15 +5,55 @@ from typing import Iterable, Literal, Sequence
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
+from agent_comms.ui_model.sidebar import ThreadRowModel
+from toad.widgets.activity_spinner import animated_label
 from toad.conversation_kind import ConversationKind
 
 
 
 @dataclass(frozen=True)
 class OpenTab:
+    """A tab reads its label and activity from the source it represents."""
+
     mode_name: str
-    title: str
+    busy = False
+
+    @property
+    def title(self) -> str:
+        raise NotImplementedError
+
+    def label(self, phase: int) -> str:
+        return self.title
+
+
+@dataclass(frozen=True)
+class NamedTab(OpenTab):
+    name: str
     unread: UnreadPresentation = ExactUnread()
+
+    @property
+    def title(self) -> str:
+        return self.name
+
+
+@dataclass(frozen=True)
+class ThreadTab(OpenTab):
+    row: ThreadRowModel
+
+    @property
+    def title(self) -> str:
+        return self.row.label
+
+    @property
+    def unread(self) -> UnreadPresentation:
+        return self.row.unread
+
+    @property
+    def busy(self) -> bool:
+        return self.row.busy
+
+    def label(self, phase: int) -> str:
+        return animated_label(self.row, phase=phase)
 
 
 @dataclass(frozen=True)

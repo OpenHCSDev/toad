@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from time import monotonic
+from agent_comms.ui_model.sidebar import ThreadRowModel
 from typing import TYPE_CHECKING
 from weakref import WeakSet
 
@@ -13,13 +14,9 @@ if TYPE_CHECKING:
 FRAMES = ("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")
 
 
-def animated_label(label: str, *, busy: bool, phase: int) -> str:
-    if not busy:
-        return label
-    for marker in ("⌛ ", "● "):
-        if label.startswith(marker):
-            return f"{FRAMES[phase % len(FRAMES)]} {label[len(marker):]}"
-    return label
+def animated_label(row: ThreadRowModel, *, phase: int) -> str:
+    """Decorate Core's busy row without recovering state from its label text."""
+    return f"{FRAMES[phase % len(FRAMES)]} {row.title}" if row.busy else row.label
 
 
 class BusyRows:

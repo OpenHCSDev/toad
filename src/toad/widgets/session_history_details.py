@@ -32,6 +32,7 @@ class SessionHistoryDetails:
     def overview(self, activity):
         return "\n\n".join([
             *self.summary,
-            *(str(item.render()) for item in (activity, self.native)
+            *(activity.row.lines if activity.row is not None and activity.row.shown else ()),
+            *(str(item.render()) for item in (self.native,)
               if item is not None and item.display),
         ])

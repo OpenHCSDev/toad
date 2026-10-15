@@ -18,7 +18,7 @@ from agent_comms.thread_identity import ThreadIncarnation
 from agent_comms.ui_model.unread import UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
-from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
+from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
 
 if TYPE_CHECKING:
     from toad.session_navigation import SessionNavigation
@@ -151,15 +151,16 @@ class NativeSessionEntry(SessionEntry):
         name = source._comms_thread if source else ""
         snapshot = observed.sidebar.snapshot if observed is not None else None
         if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
-            return OpenTab(self.mode, self.details.name.display or "New Session")
+            return NamedTab(self.mode, self.details.name.display or "New Session")
         row = observed.sidebar.threads.rows.get(name)
         originals = self.original_threads(sessions)
         if row is not None and originals and not any(
                 Path(root).resolve() == observed.service.root and identity == row.incarnation
                 for root, identity in originals):
-            return OpenTab(self.mode, self.details.name.display or "New Session")
-        return OpenTab(self.mode, row.label if row else self.details.name.display or "New Session",
-                       UnreadPresentation.for_thread(snapshot, name))
+            return NamedTab(self.mode, self.details.name.display or "New Session")
+        if row is not None:
+            return ThreadTab(self.mode, row)
+        return NamedTab(self.mode, self.details.name.display or "New Session")
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
@@ -203,7 +204,7 @@ class HistorySessionEntry(SessionEntry):
         return sessions.source(self.key.owner_mode)
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        return OpenTab(self.mode, self.key.title, self.kind.unread(
+        return NamedTab(self.mode, self.key.title, self.kind.unread(
             observed.sidebar.snapshot
             if observed is not None and Path(self.key.root).resolve() == observed.service.root
             else None, self.key.target))
@@ -270,7 +271,7 @@ class PreviewSessionEntry(SessionEntry):
         return self.path
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        return OpenTab(self.mode, self.title)
+        return NamedTab(self.mode, self.title)
 
     def entered(self, previous: str) -> None:
         if previous != self.mode:

@@ -23,7 +23,6 @@ from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab
-from toad.widgets.activity_spinner import FRAMES, animated_label
 from toad.textual_colours import Animated
 from ui_theme.effects import TAB_WIPE
 
@@ -148,7 +147,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
 
     def __init__(self) -> None:
         super().__init__()
-        self._spinner_phase = 0
         self._spinner_timer = None
         self._sync_lock = asyncio.Lock()
 
@@ -169,22 +167,18 @@ class SessionsTabs(CoreEventReceiver, Widget):
         timer = self._spinner_timer
         if timer is None:
             return
-        if self.screen.is_active and any(tab.title.startswith(("⌛ ", "● ")) for tab in tabs):
+        if self.screen.is_active and any(tab.busy for tab in tabs):
             timer.resume()
         else:
             timer.pause()
 
     def _animate_busy(self) -> None:
         tabs = self._last_tabs or ()
-        if not self.screen.is_active or not any(
-            tab.title.startswith(("⌛ ", "● ")) for tab in tabs
-        ):
+        if not self.screen.is_active or not any(tab.busy for tab in tabs):
             self._sync_spinner(())
             return
-        self._spinner_phase = (self._spinner_phase + 1) % len(FRAMES)
         for tab in tabs:
-            if (tab.title.startswith(("⌛ ", "● "))
-                    and (label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel))):
+            if (tab.busy and (label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel))):
                 label.update(self.render_session_label(tab), layout=False)
 
     def on_mount(self) -> None:
@@ -230,11 +224,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 self.scroll_to_center(label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
-        title = animated_label(
-            session.title,
-            busy=session.title.startswith(("⌛ ", "● ")),
-            phase=self._spinner_phase,
-        )
+        title = session.label(self.app.busy_rows.phase)
         if session.unread.label:
             return Content.assemble(title, (f" {session.unread.label}", "bold $accent"))
         return Content(title)
