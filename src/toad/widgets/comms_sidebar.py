@@ -185,7 +185,6 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     CommsRow.-selected, CommsRow.-selected:hover, CommsRow.-selected:focus {
         background: $block-cursor-background;
         color: $block-cursor-foreground !important;
-        text-style: $block-cursor-text-style;
     }
     CommsRow.-channel-active { color: $warning 100%; }
     """
@@ -413,6 +412,12 @@ class SidebarModelView(CoreEventReceiver):
 
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
+        """Update captions, then paint the workspace destination once."""
+        self.sync_rows(channels=channels, threads=threads, reorder=reorder)
+        self.sync_current()
+
+    def sync_rows(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+                  reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
         raise NotImplementedError
 
@@ -555,8 +560,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.enabled = enabled
         self.present()
 
-    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-             reorder: bool = False) -> None:
+    def sync_rows(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+                  reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
         from toad.widgets.session_sort import ChannelListSort
         from toad.widgets.side_bar import SideBarCollapsible
@@ -592,7 +597,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        self.sync_current()
         # Full row text is retained; the panel grows to the widest content.
         panel.styles.min_width = self.content_width()
         self.display = True

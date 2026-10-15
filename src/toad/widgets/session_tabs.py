@@ -176,8 +176,9 @@ class SessionsTabs(CoreEventReceiver, Widget):
             self.query_one(Underline).run_effect(TAB_WIPE)
 
     def sync_current(self) -> None:
+        selected = self.app.selected_mode
         for label in self.query(SessionLabel):
-            label.paint_current(label.id == self.app.selected_mode)
+            label.paint_current(label.id == selected)
 
     @property
     def selected_span(self) -> tuple[int, int]:
@@ -260,8 +261,8 @@ class SessionsTabs(CoreEventReceiver, Widget):
             for tab in tabs:
                 content = self.render_session_label(tab)
                 if label := labels.get(tab.mode_name):
-                    if label.render().plain != content.plain:
-                        previous = previous_tabs.get(tab.mode_name)
+                    previous = previous_tabs.get(tab.mode_name)
+                    if previous != tab:
                         same_width_count = (
                             previous is not None and previous.title == tab.title
                             and previous.unread.highlighted == tab.unread.highlighted

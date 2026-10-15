@@ -228,9 +228,10 @@ class TargetTree(Vertical):
 
     def sync_current(self) -> None:
         """Every representation of the displayed destination shares its paint."""
-        current = self.current_rows
-        for row in self._ordered_rows():
-            row.paint_current(row in current)
+        rows = self._ordered_rows()
+        target = self.app.workspace_sessions.visible_target(self.navigation_root)
+        for row in rows:
+            row.paint_current(row.target_name == target)
 
     def _ordered_rows(self):
         raise NotImplementedError

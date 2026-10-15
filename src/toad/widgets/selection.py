@@ -4,17 +4,26 @@ Focus owns widget-row selection; OptionList.highlighted owns virtual-row selecti
 Hover is an input to those owners, never another independently rendered state.
 """
 
-from rich.style import Style
 from textual import events, on
+from textual.content import Content
+from textual.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
 
 class ViewLabel:
-    """Shared native label paint; callers derive visibility from the workspace."""
+    """Paint workspace emphasis into native Content, never the style cascade."""
 
     def paint_current(self, current: bool) -> None:
-        self.styles.text_style = Style(bold=current, underline=current, dim=False if current else None)
+        content: Content = self.content
+        emphasis = Style(bold=current, underline=current)
+        # Native rendering merges existing spans first. Reassemble those runs so
+        # repeated selection changes replace paint instead of accumulating spans.
+        painted = Content.assemble(*(
+            (text, style + emphasis) for text, style in content.render(end="")
+        ))
+        if not content.is_same(painted):
+            self.update(painted, layout=False)
 
 
 class FocusSelection(Static, can_focus=True):

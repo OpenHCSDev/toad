@@ -179,8 +179,8 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     def accepts_selection(self) -> bool:
         return False  # Rows open; the view keeps no selected set.
 
-    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-             reorder: bool = False) -> None:
+    def sync_rows(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+                  reorder: bool = False) -> None:
         # A channel change can change which threads are listed and their order.
         channel_list, thread_list = self.sections
         channel_list.sync_members(channels)

@@ -24,7 +24,6 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
     ThreadStatusRow:hover, ThreadStatusRow:focus {
         background: $block-cursor-background;
         color: $block-cursor-foreground !important;
-        text-style: $block-cursor-text-style;
     }
     """
 
