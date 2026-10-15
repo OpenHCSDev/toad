@@ -91,6 +91,7 @@ Conversation {
         width: 1fr;
         height: 3;
         align: center middle;
+        background: transparent;
 
         #back-to-bottom {
             width: auto;
@@ -99,6 +100,12 @@ Conversation {
             color: $text-primary;
             background: $surface-lighten-1;
             text-style: bold;
+
+            &:hover, &:focus {
+                background: $block-cursor-background;
+                color: $block-cursor-foreground;
+                text-style: bold;
+            }
         }
     }
 
