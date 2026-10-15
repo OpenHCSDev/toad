@@ -369,6 +369,11 @@ Tap escape *twice* to exit.
             await self.write_process_stdin(self.state.key_escape())
         self._escaping = False
 
+    def check_consume_key(self, key: str, character: str | None = None) -> bool:
+        # Escape belongs to the child process / double-tap blur, not to an
+        # ancestor's priority jump, cancellation or unmaximize binding.
+        return key == "escape" or super().check_consume_key(key, character)
+
     async def on_key(self, event: events.Key):
         event.prevent_default()
         event.stop()

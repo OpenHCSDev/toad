@@ -16,7 +16,7 @@ from textual.renderables.bar import Bar
 from textual.strip import Strip
 from textual.style import Style
 from ui_theme.scheme import AccentColour
-from textual.widget import Widget
+from textual.widget import PrimaryActivation, Widget
 
 from toad import messages
 from agent_comms.mro_dispatch import handles
@@ -29,7 +29,7 @@ from ui_theme.effects import TAB_WIPE
 from toad.widgets.selection import ViewLabel
 
 
-class SessionLabel(ViewLabel, widgets.Label):
+class SessionLabel(PrimaryActivation, ViewLabel, widgets.Label):
     ALLOW_SELECT = False
 
     def __init__(self, tab: OpenTab, **kwargs):
@@ -54,6 +54,14 @@ class SessionLabel(ViewLabel, widgets.Label):
         # cells the underline marks.
         self.query_ancestor(SessionsTabs).show_selected_tab()
 
+    @property
+    def primary_activation(self):
+        return self.action_select_session
+
+    def action_select_session(self) -> None:
+        if self.id is not None:
+            self.app.select_session(self.id)
+
     def on_click(self, event: events.Click) -> None:
         if self.id is not None:
             if event.button == 2:
@@ -64,10 +72,10 @@ class SessionLabel(ViewLabel, widgets.Label):
                 # full-layout timer run ahead of the user's tab click. The
                 # ordinary app mode-switch boundary already captures sidebar
                 # navigation and queues its serialized transition.
-                self.app.select_session(self.id)
+                self.action_select_session()
 
 
-class SessionTabClose(widgets.Static, can_focus=True):
+class SessionTabClose(PrimaryActivation, widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
@@ -90,6 +98,10 @@ class SessionTabClose(widgets.Static, can_focus=True):
         super().__init__("×", id=f"close-{mode_name}")
         self.mode_name = mode_name
         self.tooltip = "Close tab (or middle-click its label)"
+
+    @property
+    def primary_activation(self):
+        return self.action_close_tab
 
     def action_close_tab(self) -> None:
         self.app.session_navigation.events.publish(session_requests.SessionArchive(self.mode_name))

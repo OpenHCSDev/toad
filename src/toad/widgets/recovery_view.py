@@ -13,6 +13,7 @@ from pathlib import Path
 from textual import events
 from textual.binding import Binding
 from textual.widgets import Static
+from textual.widget import PrimaryActivation
 from textual.worker import Worker
 
 from toad.widgets.side_bar import SideBarCollapsible
@@ -21,7 +22,7 @@ from toad.widgets.side_bar import SideBarCollapsible
 _UNAVAILABLE = "Recovery unavailable\n\n"
 
 
-class RecoveryView(CoreEventReceiver, Static):
+class RecoveryView(PrimaryActivation, CoreEventReceiver, Static):
     """A disposable presentation of a validated gateway DTO, never an owner."""
 
     DEFAULT_CSS = "RecoveryView { height: 3; text-wrap: nowrap; text-overflow: ellipsis; pointer: pointer; }"
@@ -84,6 +85,10 @@ class RecoveryView(CoreEventReceiver, Static):
             self._read_task.cancel()
         self.update(_UNAVAILABLE, layout=False)
         self._after_paint_read()
+
+    @property
+    def primary_activation(self):
+        return self.action_refresh
 
     def action_refresh(self) -> None:
         """Only a visible local UI action retries an unavailable gateway."""

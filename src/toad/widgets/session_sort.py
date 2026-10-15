@@ -15,10 +15,11 @@ from objectstate import ObjectState
 from python_introspect import FieldLabel
 from textual import events
 from textual.containers import VerticalScroll
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Static
 from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
+from textual.widget import PrimaryActivation
 
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import InlineFormView
@@ -92,7 +93,7 @@ class SortDialog(FormModal, ModalScreen[type[DisplayOrder] | None]):
         self.dismiss(None)
 
 
-class SortControl[Order: DisplayOrder](Static, can_focus=True):
+class SortControl[Order: DisplayOrder](PrimaryActivation, Static, can_focus=True):
     BINDINGS = [("enter,space", "choose_sort", "Sort")]
     DEFAULT_CSS = """
     SortControl {
@@ -137,6 +138,10 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
             self.update(label)
         if self.tooltip != tooltip:
             self.tooltip = tooltip
+
+    @property
+    def primary_activation(self):
+        return self.action_choose_sort
 
     def action_choose_sort(self):
         form = self.form

@@ -7,7 +7,7 @@ from collections.abc import Iterable
 from textual import containers, events, getters
 from textual.app import ComposeResult
 from textual.binding import CallBinding
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Footer, Input
 from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing

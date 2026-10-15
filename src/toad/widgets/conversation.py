@@ -118,6 +118,7 @@ def make_session_title(prompt: str) -> str:
 if TYPE_CHECKING:
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
+    from toad.widgets.transcript_history import LineHistory
 
 
 
@@ -185,7 +186,7 @@ class CategorizedMount:
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
+        selected = self.selected_categories
         for widget in require_blocks(widgets):
             classes = {"-unrouted": not keep_live_block(widget)}
             if category := block_category(widget):
@@ -202,15 +203,42 @@ class CategorizedMount:
         return mounted
 
 
-class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
+class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
+
+    @property
+    def line_width(self) -> int:
+        """The native width of full-width history rows prepared before mounting."""
+        return self.content_size.width
+
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return all_categories()
+
+    async def prepare_history(self, history: LineHistory, current: Callable[[], bool], *,
+                              window: HistoryWindow) -> None:
+        """Supply a laid-out native target before its detached history prepares rows."""
+        if not self.line_width:
+            await self.wait_for_refresh()
+        rows, _limit = window.latest_limits(history.budget)
+        await history.prepare_rows(current, window=window, target=self, selected=self.selected_categories,
+                                   rows_needed=rows)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
         self, placements: list[WidgetPlacement]
     ) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
+
+
+class ConversationContents(CategorizedMount, Contents):
+    """Conversation ordering and categories compose with the native row container."""
+
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return (self.query_ancestor(Conversation).visible_categories
+                if self.is_attached else all_categories())
 
 
 class ContentsGrid(containers.Grid):
@@ -497,7 +525,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
-        self.set_class(agent is not None, "-initial-loading")
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -632,7 +659,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         presentation = self.transcript
         if presentation.view is not self:
             return
-        self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         if self.transcript is not presentation or presentation.view is not self:
             return
@@ -868,6 +894,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
+        if self.prompt.prompt_text_area.editing_mode.modal:
+            return
         if (
             event.character is not None
             and event.is_printable
@@ -881,7 +909,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with Contents(id="contents"):
+                with ConversationContents(id="contents"):
                     yield from ThreadLoading.initial_contents(self._agent_data)
                     yield self.cli_draft
         yield Flash()
@@ -1076,7 +1104,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
-        self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         self.turns.finish_client()
         self._agent_fail = True
@@ -2023,7 +2050,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.move_cursor(DownCursor())
 
     @work
-    async def cancel_turn(self) -> None:
+    async def cancel_turn(self, shortcut: str) -> None:
         if monotonic() - self._last_escape_time < 3:
             if (agent := self.agent) is not None:
                 self.flash("Cancelling agent turn…")
@@ -2036,7 +2063,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     self.flash("Agent declined to cancel. Please wait.", style="error")
             self._last_escape_time = 0.0
         else:
-            self.flash("Press [b]esc[/] again to cancel agent's turn")
+            self.flash(f"Press [b]{shortcut}[/] again to cancel agent's turn")
             self._last_escape_time = monotonic()
 
     def focus_prompt(self, reset_cursor: bool = True, scroll_end: bool = True) -> None:

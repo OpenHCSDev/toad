@@ -8,7 +8,7 @@ from typing import cast
 
 from textual import containers, on
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Button, OptionList, Static
 from textual.widgets.option_list import Option
 

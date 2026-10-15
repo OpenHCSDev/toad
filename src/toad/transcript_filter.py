@@ -51,6 +51,9 @@ class FilterState(DeclaredFamily, affix="Filter"):
     def visible(self, owner: LineHistory) -> bool:
         return False
 
+    async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
+        """Only a retained projection has additional rows to prepare."""
+
     def retire(self, filtering: TranscriptFilter) -> None:
         pass
 
@@ -123,6 +126,7 @@ class SeekingFilter(NoFilter):
             page = projection.pages[0]
             await projection.prepare_fragments(
                 page.fragments[page.prepared.extension_slice(False)], lambda: snapshot.current(owner),
+                target=owner,
             )
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
@@ -185,6 +189,13 @@ class Filtered(FilterState):
 
     def visible(self, owner):
         return bool(self.view.visible_fragments())
+
+    async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
+        # An offscreen prefix never delays the newest canonical viewport. A
+        # fragment limit, unlike filled rows, does not prove it is offscreen.
+        if rows_needed:
+            await self.view.prepare_rows(current, window=window, target=target,
+                                         selected=self.view.selected_categories, rows_needed=rows_needed)
 
     def retire(self, filtering):
         self.view.display = False

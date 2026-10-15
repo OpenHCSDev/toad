@@ -7,6 +7,20 @@ class PromptAction(NativeAction, DeclaredFamily, affix="Action"):
     pass
 
 
+class EnterShellAction(KeyboundAction, PromptAction):
+    key = "exclamation_mark"
+    description = "Shell command"
+    priority = True
+
+    def available(self, editor):
+        return editor.can_enter_shell
+
+    async def apply(self, editor):
+        from toad.widgets.prompt import Prompt
+
+        editor.query_ancestor(Prompt).shell_mode = True
+
+
 class SubmitAction(KeyboundAction, PromptAction):
     key = "enter"
     description = "Send"
@@ -14,26 +28,30 @@ class SubmitAction(KeyboundAction, PromptAction):
     tooltip = "Send the prompt to the agent"
     priority = True
 
+    def available(self, editor):
+        return editor.submission_allowed
+
     async def apply(self, editor):
         editor.schedule_submission()
 
 
-class SubmitNowAction(KeyboundAction, PromptAction):
+class SubmitNowAction(SubmitAction):
     key = "ctrl+enter,ctrl+y"
+    key_display = None
     description = "Send now"
     priority = True
 
     def available(self, editor):
-        return editor.agent_ready and editor.agent_busy and editor.queue_supported
+        return super().available(editor) and editor.agent_ready and editor.agent_busy and editor.queue_supported
 
     async def apply(self, editor):
         editor.schedule_submission(immediate=True)
 
 
-class ClearInputAction(KeyboundAction, PromptAction):
+class CopyOrClearInputAction(KeyboundAction, PromptAction):
     key = "ctrl+c"
-    description = "Clear"
-    tooltip = "Clear the prompt"
+    description = "Copy / Clear"
+    tooltip = "Copy selected text or clear the prompt"
     priority = True
     show = False
 
@@ -41,6 +59,11 @@ class ClearInputAction(KeyboundAction, PromptAction):
         return bool(editor.text)
 
     async def apply(self, editor):
+        if editor.selected_text:
+            editor.action_copy()
+            return
+        editor.editing_mode.suspend(editor)
         editor.clear()
+        editor.editing_mode.resume(editor)
         editor.suggestions = None
         editor.suggestion = ""

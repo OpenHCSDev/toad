@@ -336,7 +336,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
         from toad.transcript_state import LatestViewportRequest
 
-        return await history._publish_latest(LatestViewportRequest(self))
+        return await history._jump_latest(LatestViewportRequest(self))
 
     def left_tail(self, window: "HistoryWindow") -> None:
         return None
@@ -389,27 +389,33 @@ class HistoryWindow(VerticalScroll):
     scroll this document and must not hold its input at a reached boundary.
     """
 
+    def _admit_scroll(self, distance: int, action, *args) -> None:
+        # Input aliases share native actions. Source admission stays with the
+        # existing lookahead, including when native travel is already clamped.
+        if not self.lookahead.request_boundary(distance):
+            action(*args)
+
+    def action_scroll_up(self) -> None:
+        self._admit_scroll(-1, super().action_scroll_up)
+
+    def action_scroll_down(self) -> None:
+        self._admit_scroll(1, super().action_scroll_down)
+
     def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
         event.prevent_default()
-        if not self.lookahead.request_boundary(-max(1, self.app.scroll_sensitivity_y)):
-            super()._on_mouse_scroll_up(event)
+        self._admit_scroll(-max(1, self.app.scroll_sensitivity_y), super()._on_mouse_scroll_up, event)
         event.stop()
 
     def action_page_up(self) -> None:
-        # Textual skips an action with no native travel. A lazy destination
-        # must admit its source range before asking that native scroll owner.
-        if not self.lookahead.request_boundary(-max(1, self.scrollable_content_region.height)):
-            super().action_page_up()
+        self._admit_scroll(-max(1, self.scrollable_content_region.height), super().action_page_up)
 
     def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
         event.prevent_default()
-        if not self.lookahead.request_boundary(max(1, self.app.scroll_sensitivity_y)):
-            super()._on_mouse_scroll_down(event)
+        self._admit_scroll(max(1, self.app.scroll_sensitivity_y), super()._on_mouse_scroll_down, event)
         event.stop()
 
     def action_page_down(self) -> None:
-        if not self.lookahead.request_boundary(max(1, self.scrollable_content_region.height)):
-            super().action_page_down()
+        self._admit_scroll(max(1, self.scrollable_content_region.height), super().action_page_down)
 
     def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
         event.prevent_default()
@@ -525,6 +531,10 @@ class HistoryWindow(VerticalScroll):
         """A history about to be mounted loads the page ranges the kept position needs."""
         if self.reader_position is not None:
             self.reader_position.prepare_history(history)
+
+    def latest_limits(self, budget: PresentationBudget) -> tuple[int, int]:
+        """One native destination's row capacity and bounded fragment budget."""
+        return max(1, self.outer_size.height), self.lookahead.destination_batch(budget, self.outer_size.height)
 
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""
