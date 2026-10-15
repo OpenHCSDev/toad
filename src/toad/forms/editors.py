@@ -16,12 +16,16 @@ from python_introspect.validation import validate_annotation_value
 from textual import containers
 from textual.app import ComposeResult
 from textual.validation import Function
+from textual.geometry import Spacing
+from textual.css.scalar import Scalar
+from textual.color import TRANSPARENT
 from textual.widget import Widget
 from textual.widgets import Checkbox, Input, Select, TextArea
 from textual.widgets._input import InputType
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews, declarations
 from toad.forms.kinds import Multiline
+from toad.forms.presentation import FormCheckbox, FormInput, FormPart, FormSelectCurrent, FramedControl
 
 if TYPE_CHECKING:
     EditorWidget = Widget
@@ -81,7 +85,7 @@ class ValueEditor(DeclaredViews, EditorWidget):
         self.paint()
 
 
-class BoolEditor(ValueEditor, Checkbox):
+class BoolEditor(ValueEditor, FormCheckbox):
     shows = (bool,)
 
     def control_arguments(self) -> dict[str, object]:
@@ -99,7 +103,7 @@ class BoolEditor(ValueEditor, Checkbox):
             self.value = bool(self.field.value)
 
 
-class LineEditor(ValueEditor, Input):
+class LineEditor(ValueEditor, FormInput):
     """One line of text, read as the field's type when the user leaves it or presses enter."""
 
     accepts: ClassVar[InputType]
@@ -160,14 +164,11 @@ class StrEditor(LineEditor):
     accepts = "text"
 
 
-class MultilineEditor(ValueEditor, TextArea):
+class MultilineEditor(ValueEditor, FramedControl, TextArea):
     shows = (Multiline,)
-
-    DEFAULT_CSS = """
-    MultilineEditor {
-        height: 10;
-    }
-    """
+    height = Scalar.from_number(10)
+    padding = Spacing(0, 1, 0, 1)
+    background_tint = TRANSPARENT
 
     states_default = False
 
@@ -188,8 +189,15 @@ class MultilineEditor(ValueEditor, TextArea):
                 self.load_text(value)
 
 
-class SelectEditor(ValueEditor, Select[object]):
+class SelectEditor(ValueEditor, FormPart, Select[object]):
     """One of a list of values. A value that is not on the list shows as its own text."""
+
+    CURRENT = FormSelectCurrent
+
+    def watch_has_focus(self, has_focus: bool) -> None:
+        super().watch_has_focus(has_focus)
+        if self.is_mounted:
+            self.query_one(FormSelectCurrent).refresh_paint()
 
     def control_arguments(self) -> dict[str, object]:
         self.offered = tuple(self.options())
@@ -251,14 +259,14 @@ class EnumEditor(SelectEditor):
         return ((format_enum_display(member), member) for member in members)
 
 
-class OptionalEditor(ValueEditor, containers.VerticalGroup):
+class OptionalEditor(ValueEditor, FormPart, containers.VerticalGroup):
     """A field that may hold nothing: a box says whether it holds a value, and the
     editor of that value is shown while it does."""
 
     shows = (Optional,)
 
     def bind_control(self) -> None:
-        self.holds_value = Checkbox("Set", value=self.field.value is not None)
+        self.holds_value = FormCheckbox("Set", value=self.field.value is not None)
         self.member = ValueEditor.declared_for(self.field.member)
         self.member.display = self.field.value is not None
         self.holds_value.listen(Checkbox.Changed, self.held_changed)

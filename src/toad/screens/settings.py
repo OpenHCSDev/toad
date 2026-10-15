@@ -9,10 +9,14 @@ from textual.app import ComposeResult
 from textual.binding import CallBinding
 from toad.screens.modal import ModalScreen
 from textual.widgets import Footer, Input
+from textual.css.scalar import Scalar, Unit
+from textual.geometry import Spacing
+from textual.color import Color
 
 from toad.app import ToadApp
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView
+from toad.forms.presentation import FormInput, FormModal, FormPart
 from toad.setting_choices import SchemeName
 
 
@@ -26,21 +30,33 @@ class SchemeEditor(SelectEditor):
         return ((name, name) for name in self.app.colours.schemes)
 
 
-class SettingsPanel(containers.Vertical):
+class SettingsPanel(FormPart, containers.Vertical):
     """The side of the screen the settings are shown in."""
 
+    height = None
+    padding = Spacing(0, 1, 0, 1)
+    paint_background = Color(0, 0, 0, 0.1)
 
-class SettingsSearch(containers.VerticalGroup):
+    @property
+    def width(self):
+        return None if self.screen.has_class("-narrow") else Scalar(50, Unit.PERCENT, Unit.WIDTH)
+
+
+class SettingsSearch(FormPart, containers.VerticalGroup):
     """Stays above the settings while they scroll."""
 
+    dock = "top"
+    padding = Spacing(1, 0, 1, 0)
 
-class SettingsScreen(ModalScreen[None]):
-    CSS_PATH = "settings.tcss"
+
+class SettingsScreen(FormModal, ModalScreen[None]):
+    align_horizontal = "right"
+    align_vertical = "top"
     app = getters.app(ToadApp)
 
     def __init__(self) -> None:
         super().__init__()
-        self.search = Input(placeholder="Search settings")
+        self.search = FormInput(placeholder="Search settings")
         self.form = FormView(self.app.saved_settings.state)
         self.search.listen(Input.Changed, self.searched)
         self.listen(events.Mount, self.opened)

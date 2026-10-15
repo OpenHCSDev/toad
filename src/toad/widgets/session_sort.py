@@ -18,10 +18,13 @@ from textual.containers import VerticalScroll
 from toad.screens.modal import ModalScreen
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
+from textual.css.scalar import Scalar, Unit
+from textual.geometry import Spacing
 
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
-from toad.forms.form_view import FormView
+from toad.forms.form_view import InlineFormView
+from toad.forms.presentation import FormModal, FormPart
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_choices import FamilyChoices
@@ -43,7 +46,15 @@ class ChannelSortForm:
     ]
 
 
-class SortDialog(ModalScreen[type[DisplayOrder] | None]):
+class SortPanel(FormPart, VerticalScroll):
+    width = Scalar.from_number(52)
+    max_width = Scalar(90, Unit.PERCENT, Unit.WIDTH)
+    max_height = Scalar(90, Unit.VIEW_HEIGHT, Unit.VIEW_HEIGHT)
+    padding = Spacing(1, 2, 1, 2)
+    overflow_y = "auto"
+
+
+class SortDialog(FormModal, ModalScreen[type[DisplayOrder] | None]):
     """A short-lived edit form, not a second source of persisted ordering."""
 
     BINDINGS = [("escape", "cancel", "Close")]
@@ -53,27 +64,19 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
         self.control = control
         self.state = ObjectState(form)
         self.order_field = DeclaredField(self.state, FieldPath(type(form)).order)
-        self.form = FormView(self.state, focus=self.order_field.path)
+        self.form = InlineFormView(self.state, focus=self.order_field.path)
         paths = control.visibility_fields()
-        self.visibility_form = (FormView(self.app.saved_settings.state, paths=paths)
+        self.visibility_form = (InlineFormView(self.app.saved_settings.state, paths=paths)
                                 if paths else None)
 
     def compose(self):
-        with VerticalScroll() as panel:
-            panel.styles.width = 52
-            panel.styles.max_width = "90%"
-            panel.styles.height = "auto"
-            panel.styles.max_height = "90vh"
-            panel.styles.padding = (1, 2)
+        with SortPanel():
             yield Static(f"Sort {self.control.scope}")
-            self.form.styles.height = "auto"
             yield self.form
             if self.visibility_form is not None:
-                self.visibility_form.styles.height = "auto"
                 yield self.visibility_form
 
     def on_mount(self):
-        self.styles.align = ("center", "middle")
         self.state.on_resolved_changed(self.order_changed)
 
     def order_changed(self, paths: set[str]):
