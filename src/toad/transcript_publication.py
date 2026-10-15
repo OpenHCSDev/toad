@@ -992,9 +992,9 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 worker, self.worker = self.worker, None
                 if worker is not None:
                     worker.cancel()
-                # The new Core page may validate the same source under a new
-                # name. Until then old rows cannot draw or claim coverage.
-                retirement = AwaitComplete(*(history.retire_source(parked=True)
+                # A different origin does not authorize reusing these pages.
+                # Withdraw every old source before joining any cancelled work.
+                retirement = AwaitComplete(*(history.retire_source()
                                              for history in self.histories))
                 from toad.widgets.conversation import Window
                 view = self.view
