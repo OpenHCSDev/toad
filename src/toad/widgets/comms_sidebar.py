@@ -400,6 +400,10 @@ class SidebarModelView(CoreEventReceiver):
     # Model changes arrived while this view was hidden or disabled.
     stale = False
 
+    @property
+    def navigation_root(self):
+        return self.service.root if self.service is not None else None
+
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
         raise NotImplementedError
@@ -691,10 +695,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def apply_selection(self) -> None:
         self.navigation.selection_applied = False
         self.navigation.apply()
-
-    @property
-    def navigation_root(self):
-        return self.service.root if self.service is not None else None
 
     def action_open_selected(self) -> None:
         rows = self.rows

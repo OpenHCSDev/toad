@@ -118,7 +118,6 @@ class WelcomeChannels(WelcomeSection):
         channel = model.channels.rows[key]
         row.set_label(
             f"{channel.label} {channel.unread.label}" if channel.unread.label else channel.label,
-            highlighted=channel.unread.highlighted,
         )
         row.tooltip = channel.tooltip
         row.set_class(channel.active, "-channel-active")
