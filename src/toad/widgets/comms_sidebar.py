@@ -36,7 +36,7 @@ from textual.widgets import Static
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
-from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
+from toad.core.events import ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.widgets.session_sidebar import ThreadStatusRow
@@ -65,7 +65,7 @@ class ChannelUnread(Static):
             self.query_ancestor(ChannelGroup).row.action_open_selected()
 
 
-class ChannelGroup(SidebarGroup):
+class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
     DEFAULT_CSS = """
@@ -77,7 +77,6 @@ class ChannelGroup(SidebarGroup):
 
     def __init__(self, row: CommsRow, *, expanded: bool):
         row.add_class("channel-header")
-        self.members: dict[str, ThreadRow] = {}
         self.channel: ChannelRowModel | None = None
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
@@ -118,7 +117,6 @@ class ChannelGroup(SidebarGroup):
 
     def rows_changed(self) -> None:
         self.sidebar.navigation.rows_changed()
-        super().rows_changed()
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
@@ -128,7 +126,7 @@ class ChannelGroup(SidebarGroup):
         sidebar = self.sidebar
         threads = sidebar.model.threads.rows
         wanted = tuple(name for name in channel.members
-                       if name in threads and (self.expanded or name in self.members))
+                       if name in threads and (self.expanded or name in self.rows))
         actions = cast("ToadApp", self.app).thread_actions.pending
 
         def create(name: str) -> ThreadRow:
@@ -144,7 +142,7 @@ class ChannelGroup(SidebarGroup):
             view.show(row, pinned=name in channel.pinned_members, action_status=actions.get(name))
 
         self.reconcile_rows(
-            wanted, self.members, create, update,
+            wanted, create, update,
             replace=lambda name, view: (view.thread_row is not None
                                         and view.thread_row.incarnation != threads[name].incarnation))
 
@@ -412,12 +410,6 @@ class SidebarModelView(CoreEventReceiver):
 
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
-        """Update captions, then paint the workspace destination once."""
-        self.sync_rows(channels=channels, threads=threads, reorder=reorder)
-        self.sync_current()
-
-    def sync_rows(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-                  reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
         raise NotImplementedError
 
@@ -560,8 +552,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.enabled = enabled
         self.present()
 
-    def sync_rows(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-                  reorder: bool = False) -> None:
+    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+             reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
         from toad.widgets.session_sort import ChannelListSort
         from toad.widgets.side_bar import SideBarCollapsible
@@ -660,13 +652,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             return
         self.open_views = self.find_open_views()
         for group in self.groups.values():
-            for name, row in group.members.items():
+            for name, row in group.rows.items():
                 row.mode_name = self.open_views.get(name)
-        self.sync_current()
-
-    @handles(SessionSelected)
-    async def session_selected(self, event: CoreEventMessage) -> None:
-        self.sync_current()
 
     @handles(ThreadActionsChanged)
     async def thread_actions_changed(self, event: CoreEventMessage) -> None:
@@ -683,7 +670,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     @property
     def rows(self) -> list[CommsRow]:
         return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in group.visible_rows if row.is_navigation_row()]
+                for row in group.navigation_rows]
 
     @property
     def selection_state(self):

@@ -102,14 +102,13 @@ class RelationshipRow(CommsRow):
             self.query_ancestor(ThreadCommsSidebar).show_row_menu(self, event.screen_offset)
 
 
-class RelationshipRows(SidebarGroup):
+class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
     DEFAULT_CSS = """
     RelationshipRows > .group-header > SidebarDisclosure { width: 1; }
     """
 
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
-        self.rows: dict[tuple[str, str], RelationshipRow] = {}
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{type(model).declared_name}")
 
@@ -176,7 +175,7 @@ class RelationshipRows(SidebarGroup):
 
         wanted = tuple(key for key in entries if self.expanded or key in self.rows)
         ordered = self.reconcile_rows(
-            wanted, self.rows, create, update,
+            wanted, create, update,
             replace=lambda key, row: row.thread_incarnation != (
                 entries[key].person.thread.incarnation if entries[key].person is not None else None))
         tree.apply_selection()
@@ -308,7 +307,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         if self._live:
             self._bind_screen_identity()
-        self.sync_current()
         self._sync_filter_control()
         self.refresh_relationships()
 
@@ -436,7 +434,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 group.expanded = self.view_state.expanded.get(type(model), True)
                 group.present(model)
                 group.sync_members()
-            self.sync_current()
             panel = self.query_ancestor(SideBarCollapsible)
             panel.styles.min_width = width
             self._snapshot, self._revision = snapshot, revision
@@ -449,9 +446,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context.tooltip = str(error)
 
     def _ordered_rows(self):
-        return [row for group in self.groups.values()
-                for row in group.visible_rows
-                if isinstance(row, RelationshipRow) and row.is_navigation_row()]
+        return [row for group in self.groups.values() for row in group.navigation_rows]
 
     @property
     def selection_state(self):

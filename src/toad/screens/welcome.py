@@ -63,7 +63,7 @@ class WelcomeTitle(SplashText):
             self.refresh()
 
 
-class WelcomeSection(SidebarGroup):
+class WelcomeSection(SidebarGroup[str, CommsRow]):
     """Some of the sidebar model's rows under a title."""
 
     TITLE = ""
@@ -76,7 +76,6 @@ class WelcomeSection(SidebarGroup):
 
     def __init__(self) -> None:
         super().__init__(Static(self.TITLE, classes="section"), expanded=True)
-        self.members: dict[str, CommsRow] = {}
         # Shown once the model lists something for it.
         self.display = False
 
@@ -100,7 +99,7 @@ class WelcomeSection(SidebarGroup):
             if changed is None or key in changed or not row.is_attached:
                 self.update(model, key, row)
 
-        self.reconcile_rows(keys, self.members, lambda key: self.create(model, key), update)
+        self.reconcile_rows(keys, lambda key: self.create(model, key), update)
 
 
 class WelcomeChannels(WelcomeSection):
@@ -179,15 +178,15 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     def accepts_selection(self) -> bool:
         return False  # Rows open; the view keeps no selected set.
 
-    def sync_rows(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-                  reorder: bool = False) -> None:
+    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
+             reorder: bool = False) -> None:
         # A channel change can change which threads are listed and their order.
         channel_list, thread_list = self.sections
         channel_list.sync_members(channels)
         thread_list.sync_members(threads)
 
     @handles(SessionSelected)
-    async def session_selected(self, event: CoreEventMessage) -> None:
+    async def present_selected(self, event: CoreEventMessage) -> None:
         self.present()
 
     @handles(ThreadActionsChanged)
@@ -196,8 +195,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
             self.sections[1].sync_members()
 
     def _ordered_rows(self):
-        return [row for section in self.sections for row in section.visible_rows
-                if row.is_navigation_row()]
+        return [row for section in self.sections for row in section.navigation_rows]
 
 
 class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
