@@ -35,7 +35,6 @@ from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.screens.session_view import SessionOrigin, SessionView
 from toad.session_tracker import SidebarState
-from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
 from toad.widgets.conversation import Conversation
@@ -43,7 +42,7 @@ from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import ThreadCommsSidebar
-from toad.widgets.comms_chat import resolve_session_thread, session_thread_name
+from toad.widgets.comms_chat import session_thread_name
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
@@ -447,13 +446,14 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
-        previous_root = self.coordination_root
-        self.app.coordination_facts[self] = event
-        if previous_root != self.coordination_root:
-            self.link_context_changed()
-        if event.worktree is not None:
-            self.bind_project(Path(event.worktree))
-        self.on_comms_session_named(event.thread.name)
+        async with self.presentation.transcript.changing_source(self):
+            previous_root = self.coordination_root
+            self.app.coordination_facts[self] = event
+            if previous_root != self.coordination_root:
+                self.link_context_changed()
+            if event.worktree is not None:
+                self.bind_project(Path(event.worktree))
+            self.on_comms_session_named(event.thread.name)
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
@@ -478,28 +478,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     @property
     def navigation_target_name(self) -> str:
         return self._session_thread
-
-    def _resolve_comms_thread(self) -> str:
-        resolved: str | None
-        try:
-            from agent_comms.route_selection import current_root
-
-            root = current_root()
-            source_root = self.coordination_root
-            if source_root is not None and Path(source_root).expanduser().resolve() != root:
-                raise ValueError("Comms route changed; this session retains its former wire")
-            service = self.app.coordination_access.observed_service
-            if service is None or service.root.resolve() != root:
-                service = self.app.coordination_access.service
-            resolved = resolve_session_thread(
-                service, self.project_path, self._comms_thread, source_root=source_root,
-            )
-        except (OSError, ValueError, RuntimeError):
-            # Route changed or unavailable: keep this screen's retained identity.
-            resolved = None
-        if resolved is not None:
-            self._comms_thread = resolved
-        return self._comms_thread
 
     @property
     def navigation_context(self) -> NavigationContext:
@@ -609,7 +587,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             sidebar.session_thread = (
                 self._comms_thread
                 if self.coordination_root is not None
-                else self._resolve_comms_thread()
+                else self.resolve_thread()
             )
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)

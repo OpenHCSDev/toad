@@ -959,10 +959,15 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
             @functools.wraps(original)
             async def timed(*args, __original=original, __target=target, **kwargs):
                 begin, cpu = time.monotonic_ns(), time.thread_time_ns()
+                result = None
                 try:
-                    return await __original(*args, **kwargs)
+                    result = await __original(*args, **kwargs)
+                    return result
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), None, begin,
+                    # Publication decisions matter; do not recursively repr a page.
+                    outcome = (repr(result) if result is None or isinstance(result, (bool, int, float))
+                               else type(result).__name__)
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), outcome, begin,
                                   (time.thread_time_ns() - cpu) / 1e6))
         else:
             @functools.wraps(original)
