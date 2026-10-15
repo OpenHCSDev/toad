@@ -38,7 +38,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
-    SessionDetails.-working { border-top: heavy $accent; }
+    SessionDetails.-working { border-top: panel $accent; }
     SessionDetails.-working > CollapsibleTitle { color: $accent; }
     SessionDetails.-attention > CollapsibleTitle { color: $warning; }
     SessionDetails .session-notifications { height: auto; }
