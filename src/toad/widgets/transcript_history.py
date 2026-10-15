@@ -390,11 +390,14 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, PreparedLines]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
+        # Holding rows does not change the page's measured layout. Retain every
+        # result before opening a history change: keeping the reader can
+        # interrupt an unfinished layout, even without accepted rows.
+        if not any([task.hold(self, fragment, lines) for fragment, task, lines in ready]):
+            return
         window = self.query_ancestor(HistoryWindow)
         async with window.preserve_history(root=self):
-            # Retain every result; only accepted rows can change the layout.
-            if any([task.hold(self, fragment, lines) for fragment, task, lines in ready]):
-                self.range_changed()
+            self.range_changed()
 
     @classmethod
     @asynccontextmanager
