@@ -81,9 +81,6 @@ class DeclaredField:
     state: ObjectState
     path: DottedFieldPath
 
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "path", self.state.parameter_structure.path(self.path.value))
-
     @property
     def declaration(self) -> ParameterInfo:
         return self.state.parameter_structure.declarations[self.path.value]
