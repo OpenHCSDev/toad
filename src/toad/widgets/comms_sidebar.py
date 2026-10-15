@@ -57,13 +57,20 @@ class ChannelDisclosure(SidebarDisclosure):
     pass
 
 
-class ChannelUnread(Static):
+class ChannelUnread(PrimaryActivation, Static):
     DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
         if event.button == 1:
             event.stop()
-            self.query_ancestor(ChannelGroup).row.action_open_selected()
+            self.action_open_selected()
+
+    @property
+    def primary_activation(self):
+        return self.action_open_selected
+
+    def action_open_selected(self):
+        self.query_ancestor(ChannelGroup).row.action_open_selected()
 
 
 class ChannelGroup(SidebarGroup):

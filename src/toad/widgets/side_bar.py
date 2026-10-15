@@ -15,7 +15,7 @@ from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widget import Widget
+from textual.widget import PrimaryActivation, Widget
 
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import SidebarPlacementAction
@@ -113,7 +113,7 @@ The Sidebar contains additonal information associated with the conversation.
                 yield from self._contents_list
 
 
-class SideBarToggle(widgets.Static):
+class SideBarToggle(PrimaryActivation, widgets.Static):
     """Full-height collapse target beside the conversation-facing resize edge."""
 
     ALLOW_SELECT = False
@@ -162,6 +162,13 @@ class SideBarToggle(widgets.Static):
         if self.tooltip != tooltip:
             self.tooltip = tooltip
 
+    @property
+    def primary_activation(self):
+        return self.action_pointer_toggle
+
+    def action_pointer_toggle(self) -> None:
+        self.query_ancestor(SideBar).toggle(focus=False)
+
     def action_sidebar_toggle(self) -> None:
         self.post_message(self.Pressed())
 
@@ -174,10 +181,10 @@ class SideBarToggle(widgets.Static):
     def on_click(self, event: Click) -> None:
         if event.button == 1:
             event.stop()
-            self.query_ancestor(SideBar).toggle(focus=False)
+            self.action_pointer_toggle()
 
 
-class TabHistoryButton(widgets.Static, can_focus=True):
+class TabHistoryButton(PrimaryActivation, widgets.Static, can_focus=True):
     """One compact, keyboard-accessible tab-history control."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -211,6 +218,10 @@ class TabHistoryButton(widgets.Static, can_focus=True):
         self.tooltip = ("Back through visited tabs" if direction == -1
                         else "Forward through visited tabs")
 
+    @property
+    def primary_activation(self):
+        return self.action_navigate
+
     def action_navigate(self) -> None:
         if not self.has_class("-unavailable"):
             cast("ToadApp", self.app).tab_order.navigate(self.direction)
@@ -221,7 +232,7 @@ class TabHistoryButton(widgets.Static, can_focus=True):
             self.action_navigate()
 
 
-class MainMenuButton(widgets.Static, can_focus=True):
+class MainMenuButton(PrimaryActivation, widgets.Static, can_focus=True):
     """Open Toad's existing anchored menu beside the tab-history controls."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -250,6 +261,10 @@ class MainMenuButton(widgets.Static, can_focus=True):
     def __init__(self) -> None:
         super().__init__("☰", id="main-menu")
         self.tooltip = "Main menu: export wire or import thread"
+
+    @property
+    def primary_activation(self):
+        return self.action_open_menu
 
     def action_open_menu(self) -> None:
         self.post_message(self.Pressed())
@@ -426,7 +441,7 @@ class SidebarSlider(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SidebarAction(widgets.Static, can_focus=True):
+class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -450,6 +465,10 @@ class SidebarAction(widgets.Static, can_focus=True):
         super().__init__(action.label, id=f"sidebar-{action.declared_name}")
         self.action = action
         self.set_class(action.directional, "-direction")
+
+    @property
+    def primary_activation(self):
+        return self.action_activate
 
     def action_activate(self) -> None:
         self.post_message(self.Pressed(self.action))

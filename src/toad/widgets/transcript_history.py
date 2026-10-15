@@ -29,7 +29,7 @@ from textual.containers import VerticalGroup
 from textual.geometry import Region
 from textual.message import Message
 from textual.selection import Selection
-from textual.widget import Widget
+from textual.widget import PrimaryActivation, Widget
 from textual.walk import walk_depth_first
 from textual.strip import Strip
 from textual.widgets import Static
@@ -73,12 +73,16 @@ if TYPE_CHECKING:
 class _DrawingStopped(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
 
-class HistoryEdge(Static, can_focus=True):
+class HistoryEdge(PrimaryActivation, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
     BINDINGS = [("enter,space", "earlier", "Earlier history")]
 
     class Requested(Message):
         pass
+
+    @property
+    def primary_activation(self):
+        return self.action_earlier
 
     def action_earlier(self) -> None:
         self.post_message(self.Requested())
@@ -88,12 +92,16 @@ class HistoryEdge(Static, can_focus=True):
             event.stop()
             self.action_earlier()
 
-class JumpToLatest(Static, can_focus=True):
+class JumpToLatest(PrimaryActivation, Static, can_focus=True):
     BINDINGS = [("enter,space", "jump", "Jump to latest")]
     DEFAULT_CSS = "JumpToLatest { height: 1; color: $text-secondary; pointer: pointer; }"
 
     class Requested(Message):
         pass
+
+    @property
+    def primary_activation(self):
+        return self.action_jump
 
     def action_jump(self) -> None:
         self.post_message(self.Requested())

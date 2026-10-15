@@ -13,10 +13,11 @@ from textual.geometry import Offset, clamp
 from textual.message import Message
 from textual.screen import ModalScreen
 from textual.widgets import Static
+from textual.widget import PrimaryActivation
 from toad.widgets.selection import FocusSelection
 
 
-class ContextMenuItem(FocusSelection):
+class ContextMenuItem(PrimaryActivation, FocusSelection):
     """A menu item with desktop-style press and release behavior."""
 
     class Selected(Message):
@@ -42,7 +43,14 @@ class ContextMenuItem(FocusSelection):
     def on_click(self, event: events.Click) -> None:
         if event.button == 1:
             event.stop()
-            self.post_message(self.Selected(self))
+            self.action_select()
+
+    @property
+    def primary_activation(self):
+        return self.action_select
+
+    def action_select(self) -> None:
+        self.post_message(self.Selected(self))
 
     def on_leave(self) -> None:
         self.remove_class("-pressed")

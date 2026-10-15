@@ -20,7 +20,7 @@ from textual import getters
 from textual.message import Message
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
-from textual.widget import Widget
+from textual.widget import PrimaryActivation, Widget
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 from textual import events
@@ -60,12 +60,18 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
         self.blur()
 
 
-class AgentInfo(Label):
-    pass
+class AgentInfo(PrimaryActivation, Label):
+    @property
+    def primary_activation(self):
+        return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(Label, can_focus=True):
+class SendNow(PrimaryActivation, Label, can_focus=True):
     BINDINGS = [("enter,space", "send_now", "Send now")]
+
+    @property
+    def primary_activation(self):
+        return self.action_send_now
 
     def action_send_now(self):
         self.post_message(messages.SendPromptNow())
@@ -75,8 +81,10 @@ class SendNow(Label, can_focus=True):
         self.action_send_now()
 
 
-class ModeInfo(Label):
-    pass
+class ModeInfo(PrimaryActivation, Label):
+    @property
+    def primary_activation(self):
+        return self.query_ancestor(Prompt).on_mode_info_click
 
 
 class StatusLine(Label):
@@ -88,10 +96,14 @@ class StatusLine(Label):
         self.tooltip = status
 
 
-class QueueSummary(Label, can_focus=True):
+class QueueSummary(PrimaryActivation, Label, can_focus=True):
     """Shows the remote queue; activation reports available control support."""
 
     BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
+
+    @property
+    def primary_activation(self):
+        return self.action_edit_queue
 
     def action_edit_queue(self) -> None:
         from toad.widgets.conversation import Conversation

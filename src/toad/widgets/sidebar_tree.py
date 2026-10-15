@@ -8,16 +8,21 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.widgets import Static
+from textual.widget import PrimaryActivation
 
 from toad.widgets.sidebar_viewport import SidebarHeader
 
 
-class SidebarDisclosure(Static, can_focus=True):
+class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
     BINDINGS = [Binding("enter,space", "toggle", "Expand group", show=False)]
     DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
 
     def render(self):
         return "▾" if self.query_ancestor(SidebarGroup).expanded else "▸"
+
+    @property
+    def primary_activation(self):
+        return self.action_toggle
 
     def action_toggle(self) -> None:
         self.query_ancestor(SidebarGroup).toggle_members()
