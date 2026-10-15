@@ -392,13 +392,16 @@ class RuntimeBuild:
                 'native_manifest_sha256': native_pin, 'active_route': route,
                 'packages': installed, 'runtime': str(destination),
             }
-            if self.start_acceptance_thread(destination):
-                # The launched owner now borrows this runtime even if UI acceptance fails.
-                cleanup.pop_all()
-            record['screenshot'] = str(open_saved_thread(destination, self.thread, self.display, self.scratch / f'acceptance-{destination.name}'))
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.
         return destination
+
+    def accept(self, runtime: Path) -> None:
+        """Exercise the installed schema after building or a required store conversion."""
+        self.start_acceptance_thread(runtime)
+        screenshot = open_saved_thread(
+            runtime, self.thread, self.display, self.scratch / f'acceptance-{runtime.name}')
+        (runtime / 'acceptance.json').write_text(json.dumps({'screenshot': str(screenshot)}) + '\n')
 
 
 def main() -> None:
@@ -414,11 +417,15 @@ def main() -> None:
     parser.add_argument('--start-env', type=Path,
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
+    parser.add_argument('--build-only', action='store_true',
+                        help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
     if args.start_thread != (args.start_env is not None):
         parser.error('--start-thread and --start-env must be used together')
+    if args.build_only and args.start_thread:
+        parser.error('--build-only cannot start an acceptance thread')
     with XvfbDisplay(args.display) as display:
         build = RuntimeBuild(
             GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
@@ -427,7 +434,10 @@ def main() -> None:
             args.scratch.resolve(), args.runtimes.resolve(), args.thread, display,
             args.start_env.resolve(strict=True) if args.start_env else None,
         )
-        print(build.build())
+        runtime = build.build()
+        if not args.build_only:
+            build.accept(runtime)
+        print(runtime)
 
 
 if __name__ == '__main__':
