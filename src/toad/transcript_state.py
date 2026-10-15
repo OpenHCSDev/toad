@@ -21,6 +21,14 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     reports_coverage: ClassVar[bool] = False
     accepts_source_work: ClassVar[bool] = False
 
+    def coverage(self, owner):
+        """Publication state owns which captured source facts it may report."""
+        from toad.core.source_events import TranscriptCoverage
+
+        if self.reports_coverage:
+            return TranscriptCoverage(tuple(owner.coverage_events), owner.committed_cursor.receipts.identity)
+        return TranscriptCoverage(())
+
     def checkpoint_available(self, owner) -> bool:
         """Source admission and its original resource govern checkpoint custody."""
         return self.accepts_source_work and owner.source_checkpoint_available

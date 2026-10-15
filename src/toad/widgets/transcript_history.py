@@ -1207,7 +1207,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
     def publish_coverage(self) -> None:
         if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events), self.committed_cursor.receipts.identity))
+            self.publish_core(self._source_state.coverage(self))
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
@@ -1224,14 +1224,11 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
     @property
     def outgoing_coverage(self):
-        if not self._source_state.reports_coverage:
-            return frozenset()
-        return TranscriptCoverage(tuple(self.coverage_events), self.committed_cursor.receipts.identity).outgoing
+        return self._source_state.coverage(self).outgoing
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""
-        return (self._source_state.reports_coverage
-                and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
+        return native_id in self._source_state.coverage(self).native_inputs
 
     @property
     def committed_cursor(self) -> TranscriptCursor:
