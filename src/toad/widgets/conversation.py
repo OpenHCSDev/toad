@@ -1419,7 +1419,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             return
         self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
-            self.transcript.invalidate()
+            self.transcript.invalidate_publications()
             return
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()

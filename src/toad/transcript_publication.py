@@ -568,7 +568,8 @@ class TranscriptPresentation:
             raise ValueError("Transcript lifetime has ended")
         if self.view is not None and self.view is not view:
             raise ValueError("Transcript already has a native publisher")
-        self.invalidate()
+        self.invalidate_publications()
+        self.current_read = None
         self._view = weakref.ref(view)
 
     @property
@@ -683,9 +684,9 @@ class TranscriptPresentation:
         """
         return any(history.covers_input(native_id) for history in self.histories)
 
-    def invalidate(self) -> None:
+    def invalidate_publications(self) -> None:
+        """Revoke in-flight view work without forgetting its published source."""
         self.generation += 1
-        self.current_read = None
 
     async def restore(self) -> None:
         """Restore the session's reader independently of native attachment readiness."""
@@ -732,8 +733,7 @@ class TranscriptPresentation:
                 if (destination := HeldReaderDestination.held(window)) is not None:
                     destination.release(window)
                 return
-            view.run_worker(publication.publish(),
-                            group="retained-native-refresh", exclusive=True)
+            self.source_requests.submit(publication)
 
         view.call_after_refresh(refresh_after_paint)
 
@@ -792,7 +792,7 @@ class TranscriptPresentation:
         view.call_after_refresh(record)
 
     def changed(self, cursor: TranscriptCursor | None) -> None:
-        self.invalidate()
+        self.invalidate_publications()
         self.dirty = True
         if cursor is None:
             self.checkpoint_required = True
@@ -801,7 +801,7 @@ class TranscriptPresentation:
         self.request()
 
     def require_checkpoint(self) -> None:
-        self.invalidate()
+        self.invalidate_publications()
         self.checkpoint_required = self.dirty = True
         self.request()
 
@@ -857,7 +857,7 @@ class TranscriptPresentation:
 
     async def suspend(self) -> None:
         """Revoke in-flight publications while retaining this source's mounted frontier."""
-        self.invalidate()
+        self.invalidate_publications()
         worker, self.worker = self.worker, None
         workers = [worker, self.source_requests.cancel()]
         if (view := self.view) is not None:
@@ -867,7 +867,6 @@ class TranscriptPresentation:
             workers.extend(view.workers.cancel_group(view, "transcript-window"))
             workers.extend(view.workers.cancel_group(view, "transcript-source"))
             workers.extend(view.workers.cancel_group(view, "transcript-handling"))
-            workers.extend(view.workers.cancel_group(view, "retained-native-refresh"))
         for worker in workers:
             if worker is None:
                 continue
@@ -985,7 +984,8 @@ class SessionTranscriptPresentation(TranscriptPresentation):
         finally:
             if origin.transcript_scope() != previous:
                 self.source_requests.cancel()
-                self.invalidate()
+                self.invalidate_publications()
+                self.current_read = None
                 self._close_documents()
                 self.dirty = self.checkpoint_required = False
                 self.displayed_cursor = None
