@@ -4,7 +4,7 @@ from __future__ import annotations
 import weakref
 import asyncio
 from abc import ABC, abstractmethod
-from contextlib import AsyncExitStack
+from contextlib import AsyncExitStack, asynccontextmanager
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
 from typing import TYPE_CHECKING
@@ -17,6 +17,7 @@ from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
+    from toad.screens.session_view import SessionOrigin
     from toad.widgets.conversation import Conversation, Window, Contents
     from toad.widgets.transcript_history import TranscriptHistory
     from toad.transcript_preparation import PreparedPageSource
@@ -29,7 +30,6 @@ class TranscriptPublication(ABC):
                  window: Window, contents: Contents) -> None:
         self.owner = owner
         self.generation = owner.generation
-        self.agent = view.agent
         self.thread_scope = owner.thread_scope
         self.window, self.contents = window, contents
         self.destination = HeldReaderDestination.held(window)
@@ -70,7 +70,7 @@ class TranscriptPublication(ABC):
         view = self.owner.view
         if view is None or not view.is_attached or view._closing:
             return False
-        if (self.generation != self.owner.generation or view.agent is not self.agent
+        if (self.generation != self.owner.generation
                 or self.thread_scope != self.owner.thread_scope):
             return False
         return (self.window.is_attached and self.contents.is_attached
@@ -333,6 +333,7 @@ class ObservedSourcePublication(CanonicalSourcePublication):
     def __init__(self, owner, view, window, contents, presentation):
         super().__init__(owner, view, window, contents)
         self.presentation = presentation
+        self.agent = view.agent
 
     async def read_snapshot(self):
         identity = self.presentation.read_identity
@@ -340,7 +341,8 @@ class ObservedSourcePublication(CanonicalSourcePublication):
             *self.thread_scope, self.owner.current_read, read_identity=identity)
 
     async def publish_applied(self) -> bool:
-        if self.agent is not None:
+        view = self.owner.view
+        if view is not None and self.agent is not None and view.agent is self.agent:
             await self.agent.observe_thread_presentation(self.presentation)
         if self.current():
             return await super().publish_applied()
@@ -566,7 +568,8 @@ class TranscriptPresentation:
             raise ValueError("Transcript lifetime has ended")
         if self.view is not None and self.view is not view:
             raise ValueError("Transcript already has a native publisher")
-        self.invalidate()
+        self.invalidate_publications()
+        self.current_read = None
         self._view = weakref.ref(view)
 
     @property
@@ -681,9 +684,9 @@ class TranscriptPresentation:
         """
         return any(history.covers_input(native_id) for history in self.histories)
 
-    def invalidate(self) -> None:
+    def invalidate_publications(self) -> None:
+        """Revoke in-flight view work without forgetting its published source."""
         self.generation += 1
-        self.current_read = None
 
     async def restore(self) -> None:
         """Restore the session's reader independently of native attachment readiness."""
@@ -730,8 +733,7 @@ class TranscriptPresentation:
                 if (destination := HeldReaderDestination.held(window)) is not None:
                     destination.release(window)
                 return
-            view.run_worker(publication.publish(),
-                            group="retained-native-refresh", exclusive=True)
+            self.source_requests.submit(publication)
 
         view.call_after_refresh(refresh_after_paint)
 
@@ -774,12 +776,12 @@ class TranscriptPresentation:
         view = self.view
         if view is None:
             return
-        generation, agent = self.generation, view.agent
+        generation = self.generation
         window, contents = view.query_one_optional(Window), view.query_one_optional(Contents)
         def record() -> None:
             if self.view is not view or not view.is_attached:
                 return
-            if self.generation != generation or view.agent is not agent:
+            if self.generation != generation:
                 return
             if window is None or contents is None:
                 return
@@ -789,26 +791,8 @@ class TranscriptPresentation:
                 view.settle_user_message()
         view.call_after_refresh(record)
 
-    def source_changed(self, view: Conversation) -> None:
-        # Construction and an old view's teardown cannot revoke the new
-        # publisher. Operational binding before mount is owned by the session.
-        if self.view is not view or not view.is_attached:
-            return
-        self.source_requests.cancel()
-        self.invalidate()
-        self._close_documents()
-        self.dirty = self.checkpoint_required = False
-        self.displayed_cursor = None
-        from toad.widgets.conversation import Window
-        if (window := view.query_one_optional(Window)) is not None:
-            # A kept reader position names messages of the source that was replaced.
-            window.reader_position = None
-        worker, self.worker = self.worker, None
-        if worker is not None:
-            worker.cancel()
-
     def changed(self, cursor: TranscriptCursor | None) -> None:
-        self.invalidate()
+        self.invalidate_publications()
         self.dirty = True
         if cursor is None:
             self.checkpoint_required = True
@@ -817,7 +801,7 @@ class TranscriptPresentation:
         self.request()
 
     def require_checkpoint(self) -> None:
-        self.invalidate()
+        self.invalidate_publications()
         self.checkpoint_required = self.dirty = True
         self.request()
 
@@ -873,7 +857,7 @@ class TranscriptPresentation:
 
     async def suspend(self) -> None:
         """Revoke in-flight publications while retaining this source's mounted frontier."""
-        self.invalidate()
+        self.invalidate_publications()
         worker, self.worker = self.worker, None
         workers = [worker, self.source_requests.cancel()]
         if (view := self.view) is not None:
@@ -883,7 +867,6 @@ class TranscriptPresentation:
             workers.extend(view.workers.cancel_group(view, "transcript-window"))
             workers.extend(view.workers.cancel_group(view, "transcript-source"))
             workers.extend(view.workers.cancel_group(view, "transcript-handling"))
-            workers.extend(view.workers.cancel_group(view, "retained-native-refresh"))
         for worker in workers:
             if worker is None:
                 continue
@@ -987,6 +970,37 @@ class TranscriptPresentation:
 
 class SessionTranscriptPresentation(TranscriptPresentation):
     """The operational session retains its source after native view eviction."""
+
+    @asynccontextmanager
+    async def changing_source(self, origin: SessionOrigin):
+        """Replace source resources when the logical session changes source.
+
+        The origin also exists while its native view is evicted. Connection
+        creation, attachment and readiness do not replace that history source.
+        """
+        previous = origin.transcript_scope()
+        try:
+            yield
+        finally:
+            if origin.transcript_scope() != previous:
+                self.source_requests.cancel()
+                self.invalidate_publications()
+                self.current_read = None
+                self._close_documents()
+                self.dirty = self.checkpoint_required = False
+                self.displayed_cursor = None
+                worker, self.worker = self.worker, None
+                if worker is not None:
+                    worker.cancel()
+                # A different origin does not authorize reusing these pages.
+                # Withdraw every old source before joining any cancelled work.
+                retirement = AwaitComplete(*(history.retire_source()
+                                             for history in self.histories))
+                from toad.widgets.conversation import Window
+                view = self.view
+                if view is not None and (window := view.query_one_optional(Window)) is not None:
+                    window.reader_position = None
+                await retirement
 
     async def detach(self, view: Conversation) -> None:
         if self.view is not view:

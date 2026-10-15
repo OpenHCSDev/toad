@@ -119,9 +119,9 @@ class HistoryNotifications:
                 for fragment in self._notified_fragments()
             ]), group=self.NOTIFICATION_GROUP, exclusive=True)
 
-    async def retire_source(self, *, parked: bool = False) -> None:
+    def retire_source(self, *, parked: bool = False):
         self.app.coordination_access.show_notifications(self, None)
-        await super().retire_source(parked=parked)
+        return super().retire_source(parked=parked)
 
     async def close_source_reader(self) -> None:
         self.app.coordination_access.show_notifications(self, None)

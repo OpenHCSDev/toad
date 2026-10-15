@@ -86,11 +86,9 @@ class LineTheme:
             return Style(color=Color.parse(variables[name]).rich_color)
 
         foreground = Color.parse(variables["foreground"])
-        background = Color.parse(variables["background"])
-        # Muted text is the foreground part of the way over the background.
-        # ANSI colours cannot be blended; the terminal dims them instead.
-        muted = (Style(dim=True) if foreground.ansi is not None
-                 else Style(color=background.blend(foreground, MutedColour.amount).rich_color))
+        # RGB recipes belong to the semantic colour declaration. Native ANSI
+        # text retains its distinct dim attribute rather than a palette guess.
+        muted = Style(dim=True) if foreground.ansi is not None else colour(MutedColour.name)
         return cls(tuple(
             (member, muted if member is MutedColour else colour(member.name))
             for member in ThemeColour.__registry__.values()

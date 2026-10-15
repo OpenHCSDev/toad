@@ -31,9 +31,9 @@ class ThrobberVisual(Visual):
         self, width: int, height: int | None, style: Style, options: RenderOptions
     ) -> list[Strip]:
         throbber = self.throbber
-        base = Strip([Segment(throbber.character * width, style.rich_style)], cell_length=width)
+        base = Strip([Segment("█" * width, style.rich_style)], cell_length=width)
         animation = throbber.animation
-        frame = animation.frame() if animation is not None else ACTIVITY_SWEEP.final
+        frame = animation.frame() if animation is not None else throbber.effect.final
         return [frame.paint(throbber.app.colours, base)]
 
     def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
@@ -47,9 +47,9 @@ class Throbber(Animated, Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
 
-    def __init__(self, *, character: str = "─", **kwargs) -> None:
+    def __init__(self, *, thickness: float = 0.375, **kwargs) -> None:
         super().__init__(**kwargs)
-        self.character = character
+        self.effect = ACTIVITY_SWEEP.scaled(thickness)
 
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:
@@ -66,7 +66,7 @@ class Throbber(Animated, Widget):
         # last sweep frame never stays on screen once work ends.
         if busy and self.is_mounted:
             if self.animation is None:
-                self.run_effect(ACTIVITY_SWEEP)
+                self.run_effect(self.effect)
         else:
             self.stop_effect()
         self.refresh()
