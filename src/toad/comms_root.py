@@ -30,7 +30,7 @@ from agent_comms.ui_model.observation import (
 )
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, OpenTabsChanged
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
@@ -185,8 +185,12 @@ class CoordinationAccess(MroDispatch):
 
     @handles(RevisionObserved)
     def revision_observed(self, result: RevisionObserved, observed: ObservedCommsService) -> None:
+        previous = self.revision
         self.revision = result.revision
-        self.events.publish(CoordinationObserved(result.revision))
+        if previous is None or result.revision.status_changed_since(previous):
+            self.events.publish(CoordinationObserved(result.revision))
+        if previous is None or result.revision.external_transcripts_changed_since(previous):
+            self.events.publish(ExternalTranscriptChanged())
         if self.sidebar_views and (self.marking is None or self.marking.done()):
             # A shown sidebar acknowledges the painted native cursor, as each
             # sidebar read did before; the next observation includes it.

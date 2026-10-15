@@ -129,6 +129,14 @@ class CoordinationObserved(CoreEvent):
 
 
 @dataclass(frozen=True)
+class ExternalTranscriptChanged(CoreEvent):
+    """A CLI published text; its open transcript reads the current source."""
+
+    def can_replace(self, event: CoreEvent) -> bool:
+        return self == event
+
+
+@dataclass(frozen=True)
 class Thinking(CoreEvent):
     type: str
     text: str

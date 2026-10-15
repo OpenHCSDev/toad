@@ -113,6 +113,9 @@ class OperationalSessionSources:
     def accepts_inbox_submission(self, event) -> bool:
         return False
 
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        """Native sessions receive their text through their own ACP stream."""
+
     def input_ready(self, conversation: Conversation) -> bool:
         agent = conversation.agent
         if agent is None or not agent.ready:
@@ -209,6 +212,13 @@ class MailboxSessionSources(OperationalSessionSources):
 
     def accepts_inbox_submission(self, event) -> bool:
         return not event.shell and bool(event.body.strip())
+
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        from toad.screens.session_view import SessionView
+        from toad.transcript_publication import CanonicalSourcePublication
+
+        if conversation.query_ancestor(SessionView).is_current:
+            conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     def unavailable_reason(self, conversation: Conversation) -> str:
         # A CLI thread has no native owner to start; only its history load holds it.

@@ -337,8 +337,89 @@ class AgentWindow(Window):
 
 
 
-class ConversationSessionBinding(containers.Vertical):
+class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
+
+    thread_presentation = None
+
+    _thread_read = None
+
+    _unpublished_presentation = None
+
+    @property
+    def operational_sources(self):
+        from toad.screens.session_view import SessionView
+
+        return self.query_ancestor(SessionView).presentation.sources
+
+    def transcript_scope(self) -> tuple[str, str] | None:
+        """The native session identity whose canonical transcript this view shows."""
+        from toad.screens.session_view import SessionView
+
+        origin = self.query_ancestor(SessionView).origin
+        if origin is None or origin.coordination_root is None or not origin._comms_thread:
+            return None
+        return origin.coordination_root, origin._comms_thread
+
+    def status_thread(self) -> tuple[str, str] | None:
+        return self.transcript.thread_scope
+
+    def arm_thread_read(self) -> None:
+        """Capture turn token and client authority for the next observed presentation."""
+        self._thread_read = self.agent.thread_read() if self.agent is not None else None
+
+    def thread_observed(self, presentation) -> None:
+        """Settle the agent's turn from an observed presentation, as its own read would."""
+        read = self._thread_read
+        self.arm_thread_read()
+        if read is not None:
+            try:
+                presentation = read.settle(presentation)
+            except ValueError as error:
+                self.log.warning("Observed thread presentation not settled", error)
+                return
+        self.thread_presented(presentation)
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_session()
+
+    def foreign_thread_read(self, presentation) -> None:
+        self.thread_presented(presentation)
+
+    def thread_presented(self, presentation) -> None:
+        """A settled presentation refreshes the transcript source of the shown view."""
+        from toad.screens.session_view import SessionView
+
+        self.thread_presentation = presentation
+        if presentation is None or not self.transcript.readable:
+            return
+        if self.query_ancestor(SessionView).is_current:
+            from toad.transcript_publication import ObservedSourcePublication
+            self._unpublished_presentation = None
+            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+        else:
+            self._unpublished_presentation = presentation
+
+    @handles(core_events.SessionSelected)
+    async def _thread_view_selected(self, event: CoreEventMessage) -> None:
+        from toad.screens.session_view import SessionView
+
+        presentation = self._unpublished_presentation
+        if presentation is not None and self.query_ancestor(SessionView).is_current:
+            from toad.transcript_publication import ObservedSourcePublication
+            self._unpublished_presentation = None
+            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+
+    @handles(core_events.CoordinationObserved)
+    async def _thread_route_observed(self, event: CoreEventMessage) -> None:
+        # The observed root can change; a foreign thread reads again.
+        self.refresh_thread_status()
+        # Read/handling changes can leave source text unchanged. Ask the same
+        # publication owner to refresh both live bodies and saved message rows.
+        self.transcript.request_handling()
+
+    @handles(core_events.ExternalTranscriptChanged)
+    def _external_transcript_changed(self, event: CoreEventMessage) -> None:
+        self.operational_sources.external_transcript_changed(self)
 
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
@@ -685,15 +766,12 @@ from toad.conversation_actions import ConversationAction
 from toad.delivery_failure_view import DeliveryFailureView
 
 
-class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, ConversationSessionBinding):
+class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions, ConversationSessionBinding):
     ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
-    thread_presentation = None
     """The agent thread's latest settled presentation."""
-    _thread_read = None
     """The capture the next observed presentation settles against (ThreadRead)."""
-    _unpublished_presentation = None
     """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     BLANK = True
@@ -990,11 +1068,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     def cursor_block_child(self) -> Widget | None:
         return self.navigation.selected
 
-    @property
-    def operational_sources(self):
-        from toad.screens.session_view import SessionView
-
-        return self.query_ancestor(SessionView).presentation.sources
 
     def draws_user_message(self, sent) -> bool:
         from agent_comms.message_reference import MessageReference
@@ -1004,70 +1077,14 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                    for history in self.transcript.histories
                    for fragment in history.visible_fragments())
 
-    def transcript_scope(self) -> tuple[str, str] | None:
-        """The native session identity whose canonical transcript this view shows."""
-        from toad.screens.session_view import SessionView
 
-        origin = self.query_ancestor(SessionView).origin
-        if origin is None or origin.coordination_root is None or not origin._comms_thread:
-            return None
-        return origin.coordination_root, origin._comms_thread
 
-    def status_thread(self) -> tuple[str, str] | None:
-        return self.transcript.thread_scope
 
-    def arm_thread_read(self) -> None:
-        """Capture turn token and client authority for the next observed presentation."""
-        self._thread_read = self.agent.thread_read() if self.agent is not None else None
 
-    def thread_observed(self, presentation) -> None:
-        """Settle the agent's turn from an observed presentation, as its own read would."""
-        read = self._thread_read
-        self.arm_thread_read()
-        if read is not None:
-            try:
-                presentation = read.settle(presentation)
-            except ValueError as error:
-                self.log.warning("Observed thread presentation not settled", error)
-                return
-        self.thread_presented(presentation)
-        if (prompt := self.query_one_optional(Prompt)) is not None:
-            prompt.sync_session()
 
-    def foreign_thread_read(self, presentation) -> None:
-        self.thread_presented(presentation)
 
-    def thread_presented(self, presentation) -> None:
-        """A settled presentation refreshes the transcript source of the shown view."""
-        from toad.screens.session_view import SessionView
 
-        self.thread_presentation = presentation
-        if presentation is None or not self.transcript.readable:
-            return
-        if self.query_ancestor(SessionView).is_current:
-            from toad.transcript_publication import ObservedSourcePublication
-            self._unpublished_presentation = None
-            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
-        else:
-            self._unpublished_presentation = presentation
 
-    @handles(core_events.SessionSelected)
-    async def _thread_view_selected(self, event: CoreEventMessage) -> None:
-        from toad.screens.session_view import SessionView
-
-        presentation = self._unpublished_presentation
-        if presentation is not None and self.query_ancestor(SessionView).is_current:
-            from toad.transcript_publication import ObservedSourcePublication
-            self._unpublished_presentation = None
-            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
-
-    @handles(core_events.CoordinationObserved)
-    async def _thread_route_observed(self, event: CoreEventMessage) -> None:
-        # The observed root can change; a foreign thread reads again.
-        self.refresh_thread_status()
-        # Read/handling changes can leave source text unchanged. Ask the same
-        # publication owner to refresh both live bodies and saved message rows.
-        self.transcript.request_handling()
 
 
     async def _apply_session_name(self, name: str) -> None:
