@@ -32,7 +32,7 @@ from toad.line_blocks import (
 class MessageRow:
     """One message: who sent it to whom, when, its text, and whether the reader's thread sent it."""
 
-    route_arrow: ClassVar[str] = " ━━▶ "
+    route_arrow: ClassVar[str] = " ──→ "
 
     route: MessageRoute
     text: str
