@@ -5,26 +5,25 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from rich.text import Text
 from textual.app import ComposeResult
 from textual.content import Content
-from textual.widgets import Collapsible, Static
+from textual.widgets import Collapsible
 
 from toad.notification_status import (
-    CheckedNotifications, DetailLines, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
-from toad.widgets.transcript_lines import OpensLinks, link_style
+from toad.line_blocks import SpanColumns
+from toad.widgets.tool_content import ToolContent
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import TranscriptFragment
 
 
-class NotificationDetails(OpensLinks, Static):
-    """The feedback lines behind a message's notification state; a name opens its thread."""
+class NotificationDetails(ToolContent):
+    """Use the existing line-block view's width, preparation and link lifecycle."""
 
-    def show(self, lines: DetailLines) -> None:
-        self.update(Text("\n").join(
-            Text.assemble(*((span.text, link_style(span.link)) for span in line)) for line in lines))
+    def show(self, disclosure: SpanColumns) -> None:
+        self.update((disclosure,))
 
 
 class MessageNotifications(Collapsible):
@@ -33,8 +32,7 @@ class MessageNotifications(Collapsible):
         height: auto; padding: 0; margin: 0; border: none;
         background: transparent; color: $text-muted;
         CollapsibleTitle { padding: 0; min-height: 1; }
-        Contents { padding: 0 0 0 2; }
-        Static { height: auto; }
+        Contents { padding: 0; }
     }
     MessageNotifications.-working > CollapsibleTitle { color: $accent; }
     MessageNotifications.-unavailable > CollapsibleTitle { color: $warning; }
@@ -42,7 +40,7 @@ class MessageNotifications(Collapsible):
 
     def __init__(self) -> None:
         self.status: NotificationStatus = UncheckedNotifications()
-        self._details: Static | None = None
+        self._details: NotificationDetails | None = None
         super().__init__(title=self.status.title, collapsed=True)
 
     def compose(self) -> ComposeResult:
@@ -54,10 +52,10 @@ class MessageNotifications(Collapsible):
     def details(self) -> NotificationDetails:
         """The details body, created only when it is first shown."""
         if self._details is None:
-            self._details = NotificationDetails(markup=False)
+            self._details = NotificationDetails()
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
-        self._details.show(self.status.details)
+        self._details.show(self.status.disclosure)
         return self._details
 
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:

@@ -208,7 +208,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return Strip(row[start:start + width], cell_length=width)
 
     def paint_mix(self, frame: Mix, target: Strip) -> Strip:
-        return target.apply_style(RichStyle(color=self.mixed(frame.start, frame.end, frame.amount).rich_color))
+        return Strip(Segment.apply_style(target, post_style=RichStyle(
+            color=self.mixed(frame.start, frame.end, frame.amount).rich_color)), target.cell_length)
 
     def paint_band(self, frame: Band, target: Strip) -> Strip:
         width = target.cell_length
@@ -216,7 +217,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         if start >= end:
             return target
         before, band, after = target.divide((start, end, width))
-        band = band.apply_style(RichStyle(color=self.colour(frame.colour).rich_color))
+        band = Strip(Segment.apply_style(band, post_style=RichStyle(
+            color=self.colour(frame.colour).rich_color)), band.cell_length)
         return Strip.join((before, band, after))
 
     def paint_rising(self, frame: Mix, target: Strip) -> Strip:
@@ -227,7 +229,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         """
         start = self.colour(frame.start)
         if start.ansi is not None or frame.amount >= 1.0:
-            return target if frame.amount >= 0.5 else target.apply_style(RichStyle(color=start.rich_color))
+            return target if frame.amount >= 0.5 else self.paint_mix(frame, target)
         end = self.colour(frame.end)
 
         def risen(segment: Segment) -> Segment:

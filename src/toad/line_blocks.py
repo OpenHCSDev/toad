@@ -311,6 +311,22 @@ class Spans(SpanText):
 
 
 @dataclass(frozen=True)
+class SpanColumns(LineBlock):
+    """Complete span cells flow into columns at the available drawing width.
+
+    Unlike Spans, these breaks separate cells, not forced visual rows. Links
+    and roles stay on their original spans however the frontend lays them out.
+    """
+
+    cells: tuple[tuple[Span, ...], ...]
+    indent: int = 0
+
+    @property
+    def selection_text(self) -> str:
+        return "\n".join("".join(span.text for span in cell) for cell in self.cells)
+
+
+@dataclass(frozen=True)
 class Summary(SpanText):
     """One clipped row, followed by spans whose space is reserved first."""
 

@@ -98,7 +98,7 @@ class GoalBar(VerticalGroup):
 
         # Observe the existing presentation owners instead of introducing a
         # second definition of "running" or "queue mode" on Conversation.
-        self._throbber = self.parent.query_one_optional(Throbber)
+        self._throbber = self.parent.query_one_optional("#throbber", Throbber)
         self._prompt = self.parent.query_one_optional(Prompt)
         self.watch(self._source(), "goal_display", self.watch_goal_display)
         self.watch(self._source(), "goal_execution", self.watch_execution)

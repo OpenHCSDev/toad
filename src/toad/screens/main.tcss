@@ -63,10 +63,6 @@ Conversation {
         dock: bottom;
         height: auto;
 
-        & > Throbber {
-            offset-y: 0;
-        }
-
         & > Prompt {
             dock: none;
             margin-top: 0;
