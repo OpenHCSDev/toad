@@ -153,9 +153,9 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             history = RecordedTranscriptHistory(page, load, prepared=prepared, root=root, source=item.source.key)
             window = self.query_one(HistoryWindow)
             window.anchor()
-            await history.prepare_body(
-                lambda: generation == self._selection_generation and self.is_attached,
-                window=window, target=content, selected=all_categories(),
+            await content.prepare_history(
+                history, lambda: generation == self._selection_generation and self.is_attached,
+                window=window, selected=all_categories(),
             )
             if generation != self._selection_generation or not self.is_attached:
                 return

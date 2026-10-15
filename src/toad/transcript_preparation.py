@@ -6,7 +6,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
@@ -27,6 +27,11 @@ from toad.work_preparation import (
     WorkLane,
     retained_bytes,
 )
+
+
+if TYPE_CHECKING:
+    from toad.widgets.conversation import Contents
+    from toad.widgets.transcript_history import LineHistory
 
 
 @dataclass
@@ -58,7 +63,8 @@ class PreparedTranscriptPage:
         if self.fragment_range is None:
             self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
 
-    async def prepare_latest(self, view, current, *, target, selected,
+    async def prepare_latest(self, view: LineHistory, current: Callable[[], bool], *,
+                             target: LineHistory | Contents, selected: frozenset[type[MessageCategory]],
                              rows_needed: int, limit: int) -> int:
         """Own the bottom range, selected from rendered rows rather than transport size."""
         take = rows = 0

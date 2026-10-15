@@ -200,9 +200,9 @@ class SnapshotPublication(TranscriptPublication):
         view = self.owner.view
         history = TranscriptHistory(self.page, self.owner.get_transcript_page,
                                     prepared=prepared, committed=False)
-        await history.prepare_body(
-            partial(self.source_current, self.page.after), window=self.window,
-            target=self.contents, selected=view.visible_categories,
+        await self.contents.prepare_history(
+            history, partial(self.source_current, self.page.after), window=self.window,
+            selected=view.visible_categories,
         )
         async with AsyncExitStack() as retirement:
             async with self.window.history_lock:
@@ -492,8 +492,8 @@ class CheckpointPublication(CanonicalSourcePublication):
             replacement = TranscriptHistory(
                 page, self.owner.get_transcript_page, prepared=prepared.page, committed=False,
             )
-            await replacement.prepare_body(
-                is_current, window=window, target=contents, selected=view.visible_categories,
+            await contents.prepare_history(
+                replacement, is_current, window=window, selected=view.visible_categories,
             )
         async with AsyncExitStack() as retirement:
             async with window.history_lock:
@@ -637,8 +637,8 @@ class TranscriptPresentation:
             if not current() or source.closed:
                 return
             history = TranscriptHistory.from_source(source)
-            await history.prepare_body(
-                current, window=window, target=contents, selected=view.visible_categories,
+            await contents.prepare_history(
+                history, current, window=window, selected=view.visible_categories,
             )
             if not current():
                 return

@@ -118,6 +118,7 @@ def make_session_title(prompt: str) -> str:
 if TYPE_CHECKING:
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
+    from toad.widgets.transcript_history import LineHistory
 
 
 
@@ -210,6 +211,13 @@ class Contents(containers.VerticalGroup, can_focus=False):
     def line_width(self) -> int:
         """The native width of full-width history rows prepared before mounting."""
         return self.content_size.width
+
+    async def prepare_history(self, history: LineHistory, current: Callable[[], bool], *,
+                              window: HistoryWindow, selected: frozenset[type[MessageCategory]]) -> None:
+        """Supply a laid-out native target before its detached history prepares rows."""
+        if not self.line_width:
+            await self.wait_for_refresh()
+        await history.prepare_rows(current, window=window, target=self, selected=selected)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(

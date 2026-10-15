@@ -69,6 +69,7 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.conversation import Contents
 
 class _DrawingStopped(Exception):
     """Unwind an anchor transaction whose source owner no longer publishes."""
@@ -497,8 +498,9 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         if (projection := self.filter.state.overlay) is not None:
             projection.resume_source()
 
-    async def prepare_fragments(self, fragments, current: Callable[[], bool], *, selected=None,
-                                target=None) -> None:
+    async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
+                                current: Callable[[], bool], *, selected=None,
+                                target: LineHistory | Contents | None = None) -> None:
         """Render against the native destination, including before history is mounted."""
         target = self if target is None else target
         selected = self.selected_categories if selected is None else selected
@@ -523,14 +525,12 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """The width pages draw at, as laid out; 0 before the first layout."""
         return next((page.line_width for page in self.pages if page.line_width), 0)
 
-    async def prepare_body(self, current: Callable[[], bool], *, window, target,
-                           selected) -> None:
+    async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
+                           target: Contents, selected: frozenset[type[MessageCategory]]) -> None:
         """Prepare the destination before its first native layout can expose raw rows."""
-        if window.reader_position is not None:
-            window.reader_position.prepare_history(self)
+        window.prepare_history(self)
         if window.follows_tail and target.line_width > 0:
-            viewport_rows = window.latest_rows
-            limit = window.lookahead.destination_batch(self.budget, window.outer_size.height)
+            viewport_rows, limit = window.latest_limits(self.budget)
             rows = count = 0
             # A restored document keeps its original pages and older prefix.
             # Prepare only the bottom viewport; older rows warm after first paint.
@@ -549,7 +549,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 await self.prepare_fragments(page.fragments_in_range, current,
                                              selected=selected, target=target)
         if (projection := self.filter.state.overlay) is not None:
-            await projection.prepare_body(current, window=window, target=target,
+            await projection.prepare_rows(current, window=window, target=target,
                                           selected=projection.selected_categories)
 
     @property
@@ -931,19 +931,15 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         elif self.has_older and self.state.accepts_source_work:
             self._request_page(True)
 
-    async def _publish_latest(self, request: LatestViewportRequest,
-                              publication_current: Callable[[], bool]) -> bool:
+    async def _publish_latest(self, current: Callable[[], bool]) -> bool:
         """Prepare and publish the complete bottom destination as one tree change."""
-        snapshot = self.source_snapshot()
-        window = snapshot.window
-        current = lambda: snapshot.current(self) and request.current(window) and publication_current()
+        window = self.window
         edge = self.pages[-1]
         if self.loader is None or edge.page.after == self.through:
             prepared = edge.prepared.for_view()
         else:
             prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
-        viewport_rows = window.latest_rows
-        limit = window.lookahead.destination_batch(self.budget, window.outer_size.height)
+        viewport_rows, limit = window.latest_limits(self.budget)
         destination: list[PreparedTranscriptPage] = []
         rows = count = 0
         while rows < viewport_rows and count < limit:
@@ -984,7 +980,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self.pages = views
                 await self.remove_children(previous)
                 self._update_edges()
-                self.refresh(layout=True)
             return True
 
     async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None,
