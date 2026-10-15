@@ -18,8 +18,7 @@ from textual.containers import VerticalGroup
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
-from toad.forms.declared_views import DeclaredField
-from toad.forms.editors import ValueEditor
+from toad.forms.field_path import FieldPath
 from toad.forms.form_view import FormView
 from toad.preferences import SETTINGS
 from toad.setting_choices import FamilyChoices
@@ -51,6 +50,8 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
         self.state = ObjectState(control.form_type(control.order))
         self.form = FormView(self.state)
         self.visibility = control.visibility_fields()
+        self.visibility_form = (FormView(self.app.saved_settings.state, paths=self.visibility)
+                                if self.visibility else None)
 
     def compose(self):
         with VerticalGroup() as panel:
@@ -60,8 +61,9 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
             yield Static(f"Sort {self.control.scope}")
             self.form.styles.height = 7
             yield self.form
-            for field in self.visibility:
-                yield ValueEditor.declared_for(field)
+            if self.visibility_form is not None:
+                self.visibility_form.styles.height = 14
+                yield self.visibility_form
 
     def on_mount(self):
         self.styles.align = ("center", "middle")
@@ -136,7 +138,7 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
 
         self.app.push_screen(SortDialog(self), choose)
 
-    def visibility_fields(self) -> tuple[DeclaredField, ...]:
+    def visibility_fields(self) -> tuple[FieldPath, ...]:
         return ()
 
     async def _save_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
@@ -193,6 +195,5 @@ class ChannelListSort(CommsSortControl[ChannelSort]):
     def store_order(self, channels, order: type[ChannelSort]) -> type[ChannelSort]:
         return channels.set_channel_order(order)
 
-    def visibility_fields(self) -> tuple[DeclaredField, ...]:
-        return tuple(DeclaredField.at(self.app.saved_settings.state, path) for path in
-                     (SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived))
+    def visibility_fields(self) -> tuple[FieldPath, ...]:
+        return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived
