@@ -57,7 +57,6 @@ class ContextTreeIntent:
             return False
         node = resolve(self.selected.key)
         if node is None:
-            self.selected = None
             return False
         self.selected = node.data
         show_detail(self.selected)
