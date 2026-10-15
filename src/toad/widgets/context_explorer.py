@@ -360,8 +360,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 status.update(f"Context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
-        self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older
-        self.query_one("#context-newer", Button).disabled = not current.inspection.page.has_newer
+        self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()
+        self.query_one("#context-newer", Button).disabled = not current.inspection.page.has_newer()
         if previous.inspection_differs(current.inspection):
             current.present_acquired(previous, self._present)
         if previous.needs_native(current.inspection, force):
