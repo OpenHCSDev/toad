@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from math import ceil
 from typing import Any
 
 from rich.segment import Segment
@@ -228,11 +227,12 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             if height <= 0:
                 segments.append(Segment(" ", style))
                 continue
-            level = min(8, ceil(height * 8))
+            level = max(1, min(8, round(height * 8)))
             character = first.text[:1] if level == 8 else " ▁▂▃▄▅▆▇█"[level]
             ink = colours[start].blend(colours[end], amount)
-            # Fractional coverage softens the last eighth-cell instead of a hard step.
-            ink = background.blend(ink, min(1.0, height * 8 / level))
+            # Fade sub-eighth tails only. A taller glyph must not dim the whole
+            # band each time its height crosses the next terminal-cell step.
+            ink = background.blend(ink, min(1.0, height * 8))
             segments.append(Segment(character, style + RichStyle(color=ink.rich_color)))
         return Strip(Segment.simplify(segments), cell_length=width)
 
