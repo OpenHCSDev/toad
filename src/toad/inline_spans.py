@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 
-from toad.line_blocks import CodeRole, EmphasisRole, LineLink, Span, StrongRole, TextRole, UrlRole
+from toad.line_blocks import CodeRole, EmphasisRole, Span, StrongRole, TextRole, UrlRole
 from toad.markdown_links import MessageMarkdownParser
 
 
@@ -52,7 +52,7 @@ class CodeInlineSpanRule(InlineSpanRule):
 class LinkOpenSpanRule(InlineSpanRule):
     @classmethod
     def apply(cls, token, state):
-        state.links.append(LineLink.from_href(str(token.attrGet("href"))))
+        state.links.append(token.meta["link"])
 
 
 class LinkCloseSpanRule(InlineSpanRule):

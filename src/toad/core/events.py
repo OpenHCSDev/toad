@@ -184,6 +184,11 @@ class SessionAgentAttached(CoreEvent):
 
 
 @dataclass(frozen=True)
+class LinkContextChanged(CoreEvent):
+    """The original project or reference observation changed; redraw from its owner."""
+
+
+@dataclass(frozen=True)
 class SessionPathChanged(CoreEvent):
     path: str
 
@@ -300,7 +305,7 @@ class FailureLog:
         from toad.widgets.agent_response import AgentResponse
         from toad.widgets.message_filter import OtherCategory
 
-        link = AgentResponse(AcpLogLink(self.log_path).markdown,
+        link = AgentResponse(AcpLogLink.markdown(self.log_path),
                              show_divider=False, category=OtherCategory)
         link.add_class("-error-log-link")
         await view.post(link)

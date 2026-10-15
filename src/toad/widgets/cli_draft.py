@@ -1,17 +1,17 @@
 """The current external CLI item, drawn beside finished history."""
 
 from agent_comms.external_transcript import ExternalDraftRow
-from toad.markdown_links import LinkContext
+from toad.markdown_links import LinkContext, ReferenceRendering
 from textual.widget import Widget
 from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.transcript_lines import LinkedRows, TranscriptLinesRenderTask, PreparedLines
+from toad.widgets.transcript_lines import LinkedRows, LinePreparation, TranscriptLinesRenderTask, PreparedLines
 from toad.widgets.transcript_fragments import FragmentLineConsumer
 
 
-class CliDraft(ConversationBlock, LinkedRows, Widget):
+class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     """Core's current CLI answer, drawn with the committed transcript renderer."""
 
     DEFAULT_CSS = "CliDraft { height: auto; }"
@@ -25,10 +25,12 @@ class CliDraft(ConversationBlock, LinkedRows, Widget):
         self.display = False
 
     def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
 
-    def _theme_changed(self, _theme) -> None:
+    def invalidate_lines(self, change=None) -> None:
+        self._lines = None
         self._request_render()
+        self.refresh(layout=True)
 
     def show(self, draft: ExternalDraftRow | None) -> None:
         if draft == self.draft:
@@ -54,8 +56,11 @@ class CliDraft(ConversationBlock, LinkedRows, Widget):
             consumer = FragmentLineConsumer(show_divider=True)
             for event in draft.events:
                 consumer.dispatch_sync(event)
+            context = await LinkContext.acquire(self)
             lines = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(tuple(consumer.blocks), width, theme, await LinkContext.acquire(self)))
+                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), width, theme), context))
+            if not context.current_for(self):
+                continue
             if not self.is_attached or self.draft is None:
                 return
             if ((draft.turn_id, draft.item_id) != (self.draft.turn_id, self.draft.item_id)

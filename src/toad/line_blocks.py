@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 import json
-import re
 from urllib.parse import quote, unquote
 
 from agent_comms.declared_family import DeclaredFamily
@@ -160,24 +159,47 @@ class LineLink(DeclaredFamily, affix="Link"):
     def click(self) -> str | tuple[str, tuple]:
         return "open", (self,)
 
-    @property
-    def href(self) -> str:
-        """Carry the same typed action through Markdown's string-only href."""
-        return "toad-link:" + quote(json.dumps(FieldCodec.encode(self)), safe="")
+    async def copy_menu(self, widget, event):
+        return False
 
-    def resolved(self, root):
-        return self
+    @property
+    def encoded_href(self) -> str:
+        """Encode only for a dependency's string-only action boundary."""
+        return "toad-link:" + quote(json.dumps(FieldCodec.encode(self)), safe="")
 
     def inline_tokens(self, content):
         from markdown_it.token import Token
-        return (Token("link_open", "a", 1, attrs={"href": self.href}),
+        return (Token("link_open", "a", 1, attrs={"href": LinkHref.capture(self)}, meta={"link": self}),
                 content, Token("link_close", "a", -1))
 
     @classmethod
     def from_href(cls, href: str) -> LineLink:
-        if href.startswith("toad-link:"):
-            return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix("toad-link:"))))
-        return OpenUrl(href)
+        if not href.startswith("toad-link:"):
+            raise ValueError("Expected a resolved Markdown action")
+        return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix("toad-link:"))))
+
+
+class LinkHref(str):
+    """Keep the typed action through Rich's str(href); Textual uses the encoded string.
+
+    Rich's Markdown unconditionally calls str() and then retains the resulting
+    value in Style.link. Returning this string preserves the action without a
+    second parser or a per-render lookup table. Pickle carries the same value.
+    """
+    def __new__(cls, value, target):
+        href = super().__new__(cls, value)
+        href.target = target
+        return href
+
+    @classmethod
+    def capture(cls, target):
+        return cls(target.encoded_href, target)
+
+    def __str__(self):
+        return self
+
+    def __getnewargs__(self):
+        return (super().__str__(), self.target)
 
 
 @dataclass(frozen=True)
@@ -200,32 +222,6 @@ class OpenReference(LineLink):
     """Core's exact display identity, not a delivery mention."""
 
     reference: DisplayReference
-
-
-@dataclass(frozen=True)
-class OpenUrl(LineLink):
-    """Open an address written in a message: a web page, a mail address, a file."""
-
-    url: str
-    # An address that would run code instead of opening something is never a link.
-    runs_code: ClassVar[re.Pattern[str]] = re.compile(r"\s*(vbscript|javascript|data):", re.IGNORECASE)
-
-    @classmethod
-    def opens(cls, url: str) -> bool:
-        """Whether `[label](url)` is drawn as a link, in every style a message is drawn in."""
-        return cls.runs_code.match(url) is None
-
-    def resolved(self, root):
-        from toad.project_link import ProjectLink
-        return OpenUrl(ProjectLink.from_href(lambda: root, self.url).href)
-
-    @property
-    def href(self) -> str:
-        return self.url
-
-    @property
-    def click(self) -> str:
-        return f"link({self.url!r})"
 
 
 @dataclass(frozen=True)

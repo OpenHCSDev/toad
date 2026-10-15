@@ -52,10 +52,10 @@ from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
-from toad.markdown_links import LinkContext
+from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    HorizontalRows, Lines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
@@ -103,7 +103,7 @@ class JumpToLatest(Static, can_focus=True):
         event.stop()
         self.action_jump()
 
-class TranscriptPageView(Animated, HorizontalRows, Widget):
+class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     """One transcript page, drawn as its admitted fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
@@ -209,18 +209,20 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
         return self._measured
 
     def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
         if self.fresh:
             # Once: a page moved to another parent has not arrived again.
             self.fresh = False
             self.run_effect(NEW_TEXT)
 
-    def _theme_changed(self, _theme) -> None:
+    def invalidate_lines(self, change=None) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         # Lines hold resolved theme colours; a new theme draws new lines,
         # plain ones first, which wrap to other rows than the styled ones.
         self.query_ancestor(HistoryWindow).keep_reader()
+        for fragment in self.fragments:
+            fragment.invalidate_lines()
         self.range_changed()
 
     def on_unmount(self) -> None:
@@ -388,10 +390,11 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
                 del self._pending[id(fragment)]
             width, theme = self._width, self.app.colours.line_theme
             context = await LinkContext.acquire(self)
-            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme, context)
+            tasks = tuple(TranscriptLinesRenderTask(fragment.plain_lines(width, theme).preparation, context)
                           for fragment in batch)
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
-            if not self.is_attached or width != self._width:
+            if (not self.is_attached or width != self._width
+                    or theme != self.app.colours.line_theme or not context.current_for(self)):
                 continue
             await self._publish([(fragment, task.blocks, lines)
                                  for fragment, task, lines in zip(batch, tasks, results)])
@@ -519,8 +522,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 return
             batch = todo[first:first + self.budget.batch_items]
             context = await LinkContext.acquire(self)
-            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme, context) for fragment in batch)
+            tasks = tuple(TranscriptLinesRenderTask(fragment.plain_lines(width, theme).preparation, context) for fragment in batch)
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
+            if not context.current_for(self):
+                return
             for fragment, task, lines in zip(batch, tasks, results):
                 fragment.hold_lines(theme, lines, task.blocks)
 
@@ -556,10 +561,12 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
         context = await LinkContext.acquire(self) if drawn else None
         lines = await self.app.render_processes.submit(TranscriptLinesBatchRenderTask(tuple(
-            TranscriptLinesRenderTask(fragment.blocks(shown), width, theme, context)
+            TranscriptLinesRenderTask(LinePreparation(fragment.blocks(shown), width, theme), context)
             for fragment, shown in drawn))) if drawn else ()
         if not self.state.can_draw:
             return
+        if context is not None and not context.current_for(self):
+            lines = ()
         ready = {id(fragment): rows for (fragment, _shown), rows in zip(drawn, lines)}
         async with self.window.preserve_history(root=self):
             for fragment, shown in changes:
