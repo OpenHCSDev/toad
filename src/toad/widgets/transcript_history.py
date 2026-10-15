@@ -439,7 +439,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
             if not current():
                 return False
             async with window.preserve_history(root=self):
-                return await self.prepared.replace_range(self, self.fragments, selected, None, current)
+                return await self.prepared.replace_range(self, self.fragments, selected, current)
 
 
 class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
@@ -1055,9 +1055,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             protected_pages: set[TranscriptPageView] = set()
             if local:
                 previous = {id(fragment) for fragment in edge.fragments_in_range}
-                selected = slice(prepared.start if older else edge.start,
-                                 edge.stop if older else prepared.stop)
-                if not await edge.prepared.replace_range(edge, edge.fragments, selected, None, current):
+                if not await edge.prepared.extend(edge, prepared, current):
                     raise _DrawingStopped
                 self._require_can_draw()
                 protected.update(id(fragment) for fragment in edge.fragments_in_range

@@ -130,8 +130,12 @@ class PreparedTranscriptPage:
 
     # A page draws its admitted fragments as lines: admission moves a range,
     # it never mounts or removes native members.
-    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(),
-                            acquired=None, suppliers=None) -> bool:
+    async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
+        """Admit the staged rows; the range owner alone combines its membership."""
+        selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
+        return await self.replace_range(view, prepared.fragments, selected, current)
+
+    async def replace_range(self, view, fragments, selected, current) -> bool:
         if not current():
             return False
         self.publish_fragments(fragments)
