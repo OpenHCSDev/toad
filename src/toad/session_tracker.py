@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
 from operator import attrgetter
@@ -12,15 +13,19 @@ from toad.conversation_kind import ConversationKind
 
 
 @dataclass(frozen=True)
-class OpenTab:
+class OpenTab(ABC):
     """A tab reads its label and activity from the source it represents."""
 
     mode_name: str
     busy = False
 
     @property
-    def title(self) -> str:
-        raise NotImplementedError
+    @abstractmethod
+    def title(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def unread(self) -> UnreadPresentation: ...
 
     def label(self, phase: int) -> str:
         return self.title
