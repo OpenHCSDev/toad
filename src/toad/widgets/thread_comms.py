@@ -51,7 +51,7 @@ class RelationshipTreeState:
 
 class RelationshipSort(SortControl[ThreadSort]):
     def __init__(self):
-        super().__init__(ThreadSortForm(None), "relationships")
+        super().__init__(ThreadSortForm, "relationships")
 
     def update_groups(self, groups):
         orders = {group.order for group in groups}
@@ -139,7 +139,7 @@ class RelationshipRows(SidebarGroup):
         rows = tree.thread_rows
         actions = tree.app.thread_actions.pending
         container = self.member_container
-        entries = {(entry.kind, entry.target): entry for entry in self.model.entries}
+        entries = {entry.identity: entry for entry in self.model.entries}
         empty = container.query_one_optional(".relationship-empty")
         if entries and empty is not None:
             empty.remove()
@@ -387,7 +387,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 self.groups.clear()
                 if generation != self._generation or not self.is_attached:
                     return
-            absent = set(self.groups) - {type(model) for model in snapshot.groups}
+            models = snapshot.groups_by_type
+            absent = self.groups.keys() - models.keys()
             if absent:
                 await self.remove_children([self.groups.pop(key) for key in absent])
                 if generation != self._generation or not self.is_attached:
@@ -428,15 +429,15 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 control.update_groups(snapshot.sortable_groups)
             # From here to the end nothing awaits: rows, groups and models change together.
             self.thread_rows = thread_rows
-            for model in snapshot.groups:
-                group = self.groups.get(type(model))
+            for identity, model in models.items():
+                group = self.groups.get(identity)
                 if group is None:
                     # A new group reconciles its members once composed (on_mount).
-                    group = self.groups[type(model)] = RelationshipRows(
-                        model, self.view_state.expanded.get(type(model), True))
+                    group = self.groups[identity] = RelationshipRows(
+                        model, self.view_state.expanded.get(identity, True))
                     self.mount(group)
                 group.display = True
-                group.expanded = self.view_state.expanded.get(type(model), True)
+                group.expanded = self.view_state.expanded.get(identity, True)
                 group.present(model)
                 group.sync_members()
             self.sync_current()
@@ -493,14 +494,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
-            group = snapshot.groups_by_type.get(group_key)
-            current = (next((entry for entry in group.entries
-                             if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
-                       if group is not None else None)
-            same_incarnation = (expected.person is None or
-                (current is not None and current.person is not None and
-                 current.person.thread.created_at == expected.person.thread.created_at))
-            if current is None or not current.available or not same_incarnation:
+            current = snapshot.current_entry(group_key, expected)
+            if current is None:
                 self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
                 self.refresh_relationships(force=True)
                 return
