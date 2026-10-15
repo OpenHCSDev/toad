@@ -14,7 +14,7 @@ from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotific
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms import HistoricalThread
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from toad.screens.modal import ModalScreen
@@ -106,6 +106,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
                 yield Contents(id="saved-content")
 
     @on(Select.Changed, "#saved-identity")
+    @work(exclusive=True, group="historical-selection")
     async def selected(self, event: Select.Changed) -> None:
         if event.value is Select.BLANK:
             return
