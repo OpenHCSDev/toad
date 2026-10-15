@@ -698,13 +698,9 @@ class PlainLines(Lines):
     def width(self) -> int:
         return self.preparation.width
 
-    @property
-    def theme(self) -> LineTheme:
-        return self.preparation.theme
-
     @cached_property
     def _measurement(self) -> PlainRowCount:
-        measurement = PlainRowCount(self.width, self.theme)
+        measurement = PlainRowCount(self.width, self.preparation.theme)
         measurement.height(self.preparation.prepared_blocks)
         return measurement
 
@@ -718,7 +714,7 @@ class PlainLines(Lines):
 
     @cached_property
     def rows(self) -> tuple[Row, ...]:
-        return RichLineRenderer(self.theme, self.width, plain=True).rows(self.preparation.prepared_blocks)
+        return RichLineRenderer(self.preparation.theme, self.width, plain=True).rows(self.preparation.prepared_blocks)
 
 
 @dataclass(frozen=True)

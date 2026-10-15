@@ -38,7 +38,7 @@ dependencies = [
 members = ["toad"]
 
 [tool.uv.sources]
-ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "5b0e6fbb361e4b638e79544744ee9b689b998b11" }
+ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "63d92afe75f05d06310c5b92a695954891c8ed2e" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "47f9856b6762553ca10ef94e26de85b2ba069c0d" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "97d73d0d5d30d9766d2c5ea9844bfa30ae96a908" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }

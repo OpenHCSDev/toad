@@ -27,9 +27,6 @@ class SplashText(Animated, Static):
     def play(self) -> None:
         self.run_worker(self._play(), group="splash", exclusive=True)
 
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
     @property
     def plays(self) -> bool:
         """Whether the effect may run now; otherwise its last frame shows."""
