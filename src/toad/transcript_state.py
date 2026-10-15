@@ -41,6 +41,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def check_edges(self, owner) -> None:
         """A source that takes no work draws nothing beyond its edges."""
 
+    def delivered(self, owner) -> None:
+        """Only an admitted source operation measures publication delivery."""
+
     def retirement_source(self) -> "TranscriptState":
         return self
 
@@ -157,6 +160,10 @@ class WorkingTranscript(SuspendedTranscript):
     def __init__(self, source: TranscriptState, owner):
         super().__init__(source)
         self.window_before = owner.paging_window()
+        # Progress since admission and latency since the last publication are
+        # different cuts: one operation may deliver several readable viewports.
+        self.delivery_window = self.window_before
+        self.delivery_started = monotonic()
         self.reader_revision = owner.window.scroll_revision
         # The screen asked for rows beyond an edge while this work held the source.
         self.edges_wait = False
@@ -177,6 +184,13 @@ class WorkingTranscript(SuspendedTranscript):
             or self.window_before != owner.paging_window()
             or self.reader_revision != owner.window.scroll_revision
         )
+
+    def delivered(self, owner) -> None:
+        window = owner.paging_window()
+        if window != self.delivery_window:
+            now = monotonic()
+            owner.window.lookahead.delivered(now - self.delivery_started)
+            self.delivery_window, self.delivery_started = window, now
 
     def request_latest(self, owner, request: LatestViewportRequest) -> None:
         owner.supersede_source_work(self, request)
@@ -206,14 +220,12 @@ class WorkingTranscript(SuspendedTranscript):
         with ExitStack() as completion:
             completion.callback(owner.finish_source_work, self)
             try:
-                started = monotonic()
                 result = await work()
-                if (owner._source_state is self
-                        and self.window_before != owner.paging_window()):
-                    # Both wire and native transcript pages deliver through
-                    # this admission. Measure their complete read/prepare/mount
-                    # path, rather than teaching each leaf another horizon.
-                    owner.window.lookahead.delivered(monotonic() - started)
+                if owner._source_state is self:
+                    # Generic publications and incremental edge delivery share
+                    # this operation's checkpoint; completion cannot count an
+                    # already-delivered page again as a new latency sample.
+                    self.delivered(owner)
                 return result
             except CoordinationReadUnavailable:
                 # The same admission remains suspended until the existing

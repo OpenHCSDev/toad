@@ -984,10 +984,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             return True
 
     async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None,
-                         *, fresh: bool = False) -> None:
-        """Draw the next range beyond an edge; `prepared` is that page when the caller read it.
-
-        `fresh` when the page just arrived on the live tail rather than being paged to."""
+                         *, fresh: bool = False) -> bool:
+        """Publish one readable range; report whether its edge still needs rows."""
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
 
@@ -997,63 +995,61 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             return fresh or self._follow_source_tail or window.lookahead.demand.permits(older)
 
         try:
-            while current():
-                edge = self.pages[0] if older else self.pages[-1]
-                page_range = edge.capture_range()
-                local = edge.start > 0 if older else edge.stop < len(edge.fragments)
-                page = fragments = None
-                staged = edge.prepared.for_view() if local else prepared
-                if not local:
-                    if loader is None:
-                        return
-                    if staged is None:
-                        staged = await self._reader().get(PageRequest(
-                            before=edge.page.before if older else None,
-                            after=edge.page.after if not older else None,
-                        ))
-                    page, fragments = staged.page, staged.fragments
-                # Publish one readable viewport before preparing farther runway.
-                # The same admission continues from its committed layout, not
-                # another frame receipt, and measures rows rather than guessing
-                # a fragment count from the very different bodies already drawn.
-                runway = self._runway()
-                missing = self.prefetch_distance - (0 if runway is None else runway[0 if older else 1])
-                boundary = (edge.start if older else edge.stop) if local else (len(fragments) if older else 0)
-                await staged.prepare_rows(
-                    self, current, target=self, selected=self.selected_categories,
-                    boundary=boundary, older=older,
-                    rows_needed=max(1, min(missing, window.outer_size.height)),
-                    limit=self.app.preparation.max_entries,
-                )
+            if not current():
+                return False
+            edge = self.pages[0] if older else self.pages[-1]
+            page_range = edge.capture_range()
+            local = edge.start > 0 if older else edge.stop < len(edge.fragments)
+            page = fragments = None
+            staged = edge.prepared.for_view() if local else prepared
+            if not local:
+                if loader is None:
+                    return False
+                if staged is None:
+                    staged = await self._reader().get(PageRequest(
+                        before=edge.page.before if older else None,
+                        after=edge.page.after if not older else None,
+                    ))
+                page, fragments = staged.page, staged.fragments
+            # Deliver a readable viewport before preparing farther runway.
+            runway = self._runway()
+            missing = self.prefetch_distance - (0 if runway is None else runway[0 if older else 1])
+            boundary = (edge.start if older else edge.stop) if local else (len(fragments) if older else 0)
+            await staged.prepare_rows(
+                self, current, target=self, selected=self.selected_categories,
+                boundary=boundary, older=older,
+                rows_needed=max(1, min(missing, window.outer_size.height)),
+                limit=self.app.preparation.max_entries,
+            )
+            if not current():
+                return False
+            edge.batch_size = staged.stop - staged.start
+            async with window.history_lock:
                 if not current():
-                    return
-                edge.batch_size = staged.stop - staged.start
-                async with window.history_lock:
-                    if not current():
-                        return
-                    if (self.pages[0] if older else self.pages[-1]) is not edge:
-                        return
-                    if edge.capture_range() != page_range:
-                        return
-                    protected = {id(fragment) for fragment in self.visible_fragments()}
-                    async with window.preserve_history(root=self):
-                        await self._extend_and_trim(edge, older, local, page, protected, fragments, staged,
-                                                    fresh=fresh)
-                        self._require_can_draw()
-                advanced = (self.pages[0] if older else self.pages[-1])
-                if advanced is edge and edge.capture_range() == page_range:
-                    return
-                if fresh:
-                    return
-                if not (self.has_older if older else self.has_newer):
-                    return
-                if not (older and self.destination_needs_older):
-                    runway = self._runway()
-                    if runway is None or runway[0 if older else 1] >= self.prefetch_distance:
-                        return
-                prepared = None
+                    return False
+                if (self.pages[0] if older else self.pages[-1]) is not edge:
+                    return False
+                if edge.capture_range() != page_range:
+                    return False
+                protected = {id(fragment) for fragment in self.visible_fragments()}
+                async with window.preserve_history(root=self):
+                    await self._extend_and_trim(edge, older, local, page, protected, fragments, staged,
+                                                current=current, fresh=fresh)
+                    self._require_can_draw()
+            self.state.delivered(self)
+            advanced = self.pages[0] if older else self.pages[-1]
+            if advanced is edge and edge.capture_range() == page_range:
+                return False
+            if fresh or not current():
+                return False
+            if not (self.has_older if older else self.has_newer):
+                return False
+            if older and self.destination_needs_older:
+                return True
+            runway = self._runway()
+            return runway is not None and runway[0 if older else 1] < self.prefetch_distance
         except _DrawingStopped:
-            return
+            return False
         finally:
             if self.state.can_draw:
                 self.window.check_follow()
@@ -1062,7 +1058,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         self, edge: TranscriptPageView, older: bool, local: bool,
         page: TranscriptPage | None, protected: set[int],
         fragments: tuple[TranscriptFragment, ...] | None,
-        prepared: PreparedTranscriptPage | None = None, *, fresh: bool = False,
+        prepared: PreparedTranscriptPage | None = None, *, current: Callable[[], bool], fresh: bool = False,
     ) -> None:
         """Admit the next range and trim fragments the reader is not seeing.
 
@@ -1072,11 +1068,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = self.filter.projection_visible()
-            snapshot = self.source_snapshot()
             protected_pages: set[TranscriptPageView] = set()
             if local:
                 previous = {id(fragment) for fragment in edge.fragments_in_range}
-                if not await edge.prepared.extend(edge, older, lambda: snapshot.current(self)):
+                if not await edge.prepared.extend(edge, older, current):
                     raise _DrawingStopped
                 self._require_can_draw()
                 protected.update(id(fragment) for fragment in edge.fragments_in_range
@@ -1088,7 +1083,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                     self, page, newest=older, fragments=fragments, batch_size=edge.batch_size,
                     prepared=prepared, fresh=fresh,
                     before=edge if older else self.newer,
-                    current=lambda: snapshot.current(self) and edge.capture_range() == page_range,
+                    current=lambda: current() and edge.capture_range() == page_range,
                 ) as view:
                     if older:
                         self.pages.appendleft(view)
