@@ -327,7 +327,7 @@ requires-dist = [
     { name = "textual-speedups", specifier = "==0.2.1" },
     { name = "typeguard", specifier = "==4.5.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
-    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=9a0e467956edb714a994c394d59929b0fcb6d5a4" },
+    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=4dca00f1d309960e489bb3f58710fd3a9360703a" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
@@ -2023,7 +2023,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=9a0e467956edb714a994c394d59929b0fcb6d5a4#9a0e467956edb714a994c394d59929b0fcb6d5a4" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=4dca00f1d309960e489bb3f58710fd3a9360703a#4dca00f1d309960e489bb3f58710fd3a9360703a" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },
