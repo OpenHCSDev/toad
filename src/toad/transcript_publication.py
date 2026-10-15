@@ -413,6 +413,10 @@ class CheckpointPublication(CanonicalSourcePublication):
         super().__init__(owner, view, window, contents)
         self.plan = checkpoint_plan(window)
 
+    async def read_snapshot(self):
+        # Replacing the visible window needs its page even when source text is unchanged.
+        return await self.owner.reader.snapshot(*self.thread_scope)
+
     def current(self) -> bool:
         view = self.owner.view
         return (super().current() and not view._pruning
