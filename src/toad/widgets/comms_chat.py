@@ -34,7 +34,6 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
-from toad.widgets.transcript_history import JumpToLatest
 from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
 
@@ -124,10 +123,6 @@ class CommsChatView(Conversation):
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
                     yield ChannelActivityTray(id="comms-activity")
-            yield containers.Center(
-                JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
-                id="back-to-bottom-bar",
-            )
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield self.conversation_kind.activity_widget(self)
