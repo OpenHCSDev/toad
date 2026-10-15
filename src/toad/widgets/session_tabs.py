@@ -128,9 +128,6 @@ class Underline(Animated, Widget):
         tab = self.app.colours.paint_band(animation.frame(), strip.crop(start, end))
         return Strip.join((strip.crop(0, start), tab, strip.crop(end, width)))
 
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
     def _on_click(self, event: events.Click):
         """Catch clicks, so that the underline can activate the tabs."""
         event.stop()
