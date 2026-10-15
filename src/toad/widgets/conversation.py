@@ -420,10 +420,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         # publication owner to refresh both live bodies and saved message rows.
         self.transcript.request_handling()
 
-    @handles(core_events.ExternalTranscriptChanged)
-    def _external_transcript_changed(self, event: CoreEventMessage) -> None:
-        self.operational_sources.external_transcript_changed(self)
-
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
 

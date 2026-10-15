@@ -214,11 +214,9 @@ class MailboxSessionSources(OperationalSessionSources):
         return not event.shell and bool(event.body.strip())
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
-        from toad.screens.session_view import SessionView
         from toad.transcript_publication import CanonicalSourcePublication
 
-        if conversation.query_ancestor(SessionView).is_current:
-            conversation.transcript.source_requests.request(CanonicalSourcePublication)
+        conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     def unavailable_reason(self, conversation: Conversation) -> str:
         # A CLI thread has no native owner to start; only its history load holds it.

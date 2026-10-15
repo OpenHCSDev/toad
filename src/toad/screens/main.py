@@ -453,6 +453,11 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     async def on_session_attached(self, message: CoreEventMessage) -> None:
         await self.content.attached(self)
 
+    @handles(core_events.ExternalTranscriptChanged)
+    def on_external_transcript_changed(self, message: CoreEventMessage) -> None:
+        if self.is_current and (conversation := self.presentation.widget) is not None:
+            self.presentation.sources.external_transcript_changed(conversation)
+
     @handles(core_events.AgentFail)
     def on_session_failure(self, message: CoreEventMessage) -> None:
         agent = self.presentation.operational_agent
