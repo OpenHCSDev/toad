@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from textual.content import Content
-from textual.style import Style
-
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.widgets.selection import HoverSelection
+from toad.widgets.selection import HoverSelection, ViewLabel
 
 
-class ThreadStatusRow(HoverSelection):
+class ThreadStatusRow(ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
 
     DEFAULT_CSS = """
@@ -26,7 +24,6 @@ class ThreadStatusRow(HoverSelection):
     ThreadStatusRow:hover, ThreadStatusRow:focus {
         background: $block-cursor-background;
         color: $block-cursor-foreground !important;
-        text-style: $block-cursor-text-style;
     }
     """
 
@@ -51,24 +48,20 @@ class ThreadStatusRow(HoverSelection):
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
         badge = f"{row.unread.label} " if row.unread.label else ""
-        content = Content.assemble(
-            badge,
-            "* " if self.pinned else "",
-            row.label,
-            f"\n  {summary}",
-        )
-        self.show_content(content, highlighted=row.unread.highlighted)
+        title = self.activity_content(row.title, Content(row.label), self.busy,
+                                      prefix=Content.assemble(badge, "* " if self.pinned else ""))
+        content = Content.assemble(title, f"\n  {summary}")
+        self.show_content(content)
 
-    def show_content(self, content: Content, *, highlighted: bool = False, layout: bool = False) -> None:
-        """Apply row emphasis and repaint only changed native content."""
-        if highlighted:
-            content = content.stylize(Style(bold=True))
+    def show_content(self, content: Content, *, layout: bool = False) -> None:
+        """Repaint changed native content; visibility owns label emphasis."""
         current = self.content
         if not current.is_same(content):
             self.update(content, layout=layout and current.plain != content.plain)
 
     def retire_thread_row(self) -> None:
         """This row no longer shows a thread."""
+        self.stop_effect()
         if self.thread_row is not None:
             self.update_classes({"-wire-thread": False, "-busy": False, "-asking": False})
         self.thread_row = None

@@ -36,7 +36,7 @@ from textual.widgets import Static
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
-from toad.core.events import SessionSelected, ThreadActionsChanged, CoordinationObserved
+from toad.core.events import ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.widgets.session_sidebar import ThreadStatusRow
@@ -65,7 +65,7 @@ class ChannelUnread(Static):
             self.query_ancestor(ChannelGroup).row.action_open_selected()
 
 
-class ChannelGroup(SidebarGroup):
+class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
     DEFAULT_CSS = """
@@ -77,7 +77,6 @@ class ChannelGroup(SidebarGroup):
 
     def __init__(self, row: CommsRow, *, expanded: bool):
         row.add_class("channel-header")
-        self.members: dict[str, ThreadRow] = {}
         self.channel: ChannelRowModel | None = None
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
@@ -90,15 +89,12 @@ class ChannelGroup(SidebarGroup):
     def sidebar(self) -> CommsSidebar:
         return self.query_ancestor(CommsSidebar)
 
-    def on_mount(self) -> None:
-        self.sync_members()
-
     def present(self, channel: ChannelRowModel) -> None:
         """Paint the channel header from its model row."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous is None or previous.label != channel.label or previous.unread != channel.unread:
-            row.set_label(channel.label, highlighted=channel.unread.highlighted)
+        if previous is None or previous.label != channel.label:
+            row.set_label(channel.label)
         row.tooltip = channel.tooltip
         row.set_class(channel.active, "-channel-active")
         if previous is None or previous.unread != channel.unread:
@@ -130,7 +126,7 @@ class ChannelGroup(SidebarGroup):
         sidebar = self.sidebar
         threads = sidebar.model.threads.rows
         wanted = tuple(name for name in channel.members
-                       if name in threads and (self.expanded or name in self.members))
+                       if name in threads and (self.expanded or name in self.rows))
         actions = cast("ToadApp", self.app).thread_actions.pending
 
         def create(name: str) -> ThreadRow:
@@ -146,7 +142,7 @@ class ChannelGroup(SidebarGroup):
             view.show(row, pinned=name in channel.pinned_members, action_status=actions.get(name))
 
         self.reconcile_rows(
-            wanted, self.members, create, update,
+            wanted, create, update,
             replace=lambda name, view: (view.thread_row is not None
                                         and view.thread_row.incarnation != threads[name].incarnation))
 
@@ -187,11 +183,8 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     CommsRow.-selected, CommsRow.-selected:hover, CommsRow.-selected:focus {
         background: $block-cursor-background;
         color: $block-cursor-foreground !important;
-        text-style: $block-cursor-text-style;
     }
-    CommsRow.-current { color: $text; text-style: bold; }
-    CommsRow.-current:hover, CommsRow.-current:focus { text-style: bold underline; }
-    CommsRow.-channel-active { color: $warning 100%; text-style: bold; }
+    CommsRow.-channel-active { color: $warning 100%; }
     """
 
     BINDINGS = [
@@ -201,7 +194,6 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     ]
 
     can_focus = True
-    current = reactive(False, toggle_class="-current")
 
     def focus_on_click(self) -> bool:
         # Pointer activation navigates; keyboard traversal still owns row focus.
@@ -220,10 +212,10 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         sidebar = self.sidebar_owner()
         return sidebar is not None and sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
-    def set_label(self, label: str, *, highlighted: bool = False) -> None:
+    def set_label(self, label: str) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
-        self.show_content(Content(label), highlighted=highlighted, layout=True)
+        self.show_content(Content(label), layout=True)
 
     def sidebar_owner(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
@@ -404,6 +396,10 @@ class SidebarModelView(CoreEventReceiver):
     model: SidebarModel | None = None
     # Model changes arrived while this view was hidden or disabled.
     stale = False
+
+    @property
+    def navigation_root(self):
+        return self.service.root if self.service is not None else None
 
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
@@ -593,7 +589,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        self.sync_current()
         # Full row text is retained; the panel grows to the widest content.
         panel.styles.min_width = self.content_width()
         self.display = True
@@ -657,13 +652,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             return
         self.open_views = self.find_open_views()
         for group in self.groups.values():
-            for name, row in group.members.items():
+            for name, row in group.rows.items():
                 row.mode_name = self.open_views.get(name)
-        self.sync_current()
-
-    @handles(SessionSelected)
-    async def session_selected(self, event: CoreEventMessage) -> None:
-        self.sync_current()
 
     @handles(ThreadActionsChanged)
     async def thread_actions_changed(self, event: CoreEventMessage) -> None:
@@ -680,7 +670,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     @property
     def rows(self) -> list[CommsRow]:
         return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in group.visible_rows if row.is_navigation_row()]
+                for row in group.navigation_rows]
 
     @property
     def selection_state(self):
@@ -696,10 +686,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def apply_selection(self) -> None:
         self.navigation.selection_applied = False
         self.navigation.apply()
-
-    @property
-    def navigation_root(self):
-        return self.service.root if self.service is not None else None
 
     def action_open_selected(self) -> None:
         rows = self.rows

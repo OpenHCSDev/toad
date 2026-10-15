@@ -289,9 +289,6 @@ SessionsTabs {
                 text-style: reverse;
             }
 
-            &.-current {
-                text-style: not dim;                
-            }
         }
     }
 }
