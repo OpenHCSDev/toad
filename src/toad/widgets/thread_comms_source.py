@@ -2,9 +2,22 @@
 
 from functools import cached_property
 from pathlib import Path
+from typing import Protocol
 
 from agent_comms.comms import Comms, wire
 from agent_comms.display_order import ThreadSort
+from agent_comms.relationships import SortableRelationshipGroup, ThreadCommsSnapshot
+
+
+class RelationshipSource(Protocol):
+    """The root-bound service is acquired off the UI loop by its read owner."""
+
+    def revision(self) -> object: ...
+
+    def snapshot(self, owner: str) -> ThreadCommsSnapshot: ...
+
+    def set_order(self, owner: str, group: type[SortableRelationshipGroup],
+                  order: type[ThreadSort]) -> type[ThreadSort]: ...
 
 
 class WireRelationshipSource:
@@ -25,5 +38,5 @@ class WireRelationshipSource:
     def snapshot(self, owner: str):
         return self.service.snapshot(owner)
 
-    def set_order(self, owner: str, group: str, order: type[ThreadSort]) -> type[ThreadSort]:
+    def set_order(self, owner: str, group: type[SortableRelationshipGroup], order: type[ThreadSort]) -> type[ThreadSort]:
         return self.service.set_order(owner, group, order)
