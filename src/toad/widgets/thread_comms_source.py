@@ -25,5 +25,5 @@ class WireRelationshipSource:
     def snapshot(self, owner: str):
         return self.service.snapshot(owner)
 
-    def set_order(self, owner: str, group: str, order: ThreadSort) -> ThreadSort:
+    def set_order(self, owner: str, group: str, order: type[ThreadSort]) -> type[ThreadSort]:
         return self.service.set_order(owner, group, order)
