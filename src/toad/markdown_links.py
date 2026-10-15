@@ -84,10 +84,8 @@ class ReferenceRendering(CoreEventReceiver):
         self.app.coordination_access.show_references(self, owner.coordination_root is not None)
 
     def _on_unmount(self):
-        try:
-            self.app.coordination_access.show_references(self, False)
-        finally:
-            super()._on_unmount()
+        # Textual dispatches each class's handler, including CoreEventReceiver's.
+        self.app.coordination_access.show_references(self, False)
 
     @handles(LinkContextChanged)
     def reference_context_changed(self, message):

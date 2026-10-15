@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.presentation import CoordinationSnapshot
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual import on
 from textual.binding import Binding
@@ -28,10 +27,6 @@ from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.thread_comms_model import (
     RelationshipEntry, RelationshipGroup, RelationshipSource, ThreadCommsSnapshot,
 )
-
-# Relationships on a wire other than the observed one have no unread counts here.
-NO_UNREAD = CoordinationSnapshot(threads=(), channels=(), unread={}, last_sent={})
-
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     person = entry.person
@@ -399,7 +394,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             unread = (observed.sidebar.snapshot
                       if observed is not None and observed.sidebar.snapshot is not None
                       and Path(self.wire_root).resolve() == observed.service.root.resolve()
-                      else NO_UNREAD)
+                      else None)
             people = {entry.person.thread.name: entry.person for model in snapshot.groups
                       for entry in model.entries if entry.person is not None}
 
