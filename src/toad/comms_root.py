@@ -32,6 +32,8 @@ from agent_comms.ui_model.observation import (
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged
+from toad.forms.declared_views import DeclaredField
+from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 
 if TYPE_CHECKING:
@@ -320,8 +322,12 @@ class CoordinationAccess(MroDispatch):
             self.observation.process.request(request)
 
     def sidebar_request(self) -> ObserveSidebar:
-        settings = self.app.settings.sidebar
-        return ObserveSidebar(str(self.app.project_dir), settings.show_stopped, settings.show_archived)
+        state = self.app.saved_settings.state
+        return ObserveSidebar(
+            str(self.app.project_dir),
+            DeclaredField.at(state, SETTINGS.sidebar.show_stopped).value,
+            DeclaredField.at(state, SETTINGS.sidebar.show_archived).value,
+        )
 
     def update_sidebar_interest(self) -> None:
         """Observe the sidebar while a view shows it or a consumer waits for it."""

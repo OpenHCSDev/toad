@@ -453,8 +453,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     def _ordered_rows(self):
         return [row for group in self.groups.values()
-                for row in group.visible_members
-                if isinstance(row, RelationshipRow) and row.is_navigation_row()]
+                for row in group.navigation_rows
+                if isinstance(row, RelationshipRow)]
 
     @property
     def selection_state(self):

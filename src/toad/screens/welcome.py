@@ -197,8 +197,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
             self.sections[1].sync_members()
 
     def _ordered_rows(self):
-        return [row for section in self.sections for row in section.visible_members
-                if row.is_navigation_row()]
+        return [row for section in self.sections for row in section.navigation_rows]
 
 
 class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
