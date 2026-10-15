@@ -4,7 +4,7 @@ from textual.widgets import Markdown
 
 from toad.layout import trim_trailing_margin
 from toad.block_content import MarkdownBlockContent, MarkdownFence
-from toad.markdown_links import LinkContext, MessageMarkdownParser
+from toad.markdown_links import LinkContext, MessageMarkdownParser, ReferenceRendering
 from toad.widgets.transcript_lines import OpensLinks
 
 
@@ -18,7 +18,7 @@ class ConversationCodeFence(MarkdownFence):
         return markdown
 
 
-class ConversationMarkdown(OpensLinks, Markdown):
+class ConversationMarkdown(ReferenceRendering, OpensLinks, Markdown):
     """Textual blocks borrow the same syntax, links and opening actions as rows."""
 
     BLOCKS = {
@@ -30,6 +30,9 @@ class ConversationMarkdown(OpensLinks, Markdown):
         kwargs.setdefault("parser_factory", self._make_parser)
         kwargs.setdefault("open_links", False)
         super().__init__(*args, **kwargs)
+
+    def invalidate_lines(self, change=None):
+        self.update(self.source)
 
     def _make_parser(self) -> MessageMarkdownParser:
         return MessageMarkdownParser(LinkContext.containing(self))

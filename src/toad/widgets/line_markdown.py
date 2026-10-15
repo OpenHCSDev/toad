@@ -19,14 +19,14 @@ from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.block_content import BlockContent
-from toad.markdown_links import LinkContext
+from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.line_blocks import Body, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
     LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
 )
 
 
-class LineMarkdown(LinkedRows, BlockContent, Widget):
+class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
     """A leaf that draws one Markdown body; its owner holds headers and identity.
 
     It is block content: the cursor of the message that holds it can select it,
@@ -60,9 +60,9 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
         return self.text or None
 
     def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
 
-    def _theme_changed(self, _theme) -> None:
+    def invalidate_lines(self, change=None) -> None:
         self._styled, self._styled_text, self._plain = None, "", None
         self._request_render()
         self.refresh(layout=True)
@@ -158,7 +158,10 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
             if target and (target != self._styled_text or styled is None or styled.width != width):
                 complete = target == self.text
                 blocks = self.line_blocks(target, complete=complete)
-                lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme, await LinkContext.acquire(self)))
+                context = await LinkContext.acquire(self)
+                lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme, context))
+                if not context.current_for(self):
+                    continue
                 if not self.is_attached:
                     return
                 source_current = width == self._width and theme is self.app.colours.line_theme

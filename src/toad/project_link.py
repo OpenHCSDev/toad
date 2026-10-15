@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import re
 from abc import abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -48,17 +49,23 @@ class EncodedProjectLink:
 
     @classmethod
     @abstractmethod
-    def from_uri(cls, uri: SplitResult) -> ProjectLink: ...
+    def from_uri(cls, uri: SplitResult, root: Path) -> ProjectLink: ...
 
 
 class ProjectLink(LineLink):
+    runs_code: ClassVar[re.Pattern[str]] = re.compile(r"\s*(vbscript|javascript|data):", re.IGNORECASE)
+
+    @classmethod
+    def opens(cls, href):
+        return cls.runs_code.match(href) is None
+
     @classmethod
     def from_href(cls, project_root: Callable[[], Path], href: str) -> ProjectLink:
         """Decode URI syntax once, including the external file/relative grammar."""
         uri = urlsplit(href)
         for declaration in cls.members_with(EncodedProjectLink):
             if uri.scheme == declaration.declared_name:
-                return declaration.from_uri(uri)
+                return declaration.from_uri(uri, project_root())
         if uri.scheme == "file":
             if uri.netloc not in {"", "localhost"}:
                 return ExternalProjectLink(href)
@@ -71,7 +78,7 @@ class ProjectLink(LineLink):
         if link is not None:
             return link
         if Path(uri.path).suffix:
-            return MissingProjectFileLink(href)
+            return MissingProjectFileLink(href, original_root=root)
         return ExternalProjectLink(href)
 
     @classmethod
@@ -85,14 +92,14 @@ class ProjectLink(LineLink):
         if suffix is not None:
             # Colons may belong to a real POSIX filename; don't erase that identity.
             try:
-                return DirectProjectFileLink(cls.existing_file(root, value), position=position)
+                return DirectProjectFileLink(cls.existing_file(root, value), original_root=root, position=position)
             except ProjectLinkProblem:
                 value, position = spelling, position or suffix
         try:
-            return DirectProjectFileLink(cls.existing_file(root, value), position=position)
+            return DirectProjectFileLink(cls.existing_file(root, value), original_root=root, position=position)
         except ProjectLinkProblem:
             if search and SearchProjectFileLink.accepts(value):
-                return SearchProjectFileLink(value, position=position)
+                return SearchProjectFileLink(value, original_root=root, position=position)
         return None
 
     @staticmethod
@@ -118,12 +125,10 @@ class ProjectLink(LineLink):
     @abstractmethod
     async def preview(self, widget) -> None: ...
 
-    async def copy_menu(self, widget, event) -> bool:
-        return False
-
 
 @dataclass(frozen=True, kw_only=True)
 class ProjectFileLink(ProjectLink):
+    original_root: Path
     position: FilePosition | None = None
 
     def at_position(self, href):
@@ -147,7 +152,9 @@ class ProjectFileLink(ProjectLink):
         from toad.project_path_owner import ProjectPathOwner
 
         owner = ProjectPathOwner.containing(widget)
-        root = owner.project_root.resolve()
+        root = self.original_root
+        if not owner.admits_link(widget, root):
+            return
         try:
             path = await self.resolve(root)
         except ProjectLinkProblem as problem:
@@ -176,15 +183,20 @@ class DirectProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
     path: Path
 
     @classmethod
-    def from_uri(cls, uri: SplitResult) -> DirectProjectFileLink:
-        return cls(Path(unquote(uri.path)), position=FilePosition.from_fragment(uri.fragment))
+    def from_uri(cls, uri: SplitResult, root: Path) -> DirectProjectFileLink:
+        return cls(Path(unquote(uri.path)), original_root=root,
+                   position=FilePosition.from_fragment(uri.fragment))
+
+    @classmethod
+    def uri_for(cls, path):
+        return f"{cls.declared_name}:{quote(str(path))}"
 
     @property
     def href(self) -> str:
-        return self.at_position(f"{self.declared_name}:{quote(str(self.path))}")
+        return self.at_position(self.uri_for(self.path))
 
     async def resolve(self, root: Path) -> Path:
-        return self.existing_file(root, str(self.path))
+        return await asyncio.to_thread(self.existing_file, root, str(self.path))
 
 
 class AcpLogLink(DirectProjectFileLink, declared_name="toad-acp-log"):
@@ -196,9 +208,9 @@ class AcpLogLink(DirectProjectFileLink, declared_name="toad-acp-log"):
 
     label: ClassVar[str] = "Open ACP log"
 
-    @property
-    def markdown(self) -> str:
-        return f"[{self.label}]({self.href})"
+    @classmethod
+    def markdown(cls, path) -> str:
+        return f"[{cls.label}]({cls.uri_for(path)})"
 
     async def resolve(self, root: Path) -> Path:
         return self.path
@@ -220,8 +232,9 @@ class SearchProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
                     and not name.startswith("."))
 
     @classmethod
-    def from_uri(cls, uri: SplitResult) -> SearchProjectFileLink:
-        return cls(unquote(uri.path), position=FilePosition.from_fragment(uri.fragment))
+    def from_uri(cls, uri: SplitResult, root: Path) -> SearchProjectFileLink:
+        return cls(unquote(uri.path), original_root=root,
+                   position=FilePosition.from_fragment(uri.fragment))
 
     @property
     def href(self) -> str:

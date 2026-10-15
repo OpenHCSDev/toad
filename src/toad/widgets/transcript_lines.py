@@ -27,11 +27,12 @@ from textual.scroll_view import ScrollView
 from textual.geometry import Size
 from textual.selection import Selection
 from toad.rich_preparation import RichTextBody
+from toad.project_link import ProjectLink
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import (
-    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, OpenUrl, Span, Spans, SpanColumns,
+    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, Span, Spans, SpanColumns,
     Summary, MutedRole,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
@@ -121,7 +122,7 @@ def _clickable(rows: list[Row]) -> list[Row]:
         style = segment.style
         if style is None or not style.link:
             return segment
-        return Segment(segment.text, style + link_style(LineLink.from_href(style.link)), segment.control)
+        return Segment(segment.text, style + link_style(style.link.target), segment.control)
 
     return [tuple(map(linked, row)) for row in rows]
 
@@ -190,9 +191,9 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
 
     @handles(OpenReference)
     def open_reference(self, link: OpenReference) -> None:
-        sidebar = self.app.coordination_access.sidebar
-        if sidebar is None or sidebar.snapshot is None or not link.reference.current_in(sidebar.snapshot.references):
-            self.notify("This reference belongs to an unavailable or replaced source.", severity="warning")
+        source = self.app.coordination_access.reference_context(link.reference.root)
+        if not link.reference.current_in(source):
+            self.notify(source.description or "This reference belongs to a replaced source.", severity="warning")
             return
         self.dispatch_sync(link.reference)
 
@@ -204,10 +205,9 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
     def open_recorded_reference(self, reference) -> None:
         self.open_historical_target(OpenHistoricalTarget(reference.name, reference.source))
 
-    @handles(OpenUrl)
-    def open_url(self, link: OpenUrl) -> None:
-        from toad.project_path_owner import ProjectPathOwner
-        self.run_worker(ProjectPathOwner.link_from(self, link.url).preview(self), group="open-link")
+    @handles(ProjectLink)
+    def open_project_link(self, link: ProjectLink) -> None:
+        self.run_worker(link.preview(self), group="open-link")
 
     def action_link(self, href: str) -> None:
         """Decode Markdown's transport once, then use the ordinary typed actions."""

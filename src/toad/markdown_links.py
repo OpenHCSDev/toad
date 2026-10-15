@@ -8,13 +8,16 @@ from pathlib import Path
 from threading import local
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.display_references import DisplayReferences
+from agent_comms.display_references import ReferenceContext, ProjectReferences
+from agent_comms.mro_dispatch import handles
+from toad.core.events import LinkContextChanged
+from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.field_codec import FieldCodec
 from markdown_it import MarkdownIt
 from markdown_it.rules_core import StateCore, inline as inline_rule
 from markdown_it.token import Token
 
-from toad.line_blocks import LineLink, OpenReference, OpenUrl
+from toad.line_blocks import LineLink, LinkHref, OpenReference
 from toad.project_link import ProjectLink
 from toad.file_position import FilePosition
 
@@ -31,24 +34,27 @@ class LinkContext:
     """Original filesystem and Core observation, captured once per render job."""
 
     root: Path
-    references: DisplayReferences
+    references: ReferenceContext
 
     @classmethod
     async def acquire(cls, widget):
-        access = widget.app.coordination_access
-        if access.observation is not None:
-            await access.current_sidebar()
-        return cls.containing(widget)
+        from toad.project_path_owner import ProjectPathOwner
+        owner = ProjectPathOwner.containing(widget)
+        root, coordination = owner.project_root.resolve(), owner.coordination_root
+        references = (ProjectReferences() if coordination is None else
+                      await widget.app.coordination_access.current_references(coordination))
+        return cls(root, references)
 
     @classmethod
     def containing(cls, widget):
         from toad.project_path_owner import ProjectPathOwner
         owner = ProjectPathOwner.containing(widget)
-        sidebar = widget.app.coordination_access.sidebar
-        references = sidebar.snapshot.references if sidebar is not None and sidebar.snapshot is not None else DisplayReferences()
-        if owner.coordination_root is not None and owner.coordination_root != references.root:
-            references = DisplayReferences()
+        references = (ProjectReferences() if owner.coordination_root is None else
+                      widget.app.coordination_access.reference_context(owner.coordination_root))
         return cls(owner.project_root.resolve(), references)
+
+    def current_for(self, widget):
+        return self == self.containing(widget)
 
     def for_source(self, source):
         return LinkContext(self.root, self.references.for_source(source))
@@ -66,6 +72,32 @@ class LinkContext:
             content = Token("text", "", 0, content=text[match.start:match.end])
             found.append((match.start, match.end, OpenReference(match.reference).inline_tokens(content)))
         return sorted(found)
+
+
+class ReferenceRendering(CoreEventReceiver):
+    """Borrow the source's observation for exactly this rendering lifetime."""
+    def _on_mount(self):
+        from toad.project_path_owner import ProjectPathOwner
+        owner = ProjectPathOwner.containing(self)
+        self.observe_core(self.app.coordination_access.events)
+        self.observe_core(owner.link_context_events)
+        self.app.coordination_access.show_references(self, owner.coordination_root is not None)
+
+    def _on_unmount(self):
+        try:
+            self.app.coordination_access.show_references(self, False)
+        finally:
+            super()._on_unmount()
+
+    @handles(LinkContextChanged)
+    def reference_context_changed(self, message):
+        from toad.project_path_owner import ProjectPathOwner
+        owner = ProjectPathOwner.containing(self)
+        self.app.coordination_access.show_references(self, owner.coordination_root is not None)
+        self.invalidate_lines()
+
+    @abstractmethod
+    def invalidate_lines(self, change=None): ...
 
 
 @dataclass(slots=True)
@@ -98,7 +130,9 @@ class LinkOpenTokenRule(ProjectTokenRule):
     @classmethod
     def resolve(cls, renderer, token, context):
         href = str(token.attrGet("href") or "")
-        token.attrSet("href", LineLink.from_href(href).resolved(context.links.root).href)
+        target = ProjectLink.from_href(lambda: context.links.root, href)
+        token.meta["link"] = target
+        token.attrSet("href", LinkHref.capture(target))
         context.linked += 1
         return [token]
 
@@ -118,7 +152,7 @@ class ImageTokenRule(ProjectTokenRule):
         content = Token("text", "", 0, content=token.content or Path(href).name or "Image")
         if context.linked:
             return [content]
-        return LineLink.from_href(href).resolved(context.links.root).inline_tokens(content)
+        return LineLink.inline_tokens(ProjectLink.from_href(lambda: context.links.root, href), content)
 
 
 class TextTokenRule(ProjectTokenRule):
@@ -165,7 +199,7 @@ class ProjectTokenRenderer:
 class _MarkdownParserState(local):
     def __init__(self):
         self.parser = MarkdownIt("gfm-like", renderer_cls=ProjectTokenRenderer)
-        self.parser.validateLink = OpenUrl.opens
+        self.parser.validateLink = ProjectLink.opens
         for rule in ProjectTokenRule.members_with(ProjectTokenRule):
             rule.register(self.parser)
         rules = tuple(self.parser.core.ruler.getRules(""))

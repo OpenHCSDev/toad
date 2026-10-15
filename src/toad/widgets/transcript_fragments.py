@@ -285,6 +285,9 @@ class TranscriptFragment:
         held = self.__dict__.get("_lines")
         return held[1] if held is not None and held[0] == theme and held[1].width == width else None
 
+    def invalidate_lines(self):
+        self.__dict__.pop("_lines", None)
+
     def hold_lines(self, theme, lines, blocks: tuple[LineBlock, ...]) -> None:
         """Keep the lines rendered from `blocks`, unless the fragment shows something else by now."""
         if blocks is self.line_blocks:
