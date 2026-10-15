@@ -251,10 +251,6 @@ See on-screen instructions for details.
         from toad.widgets.conversation import Conversation
         self.query_ancestor(Conversation).window.focus(scroll_visible=False)
 
-    async def read_editor_clipboard(self):
-        text = await self.app.clipboard_transport.paste(self.app)
-        return self.app.clipboard_content.observed(text)
-
     def on_key(self, event: events.Key) -> None:
         if self.shell_mode and event.key == "tab":
             event.prevent_default()
@@ -306,7 +302,7 @@ See on-screen instructions for details.
                 self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
                             title="Image attachment")
                 return
-            text = (await self.read_editor_clipboard()).text
+            text = (await self.app.clipboard_transport.paste(self.app)).text
             if text:
                 self._paste_clipboard_text(text)
             else:
