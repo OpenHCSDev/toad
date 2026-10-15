@@ -228,6 +228,10 @@ class AgentFail(CoreEvent):
     message: str
     details: str
 
+    async def present_session(self, view) -> None:
+        """Specialized setup/help feedback survives the session's failure label."""
+        await self.present(view)
+
     async def present(self, view) -> None:
         from textual.content import Content
         from toad.widgets.note import Note
@@ -297,6 +301,11 @@ class FailureLog:
 @dataclass(frozen=True)
 class LogAgentFail(FailureLog, TextAgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
+
+    async def present_session(self, view) -> None:
+        # MainScreen presents the current terminal failure. Retain its journal
+        # link, not a second error panel that outlives a recovered session.
+        await self.show_log(view)
 
     async def present(self, view) -> None:
         await super().present(view)

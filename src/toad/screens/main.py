@@ -5,10 +5,12 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 from toad.core_event_carrier import CoreEventReceiver
 import asyncio
+from abc import abstractmethod
 from functools import partial
 from pathlib import Path
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from textual import containers, getters, on
 from textual.app import ComposeResult
@@ -108,6 +110,101 @@ class MCPInventoryProvider(Provider):
                            help="Read-only package snapshot")
 
 
+class ScreenContent(DeclaredFamily, affix="Content"):
+    """Content state owns its label, preparation admission and completion."""
+
+    @abstractmethod
+    def render(self, screen: "MainScreen") -> Static: ...
+
+    @abstractmethod
+    async def wait(self, screen: "MainScreen") -> None: ...
+
+    @abstractmethod
+    async def prepare(self, screen: "MainScreen") -> None: ...
+
+    def finish(self, screen: "MainScreen", content: "ScreenContent") -> None:
+        screen.content = content
+        content.render(screen)
+
+    def close(self, screen: "MainScreen") -> None:
+        """Terminal content has no unfinished waiters to release."""
+
+    async def attached(self, screen: "MainScreen") -> None:
+        """Admitted content already presents the live session."""
+
+    def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
+        label = screen.query_one_optional("#session-opening", Static)
+        if label is None:
+            label = Static(id="session-opening", markup=False)
+        label.update(text)
+        label.display = visible
+        return label
+
+
+class OpeningContent(ScreenContent):
+    def __init__(self) -> None:
+        self.completion = asyncio.get_running_loop().create_future()
+
+    def render(self, screen: "MainScreen") -> Static:
+        from toad.widgets.conversation import ThreadLoading
+
+        return self.label(screen, ThreadLoading.LABEL, visible=True)
+
+    async def wait(self, screen: "MainScreen") -> None:
+        await asyncio.shield(self.completion)
+        await screen.content.wait(screen)
+
+    async def prepare(self, screen: "MainScreen") -> None:
+        await screen._prepare_content()
+
+    def finish(self, screen: "MainScreen", content: ScreenContent) -> None:
+        super().finish(screen, content)
+        self.completion.set_result(None)
+
+    def close(self, screen: "MainScreen") -> None:
+        self.finish(screen, ReadyContent())
+
+
+class NavigatedOpeningContent(OpeningContent):
+    async def prepare(self, screen: "MainScreen") -> None:
+        """Navigation runs _prepare_content after admission; selecting the shell does no I/O."""
+
+
+class ReadyContent(ScreenContent):
+    async def prepare(self, screen: "MainScreen") -> None:
+        await screen._prepare_content()
+
+    def render(self, screen: "MainScreen") -> Static:
+        return self.label(screen, "", visible=False)
+
+    async def wait(self, screen: "MainScreen") -> None:
+        """The content has already been admitted."""
+
+
+class FailedContent(ScreenContent):
+    def __init__(self, error: BaseException) -> None:
+        self.error = error
+
+    def render(self, screen: "MainScreen") -> Static:
+        return self.label(screen, f"Thread unavailable: {self.error}", visible=True)
+
+    async def wait(self, screen: "MainScreen") -> None:
+        if not screen._closing and not screen._closed:
+            raise self.error
+
+    async def prepare(self, screen: "MainScreen") -> None:
+        agent = screen.presentation.operational_agent
+        if agent is not None and agent.ready:
+            await self.attached(screen)
+        else:
+            self.render(screen)
+
+    async def attached(self, screen: "MainScreen") -> None:
+        self.finish(screen, ReadyContent())
+        if screen.is_current:
+            await screen.prepare_presentation()
+
+
 class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
@@ -172,13 +269,30 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
         self._project_panel: ProjectPanel | None = None
-        self._content_ready = asyncio.Event()
-        self._content_error: BaseException | None = None
+        self.content: ScreenContent = OpeningContent()
         from toad.session_presentation import OperationalSessionPresentation
 
         self.presentation = OperationalSessionPresentation()
 
+    @classmethod
+    def from_thread(cls, project: Path, root: str, target: str,
+                    agent: AgentDefinition | None = None) -> "MainScreen":
+        screen = cls(project, agent, agent_session_id=target)
+        screen.initial_coordination_root = root
+        screen._comms_thread = target
+        return screen
+
+    @classmethod
+    def opening(cls, request, origin, app) -> "MainScreen":
+        screen = cls.from_thread(request.project, request.root, request.target,
+                                 origin.source._agent or app.agent_data)
+        screen.content = NavigatedOpeningContent()
+        return screen
+
     async def prepare_presentation(self) -> None:
+        await self.content.prepare(self)
+
+    async def _prepare_content(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         try:
@@ -186,12 +300,16 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             await super().prepare_presentation()
             if sidebar := self.query_one_optional(SessionThreadSidebar):
                 await sidebar.prepare_presentation()
-            await self.query("#session-opening").remove()
-        except BaseException as error:
-            self._content_error = error
+        except asyncio.CancelledError as error:
+            self.opening_failed(error)
             raise
-        finally:
-            self._content_ready.set()
+        except Exception as error:
+            self.opening_failed(error)
+        else:
+            self.content.finish(self, ReadyContent())
+
+    def opening_failed(self, error: BaseException) -> None:
+        self.content.finish(self, FailedContent(error))
 
     async def retire_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
@@ -248,9 +366,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         with containers.Center():
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
+                yield self.content.render(self)
                 yield self.presentation.compose_content(self)
-                if self._agent is not None:
-                    yield Static("Opening thread…", id="session-opening")
 
     def _make_conversation(self) -> Conversation:
         with self._context():
@@ -269,16 +386,14 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
                       if self._agent is not None else "")
 
     async def wait_content_ready(self) -> None:
-        await self._content_ready.wait()
-        if self._content_error is not None and not self._closing and not self._closed:
-            raise self._content_error
+        await self.content.wait(self)
 
     async def close_presentation(self) -> None:
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
         if sidebar := self.query_one_optional(SessionThreadSidebar):
             await sidebar.evict()
-        self._content_ready.set()
+        self.content.close(self)
         await self.presentation.close(self)
 
     def on_comms_session_named(self, thread_name: str) -> None:
@@ -315,20 +430,35 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
         await ScreenCommsConsumer(self).dispatch(event.event.update)
 
+    def bind_project(self, project: Path) -> None:
+        """The admitted source and later coordination updates use one project owner."""
+        if project != self.project_path:
+            self.project_path = project
+            if self._project_panel is not None:
+                self._project_panel.path = project
+            if self.id is not None:
+                self.app.session_navigation.sync_project(self.id, project)
+            self.update_title()
+
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         self.app.coordination_facts[self] = event
         if event.worktree is not None:
-            project = Path(event.worktree)
-            if project != self.project_path:
-                self.project_path = project
-                if self._project_panel is not None:
-                    self._project_panel.path = project
-                if self.id is not None:
-                    self.app.session_navigation.sync_project(self.id, project)
-                self.update_title()
+            self.bind_project(Path(event.worktree))
         self.on_comms_session_named(event.thread.name)
         await self.presentation.apply_coordination(self, event)
+
+    @handles(core_events.AgentReady)
+    async def on_session_attached(self, message: CoreEventMessage) -> None:
+        await self.content.attached(self)
+
+    @handles(core_events.AgentFail)
+    def on_session_failure(self, message: CoreEventMessage) -> None:
+        agent = self.presentation.operational_agent
+        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
+            # Prompt/tool failures do not fail the session. Its disposition is
+            # the original handshake/connection authority, not this view.
+            self.opening_failed(RuntimeError(f"{failure.message}: {failure.details}"))
 
     _last_dm_target: str | None = None
 

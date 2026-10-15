@@ -12,6 +12,7 @@ from functools import partial
 
 
 from agent_comms.route_selection import root_is_current
+from agent_comms.thread_identity import ThreadIncarnation
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
                                 PreviewSessionEntry, SessionEntry)
@@ -101,6 +102,15 @@ class SessionNavigation:
             lambda: self.app.coordination_access.require(selected).registry.snapshot())
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)
+
+    def bind_opened(self, view: MainScreen, *, original: tuple[str, ThreadIncarnation],
+                    name: str, project: Path) -> None:
+        """Bind the admitted source facts before preparing its native resources."""
+        entry = cast(NativeSessionEntry, self.app.workspace_sessions.factories[view.id])
+        view.bind_project(project)
+        entry.original = original
+        entry.details.bind_initial_identity(name)
+        self.publish()
 
     def publish(self) -> None:
         self.app.events.publish(core_events.OpenTabsChanged())
