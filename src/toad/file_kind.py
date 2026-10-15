@@ -71,7 +71,7 @@ class ImageFileKind(FileKind):
     async def show(cls, view, image, position=None):
         from textual_image.widget import Image
         content = Image(image)
-        content.styles.width = "100%"
+        content.styles.width = "auto"
         content.styles.height = "auto"
         await view.body.mount(content)
 
