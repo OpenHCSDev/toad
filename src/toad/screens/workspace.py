@@ -116,9 +116,9 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     @property
     def back_to_bottom_window(self):
-        visible = self._compositor.visible_widgets
+        published = self._compositor.published_widgets
         return next((window for window in self.history_windows
-                     if window in visible and not window.follows_tail), None)
+                     if window in published and not window.follows_tail), None)
 
     def action_back_to_bottom(self) -> None:
         if (window := self.back_to_bottom_window) is not None:

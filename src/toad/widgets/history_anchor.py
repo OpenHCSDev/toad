@@ -264,7 +264,9 @@ class HeldReaderDestination:
         measured = all(
             page.rows_measured for history in window.histories for page in history.pages
         )
-        return self.released() if reached and self.source_ready and measured else self
+        if reached and self.source_ready and measured:
+            return self.released()
+        return self
 
     def moved(self, rows: float) -> None:
         return None

@@ -878,9 +878,20 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     @property
     def destination_needs_older(self) -> bool:
-        """Whether the followed destination still leaves viewport rows uncovered."""
-        return (self.has_older and self._follow_source_tail
-                and self.drawn_extent[0] < self.window.scrollable_content_region.height)
+        """Whether one more complete older fragment fits above the destination."""
+        if not self.has_older or not self._follow_source_tail:
+            return False
+        missing = self.window.scrollable_content_region.height - self.drawn_extent[0]
+        if missing <= 0:
+            return False
+        edge = self.pages[0]
+        if edge.start == 0:
+            return edge.page.has_older
+        fragment = edge.fragments[edge.start - 1]
+        if not fragment.shown_in(self.selected_categories):
+            return True
+        lines = fragment.lines_for(self.line_width, self.app.colours.line_theme)
+        return lines is None or lines.height <= missing
 
     def prepare_scroll(self) -> None:
         if (self.loader is None or not self.is_mounted or not self.state.can_draw or not self.screen.is_current
