@@ -231,6 +231,11 @@ See on-screen instructions for details.
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
         self.apply_keyboard_profile()
+        self.show_editing_mode(self.editing_mode)
+
+    def show_editing_mode(self, mode) -> None:
+        if self.is_mounted:
+            self.query_ancestor(PromptContainer).border_subtitle = mode.label
 
     def apply_keyboard_profile(self) -> None:
         from textual.widgets.text_area import EditingMode, VimInsert
@@ -246,8 +251,9 @@ See on-screen instructions for details.
         from toad.widgets.conversation import Conversation
         self.query_ancestor(Conversation).window.focus(scroll_visible=False)
 
-    async def read_editor_clipboard(self) -> str:
-        return await self.app.clipboard_transport.paste(self.app)
+    async def read_editor_clipboard(self):
+        text = await self.app.clipboard_transport.paste(self.app)
+        return self.app.clipboard_content.observed(text)
 
     def on_key(self, event: events.Key) -> None:
         if self.shell_mode and event.key == "tab":
@@ -257,7 +263,7 @@ See on-screen instructions for details.
             self.suggestion = ""
 
     def action_newline(self) -> None:
-        self.insert("\n")
+        self._replace_via_keyboard("\n", *self.selection)
 
     def action_line_feed(self) -> None:
         self.action_newline()
@@ -300,7 +306,7 @@ See on-screen instructions for details.
                 self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
                             title="Image attachment")
                 return
-            text = await self.read_editor_clipboard()
+            text = (await self.read_editor_clipboard()).text
             if text:
                 self._paste_clipboard_text(text)
             else:
@@ -351,6 +357,8 @@ See on-screen instructions for details.
         NextHistoryCursor.move(self, select, super().action_cursor_down)
 
     def action_delete_left(self) -> None:
+        if not self.editing_mode.accepts_text:
+            return super().action_delete_left()
         selection = self.selection
         if selection.start == selection.end and self.selection.end == (0, 0):
             self.post_message(self.CancelShell())
@@ -375,7 +383,7 @@ See on-screen instructions for details.
             self.move_cursor(location, select=select)
 
     async def action_tab_complete(self) -> None:
-        if not self.shell_mode:
+        if not self.editing_mode.accepts_text or not self.shell_mode:
             return
 
         import shlex

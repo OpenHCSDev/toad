@@ -184,7 +184,12 @@ class DirectMessagesAction(KeyboundAction, ApplicationAction, PaletteAction):
         app.session_navigation.direct_messages()
 
 
-class VimNavigationAction(KeyboundAction, ApplicationAction):
+class VimApplicationAction(KeyboundAction, ApplicationAction):
+    def available(self, app):
+        return app.settings.ui.vim_keys and app.screen is app.workspace_screen
+
+
+class VimNavigationAction(VimApplicationAction):
     """Aliases act on the selected view; focus and native input retain custody."""
 
     @staticmethod
@@ -194,8 +199,7 @@ class VimNavigationAction(KeyboundAction, ApplicationAction):
         return None if view is None else view.query_one_optional(Conversation)
 
     def available(self, app):
-        return (app.settings.ui.vim_keys and app.screen is app.workspace_screen
-                and self.conversation(app) is not None)
+        return super().available(app) and self.conversation(app) is not None
 
 
 class VimScrollDownAction(VimNavigationAction):
@@ -255,6 +259,13 @@ class VimFocusPromptAction(VimNavigationAction):
         conversation = self.conversation(app)
         conversation.prompt.prompt_text_area.editing_mode = VimInsert()
         conversation.focus_prompt(reset_cursor=False, scroll_end=False)
+
+
+class VimHintsAction(VimApplicationAction):
+    key = "f"
+
+    async def apply(self, app):
+        await app.screen.action_show_hints()
 
 
 class VimNextTabAction(VimNavigationAction):

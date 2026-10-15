@@ -21,12 +21,6 @@ class Clipboard(DeclaredFamily, affix="Clipboard"):
             else TerminalClipboard()
         )
 
-    def copy(self, app: App, text: str) -> Clipboard:
-        transport = self.publish(app, text)
-        # This is Textual's existing local-value authority, not another cache.
-        app._clipboard = text
-        return transport
-
     @abstractmethod
     def publish(self, app: App, text: str) -> Clipboard: ...
 
@@ -60,5 +54,5 @@ class SystemClipboard(Clipboard):
 
 class TerminalClipboard(Clipboard):
     def publish(self, app: App, text: str) -> Clipboard:
-        App.copy_to_clipboard(app, text)
+        App.publish_clipboard(app, text)
         return self

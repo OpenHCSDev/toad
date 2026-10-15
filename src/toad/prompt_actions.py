@@ -45,6 +45,8 @@ class ClearInputAction(KeyboundAction, PromptAction):
         return bool(editor.text)
 
     async def apply(self, editor):
+        editor.editing_mode.suspend(editor)
         editor.clear()
+        editor.editing_mode.resume(editor)
         editor.suggestions = None
         editor.suggestion = ""

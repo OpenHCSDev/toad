@@ -21,7 +21,6 @@ from weakref import WeakKeyDictionary
 from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
 from textual._time import after_input
 from textual import events, on, work
-from textual.actions import ActionError, parse as parse_action
 from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
@@ -372,8 +371,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     def session_tracker(self) -> SessionTracker:
         return self._session_tracker
 
-    def copy_to_clipboard(self, text: str) -> None:
-        self.clipboard_transport = self.clipboard_transport.copy(self, text)
+    def publish_clipboard(self, text: str) -> None:
+        self.clipboard_transport = self.clipboard_transport.publish(self, text)
 
 
     def on_notify(self, event: Notify) -> None:
@@ -623,27 +622,19 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
                     title="Automatic copy",
                 )
 
-    async def _broker_event(self, event_name, event, default_namespace) -> bool:
-        """Offer copy-path on right-click without activating a file link."""
-        if event_name == "click" and isinstance(event, events.Click) and event.button == 3:
+    async def dispatch_style_action(self, handler, event, default_namespace) -> bool:
+        """Right-click adds its menu to the original decoded link action."""
+        if isinstance(event, events.Click) and event.button == 3:
             from toad.line_blocks import LineLink
-            action = event.style.meta.get("@click")
             link = None
-            if isinstance(action, tuple):
-                match action:
-                    case ("open", (LineLink() as target,)):
-                        link = target
-            elif isinstance(action, str):
-                try:
-                    parsed = parse_action(action)
-                except ActionError:
-                    return await super()._broker_event(event_name, event, default_namespace)
-                match parsed:
-                    case ("", "link", (str() as href,)) if href.startswith("toad-link:"):
-                        link = LineLink.from_href(href)
+            match handler.action:
+                case ("", "open", (LineLink() as target,)):
+                    link = target
+                case ("", "link", (str() as href,)) if href.startswith("toad-link:"):
+                    link = LineLink.from_href(href)
             if link is not None and await link.copy_menu(default_namespace, event):
                 return True
-        return await super()._broker_event(event_name, event, default_namespace)
+        return await super().dispatch_style_action(handler, event, default_namespace)
 
     def _set_mouse_over(self, widget, hover_widget) -> None:
         # Textual normally clears and reapplies the *same* :hover styles on
