@@ -751,7 +751,6 @@ class TranscriptPresentation:
         self.painted(history.committed_cursor)
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
             await loading.remove()
-        view.remove_class("-initial-loading")
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:

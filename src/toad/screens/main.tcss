@@ -54,11 +54,6 @@ Plan {
 
 
 Conversation {    
-    &.-initial-loading {
-        Window { align: center middle; }
-        ContentsGrid, Contents { height: 1fr; }
-    }
-
     #prompt-stack {
         dock: bottom;
         height: auto;

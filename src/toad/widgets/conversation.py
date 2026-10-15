@@ -525,7 +525,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
-        self.set_class(agent is not None, "-initial-loading")
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -660,7 +659,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         presentation = self.transcript
         if presentation.view is not self:
             return
-        self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         if self.transcript is not presentation or presentation.view is not self:
             return
@@ -1104,7 +1102,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
-        self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         self.turns.finish_client()
         self._agent_fail = True
