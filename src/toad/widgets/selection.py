@@ -31,12 +31,13 @@ class ViewLabel(Animated):
     def render_line(self, y: int) -> Strip:
         line = super().render_line(y)
         animation = self.animation
-        if animation is None or y != 0 or not line.cell_length:
+        if animation is None or y != 0:
             return line
         glyph = animation.frame().native(self.app.colours, None)
-        style = next(iter(line)).style
+        style = next((segment.style for segment in line), None)
+        # Native clipping owns admission, including empty or partial lines.
         return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
-                           line.crop(glyph.cell_length)))
+                           line.crop(glyph.cell_length))).crop(0, line.cell_length)
 
     def paint_current(self, current: bool) -> None:
         content: Content = self.content
