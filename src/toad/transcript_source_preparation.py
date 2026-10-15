@@ -154,7 +154,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     ) -> None:
         if snapshot.current(self):
             request.restore(snapshot.window)
-            request.destination.release(snapshot.window)
+            request.destination.source_settled(snapshot.window)
             snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:

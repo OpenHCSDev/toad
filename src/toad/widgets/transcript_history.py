@@ -787,6 +787,11 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         return page.stop < len(page.fragments) or page.page.has_newer
 
     @property
+    def needs_latest_publication(self) -> bool:
+        """Whether End must replace admitted source ranges to show the newest viewport."""
+        return self.has_newer or len(self.pages) > 1
+
+    @property
     def fragment_limit(self) -> int:
         # Screen rows are not fragment counts: one prepared fragment may contain
         # a dozen lines or a whole indivisible Markdown block. Grow with the
@@ -1003,10 +1008,11 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
         viewport_rows = max(1, window.outer_size.height)
         width, theme = self.line_width, self.app.colours.line_theme
         rows = admitted = 0
+        destination_full = False
         while admitted < destination_batch:
             take = 0
             while (take < len(prepared.fragments) and admitted < destination_batch
-                   and rows < viewport_rows):
+                   and not destination_full):
                 stop = len(prepared.fragments) - take
                 start = max(0, stop - min(
                     self.budget.batch_items, destination_batch - admitted,
@@ -1015,16 +1021,19 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                 await self.prepare_fragments(batch, current)
                 if not current():
                     return False
-                take += len(batch)
-                admitted += len(batch)
-                rows += sum(
-                    lines.height
-                    for fragment in batch if fragment.shown_in(self.selected_categories)
-                    if (lines := fragment.lines_for(width, theme)) is not None
-                )
+                for fragment in reversed(batch):
+                    lines = (fragment.lines_for(width, theme)
+                             if fragment.shown_in(self.selected_categories) else None)
+                    height = 0 if lines is None else lines.height
+                    if rows and rows + height > viewport_rows:
+                        destination_full = True
+                        break
+                    take += 1
+                    admitted += 1
+                    rows += height
             if take:
                 destination.insert(0, (prepared, take))
-            if (rows >= viewport_rows or loader is None
+            if (destination_full or loader is None
                     or not prepared.page.has_older or admitted >= destination_batch):
                 break
             prepared = await self._reader().get(PageRequest(before=prepared.page.before))
@@ -1048,8 +1057,9 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
                 except _DrawingStopped:
                     return False
                 self.pages = views
-                self.remove_children(previous)
+                await self.remove_children(previous)
                 self._update_edges()
+                self.refresh(layout=True)
             return True
 
     async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None) -> None:

@@ -79,7 +79,10 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
 
 
 class WorkspaceScreen(SidebarFocusOwner, Screen):
-    BINDINGS = [Binding("ctrl+b,f20", "show_sidebar", "Sidebar")]
+    BINDINGS = [
+        Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
+        Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
+    ]
 
     @property
     def COMMANDS(self):
@@ -107,7 +110,19 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         if action == "show_sidebar":
             sidebar = self.app.workspace_chrome.channels
             return sidebar.display and not sidebar.has_focus_within
+        if action == "back_to_bottom":
+            return self.back_to_bottom_window is not None
         return super().check_action(action, parameters)
+
+    @property
+    def back_to_bottom_window(self):
+        visible = self._compositor.visible_widgets
+        return next((window for window in self.history_windows
+                     if window in visible and not window.follows_tail), None)
+
+    def action_back_to_bottom(self) -> None:
+        if (window := self.back_to_bottom_window) is not None:
+            window.jump_to_latest()
 
     def action_show_sidebar(self) -> None:
         sidebar = self.app.workspace_chrome.channels

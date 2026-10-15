@@ -83,6 +83,25 @@ Conversation {
         align: left bottom;   
     }
 
+    #back-to-bottom-bar {
+        display: none;
+        overlay: screen;
+        dock: bottom;
+        layer: float;
+        width: 1fr;
+        height: 3;
+        align: center middle;
+
+        #back-to-bottom {
+            width: auto;
+            height: 1;
+            padding: 0 1;
+            color: $text-primary;
+            background: $surface-lighten-1;
+            text-style: bold;
+        }
+    }
+
     &.-scrollbar-thin {
         Window {
             # scrollbar-gutter: stable;

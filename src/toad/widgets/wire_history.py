@@ -13,7 +13,7 @@ from toad.screens.session_view import SessionView
 from toad.transcript_preparation import PageRequest, PreparedPageSource
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
-from toad.widgets.history_anchor import LatestPosition
+from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
 from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.transcript_history import LineHistory, TranscriptPageView
 from toad.message_rows import IrcMessageStyle, WireMessageStyle
@@ -171,6 +171,10 @@ class WireHistory(LineHistory):
         if through.cursor > self.through.cursor:
             self.through = through
         edge = self.pages[-1]
+        if (edge.page.after != self.through
+                and (destination := HeldReaderDestination.held(self.window)) is not None
+                and await destination.source_arrived(self)):
+            return True
         if edge.page.after == self.through:
             return True
         if self.has_newer:

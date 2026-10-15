@@ -87,7 +87,7 @@ from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar, GoalControl
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.transcript_history import TranscriptHistory
+from toad.widgets.transcript_history import JumpToLatest, TranscriptHistory
 from toad.widgets.wire_message_handling import WireMessageHandling
 from toad.widgets.observed_thread_activity import ThreadStatusOwner
 from toad.widgets.session_details import SessionDetails
@@ -310,6 +310,21 @@ This is a view of your conversation with the agent.
 """
     BINDING_GROUP_TITLE = "View"
     BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.tail_follow_changed()
+
+    def tail_follow_changed(self) -> None:
+        if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
+            control.display = not self.follows_tail
+        if self.is_attached:
+            self.query_ancestor(Conversation).refresh_bindings()
+
+    @on(JumpToLatest.Requested)
+    def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
+        event.stop()
+        self.query_ancestor(Conversation).jump_to_latest()
 
     def action_focus_prompt(self) -> None:
         self.query_ancestor(Conversation).focus_prompt()
@@ -764,6 +779,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 yield CursorContainer(id="cursor-container")
                 with Contents(id="contents"):
                     yield from ThreadLoading.initial_contents(self._agent_data)
+            yield containers.Center(
+                JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
+                id="back-to-bottom-bar",
+            )
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield TurnActivity(self.turns)

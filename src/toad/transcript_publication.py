@@ -291,7 +291,7 @@ class CanonicalSourcePublication(TranscriptPublication):
                 return True
         published = await self.publish_source_page(page)
         if published and self.current() and self.destination is not None:
-            self.destination.release(self.window)
+            self.destination.source_settled(self.window)
         return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
