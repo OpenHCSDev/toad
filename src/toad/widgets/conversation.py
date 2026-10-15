@@ -313,6 +313,13 @@ This is a view of your conversation with the agent.
         super().on_mount()
         self.tail_follow_changed()
 
+    def _arrange_scrollbars(self, region: Region):
+        """Place the vertical bar after the viewport's trailing separator."""
+        for scrollbar, scrollbar_region in super()._arrange_scrollbars(region):
+            if scrollbar is self.vertical_scrollbar:
+                scrollbar_region = scrollbar_region.translate((self.styles.padding.right, 0))
+            yield scrollbar, scrollbar_region
+
     def tail_follow_changed(self) -> None:
         if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
             control.display = self.can_jump_to_latest
