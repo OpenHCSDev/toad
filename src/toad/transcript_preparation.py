@@ -53,8 +53,18 @@ class PreparedTranscriptPage:
 
     @classmethod
     def measured(cls, page, fragments, coverage, **view):
-        return cls(page, fragments, retained_bytes((page, fragments, coverage)),
-                   outgoing_coverage=coverage, **view)
+        prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
+        prepared.measure_sources()
+        return prepared
+
+    def measure_sources(self, readers=(), *, seen=None):
+        """Charge this page's source graph, including its publication index."""
+        if seen is None:
+            seen = set()
+        self.retained_bytes = sum(
+            retained_bytes(source, seen=seen)
+            for source in (self.page, self.fragments, self.outgoing_coverage, *readers)
+        )
 
     @staticmethod
     def index_outgoing(page, fragments):
@@ -265,12 +275,8 @@ class PreparedPageSource(ABC):
         if seen is None:
             seen = set()
         for page in pages:
-            readers = tuple(member for page_range in ranges if page_range.page() is page
-                            for member in page_range.members)
-            page.retained_bytes = retained_bytes(
-                (page.page, page.fragments, readers),
-                seen=seen,
-            )
+            readers = tuple(page_range.members for page_range in ranges if page_range.page() is page)
+            page.measure_sources(readers, seen=seen)
         if projection is not None:
             projection.measure_held(projection.held_pages, projection.projection_source,
                                          ranges, seen=seen)
@@ -430,10 +436,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         self.through = boundary.page.after
         self._raw = TranscriptPageBuffer(loader, boundary.page.before, runtime) if loader is not None else None
         self.scope = self._raw.scope if self._raw is not None else PreparationScope()
-        self._boundary = replace(boundary, page=replace(
-            boundary.page, has_newer=False,
-            has_older=boundary.page.has_older and loader is not None,
-        ))
+        self._boundary = boundary
         self._projected_boundary: PreparedTranscriptPage | None = None
 
     async def _project(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
@@ -449,7 +452,13 @@ class ProjectedTranscriptSource(PreparedPageSource):
         if self.closed:
             raise asyncio.CancelledError
         if self._projected_boundary is None:
-            self._projected_boundary = await self._project(self._boundary)
+            # Range projections name the original prepared page. Select those
+            # actual suppliers before copying transport-only edge metadata.
+            projected = await self._project(self._boundary)
+            self._projected_boundary = replace(projected, page=replace(
+                projected.page, has_newer=False,
+                has_older=projected.page.has_older and self.loader is not None,
+            ))
         return self._projected_boundary
 
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
