@@ -13,7 +13,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 from math import ceil
-from typing import Any
+from typing import Any, overload
 
 from rich.segment import Segment
 from rich.style import Style as RichStyle
@@ -270,9 +270,24 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
         return Strip([risen(segment) for segment in target], target.cell_length)
 
-    def paint_text(self, frame: TextFrame, target: None) -> Content:
-        """Text in Textual's own styled text; each frame is built once."""
-        return _text(frame)
+    @overload
+    def paint_text(self, frame: TextFrame, target: None) -> Content: ...
+
+    @overload
+    def paint_text(self, frame: TextFrame, target: Strip) -> Strip: ...
+
+    def paint_text(self, frame: TextFrame, target: Strip | None) -> Content | Strip:
+        """Use native Content for text, or fit it into an existing single-row target."""
+        content = _text(frame)
+        if target is None:
+            return content
+        if target.cell_length == 0:
+            return target
+        style = next(iter(target)).style or RichStyle()
+        visual_style = VisualStyle.from_rich_style(style, self.app.ansi_theme)
+        return Strip(content.first_line.render_segments(visual_style)).adjust_cell_length(
+            target.cell_length, style)
+
 
     # The animation clock's one timer.
 
