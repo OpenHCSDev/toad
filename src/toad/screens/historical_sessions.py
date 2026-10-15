@@ -10,7 +10,7 @@ from typing import ClassVar
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
-from agent_comms.ui_model.observation import ReadTranscript
+from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms import HistoricalThread
@@ -25,6 +25,17 @@ from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.wire_message_handling import WireMessageHandling
+
+
+class RecordedTranscriptHistory(TranscriptHistory):
+    """History and handling retain the same selected archive."""
+
+    def __init__(self, page, loader, *, prepared, root: str, source: str):
+        super().__init__(page, loader, prepared=prepared)
+        self.root, self.source = root, source
+
+    def notification_read(self, references) -> ReadRecordedNotifications:
+        return ReadRecordedNotifications(self.root, references, self.source)
 
 
 class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, ModalScreen):
@@ -133,7 +144,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             prepared = await self.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = TranscriptHistory(page, load, prepared=prepared)
+            history = RecordedTranscriptHistory(page, load, prepared=prepared, root=root, source=item.source.key)
             await history.prepare_body(lambda: generation == self._selection_generation and self.is_attached)
             if generation != self._selection_generation or not self.is_attached:
                 return

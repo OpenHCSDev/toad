@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (
     TranscriptEvent, ContextTranscript, UserTranscript, IncomingTranscript, AgentTextTranscript, SentTranscript,
@@ -51,7 +52,7 @@ from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
-from toad.notification_status import CheckedNotifications, UnavailableNotifications, UncheckedNotifications
+from toad.widgets.message_notifications import HistoryNotifications
 from toad.widgets.transcript_lines import (
     HorizontalRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
@@ -455,7 +456,7 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
                 return await self.prepared.replace_range(self, self.fragments, selected, None, current)
 
 
-class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
+class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the
@@ -466,7 +467,6 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
-    NOTIFICATION_GROUP = "message-notifications"
 
     @property
     def message_category(self) -> None:
@@ -540,58 +540,6 @@ class LineHistory(OpensMessageNames, TranscriptSourcePreparation, ConversationBl
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
-
-    def prepare_viewport(self) -> None:
-        super().prepare_viewport()
-        self.check_notifications()
-
-    # Core feedback for every visible bus message, native or wire.
-
-    def check_notifications(self) -> None:
-        if not self.can_draw_on_screen or any(
-            worker.node is self and worker.group == self.NOTIFICATION_GROUP and not worker.is_finished
-            for worker in self.workers
-        ):
-            return
-        fragments = self._notified_fragments()
-        if fragments:
-            self.run_worker(self._read_notifications(fragments), group=self.NOTIFICATION_GROUP)
-
-    def _notified_fragments(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for fragment in self.visible_fragments() if fragment.checks_notifications)
-
-    async def read_notifications(self, references):
-        from toad.widgets.conversation import Conversation
-
-        return await self.query_ancestor(Conversation).transcript.get_message_notifications(references)
-
-    async def _read_notifications(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        # Outcomes belong to original references, not a page generation or
-        # its growing tail. The read binding fences the bus; visible membership
-        # and this publisher's lifetime fence where its answer can be drawn.
-        while fragments and self.can_draw_on_screen:
-            revision = self.app.coordination_access.revision
-            references = tuple(dict.fromkeys(
-                reference for fragment in fragments for reference in fragment.notification_references))
-            try:
-                results = await self.read_notifications(references)
-            except (OSError, ValueError, RuntimeError) as failure:
-                statuses = [UnavailableNotifications(str(failure))] * len(fragments)
-            else:
-                statuses = [CheckedNotifications.for_references(fragment.notification_references, results)
-                            for fragment in fragments]
-            if not self.can_draw_on_screen:
-                return
-            visible = {id(fragment) for fragment in self._notified_fragments()}
-            await self._show([(fragment, replace(fragment.shown, status=status))
-                              for fragment, status in zip(fragments, statuses) if id(fragment) in visible])
-            if not self.can_draw_on_screen:
-                return
-            # Newcomers need their first check; checked rows need another
-            # answer only when Core changed during the read or paint.
-            fragments = tuple(fragment for fragment in self._notified_fragments()
-                              if revision != self.app.coordination_access.revision
-                              or isinstance(fragment.shown.status, UncheckedNotifications))
 
     # What a fragment shows
 
@@ -1189,6 +1137,14 @@ class TranscriptHistory(LineHistory, CommittedHistory):
     parked with a tab and rebuilt from what was parked.
     """
 
+    def notification_read(self, references) -> ReadNotifications:
+        from toad.widgets.conversation import Conversation
+
+        scope = self.query_ancestor(Conversation).transcript.thread_scope
+        if scope is None:
+            raise ValueError("Notification observation requires a bound thread")
+        return ReadNotifications(scope[0], references)
+
     def __init__(self, page: TranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
                  *, committed: bool = True, **kwargs):
         super().__init__(page, loader, **kwargs,
@@ -1323,6 +1279,9 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A source projection with the ordinary pager's admission and eviction policy."""
+
+    def notification_read(self, references) -> ReadNotifications:
+        return self._projection_owner().notification_read(references)
 
     def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:

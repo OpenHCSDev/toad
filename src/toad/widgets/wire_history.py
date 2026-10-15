@@ -254,18 +254,10 @@ class WireHistory(LineHistory):
                           for fragment in self.wire_fragments])
         self.window.scroll_end(animate=False)
 
-    async def read_notifications(self, references):
-        """Wire and native messages ask the same Core observation service."""
+    def notification_read(self, references):
         from agent_comms.ui_model.observation import ReadNotifications
 
-        source = self.source
-        if source is None or not await self.bus_is_current(source.comms):
-            raise asyncio.CancelledError()
-        results = await self.app.coordination_access.read(
-            ReadNotifications(str(source.comms.root), references))
-        if source is not self.source or not await self.bus_is_current(source.comms):
-            raise asyncio.CancelledError()
-        return results
+        return ReadNotifications(str(self.source.comms.root), references)
 
     # Read marks
 

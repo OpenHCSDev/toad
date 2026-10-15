@@ -1,14 +1,22 @@
 """Read-only notification feedback attached to its chat message."""
 
+from __future__ import annotations
+
+from dataclasses import replace
+from typing import TYPE_CHECKING
+
 from rich.text import Text
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible, Static
 
 from toad.notification_status import (
-    DetailLines, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
+    CheckedNotifications, DetailLines, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
 from toad.widgets.transcript_lines import OpensLinks, link_style
+
+if TYPE_CHECKING:
+    from toad.widgets.transcript_fragments import TranscriptFragment
 
 
 class NotificationDetails(OpensLinks, Static):
@@ -70,3 +78,59 @@ class MessageNotifications(Collapsible):
 
     def show_error(self, error: Exception) -> None:
         self.show(UnavailableNotifications(str(error)))
+
+
+class HistoryNotifications:
+    """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
+
+    NOTIFICATION_GROUP = "message-notifications"
+
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        self.check_notifications()
+
+    # Core feedback for every visible bus message, native or wire.
+
+    def check_notifications(self) -> None:
+        access = self.app.coordination_access
+        fragments = self._notified_fragments() if self.can_draw_on_screen else ()
+        references = tuple(dict.fromkeys(
+            reference for fragment in fragments for reference in fragment.notification_references))
+        access.show_notifications(self, self.notification_read(references) if references else None)
+
+    def _notified_fragments(self) -> tuple[TranscriptFragment, ...]:
+        return tuple(fragment for fragment in self.visible_fragments()
+                     if fragment.checks_notifications)
+
+    def notifications_observed(self, results) -> None:
+        if not self.can_draw_on_screen:
+            self.app.coordination_access.show_notifications(self, None)
+            return
+        self.run_worker(self._show([
+            (fragment, replace(fragment.shown, status=CheckedNotifications.for_references(
+                fragment.notification_references, results)))
+            for fragment in self._notified_fragments()
+            if all((reference.seq, reference.message_id) in results
+                   for reference in fragment.notification_references)
+        ]), group=self.NOTIFICATION_GROUP, exclusive=True)
+
+    def notifications_failed(self, failure: Exception) -> None:
+        if self.can_draw_on_screen:
+            self.run_worker(self._show([
+                (fragment, replace(fragment.shown, status=UnavailableNotifications(str(failure))))
+                for fragment in self._notified_fragments()
+            ]), group=self.NOTIFICATION_GROUP, exclusive=True)
+
+    async def retire_source(self, *, parked: bool = False) -> None:
+        self.app.coordination_access.show_notifications(self, None)
+        await super().retire_source(parked=parked)
+
+    async def close_source_reader(self) -> None:
+        self.app.coordination_access.show_notifications(self, None)
+        await super().close_source_reader()
+
+    def on_hide(self) -> None:
+        self.app.coordination_access.show_notifications(self, None)
+
+    def on_show(self) -> None:
+        self.call_after_refresh(self.check_notifications)

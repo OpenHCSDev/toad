@@ -24,6 +24,7 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.private_path import FileRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
+    ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
     AwaitedRead, ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
     SidebarObserved, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
@@ -33,6 +34,7 @@ from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged
 
 if TYPE_CHECKING:
+    from toad.widgets.message_notifications import HistoryNotifications
     from agent_comms.comms import Comms
     from agent_comms.presentation import WireRevision
     from toad.app import ToadApp
@@ -86,6 +88,8 @@ class CoordinationAccess(MroDispatch):
         self.thread_owners: WeakKeyDictionary[ThreadStatusOwner, str] = WeakKeyDictionary()
         self.thread_interest: frozenset[str] = frozenset()
         self.views_interest: ObserveViews | None = None
+        self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
+        self.notification_interest = ObserveNotifications(frozenset())
 
     @property
     def observed_service(self) -> Comms | None:
@@ -154,6 +158,8 @@ class CoordinationAccess(MroDispatch):
         self.thread_interest = frozenset()
         self.thread_status.clear()
         self.views_interest = None
+        self.notification_views.clear()
+        self.notification_interest = ObserveNotifications(frozenset())
         self.update_sidebar_interest()
         self.app.session_navigation.declare_views()
 
@@ -244,6 +250,29 @@ class CoordinationAccess(MroDispatch):
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: ObservedCommsService) -> None:
         self.app.session_navigation.views_retired(observed.service.root, result.retired)
+
+    def show_notifications(self, view: HistoryNotifications, read: ReadNotifications | None) -> None:
+        """Observe only original messages the views currently show."""
+        if read is not None:
+            self.notification_views[view] = read
+        else:
+            self.notification_views.pop(view, None)
+        wanted = ObserveNotifications(frozenset(self.notification_views.values()))
+        if wanted != self.notification_interest and self.observation is not None:
+            self.notification_interest = wanted
+            self.observation.process.request(wanted)
+
+    @handles(NotificationsObserved)
+    def notifications_observed(self, result: NotificationsObserved, observed: ObservedCommsService) -> None:
+        for view, request in tuple(self.notification_views.items()):
+            if result.request == request:
+                view.notifications_observed(result.outcomes)
+
+    @handles(NotificationsUnreadable)
+    def notifications_unreadable(self, result: NotificationsUnreadable, observed: ObservedCommsService) -> None:
+        for view, request in tuple(self.notification_views.items()):
+            if result.request == request:
+                view.notifications_failed(result.error)
 
     def show_views(self, threads: frozenset, channels: frozenset[str]) -> None:
         """The thread incarnations and channel views open on the observed root."""

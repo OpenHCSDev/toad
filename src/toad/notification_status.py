@@ -65,7 +65,7 @@ class CheckedNotifications(NotificationStatus):
     def for_references(cls, references: Iterable[MessageReference],
                        results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> CheckedNotifications:
         return cls(tuple(item for reference in references
-                         for item in results.get((reference.seq, reference.message_id), ())))
+                         for item in results[(reference.seq, reference.message_id)]))
 
     @property
     def ordered(self) -> list[MessageNotification]:
