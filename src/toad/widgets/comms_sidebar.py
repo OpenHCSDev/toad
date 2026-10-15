@@ -212,6 +212,9 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         super().__init__(Content(label))
         self.target = target
 
+    def is_navigation_row(self) -> bool:
+        return self.is_attached and not self._pruning and not self._closing
+
     @property
     def selected(self) -> bool:
         sidebar = self.sidebar_owner()
@@ -677,7 +680,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     @property
     def rows(self) -> list[CommsRow]:
         return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in group.navigation_rows]
+                for row in group.visible_rows if row.is_navigation_row()]
 
     @property
     def selection_state(self):

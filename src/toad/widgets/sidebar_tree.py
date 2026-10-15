@@ -85,14 +85,13 @@ class SidebarGroup(VerticalGroup):
         """Specializations preserve existing reader intent across disclosure."""
 
     @property
-    def navigation_rows(self):
-        """Visible rows in native order, excluding widgets being removed."""
+    def visible_rows(self):
+        """Header and disclosed members in their native order."""
         if not self.display or not self.accepts_members():
             return ()
         header = (self.row,) if self.navigation_header else ()
         members = tuple(self.member_container.children) if self.expanded else ()
-        return tuple(row for row in (*header, *members)
-                     if row.is_attached and not row._pruning and not row._closing)
+        return (*header, *members)
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""
