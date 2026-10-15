@@ -15,6 +15,8 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.renderables.bar import Bar
 from textual.strip import Strip
+from textual.style import Style
+from ui_theme.scheme import AccentColour
 from textual.widget import Widget
 
 from toad import messages
@@ -226,7 +228,9 @@ class SessionsTabs(CoreEventReceiver, Widget):
     def render_session_label(self, session: OpenTab) -> Content:
         title = session.label(self.app.busy_rows.phase)
         if session.unread.label:
-            return Content.assemble(title, (f" {session.unread.label}", "bold $accent"))
+            badge_style = (Style(bold=True, foreground=self.app.colours.colour(AccentColour))
+                           if session.unread.highlighted else Style())
+            return Content.assemble(title, (f" {session.unread.label}", badge_style))
         return title
 
     def compose(self) -> ComposeResult:

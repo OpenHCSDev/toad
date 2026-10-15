@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from textual.content import Content
+from textual.style import Style
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -23,7 +24,6 @@ class ThreadStatusRow(HoverSelection):
         pointer: pointer;
     }
     ThreadStatusRow.-wire-thread.-busy { color: $warning; }
-    ThreadStatusRow.-wire-thread.-unread { text-style: bold; }
     ThreadStatusRow:hover, ThreadStatusRow:focus {
         background: $block-cursor-background;
         color: $block-cursor-foreground !important;
@@ -47,8 +47,7 @@ class ThreadStatusRow(HoverSelection):
             return
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
-        self.update_classes({"-wire-thread": True, "-busy": self.busy,
-                             "-unread": row.unread.highlighted, "-asking": False})
+        self.update_classes({"-wire-thread": True, "-busy": self.busy, "-asking": False})
         self.tooltip = Content("\n".join(str(value) for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
@@ -62,11 +61,13 @@ class ThreadStatusRow(HoverSelection):
         summary = self.action_status if self.action_status is not None else row.summary
         badge = f"{row.unread.label} " if row.unread.label else ""
         content = Content.assemble(
-            (badge, "bold"),
+            badge,
             "* " if self.pinned else "",
             animated_label(row, phase=self.app.busy_rows.phase),
             f"\n  {summary}",
         )
+        if row.unread.highlighted:
+            content = content.stylize(Style(bold=True))
         current = self.content
         if not isinstance(current, Content) or not current.is_same(content):
             self.update(content, layout=False)
@@ -74,8 +75,7 @@ class ThreadStatusRow(HoverSelection):
     def retire_thread_row(self) -> None:
         """This row no longer shows a thread."""
         if self.thread_row is not None:
-            self.update_classes({"-wire-thread": False, "-busy": False,
-                                 "-unread": False, "-asking": False})
+            self.update_classes({"-wire-thread": False, "-busy": False, "-asking": False})
             self.app.busy_rows.track(self, False)
         self.thread_row = None
 

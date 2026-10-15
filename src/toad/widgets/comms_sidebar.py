@@ -29,6 +29,7 @@ from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
+from textual.style import Style
 from textual.dom import DOMNode
 from textual.reactive import reactive
 from textual.widgets import Static
@@ -96,18 +97,16 @@ class ChannelGroup(SidebarGroup):
         """Paint the channel header from its model row."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous is None or previous.label != channel.label:
-            row.set_label(channel.label)
+        if previous is None or previous.label != channel.label or previous.unread != channel.unread:
+            row.set_label(channel.label, highlighted=channel.unread.highlighted)
         row.tooltip = channel.tooltip
         row.set_class(channel.active, "-channel-active")
-        row.set_class(bool(channel.unread), "-unread")
         if previous is None or previous.unread != channel.unread:
-            label = f"({channel.unread})"
-            # ASCII digits have fixed cell widths: a count change within the
-            # same digit range is paint-only; visibility still owns its layout.
-            width_changed = previous is None or len(label) != len(f"({previous.unread})")
+            label = channel.unread.label
+            # Equal-width badges need paint only; visibility owns its layout.
+            width_changed = previous is None or cell_len(label) != cell_len(previous.unread.label)
             self.unread_badge.update(label, layout=width_changed)
-            self.unread_badge.display = bool(channel.unread)
+            self.unread_badge.display = bool(label)
         self.sort_control.update_order(channel.order)
 
     def toggle_members(self) -> None:
@@ -190,7 +189,6 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         color: $block-cursor-foreground !important;
         text-style: $block-cursor-text-style;
     }
-    CommsRow.-unread { text-style: bold; }
     CommsRow.-current { color: $text; text-style: bold; }
     CommsRow.-current:hover, CommsRow.-current:focus { text-style: bold underline; }
     CommsRow.-channel-active { color: $warning 100%; text-style: bold; }
@@ -211,7 +209,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         return False
 
     def __init__(self, target: NavigationTarget, label: str) -> None:
-        super().__init__(label)
+        super().__init__(Content(label))
         self.target = target
 
     def is_navigation_row(self) -> bool:
@@ -225,11 +223,14 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         sidebar = self.sidebar_owner()
         return sidebar is not None and sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
-    def set_label(self, label: str) -> None:
+    def set_label(self, label: str, *, highlighted: bool = False) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
-        if self.content != label:
-            self.update(label)
+        content = Content(label)
+        if highlighted:
+            content = content.stylize(Style(bold=True))
+        if not self.content.is_same(content):
+            self.update(content, layout=self.content.plain != content.plain)
 
     def sidebar_owner(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)

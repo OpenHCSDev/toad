@@ -15,7 +15,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import wire
 from agent_comms.thread_identity import ThreadIncarnation
 
-from agent_comms.ui_model.unread import UnreadPresentation
+from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
 from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
@@ -204,10 +204,12 @@ class HistorySessionEntry(SessionEntry):
         return sessions.source(self.key.owner_mode)
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        return NamedTab(self.mode, self.key.title, self.kind.unread(
-            observed.sidebar.snapshot
-            if observed is not None and Path(self.key.root).resolve() == observed.service.root
-            else None, self.key.target))
+        unread: UnreadPresentation = UnobservedUnread()
+        if observed is not None and Path(self.key.root).resolve() == observed.service.root:
+            snapshot = observed.sidebar.snapshot
+            if snapshot is not None:
+                unread = self.kind.unread(snapshot, self.key.target)
+        return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
         return super().depends_on(mode) or self.key.owner_mode == mode
