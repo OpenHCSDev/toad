@@ -17,8 +17,10 @@ class FilePosition:
     @classmethod
     def split(cls, value):
         match = re.fullmatch(r"(?P<path>.*?)" + cls.pattern, value)
-        return ((match["path"], cls(int(match["line"]), int(match["column"] or 1)))
-                if match else (value, None))
+        if not match:
+            return value, None
+        path, line, column = match.group("path", "line", "column")
+        return path, cls(int(line), int(column or 1))
 
     @classmethod
     def from_fragment(cls, value):

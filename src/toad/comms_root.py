@@ -29,7 +29,7 @@ from agent_comms.ui_model.observation import (
     SidebarObserved, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
 )
-from agent_comms.ui_model.sidebar import SidebarModel
+from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged
 from toad.forms.declared_views import DeclaredField
@@ -48,6 +48,9 @@ T = TypeVar("T")
 class RouteObservation:
     stamp = None
 
+    def changed(self, stamp):
+        return True
+
     def references_for(self, observed, root):
         return observed.sidebar.references_for(root) if observed is not None else PendingReferences(root)
 
@@ -63,6 +66,9 @@ class WaitingRoute(RouteObservation):
 @dataclass(frozen=True)
 class ObservedRoute(RouteObservation):
     stamp: tuple[FileRevision | None, ...] = field()
+
+    def changed(self, stamp):
+        return stamp[0] != self.stamp[0]
 
 
 @dataclass(frozen=True)
@@ -116,7 +122,7 @@ class CoordinationAccess(MroDispatch):
         # Views showing the sidebar model now, and consumers waiting for current rows.
         self.sidebar_views: WeakSet[object] = WeakSet()
         self.reference_views: WeakSet[object] = WeakSet()
-        self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[None]]] = []
+        self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
         self.sidebar_current: ObserveSidebar | None = None
         # Views showing an observed thread's status, by thread name.
@@ -185,9 +191,10 @@ class CoordinationAccess(MroDispatch):
             self.retire(observed)
             return
         self.loop.add_reader(observed.process.fileno(), self.receive, observed)
-        for _, waiter in self.sidebar_waiters:
-            waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
-        self.sidebar_waiters.clear()
+        waiters, self.sidebar_waiters = self.sidebar_waiters, []
+        for _, waiter in waiters:
+            if not waiter.done():
+                waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
         self.sidebar_interest = self.sidebar_current = None
         self.thread_owners.clear()
         self.thread_interest = frozenset()
@@ -255,7 +262,7 @@ class CoordinationAccess(MroDispatch):
         if app.open_tabs != tabs:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
-            waiter.set_result(None)
+            waiter.set_result(observed.sidebar.observation)
 
     @handles(SidebarUnreadable)
     def sidebar_unreadable(self, result: SidebarUnreadable, observed: ObservedCommsService) -> None:
@@ -263,12 +270,12 @@ class CoordinationAccess(MroDispatch):
             return
         observed.sidebar.clear(result.error)
         self.events.publish(LinkContextChanged())
-        self.sidebar_current = None
+        self.sidebar_current = result.request
         for waiter in self.take_sidebar_waiters(result.request):
-            waiter.set_exception(result.error)
+            waiter.set_result(observed.sidebar.observation)
         self.app.notify(str(result.error), title="Sidebar unavailable", severity="error")
 
-    def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[None]]:
+    def take_sidebar_waiters(self, answered: ObserveSidebar) -> list[asyncio.Future[SidebarObservation]]:
         """Retire answered reads once, leaving other interests subscribed."""
         remaining, answered_waiters = [], []
         for request, waiter in self.sidebar_waiters:
@@ -363,22 +370,23 @@ class CoordinationAccess(MroDispatch):
                 await self.current_sidebar()
             except RouteChanged:
                 pass
-            except Exception as error:
-                from agent_comms.ui_model.sidebar import FailedSidebar
-                source = self.sidebar.observation if self.sidebar is not None else None
-                if not isinstance(source, FailedSidebar) or source.error is not error:
-                    raise
         return self.reference_context(root)
 
-    async def current_sidebar(self) -> None:
-        """Wait until the sidebar model shows the current stores, for a consumer that reads it now."""
+    async def current_sidebar(self) -> SidebarObservation:
+        """Return the source's current answer, including a failed observation."""
         request = self.sidebar_request()
         if self.sidebar_interest == request and self.sidebar_current == request:
-            return  # Observed now: every store change is delivered.
+            return self.observation.sidebar.observation
         waiter = asyncio.get_running_loop().create_future()
-        self.sidebar_waiters.append((request, waiter))
+        pending = request, waiter
+        self.sidebar_waiters.append(pending)
         self.update_sidebar_interest()
-        await waiter
+        try:
+            return await waiter
+        finally:
+            if pending in self.sidebar_waiters:
+                self.sidebar_waiters.remove(pending)
+                self.update_sidebar_interest()
 
     def show_thread(self, owner: ThreadStatusOwner, name: str | None) -> None:
         """``owner`` shows observed thread ``name``'s status (None: no observed thread)."""
@@ -434,7 +442,7 @@ class CoordinationAccess(MroDispatch):
 
     async def route_changed(self) -> bool:
         stamp = await self.preparation.run_thread(self.current_route_stamp)
-        return self.route_observation.stamp is None or stamp[0] != self.route_observation.stamp[0]
+        return self.route_observation.changed(stamp)
 
     def check_route(self) -> None:
         if self.route_task is None or self.route_task.done():

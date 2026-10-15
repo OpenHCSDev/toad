@@ -8,7 +8,7 @@ from pathlib import Path
 from threading import local
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.display_references import ReferenceContext, ProjectReferences
+from agent_comms.display_references import ReferenceContext
 from agent_comms.mro_dispatch import handles
 from toad.core.events import LinkContextChanged
 from toad.core_event_carrier import CoreEventReceiver
@@ -38,23 +38,20 @@ class LinkContext:
 
     @classmethod
     async def acquire(cls, widget):
-        from toad.project_path_owner import ProjectPathOwner
-        owner = ProjectPathOwner.containing(widget)
-        root, coordination = owner.project_root.resolve(), owner.coordination_root
-        references = (ProjectReferences() if coordination is None else
-                      await widget.app.coordination_access.current_references(coordination))
-        return cls(root, references)
+        context = cls.containing(widget)
+        references = await context.references.acquire_from(widget.app.coordination_access.current_references)
+        return cls(context.root, references)
 
     @classmethod
     def containing(cls, widget):
         from toad.project_path_owner import ProjectPathOwner
         owner = ProjectPathOwner.containing(widget)
-        references = (ProjectReferences() if owner.coordination_root is None else
-                      widget.app.coordination_access.reference_context(owner.coordination_root))
-        return cls(owner.project_root.resolve(), references)
+        return cls(owner.project_root.resolve(), owner.reference_context)
 
     def current_for(self, widget):
-        return self == self.containing(widget)
+        if widget.is_attached:
+            return self == self.containing(widget)
+        return False
 
     def for_source(self, source):
         return LinkContext(self.root, self.references.for_source(source))
@@ -81,7 +78,7 @@ class ReferenceRendering(CoreEventReceiver):
         owner = ProjectPathOwner.containing(self)
         self.observe_core(self.app.coordination_access.events)
         self.observe_core(owner.link_context_events)
-        self.app.coordination_access.show_references(self, owner.coordination_root is not None)
+        self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
 
     def _on_unmount(self):
         # Textual dispatches each class's handler, including CoreEventReceiver's.
@@ -91,7 +88,7 @@ class ReferenceRendering(CoreEventReceiver):
     def reference_context_changed(self, message):
         from toad.project_path_owner import ProjectPathOwner
         owner = ProjectPathOwner.containing(self)
-        self.app.coordination_access.show_references(self, owner.coordination_root is not None)
+        self.app.coordination_access.show_references(self, owner.reference_context.requires_observation)
         self.invalidate_lines()
 
     @abstractmethod
@@ -106,12 +103,6 @@ class _ProjectTokens:
 
 class ProjectTokenRule(DeclaredFamily, affix="TokenRule"):
     @classmethod
-    def register(cls, parser):
-        def native_rule(renderer, tokens, index, options, env):
-            return cls.resolve(renderer, tokens[index], env["project_tokens"])
-        parser.add_render_rule(FieldCodec.encode(cls), native_rule, fmt=ProjectTokenRenderer.__output__)
-
-    @classmethod
     @abstractmethod
     def resolve(cls, renderer, token, context): ...
 
@@ -119,7 +110,7 @@ class ProjectTokenRule(DeclaredFamily, affix="TokenRule"):
 class InlineTokenRule(ProjectTokenRule):
     @classmethod
     def resolve(cls, renderer, token, context):
-        if token.children is not None:
+        if token.children:
             token.children = renderer.resolve(token.children, _ProjectTokens(context.links))
         return [token]
 
@@ -129,7 +120,6 @@ class LinkOpenTokenRule(ProjectTokenRule):
     def resolve(cls, renderer, token, context):
         href = str(token.attrGet("href") or "")
         target = ProjectLink.from_href(lambda: context.links.root, href)
-        token.meta["link"] = target
         token.attrSet("href", LinkHref.capture(target))
         context.linked += 1
         return [token]
@@ -178,28 +168,22 @@ class CodeInlineTokenRule(TextTokenRule):
 
 
 class ProjectTokenRenderer:
-    __output__ = "textual-tokens"
-
-    def __init__(self, parser):
-        self.rules = {}
-
-    def render(self, tokens, options, env):
-        result = []
-        for index, token in enumerate(tokens):
-            rule = self.rules.get(token.type)
-            result.extend(rule(tokens, index, options, env) if rule else (token,))
-        return result
+    def __init__(self):
+        self.rules = {FieldCodec.encode(rule): rule for rule in ProjectTokenRule.members_with(ProjectTokenRule)}
 
     def resolve(self, tokens, context):
-        return self.render(tokens, {}, {"project_tokens": context})
+        result = []
+        for token in tokens:
+            rule = self.rules.get(token.type)
+            result.extend(rule.resolve(self, token, context) if rule else (token,))
+        return result
 
 
 class _MarkdownParserState(local):
     def __init__(self):
-        self.parser = MarkdownIt("gfm-like", renderer_cls=ProjectTokenRenderer)
+        self.parser = MarkdownIt("gfm-like")
         self.parser.validateLink = ProjectLink.opens
-        for rule in ProjectTokenRule.members_with(ProjectTokenRule):
-            rule.register(self.parser)
+        self.resolver = ProjectTokenRenderer()
         self.syntax_rules = tuple(self.parser.core.ruler.getRules(""))
 
 
@@ -226,4 +210,4 @@ class MessageMarkdownParser:
 
     def resolve_tokens(self, tokens):
         # Linkify is syntax: resolve its URLs too, before any frontend sees them.
-        return _parser_state.parser.renderer.resolve(tokens, _ProjectTokens(self.context))
+        return _parser_state.resolver.resolve(tokens, _ProjectTokens(self.context))

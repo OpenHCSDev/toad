@@ -27,15 +27,6 @@ class FileKind(DeclaredFamily, affix='FileKind'):
             return source.read(cls.MAX_BYTES + 1)
 
     @classmethod
-    async def preview(cls, view, position=None):
-        source = await view.app.preparation.run_thread(cls.load, view.path)
-        if view.is_attached and not view._pruning:
-            if position is None:
-                await cls.show(view, source)
-            else:
-                await cls.show_at(view, source, position)
-
-    @classmethod
     async def text(cls, view, data):
         if b"\0" in data:
             raise ValueError(f"{view.path.name} is a binary file.")

@@ -178,13 +178,12 @@ class ChannelConversation(ConversationKind):
         source = history.source_snapshot()
         target = view.target
         access = view.app.coordination_access
-        await access.current_sidebar()
+        answer = await access.current_sidebar()
+        snapshot = answer.require_snapshot()
         observed = access.observation
         if observed is None or observed.service is not comms:
             raise ValueError("Channel roster belongs to another Comms service")
-        snapshot, rows = observed.sidebar.snapshot, observed.sidebar.threads.rows
-        if snapshot is None:
-            raise ValueError("Sidebar read was interrupted; the next page retries")
+        rows = observed.sidebar.threads.rows
 
         def prepare():
             people = tuple(rows[person.thread.name] for person in snapshot.participants(target)

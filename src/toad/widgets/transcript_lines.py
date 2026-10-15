@@ -671,6 +671,9 @@ class LinePreparation(MroDispatch):
     theme: LineTheme
     prepared_blocks: tuple[LineBlock, ...] = field(init=False, repr=False)
 
+    def matches(self, width, theme) -> bool:
+        return (self.width, self.theme) == (width, theme)
+
     def __post_init__(self) -> None:
         # This is a factory: choose the most specific declared supply, not
         # the event pipeline (whose replacements must keep event identity).
@@ -732,6 +735,24 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
         """The original source witness, never the normalized drawing blocks."""
         return self.preparation.blocks
 
+    def current_for(self, view) -> bool:
+        return (self.context.current_for(view) and
+                self.preparation.matches(view.line_width, view.app.colours.line_theme))
+
+    def hold(self, view, fragment, lines) -> None:
+        if self.current_for(view):
+            fragment.hold_lines(self, lines)
+
+    @staticmethod
+    def show(view, fragment, shown, rendered) -> None:
+        """Apply the requested state, retaining rows only through their render request."""
+        fragment.show(shown)
+        if rendered is not None:
+            request, lines = rendered
+            if request.current_for(view):
+                fragment.line_blocks = request.blocks
+                fragment.hold_lines(request, lines)
+
     def execute(self) -> PreparedLines:
         preparation = self.preparation
         return PreparedLines(preparation.width, RichLineRenderer(
@@ -753,6 +774,17 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[PreparedLines, ...
     """
 
     items: tuple[TranscriptLinesRenderTask, ...]
+
+    @classmethod
+    async def render_for(cls, view, preparations):
+        """One captured reference source for a batch; requests own result publication."""
+        preparations = tuple(preparations)
+        if not preparations:
+            return ()
+        context = await LinkContext.acquire(view)
+        items = tuple(TranscriptLinesRenderTask(preparation, context) for preparation in preparations)
+        lines = await view.app.render_processes.submit(cls(items))
+        return tuple(zip(items, lines))
 
     def execute(self) -> tuple[PreparedLines, ...]:
         return tuple(item.execute() for item in self.items)
