@@ -364,6 +364,38 @@ class PatchLayout:
         )
 
 
+class Lines:
+    """Rows at one width; each drawing owner builds its own marked strips."""
+
+    width: int
+    rows: tuple[Row, ...]
+
+    @property
+    def height(self) -> int:
+        return len(self.rows)
+
+    @cached_property
+    def content_width(self) -> int:
+        return max((sum(segment.cell_length for segment in row) for row in self.rows), default=self.width)
+
+    def strips_at(self, place: int) -> tuple[Strip, ...]:
+        """Link placement decorates this view's paint, never shared preparation."""
+        strips = self.__dict__.get("strips")
+        if strips is None:
+            width = self.width
+            strips = self.__dict__["strips"] = tuple(
+                Strip(row).extend_cell_length(width) for row in _each_link_apart(self.rows, place))
+        return strips
+
+
+@dataclass(frozen=True)
+class PreparedLines(Lines, LineBlock):
+    """Immutable rows can also supply an already laid-out part of a fragment."""
+
+    width: int
+    rows: tuple[Row, ...]
+
+
 class SpanColumnLayout(Columns):
     """Shared span-cell layout for immediate, styled and widget presentations.
 
@@ -536,9 +568,11 @@ class RichLineRenderer(MroDispatch):
                                for span in block.spans), tab_size=4)
         self.output.extend(tuple(line.render(console)) for line in text.wrap(console, self.width))
 
-    @handles(SpanColumns)
-    def columns(self, block: SpanColumns) -> None:
-        self.output.extend(SpanColumnLayout(block, self.theme).rows(self.width))
+    @handles(PreparedLines)
+    def prepared(self, block: PreparedLines) -> None:
+        if block.width != self.width:
+            raise ValueError("Prepared rows belong to a different width")
+        self.output.extend(block.rows)
 
     @handles(Gap)
     def gap(self, block: Gap) -> None:
@@ -604,9 +638,10 @@ class PlainRowCount(MroDispatch):
     def spans(self, block: Spans) -> None:
         self.count += sum(len(_plain_spans(line, self.width)) for line in _plain_lines(block.text))
 
-    @handles(SpanColumns)
-    def columns(self, block: SpanColumns) -> None:
-        self.count += len(SpanColumnLayout(block, self.theme).rows(self.width))
+    @handles(PreparedLines)
+    def prepared(self, block: PreparedLines) -> None:
+        self.count += block.height
+        self.content_width = max(self.content_width, block.content_width)
 
     @handles(Patch)
     def patch(self, block: Patch) -> None:
@@ -622,59 +657,55 @@ class PlainRowCount(MroDispatch):
         self.count += sum(len(divide_line(line, inner)) + 1 for line in _plain_lines(block.content.plain))
 
 
-class Lines:
-    """Rows of text at one width (`width`, `rows`); strips are built once, on first draw.
+@dataclass(frozen=True)
+class LinePreparation(MroDispatch):
+    """One immutable source/width/theme admission shared by measurement and paint.
 
-    Each strip spans at least the width; unwrapped code can extend it. The
-    strip keeps what painting computes (its terminal sequence) across
-    repaints.
+    Column geometry depends only on these spans, links, width and theme, so
+    it is prepared once. Markdown/body styling and contextual link resolution
+    remain worker jobs; their plain and styled wrapping need not agree.
     """
 
+    blocks: tuple[LineBlock, ...]
     width: int
-    rows: tuple[Row, ...]
+    theme: LineTheme
+    prepared_blocks: tuple[LineBlock, ...] = field(init=False, repr=False)
 
-    @property
-    def height(self) -> int:
-        return len(self.rows)
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "prepared_blocks", tuple(self.dispatch_sync(block) for block in self.blocks))
 
-    @cached_property
-    def content_width(self) -> int:
-        return max((sum(segment.cell_length for segment in row) for row in self.rows), default=self.width)
+    @handles(LineBlock)
+    def unchanged(self, block: LineBlock) -> LineBlock:
+        return block
 
-    def strips_at(self, place: int) -> tuple[Strip, ...]:
-        """The rows as strips, for the one owner (`link_place`) that draws them."""
-        strips = self.__dict__.get("strips")
-        if strips is None:
-            width = self.width
-            strips = self.__dict__["strips"] = tuple(
-                Strip(row).extend_cell_length(width) for row in _each_link_apart(self.rows, place))
-        return strips
-
-
-@dataclass(frozen=True)
-class PreparedLines(Lines):
-    """Rows of one fragment at one width, rendered (styled) in a render worker."""
-
-    width: int
-    rows: tuple[Row, ...]
+    @handles(SpanColumns)
+    def columns(self, block: SpanColumns) -> PreparedLines:
+        return PreparedLines(self.width, SpanColumnLayout(block, self.theme).rows(self.width))
 
 
 class PlainLines(Lines):
     """A fragment's plain rows at a width, drawn until its styled rows arrive.
 
-    Layout reads only the height, which is counted without building a row;
-    the rows are built when one of them is drawn.
+    Only columns need physical rows to know their height; the immutable
+    preparation retains those once. Other blocks keep cheap measurement
+    and defer plain paint or richer worker wrapping until requested.
     """
 
     def __init__(self, width: int, theme: LineTheme, blocks: tuple[LineBlock, ...]):
-        self.width = width
-        self.theme = theme
-        self.blocks = blocks
+        self.preparation = LinePreparation(blocks, width, theme)
+
+    @property
+    def width(self) -> int:
+        return self.preparation.width
+
+    @property
+    def theme(self) -> LineTheme:
+        return self.preparation.theme
 
     @cached_property
     def _measurement(self) -> PlainRowCount:
         measurement = PlainRowCount(self.width, self.theme)
-        measurement.height(self.blocks)
+        measurement.height(self.preparation.prepared_blocks)
         return measurement
 
     @property
@@ -687,23 +718,28 @@ class PlainLines(Lines):
 
     @cached_property
     def rows(self) -> tuple[Row, ...]:
-        return RichLineRenderer(self.theme, self.width, plain=True).rows(self.blocks)
+        return RichLineRenderer(self.theme, self.width, plain=True).rows(self.preparation.prepared_blocks)
 
 
 @dataclass(frozen=True)
 class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
     """Render a fragment's line blocks at a width in a render worker."""
 
-    blocks: tuple[LineBlock, ...]
-    width: int
-    theme: LineTheme
+    preparation: LinePreparation
     context: LinkContext
 
+    @property
+    def blocks(self) -> tuple[LineBlock, ...]:
+        """The original source witness, never the normalized drawing blocks."""
+        return self.preparation.blocks
+
     def execute(self) -> PreparedLines:
-        return PreparedLines(self.width, RichLineRenderer(self.theme, self.width, context=self.context).rows(self.blocks))
+        preparation = self.preparation
+        return PreparedLines(preparation.width, RichLineRenderer(
+            preparation.theme, preparation.width, context=self.context).rows(preparation.prepared_blocks))
 
     def accept_result(self, result: object) -> PreparedLines:
-        if not isinstance(result, PreparedLines) or result.width != self.width:
+        if not isinstance(result, PreparedLines) or result.width != self.preparation.width:
             raise TypeError("Transcript line renderer returned rows for a different width")
         return result
 

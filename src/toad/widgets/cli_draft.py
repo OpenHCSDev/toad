@@ -7,7 +7,7 @@ from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.transcript_lines import LinkedRows, TranscriptLinesRenderTask, PreparedLines
+from toad.widgets.transcript_lines import LinkedRows, LinePreparation, TranscriptLinesRenderTask, PreparedLines
 from toad.widgets.transcript_fragments import FragmentLineConsumer
 
 
@@ -58,7 +58,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
                 consumer.dispatch_sync(event)
             context = await LinkContext.acquire(self)
             lines = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(tuple(consumer.blocks), width, theme, context))
+                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), width, theme), context))
             if not context.current_for(self):
                 continue
             if not self.is_attached or self.draft is None:

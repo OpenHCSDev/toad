@@ -22,7 +22,7 @@ from toad.block_content import BlockContent
 from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.line_blocks import Body, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
+    LinkedRows, LinePreparation, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
 )
 
 
@@ -159,7 +159,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
                 complete = target == self.text
                 blocks = self.line_blocks(target, complete=complete)
                 context = await LinkContext.acquire(self)
-                lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme, context))
+                lines = await renderer.submit(TranscriptLinesRenderTask(LinePreparation(blocks, width, theme), context))
                 if not context.current_for(self):
                     continue
                 if not self.is_attached:

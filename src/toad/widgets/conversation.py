@@ -863,15 +863,19 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def make_throbber(self) -> ObservedThrobber:
         return ObservedThrobber(
-            lambda: self.busy_count > 0 or self._observed_working,
+            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
             id="throbber",
         )
 
     @property
     def _observed_working(self) -> bool:
-        """The status view owns observed/local activity selection for both bars."""
+        """Core's observed work is independent of the local ACP request lease.
+
+        A shown/unavailable row cannot settle a still-owned native request;
+        CLI views have only this observed source, never a native turn lease.
+        """
         activity = self.thread_activity
-        return activity.working if activity is not None else self.turns.owner.busy
+        return activity is not None and activity.working
 
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
@@ -910,9 +914,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ),
             )
             yield self.thread_activity
-            yield self.make_throbber()
-            yield GoalBar(self)
-            yield Prompt(turns=self.turns, submissions=self.submissions).data_bind(
+            throbber = self.make_throbber()
+            prompt = Prompt(turns=self.turns, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -920,6 +923,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
+            yield throbber
+            yield GoalBar(self, throbber=throbber, prompt=prompt)
+            yield prompt
 
     @property
     def _terminal(self) -> Terminal | None:

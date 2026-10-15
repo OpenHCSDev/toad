@@ -75,14 +75,14 @@ class GoalBar(VerticalGroup):
     """
     collapsed: var[bool] = var(False)
     _separator_update_pending = False
-    _throbber = None
-    _prompt = None
     _document_height: int | None = None
     _resize_origin: tuple[int, int] | None = None
 
-    def __init__(self, source):
+    def __init__(self, source, *, throbber, prompt):
         super().__init__()
         self._source = ref(source)
+        self._throbber = throbber
+        self._prompt = prompt
 
     @property
     def goal_display(self):
@@ -93,17 +93,9 @@ class GoalBar(VerticalGroup):
         return self._source().goal_execution
 
     def on_mount(self) -> None:
-        from toad.widgets.prompt import Prompt
-        from toad.widgets.throbber import Throbber
-
-        # Observe the existing presentation owners instead of introducing a
-        # second definition of "running" or "queue mode" on Conversation.
-        self._throbber = self.parent.query_one_optional("#throbber", Throbber)
-        self._prompt = self.parent.query_one_optional(Prompt)
         self.watch(self._source(), "goal_display", self.watch_goal_display)
         self.watch(self._source(), "goal_execution", self.watch_execution)
-        if self._throbber is not None:
-            self.watch(self._throbber, "busy", self._queue_separator_update)
+        self.watch(self._throbber, "busy", self._queue_separator_update)
         self._queue_separator_update()
 
     def notify_style_update(self) -> None:
@@ -121,14 +113,9 @@ class GoalBar(VerticalGroup):
     def _update_separators(self) -> None:
         self._separator_update_pending = False
         throbber = self._throbber
-        controls = (
-            self._prompt.query_one_optional(".delivery-controls")
-            if self._prompt
-            else None
-        )
+        controls = self._prompt.query_one_optional(".delivery-controls")
         loading = (
-            throbber is not None
-            and throbber.busy
+            throbber.busy
             and throbber.display
             and throbber.visible
         )
