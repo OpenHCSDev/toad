@@ -186,7 +186,7 @@ class DirectMessagesAction(KeyboundAction, ApplicationAction, PaletteAction):
 
 class VimApplicationAction(KeyboundAction, ApplicationAction):
     def available(self, app):
-        return app.settings.ui.vim_keys and app.screen is app.workspace_screen
+        return app.settings.ui.vim_keys and app.current_mode == "workspace"
 
 
 class VimNavigationAction(VimApplicationAction):

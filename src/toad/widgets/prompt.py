@@ -231,7 +231,7 @@ See on-screen instructions for details.
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
         self.apply_keyboard_profile()
-        self.show_editing_mode(self.editing_mode)
+        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
 
     def show_editing_mode(self, mode) -> None:
         if self.is_mounted:
