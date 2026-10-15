@@ -341,10 +341,13 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
     thread_presentation = None
+    """The agent thread's latest settled presentation."""
 
     _thread_read = None
+    """The capture the next observed presentation settles against (ThreadRead)."""
 
     _unpublished_presentation = None
+    """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     @property
     def operational_sources(self):
@@ -567,6 +570,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
+        self._source_resources.callback(self.app.coordination_access.show_thread, self, None)
 
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
@@ -574,7 +578,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             if self.agent is not None:
                 release.push_async_callback(self.agent.retire_surface, self)
             release.push_async_callback(self._release_source_resources)
-            self.app.coordination_access.show_thread(self, None)
 
     def _publish_session_end(self) -> None:
         if self._agent_data is not None and self.session_start_time is not None:
@@ -770,9 +773,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
-    """The agent thread's latest settled presentation."""
-    """The capture the next observed presentation settles against (ThreadRead)."""
-    """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     BLANK = True
     MAX_LIVE_BLOCKS = 32
@@ -1076,16 +1076,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         return any(reference in fragment.notification_references
                    for history in self.transcript.histories
                    for fragment in history.visible_fragments())
-
-
-
-
-
-
-
-
-
-
 
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:

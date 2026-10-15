@@ -26,7 +26,7 @@ from agent_comms.route_selection import RouteChanged, RouteSelection, run_select
 from agent_comms.ui_model.observation import (
     AwaitedRead, ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
     SidebarObserved, SidebarUnreadable, ViewsRetired,
-    StopSidebar, ThreadsObserved,
+    StopObserving, StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel
 from agent_comms.ui_model.status import OpenThreadStatus
@@ -303,12 +303,23 @@ class CoordinationAccess(MroDispatch):
         self.timer = self.app.set_interval(ROUTE_CHECK_SECONDS, self.check_route)
         self.check_route()
 
-    async def close(self) -> None:
+    async def stop_observing(self) -> None:
+        """End view updates before teardown; outstanding read replies still complete."""
         if self.timer is not None:
             self.timer.stop()
+            self.timer = None
         if self.route_task is not None:
             self.route_task.cancel()
             await asyncio.gather(self.route_task, return_exceptions=True)
+            self.route_task = None
+        if self.observation is not None and self.loop is not None:
+            process = self.observation.process
+            process.request(StopObserving())
+            self.loop.remove_reader(process.fileno())
+            self.loop.add_reader(process.fileno(), process.results)
+
+    async def close(self) -> None:
+        await self.stop_observing()
         if self.observation is not None and self.loop is not None:
             self.retire(self.observation)
             self.observation = None

@@ -319,6 +319,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     async def _close_all(self) -> None:
         await self.thread_navigation.close()
         await self.thread_actions.close()
+        await self.coordination_access.stop_observing()
         await super()._close_all()
         # Native clients and the preparation owner have joined actual I/O.
         # A failed retirement keeps its route resource instead of certifying exit.
@@ -327,7 +328,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     async def on_unmount(self) -> None:
         self.colours.stop()
         self.terminal_attention.close()
-        await self.thread_navigation.close()
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
