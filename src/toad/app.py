@@ -491,12 +491,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         return WorkspaceChrome(self)
 
     @cached_property
-    def busy_rows(self):
-        from toad.widgets.activity_spinner import BusyRows
-
-        return BusyRows(self)
-
-    @cached_property
     def workspace_sessions(self):
         from toad.workspace_sessions import WorkspaceSessions
         return WorkspaceSessions(self)

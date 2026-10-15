@@ -39,11 +39,6 @@ def conversation_layout(app: ToadApp, value: object) -> None:
 
 
 @Effect
-def sidebar_spinner_frames_per_second(app: ToadApp, value: int) -> None:
-    app.busy_rows.cadence_changed()
-
-
-@Effect
 def diff_style(app: ToadApp, value: object) -> None:
     """Existing line renderers prepare again with the new diff preference."""
     app.colours.variables_changed(app.colours.variables)

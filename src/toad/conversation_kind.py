@@ -68,8 +68,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def unread(cls, snapshot, target):
-        from agent_comms.ui_model.unread import ExactUnread
-        return ExactUnread(snapshot.channel_unread.get(target, 0)) if snapshot else ExactUnread()
+        from agent_comms.ui_model.unread import UnreadPresentation
+        return UnreadPresentation.for_channel(snapshot, target)
 
     @classmethod
     def placeholder(cls, target):
@@ -244,8 +244,8 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def unread(cls, snapshot, target):
-        from agent_comms.ui_model.unread import ExactUnread
-        return ExactUnread(snapshot.unread.get(target, 0)) if snapshot else ExactUnread()
+        from agent_comms.ui_model.unread import UnreadPresentation
+        return UnreadPresentation.for_bus(snapshot, target)
 
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:

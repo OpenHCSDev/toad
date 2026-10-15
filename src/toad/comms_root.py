@@ -282,7 +282,7 @@ class CoordinationAccess(MroDispatch):
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:
         self.thread_status.observed(result)
         for owner, name in tuple(self.thread_owners.items()):
-            if name in result.presentations:
+            if name in result.changed and name in result.presentations:
                 owner.thread_observed(result.presentations[name])
 
     @handles(ViewsRetired)
@@ -376,12 +376,15 @@ class CoordinationAccess(MroDispatch):
 
     def show_thread(self, owner: ThreadStatusOwner, name: str | None) -> None:
         """``owner`` shows observed thread ``name``'s status (None: no observed thread)."""
+        previous = self.thread_owners.get(owner)
         if name is None:
             self.thread_owners.pop(owner, None)
         else:
             self.thread_owners[owner] = name
         names = frozenset(self.thread_owners.values())
-        if names != self.thread_interest and self.observation is not None and self.loop is not None:
+        joined = name is not None and previous != name
+        if ((names != self.thread_interest or joined)
+                and self.observation is not None and self.loop is not None):
             self.thread_interest = names
             self.observation.process.request(ObserveThreads(names))
 
