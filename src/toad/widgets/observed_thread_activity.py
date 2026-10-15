@@ -74,6 +74,12 @@ class ThreadStatusOwner:
     thread_activity: ObservedThreadActivity | None = None
     """The composed status view; lookup never infers capabilities from CSS ancestry."""
 
+    @property
+    def _observed_working(self) -> bool:
+        """Observed work cannot settle an independently owned ACP request."""
+        activity = self.thread_activity
+        return activity is not None and activity.working
+
     def status_thread(self) -> tuple[str, str] | None:
         """The (wire root, thread name) whose status this view shows, if any."""
         raise NotImplementedError

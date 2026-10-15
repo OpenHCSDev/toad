@@ -867,16 +867,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             id="throbber",
         )
 
-    @property
-    def _observed_working(self) -> bool:
-        """Core's observed work is independent of the local ACP request lease.
-
-        A shown/unavailable row cannot settle a still-owned native request;
-        CLI views have only this observed source, never a native turn lease.
-        """
-        activity = self.thread_activity
-        return activity is not None and activity.working
-
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
