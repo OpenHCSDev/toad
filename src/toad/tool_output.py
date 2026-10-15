@@ -275,7 +275,15 @@ class ToolContentDecoder(MroDispatch):
             from agent_comms.field_codec import FieldCodec
             from agent_comms.transcript_events import SentTranscript
 
-            self.part = SentMessageToolOutputPart(FieldCodec.decode(SentTranscript, json.loads(item.text)))
+            try:
+                message = FieldCodec.decode(SentTranscript, json.loads(item.text))
+                message.require_reply_route()
+            except (TypeError, ValueError):
+                # Unsupported/malformed external evidence stays complete literal
+                # text. Never try another schema or manufacture publication data.
+                self.part = PlainTextToolOutputPart(item.text)
+            else:
+                self.part = SentMessageToolOutputPart(message)
         elif item.mime_type == 'application/vnd.agent-comms.numbered-diff':
             self.part = NumberedPatchToolOutputPart(item.text)
         else:
