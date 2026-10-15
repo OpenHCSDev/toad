@@ -17,6 +17,9 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests
 
 import os
+import shlex
+
+from agent_comms.native_arguments import NativeArguments
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
@@ -372,7 +375,7 @@ class CoordinationStatus(Static):
             self.update(f"Wire unavailable: {error}")
             self.tooltip = "Invalid Comms route"
             return
-        backend = os.environ.get("AGENT_COMMS_AGENT_BIN", "pi")
+        backend = NativeArguments.configured_binary()
         thread = self.thread or "connecting..."
         self.update(
             Content.assemble(
@@ -383,10 +386,7 @@ class CoordinationStatus(Static):
                 f"\nACP/session · {Path(backend).name}",
             )
         )
-        args = os.environ.get(
-            "AGENT_COMMS_AGENT_ARGS",
-            "--print --no-session --provider openrouter --model z-ai/glm-5.3-flash",
-        )
+        args = shlex.join(NativeArguments.configured().argv)
         self.tooltip = (
             "Coordination state persists in the shared wire; the stdio ACP transport "
             "is scoped to this Toad session.\n\n"

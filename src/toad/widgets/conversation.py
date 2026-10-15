@@ -564,6 +564,10 @@ class ConversationSessionBinding(containers.Vertical):
                 await self.post(MarkdownNote(welcome))
                 if self.transcript is not presentation or presentation.view is not self:
                     return
+        self._native_agent_started_here = False
+        if self.agent is not None and self.agent.configuration.model.requires_selection:
+            self.prompt.model_switcher.focus()
+            return
         if self._initial_prompt is not None:
             prompt = self._initial_prompt
             if prompt.startswith("!"):
@@ -575,7 +579,81 @@ class ConversationSessionBinding(containers.Vertical):
                     input_events.UserInputSubmitted(prompt, shell=False)
                 )
             self.take_initial_prompt()
-        self._native_agent_started_here = False
+
+    @handles(core_events.ConfigurationChanged)
+    async def on_acp_configuration_changed(self, message: CoreEventMessage):
+        self._update_model_info()
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_configuration()
+            prompt.sync_session()
+        if self._initial_prompt is not None and self.agent is not None and self.agent.ready:
+            self._session_ready()
+        self.refresh_bindings()
+
+    def _update_model_info(self) -> None:
+        agent = self.agent
+        model = agent.configuration.model.selected if agent is not None else None
+        if model is not None:
+            level = agent.configuration.thinking.current
+            suffix = f" · {level}" if level else ""
+            self.agent_info = Content(model.name + suffix)
+        else:
+            self.agent_info = (
+                Content(self.agent.get_info()) if self.agent is not None else Content()
+            )
+
+    @handles(AgentReady)
+    async def on_agent_ready(self, message: CoreEventMessage) -> None:
+        if not message.event.reconnected:
+            self.session_start_time = monotonic()
+            if self.agent is not None:
+                content = Content.assemble(self.agent.get_info(), " connected")
+                self.flash(content, style="success")
+                if self._agent_data is not None:
+                    self.app.application.usage.publish(
+                        "agent-session-begin",
+                        agent=self._agent_data.identity,
+                    )
+
+        self._session_ready()
+        self.prompt.sync_session()
+        self.arm_thread_read()
+        self.refresh_thread_status()
+        self.call_later(self.goal_observation.invalidate)
+        self.call_later(self.delivery_observation.invalidate)
+        self.transcript.request()
+
+    def watch_agent(self, agent: AgentBase | None) -> None:
+        self.transcript.source_changed(self)
+        # A presentation remount is not a fresh attachment. Start at the
+        # Agent's current projection/floor so previously queued receipts cannot
+        # revive proof after its reducer entered quarantine or evidence loss.
+        if agent is not None:
+            self.bind_agent(agent)
+        attachments = (agent.presentation.attachments if agent is not None
+                       else AgentAttachmentView(None, 0))
+        self.native_history_status = attachments.cursor
+        self._private_cursor_sequence = attachments.cursor_sequence
+        self.submissions.reset()
+        # The observed presentation is Core's answer for this thread, not the
+        # agent's; it stays until the next observation replaces it.
+        self.arm_thread_read()
+        if self.is_attached:
+            self.refresh_thread_status()
+        self.turns.bound()
+        self.busy_count = 0
+        if agent is None:
+            self.agent_info = Content.styled("shell")
+        else:
+            self._update_model_info()
+            self.status = agent.context_measurement.status()
+            if agent.ready:
+                self._session_ready()
+                self.call_later(self.goal_observation.invalidate)
+                self.call_later(self.delivery_observation.invalidate)
+
+        if self.is_mounted:
+            self.update_slash_commands()
 
 
 from toad.widget_actions import DeclaredWidgetActions
@@ -970,26 +1048,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.transcript.request_handling()
 
 
-    @handles(AgentReady)
-    async def on_agent_ready(self, message: CoreEventMessage) -> None:
-        if not message.event.reconnected:
-            self.session_start_time = monotonic()
-            if self.agent is not None:
-                content = Content.assemble(self.agent.get_info(), " connected")
-                self.flash(content, style="success")
-                if self._agent_data is not None:
-                    self.app.application.usage.publish(
-                        "agent-session-begin",
-                        agent=self._agent_data.identity,
-                    )
-
-        self._session_ready()
-        self.prompt.sync_session()
-        self.arm_thread_read()
-        self.refresh_thread_status()
-        self.call_later(self.goal_observation.invalidate)
-        self.call_later(self.delivery_observation.invalidate)
-        self.transcript.request()
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
             await self.agent.set_session_name(name)
@@ -1045,7 +1103,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 details=message.event.details,
             )
 
-        await message.event.present(self)
+        if self.agent is not None:
+            await self.agent.session.disposition.present_failure(message.event, self)
+        else:
+            await message.event.present(self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
@@ -1532,25 +1593,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 style="success",
             )
 
-    @handles(core_events.ConfigurationChanged)
-    async def on_acp_configuration_changed(self, message: CoreEventMessage):
-        self._update_model_info()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
-            prompt.sync_configuration()
-        self.refresh_bindings()
-
-    def _update_model_info(self) -> None:
-        agent = self.agent
-        model = agent.configuration.model.selected if agent is not None else None
-        if model is not None:
-            level = agent.configuration.thinking.current
-            suffix = f" · {level}" if level else ""
-            self.agent_info = Content(model.name + suffix)
-        else:
-            self.agent_info = (
-                Content(self.agent.get_info()) if self.agent is not None else Content()
-            )
-
     @handles(input_events.HistoryMove)
     async def on_history_move(self, message: CoreEventMessage) -> None:
         message.stop()
@@ -1773,38 +1815,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @work
     async def post_welcome(self) -> None:
         """Post any welcome content."""
-
-    def watch_agent(self, agent: AgentBase | None) -> None:
-        self.transcript.source_changed(self)
-        # A presentation remount is not a fresh attachment. Start at the
-        # Agent's current projection/floor so previously queued receipts cannot
-        # revive proof after its reducer entered quarantine or evidence loss.
-        if agent is not None:
-            self.bind_agent(agent)
-        attachments = (agent.presentation.attachments if agent is not None
-                       else AgentAttachmentView(None, 0))
-        self.native_history_status = attachments.cursor
-        self._private_cursor_sequence = attachments.cursor_sequence
-        self.submissions.reset()
-        # The observed presentation is Core's answer for this thread, not the
-        # agent's; it stays until the next observation replaces it.
-        self.arm_thread_read()
-        if self.is_attached:
-            self.refresh_thread_status()
-        self.turns.bound()
-        self.busy_count = 0
-        if agent is None:
-            self.agent_info = Content.styled("shell")
-        else:
-            self._update_model_info()
-            self.status = agent.context_measurement.status()
-            if agent.ready:
-                self._session_ready()
-                self.call_later(self.goal_observation.invalidate)
-                self.call_later(self.delivery_observation.invalidate)
-
-        if self.is_mounted:
-            self.update_slash_commands()
 
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.

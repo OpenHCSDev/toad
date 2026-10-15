@@ -1,10 +1,11 @@
-import asyncio
 import itertools
 import threading
 from pathlib import Path
 
 from textual.cache import LRUCache
 from textual.suggester import Suggester
+
+from toad.work_preparation import PreparationRuntime
 
 
 class ListDirCache:
@@ -20,24 +21,12 @@ class ListDirCache:
         self._cache: LRUCache[tuple[str, int], list[Path]] = LRUCache(100)
         self._lock = threading.Lock()
 
-    async def listdir(self, path: Path, size: int) -> list[Path]:
+    def listdir(self, path: Path, size: int) -> list[Path]:
         cache_key = (str(path), size)
-
-        def iterdir_thread(path: Path) -> list[Path]:
-            """Run iterdir in a thread.
-
-            Returns:
-                A list of paths.
-            """
-            return list(itertools.islice(path.iterdir(), size))
-
         with self._lock:
-            if cache_key in self._cache:
-                paths = self._cache[cache_key]
-            else:
-                paths = await asyncio.to_thread(iterdir_thread, path)
-                self._cache[cache_key] = paths
-            return paths
+            if cache_key not in self._cache:
+                self._cache[cache_key] = list(itertools.islice(path.iterdir(), size))
+            return self._cache[cache_key]
 
 
 class DirectorySuggester(Suggester):
@@ -48,18 +37,21 @@ class DirectorySuggester(Suggester):
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self, preparation: PreparationRuntime) -> None:
+        self.preparation = preparation
         self._cache = ListDirCache()
         super().__init__(case_sensitive=True)
 
     async def get_suggestion(self, value: str) -> str | None:
-        """Suggest the first matching directory."""
+        return await self.preparation.run_thread(self.suggest, value)
 
+    def suggest(self, value: str) -> str | None:
+        """Resolve the complete suggestion inside the admitted preparation work."""
         try:
             path = Path(value)
             name = path.name
 
-            children = await self._cache.listdir(
+            children = self._cache.listdir(
                 path.expanduser() if path.is_dir() else path.parent.expanduser(), 100
             )
             possible_paths = [
@@ -80,14 +72,3 @@ class DirectorySuggester(Suggester):
         except FileNotFoundError:
             pass
         return None
-
-
-if __name__ == "__main__":
-    from textual.app import App, ComposeResult
-    from textual import widgets
-
-    class SApp(App):
-        def compose(self) -> ComposeResult:
-            yield widgets.Input(suggester=DirectorySuggester())
-
-    SApp().run()
