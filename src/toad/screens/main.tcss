@@ -91,9 +91,10 @@ Conversation {
         width: 1fr;
         height: 3;
         align: center middle;
-        background: transparent;
+        visibility: hidden;
 
         #back-to-bottom {
+            visibility: visible;
             width: auto;
             height: 1;
             padding: 0 1;
