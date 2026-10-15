@@ -19,6 +19,7 @@ from textual.widget import Widget
 from textual.worker import Worker
 
 from toad.block_content import BlockContent
+from toad.markdown_links import LinkContext
 from toad.line_blocks import Body, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
     LinkedRows, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
@@ -157,7 +158,7 @@ class LineMarkdown(LinkedRows, BlockContent, Widget):
             if target and (target != self._styled_text or styled is None or styled.width != width):
                 complete = target == self.text
                 blocks = self.line_blocks(target, complete=complete)
-                lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme))
+                lines = await renderer.submit(TranscriptLinesRenderTask(blocks, width, theme, await LinkContext.acquire(self)))
                 if not self.is_attached:
                     return
                 source_current = width == self._width and theme is self.app.colours.line_theme

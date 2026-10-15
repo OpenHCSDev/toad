@@ -52,6 +52,7 @@ from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
+from toad.markdown_links import LinkContext
 from toad.widgets.message_notifications import HistoryNotifications
 from toad.widgets.transcript_lines import (
     HorizontalRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
@@ -386,7 +387,8 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
             for fragment in batch:
                 del self._pending[id(fragment)]
             width, theme = self._width, self.app.colours.line_theme
-            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme)
+            context = await LinkContext.acquire(self)
+            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme, context)
                           for fragment in batch)
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
             if not self.is_attached or width != self._width:
@@ -516,7 +518,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             if not current():
                 return
             batch = todo[first:first + self.budget.batch_items]
-            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme) for fragment in batch)
+            context = await LinkContext.acquire(self)
+            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme, context) for fragment in batch)
             results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
             for fragment, task, lines in zip(batch, tasks, results):
                 fragment.hold_lines(theme, lines, task.blocks)
@@ -551,8 +554,9 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         width, theme = self.line_width, self.app.colours.line_theme
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
+        context = await LinkContext.acquire(self) if drawn else None
         lines = await self.app.render_processes.submit(TranscriptLinesBatchRenderTask(tuple(
-            TranscriptLinesRenderTask(fragment.blocks(shown), width, theme)
+            TranscriptLinesRenderTask(fragment.blocks(shown), width, theme, context)
             for fragment, shown in drawn))) if drawn else ()
         if not self.state.can_draw:
             return

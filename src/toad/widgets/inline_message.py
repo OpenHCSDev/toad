@@ -11,9 +11,9 @@ if TYPE_CHECKING:
     from toad.textual_colours import TextualColours
 
 
-def inline_message(body: str, colours: TextualColours, mentions=()) -> Content:
+def inline_message(body: str, colours: TextualColours, context) -> Content:
     result = Content("")
-    for span in inline_spans(body, mentions):
+    for span in inline_spans(body, context):
         part = Content.styled(span.text, colours.style(span.role))
         if span.link is not None:
             part = part.stylize(Style.from_meta({"@click": span.link.click}))

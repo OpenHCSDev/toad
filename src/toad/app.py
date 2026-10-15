@@ -311,6 +311,8 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_access = CoordinationAccess(self)
 
+        from toad.file_kind import FileKind
+        FileKind.prepare_terminal()
         super().__init__()
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()

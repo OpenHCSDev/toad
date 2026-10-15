@@ -5,6 +5,7 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.worker import Worker
 from toad.block_content import BlockContent
+from toad.markdown_links import LinkContext
 from toad.line_blocks import LineBlock
 from toad.widgets.transcript_lines import (
     HorizontalRows, Lines, PlainLines, PreparedLines, TranscriptLinesRenderTask,
@@ -68,7 +69,7 @@ class ToolContent(HorizontalRows, BlockContent, Widget):
     async def _render(self) -> None:
         blocks, width, theme = self.blocks, self._width, self.app.colours.line_theme
         lines = await self.app.render_processes.submit(
-            TranscriptLinesRenderTask(blocks, width, theme)
+            TranscriptLinesRenderTask(blocks, width, theme, await LinkContext.acquire(self))
         )
         if self.is_attached and (blocks, width, theme) == (self.blocks, self._width, self.app.colours.line_theme):
             previous_height = self._lines(width).height

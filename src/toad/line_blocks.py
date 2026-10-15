@@ -8,7 +8,13 @@ imports a terminal or rendering library.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import json
 import re
+from urllib.parse import quote, unquote
+
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.display_references import DisplayReference
+from agent_comms.field_codec import FieldCodec
 
 from typing import ClassVar
 
@@ -144,7 +150,7 @@ class WorkingRole(LineRole):
     colour = AccentColour
 
 
-class LineLink:
+class LineLink(DeclaredFamily, affix="Link"):
     """What clicking a piece of text does; the widget that drew it opens each kind of link."""
 
     # Whether the text is underlined to show that it leads somewhere.
@@ -153,6 +159,25 @@ class LineLink:
     @property
     def click(self) -> str | tuple[str, tuple]:
         return "open", (self,)
+
+    @property
+    def href(self) -> str:
+        """Carry the same typed action through Markdown's string-only href."""
+        return "toad-link:" + quote(json.dumps(FieldCodec.encode(self)), safe="")
+
+    def resolved(self, root):
+        return self
+
+    def inline_tokens(self, content):
+        from markdown_it.token import Token
+        return (Token("link_open", "a", 1, attrs={"href": self.href}),
+                content, Token("link_close", "a", -1))
+
+    @classmethod
+    def from_href(cls, href: str) -> LineLink:
+        if href.startswith("toad-link:"):
+            return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix("toad-link:"))))
+        return OpenUrl(href)
 
 
 @dataclass(frozen=True)
@@ -171,6 +196,13 @@ class OpenHistoricalTarget(LineLink):
 
 
 @dataclass(frozen=True)
+class OpenReference(LineLink):
+    """Core's exact display identity, not a delivery mention."""
+
+    reference: DisplayReference
+
+
+@dataclass(frozen=True)
 class OpenUrl(LineLink):
     """Open an address written in a message: a web page, a mail address, a file."""
 
@@ -183,9 +215,16 @@ class OpenUrl(LineLink):
         """Whether `[label](url)` is drawn as a link, in every style a message is drawn in."""
         return cls.runs_code.match(url) is None
 
+    def resolved(self, root):
+        from toad.project_link import ProjectLink
+        return OpenUrl(ProjectLink.from_href(lambda: root, self.url).href)
+
+    @property
+    def href(self) -> str:
+        return self.url
+
     @property
     def click(self) -> str:
-        # The action a Markdown link runs, so one handler opens an address however it was written.
         return f"link({self.url!r})"
 
 
