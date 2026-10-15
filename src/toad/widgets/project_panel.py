@@ -193,7 +193,13 @@ class FilePreview(Vertical):
             self.loading.update("Loading file…")
             self.loading.display = True
             try:
-                await FileKind.for_path(self.path).preview(self, position)
+                kind = FileKind.for_path(self.path)
+                source = await self.app.preparation.run_thread(kind.load, self.path)
+                if self.is_attached and not self._pruning:
+                    if position is None:
+                        await kind.show(self, source)
+                    else:
+                        await kind.show_at(self, source, position)
             except (OSError, ValueError, EOFError) as error:
                 if self.is_attached and not self._pruning:
                     self.loading.update(f"Unable to open {self.path}: {error}")

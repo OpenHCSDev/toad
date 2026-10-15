@@ -52,7 +52,7 @@ class CodeInlineSpanRule(InlineSpanRule):
 class LinkOpenSpanRule(InlineSpanRule):
     @classmethod
     def apply(cls, token, state):
-        state.links.append(token.meta["link"])
+        state.links.append(token.attrGet("href").target)
 
 
 class LinkCloseSpanRule(InlineSpanRule):

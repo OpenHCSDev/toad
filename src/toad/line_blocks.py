@@ -169,7 +169,7 @@ class LineLink(DeclaredFamily, affix="Link"):
 
     def inline_tokens(self, content):
         from markdown_it.token import Token
-        return (Token("link_open", "a", 1, attrs={"href": LinkHref.capture(self)}, meta={"link": self}),
+        return (Token("link_open", "a", 1, attrs={"href": LinkHref.capture(self)}),
                 content, Token("link_close", "a", -1))
 
     @classmethod

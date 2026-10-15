@@ -11,6 +11,13 @@ class ProjectPathOwner:
         return next(owner for owner in widget.ancestors_with_self if isinstance(owner, cls))
 
     @property
+    def reference_context(self):
+        from agent_comms.display_references import ProjectReferences
+        root = self.coordination_root
+        return (ProjectReferences() if root is None else
+                self.app.coordination_access.reference_context(root))
+
+    @property
     def link_context_events(self):
         return self.core_publications
 
