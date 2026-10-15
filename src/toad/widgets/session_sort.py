@@ -6,7 +6,7 @@ from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, ClassVar
 
 from agent_comms.display_order import (
     ChannelSort, DisplayOrder, ThreadSort,
@@ -18,24 +18,28 @@ from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
+from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import FormView
+from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_choices import FamilyChoices
 
 
 @dataclass(frozen=True)
 class ThreadSortForm:
+    placeholder: ClassVar[Placeholder] = Placeholder("Mixed orders")
     order: Annotated[
-        type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order")
-    ] = None
+        type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order"), placeholder
+    ]
 
 
 @dataclass(frozen=True)
 class ChannelSortForm:
+    placeholder: ClassVar[Placeholder] = Placeholder("Choose order")
     order: Annotated[
-        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order")
-    ] = None
+        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order"), placeholder
+    ]
 
 
 class SortDialog(ModalScreen[type[DisplayOrder] | None]):
@@ -43,13 +47,12 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
 
     BINDINGS = [("escape", "cancel", "Close")]
 
-    def __init__(self, control: SortControl):
+    def __init__(self, control: SortControl, form: ThreadSortForm | ChannelSortForm):
         super().__init__()
         self.control = control
-        self.state = ObjectState(control.form_type(control.order))
-        self.form = FormView(self.state)
-        editor = self.form.values["order"].editor
-        editor.listen(events.Mount, lambda _: editor.focus())
+        self.state = ObjectState(form)
+        self.order_field = DeclaredField.at(self.state, FieldPath(type(form)).order)
+        self.form = FormView(self.state, focus=self.order_field.path)
         paths = control.visibility_fields()
         self.visibility_form = (FormView(self.app.saved_settings.state, paths=paths)
                                 if paths else None)
@@ -73,8 +76,8 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
         self.state.on_resolved_changed(self.order_changed)
 
     def order_changed(self, paths: set[str]):
-        if "order" in paths:
-            order = self.state.get_resolved_value("order")
+        if str(self.order_field.path) in paths:
+            order = self.order_field.value
             if order is not None and order is not self.control.order:
                 self.dismiss(order)
 
@@ -103,15 +106,19 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
     SortControl:hover, SortControl:focus { color: $text; text-style: underline; }
     """
 
-    def __init__(self, form: ThreadSortForm | ChannelSortForm, scope: str):
+    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str):
         super().__init__()
         self.scope = scope
-        self.order = form.order
-        self.form_type = type(form)
+        self.form_type = form_type
+        self.form: ThreadSortForm | ChannelSortForm | None = None
+
+    @property
+    def order(self) -> type[Order] | None:
+        return self.form.order if self.form is not None else None
 
     def update_order(self, order: type[Order] | None) -> None:
-        if order is not self.order:
-            self.order = order
+        if self.form is None or order is not self.order:
+            self.form = self.form_type(order)
             self._update_label()
 
     def on_mount(self):
@@ -119,7 +126,9 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
 
     def _update_label(self) -> None:
         order = self.order
-        label = f"{order.label()} ▾" if order is not None else "Sort ▾"
+        text = (order.label() if order is not None else
+                self.form.placeholder.text if self.form is not None else "Sort")
+        label = f"{text} ▾"
         tooltip = (f"Sort {self.scope} by {order.label().lower()}" if order is not None
                    else f"Choose how to sort {self.scope}")
         if self.content != label:
@@ -128,6 +137,10 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
             self.tooltip = tooltip
 
     def action_choose_sort(self):
+        form = self.form
+        if form is None:
+            self.notify("Ordering is not available yet", title="Sort", severity="warning")
+            return
         try:
             write = self.order_writer()
         except (OSError, ValueError) as error:
@@ -138,7 +151,7 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
             if order is not None:
                 self.run_worker(self._save_order(order, write), group="sort-order")
 
-        self.app.push_screen(SortDialog(self), choose)
+        self.app.push_screen(SortDialog(self, form), choose)
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return ()
@@ -162,9 +175,9 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
 class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
     """Both channel controls write through the route that supplies their observed rows."""
 
-    def __init__(self, form: ThreadSortForm | ChannelSortForm, scope: str, *, channel: str | None = None):
+    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str, *, channel: str | None = None):
         self.channel = channel
-        super().__init__(form, scope)
+        super().__init__(form_type, scope)
 
     def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         access = self.app.coordination_access
@@ -184,12 +197,12 @@ class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
 
 class SessionSort(CommsSortControl[ThreadSort]):
     def __init__(self, channel: str):
-        super().__init__(ThreadSortForm(), channel, channel=channel)
+        super().__init__(ThreadSortForm, channel, channel=channel)
 
 
 class ChannelListSort(CommsSortControl[ChannelSort]):
     def __init__(self):
-        super().__init__(ChannelSortForm(), "channels")
+        super().__init__(ChannelSortForm, "channels")
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived
