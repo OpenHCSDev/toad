@@ -263,12 +263,18 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self.presentation = OperationalSessionPresentation()
 
     @classmethod
+    def from_thread(cls, project: Path, root: str, target: str,
+                    agent: AgentDefinition | None = None) -> "MainScreen":
+        screen = cls(project, agent, agent_session_id=target)
+        screen.initial_coordination_root = root
+        screen._comms_thread = target
+        return screen
+
+    @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
-        screen = cls(request.project, origin.source._agent or app.agent_data,
-                     agent_session_id=request.target)
+        screen = cls.from_thread(request.project, request.root, request.target,
+                                 origin.source._agent or app.agent_data)
         screen.content = NavigatedOpeningContent()
-        screen.initial_coordination_root = request.root
-        screen._comms_thread = request.target
         return screen
 
     async def prepare_presentation(self) -> None:
@@ -331,9 +337,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         # block the first frame of every navigation on store I/O.
         if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
             sidebar.session_thread = self._comms_thread
-        if conversation := self.query_one_optional(Conversation):
-            if watcher := conversation._directory_watcher:
-                self.call_after_refresh(watcher.notify_if_visible)
         if self._project_panel is not None:
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 

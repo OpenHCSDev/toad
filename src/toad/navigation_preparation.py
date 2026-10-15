@@ -80,12 +80,24 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
     def bind(self, screen) -> None:
         """Only execution-specific navigation admits an operational source."""
 
+    def launch_screen(self, app):
+        """The tab a launch naming this thread opens: its agent resumes the session."""
+        return app.session_navigation.default_source(self.thread.name)
+
 
 class ExternalThreadNavigation(ThreadNavigation):
     def bind(self, screen) -> None:
         from toad.session_presentation import MailboxSessionSources
 
         screen.presentation.sources = MailboxSessionSources()
+
+    def launch_screen(self, app):
+        # A CLI thread has no agent to resume; its view reads Core like a sidebar open.
+        from toad.screens.main import MainScreen
+
+        screen = MainScreen.from_thread(self.project, self.root, self.thread.name)
+        self.bind(screen)
+        return screen
 
 
 @dataclass(frozen=True)

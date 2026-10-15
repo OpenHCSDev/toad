@@ -268,13 +268,14 @@ class HandlingPublication(TranscriptPublication):
 class CanonicalSourcePublication(TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
-    async def read_page(self) -> TranscriptPage:
-        return await self.owner.get_transcript_page()
+    async def read_snapshot(self):
+        return await self.owner.reader.snapshot(*self.thread_scope)
 
     async def publish_applied(self) -> bool:
         if not self.owner.readable:
             return True
-        page = await self.read_page()
+        snapshot = await self.read_snapshot()
+        page = snapshot.page
         # The known native cut and its applied original resources meet here.
         # An expired application cannot publish this read; it is not a stale
         # backend revision and must not escape as a failed Textual worker.
@@ -287,7 +288,13 @@ class CanonicalSourcePublication(TranscriptPublication):
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
                 return True
-        return await self.publish_source_page(page)
+        published = await self.publish_source_page(page)
+        if self.current():
+            draft = self.owner.view.cli_draft
+            if self.contents.children[-1] is not draft:
+                self.contents.move_child(draft, after=-1)
+            draft.show(snapshot.draft)
+        return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         # Supplied snapshots capture their own application boundary. This
@@ -304,9 +311,9 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         super().__init__(owner, view, window, contents)
         self.presentation = presentation
 
-    async def read_page(self) -> TranscriptPage:
+    async def read_snapshot(self):
         identity = self.presentation.read_identity
-        return await self.owner.get_transcript_page(read_identity=identity)
+        return await self.owner.reader.snapshot(*self.thread_scope, read_identity=identity)
 
     async def publish_applied(self) -> bool:
         if self.agent is not None:

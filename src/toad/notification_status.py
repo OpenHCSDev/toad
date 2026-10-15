@@ -31,7 +31,6 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
 class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
-    visible: ClassVar[bool] = True
     working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
 
@@ -45,8 +44,6 @@ class NotificationStatus:
 
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
-        if not self.visible:
-            return ()
         role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
         summary = shown.summary(self.title, role)
         return ((summary, Spans.from_lines(self.details, indent="  "))
@@ -55,7 +52,9 @@ class NotificationStatus:
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    visible = False
+    # The row is drawn before Core answers, so the answer changes its text
+    # instead of inserting a row under the reader.
+    title = "Checking"
 
 
 @dataclass(frozen=True)

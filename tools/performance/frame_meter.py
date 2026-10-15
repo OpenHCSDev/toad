@@ -405,7 +405,9 @@ def _targets(*, expected_pid, output):
         region = window.scrollable_content_region
         message_window = {"region": tuple(region), "scroll_y": window.scroll_y,
                           "max_scroll_y": window.max_scroll_y, "follows_tail": window.follows_tail}
-    fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    # Readers wait for the path to exist, so it appears only once complete.
+    partial = f"{output}.partial"
+    fd = os.open(partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w") as file:
         arranged = {}
         for node in compositor._layout_map:
@@ -421,6 +423,8 @@ def _targets(*, expected_pid, output):
             for node in owner.widget.walk_children(with_self=True))
         json.dump({"threads": rows, "tabs": tabs, "text": text, "message_window": message_window,
                    "arranged": arranged, "retained": retained, "mounted": dict(mounted.most_common())}, file)
+    os.link(partial, output)  # fails, like the exclusive create did, if output exists
+    os.unlink(partial)
 
 
 def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Screen._refresh_layout"):

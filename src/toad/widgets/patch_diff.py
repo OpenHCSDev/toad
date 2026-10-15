@@ -16,6 +16,10 @@ from textual.style import Style
 from textual.visual import RenderOptions, Visual
 from textual_diff_view import DiffView
 from textual_diff_view._diff_view import DiffCode, LineAnnotations, LineContent
+from toad.line_blocks import (
+    AddedCodeRole, RemovedCodeRole, MutedRole, TextRole,
+    Span as LineSpan, Spans, Summary,
+)
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
@@ -27,6 +31,33 @@ class Patch:
     before: dict[int, str]
     after: dict[int, str]
     groups: list[list[tuple[str, int, int, int, int]]]
+
+    def line_blocks(self) -> tuple[Summary | Spans, ...]:
+        """Compact reported hunks, using the same absolute positions as DiffView."""
+        width = len(str(max((*self.before, *self.after), default=0) + 1))
+        blocks: list[Summary | Spans] = []
+        if self.before_path != self.after_path:
+            blocks.append(Summary.titled(f"{self.before_path} → {self.after_path}"))
+        for group in self.groups:
+            _, first_old, _, first_new, _ = group[0]
+            _, _, last_old, _, last_new = group[-1]
+            blocks.append(Summary.titled(
+                f"@@ -{first_old + 1},{last_old - first_old} "
+                f"+{first_new + 1},{last_new - first_new} @@"
+            ))
+            lines = []
+            for tag, i1, i2, j1, j2 in group:
+                if tag == "equal":  # DiffView's native opcode, decoded here with its positions.
+                    lines.extend((LineSpan(f"{i + 1:>{width}} {j + 1:>{width}}   ", MutedRole),
+                                  LineSpan(self.before[i], TextRole))
+                                 for i, j in zip(range(i1, i2), range(j1, j2)))
+                else:
+                    lines.extend((LineSpan(f"{i + 1:>{width}} {'':>{width}} − ", RemovedCodeRole),
+                                  LineSpan(self.before[i], RemovedCodeRole)) for i in range(i1, i2))
+                    lines.extend((LineSpan(f"{'':>{width}} {j + 1:>{width}} + ", AddedCodeRole),
+                                  LineSpan(self.after[j], AddedCodeRole)) for j in range(j1, j2))
+            blocks.append(Spans.from_lines(tuple(lines)))
+        return tuple(blocks)
 
     def prepare(self, syntax: SyntaxPalette) -> "PreparedPatch":
         """Highlight the reported hunk once, independent of a mounted view."""

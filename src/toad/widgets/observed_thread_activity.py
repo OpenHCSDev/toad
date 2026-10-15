@@ -8,6 +8,7 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.status import ThreadStatusModel
+from textual.message import Message
 from textual.reactive import var
 from textual.widgets import Static
 
@@ -24,6 +25,9 @@ class ObservedThreadActivity(Static):
     """
 
     row: var[ThreadStatusModel | None] = var(None, init=False)
+
+    class Changed(Message):
+        """The observed row changed; the view repaints what derives from it."""
 
     def __init__(self) -> None:
         super().__init__("", markup=False)
@@ -57,6 +61,11 @@ class ObservedThreadActivity(Static):
         self.update("\n".join(row.lines) if row is not None else "")
         self.set_class(row is not None and row.working, "-working")
         self.set_class(row is not None and row.attention, "-unavailable")
+        self.post_message(self.Changed())
+
+    @property
+    def working(self) -> bool:
+        return self.row is not None and self.row.working
 
 
 class ThreadStatusOwner:

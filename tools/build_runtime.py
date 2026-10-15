@@ -205,7 +205,13 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
                 remote.write_text(f'''import sys
 _ready = (hasattr(sys.modules.get("pathlib"), "PurePosixPath")
           and hasattr(sys.modules.get("textual.app"), "App")
-          and hasattr(sys.modules.get("toad.application_lifetime"), "ApplicationLifetime"))
+          and hasattr(sys.modules.get("toad.app"), "ToadApp"))
+if _ready:
+    from textual._context import NoActiveAppError
+    try:
+        sys.modules["textual.app"].App.running_app()
+    except NoActiveAppError:
+        _ready = False
 if not _ready:
     open({str(status)!r}, "w").write("not-ready")
 else:

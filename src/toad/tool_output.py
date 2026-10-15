@@ -27,6 +27,7 @@ from textual.await_complete import AwaitComplete
 from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
+from toad.widgets.patch_diff import parse_patch
 from toad.widgets.tool_content import (
     MarkdownContent, PatchWarmup, TextContent, ToolCallDiff,
 )
@@ -267,7 +268,7 @@ class PatchToolOutputPart(CommittedToolOutputPart):
         return (ToolCallDiff(self.source, preparation=self.preparation),)
 
     def line_blocks(self):
-        return (Body.code(self.source, "diff", bar=MutedRole),)
+        return parse_patch(self.source).line_blocks()
 
     def begin_preparation(self, syntax: SyntaxPalette) -> bool:
         self.preparation.begin(self.source, syntax)
@@ -282,6 +283,19 @@ class PatchToolOutputPart(CommittedToolOutputPart):
     @property
     def preview_dimensions(self) -> tuple[int, int]:
         return len(self.source), self.source.count("\n")
+
+
+@dataclass(frozen=True)
+class NumberedPatchToolOutputPart(CommittedToolOutputPart):
+    """Pi's retained numbered edits already contain their reported line numbers."""
+
+    source: str
+
+    def compose(self, view: Widget) -> tuple[Widget, ...]:
+        return (MarkdownContent(Body.code(self.source, "diff").text),)
+
+    def line_blocks(self):
+        return (Body.code(self.source, "diff", bar=MutedRole),)
 
 
 @dataclass
@@ -315,7 +329,8 @@ class FileDiffToolOutputPart(CommittedToolOutputPart):
     def line_blocks(self):
         lines = unified_diff((self.old_text or "").splitlines(), self.new_text.splitlines(),
                              self.path, self.path, lineterm="")
-        return (Body.code("\n".join(lines), "diff", bar=MutedRole),)
+        source = "\n".join(lines)
+        return parse_patch(source).line_blocks() if source else ()
 
 
 @dataclass(frozen=True)
@@ -362,6 +377,8 @@ class ToolContentDecoder(MroDispatch):
             from agent_comms.transcript_events import SentTranscript
 
             self.part = SentMessageToolOutputPart(FieldCodec.decode(SentTranscript, json.loads(item.text)))
+        elif item.mime_type == 'application/vnd.agent-comms.numbered-diff':
+            self.part = NumberedPatchToolOutputPart(item.text)
         else:
             self.part = PatchToolOutputPart(item.text) if item.mime_type == 'text/x-diff' else UnrenderedToolOutputPart(item)
 
