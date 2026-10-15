@@ -5,14 +5,38 @@ Hover is an input to those owners, never another independently rendered state.
 """
 
 from textual import events, on
+from rich.segment import Segment
 from textual.content import Content
+from textual.strip import Strip
+from ui_theme.effects import SPINNER
+
+from toad.textual_colours import Animated
 from textual.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
 
-class ViewLabel:
-    """Paint workspace emphasis into native Content, never the style cascade."""
+class ViewLabel(Animated):
+    """Native label paint: workspace emphasis and clock-driven activity ink."""
+
+    def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
+        """One activity slot, before decorations; idle keeps its declared marker."""
+        if not busy:
+            self.stop_effect()
+            return Content.assemble(prefix, label)
+        if self.animation is None:
+            self.run_effect(SPINNER)
+        return Content.assemble(SPINNER.final.native(self.app.colours, None), " ", prefix, title)
+
+    def render_line(self, y: int) -> Strip:
+        line = super().render_line(y)
+        animation = self.animation
+        if animation is None or y != 0 or not line.cell_length:
+            return line
+        glyph = animation.frame().native(self.app.colours, None)
+        style = next(iter(line)).style
+        return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
+                           line.crop(glyph.cell_length)))
 
     def paint_current(self, current: bool) -> None:
         content: Content = self.content

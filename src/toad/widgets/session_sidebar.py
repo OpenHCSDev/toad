@@ -48,12 +48,9 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
         badge = f"{row.unread.label} " if row.unread.label else ""
-        content = Content.assemble(
-            badge,
-            "* " if self.pinned else "",
-            row.label,
-            f"\n  {summary}",
-        )
+        title = self.activity_content(row.title, Content(row.label), self.busy,
+                                      prefix=Content.assemble(badge, "* " if self.pinned else ""))
+        content = Content.assemble(title, f"\n  {summary}")
         self.show_content(content)
 
     def show_content(self, content: Content, *, layout: bool = False) -> None:
@@ -64,6 +61,7 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
 
     def retire_thread_row(self) -> None:
         """This row no longer shows a thread."""
+        self.stop_effect()
         if self.thread_row is not None:
             self.update_classes({"-wire-thread": False, "-busy": False, "-asking": False})
         self.thread_row = None

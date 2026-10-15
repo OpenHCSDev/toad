@@ -32,6 +32,23 @@ from toad.widgets.selection import ViewLabel
 class SessionLabel(ViewLabel, widgets.Label):
     ALLOW_SELECT = False
 
+    def __init__(self, tab: OpenTab, **kwargs):
+        super().__init__("", **kwargs)
+        self.present(tab)
+
+    def present(self, tab: OpenTab) -> bool:
+        """The label owns activity, unread ink and native text width."""
+        content = self.activity_content(tab.title, tab.label(), tab.busy, prefix=Content())
+        if tab.unread.label:
+            badge = (Style(foreground=self.app.colours.colour(AccentColour))
+                     if tab.unread.highlighted else Style())
+            content = Content.assemble(content, (f" {tab.unread.label}", badge))
+        width_changed = content.cell_length != self.content.cell_length
+        if not content.is_same(self.content):
+            self.update(content, layout=width_changed)
+        self.paint_current(self.id == self.app.selected_mode)
+        return width_changed
+
     def on_resize(self) -> None:
         # A label laid out for the first time, or at a new width, moves the
         # cells the underline marks.
@@ -171,6 +188,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
     @handles(core_events.SessionSelected)
     async def handle_mode_change(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
+            self.sync_current()
             self.call_later(self._sync_tabs)
             self.call_after_refresh(self.show_selected_tab)
             self.query_one(Underline).run_effect(TAB_WIPE)
@@ -201,23 +219,12 @@ class SessionsTabs(CoreEventReceiver, Widget):
             if label.virtual_region:
                 self.scroll_to_center(label, animate=False)
 
-    def render_session_label(self, session: OpenTab) -> Content:
-        title = session.label()
-        if session.unread.label:
-            badge_style = (Style(foreground=self.app.colours.colour(AccentColour))
-                           if session.unread.highlighted else Style())
-            return Content.assemble(title, (f" {session.unread.label}", badge_style))
-        return title
-
     def compose(self) -> ComposeResult:
         tabs = self.app.open_tabs
         self._last_tabs = tabs
         with containers.HorizontalGroup(id="title-container"):
             for session in tabs:
-                yield SessionLabel(
-                    self.render_session_label(session),
-                    id=session.mode_name,
-                )
+                yield SessionLabel(session, id=session.mode_name)
                 yield SessionTabClose(session.mode_name)
         yield Underline()
 
@@ -244,7 +251,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 return
             tabs = self.app.open_tabs
             if tabs == self._last_tabs:
-                self.sync_current()
                 return
             previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
             geometry_changed = self._last_tabs is None
@@ -259,19 +265,11 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 geometry_changed = True
             new_widgets: list[Widget] = []
             for tab in tabs:
-                content = self.render_session_label(tab)
                 if label := labels.get(tab.mode_name):
-                    previous = previous_tabs.get(tab.mode_name)
-                    if previous != tab:
-                        same_width_count = (
-                            previous is not None and previous.title == tab.title
-                            and previous.unread.highlighted == tab.unread.highlighted
-                            and len(previous.unread.label) == len(tab.unread.label)
-                        )
-                        label.update(content, layout=not same_width_count)
-                        geometry_changed |= not same_width_count
+                    if previous_tabs.get(tab.mode_name) != tab:
+                        geometry_changed |= label.present(tab)
                 else:
-                    new_widgets.extend((SessionLabel(content, id=tab.mode_name), SessionTabClose(tab.mode_name)))
+                    new_widgets.extend((SessionLabel(tab, id=tab.mode_name), SessionTabClose(tab.mode_name)))
                     geometry_changed = True
             if new_widgets:
                 await self.title_container.mount(*new_widgets)
@@ -283,7 +281,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
             if [widget.id for widget in self.title_container.children] != list(order):
                 self.title_container.sort_children(key=lambda widget: order[widget.id])
                 geometry_changed = True
-            self.sync_current()
             self._last_tabs = tabs
             if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)

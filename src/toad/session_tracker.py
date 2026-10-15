@@ -47,7 +47,10 @@ class ThreadTab(OpenTab):
 
     @property
     def title(self) -> str:
-        return self.row.label
+        return self.row.title
+
+    def label(self) -> Content:
+        return Content(self.row.label)
 
     @property
     def unread(self) -> UnreadPresentation:
