@@ -52,7 +52,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
-        self.activity_bar = ObservedThrobber(lambda: self.working, character="█")
+        self.activity_bar = ObservedThrobber(lambda: self.status_working, character="█")
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
@@ -68,7 +68,8 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         yield from super().compose()
 
     @property
-    def working(self) -> bool:
+    def status_working(self) -> bool:
+        """Work described by the title, not the independent ACP request lease."""
         if self.row is not None and self.row.shown:
             return self.row.working
         return self.turns is not None and self.turns.owner.busy
@@ -107,7 +108,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             delivery = self.delivery.delivery
             attention |= bool(delivery.current or self.delivery.error)
         self.set_class(attention, "-attention")
-        self.set_class(self.working, "-working")
+        self.set_class(self.status_working, "-working")
         self.activity_bar.sync()
         self.overview_text = self.history_details.overview(row.lines if shown else ())
         self.display = bool(title)
