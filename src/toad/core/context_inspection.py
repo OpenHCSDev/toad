@@ -508,10 +508,10 @@ class ContextInspection:
     core: CoreInspection = field(default_factory=UnavailableCoreInspection)
 
     @classmethod
-    def read(cls, comms, owner, *, before_offset=None, previous=()):
+    def read(cls, comms, owner, *, cursor=None, previous=()):
         thread = comms.registry.require(owner)
         page = comms.bus.log.context_manifest_page(owner, comms.registry,
-            before_offset=before_offset, previous=previous)
+            cursor=cursor, previous=previous)
         annotations = WorkingMemoryAnnotations.for_context(
             comms.root / "coordination.sqlite3",
             tuple(resource.value for resource in page.resources), JevClassifier.version())
@@ -626,18 +626,21 @@ class ContextInspection:
 
     async def recorded_source(self, manifest, position, source):
         payload = await self._request("context_reference",
+            record=FieldCodec.encode(self.page.reference(manifest)),
             turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
             segment=position, source=FieldCodec.encode(source))
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def recorded_segment(self, manifest, position, contributors=()):
         payload = await self._request("context_recorded_segment",
+            record=FieldCodec.encode(self.page.reference(manifest)),
             turn=FieldCodec.encode(manifest.turn), request_id=manifest.require_request_id(),
             segment=position, contributors=contributors)
         return FieldCodec.decode(ContextSourceText, payload)
 
     async def correct_annotation(self, source, label, answer, worktree):
         payload = await self._request("context_annotation_correction",
+            record=FieldCodec.encode(self.page.reference(source.manifest)),
             turn=FieldCodec.encode(source.manifest.turn),
             request_id=source.manifest.require_request_id(), segment=source.position,
             contributors=source.contributors, label=FieldCodec.encode(label),
@@ -679,11 +682,11 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def manifest_sources(self):
         return ()
 
-    async def acquire(self, service, revision, *, before_offset=None) -> InspectionState:
+    async def acquire(self, service, revision, *, cursor=None) -> InspectionState:
         if str(service.root.resolve()) != self.root:
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
-            self.name, before_offset=before_offset, previous=self.manifest_sources))
+            self.name, cursor=cursor, previous=self.manifest_sources))
         try:
             inspection = await inspection.acquire_core()
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -731,7 +734,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
 
 class DetachedInspection(InspectionState):
-    async def acquire(self, service, revision, *, before_offset=None) -> InspectionState:
+    async def acquire(self, service, revision, *, cursor=None) -> InspectionState:
         return self
 
 

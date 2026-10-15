@@ -12,6 +12,7 @@ from textual.widgets import Button, Input, Static, PreparedTextArea, Tree
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 from agent_comms.coordinator import Coordination
+from agent_comms.private_bus_checkpoint import ContextManifestCursor
 
 from toad.core.context_inspection import (
     ContextNode, DetachedInspection, HoldingInspection, InspectionState,
@@ -28,28 +29,17 @@ class ContextTreeIntent:
     expanded: set[str] = field(default_factory=set)
     selected: ContextNode | None = None
     query: str = ""
-    page_cursors: list[int | None] = field(default_factory=lambda: [None])
+    cursor: ContextManifestCursor | None = None
 
-    @property
-    def before_offset(self):
-        return self.page_cursors[-1]
-
-    def older(self, page):
-        if not page.has_older:
+    def select_page(self, cursor):
+        if cursor is None:
             return False
-        self.page_cursors.append(page.oldest_offset)
-        self.selected = None
-        return True
-
-    def newer(self):
-        if len(self.page_cursors) == 1:
-            return False
-        self.page_cursors.pop()
+        self.cursor = cursor
         self.selected = None
         return True
 
     def reset_pages(self):
-        self.page_cursors[:] = [None]
+        self.cursor = None
         self.selected = None
 
     def search_current(self, query, selected):
@@ -357,7 +347,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             if not self._reading(previous):
                 return
             acquired = await self.state.acquire(service, access.revision,
-                before_offset=self.intent.before_offset)
+                cursor=self.intent.cursor)
             if not self._reading(previous):
                 return
             self.state = self.state.receive_inspection(acquired)
@@ -370,8 +360,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 status.update(f"Context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
-        self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older
-        self.query_one("#context-newer", Button).disabled = len(self.intent.page_cursors) == 1
+        self.query_one("#context-older", Button).disabled = current.inspection.page.older is None
+        self.query_one("#context-newer", Button).disabled = current.inspection.page.newer is None
         if previous.inspection_differs(current.inspection):
             current.present_acquired(previous, self._present)
         if previous.needs_native(current.inspection, force):
@@ -462,13 +452,16 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.state.present(self._older_requests)
 
     def _older_requests(self, current):
-        if self.intent.older(current.inspection.page):
+        if self.intent.select_page(current.inspection.page.older):
             self._change_page()
 
     @on(Button.Pressed, "#context-newer")
     def newer_requests(self, event):
         event.stop()
-        if self.intent.newer():
+        self.state.present(self._newer_requests)
+
+    def _newer_requests(self, current):
+        if self.intent.select_page(current.inspection.page.newer):
             self._change_page()
 
     def _change_page(self):
@@ -481,6 +474,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.workers.cancel_group(self, "context-search")
         self.workers.cancel_group(self, "context-detail")
         self.query_one("#context-older", Button).disabled = True
+        self.query_one("#context-newer", Button).disabled = True
         self.query_one(ContextTree).clear()
         self._show_placeholder("Loading recorded request page…")
         self._read()
