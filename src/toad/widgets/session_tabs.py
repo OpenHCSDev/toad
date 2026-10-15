@@ -149,7 +149,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
 
     def __init__(self) -> None:
         super().__init__()
-        self._spinner_timer = None
         self._sync_lock = asyncio.Lock()
 
     def _get_scrollable_region(self, region: Region) -> Region:
@@ -165,26 +164,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 scrollbar_region = scrollbar_region.translate((0, region.y - scrollbar_region.y))
             yield scrollbar, scrollbar_region
 
-    def _sync_spinner(self, tabs: tuple[OpenTab, ...]) -> None:
-        timer = self._spinner_timer
-        if timer is None:
-            return
-        if self.screen.is_active and any(tab.busy for tab in tabs):
-            timer.resume()
-        else:
-            timer.pause()
-
-    def _animate_busy(self) -> None:
-        tabs = self._last_tabs or ()
-        if not self.screen.is_active or not any(tab.busy for tab in tabs):
-            self._sync_spinner(())
-            return
-        for tab in tabs:
-            if (tab.busy and (label := self.query_one_optional(f"#{tab.mode_name}", SessionLabel))):
-                label.update(self.render_session_label(tab), layout=False)
-
     def on_mount(self) -> None:
-        self._spinner_timer = self.set_interval(.18, self._animate_busy, pause=True)
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.current_session = self.app.selected_mode
@@ -192,7 +172,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
         self.subscribe_core(self.app.session_tracker.events)
         self.call_later(self._sync_tabs)
         self.call_after_refresh(self.show_selected_tab)
-        self._sync_spinner(self.app.open_tabs)
 
     @handles(core_events.SessionSelected)
     async def handle_mode_change(self, event: CoreEventMessage) -> None:
@@ -226,7 +205,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 self.scroll_to_center(label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
-        title = session.label(self.app.busy_rows.phase)
+        title = session.label()
         if session.unread.label:
             badge_style = (Style(bold=True, foreground=self.app.colours.colour(AccentColour))
                            if session.unread.highlighted else Style())
@@ -272,7 +251,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 # Selection does not change the mounted label content.
                 # Its native reactive updates the selected class and underline.
                 self.current_session = self.app.selected_mode
-                self._sync_spinner(tabs)
                 return
             previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
             geometry_changed = self._last_tabs is None
@@ -314,7 +292,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 geometry_changed = True
             self.current_session = self.app.selected_mode
             self._last_tabs = tabs
-            self._sync_spinner(tabs)
             if geometry_changed or mode_changed:
                 self.call_after_refresh(self.show_selected_tab)
             # Mount/removal yields to metadata publications. Reconcile their

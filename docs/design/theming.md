@@ -171,12 +171,11 @@ colour. See decision D1.
   (`RenderStyles._refresh`); opacity also disables the fork's plain-strip fast
   path. Offset costs a layout, not a re-render. Textual has nothing called
   "effects".
-- **Toad's own animations today**, each with its own clock and visibility rule:
-  `Throbber` (rainbow sweep, `auto_refresh` 1/15 s, paints only when in the
-  compositor's visible set), `BusyRows` (sidebar spinner, one `set_interval` at
-  the `spinner_frames_per_second` setting, paint-only), `TurnActivity`
-  (elapsed clock, 1 s), Textual's `LoadingIndicator` (1/16 s),
-  `future_text.py` (per-frame blend), and Textual's scroll animation.
+- **Activity paint:** `Throbber` uses `TextualColours.clock` and the `Animated`
+  capability; the clock repaints visible effects. Sidebar rows and tabs show
+  Core's activity labels and update when their source changes. Their separate
+  blinking-label timers and cadence setting have been deleted. Textual's
+  loading indicator and scroll animation retain their own lifetimes.
 
 ### Where each fits, and how it renders without blocking the loop
 

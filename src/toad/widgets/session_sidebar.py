@@ -7,7 +7,6 @@ from textual.style import Style
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.widgets.activity_spinner import animated_label
 from toad.widgets.selection import HoverSelection
 
 
@@ -51,33 +50,25 @@ class ThreadStatusRow(HoverSelection):
         self.tooltip = Content("\n".join(str(value) for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
-        self.app.busy_rows.track(self, self.busy)
-        self.paint()
-
-    def paint(self) -> None:
-        """Paint the current spinner frame; the frame is a function of time."""
-        row = self.thread_row
-        assert row is not None
-        summary = self.action_status if self.action_status is not None else row.summary
         badge = f"{row.unread.label} " if row.unread.label else ""
         content = Content.assemble(
             badge,
             "* " if self.pinned else "",
-            animated_label(row, phase=self.app.busy_rows.phase),
+            row.label,
             f"\n  {summary}",
         )
-        if row.unread.highlighted:
+        self.show_content(content, highlighted=row.unread.highlighted)
+
+    def show_content(self, content: Content, *, highlighted: bool = False, layout: bool = False) -> None:
+        """Apply row emphasis and repaint only changed native content."""
+        if highlighted:
             content = content.stylize(Style(bold=True))
         current = self.content
-        if not isinstance(current, Content) or not current.is_same(content):
-            self.update(content, layout=False)
+        if not current.is_same(content):
+            self.update(content, layout=layout and current.plain != content.plain)
 
     def retire_thread_row(self) -> None:
         """This row no longer shows a thread."""
         if self.thread_row is not None:
             self.update_classes({"-wire-thread": False, "-busy": False, "-asking": False})
-            self.app.busy_rows.track(self, False)
         self.thread_row = None
-
-    def on_unmount(self) -> None:
-        self.app.busy_rows.track(self, False)

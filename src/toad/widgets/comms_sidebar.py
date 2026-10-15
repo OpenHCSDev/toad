@@ -29,7 +29,6 @@ from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
-from textual.style import Style
 from textual.dom import DOMNode
 from textual.reactive import reactive
 from textual.widgets import Static
@@ -226,11 +225,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     def set_label(self, label: str, *, highlighted: bool = False) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
-        content = Content(label)
-        if highlighted:
-            content = content.stylize(Style(bold=True))
-        if not self.content.is_same(content):
-            self.update(content, layout=self.content.plain != content.plain)
+        self.show_content(Content(label), highlighted=highlighted, layout=True)
 
     def sidebar_owner(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
