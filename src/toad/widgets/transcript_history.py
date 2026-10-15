@@ -530,27 +530,26 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                            rows_needed: int) -> None:
         """Prepare the destination before its first native layout can expose raw rows."""
         window.prepare_history(self)
-        rows = count = 0
         if window.follows_tail and target.line_width > 0:
             _capacity, limit = window.latest_limits(self.budget)
             # A restored document keeps its original pages and older prefix.
             # Prepare only the bottom viewport; older rows warm after first paint.
             for page in reversed(self.pages):
-                rows += await page.prepared.prepare_latest(
+                rows_needed -= await page.prepared.prepare_latest(
                     self, current, target=target, selected=selected,
-                    rows_needed=rows_needed - rows, limit=limit - count,
+                    rows_needed=rows_needed, limit=limit,
                 )
                 if not current():
                     return
-                count += page.stop - page.start
-                if rows >= rows_needed or count >= limit:
+                limit -= page.stop - page.start
+                if rows_needed <= 0 or limit <= 0:
                     break
         else:
             for page in self.pages:
                 await self.prepare_fragments(page.fragments_in_range, current,
                                              selected=selected, target=target)
         await self.filter.state.prepare_rows(
-            current, window=window, target=target, rows_needed=max(0, rows_needed - rows),
+            current, window=window, target=target, rows_needed=max(0, rows_needed),
         )
 
     @property
@@ -940,23 +939,22 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             prepared = edge.prepared.for_view()
         else:
             prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
-        viewport_rows, limit = window.latest_limits(self.budget)
+        rows, limit = window.latest_limits(self.budget)
         destination: list[PreparedTranscriptPage] = []
-        rows = count = 0
-        while rows < viewport_rows and count < limit:
-            rows += await prepared.prepare_latest(
+        while rows > 0 and limit > 0:
+            rows -= await prepared.prepare_latest(
                 self, current, target=self, selected=self.selected_categories,
-                rows_needed=viewport_rows - rows, limit=limit - count,
+                rows_needed=rows, limit=limit,
             )
             if not current():
                 return False
             take = prepared.stop - prepared.start
             if take:
                 destination.insert(0, prepared)
-            count += take
-            if rows >= viewport_rows or self.loader is None:
+            limit -= take
+            if rows <= 0 or self.loader is None:
                 break
-            if not prepared.page.has_older or count >= limit:
+            if not prepared.page.has_older or limit <= 0:
                 break
             prepared = (await self._reader().get(PageRequest(before=prepared.page.before))).for_view()
         if not destination:
