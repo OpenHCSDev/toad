@@ -41,8 +41,8 @@ members = ["toad"]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "bbd3b1710c08911beacc2d1666669456a7682658" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "0800ff1cae4585a359eec6268c6ce809a3af6b7f" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "3d881d5b2fbad1fed8c4364c478b292c25369079" }
-objectstate = { git = "https://github.com/OpenHCSDev/ObjectState.git", rev = "061a5ed34eb1d6823aacce405916ec7c4c6a4157" }
-formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "360bc06a1154bf6edc200fe4cf8501e3845062e3" }
+objectstate = { git = "https://github.com/OpenHCSDev/ObjectState.git", rev = "973aa09887b54929825a4f848f69c25c15630464" }
+formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "3478efcd549fc59867a8b4d195a18f1662ab2eb1" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 
 [project.scripts]
