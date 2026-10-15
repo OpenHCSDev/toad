@@ -28,6 +28,29 @@ class ContextTreeIntent:
     expanded: set[str] = field(default_factory=set)
     selected: ContextNode | None = None
     query: str = ""
+    page_cursors: list[int | None] = field(default_factory=lambda: [None])
+
+    @property
+    def before_offset(self):
+        return self.page_cursors[-1]
+
+    def older(self, page):
+        if not page.has_older:
+            return False
+        self.page_cursors.append(page.oldest_offset)
+        self.selected = None
+        return True
+
+    def newer(self):
+        if len(self.page_cursors) == 1:
+            return False
+        self.page_cursors.pop()
+        self.selected = None
+        return True
+
+    def reset_pages(self):
+        self.page_cursors[:] = [None]
+        self.selected = None
 
     def search_current(self, query, selected):
         return self.query == query and self.selected is selected
@@ -253,6 +276,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Read full", id="context-read-full")
             yield Button("Copy", id="context-copy")
             yield Button("Correct", id="context-correct")
+        with Horizontal(classes="context-controls"):
+            yield Button("Newer requests", id="context-newer", disabled=True)
+            yield Button("Older requests", id="context-older", disabled=True)
         yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
         yield ContextDetail("No context selected.", soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
@@ -303,7 +329,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         self.workers.cancel_node(self)
         self.state = InspectionState.for_owner(owner, root)
-        self.intent.selected = None
+        self.intent.reset_pages()
         self.query_one(ContextTree).clear()
         self._show_placeholder("No context selected.")
         self.action_refresh()
@@ -330,7 +356,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             service = await self.app.preparation.run_thread(lambda: access.service)
             if not self._reading(previous):
                 return
-            acquired = await self.state.acquire(service, access.revision)
+            acquired = await self.state.acquire(service, access.revision,
+                before_offset=self.intent.before_offset)
             if not self._reading(previous):
                 return
             self.state = self.state.receive_inspection(acquired)
@@ -343,6 +370,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 status.update(f"Context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
+        self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older
+        self.query_one("#context-newer", Button).disabled = len(self.intent.page_cursors) == 1
         if previous.inspection_differs(current.inspection):
             current.present_acquired(previous, self._present)
         if previous.needs_native(current.inspection, force):
@@ -426,6 +455,35 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if (self._reading(captured) and self.state.presentation_current(captured)
                 and not self.intent.query):
             self.query_one(ContextTree).present(groups)
+
+    @on(Button.Pressed, "#context-older")
+    def older_requests(self, event):
+        event.stop()
+        self.state.present(self._older_requests)
+
+    def _older_requests(self, current):
+        if self.intent.older(current.inspection.page):
+            self._change_page()
+
+    @on(Button.Pressed, "#context-newer")
+    def newer_requests(self, event):
+        event.stop()
+        if self.intent.newer():
+            self._change_page()
+
+    def _change_page(self):
+        # Destination selection ends the acquired page's lifetime now, not
+        # when the replacement read finishes. Unacquired inspection states
+        # cannot publish old groups, searches or native results.
+        self.state = InspectionState.for_owner(self.state.name, self.state.root)
+        self.workers.cancel_group(self, "context-presentation")
+        self.workers.cancel_group(self, "context-native")
+        self.workers.cancel_group(self, "context-search")
+        self.workers.cancel_group(self, "context-detail")
+        self.query_one("#context-older", Button).disabled = True
+        self.query_one(ContextTree).clear()
+        self._show_placeholder("Loading recorded request page…")
+        self._read()
 
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):

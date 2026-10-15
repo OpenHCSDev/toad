@@ -18,7 +18,6 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
-from agent_comms.private_bus_checkpoint import CapturedWireSource
 from agent_comms.session_revision import SessionRevision, SessionObservation
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
@@ -30,6 +29,7 @@ from agent_comms.working_memory_questions import SpanAnswer
 
 if TYPE_CHECKING:
     from agent_comms.comms import Comms
+    from agent_comms.private_bus_checkpoint import ContextManifestPage
 
 
 @dataclass(frozen=True)
@@ -500,24 +500,24 @@ class AcquiredCoreInspection(CoreInspection):
 class ContextInspection:
     """Original observed objects and selection identity, shared by any frontend."""
     owner: Thread
-    manifests: tuple[ContextManifest, ...]
+    page: ContextManifestPage
     source: SessionObservation
     service: Comms
     annotations: tuple[ModelLabel, ...] = ()
     imported_sources: tuple[CodexRolloutProvenance, ...] = ()
-    manifest_sources: tuple[CapturedWireSource[ContextManifest], ...] = ()
     core: CoreInspection = field(default_factory=UnavailableCoreInspection)
 
     @classmethod
-    def read(cls, comms, owner, *, previous=()):
+    def read(cls, comms, owner, *, before_offset=None, previous=()):
         thread = comms.registry.require(owner)
-        resources = comms.bus.log.context_manifest_resources(owner, comms.registry, previous=previous)
-        manifests = tuple(resource.value for resource in resources)
+        page = comms.bus.log.context_manifest_page(owner, comms.registry,
+            before_offset=before_offset, previous=previous)
         annotations = WorkingMemoryAnnotations.for_context(
-            comms.root / "coordination.sqlite3", manifests, JevClassifier.version())
+            comms.root / "coordination.sqlite3",
+            tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
-        return cls(thread, manifests, SessionRevision.observe(thread.session_file), comms,
-                   annotations, imported, resources)
+        return cls(thread, page, SessionRevision.observe(thread.session_file), comms,
+                   annotations, imported)
 
     def same_native_source(self, other: ContextInspection):
         """Whether a context read from the running agent for one still describes the other."""
@@ -525,15 +525,15 @@ class ContextInspection:
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
-        turns = {manifest.turn.require_recorded().identity.value: manifest
-                 for manifest in self.manifests}
+        turns = {resource.value.turn.require_recorded().identity.value: resource.value
+                 for resource in self.page.resources}
         return tuple(RecordedTurnNode(f"turn/{identity}", manifest, self)
                      for identity, manifest in reversed(turns.items()))
 
     def changed_since(self, previous: ContextInspection) -> bool:
         """Whether the original recorded request observations changed."""
-        return (self.manifests, self.annotations, self.imported_sources, self.core) != (
-            previous.manifests, previous.annotations, previous.imported_sources, previous.core)
+        return (self.page, self.annotations, self.imported_sources, self.core) != (
+            previous.page, previous.annotations, previous.imported_sources, previous.core)
 
     def imported(self):
         return tuple(ReferenceNode(
@@ -679,11 +679,11 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def manifest_sources(self):
         return ()
 
-    async def acquire(self, service, revision) -> InspectionState:
+    async def acquire(self, service, revision, *, before_offset=None) -> InspectionState:
         if str(service.root.resolve()) != self.root:
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
-            self.name, previous=self.manifest_sources))
+            self.name, before_offset=before_offset, previous=self.manifest_sources))
         try:
             inspection = await inspection.acquire_core()
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -731,7 +731,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
 
 class DetachedInspection(InspectionState):
-    async def acquire(self, service, revision) -> InspectionState:
+    async def acquire(self, service, revision, *, before_offset=None) -> InspectionState:
         return self
 
 
@@ -762,7 +762,7 @@ class HoldingInspection(InspectionState):
 
     @property
     def manifest_sources(self):
-        return self.inspection.manifest_sources
+        return self.inspection.page.resources
 
     @property
     def name(self):
@@ -801,7 +801,7 @@ class HoldingInspection(InspectionState):
         return (*self.inspection.core.groups(self.inspection),
                 *self.inspection.working_memory(),
                 ("Imported instructions · historical, not current", self.inspection.imported(), False),
-                ("Recorded requests · source evidence, not today's base", self.inspection.recorded(), False))
+                ("Recorded requests · this page's source evidence", self.inspection.recorded(), False))
 
     def prepare_native(self, consumer) -> None:
         consumer(self)
