@@ -155,12 +155,14 @@ class SidebarNavigation:
         if not rows:
             return
         self.sidebar.sync_current()
-        if not any(row.current for row in rows):
+        current = self.sidebar.current_rows
+        if not current:
             group = self.sidebar.groups.get(ALL_COMMS_TARGET)
             if group is not None:
                 group.reveal_members()
                 rows = self.sidebar.rows
-        target = next((row for row in rows if row.current), rows[0])
+                current = self.sidebar.current_rows
+        target = current[0] if current else rows[0]
         self.sidebar._cursor = rows.index(target)
         self.sidebar._apply_cursor(rows)
         target.focus()
