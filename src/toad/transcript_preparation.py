@@ -63,26 +63,33 @@ class PreparedTranscriptPage:
         if self.fragment_range is None:
             self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
 
-    async def prepare_latest(self, view: LineHistory, current: Callable[[], bool], *,
-                             target: LineHistory | Contents, selected: frozenset[type[MessageCategory]],
-                             rows_needed: int, limit: int) -> int:
-        """Own the bottom range, selected from rendered rows rather than transport size."""
+    async def prepare_rows(self, view: LineHistory, current: Callable[[], bool], *,
+                           target: LineHistory | Contents, selected: frozenset[type[MessageCategory]],
+                           boundary: int, older: bool, rows_needed: int, limit: int) -> int:
+        """Select one directional range from its actual rendered rows.
+
+        Latest destinations and ordinary edge travel use the same selection.
+        This is a staged page: its range cannot change the mounted reader until
+        the source owner publishes it under its original fences.
+        """
         take = rows = 0
-        while take < len(self.fragments) and take < limit and rows < rows_needed:
-            stop = len(self.fragments) - take
-            start = max(0, stop - min(view.budget.batch_items, limit - take))
-            batch = self.fragments[start:stop]
+        available = boundary if older else len(self.fragments) - boundary
+        while take < min(available, limit) and rows < rows_needed:
+            count = min(view.budget.batch_items, limit - take, available - take)
+            start = boundary - take - count if older else boundary + take
+            batch = self.fragments[start:start + count]
             await view.prepare_fragments(batch, current, target=target, selected=selected)
             if not current():
                 return 0
-            for fragment in reversed(batch):
+            for fragment in reversed(batch) if older else batch:
                 lines = (fragment.lines_for(target.line_width, view.app.colours.line_theme)
                          if fragment.shown_in(selected) else None)
                 take += 1
                 rows += 0 if lines is None else lines.height
                 if rows >= rows_needed:
                     break
-        self.set_fragment_range(slice(len(self.fragments) - take, len(self.fragments)))
+        self.set_fragment_range(slice(boundary - take, boundary) if older
+                                else slice(boundary, boundary + take))
         return rows
 
     @property

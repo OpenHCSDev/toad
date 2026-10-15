@@ -94,3 +94,15 @@ Toad `f496bdcca` / Core `3bb06aac0`, replacing only Textual with `b826b5fcd` (#1
 - Separate base-candidate defect: a standby goal crashes with `KeyError('muted')`, reproduced without #133 too; the theme owner is repairing the declaration-to-palette export. Cold sidebar opening of `agent-comms-ux` painted history within four seconds without a render probe; the older expanded-recipient blank-tab witness remains unresolved.
 
 Evidence: `~/.cache/agent-scratch/ux-lazy-history/candidate/`; source/dependency records: `/home/ts/wt/core-relrev/.artifacts/lazy-history/`. #133 is not yet installed through the normal launcher. No automated Toad tests or synthetic applications were used.
+
+## 2026-10-15: current saved-thread held-PageUp stages (task 9656)
+
+One normal installed frontend, Toad `f448b3391` / Core `f1b33c10b`, plain `st` on released :197; original saved `core-route-counts`. `capture_live.py` measured a 600-key/33-ms held PageUp from the empty composer, reversal, wheel bursts and return to bottom. No provider input, fork, build, or recovery-check repetition. This bounded diagnostic is **not the full fixed scenario**: tab return and a new active response are absent. Read-only committed-geometry sampling every 100 ms accompanies an 8-fps recording.
+
+| Change | Frame median/p95 ms | Input-to-paint median/p95 ms | Result |
+|---|---:|---:|---|
+| Installed baseline; source correction pending | 6.5 / 24.1 | 7.2 / 42.7 | 691/691 inputs paired, 2,484 frames. The lazy older edge was exhausted in 23/201 held samples (about 2.3 s sampled, longest continuous sampled span 0.51 s). Page-buffer get median/p95 89.1/183.2 ms; fragment preparation 7.7/108.6 ms; complete edge load 117.9/336.9 ms. Worst load 1,433 ms includes 1,341 ms page acquisition; a separate 581-ms load includes 215 ms acquisition and 333 ms preparing its entire selected range before publication. Spans overlap, not additive UI-CPU figures. |
+
+The measured path serializes source acquisition, all selected render batches and publication. Ordinary continuation then returns through another frame receipt; only latest destinations continue inside their admission. This supports replacing the estimated all-fragment range with the page owner's rendered-row selection and having the existing admission re-evaluate directional demand between readable publications. It does **not** prove that page acquisition is pure I/O, that more workers would help, or that the render classmethod's near-zero trace (descriptor wrapper) measures render time.
+
+Evidence: `~/.cache/agent-scratch/ux-held-pageup-9656/{baseline-frames.json,baseline-calls.json,baseline-samples.json,gestures.json,baseline.mkv}`. Original UNKNOWN9608/tools and BLOCKED goal unchanged.
