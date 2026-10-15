@@ -379,7 +379,7 @@ class SpanColumnLayout(Columns):
 
         console = Console(width=max(1, width), force_terminal=True, file=io.StringIO(),
                           color_system=self.color_system, legacy_windows=False)
-        layout = Padding(self, (0, 0, 0, self.indent))
+        layout = Padding(self, (0, 0, 0, min(self.indent, max(0, width - 1))))
         return tuple(tuple(row) for row in console.render_lines(layout, console.options, pad=False))
 
 
