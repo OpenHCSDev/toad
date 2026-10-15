@@ -26,7 +26,6 @@ from toad import setting_effects as effects
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import (
     FieldPath,
-    declared,
     declared_field,
     fields_below,
     leaves,
@@ -322,7 +321,7 @@ def raise_save_error(error: atomic.AtomicWriteError) -> None:
     raise error
 
 
-def no_effect(path: FieldPath, value: object) -> None:
+def no_effect(field: DeclaredField) -> None:
     """Settings held outside an app change nothing but themselves."""
 
 
@@ -340,7 +339,7 @@ class SavedSettings:
         raw: object = None,
         *,
         root: type[ToadSettings] = ToadSettings,
-        applied: Callable[[FieldPath, object], None] = no_effect,
+        applied: Callable[[DeclaredField], None] = no_effect,
         report_error: Callable[[atomic.AtomicWriteError], None] = raise_save_error,
     ) -> None:
         from toad.core.events import CoreEventStream
@@ -364,10 +363,10 @@ class SavedSettings:
         return self.state.to_object()
 
     def set(self, path: FieldPath, value: object) -> None:
-        DeclaredField.at(self.state, path).edit(value)
+        DeclaredField(self.state, path).edit(value)
 
     def toggle(self, path: FieldPath) -> None:
-        setting = DeclaredField.at(self.state, path)
+        setting = DeclaredField(self.state, path)
         setting.edit(not setting.value)
 
     def changed(self, changed: set[str]) -> None:
@@ -376,7 +375,7 @@ class SavedSettings:
         for name in changed & self.named.keys():
             path = self.named[name]
             self.user_set.add(path)
-            self.applied(path, self.state.get_resolved_value(name))
+            self.applied(DeclaredField(self.state, path))
             self.events.publish(PreferenceChanged(path))
 
     def discard(self) -> None:
@@ -471,9 +470,9 @@ class SavedSettings:
         path = cls.file_path()
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
-        def applied(setting: FieldPath, value: object) -> None:
-            if (effect := declared(setting, effects.Effect)) is not None:
-                effect.apply(app, value)
+        def applied(field: DeclaredField) -> None:
+            if (effect := field.metadata(effects.Effect)) is not None:
+                effect.apply(app, field.value)
 
         def report(error: atomic.AtomicWriteError) -> None:
             app.notify(str(error), title="Settings", severity="error")
@@ -482,8 +481,8 @@ class SavedSettings:
 
     def apply_all(self) -> None:
         """Bring a starting app in line with every setting."""
-        for name, path in self.named.items():
-            self.applied(path, self.state.get_resolved_value(name))
+        for path in self.named.values():
+            self.applied(DeclaredField(self.state, path))
 
     def ensure_file(self, app: ToadApp) -> None:
         path = self.file_path()

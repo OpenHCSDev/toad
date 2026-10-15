@@ -33,14 +33,27 @@ class ValueEditor(DeclaredViews, EditorWidget):
     """A control that shows one field's value and sends the user's edits to the state.
 
     The value lives in the ObjectState: the control is painted from it and
-    keeps nothing else. Each member is a Textual control first and an editor
-    second: `class BoolEditor(Checkbox, ValueEditor)`.
+    keeps nothing else. The editor capability binds the field before the native
+    control is initialized: `class BoolEditor(ValueEditor, Checkbox)`.
     """
 
     states_default: ClassVar[bool] = True
     """Whether the field's help should end with its default value."""
 
     field: DeclaredField
+
+    def __init__(self, field: DeclaredField) -> None:
+        self.field = field
+        super().__init__(**self.control_arguments())
+        self.bind_control()
+
+    def control_arguments(self) -> dict[str, object]:
+        """Arguments for the native control; containers need no initial value."""
+        return {}
+
+    def bind_control(self) -> None:
+        """Connect the native control's edits after it has been initialized."""
+        raise NotImplementedError
 
     @classmethod
     def declared_for(cls, field: DeclaredField) -> ValueEditor:
@@ -68,12 +81,13 @@ class ValueEditor(DeclaredViews, EditorWidget):
         self.paint()
 
 
-class BoolEditor(Checkbox, ValueEditor):
+class BoolEditor(ValueEditor, Checkbox):
     shows = (bool,)
 
-    def __init__(self, field: DeclaredField) -> None:
-        self.field = field
-        super().__init__(value=bool(field.value))
+    def control_arguments(self) -> dict[str, object]:
+        return {"value": bool(self.field.value)}
+
+    def bind_control(self) -> None:
         self.listen(Checkbox.Changed, self.changed)
 
     def changed(self, message: Checkbox.Changed) -> None:
@@ -85,16 +99,19 @@ class BoolEditor(Checkbox, ValueEditor):
             self.value = bool(self.field.value)
 
 
-class LineEditor(Input, ValueEditor):
+class LineEditor(ValueEditor, Input):
     """One line of text, read as the field's type when the user leaves it or presses enter."""
 
     accepts: ClassVar[InputType]
 
-    def __init__(self, field: DeclaredField) -> None:
-        self.field = field
-        super().__init__(
-            self.value_text(field.value), type=self.accepts, validators=[Function(self.acceptable)]
-        )
+    def control_arguments(self) -> dict[str, object]:
+        return {
+            "value": self.value_text(self.field.value),
+            "type": self.accepts,
+            "validators": [Function(self.acceptable)],
+        }
+
+    def bind_control(self) -> None:
         self.listen(Input.Blurred, self.finished)
         self.listen(Input.Submitted, self.finished)
 
@@ -143,7 +160,7 @@ class StrEditor(LineEditor):
     accepts = "text"
 
 
-class MultilineEditor(TextArea, ValueEditor):
+class MultilineEditor(ValueEditor, TextArea):
     shows = (Multiline,)
 
     DEFAULT_CSS = """
@@ -154,9 +171,10 @@ class MultilineEditor(TextArea, ValueEditor):
 
     states_default = False
 
-    def __init__(self, field: DeclaredField) -> None:
-        self.field = field
-        super().__init__(str(field.value or ""))
+    def control_arguments(self) -> dict[str, object]:
+        return {"text": str(self.field.value or "")}
+
+    def bind_control(self) -> None:
         self.listen(TextArea.Changed, self.changed)
 
     def changed(self, message: TextArea.Changed) -> None:
@@ -170,20 +188,21 @@ class MultilineEditor(TextArea, ValueEditor):
                 self.load_text(value)
 
 
-class SelectEditor(Select[object], ValueEditor):
+class SelectEditor(ValueEditor, Select[object]):
     """One of a list of values. A value that is not on the list shows as its own text."""
 
-    def __init__(self, field: DeclaredField) -> None:
-        self.field = field
+    def control_arguments(self) -> dict[str, object]:
         self.offered = tuple(self.options())
-        value = field.value
+        value = self.field.value
         listed = self.lists(value)
-        super().__init__(
-            self.offered,
-            value=value if listed else Select.NULL,
-            allow_blank=not listed,
-            prompt=self.value_text(value),
-        )
+        return {
+            "options": self.offered,
+            "value": value if listed else Select.NULL,
+            "allow_blank": not listed,
+            "prompt": self.value_text(value),
+        }
+
+    def bind_control(self) -> None:
         self.listen(Select.Changed, self.changed)
 
     def options(self) -> Iterable[tuple[str, object]]:
@@ -232,18 +251,16 @@ class EnumEditor(SelectEditor):
         return ((format_enum_display(member), member) for member in members)
 
 
-class OptionalEditor(containers.VerticalGroup, ValueEditor):
+class OptionalEditor(ValueEditor, containers.VerticalGroup):
     """A field that may hold nothing: a box says whether it holds a value, and the
     editor of that value is shown while it does."""
 
     shows = (Optional,)
 
-    def __init__(self, field: DeclaredField) -> None:
-        self.field = field
-        super().__init__()
-        self.holds_value = Checkbox("Set", value=field.value is not None)
-        self.member = ValueEditor.declared_for(field.member)
-        self.member.display = field.value is not None
+    def bind_control(self) -> None:
+        self.holds_value = Checkbox("Set", value=self.field.value is not None)
+        self.member = ValueEditor.declared_for(self.field.member)
+        self.member.display = self.field.value is not None
         self.holds_value.listen(Checkbox.Changed, self.held_changed)
 
     def compose(self) -> ComposeResult:
