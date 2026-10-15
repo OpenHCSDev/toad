@@ -336,7 +336,8 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 
     async def read_snapshot(self):
         identity = self.presentation.read_identity
-        return await self.owner.reader.snapshot(*self.thread_scope, read_identity=identity)
+        return await self.owner.reader.updates(
+            *self.thread_scope, self.owner.current_read, read_identity=identity)
 
     async def publish_applied(self) -> bool:
         if self.agent is not None:

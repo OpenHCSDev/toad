@@ -81,8 +81,10 @@ class CoordinationTranscriptReader(ABC):
 
     async def updates(
         self, root: str, thread: str, previous: TranscriptReadIdentity | None,
+        *, read_identity: TranscriptReadIdentity | None = None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
-        return await self.read(ReadTranscriptUpdate(root, thread, previous=previous))
+        return await self.read(ReadTranscriptUpdate(
+            root, thread, previous=previous, read_identity=read_identity))
 
 
 class DetachedTranscriptReader(CoordinationTranscriptReader):
