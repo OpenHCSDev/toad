@@ -20,7 +20,6 @@ from textual.widgets import Static
 from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
 
-from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import InlineFormView
 from toad.forms.presentation import FormModal, FormPart
@@ -62,7 +61,7 @@ class SortDialog(FormModal, ModalScreen[type[DisplayOrder] | None]):
         super().__init__()
         self.control = control
         self.state = ObjectState(form)
-        self.order_field = DeclaredField(self.state, FieldPath(type(form)).order)
+        self.order_field = FieldPath(type(form)).order.bind(self.state)
         self.form = InlineFormView(self.state, focus=self.order_field.path)
         paths = control.visibility_fields()
         self.visibility_form = (InlineFormView(self.app.saved_settings.state, paths=paths)
@@ -79,7 +78,7 @@ class SortDialog(FormModal, ModalScreen[type[DisplayOrder] | None]):
         self.state.on_resolved_changed(self.order_changed)
 
     def order_changed(self, paths: set[str]):
-        if str(self.order_field.path) in paths:
+        if self.order_field.path.value in paths:
             order = self.order_field.value
             if order is not None and order is not self.control.order:
                 self.dismiss(order)

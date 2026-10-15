@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from toad.forms.field_path import FieldPath
+from toad.forms.declared_views import DeclaredField
 from .events import CoreEvent
 
 
@@ -10,4 +10,4 @@ from .events import CoreEvent
 class PreferenceChanged(CoreEvent):
     """Read this setting again; what the app does on the change has been done."""
 
-    path: FieldPath
+    field: DeclaredField

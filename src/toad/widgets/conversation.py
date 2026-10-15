@@ -1791,7 +1791,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if message.event.path == SETTINGS.shell.allow_commands:
+        if SETTINGS.shell.allow_commands.matches(message.event.field):
             self.input_histories.shell.complete.add_words(
                 self.app.settings.shell.allow_commands.split()
             )

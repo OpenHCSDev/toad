@@ -57,7 +57,7 @@ class RecoveryView(CoreEventReceiver, Static):
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if message.event.path == SETTINGS.ui.recovery_view:
+        if SETTINGS.ui.recovery_view.matches(message.event.field):
             self._apply_settings()
 
     def _apply_settings(self) -> None:
