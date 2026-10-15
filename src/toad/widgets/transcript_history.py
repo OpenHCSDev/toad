@@ -1209,12 +1209,12 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
     @property
     def outgoing_coverage(self):
-        if not self._source_state.reports_coverage:
-            return frozenset()
-        references = frozenset(reference for page in self.pages
-                               for reference in page.prepared.outgoing_coverage)
-        projection = self.filter.state.overlay
-        return references | (projection.outgoing_coverage if projection is not None else frozenset())
+        if self._source_state.reports_coverage:
+            references = frozenset(reference for page in self.pages
+                                   for reference in page.prepared.outgoing_coverage)
+            projection = self.filter.state.overlay
+            return references | (projection.outgoing_coverage if projection is not None else frozenset())
+        return frozenset()
 
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:

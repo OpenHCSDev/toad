@@ -184,7 +184,7 @@ class FragmentLineConsumer(MroDispatch):
     def sent_report(self, event: SentTranscript) -> None:
         from toad.tool_output import SentMessageToolOutputPart
 
-        self.blocks.extend(SentMessageToolOutputPart(event).line_blocks)
+        self.blocks.extend(SentMessageToolOutputPart.capture(event).line_blocks)
 
     @handles(ThinkingTranscript)
     def thinking(self, event: ThinkingTranscript) -> None:

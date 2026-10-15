@@ -8,7 +8,7 @@ earlier dictionary or changes Read's filename without changing its text.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from difflib import unified_diff
 from functools import cached_property, partial
 from pathlib import PurePath
@@ -17,7 +17,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
-from agent_comms.tool_results import ToolDiff
+from agent_comms.tool_results import ToolDiff, ToolText
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_receipts import AssignedTranscriptSource
 from textual.await_complete import AwaitComplete
@@ -187,24 +187,29 @@ class SentMessageToolOutputPart(ToolOutputPart):
     """A report without source proof retains its full, non-interactive evidence."""
 
     message: SentTranscript
+    literal: str
+
+    @classmethod
+    def capture(cls, message, literal=None):
+        if literal is None:
+            import json
+            from agent_comms.field_codec import FieldCodec
+
+            literal = json.dumps(FieldCodec.encode(message))
+        return cls(message, literal)
 
     @property
     def sent_reports(self):
         return (self.message,)
 
     def project_messages(self, resolved):
-        decoder = ToolContentDecoder()
+        decoder = ToolContentDecoder(report=self)
         decoder.dispatch_sync(resolved[id(self.message)])
         return decoder.part
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
-        body = Body(self.message.text, role=ToolOutputRole, bar=MutedRole, markdown=False)
-        if not self.message.routed:
-            return (body,)
-        header = MessageRow.sent(self.message).header
-        header = replace(header, spans=tuple(replace(span, link=None) for span in header.spans))
-        return (header, body)
+        return PlainTextToolOutputPart(self.literal).line_blocks
 
 
 @dataclass(frozen=True)
@@ -212,20 +217,21 @@ class PublishedSentMessageToolOutputPart(ToolOutputPart):
     """A proved publication retains its source even without a separate body."""
 
     message: PublishedSentMessage
+    literal: str
 
     def for_body_sources(self, supplied):
         return (self.with_body() if self.message.reference in supplied
                 else self.without_body())
 
     def with_body(self):
-        return SuppliedSentMessageToolOutputPart(self.message)
+        return SuppliedSentMessageToolOutputPart(self.message, self.literal)
 
     def without_body(self):
         return self
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
-        return SentMessageToolOutputPart(self.message.message).line_blocks
+        return PlainTextToolOutputPart(self.literal).line_blocks
 
 
 class SuppliedSentMessageToolOutputPart(PublishedSentMessageToolOutputPart):
@@ -239,7 +245,7 @@ class SuppliedSentMessageToolOutputPart(PublishedSentMessageToolOutputPart):
         return self
 
     def without_body(self):
-        return PublishedSentMessageToolOutputPart(self.message)
+        return PublishedSentMessageToolOutputPart(self.message, self.literal)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -289,21 +295,18 @@ class TerminalToolOutputPart(OmittedToolOutputPart):
     terminal_id: str
 
 class ToolContentDecoder(MroDispatch):
-    def __init__(self, read_path=None):
+    def __init__(self, read_path=None, *, report=None):
         self.read_path = read_path
+        self.report = report
         self.part = None
 
     @handles(schema.ContentToolCallContent)
     def content(self, item):
         self.dispatch_sync(item.content)
 
-    @handles(schema.TextContentBlock)
+    @handles(schema.TextContentBlock, ToolText)
     def text(self, item):
-        self.dispatch_sync(item.text)
-
-    @handles(str)
-    def plain_text(self, text):
-        self.part = TextToolOutputPart.from_text(text, self.read_path)
+        self.part = TextToolOutputPart.from_text(item.text, self.read_path)
 
     @handles(schema.EmbeddedResourceContentBlock)
     def resource(self, item):
@@ -318,12 +321,11 @@ class ToolContentDecoder(MroDispatch):
             from agent_comms.field_codec import FieldCodec
             try:
                 message = FieldCodec.decode(SentTranscript, json.loads(item.text))
-                message.require_reply_route()
             except (TypeError, ValueError):
                 # Unsupported or malformed external evidence stays complete.
                 self.part = PlainTextToolOutputPart(item.text)
             else:
-                self.dispatch_sync(message)
+                self.part = SentMessageToolOutputPart.capture(message, item.text)
         elif item.mime_type == 'application/vnd.agent-comms.numbered-diff':
             self.part = NumberedPatchToolOutputPart(item.text)
         else:
@@ -331,11 +333,12 @@ class ToolContentDecoder(MroDispatch):
 
     @handles(SentTranscript)
     def sent_report(self, message):
-        self.part = SentMessageToolOutputPart(message)
+        self.part = self.report or SentMessageToolOutputPart.capture(message)
 
     @handles(PublishedSentMessage)
     def published_message(self, message):
-        self.part = SuppliedSentMessageToolOutputPart(message)
+        assert self.report is not None
+        self.part = SuppliedSentMessageToolOutputPart(message, self.report.literal)
 
     @handles(schema.FileEditToolCallContent)
     def diff(self, item):
