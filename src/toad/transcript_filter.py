@@ -122,12 +122,15 @@ class SeekingFilter(NoFilter):
             prepared = await source.boundary()
             if not snapshot.current(owner):
                 return False
-            projection = ProjectedTranscriptHistory(owner, source, prepared)
-            page = projection.pages[0]
-            await projection.prepare_fragments(
-                page.fragments[page.prepared.extension_slice(False)], lambda: snapshot.current(owner),
-                target=owner,
+            rows, limit = snapshot.window.latest_limits(owner.budget)
+            await prepared.prepare_rows(
+                owner, lambda: snapshot.current(owner), target=owner,
+                selected=owner.selected_categories, boundary=len(prepared.fragments),
+                older=True, rows_needed=rows, limit=limit,
             )
+            if not snapshot.current(owner):
+                return False
+            projection = ProjectedTranscriptHistory(owner, source, prepared)
             async with snapshot.window.history_lock:
                 if not snapshot.current(owner):
                     return False
@@ -136,8 +139,6 @@ class SeekingFilter(NoFilter):
                         filtering.state = admitted_state = Filtered(projection)
                         acquisition.callback(admitted_state.remove, filtering)
                         await owner.mount(projection, before=owner.pages[0])
-                        filtering.require_projection(snapshot, projection)
-                        await projection.draw_initial()
                         filtering.require_projection(snapshot, projection)
                         acquisition.pop_all()
                 drew = bool(projection.fragments_in_range)

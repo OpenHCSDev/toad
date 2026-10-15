@@ -44,7 +44,6 @@ class PreparedTranscriptPage:
     fragments: tuple[TranscriptFragment, ...]
     retained_bytes: int
     fragment_range: tuple[int, int] | None = None
-    batch_size: int = field(default=BATCH, kw_only=True)
     in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
 
     @classmethod
@@ -59,7 +58,6 @@ class PreparedTranscriptPage:
         return slice(start, min(len(fragments), start + batch_size))
 
     def configure(self, *, batch_size, newest=True):
-        self.batch_size = batch_size
         if self.fragment_range is None:
             self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
 
@@ -108,10 +106,6 @@ class PreparedTranscriptPage:
     def stop(self, stop):
         self.fragment_range = self.start, stop
 
-    def extension_slice(self, older: bool) -> slice:
-        return (slice(max(0, self.start - self.batch_size), self.start) if older
-                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
-
     def set_fragment_range(self, selected: slice) -> None:
         self.fragment_range = selected.start, selected.stop
         self.in_range = self.fragments[selected]
@@ -136,12 +130,6 @@ class PreparedTranscriptPage:
 
     # A page draws its admitted fragments as lines: admission moves a range,
     # it never mounts or removes native members.
-    async def extend(self, view, older: bool, current, *, prefix=()) -> bool:
-        extension = self.extension_slice(older)
-        selected = slice(extension.start if older else self.start,
-                         self.stop if older else extension.stop)
-        return await self.replace_range(view, self.fragments, selected, None, current)
-
     async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(),
                             acquired=None, suppliers=None) -> bool:
         if not current():
