@@ -54,7 +54,8 @@ from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionNavigation
 from toad.terminal_attention import TerminalAttention
 from toad.textual_colours import ThemedApp
-from toad.application_actions import ApplicationAction, ApplicationCommands, KeyboundAction
+from toad.application_actions import ApplicationAction, ApplicationCommands
+from toad.widget_actions import DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime
 
 if TYPE_CHECKING:
@@ -247,14 +248,14 @@ class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
 
 
-class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
     COMMANDS = {ApplicationCommands}
     MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
     BINDING_GROUP_TITLE = "System"
-    BINDINGS = [member.binding() for member in ApplicationAction.members_with(KeyboundAction)]
+    ACTIONS = ApplicationAction
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
     project_dir = var(Path)
@@ -611,17 +612,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
         await event.event.apply(self.session_navigation)
-
-    async def _dispatch_action(self, namespace, action_name: str, params) -> bool:
-        if namespace is self:
-            try:
-                declaration = ApplicationAction.decode(action_name)
-            except ValueError:
-                pass  # Remaining names belong to Textual's own action contract.
-            else:
-                await declaration.parse(params).apply(self)
-                return True
-        return await super()._dispatch_action(namespace, action_name, params)
 
     @on(events.TextSelected)
     async def on_text_selected(self) -> None:

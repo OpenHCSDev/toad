@@ -871,6 +871,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
+        if self.prompt.prompt_text_area.editing_mode.modal:
+            return
         if (
             event.character is not None
             and event.is_printable
