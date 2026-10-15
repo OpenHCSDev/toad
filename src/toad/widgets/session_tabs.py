@@ -33,7 +33,7 @@ class SessionLabel(ViewLabel, widgets.Label):
     ALLOW_SELECT = False
 
     def __init__(self, tab: OpenTab, **kwargs):
-        super().__init__("", **kwargs)
+        super().__init__(Content(), **kwargs)
         self.present(tab)
 
     def present(self, tab: OpenTab) -> bool:
