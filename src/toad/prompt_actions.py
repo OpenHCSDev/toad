@@ -13,7 +13,7 @@ class EnterShellAction(KeyboundAction, PromptAction):
     priority = True
 
     def available(self, editor):
-        return not editor.text and not editor.simple_input and not editor.shell_mode
+        return editor.can_enter_shell
 
     async def apply(self, editor):
         from toad.widgets.prompt import Prompt

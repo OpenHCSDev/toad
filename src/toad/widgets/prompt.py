@@ -17,7 +17,6 @@ from textual.binding import Binding
 
 from textual.content import Content, Span
 from textual import getters
-from textual.message import Message
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
 from textual.widget import Widget
@@ -197,8 +196,9 @@ See on-screen instructions for details.
     def queue_supported(self) -> bool:
         return not self.simple_input and self.query_ancestor(Prompt).queue_supported
 
-    class CancelShell(Message):
-        pass
+    @property
+    def can_enter_shell(self) -> bool:
+        return not self.text and not self.simple_input and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
         self.notify_style_update()
@@ -323,7 +323,7 @@ See on-screen instructions for details.
         self.publish_core(UserInputSubmitted(self.text, shell, immediate=immediate))
         self.clear()
         if shell:
-            self.post_message(self.CancelShell())
+            self.query_ancestor(Prompt).shell_mode = False
 
     def action_cursor_up(self, select: bool = False):
         PreviousHistoryCursor.move(self, select, super().action_cursor_up)
@@ -334,7 +334,7 @@ See on-screen instructions for details.
     def action_delete_left(self) -> None:
         selection = self.selection
         if selection.start == selection.end and self.selection.end == (0, 0):
-            self.post_message(self.CancelShell())
+            self.query_ancestor(Prompt).shell_mode = False
             return
         return super().action_delete_left()
 
@@ -761,11 +761,6 @@ class Prompt(containers.VerticalGroup):
             self.shell_mode = False
 
         self.update_prompt()
-
-    @on(PromptTextArea.CancelShell)
-    def on_cancel_shell(self, event: PromptTextArea.CancelShell):
-        self.shell_mode = False
-
 
     @on(Question.Answer)
     def on_question_answer(self, event: Question.Answer) -> None:
