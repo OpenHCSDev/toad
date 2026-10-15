@@ -431,6 +431,11 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
         await ScreenCommsConsumer(self).dispatch(event.event.update)
 
+    @handles(core_events.ExternalTranscriptChanged, core_events.SessionSelected)
+    def external_transcript_changed(self, message: CoreEventMessage) -> None:
+        if self.is_current:
+            self.presentation.external_transcript_changed()
+
     def bind_project(self, project: Path) -> None:
         """The admitted source and later coordination updates use one project owner."""
         if project != self.project_path:
@@ -605,6 +610,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
                 else self._resolve_comms_thread()
             )
         self.observe_core(self.app.events)
+        self.observe_core(self.app.coordination_access.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
         for tree in self.query("#project_directory_tree").results(DirectoryTree):

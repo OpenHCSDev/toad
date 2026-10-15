@@ -339,6 +339,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         if (conversation := self.widget) is not None:
             conversation.window.park_reader()
 
+    def external_transcript_changed(self) -> None:
+        """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
+        if self.widget is not None:
+            self.sources.external_transcript_changed(self.widget)
+
     async def remove_native_tree(self) -> None:
         if (conversation := self.widget) is None:
             return
