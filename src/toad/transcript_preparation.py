@@ -1,10 +1,10 @@
-"""Bounded, data-only lookahead for one immutable transcript snapshot."""
+"""Bounded page preparation for one immutable transcript snapshot."""
 
 from __future__ import annotations
 
 import asyncio
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field, replace
 from typing import ClassVar
 from weakref import ReferenceType, ref
@@ -256,13 +256,6 @@ class PreparedPageSource(ABC):
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         pass
 
-    @abstractmethod
-    def prefetch(
-        self, before: TranscriptCursor | None, after: TranscriptCursor | None,
-        keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> AsyncIterator[PreparedTranscriptPage]:
-        pass
-
     def close(self) -> None:
         self.runtime.discard_scope(self.scope)
         if self.projection_source is not None:
@@ -329,7 +322,7 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
 
 
 class TranscriptPageBuffer(PreparedPageSource):
-    """Lookahead intent for a snapshot; storage/admission belong to the runtime.
+    """Prepared pages for a snapshot; storage and work limits belong to the runtime.
 
     The loader retains ownership of transcript/routing semantics and off-loop
     I/O. CPU preparation uses the application's existing renderer. Foreground
@@ -357,44 +350,6 @@ class TranscriptPageBuffer(PreparedPageSource):
             raise ValueError("This transcript has no saved-source reader")
         result = await self.runtime.submit(self.work(self.scope, self.loader, self.through, request))
         return result.for_view()
-
-    async def prefetch(
-        self, before: TranscriptCursor | None, after: TranscriptCursor | None,
-        keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> AsyncIterator[PreparedTranscriptPage]:
-        """Yield read-ahead source for body preparation in the existing renderer.
-
-        The runtime owns each retained page. Consumers prepare its actual
-        leaves without copying the paging cursor into another resource owner.
-        """
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
-
-        for _ in range(min(rounds, self.runtime.max_entries)):
-            for older in (True, False):
-                cursor = before if older else after
-                if cursor is None:
-                    continue
-                if self.closed or not keep_going():
-                    return
-                request = PageRequest(before=cursor) if older else PageRequest(after=cursor)
-                try:
-                    prepared = await self.get(request)
-                except (CoordinationReadUnavailable, StaleRevision):
-                    # Busy or revoked source reads cannot poison page identity.
-                    # Keep mounted coverage and terminate speculative work.
-                    return
-                if self.closed or not keep_going():
-                    return
-                yield prepared
-                if older:
-                    before = (prepared.page.before if prepared.page.has_older
-                              and prepared.retained_bytes <= self.runtime.max_bytes else None)
-                else:
-                    after = (prepared.page.after if prepared.page.has_newer
-                             and prepared.retained_bytes <= self.runtime.max_bytes else None)
-            if before is None and after is None:
-                break
-
 
 class ProjectedTranscriptSource(PreparedPageSource):
     """A projected prefix with a fixed boundary and ordinary bidirectional reads.
@@ -478,38 +433,6 @@ class ProjectedTranscriptSource(PreparedPageSource):
             has_newer=True,
         )
         return replace(prepared, page=page)
-
-    async def prefetch(
-        self, before: TranscriptCursor | None, after: TranscriptCursor | None,
-        keep_going: Callable[[], bool], *, rounds: int = 1,
-    ) -> AsyncIterator[PreparedTranscriptPage]:
-        if self.closed or not keep_going():
-            return
-        if self._raw is None:
-            return
-        limit = self._boundary.page.before
-        if self._upstream is not None and not self._upstream.closed:
-            async for prepared in self._upstream.prefetch(
-                before if before is not None and limit.contains(before) else None,
-                None, keep_going, rounds=rounds,
-            ):
-                prepared = await self._project(prepared)
-                if not keep_going():
-                    return
-                yield prepared
-            before = None
-        if self.closed:
-            return
-        assert self._raw is not None
-        async for prepared in self._raw.prefetch(
-            before if before is not None and limit.contains(before) else None,
-            after if after is not None and limit.contains(after) and after != limit else None,
-            keep_going, rounds=rounds,
-        ):
-            prepared = await self._project(prepared)
-            if not keep_going():
-                return
-            yield prepared
 
     def close(self) -> None:
         super().close()

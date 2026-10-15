@@ -107,25 +107,17 @@ class PreparationDemand(ABC):
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
         return MovingPreparation(travel / elapsed)
 
-    def edges(self, before, after):
+    def edges(self, before: bool, after: bool) -> tuple[bool, bool]:
+        """Which source edges can supply rows for this reader's movement."""
         return before, after
 
-    def neighbors(self, sequence, first: int, last: int, count: int):
-        return ()
-
-    def body_order(self, runway, predicted):
-        return (*runway, *predicted)
+    def destination_painted(self) -> "PreparationDemand":
+        return self
 
 
 class StationaryPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return 0
-
-    def neighbors(self, sequence, first: int, last: int, count: int):
-        # A small idle reserve belongs to the same page/worker resource, not
-        # a second cache. Moving demand selects only its incoming direction.
-        return (tuple(reversed(sequence[max(0, first - count):first]))
-                + tuple(sequence[last:last + count]))
 
 
 @dataclass
@@ -135,9 +127,7 @@ class MovingPreparation(PreparationDemand):
     def moved(self, travel: float, elapsed: float) -> PreparationDemand:
         velocity = travel / elapsed
         if self.velocity * velocity > 0:
-            # This is still the same direction's owned demand. Refresh its
-            # measured speed without revoking every admitted batch on each
-            # held-key sample. Reversal creates a new demand and revokes it.
+            # Continue measuring this direction; reversal starts a new demand.
             self.velocity = velocity
             return self
         return super().moved(travel, elapsed)
@@ -145,17 +135,8 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def neighbors(self, sequence, first: int, last: int, count: int):
-        return (tuple(reversed(sequence[max(0, first - count):first]))
-                if self.velocity < 0 else tuple(sequence[last:last + count]))
-
-    def edges(self, before, after):
-        return (before, None) if self.velocity < 0 else (None, after)
-
-    def body_order(self, runway, predicted):
-        # The measured incoming direction gets resource admission first. A
-        # reverse runway cannot consume the bound before fast forward travel.
-        return (*predicted, *runway)
+    def edges(self, before: bool, after: bool) -> tuple[bool, bool]:
+        return (before, False) if self.velocity < 0 else (False, after)
 
 
 @dataclass(frozen=True)
@@ -170,9 +151,12 @@ class DestinationPreparation(PreparationDemand):
         # An explicit reversal immediately replaces the burst.
         return super().moved(travel, elapsed) if travel < 0 else self
 
-    def edges(self, before, after):
+    def edges(self, before: bool, after: bool) -> tuple[bool, bool]:
         # The existing latest-page operation owns a jump, never edge traversal.
-        return None, None
+        return False, False
+
+    def destination_painted(self) -> PreparationDemand:
+        return StationaryPreparation()
 
 
 class DirectionalPreparation:
@@ -181,9 +165,7 @@ class DirectionalPreparation:
     Idle expiry measures input cadence, not a renderer's frame rate. Measured
     admitted source and foreground body delivery supply the prediction horizon,
     including source reads, worker waits and native widget construction.
-    Speculative worker batches do not
-    overwrite that distinct measurement. The existing
-    presentation budget bounds how much of that prediction can be admitted.
+    The presentation budget bounds how much of that prediction can be retained.
     """
 
     def __init__(self, window):
@@ -207,6 +189,27 @@ class DirectionalPreparation:
     def requested(self, travel: float) -> None:
         """Measure reader input whose lazy edge has no native travel yet."""
         self._moved(travel)
+
+    def request_boundary(self, travel: float) -> bool:
+        """Measure reader input while its lazy source edge has no native travel."""
+        window = self.window
+        older = travel < 0
+        boundary = (
+            window.scroll_y <= 0 and window.scroll_target_y <= 0
+            if older else
+            window.scroll_y >= window.max_scroll_y and window.scroll_target_y >= window.max_scroll_y
+        )
+        source_available = any(
+            history.has_older if older else history.has_newer for history in window.histories
+        )
+        if not boundary or not source_available:
+            return False
+        self.requested(travel)
+        window._schedule_settle()
+        if older and window.follows_tail:
+            window.release_anchor()
+        window.request_preparation()
+        return True
 
     def _moved(self, travel: float) -> None:
         now = monotonic()
@@ -232,6 +235,11 @@ class DirectionalPreparation:
     def destination(self, rows: int) -> None:
         self.demand = DestinationPreparation(rows)
         self.sampled_at = monotonic()
+
+    def destination_complete(self) -> None:
+        """The bottom viewport painted; ordinary idle runway may resume."""
+        self.demand = self.demand.destination_painted()
+        self.delivery_seconds = 0.0
 
     def delivered(self, seconds: float) -> None:
         self.delivery_seconds = seconds
@@ -268,14 +276,10 @@ class DirectionalPreparation:
             self.budget.batch_items, ceil(rows / self.window.rows_per_fragment),
         ))
 
-    def preparation_count(self, viewport_rows: int) -> int:
-        return self.fragments_for(self.ahead_rows(viewport_rows))
-
     def destination_batch(self, budget: PresentationBudget, viewport_rows: int) -> int:
-        # Rows and source fragments are different units. Use the original
-        # native body's measured extent for both page and body lookahead.
-        return min(budget.item_limit(0), self.preparation_count(viewport_rows))
-
-    def accepts(self, demand: PreparationDemand) -> bool:
-        """Baseline runway survives idle; reversal revokes the original batch."""
-        return demand is self.demand
+        # A bottom viewport must be complete before its one tree publication.
+        # One selected fragment supplies at least one drawn row; visible
+        # destination items may exceed the nominal working-set item budget.
+        return min(self.window.app.preparation.max_entries, max(
+            budget.item_limit(0), viewport_rows,
+        ))

@@ -228,8 +228,62 @@ class UnreachedPosition(ReaderPosition):
         return self.position.without_holder(window) and self
 
 
+class HeldReaderDestination:
+    """A reader destination retained through intermediate source layouts."""
+
+    source_settlement_scheduled = False
+    source_ready = False
+
+    @classmethod
+    def held(cls, window: "HistoryWindow") -> "HeldReaderDestination | None":
+        position = window.reader_position
+        return position if isinstance(position, cls) else None
+
+    @classmethod
+    def settle(cls, window: "HistoryWindow") -> None:
+        destination = cls.held(window)
+        if (destination is not None
+                and all(history.state.accepts_source_work for history in window.histories)):
+            destination.source_settled(window)
+
+    def source_settled(self, window: "HistoryWindow") -> None:
+        """Wait for a completed source paint before admitting its destination layout."""
+        if self.source_settlement_scheduled or self.source_ready:
+            return
+        object.__setattr__(self, "source_settlement_scheduled", True)
+        window.call_after_refresh(self.source_geometry_ready, window)
+
+    def source_geometry_ready(self, window: "HistoryWindow") -> None:
+        if window.reader_position is not self:
+            return
+        object.__setattr__(self, "source_ready", True)
+        window.refresh(layout=True)
+
+    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
+        measured = all(
+            page.rows_measured for history in window.histories for page in history.pages
+        )
+        if reached and self.source_ready and measured:
+            return self.released()
+        return self
+
+    def moved(self, rows: float) -> None:
+        return None
+
+    async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
+        return False
+
+    def release(self, window: "HistoryWindow") -> None:
+        if window.reader_position is self:
+            window.reader_position = self.released()
+            window.place_reader()
+
+    @abstractmethod
+    def released(self) -> ReaderPosition: ...
+
+
 @dataclass(frozen=True)
-class ParkedPosition(UnreachedPosition):
+class ParkedPosition(HeldReaderDestination, UnreachedPosition):
     """A position the reader left with its tab, waiting for the history to be drawn again.
 
     It carries the page ranges that were loaded, so a rebuilt history loads
@@ -241,6 +295,54 @@ class ParkedPosition(UnreachedPosition):
     def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
         # Its pages are loaded after the tab returns.
         return self
+
+    def released(self) -> ReaderPosition:
+        return self.position
+
+
+@dataclass(frozen=True)
+class LatestPosition(HeldReaderDestination, TailPosition):
+    """The newest source row, held until the publication that supplies it settles."""
+
+    revision: int
+    sources: tuple[tuple["TranscriptSourcePreparation", object], ...]
+    awaits_source_advance: bool
+
+    @classmethod
+    def hold(cls, window: "HistoryWindow") -> "LatestPosition":
+        window.anchor()
+        sources = tuple((history, history.through) for history in window.histories)
+        latest = cls(
+            window.scroll_revision,
+            sources,
+            not any(history.has_newer for history, _through in sources),
+        )
+        window.reader_position = latest
+        return latest
+
+    def current(self, window: "HistoryWindow") -> bool:
+        return window.reader_position is self and window.scroll_revision == self.revision
+
+    def restore(self, window: "HistoryWindow") -> None:
+        if self.current(window):
+            window.follow_latest()
+
+    def source_settled(self, window: "HistoryWindow") -> None:
+        if (self.awaits_source_advance
+                and all(history.through == through for history, through in self.sources)):
+            return
+        super().source_settled(window)
+
+    async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
+        from toad.transcript_state import LatestViewportRequest
+
+        return await history._publish_latest(LatestViewportRequest(self))
+
+    def left_tail(self, window: "HistoryWindow") -> None:
+        return None
+
+    def released(self) -> ReaderPosition:
+        return TailPosition()
 
 
 @dataclass(eq=False)
@@ -289,36 +391,25 @@ class HistoryWindow(VerticalScroll):
 
     def _on_mouse_scroll_up(self, event: events.MouseScrollUp) -> None:
         event.prevent_default()
-        if not self._prepare_older_at_boundary(-max(1, self.app.scroll_sensitivity_y)):
+        if not self.lookahead.request_boundary(-max(1, self.app.scroll_sensitivity_y)):
             super()._on_mouse_scroll_up(event)
         event.stop()
 
     def action_page_up(self) -> None:
         # Textual skips an action with no native travel. A lazy destination
-        # must admit its older range before asking that native scroll owner.
-        travel = -max(1, self.scrollable_content_region.height)
-        if not self._prepare_older_at_boundary(travel):
+        # must admit its source range before asking that native scroll owner.
+        if not self.lookahead.request_boundary(-max(1, self.scrollable_content_region.height)):
             super().action_page_up()
-
-    def _prepare_older_at_boundary(self, travel: float) -> bool:
-        """Measure upward input while a lazy edge has no native travel."""
-        if (
-            self.scroll_y > 0
-            or self.scroll_target_y > 0
-            or not any(history.has_older for history in self.histories)
-        ):
-            return False
-        self.lookahead.requested(travel)
-        self._schedule_settle()
-        if self.follows_tail:
-            self.release_anchor()
-        self.request_preparation()
-        return True
 
     def _on_mouse_scroll_down(self, event: events.MouseScrollDown) -> None:
         event.prevent_default()
-        super()._on_mouse_scroll_down(event)
+        if not self.lookahead.request_boundary(max(1, self.app.scroll_sensitivity_y)):
+            super()._on_mouse_scroll_down(event)
         event.stop()
+
+    def action_page_down(self) -> None:
+        if not self.lookahead.request_boundary(max(1, self.scrollable_content_region.height)):
+            super().action_page_down()
 
     def _on_mouse_scroll_left(self, event: events.MouseScrollLeft) -> None:
         event.prevent_default()
@@ -348,11 +439,14 @@ class HistoryWindow(VerticalScroll):
 
     def jump_to_latest(self) -> None:
         """Follow the source tail, including pages outside the mounted window."""
-        self.anchor()
+        latest = LatestPosition.hold(self)
         self.destination()
         for history in tuple(self.histories):
-            if history.has_newer:
-                history.request_latest()
+            if history.needs_latest_publication:
+                history.request_latest(latest)
+
+    def tail_follow_changed(self) -> None:
+        """Project the canonical tail-follow state in a specialized window."""
 
     @property
     def shown(self) -> bool:
@@ -549,7 +643,6 @@ class HistoryWindow(VerticalScroll):
         """End: prepare the destination in one burst, not every page between."""
         self.lookahead.observe(self.scroll_y)
         self.lookahead.destination(self.outer_size.height)
-        self._schedule_settle()
         self.request_preparation()
 
     _settle_timer = None
@@ -584,8 +677,13 @@ class HistoryWindow(VerticalScroll):
     def follows_tail(self) -> bool:
         return self.is_anchored and not self._anchor_released
 
+    @property
+    def can_jump_to_latest(self) -> bool:
+        return not self.follows_tail
+
     def anchor(self, anchor: bool = True) -> None:
-        if not self._restoring:
+        changed = self.follows_tail != anchor
+        if not self._restoring and changed:
             self.scroll_revision += 1
         if anchor:
             self._anchor_released = False
@@ -593,13 +691,19 @@ class HistoryWindow(VerticalScroll):
             if self.reader_position is not None and self.shown:
                 self.reader_position = self.reader_position.joined_tail()
         super().anchor(anchor)
+        if changed:
+            self.tail_follow_changed()
 
     def release_anchor(self) -> None:
-        if not self._restoring:
+        changed = self.follows_tail
+        if not self._restoring and changed:
             self.scroll_revision += 1
         super().release_anchor()
+        if not changed:
+            return
         if self.reader_position is not None and not self._restoring and self.shown:
             self.reader_position = self.reader_position.left_tail(self)
+        self.tail_follow_changed()
 
     def _check_anchor(self) -> None:
         """Native geometry checks cannot turn an offset reader into a tail reader."""
@@ -624,6 +728,7 @@ class HistoryWindow(VerticalScroll):
             # still chooses follow through jump_to_latest; ordinary travel only
             # rejoins it once the current source has no unpublished newer rows.
             super()._check_anchor()
+        self.tail_follow_changed()
 
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement

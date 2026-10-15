@@ -10,11 +10,12 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from textual.screen import Screen
-    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.history_anchor import HistoryWindow, LatestPosition
 
 
 @dataclass(frozen=True)
@@ -35,13 +36,11 @@ class HistorySourceSnapshot:
 class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
-    LOOKAHEAD_GROUP = "history-lookahead"
 
     def __init__(self, *args, source_state: TranscriptState, **kwargs):
         self._source_state = source_state
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
-        self._prefetch_intent = None
         super().__init__(*args, **kwargs)
 
     @property
@@ -90,7 +89,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state.retire_preparation(self._page_buffer)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
-        self._prefetch_intent = None
         self.window.histories.discard(self)
         await self.close_source_reader()
 
@@ -110,7 +108,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
-            self.prepare_scroll()
             self.state.check_edges(self)
 
     def _check_edges(self) -> None:
@@ -120,11 +117,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def _request_page(self, older: bool) -> None:
         self.schedule_source_work(partial(self._load_page, older))
 
-    def request_latest(self) -> None:
-        self.window.destination()
-        self.workers.cancel_group(self, self.LOOKAHEAD_GROUP)
-        self._prefetch_intent = None
-        self.state.request_latest(self, LatestViewportRequest(self.window.scroll_revision))
+    def request_latest(self, destination: LatestPosition) -> None:
+        # End supersedes any admitted edge publication. Its worker may finish
+        # the source read, but the old snapshot cannot paint an intermediate page.
+        self._generation += 1
+        self.state.request_latest(self, LatestViewportRequest(destination))
 
     async def _jump_latest(self, request: LatestViewportRequest) -> None:
         """Publish one destination under its original source and reader intent.
@@ -136,7 +133,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """
         if not self.can_draw_on_screen or not request.current(self.window):
             return
-        self._generation += 1
         request.restore(self.window)
         if await self._publish_latest(request):
             # Wire acceptance advances the original reader source. Capture the
@@ -152,6 +148,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     ) -> None:
         if snapshot.current(self):
             request.restore(snapshot.window)
+            request.destination.source_settled(snapshot.window)
+            snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
         """Keep the original read until the shared observer supplies relief.
@@ -171,12 +169,22 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.retire_core_observations(self.app.coordination_access.events)
         self.observe_core_callback(self.app.coordination_access.events, resume)
 
+    def supersede_source_work(
+        self, operation: WorkingTranscript, request: LatestViewportRequest,
+    ) -> None:
+        """Replace an edge read with End's destination without publishing it."""
+        if self._source_state is not operation:
+            return
+        self.retire_core_observations(self.app.coordination_access.events)
+        self._source_state = operation.source
+        self.workers.cancel_node(self)
+        request.apply(self)
+
     def finish_source_work(self, operation: WorkingTranscript) -> None:
         # Retirement or replacement revokes this exact admission. A cancelled
         # old operation cannot publish again or settle a newer source's work.
         if self._source_state is operation:
             self._source_state = operation.source
-            operation.pending_request.apply(self)
             if self.state.can_draw:
                 self.window.check_follow()
                 # The admitted operation owns source and reader progress.
@@ -184,6 +192,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 if operation.progressed(self):
                     self.request_preparation()
                 self.publish_core(TranscriptSourceWorkFinished())
+                HeldReaderDestination.settle(self.window)
 
     async def retire_source(self, *, parked: bool = False) -> None:
         """End pager mutations before any of its bodies transfer to the shelf."""
@@ -192,7 +201,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state = (ParkedSourceTranscript(source) if parked
                               else RetiredSourceTranscript(source))
         self._generation += 1
-        self._prefetch_intent = None
         if self.window is not None:
             self.window.histories.discard(self)
         self._source_state.retire_preparation(self._page_buffer)
@@ -204,7 +212,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def resume_source(self) -> None:
         self._source_state = self._source_state.resume()
-        self._prefetch_intent = None
         self.window.histories.add(self)
         self.source_resumed()
         self.window.check_follow()
@@ -218,47 +225,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def source_resumed(self) -> None:
         """A parked source publishes again: report what its drawn pages mean to their owner."""
-        raise NotImplementedError
-
-    def prepare_scroll(self) -> None:
-        """Ask for lookahead in the direction of travel, independently of page admission."""
-        raise NotImplementedError
-
-    def request_lookahead(self, intent) -> None:
-        """One worker prepares ahead for the latest request.
-
-        A running worker is never cancelled: its pass checks whether its
-        request is still current (``lookahead_current``) and stops at the next
-        check when it is not; the worker then takes the latest request. A
-        cancelled pass kept its prepared pages alive in a reference cycle
-        (the cancellation's traceback holds its frames) for the collector.
-        """
-        if intent == self._prefetch_intent:
-            return
-        self._prefetch_intent = intent
-        if any(self.lookahead_workers()):
-            return
-
-        async def prepare() -> None:
-            while (intent := self._prefetch_intent) is not None:
-                await self.prepare_lookahead(intent)
-                if self._prefetch_intent is intent:
-                    return
-
-        self.run_worker(prepare, group=self.LOOKAHEAD_GROUP, exclusive=True)
-
-    def lookahead_workers(self):
-        """Borrow current custody from the original native worker manager."""
-        return (worker for worker in reversed(self.workers)
-                if worker.node is self and worker.group == self.LOOKAHEAD_GROUP
-                and worker.is_running)
-
-    async def prepare_lookahead(self, intent) -> None:
-        """The prepared source leaf supplies its bounded page/body work."""
-        raise NotImplementedError
-
-    def lookahead_current(self, intent) -> bool:
-        """Source, page and direction custody revoke an obsolete waiter."""
         raise NotImplementedError
 
     @property

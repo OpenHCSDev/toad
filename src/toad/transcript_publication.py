@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
+from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation, Window, Contents
@@ -29,6 +30,7 @@ class TranscriptPublication(ABC):
         self.agent = view.agent
         self.thread_scope = owner.thread_scope
         self.window, self.contents = window, contents
+        self.destination = HeldReaderDestination.held(window)
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def native_current(self) -> bool:
@@ -294,6 +296,8 @@ class CanonicalSourcePublication(TranscriptPublication):
             if self.contents.children[-1] is not draft:
                 self.contents.move_child(draft, after=-1)
             draft.show(snapshot.draft)
+        if published and self.current() and self.destination is not None:
+            self.destination.source_settled(self.window)
         return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
@@ -694,10 +698,14 @@ class TranscriptPresentation:
         publication = self.capture(CanonicalSourcePublication)
 
         def refresh_after_paint() -> None:
-            if (publication is not None and publication.current()
-                    and view.app.workspace_sessions.owns(source)):
-                view.run_worker(publication.publish(),
-                                group="retained-native-refresh", exclusive=True)
+            if not current():
+                return
+            if publication is None:
+                if (destination := HeldReaderDestination.held(window)) is not None:
+                    destination.release(window)
+                return
+            view.run_worker(publication.publish(),
+                            group="retained-native-refresh", exclusive=True)
 
         view.call_after_refresh(refresh_after_paint)
 

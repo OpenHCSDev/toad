@@ -83,6 +83,7 @@ from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
 from toad.widgets.cli_draft import CliDraft
+from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
@@ -301,6 +302,27 @@ This is a view of your conversation with the agent.
 """
     BINDING_GROUP_TITLE = "View"
     BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
+
+    def compose(self) -> ComposeResult:
+        yield containers.Center(
+            JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
+            id="back-to-bottom-bar",
+        )
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.tail_follow_changed()
+
+    def tail_follow_changed(self) -> None:
+        if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
+            control.display = self.can_jump_to_latest
+        if self.is_attached:
+            self.query_ancestor(Conversation).refresh_bindings()
+
+    @on(JumpToLatest.Requested)
+    def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
+        event.stop()
+        self.query_ancestor(Conversation).jump_to_latest()
 
     def action_focus_prompt(self) -> None:
         self.query_ancestor(Conversation).focus_prompt()
