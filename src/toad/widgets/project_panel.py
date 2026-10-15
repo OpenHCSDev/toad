@@ -161,12 +161,12 @@ class FilePreview(Vertical):
         super().__init__(id=id)
         self.path = path
         self._ready = asyncio.Event()
-        self.loading = Static("Loading file…")
+        self.loading_label = Static("Loading file…")
         self.body = VerticalScroll()
 
     def compose(self) -> ComposeResult:
         yield Static(str(self.path), classes="file-preview-path", markup=False)
-        yield self.loading
+        yield self.loading_label
         yield self.body
 
     def on_mount(self) -> None:
@@ -190,8 +190,8 @@ class FilePreview(Vertical):
             from toad.file_kind import FileKind
             if position is not None:
                 await self.body.remove_children()
-            self.loading.update("Loading file…")
-            self.loading.display = True
+            self.loading_label.update("Loading file…")
+            self.loading_label.display = True
             try:
                 kind = FileKind.for_path(self.path)
                 source = await self.app.preparation.run_thread(kind.load, self.path)
@@ -202,9 +202,9 @@ class FilePreview(Vertical):
                         await kind.show_at(self, source, position)
             except (OSError, ValueError, EOFError) as error:
                 if self.is_attached and not self._pruning:
-                    self.loading.update(f"Unable to open {self.path}: {error}")
+                    self.loading_label.update(f"Unable to open {self.path}: {error}")
                 return
             if self.is_attached and not self._pruning:
-                self.loading.display = False
+                self.loading_label.display = False
         finally:
             self._ready.set()
