@@ -191,11 +191,11 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
         try:
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
-            while not (children := [child for child in process.children()
-                                    if child.name() == 'toad']):
+            while not (children := process.children()):
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
                 time.sleep(0.1)
+            child, = children
             targets = output / 'targets.json'
             attempt = 0
             while True:
@@ -219,13 +219,13 @@ else:
     try:
         sys.path.insert(0, {str(Path(__file__).resolve().parent)!r})
         from build_runtime import install_saved_thread_observer
-        install_saved_thread_observer({children[0].pid}, {thread!r}, {str(targets)!r})
+        install_saved_thread_observer({child.pid}, {thread!r}, {str(targets)!r})
     except BaseException:
         open({str(targets)!r}, "w").write(json.dumps({{"error": traceback.format_exc()}}))
     open({str(status)!r}, "w").write("installed")
 ''')
                 try:
-                    sys.remote_exec(children[0].pid, str(remote))
+                    sys.remote_exec(child.pid, str(remote))
                 except RuntimeError as error:
                     if str(error) not in (
                         "Can't find the main thread in the remote process",
