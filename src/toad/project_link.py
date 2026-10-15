@@ -10,7 +10,8 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import ClassVar
+from typing import Annotated, ClassVar
+from agent_comms.field_codec import PathText
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
 from markdown_it.token import Token
@@ -137,7 +138,7 @@ class ProjectLink(LineLink):
 
 @dataclass(frozen=True, kw_only=True)
 class ProjectFileLink(ProjectLink):
-    original_root: Path
+    original_root: Annotated[Path, PathText]
     position: FilePosition | None = None
 
     def at_position(self, href):
@@ -189,7 +190,7 @@ class ProjectFileLink(ProjectLink):
 
 @dataclass(frozen=True)
 class DirectProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="toad-file"):
-    path: Path
+    path: Annotated[Path, PathText]
 
     decode_value = Path
 
