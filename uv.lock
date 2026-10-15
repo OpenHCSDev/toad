@@ -311,10 +311,10 @@ requires-dist = [
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
     { name = "format-currency", specifier = ">=0.0.10" },
-    { name = "formbridge", git = "https://github.com/OpenHCSDev/formbridge.git?rev=32d04b147ac8fd5716319e6ebb7337b625573e88" },
+    { name = "formbridge", git = "https://github.com/OpenHCSDev/formbridge.git?rev=360bc06a1154bf6edc200fe4cf8501e3845062e3" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "notify-py", specifier = "==0.3.43" },
-    { name = "objectstate", git = "https://github.com/OpenHCSDev/ObjectState.git?rev=0a40ef52d509908aa4ce454b5b464ae9ffe62e40" },
+    { name = "objectstate", git = "https://github.com/OpenHCSDev/ObjectState.git?rev=061a5ed34eb1d6823aacce405916ec7c4c6a4157" },
     { name = "packaging", specifier = "==26.2" },
     { name = "pathspec", specifier = "==1.1.1" },
     { name = "platformdirs", specifier = "==4.9.6" },
@@ -475,7 +475,7 @@ wheels = [
 [[package]]
 name = "formbridge"
 version = "0.1.5"
-source = { git = "https://github.com/OpenHCSDev/formbridge.git?rev=32d04b147ac8fd5716319e6ebb7337b625573e88#32d04b147ac8fd5716319e6ebb7337b625573e88" }
+source = { git = "https://github.com/OpenHCSDev/formbridge.git?rev=360bc06a1154bf6edc200fe4cf8501e3845062e3#360bc06a1154bf6edc200fe4cf8501e3845062e3" }
 dependencies = [
     { name = "docutils" },
     { name = "metaclass-registry" },
@@ -1090,7 +1090,7 @@ wheels = [
 [[package]]
 name = "objectstate"
 version = "4.0.1"
-source = { git = "https://github.com/OpenHCSDev/ObjectState.git?rev=0a40ef52d509908aa4ce454b5b464ae9ffe62e40#0a40ef52d509908aa4ce454b5b464ae9ffe62e40" }
+source = { git = "https://github.com/OpenHCSDev/ObjectState.git?rev=061a5ed34eb1d6823aacce405916ec7c4c6a4157#061a5ed34eb1d6823aacce405916ec7c4c6a4157" }
 dependencies = [
     { name = "dill" },
     { name = "pycodify" },
