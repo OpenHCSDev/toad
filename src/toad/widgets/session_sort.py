@@ -14,7 +14,7 @@ from agent_comms.display_order import (
 from objectstate import ObjectState
 from python_introspect import FieldLabel
 from textual import events
-from textual.containers import VerticalGroup
+from textual.containers import VerticalScroll
 from textual.screen import ModalScreen
 from textual.widgets import Static
 
@@ -29,7 +29,6 @@ class ThreadSortForm:
     order: Annotated[
         type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order")
     ] = CreatedThreadSort
-    """A blank choice means these relationship groups currently have different orders."""
 
 
 @dataclass(frozen=True)
@@ -54,15 +53,17 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
                                 if self.visibility else None)
 
     def compose(self):
-        with VerticalGroup() as panel:
+        with VerticalScroll() as panel:
             panel.styles.width = 52
             panel.styles.max_width = "90%"
+            panel.styles.height = "auto"
+            panel.styles.max_height = "90vh"
             panel.styles.padding = (1, 2)
             yield Static(f"Sort {self.control.scope}")
-            self.form.styles.height = 7
+            self.form.styles.height = "auto"
             yield self.form
             if self.visibility_form is not None:
-                self.visibility_form.styles.height = 14
+                self.visibility_form.styles.height = "auto"
                 yield self.visibility_form
 
     def on_mount(self):
