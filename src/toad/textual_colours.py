@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
+from math import ceil
 from typing import Any
 
 from rich.segment import Segment
@@ -34,7 +35,7 @@ from ui_theme.clock import Animation, AnimationClock
 from ui_theme.colour import AnsiColour, Rgb, TerminalPalette
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Effect, Gradient, Mix, TextFrame
-from ui_theme.scheme import ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
+from ui_theme.scheme import BackgroundColour, ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme
 from toad.line_blocks import LineRole
@@ -154,7 +155,6 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
                                   diff=self.app.settings.diff,
                                   syntax=SyntaxPalette.of(self.app),
                                   terminal_theme=self.app.ansi_theme)
-        _row.cache_clear()
 
     # The backend.
 
@@ -209,12 +209,32 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return first.blend(last, amount)
 
     def paint_gradient(self, frame: Gradient, target: Strip) -> Strip:
-        """A uniform row (one glyph, one style) in the gradient; the row is built once per width."""
+        """Sample shared colour/shape into truecolour cells; never change row geometry."""
         width = target.cell_length
+        if width == 0:
+            return target
         first = next(iter(target))
-        row = _row(self, frame.stops, width, first.text[:1], first.style)
-        start = width - int(frame.offset * width) % max(width, 1)
-        return Strip(row[start:start + width], cell_length=width)
+        style = first.style or RichStyle()
+        terminal = self.app.ansi_theme
+        colours = {
+            role: Color(*self.colour(role).rich_color.get_truecolor(
+                terminal, foreground=not role.background)) for role in dict.fromkeys(frame.stops)
+        }
+        background = style.bgcolor or self.colour(BackgroundColour).rich_color
+        background = Color(*background.get_truecolor(terminal, foreground=False))
+        segments = []
+        for cell in range(width):
+            start, end, amount, height = frame.sample((cell + 0.5) / width)
+            if height <= 0:
+                segments.append(Segment(" ", style))
+                continue
+            level = min(8, ceil(height * 8))
+            character = first.text[:1] if level == 8 else " ▁▂▃▄▅▆▇█"[level]
+            ink = colours[start].blend(colours[end], amount)
+            # Fractional coverage softens the last eighth-cell instead of a hard step.
+            ink = background.blend(ink, min(1.0, height * 8 / level))
+            segments.append(Segment(character, style + RichStyle(color=ink.rich_color)))
+        return Strip(Segment.simplify(segments), cell_length=width)
 
     def paint_mix(self, frame: Mix, target: Strip) -> Strip:
         return Strip(Segment.apply_style(target, post_style=RichStyle(
@@ -342,17 +362,3 @@ def _text(frame: TextFrame) -> Content:
         Content.assemble(*((character, VisualStyle(foreground=Color(*colour.triple)))
                            if colour is not None else character for character, colour in line))
         for line in frame.lines)
-
-
-@lru_cache(maxsize=16)
-def _row(colours: TextualColours, stops: tuple[type[ThemeColour], ...], width: int,
-         character: str, style: RichStyle | None) -> list[Segment]:
-    """Two widths of a gradient, so any window of `width` cells is a slice."""
-    frame = Gradient(stops, 0.0)
-    background = style.bgcolor if style is not None else None
-    segments = []
-    for cell in range(width * 2):
-        start, end, amount = frame.at(cell / max(width, 1))
-        colour = colours.mixed(start, end, amount)
-        segments.append(Segment(character, RichStyle.from_color(colour.rich_color, background)))
-    return segments
