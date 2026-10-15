@@ -526,31 +526,32 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return next((page.line_width for page in self.pages if page.line_width), 0)
 
     async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
-                           target: Contents, selected: frozenset[type[MessageCategory]]) -> None:
+                           target: Contents, selected: frozenset[type[MessageCategory]],
+                           rows_needed: int) -> None:
         """Prepare the destination before its first native layout can expose raw rows."""
         window.prepare_history(self)
+        rows = count = 0
         if window.follows_tail and target.line_width > 0:
-            viewport_rows, limit = window.latest_limits(self.budget)
-            rows = count = 0
+            _capacity, limit = window.latest_limits(self.budget)
             # A restored document keeps its original pages and older prefix.
             # Prepare only the bottom viewport; older rows warm after first paint.
             for page in reversed(self.pages):
                 rows += await page.prepared.prepare_latest(
                     self, current, target=target, selected=selected,
-                    rows_needed=viewport_rows - rows, limit=limit - count,
+                    rows_needed=rows_needed - rows, limit=limit - count,
                 )
                 if not current():
                     return
                 count += page.stop - page.start
-                if rows >= viewport_rows or count >= limit:
-                    return
+                if rows >= rows_needed or count >= limit:
+                    break
         else:
             for page in self.pages:
                 await self.prepare_fragments(page.fragments_in_range, current,
                                              selected=selected, target=target)
-        if (projection := self.filter.state.overlay) is not None:
-            await projection.prepare_rows(current, window=window, target=target,
-                                          selected=projection.selected_categories)
+        await self.filter.state.prepare_rows(
+            current, window=window, target=target, rows_needed=max(0, rows_needed - rows),
+        )
 
     @property
     def fragments_in_range(self) -> tuple[TranscriptFragment, ...]:

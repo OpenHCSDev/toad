@@ -217,7 +217,9 @@ class Contents(containers.VerticalGroup, can_focus=False):
         """Supply a laid-out native target before its detached history prepares rows."""
         if not self.line_width:
             await self.wait_for_refresh()
-        await history.prepare_rows(current, window=window, target=self, selected=selected)
+        rows, _limit = window.latest_limits(history.budget)
+        await history.prepare_rows(current, window=window, target=self, selected=selected,
+                                   rows_needed=rows)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
