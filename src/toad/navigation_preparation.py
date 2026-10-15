@@ -93,15 +93,8 @@ class ExternalThreadNavigation(ThreadNavigation):
     def bind(self, screen) -> None:
         from toad.session_presentation import MailboxSessionSources
 
+        screen._agent = None
         screen.presentation.sources = MailboxSessionSources()
-
-    def launch_screen(self, app):
-        # A CLI thread has no agent to resume; its view reads Core like a sidebar open.
-        from toad.screens.main import MainScreen
-
-        screen = MainScreen.from_thread(self.project, self.root, self.thread.name)
-        self.bind(screen)
-        return screen
 
 
 @dataclass(frozen=True)
