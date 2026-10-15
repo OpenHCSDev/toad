@@ -52,7 +52,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
-        self.activity_bar = ObservedThrobber(lambda: self.status_working, character="█")
+        self.activity_bar = ObservedThrobber(lambda: self.status_working, thickness=1.0)
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
