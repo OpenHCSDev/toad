@@ -9,7 +9,9 @@ from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
 from typing import TYPE_CHECKING
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
+from agent_comms.mro_dispatch import MroDispatch, handles
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
@@ -267,16 +269,34 @@ class HandlingPublication(TranscriptPublication):
         return True
 
 
-class CanonicalSourcePublication(TranscriptPublication):
+class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_snapshot(self):
-        return await self.owner.reader.snapshot(*self.thread_scope)
+        return await self.owner.reader.updates(*self.thread_scope, self.owner.current_read)
 
     async def publish_applied(self) -> bool:
         if not self.owner.readable:
             return True
         snapshot = await self.read_snapshot()
+        handler, = self.handlers_for(snapshot)
+        return await handler(snapshot)
+
+    @handles(TranscriptDraftUpdate)
+    async def publish_draft(self, snapshot: TranscriptDraftUpdate) -> bool:
+        if self.current():
+            self.show_draft(snapshot.draft)
+            self.owner.current_read = snapshot.identity
+        return True
+
+    def show_draft(self, draft) -> None:
+        widget = self.owner.view.cli_draft
+        if self.contents.children[-1] is not widget:
+            self.contents.move_child(widget, after=-1)
+        widget.show(draft)
+
+    @handles(TranscriptSnapshotUpdate)
+    async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
         page = snapshot.page
         # The known native cut and its applied original resources meet here.
         # An expired application cannot publish this read; it is not a stale
@@ -292,10 +312,9 @@ class CanonicalSourcePublication(TranscriptPublication):
                 return True
         published = await self.publish_source_page(page)
         if self.current():
-            draft = self.owner.view.cli_draft
-            if self.contents.children[-1] is not draft:
-                self.contents.move_child(draft, after=-1)
-            draft.show(snapshot.draft)
+            self.show_draft(snapshot.draft)
+            if published and bound == snapshot.page.after:
+                self.owner.current_read = snapshot.identity
         if published and self.current() and self.destination is not None:
             self.destination.source_settled(self.window)
         return published
@@ -527,6 +546,7 @@ class TranscriptPresentation:
         self.dirty = False
         self.checkpoint_required = False
         self.displayed_cursor: TranscriptCursor | None = None
+        self.current_read: TranscriptReadIdentity | None = None
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
         from toad.core.events import CoreEventStream
@@ -658,6 +678,7 @@ class TranscriptPresentation:
 
     def invalidate(self) -> None:
         self.generation += 1
+        self.current_read = None
 
     async def restore(self) -> None:
         """Restore the session's reader independently of native attachment readiness."""

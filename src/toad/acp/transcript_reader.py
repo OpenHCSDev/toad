@@ -18,10 +18,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from agent_comms.comms import wire
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
-    AwaitedRead, ReadNotifications, ReadTranscript, RefreshTranscript,
+    AwaitedRead, ReadNotifications, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
 )
 
 
@@ -78,6 +78,11 @@ class CoordinationTranscriptReader(ABC):
         return await self.read(ReadTranscript(
             root, thread, before=before, after=after, through=through,
             read_identity=read_identity, historical_source=historical_source))
+
+    async def updates(
+        self, root: str, thread: str, previous: TranscriptReadIdentity | None,
+    ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
+        return await self.read(ReadTranscriptUpdate(root, thread, previous=previous))
 
 
 class DetachedTranscriptReader(CoordinationTranscriptReader):
