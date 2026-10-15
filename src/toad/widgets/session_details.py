@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from textual.app import ComposeResult
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
@@ -12,6 +13,7 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
 from toad.conversation_turn import ConversationTurn
+from toad.widgets.throbber import ObservedThrobber
 
 
 if TYPE_CHECKING:
@@ -38,7 +40,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
-    SessionDetails.-working { border-top: panel $accent; }
     SessionDetails.-working > CollapsibleTitle { color: $accent; }
     SessionDetails.-attention > CollapsibleTitle { color: $warning; }
     SessionDetails .session-notifications { height: auto; }
@@ -51,6 +52,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
+        self.activity_bar = ObservedThrobber(lambda: self.working, character="█")
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
@@ -60,6 +62,16 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             self.notifications, *(item for item in (history, delivery) if item is not None),
             title="", collapsed=True, id="session-details",
         )
+
+    def compose(self) -> ComposeResult:
+        yield self.activity_bar
+        yield from super().compose()
+
+    @property
+    def working(self) -> bool:
+        if self.row is not None and self.row.shown:
+            return self.row.working
+        return self.turns is not None and self.turns.owner.busy
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -95,7 +107,8 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             delivery = self.delivery.delivery
             attention |= bool(delivery.current or self.delivery.error)
         self.set_class(attention, "-attention")
-        self.set_class(row.working if shown else owner is not None and owner.busy, "-working")
+        self.set_class(self.working, "-working")
+        self.activity_bar.sync()
         self.overview_text = self.history_details.overview(row.lines if shown else ())
         self.display = bool(title)
 

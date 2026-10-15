@@ -863,15 +863,15 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def make_throbber(self) -> ObservedThrobber:
         return ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
+            lambda: self.busy_count > 0 or self._observed_working,
             id="throbber",
         )
 
     @property
     def _observed_working(self) -> bool:
-        """Core's status row: the only turn source for a thread Toad does not run."""
+        """The status view owns observed/local activity selection for both bars."""
         activity = self.thread_activity
-        return activity is not None and activity.working
+        return activity.working if activity is not None else self.turns.owner.busy
 
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
