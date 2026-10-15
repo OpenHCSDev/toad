@@ -55,7 +55,7 @@ class ValueEditor(DeclaredViews, EditorWidget):
 
     def value_text(self, value: object) -> str:
         """How a value of this field reads."""
-        return str(value)
+        return self.field.placeholder if value is None else str(value)
 
     def send(self, value: object) -> None:
         try:
@@ -100,9 +100,6 @@ class LineEditor(Input, ValueEditor):
 
     def read(self, text: str) -> object:
         return resolve_annotated(self.field.annotation)(text)  # type: ignore[operator]
-
-    def value_text(self, value: object) -> str:
-        return "" if value is None else str(value)
 
     def acceptable(self, text: str) -> bool:
         try:
@@ -185,7 +182,7 @@ class SelectEditor(Select[object], ValueEditor):
             self.offered,
             value=value if listed else Select.NULL,
             allow_blank=not listed,
-            prompt="" if value is None else self.value_text(value),
+            prompt=self.value_text(value),
         )
         self.listen(Select.Changed, self.changed)
 
@@ -210,6 +207,7 @@ class SelectEditor(Select[object], ValueEditor):
     def paint(self) -> None:
         value = self.field.value
         with self.prevent(Select.Changed):
+            self.prompt = self.value_text(value)
             self.value = value if self.lists(value) else Select.NULL
 
 
