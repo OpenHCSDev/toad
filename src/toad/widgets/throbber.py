@@ -46,10 +46,7 @@ class ThrobberVisual(Visual):
 class Throbber(Animated, Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
-
-    def __init__(self, *, thickness: float = 0.375, **kwargs) -> None:
-        super().__init__(**kwargs)
-        self.effect = ACTIVITY_SWEEP.scaled(thickness)
+    effect = ACTIVITY_SWEEP
 
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:

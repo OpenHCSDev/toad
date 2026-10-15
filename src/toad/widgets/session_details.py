@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from textual.app import ComposeResult
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
@@ -13,7 +12,6 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
 from toad.conversation_turn import ConversationTurn
-from toad.widgets.throbber import ObservedThrobber
 
 
 if TYPE_CHECKING:
@@ -52,7 +50,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
-        self.activity_bar = ObservedThrobber(lambda: self.status_working, thickness=1.0)
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
@@ -62,10 +59,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             self.notifications, *(item for item in (history, delivery) if item is not None),
             title="", collapsed=True, id="session-details",
         )
-
-    def compose(self) -> ComposeResult:
-        yield self.activity_bar
-        yield from super().compose()
 
     @property
     def status_working(self) -> bool:
@@ -109,7 +102,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             attention |= bool(delivery.current or self.delivery.error)
         self.set_class(attention, "-attention")
         self.set_class(self.status_working, "-working")
-        self.activity_bar.sync()
         self.overview_text = self.history_details.overview(row.lines if shown else ())
         self.display = bool(title)
 
