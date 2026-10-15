@@ -119,7 +119,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
                  prepared: PreparedTranscriptPage | None = None, fresh: bool = False):
         self.fresh = fresh
         self.prepared = prepared if prepared is not None else PreparedTranscriptPage(
-            page, transcript_fragments(page.events) if fragments is None else
+            page, transcript_fragments(page.events, scope=page.after.receipts.identity) if fragments is None else
             tuple(fragments), 0,
         )
         self.visible_categories = all_categories()

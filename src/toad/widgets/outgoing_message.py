@@ -36,7 +36,7 @@ class OutgoingMessage(MessageRowBlock, WireMessageHandling, ConversationBlock, C
         body = await conversation.post(cls(event), new_block=True)
         # A canonical page may arrive while native mount yields. Use the same
         # retirement owner, not a second seen set or a high-water approximation.
-        if conversation.transcript.covers_outgoing(event):
+        if event.scope != conversation.agent.tools.scope or conversation.transcript.covers_outgoing(event):
             await conversation.transcript.retire_presentations(
                 conversation.contents, conversation.output, [body])
 

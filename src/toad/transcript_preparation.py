@@ -45,7 +45,7 @@ class PreparedTranscriptPage:
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
-        fragments = transcript_fragments(page.events)
+        fragments = transcript_fragments(page.events, scope=page.after.receipts.identity)
         return cls(page, fragments, retained_bytes((page, fragments)))
 
     @staticmethod

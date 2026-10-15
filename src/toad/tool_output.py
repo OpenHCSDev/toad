@@ -8,7 +8,7 @@ earlier dictionary or changes Read's filename without changing its text.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from difflib import unified_diff
 from functools import cached_property
 from pathlib import PurePath
@@ -24,7 +24,7 @@ from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
 from toad.patch import parse_patch, parse_numbered_patch
-from toad.message_rows import MarkdownMessageStyle, MessageRow
+from toad.message_rows import MessageRow
 from toad.rich_preparation import RichTextBody
 
 
@@ -172,20 +172,26 @@ class NumberedPatchToolOutputPart(ToolOutputPart):
         return (parse_numbered_patch(self.source),)
 
 
-@dataclass
+@dataclass(frozen=True)
 class SentMessageToolOutputPart(ToolOutputPart):
     """Unprojected or uncertain sends retain their actual reported content."""
 
     message: SentTranscript
 
     def project_message(self, scope):
+        if scope is None:
+            return self
         message = self.message.in_source(scope)
-        return ProjectedSentMessageToolOutputPart(message) if message.outgoing_sources else self
+        return ProjectedSentMessageToolOutputPart(message) if message.scope == scope else self
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
         row = MessageRow.sent(self.message)
-        return (row.header, *MarkdownMessageStyle().body(row))
+        header = row.header
+        # An unqualified/failed result is evidence, not authority to open names
+        # or paths in the current project. Retain its complete literal content.
+        header = replace(header, spans=tuple(replace(span, link=None) for span in header.spans))
+        return (header, Body(self.message.text, role=ToolOutputRole, bar=MutedRole, markdown=False))
 
 
 class ProjectedSentMessageToolOutputPart(SentMessageToolOutputPart):

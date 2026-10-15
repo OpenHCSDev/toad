@@ -52,7 +52,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         borrow the final ACP state, including an end without its earlier start.
         """
         first = events[0]
-        call = ToolCall(tool_call_id=first.tool_call_id, title='', status='completed')
+        call = ToolCall(tool_call_id=first.tool_call_id, title='', status='pending')
         consumer = cls(call)
         for event in events:
             consumer.dispatch_sync(event)
@@ -64,6 +64,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     @handles(ToolStartTranscript)
     def recorded_start(self, event: ToolStartTranscript):
         self.call.raw_input = event.raw_input
+        self.call.status = 'in_progress'
 
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):

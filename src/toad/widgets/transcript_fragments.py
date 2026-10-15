@@ -451,7 +451,7 @@ class TranscriptFragmentConsumer(MroDispatch):
 
 
 def transcript_fragments(
-    events: tuple[TranscriptEvent, ...], *, continuation: bool = False, split_text: bool = True,
+    events: tuple[TranscriptEvent, ...], *, continuation: bool = False, split_text: bool = True, scope=None,
 ) -> tuple[TranscriptFragment, ...]:
     consumer = TranscriptFragmentConsumer(continuation=continuation, split_text=split_text)
     for event in events:
@@ -466,7 +466,7 @@ def transcript_fragments(
         consumer.fragments[index] = ToolTranscriptFragment(
             source.events, continuation=source.continuation,
             starts_agent_activity=source.starts_agent_activity,
-            tool_call=call, output_parts=ToolOutput.capture_projection(call),
+            tool_call=call, output_parts=ToolOutput.capture_projection(call, scope),
         )
     # This producer runs in the existing renderer for saved and paged sources.
     # Deliver the measured resource with its source rather than walking nested
