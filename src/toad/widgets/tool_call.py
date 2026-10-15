@@ -107,18 +107,34 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         assert status
         return status
 
-    def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:
+    def update_tool_call(self, tool_call: ToolCallStatus, *, output_parts=None) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
         Args:
             tool_call: New Tool call data.
         """
         self.tool_call = tool_call
-        self.output.replace(tool_call.call)
+        self.output.replace(tool_call.call, parts=output_parts)
         self._update_metadata()
         self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
         return self.output.sync()
+
+    @classmethod
+    async def present(cls, conversation, event):
+        if event.scope != conversation.agent.tools.scope:
+            return
+        status = event.tool_call
+        status.activity(conversation.turns, conversation.output, status.title)
+        parts = await ToolOutput.prepare_messages(conversation, status, event.scope)
+        if event.scope != conversation.agent.tools.scope:
+            return
+        try:
+            tool = conversation.contents.get_child_by_id(event.tool_id, cls)
+        except NoMatches:
+            await conversation.post(cls(status, id=event.tool_id, output_parts=parts), new_block=True)
+        else:
+            tool.update_tool_call(status, output_parts=parts)
 
     def get_block_menu(self) -> Iterable[MenuItem]:
         if self.expanded:

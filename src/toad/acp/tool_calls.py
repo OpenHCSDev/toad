@@ -14,6 +14,14 @@ class SessionToolCalls:
     def reset(self):
         self.calls.clear()
 
+    @property
+    def scope(self):
+        coordination = self.agent.coordination
+        return None if coordination is None else coordination.source_identity
+
+    def publish(self, current):
+        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current), self.scope))
+
     def begin(self, value: ToolCallStart):
         # The admitted SDK notification already validated every inherited
         # ToolCall field. Assembly owns the canonical snapshot (without the
@@ -22,7 +30,7 @@ class SessionToolCalls:
             name: getattr(value, name) for name in ToolCall.model_fields
         })
         self.calls[value.tool_call_id] = current
-        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current)))
+        self.publish(current)
 
     def merge(self, value: ToolCallUpdate):
         tool_id = value.tool_call_id
@@ -37,7 +45,7 @@ class SessionToolCalls:
 
     def update(self, value):
         current = self.merge(value)
-        self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current)))
+        self.publish(current)
 
     def permission(self, value):
         return self.merge(value)

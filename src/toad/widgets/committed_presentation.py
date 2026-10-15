@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
-from agent_comms.transcript_events import UserTranscript
+from agent_comms.transcript_events import UserTranscript, SentTranscript
+from agent_comms.message_reference import OutgoingMessageReference
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
@@ -29,6 +30,7 @@ class CommitEvidence:
     sequences: frozenset[int] = frozenset()
     retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
+    outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
 
 class CommitClaim(ABC):
@@ -85,6 +87,15 @@ class SequenceClaim(CommitClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.sequence is not None and self.sequence in evidence.sequences
+
+
+@dataclass(frozen=True)
+class OutgoingMessageClaim(CommitClaim):
+    message: SentTranscript
+
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        references = self.message.outgoing_sources
+        return bool(references) and set(references) <= evidence.outgoing
 
 
 class NativeInputClaim(CommitClaim):
@@ -176,6 +187,13 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
 
+    def covers_outgoing(self, message: SentTranscript) -> bool:
+        return bool(message.outgoing_sources) and set(message.outgoing_sources) <= self.outgoing_coverage
+
+    @property
+    def outgoing_coverage(self) -> frozenset[OutgoingMessageReference]:
+        raise NotImplementedError
+
     def covers_input(self, native_id: str | None) -> bool:
         raise NotImplementedError
 
@@ -203,6 +221,7 @@ class PreparedCommit:
     history: CommittedHistory | None
     page: PreparedTranscriptPage | None
     sequences: frozenset[int]
+    outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
 
 class CheckpointPlan(ABC):
@@ -256,12 +275,15 @@ class FollowTailCheckpoint(CheckpointPlan):
         if history is not None and history.accepts_commit(page.after) and not transfers:
             if not await history.advance_committed(page.after, is_current):
                 return None
-            return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
-                                  | history.covered_sequences(required_sequences(captured)))
+            coverage = TranscriptCoverage.from_page(page)
+            return PreparedCommit(history, None, coverage.sequences
+                                  | history.covered_sequences(required_sequences(captured)),
+                                  coverage.outgoing | history.outgoing_coverage)
         prepared = await view.app.preparation.submit(
             RenderPreparation(TranscriptPageRenderTask(page))
         )
-        return PreparedCommit(None, prepared, TranscriptCoverage(page.events).sequences)
+        coverage = TranscriptCoverage.from_page(page)
+        return PreparedCommit(None, prepared, coverage.sequences, coverage.outgoing)
 
     def finish(self, view, cursor):
         view.transcript.painted(cursor)
@@ -304,10 +326,11 @@ class RetainViewportCheckpoint(CheckpointPlan):
                 or not history.checkpoint_available):
             return None
         required = required_sequences(captured)
-        known = TranscriptCoverage(page.events).sequences | history.covered_sequences(required)
+        coverage = TranscriptCoverage.from_page(page)
+        known = coverage.sequences | history.covered_sequences(required)
         covered = frozenset(sequence for sequence in required
                             if page.after.covers_incoming(sequence))
-        return PreparedCommit(history, None, known | covered)
+        return PreparedCommit(history, None, known | covered, coverage.outgoing | history.outgoing_coverage)
 
     def commit(self, prepared, cursor):
         assert prepared.history is not None

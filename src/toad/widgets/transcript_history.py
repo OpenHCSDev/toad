@@ -1186,8 +1186,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
             projection.acquire_document()
 
     def source_resumed(self) -> None:
-        if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+        self.publish_coverage()
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         if self._source_state.reports_coverage:
@@ -1197,7 +1196,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
             # saved viewer outside a conversation has no live blocks.
             for ancestor in self.ancestors:
                 if isinstance(ancestor, Conversation):
-                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(ancestor)
+                    ancestor.transcript.covered(TranscriptCoverage.from_page(page), self).call_when_ready(ancestor)
                     break
 
     def publish_committed(self) -> None:
@@ -1208,7 +1207,7 @@ class TranscriptHistory(LineHistory, CommittedHistory):
 
     def publish_coverage(self) -> None:
         if self._source_state.reports_coverage:
-            self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
+            self.publish_core(TranscriptCoverage(tuple(self.coverage_events), self.committed_cursor.receipts.identity))
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
@@ -1222,6 +1221,12 @@ class TranscriptHistory(LineHistory, CommittedHistory):
         if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
         return self.filter.covers_incoming(sequence)
+
+    @property
+    def outgoing_coverage(self):
+        if not self._source_state.reports_coverage:
+            return frozenset()
+        return TranscriptCoverage(tuple(self.coverage_events), self.committed_cursor.receipts.identity).outgoing
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""

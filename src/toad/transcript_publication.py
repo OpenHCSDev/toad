@@ -182,6 +182,7 @@ class SnapshotPublication(TranscriptPublication):
         from toad.widgets.committed_presentation import (
             CommitEvidence, retirement_candidates,
         )
+        from toad.core.source_events import TranscriptCoverage
         async with self.window.history_lock:
             if not self.current():
                 return
@@ -228,6 +229,7 @@ class SnapshotPublication(TranscriptPublication):
                             self.captured, retained_history=history,
                             native_inputs=frozenset(native_id for event in self.page.events
                                                     for native_id in event.native_inputs),
+                            outgoing=TranscriptCoverage.from_page(self.page).outgoing,
                         )
                         history.publish_committed()
                         accepted = True
@@ -483,6 +485,7 @@ class CheckpointPublication(CanonicalSourcePublication):
         evidence = CommitEvidence(
             self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
+            prepared.outgoing,
         )
         replacement = None
         if prepared.history is None:
@@ -671,6 +674,9 @@ class TranscriptPresentation:
     @property
     def reports_coverage(self) -> bool:
         return any(history.state.reports_coverage for history in self.histories)
+
+    def covers_outgoing(self, message) -> bool:
+        return any(history.covers_outgoing(message) for history in self.histories)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether saved history already draws the input Core started under this identity.
@@ -923,6 +929,7 @@ class TranscriptPresentation:
                                   for sequence in child.commit_claim.required_sequences)),
                     history,
                     coverage.native_inputs,
+                    coverage.outgoing | history.outgoing_coverage,
                 ),
             )
             protected = protected_blocks(view, candidates)

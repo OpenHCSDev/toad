@@ -74,6 +74,10 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
             tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
         )
 
+    def project_output(self, parts, scope=None):
+        # A failed/unfinished call retains its reported output, not an inferred send.
+        return tuple(part.project_message(scope) for part in parts) if self.completed else parts
+
     busy = False
     boundary = False
     completed = False

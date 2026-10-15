@@ -466,7 +466,7 @@ def transcript_fragments(
         consumer.fragments[index] = ToolTranscriptFragment(
             source.events, continuation=source.continuation,
             starts_agent_activity=source.starts_agent_activity,
-            tool_call=call, output_parts=ToolOutput.capture_parts(call.call),
+            tool_call=call, output_parts=ToolOutput.capture_projection(call),
         )
     # This producer runs in the existing renderer for saved and paged sources.
     # Deliver the measured resource with its source rather than walking nested

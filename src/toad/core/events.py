@@ -11,6 +11,7 @@ from weakref import WeakMethod, WeakSet, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
+from agent_comms.message_reference import AssignedSourceIdentity
 from agent_comms.presentation import WireRevision
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -60,6 +61,7 @@ class ToolCall(CoreEvent):
     """The original tool owner assembled this exact SDK call snapshot."""
 
     tool_call: Annotated[ToolCallStatus, ToolCallWire]
+    scope: AssignedSourceIdentity | None = None
 
     @property
     def tool_id(self) -> str:

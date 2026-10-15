@@ -51,6 +51,13 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
     def preview_dimensions(self) -> tuple[int, int] | None:
         return None
 
+    def project_message(self, scope):
+        return self
+
+    @property
+    def standalone_messages(self):
+        return ()
+
 
 @dataclass(frozen=True)
 class TextToolOutputPart(ToolOutputPart):
@@ -167,14 +174,30 @@ class NumberedPatchToolOutputPart(ToolOutputPart):
 
 @dataclass
 class SentMessageToolOutputPart(ToolOutputPart):
-    """Render the send owner's original publication through semantic rows."""
+    """Unprojected or uncertain sends retain their actual reported content."""
 
     message: SentTranscript
+
+    def project_message(self, scope):
+        message = self.message.in_source(scope)
+        return ProjectedSentMessageToolOutputPart(message) if message.outgoing_sources else self
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
         row = MessageRow.sent(self.message)
         return (row.header, *MarkdownMessageStyle().body(row))
+
+
+class ProjectedSentMessageToolOutputPart(SentMessageToolOutputPart):
+    """A projection supplies the standalone body; the operation keeps its header."""
+
+    @property
+    def standalone_messages(self):
+        return (self.message,)
+
+    @cached_property
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return (MessageRow.sent(self.message).header,)
 
 
 @dataclass(frozen=True)
@@ -300,6 +323,21 @@ class ToolOutput:
     @property
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return tuple(block for part in self.parts for block in part.line_blocks)
+
+    @classmethod
+    def capture_projection(cls, status, scope=None):
+        return status.project_output(cls.capture_parts(status.call), scope)
+
+    @classmethod
+    async def prepare_messages(cls, conversation, status, scope):
+        from toad.widgets.outgoing_message import OutgoingMessage
+
+        parts = cls.capture_projection(status, scope)
+        for part in parts:
+            for message in part.standalone_messages:
+                await OutgoingMessage.present(conversation, message)
+        # Publish compact details only after the standalone source exists.
+        return parts
 
     @property
     def has_content(self) -> bool:

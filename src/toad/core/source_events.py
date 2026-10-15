@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 
 from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.message_reference import AssignedSourceIdentity, OutgoingMessageReference
 from .events import CoreEvent
 
 
@@ -29,6 +30,16 @@ class TranscriptSourceWorkFinished(CoreEvent):
 @dataclass(frozen=True)
 class TranscriptCoverage(CoreEvent):
     events: tuple[TranscriptEvent, ...]
+    scope: AssignedSourceIdentity | None = None
+
+    @classmethod
+    def from_page(cls, page):
+        return cls(page.events, page.after.receipts.identity)
+
+    @property
+    def outgoing(self) -> frozenset[OutgoingMessageReference]:
+        return frozenset(source for event in self.events for source in event.outgoing_sources
+                         if source.scope == self.scope)
 
     @property
     def sequences(self) -> frozenset[int]:

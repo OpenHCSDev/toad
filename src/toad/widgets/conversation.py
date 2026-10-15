@@ -1533,19 +1533,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     ):
         from toad.widgets.tool_call import ToolCall
 
-        tool_call = message.event.tool_call
-        tool_call.activity(self.turns, self.output, tool_call.title)
-
-        tool_id = message.event.tool_id
-        try:
-            existing_tool_call: ToolCall | None = self.contents.get_child_by_id(
-                tool_id, ToolCall
-            )
-        except NoMatches:
-            await self.post(ToolCall(tool_call, id=message.event.tool_id), new_block=True)
-        else:
-            if existing_tool_call is not None:
-                existing_tool_call.update_tool_call(tool_call)
+        await ToolCall.present(self, message.event)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
