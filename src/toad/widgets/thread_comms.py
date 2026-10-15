@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.presentation import CoordinationSnapshot
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual import on
 from textual.binding import Binding
@@ -22,16 +21,11 @@ from textual.widgets import Checkbox, Static
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow
 from toad.widgets.message_filter import MessageCategory
-from toad.widgets.session_sort import SortControl
+from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
-from toad.widgets.thread_comms_model import (
-    RelationshipEntry, RelationshipGroup, RelationshipSource, ThreadCommsSnapshot,
-)
-
-# Relationships on a wire other than the observed one have no unread counts here.
-NO_UNREAD = CoordinationSnapshot(threads=(), channels=(), unread={}, last_sent={})
-
+from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
+from toad.widgets.thread_comms_source import RelationshipSource
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     person = entry.person
@@ -49,46 +43,37 @@ def _update_content(widget: Static, content: Content) -> None:
 
 @dataclass
 class RelationshipTreeState:
-    expanded: dict[str, bool] = field(default_factory=dict)
-    scroll: dict[str, float] = field(default_factory=dict)
-    selected: tuple[str, str] | None = None
-    selected_targets: tuple[tuple[str, str], ...] = ()
+    expanded: dict[type[RelationshipGroup], bool] = field(default_factory=dict)
+    scroll: dict[type[RelationshipGroup], float] = field(default_factory=dict)
+    selected: tuple[type[RelationshipGroup], str] | None = None
+    selected_targets: tuple[tuple[type[RelationshipGroup], str], ...] = ()
 
 
 class RelationshipSort(SortControl[ThreadSort]):
-    GROUPS = ("children", "collaborating")
-
     def __init__(self):
-        self._mixed = True
-        super().__init__(ThreadSort.CREATED, "children and collaborators")
-
-    @property
-    def selected_order(self):
-        return None if self._mixed else self.order
-
-    def _update_label(self) -> None:
-        if self._mixed:
-            self._set_label("Sort ▾", "Sort children and collaborators (currently different orders)")
-        else:
-            super()._update_label()
+        super().__init__(ThreadSortForm(None), "relationships")
 
     def update_groups(self, groups):
-        orders = {group.order for group in groups if group.key in self.GROUPS}
-        self._mixed = len(orders) != 1
-        if not self._mixed:
-            self.order = next(iter(orders))
-        self._update_label()
+        orders = {group.order for group in groups}
+        self.update_order(next(iter(orders)) if len(orders) == 1 else None)
 
-    async def persist_order(self, order: ThreadSort) -> ThreadSort:
+    def order_writer(self):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
         service, owner = tree.service, tree.owner
-        try:
-            for group in self.GROUPS:
-                await asyncio.to_thread(service.set_order, owner, group, order)
-        finally:
-            tree.refresh_relationships(force=True)
-        self._mixed = False
-        return order
+        snapshot = tree._snapshot
+        if snapshot is None:
+            raise ValueError("Relationship ordering is not available yet")
+        groups = snapshot.sortable_groups
+
+        async def write(order: type[ThreadSort]):
+            try:
+                for group in groups:
+                    await self.app.preparation.run_thread(service.set_order, owner, type(group), order)
+            finally:
+                if tree.service is service and tree.owner == owner:
+                    tree.refresh_relationships(force=True)
+
+        return write
 
 
 class RelationshipRow(CommsRow):
@@ -122,27 +107,23 @@ class RelationshipRows(SidebarGroup):
     RelationshipRows > .group-header > SidebarDisclosure { width: 1; }
     """
 
-    EMPTY = {"inbound": "No recent inbound", "outbound": "No recent outbound",
-             "parent": "Not forked", "children": "No children",
-             "collaborating": "No active collaborations"}
-
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
         self.rows: dict[tuple[str, str], RelationshipRow] = {}
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
-                         id=f"relationships-{model.key}")
+                         id=f"relationships-{type(model).declared_name}")
 
     def toggle_members(self) -> None:
         super().toggle_members()
-        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[self.model.key] = self.expanded
+        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[type(self.model)] = self.expanded
 
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         state = self.query_ancestor(ThreadCommsSidebar).view_state
         if previous:
-            state.scroll[self.model.key] = self.member_container.scroll_y
+            state.scroll[type(self.model)] = self.member_container.scroll_y
         if expanded:
             self.member_container.scroll_to(
-                y=state.scroll.get(self.model.key, 0), animate=False)
+                y=state.scroll.get(type(self.model), 0), animate=False)
 
     def on_mount(self) -> None:
         self.sync_members()
@@ -163,7 +144,7 @@ class RelationshipRows(SidebarGroup):
         if entries and empty is not None:
             empty.remove()
         if self.expanded and not entries and empty is None:
-            container.mount(Static(self.EMPTY[self.model.key], classes="relationship-empty"))
+            container.mount(Static(self.model.empty_text, classes="relationship-empty"))
         # Keep the top visible row stable when newer entries reorder a
         # scrolled list. Identity, rather than list index, owns selection.
         old_scroll = container.scroll_y
@@ -234,7 +215,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
-        self.groups: dict[str, RelationshipRows] = {}
+        self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
         # Thread rows for this snapshot's people, keyed by thread name.
         self.thread_rows: dict[str, ThreadRowModel] = {}
 
@@ -287,6 +268,12 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
+    def capture_state(self) -> None:
+        state = self.view_state
+        for group in self.groups.values():
+            state.expanded[type(group.model)] = group.expanded
+            state.scroll[type(group.model)] = group.member_container.scroll_y
+
     def set_identity(self, owner: str, wire_root: str | None, *,
                      source: RelationshipSource | None = None):
         if self._live and source is None:
@@ -298,8 +285,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
-        for group in self.groups.values():
-            self.view_state.scroll[group.model.key] = group.member_container.scroll_y
+        self.capture_state()
         self._generation += 1
         self.owner, self.wire_root = owner, wire_root
         self._revision = None
@@ -401,7 +387,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 self.groups.clear()
                 if generation != self._generation or not self.is_attached:
                     return
-            absent = set(self.groups) - {model.key for model in snapshot.groups}
+            absent = set(self.groups) - {type(model) for model in snapshot.groups}
             if absent:
                 await self.remove_children([self.groups.pop(key) for key in absent])
                 if generation != self._generation or not self.is_attached:
@@ -410,7 +396,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             unread = (observed.sidebar.snapshot
                       if observed is not None and observed.sidebar.snapshot is not None
                       and Path(self.wire_root).resolve() == observed.service.root.resolve()
-                      else NO_UNREAD)
+                      else None)
             people = {entry.person.thread.name: entry.person for model in snapshot.groups
                       for entry in model.entries if entry.person is not None}
 
@@ -439,18 +425,18 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             context.tooltip = snapshot.incoming_basis + f"\nLatest {snapshot.history_messages} wire messages"
             control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
             if control is not None:
-                control.update_groups(snapshot.groups)
+                control.update_groups(snapshot.sortable_groups)
             # From here to the end nothing awaits: rows, groups and models change together.
             self.thread_rows = thread_rows
             for model in snapshot.groups:
-                group = self.groups.get(model.key)
+                group = self.groups.get(type(model))
                 if group is None:
                     # A new group reconciles its members once composed (on_mount).
-                    group = self.groups[model.key] = RelationshipRows(
-                        model, self.view_state.expanded.get(model.key, True))
+                    group = self.groups[type(model)] = RelationshipRows(
+                        model, self.view_state.expanded.get(type(model), True))
                     self.mount(group)
                 group.display = True
-                group.expanded = self.view_state.expanded.get(model.key, True)
+                group.expanded = self.view_state.expanded.get(type(model), True)
                 group.present(model)
                 group.sync_members()
             self.sync_current()
@@ -467,7 +453,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     def _ordered_rows(self):
         return [row for group in self.groups.values()
-                for row in group.visible_members
+                for row in group.visible_rows
                 if isinstance(row, RelationshipRow) and row.is_navigation_row()]
 
     @property
@@ -475,7 +461,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         return self.view_state
 
     def selection_for(self, row):
-        return row.query_ancestor(RelationshipRows).model.key, row.target_name
+        return type(row.query_ancestor(RelationshipRows).model), row.target_name
 
     @property
     def navigation_root(self):
@@ -493,7 +479,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         expected = row.entry if entry is None else entry
         observed_generation = self._generation if generation is None else generation
-        group = row.query_ancestor(RelationshipRows).model.key
+        group = type(row.query_ancestor(RelationshipRows).model)
         self.run_worker(self._navigate_current(group, expected, observed_generation))
 
     async def _navigate_current(self, group_key, expected, generation):
@@ -507,9 +493,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 return
             if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
-            current = next((entry for group in snapshot.groups if group.key == group_key
-                            for entry in group.entries
-                            if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
+            group = snapshot.groups_by_type.get(group_key)
+            current = (next((entry for entry in group.entries
+                             if (entry.kind, entry.target) == (expected.kind, expected.target)), None)
+                       if group is not None else None)
             same_incarnation = (expected.person is None or
                 (current is not None and current.person is not None and
                  current.person.thread.created_at == expected.person.thread.created_at))

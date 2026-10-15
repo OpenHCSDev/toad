@@ -31,6 +31,8 @@ class SidebarDisclosure(Static, can_focus=True):
 class SidebarGroup(VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
+    navigation_header = False
+
     DEFAULT_CSS = """
     SidebarGroup { height: auto; }
     SidebarGroup > .group-header { height: 1; }
@@ -83,11 +85,13 @@ class SidebarGroup(VerticalGroup):
         """Specializations preserve existing reader intent across disclosure."""
 
     @property
-    def visible_members(self):
-        return tuple(self.member_container.children) if self.expanded and self.display else ()
-
-    def admits_row(self, row) -> bool:
-        return self.display and (row is self.row or self.expanded)
+    def visible_rows(self):
+        """Header and disclosed members in their native order."""
+        if not self.display or not self.accepts_members():
+            return ()
+        header = (self.row,) if self.navigation_header else ()
+        members = tuple(self.member_container.children) if self.expanded else ()
+        return (*header, *members)
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""

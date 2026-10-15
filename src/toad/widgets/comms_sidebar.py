@@ -67,6 +67,7 @@ class ChannelUnread(Static):
 
 class ChannelGroup(SidebarGroup):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
+    navigation_header = True
     DEFAULT_CSS = """
     ChannelGroup { height: auto; }
     ChannelGroup > HorizontalGroup { height: 1; }
@@ -212,10 +213,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         self.target = target
 
     def is_navigation_row(self) -> bool:
-        if not self.is_attached or self._pruning or self._closing:
-            return False
-        group = next((node for node in self.ancestors if isinstance(node, SidebarGroup)), None)
-        return group is None or group.admits_row(self)
+        return self.is_attached and not self._pruning and not self._closing
 
     @property
     def selected(self) -> bool:
@@ -682,8 +680,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     @property
     def rows(self) -> list[CommsRow]:
         return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in (group.row, *group.visible_members)
-                if row.is_navigation_row()]
+                for row in group.visible_rows if row.is_navigation_row()]
 
     @property
     def selection_state(self):

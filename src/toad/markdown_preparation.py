@@ -39,7 +39,7 @@ class PreparedMarkdownPart:
 
     @classmethod
     def capture(cls, text: str) -> "PreparedMarkdownPart":
-        from toad.conversation_markdown import parse_markdown_syntax
+        from toad.markdown_links import parse_markdown_syntax
 
         return cls(text, tuple(parse_markdown_syntax(text)))
 

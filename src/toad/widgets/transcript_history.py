@@ -52,9 +52,10 @@ from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
+from toad.markdown_links import ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    HorizontalRows, Lines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
@@ -67,7 +68,6 @@ from toad.widgets.transcript_fragments import (
 )
 
 if TYPE_CHECKING:
-    from toad.line_blocks import LineBlock
     from toad.widgets.history_anchor import HistoryWindow
 
 class _DrawingStopped(Exception):
@@ -102,7 +102,7 @@ class JumpToLatest(Static, can_focus=True):
         event.stop()
         self.action_jump()
 
-class TranscriptPageView(Animated, HorizontalRows, Widget):
+class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     """One transcript page, drawn as its admitted fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
@@ -208,22 +208,23 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
         return self._measured
 
     def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
         if self.fresh:
             # Once: a page moved to another parent has not arrived again.
             self.fresh = False
             self.run_effect(NEW_TEXT)
 
-    def _theme_changed(self, _theme) -> None:
+    def invalidate_lines(self, change=None) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         # Lines hold resolved theme colours; a new theme draws new lines,
         # plain ones first, which wrap to other rows than the styled ones.
         self.query_ancestor(HistoryWindow).keep_reader()
+        for fragment in self.fragments:
+            fragment.invalidate_lines()
         self.range_changed()
 
     def on_unmount(self) -> None:
-        self.stop_effect()
         if self._render_task is not None:
             self._render_task.cancel()
 
@@ -378,7 +379,6 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
         return pending[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
-        renderer = self.app.render_processes
         while self._pending and self.is_attached:
             batch = self._nearest_pending()
             if not batch:
@@ -386,22 +386,18 @@ class TranscriptPageView(Animated, HorizontalRows, Widget):
             for fragment in batch:
                 del self._pending[id(fragment)]
             width, theme = self._width, self.app.colours.line_theme
-            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme)
-                          for fragment in batch)
-            results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
-            if not self.is_attached or width != self._width:
-                continue
-            await self._publish([(fragment, task.blocks, lines)
-                                 for fragment, task, lines in zip(batch, tasks, results)])
+            ready = await TranscriptLinesBatchRenderTask.render_for(self,
+                (fragment.plain_lines(width, theme).preparation for fragment in batch))
+            await self._publish([(fragment, task, lines)
+                                 for fragment, (task, lines) in zip(batch, ready)])
 
-    async def _publish(self, ready: list[tuple[TranscriptFragment, tuple[LineBlock, ...], PreparedLines]]) -> None:
+    async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, PreparedLines]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
         async with window.preserve_history(root=self):
-            theme = self.app.colours.line_theme
-            for fragment, blocks, lines in ready:
-                fragment.hold_lines(theme, lines, blocks)
+            for fragment, task, lines in ready:
+                task.hold(self, fragment, lines)
             self.range_changed()
 
     def retain_sources(self) -> None:
@@ -511,15 +507,14 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         selected = self.selected_categories if selected is None else selected
         todo = [fragment for fragment in fragments
                 if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
-        renderer = self.app.render_processes
         for first in range(0, len(todo), self.budget.batch_items):
             if not current():
                 return
             batch = todo[first:first + self.budget.batch_items]
-            tasks = tuple(TranscriptLinesRenderTask(fragment.line_blocks, width, theme) for fragment in batch)
-            results = await renderer.submit(TranscriptLinesBatchRenderTask(tasks))
-            for fragment, task, lines in zip(batch, tasks, results):
-                fragment.hold_lines(theme, lines, task.blocks)
+            ready = await TranscriptLinesBatchRenderTask.render_for(self,
+                (fragment.plain_lines(width, theme).preparation for fragment in batch))
+            for fragment, (task, lines) in zip(batch, ready):
+                task.hold(self, fragment, lines)
 
     @property
     def line_width(self) -> int:
@@ -551,15 +546,14 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         width, theme = self.line_width, self.app.colours.line_theme
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
-        lines = await self.app.render_processes.submit(TranscriptLinesBatchRenderTask(tuple(
-            TranscriptLinesRenderTask(fragment.blocks(shown), width, theme)
-            for fragment, shown in drawn))) if drawn else ()
+        rendered = await TranscriptLinesBatchRenderTask.render_for(self,
+            (LinePreparation(fragment.blocks(shown), width, theme) for fragment, shown in drawn))
         if not self.state.can_draw:
             return
-        ready = {id(fragment): rows for (fragment, _shown), rows in zip(drawn, lines)}
+        ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}
         async with self.window.preserve_history(root=self):
             for fragment, shown in changes:
-                fragment.show(shown, theme, ready.get(id(fragment)))
+                TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))
             for page in self.pages:
                 page.range_changed()
         self.window.check_follow()
@@ -933,7 +927,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         # reading older source pages as part of this same unpublished change.
         destination: list[tuple[PreparedTranscriptPage, int]] = []
         viewport_rows = max(1, window.outer_size.height)
-        width, theme = self.line_width, self.app.colours.line_theme
         rows = admitted = 0
         destination_full = False
         while admitted < destination_batch:
@@ -949,7 +942,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 if not current():
                     return False
                 for fragment in reversed(batch):
-                    lines = (fragment.lines_for(width, theme)
+                    lines = (fragment.lines_for(self.line_width, self.app.colours.line_theme)
                              if fragment.shown_in(self.selected_categories) else None)
                     height = 0 if lines is None else lines.height
                     if rows and rows + height > viewport_rows:

@@ -49,7 +49,6 @@ from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.session_tracker import SidebarState
-from toad.widgets.throbber import Throbber
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.navigation_target import FeedTarget, DirectTarget
 
@@ -235,7 +234,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
-    throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     conversation = getters.query_one(Conversation)
     @property
     def side_bar(self):
@@ -445,10 +443,14 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             if self.id is not None:
                 self.app.session_navigation.sync_project(self.id, project)
             self.update_title()
+            self.link_context_changed()
 
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
+        previous_root = self.coordination_root
         self.app.coordination_facts[self] = event
+        if previous_root != self.coordination_root:
+            self.link_context_changed()
         if event.worktree is not None:
             self.bind_project(Path(event.worktree))
         self.on_comms_session_named(event.thread.name)

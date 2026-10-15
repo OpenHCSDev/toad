@@ -242,7 +242,7 @@ class WireHistory(LineHistory):
             return ()
         return tuple(
             fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
-            if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
+            if (text := fragment.text_rows(lines, self.app.colours.line_theme)) and rows.start < text.stop and text.start < rows.stop)
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""

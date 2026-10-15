@@ -74,7 +74,7 @@ from toad.widgets.menu import Menu
 from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import Throbber, ObservedThrobber
+from toad.widgets.throbber import ObservedThrobber
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
@@ -474,6 +474,10 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
+        self.throbber = ObservedThrobber(
+            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
+            id="throbber",
+        )
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
@@ -781,7 +785,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     ]
 
 
-    throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
@@ -854,29 +857,17 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 await DB().session_update_project(session_pk, path)
 
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self._sync_throbber()
+        self.throbber.sync()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
         self.refresh_bindings()
 
-    def make_throbber(self) -> ObservedThrobber:
-        return ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
-            id="throbber",
-        )
-
-    @property
-    def _observed_working(self) -> bool:
-        """Core's status row: the only turn source for a thread Toad does not run."""
-        activity = self.thread_activity
-        return activity is not None and activity.working
-
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self._sync_throbber()
+        self.throbber.sync()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
@@ -910,9 +901,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ),
             )
             yield self.thread_activity
-            yield self.make_throbber()
-            yield GoalBar(self)
-            yield Prompt(turns=self.turns, submissions=self.submissions).data_bind(
+            prompt = Prompt(turns=self.turns, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -920,6 +909,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
+            yield self.throbber
+            yield GoalBar(self, throbber=self.throbber, prompt=prompt)
+            yield prompt
 
     @property
     def _terminal(self) -> Terminal | None:
@@ -1329,12 +1321,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if self._shell is None or self._shell.pending_directory is None:
             self.working_directory = str(Path(event.event.path).resolve().absolute())
 
-    def _sync_throbber(self) -> None:
-        if (throbber := self.query_one_optional("#throbber", ObservedThrobber)) is not None:
-            throbber.sync()
-
     async def watch_busy_count(self, _busy: int) -> None:
-        self._sync_throbber()
+        self.throbber.sync()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection):

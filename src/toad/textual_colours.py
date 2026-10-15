@@ -137,11 +137,20 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return self._terminal_themes[name]
 
     def variables_changed(self, variables: dict[str, str]) -> None:
-        self.variables = variables
+        terminal = self.app.ansi_theme
+
+        def read(member: type[ThemeColour]) -> Rgb:
+            value = Color.parse(variables[member.name])
+            return Rgb(*value.rich_color.get_truecolor(terminal, foreground=not member.background), value.a)
+
+        self.variables = {**variables, **{
+            member.name: self.rgb(member.resolve_rgb(read)) for member in ThemeColour.members()
+            if not issubclass(member, (CoreColour, LayerColour))
+        }}
         from dataclasses import replace
         from toad.rich_preparation import SyntaxPalette
 
-        self.line_theme = replace(LineTheme.of(variables, self.depth.name),
+        self.line_theme = replace(LineTheme.of(self.variables, self.depth.name),
                                   diff=self.app.settings.diff,
                                   syntax=SyntaxPalette.of(self.app),
                                   terminal_theme=self.app.ansi_theme)
@@ -208,7 +217,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return Strip(row[start:start + width], cell_length=width)
 
     def paint_mix(self, frame: Mix, target: Strip) -> Strip:
-        return target.apply_style(RichStyle(color=self.mixed(frame.start, frame.end, frame.amount).rich_color))
+        return Strip(Segment.apply_style(target, post_style=RichStyle(
+            color=self.mixed(frame.start, frame.end, frame.amount).rich_color)), target.cell_length)
 
     def paint_band(self, frame: Band, target: Strip) -> Strip:
         width = target.cell_length
@@ -216,7 +226,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         if start >= end:
             return target
         before, band, after = target.divide((start, end, width))
-        band = band.apply_style(RichStyle(color=self.colour(frame.colour).rich_color))
+        band = Strip(Segment.apply_style(band, post_style=RichStyle(
+            color=self.colour(frame.colour).rich_color)), band.cell_length)
         return Strip.join((before, band, after))
 
     def paint_rising(self, frame: Mix, target: Strip) -> Strip:
@@ -227,7 +238,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         """
         start = self.colour(frame.start)
         if start.ansi is not None or frame.amount >= 1.0:
-            return target if frame.amount >= 0.5 else target.apply_style(RichStyle(color=start.rich_color))
+            return target if frame.amount >= 0.5 else self.paint_mix(frame, target)
         end = self.colour(frame.end)
 
         def risen(segment: Segment) -> Segment:
@@ -276,7 +287,7 @@ class ThemedApp:
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()  # type: ignore[misc]
         self.colours.variables_changed(variables)
-        return variables
+        return self.colours.variables
 
     @property
     def ansi_theme(self) -> TerminalTheme:
@@ -299,6 +310,9 @@ class Animated:
         if self.animation is not None:
             self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
             self.animation = None
+
+    def on_unmount(self) -> None:
+        self.stop_effect()
 
     @property
     def animation_visible(self) -> bool:

@@ -240,13 +240,11 @@ class TranscriptFragment:
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return self.blocks(self.shown)
 
-    def show(self, shown: Shown, theme=None, lines=None) -> None:
-        """Draw `shown` from now on, with its already rendered lines when there are some."""
+    def show(self, shown: Shown) -> None:
+        """Change the displayed state; its render request supplies any prepared lines."""
         self.shown = shown
         for held in ("line_blocks", "_lines", "_plain"):
             self.__dict__.pop(held, None)
-        if lines is not None:
-            self.__dict__["_lines"] = theme, lines
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -281,14 +279,17 @@ class TranscriptFragment:
         return link_place()
 
     def lines_for(self, width: int, theme):
-        """Styled lines this fragment holds for a width and theme, if any."""
+        """Cached lookup is geometry-only; source changes use declared invalidation."""
         held = self.__dict__.get("_lines")
-        return held[1] if held is not None and held[0] == theme and held[1].width == width else None
+        return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
 
-    def hold_lines(self, theme, lines, blocks: tuple[LineBlock, ...]) -> None:
-        """Keep the lines rendered from `blocks`, unless the fragment shows something else by now."""
-        if blocks is self.line_blocks:
-            self.__dict__["_lines"] = theme, lines
+    def invalidate_lines(self):
+        self.__dict__.pop("_lines", None)
+
+    def hold_lines(self, request, lines) -> None:
+        """Retain the owning request, unless the fragment changed its source blocks."""
+        if request.blocks is self.line_blocks:
+            self._lines = request, lines
 
     def plain_lines(self, width: int, theme):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""

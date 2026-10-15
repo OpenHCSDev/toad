@@ -5,16 +5,19 @@ from weakref import ref
 
 from rich.cells import cell_len
 from textual import events
-from textual.app import ComposeResult, ScreenStackError, UnknownModeError
+from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.reactive import var
+from textual.strip import Strip
+from ui_theme.effects import STANDBY_PULSE
 from textual.widgets import Static
 
 from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
+from toad.textual_colours import Animated
 
 
 class GoalControl(CoreEventReceiver, Static, can_focus=True):
@@ -33,31 +36,29 @@ class GoalControl(CoreEventReceiver, Static, can_focus=True):
         self.action_activate()
 
 
-class StandbyPulse(Static):
-    """A quiet wait animation; the backend decides when it is active."""
+class StandbyPulse(Animated, Static):
+    """A goal's standby marker; its existing clock owns time and visibility."""
 
-    DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; color: $text-muted; }"
+    DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; }"
     active: var[bool] = var(False)
-    _dim = False
+
+    def on_mount(self) -> None:
+        self.watch_active()
 
     def watch_active(self) -> None:
-        self.auto_refresh = 0.8 if self.active else None
+        if self.active and self.is_mounted:
+            if self.animation is None:
+                self.run_effect(STANDBY_PULSE)
+        else:
+            self.stop_effect()
         self.update("◌" if self.active else "")
 
-    def automatic_refresh(self) -> None:
-        if not self.active or not self.is_attached:
-            return
-        try:
-            screen = self.screen
-            if (
-                screen is not self.app.screen
-                or self not in screen._compositor.visible_widgets
-            ):
-                return
-        except ScreenStackError, UnknownModeError:
-            return
-        self._dim = not self._dim
-        self.styles.opacity = 0.45 if self._dim else 1.0
+    def render_line(self, y: int) -> Strip:
+        strip = super().render_line(y)
+        if self.active:
+            frame = self.animation.frame() if self.animation is not None else STANDBY_PULSE.final
+            return frame.paint(self.app.colours, strip)
+        return strip
 
 
 class GoalBar(VerticalGroup):
@@ -75,14 +76,14 @@ class GoalBar(VerticalGroup):
     """
     collapsed: var[bool] = var(False)
     _separator_update_pending = False
-    _throbber = None
-    _prompt = None
     _document_height: int | None = None
     _resize_origin: tuple[int, int] | None = None
 
-    def __init__(self, source):
+    def __init__(self, source, *, throbber, prompt):
         super().__init__()
         self._source = ref(source)
+        self._throbber = throbber
+        self._prompt = prompt
 
     @property
     def goal_display(self):
@@ -93,17 +94,9 @@ class GoalBar(VerticalGroup):
         return self._source().goal_execution
 
     def on_mount(self) -> None:
-        from toad.widgets.prompt import Prompt
-        from toad.widgets.throbber import Throbber
-
-        # Observe the existing presentation owners instead of introducing a
-        # second definition of "running" or "queue mode" on Conversation.
-        self._throbber = self.parent.query_one_optional(Throbber)
-        self._prompt = self.parent.query_one_optional(Prompt)
         self.watch(self._source(), "goal_display", self.watch_goal_display)
         self.watch(self._source(), "goal_execution", self.watch_execution)
-        if self._throbber is not None:
-            self.watch(self._throbber, "busy", self._queue_separator_update)
+        self.watch(self._throbber, "busy", self._queue_separator_update)
         self._queue_separator_update()
 
     def notify_style_update(self) -> None:
@@ -121,14 +114,9 @@ class GoalBar(VerticalGroup):
     def _update_separators(self) -> None:
         self._separator_update_pending = False
         throbber = self._throbber
-        controls = (
-            self._prompt.query_one_optional(".delivery-controls")
-            if self._prompt
-            else None
-        )
+        controls = self._prompt.query_one_optional(".delivery-controls")
         loading = (
-            throbber is not None
-            and throbber.busy
+            throbber.busy
             and throbber.display
             and throbber.visible
         )

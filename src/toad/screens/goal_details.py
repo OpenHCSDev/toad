@@ -14,10 +14,11 @@ from textual.widgets import Button, Static
 
 from toad.core.input_events import SelectTarget
 from toad.goal_interaction import GoalSession
+from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.goal_text import GoalText
 
 
-class GoalDetails(CoreEventReceiver, ModalScreen[None]):
+class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
     BINDINGS = [("escape", "close", "Close")]
     AUTO_FOCUS = "#goal-document"
     DEFAULT_CSS = """
@@ -35,6 +36,18 @@ class GoalDetails(CoreEventReceiver, ModalScreen[None]):
         super().__init__()
         self.source = source
         self.history = history
+
+    @property
+    def project_root(self):
+        return ProjectPathOwner.containing(self.source.view).project_root
+
+    @property
+    def coordination_root(self):
+        return ProjectPathOwner.containing(self.source.view).coordination_root
+
+    @property
+    def link_context_events(self):
+        return self.source.view.link_context_events
 
     @property
     def goal_display(self):
