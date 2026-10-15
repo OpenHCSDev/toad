@@ -20,7 +20,7 @@ from toad.widgets.presentation_window import protected_presentations
 if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
-    from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.transcript_preparation import PreparedTranscriptPage
 
 
 @dataclass(frozen=True)
@@ -201,7 +201,7 @@ def protected_blocks(view: Conversation, candidates: Iterable[Widget]) -> set[Wi
 @dataclass(frozen=True)
 class PreparedCommit:
     history: CommittedHistory | None
-    fragments: tuple[TranscriptFragment, ...] | None
+    page: PreparedTranscriptPage | None
     sequences: frozenset[int]
 
 
@@ -244,7 +244,7 @@ class FollowTailCheckpoint(CheckpointPlan):
         return window.follows_tail and window.scroll_revision == self.revision
 
     async def prepare(self, view, history, page, captured, is_current):
-        from toad.widgets.transcript_fragments import TranscriptRenderTask
+        from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
 
         # An in-place advance admits bounded pages before its final paint.
@@ -258,10 +258,10 @@ class FollowTailCheckpoint(CheckpointPlan):
                 return None
             return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
                                   | history.covered_sequences(required_sequences(captured)))
-        fragments = await view.app.preparation.submit(
-            RenderPreparation(TranscriptRenderTask(page.events))
+        prepared = await view.app.preparation.submit(
+            RenderPreparation(TranscriptPageRenderTask(page))
         )
-        return PreparedCommit(None, fragments, TranscriptCoverage(page.events).sequences)
+        return PreparedCommit(None, prepared, TranscriptCoverage(page.events).sequences)
 
     def finish(self, view, cursor):
         view.transcript.painted(cursor)

@@ -174,7 +174,7 @@ class SnapshotPublication(TranscriptPublication):
 
     async def publish_page(self) -> None:
         """Admit this operation's known cut and original applied resource cohort."""
-        from toad.widgets.transcript_fragments import TranscriptRenderTask
+        from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
         from toad.widgets.transcript_history import TranscriptHistory
         from toad.widgets.committed_presentation import (
@@ -190,14 +190,14 @@ class SnapshotPublication(TranscriptPublication):
                 history.state.validate_snapshot(history, self.page)
             if not self.admitted():
                 return
-        fragments = await self.owner.view.app.preparation.submit(
-            RenderPreparation(TranscriptRenderTask(self.page.events))
+        prepared = await self.owner.view.app.preparation.submit(
+            RenderPreparation(TranscriptPageRenderTask(self.page))
         )
         if not self.current():
             return
         view = self.owner.view
         history = TranscriptHistory(self.page, self.owner.get_transcript_page,
-                                    fragments=fragments, committed=False)
+                                    prepared=prepared, committed=False)
         self.window.prepare_history(history)
         await history.prepare_body(partial(self.source_current, self.page.after),
                                    selected=view.visible_categories)
@@ -463,7 +463,7 @@ class CheckpointPublication(CanonicalSourcePublication):
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                page, self.owner.get_transcript_page, fragments=prepared.fragments, committed=False,
+                page, self.owner.get_transcript_page, prepared=prepared.page, committed=False,
             )
             await replacement.prepare_body(is_current, selected=view.visible_categories)
         async with AsyncExitStack() as retirement:

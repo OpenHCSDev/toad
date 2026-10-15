@@ -13,14 +13,14 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 
 from toad.widgets.transcript_fragments import TranscriptFragment
-from toad.widgets.transcript_fragments import TranscriptRenderTask
+from toad.widgets.transcript_fragments import transcript_fragments
+from toad.render_backend import ReusableRenderTask
 from toad.widgets.message_filter import MessageCategory
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedValue,
-    RenderPreparation,
     PreparationScope,
-    SerializedWork,
+    ReusableWork,
     ScopedWork,
     ThreadWork,
     WorkKey,
@@ -41,6 +41,12 @@ class PreparedTranscriptPage:
     fragment_range: tuple[int, int] | None = None
     batch_size: int = field(default=BATCH, kw_only=True)
     in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
+
+    @classmethod
+    def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
+        """Prepare and measure one whole page in the worker that owns its result."""
+        fragments = transcript_fragments(page.events)
+        return cls(page, fragments, retained_bytes((page, fragments)))
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
@@ -284,7 +290,20 @@ class CategoryProjection(TranscriptPageProjection):
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
+    page: TranscriptPage
+
+    def execute(self) -> PreparedTranscriptPage:
+        return PreparedTranscriptPage.prepare(self.page)
+
+    def accept_result(self, result: object) -> PreparedTranscriptPage:
+        if not isinstance(result, PreparedTranscriptPage):
+            raise TypeError("Transcript renderer returned an invalid page")
+        return result
+
+
+@dataclass(frozen=True)
+class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
     through: TranscriptCursor
@@ -294,9 +313,6 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
     @property
     def work_key(self) -> WorkKey:
         return WorkKey(type(self), (self.through, self.request), self.scope)
-
-    def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_bytes
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
@@ -313,12 +329,8 @@ class TranscriptPageWork(SerializedWork[PreparedTranscriptPage], ScopedWork[Prep
                 raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
             raise asyncio.CancelledError
-        fragments = await runtime.submit(RenderPreparation(TranscriptRenderTask(page.events)))
-        return await runtime.run_thread(
-            lambda: self.finish_result(key, PreparedTranscriptPage(
-                page, fragments, retained_bytes((page, fragments)),
-            )),
-        )
+        prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
+        return await runtime.run_thread(self.finish_prepared, key, prepared)
 
 
 class TranscriptPageBuffer(PreparedPageSource):
