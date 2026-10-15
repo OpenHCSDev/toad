@@ -48,17 +48,20 @@ class SubmitNowAction(SubmitAction):
         editor.schedule_submission(immediate=True)
 
 
-class ClearInputAction(KeyboundAction, PromptAction):
+class CopyOrClearInputAction(KeyboundAction, PromptAction):
     key = "ctrl+c"
-    description = "Clear"
-    tooltip = "Clear the prompt"
+    description = "Copy / Clear"
+    tooltip = "Copy selected text or clear the prompt"
     priority = True
     show = False
 
     def available(self, editor):
-        return bool(editor.text) and not editor.selected_text
+        return bool(editor.text)
 
     async def apply(self, editor):
+        if editor.selected_text:
+            editor.action_copy()
+            return
         editor.editing_mode.suspend(editor)
         editor.clear()
         editor.editing_mode.resume(editor)
