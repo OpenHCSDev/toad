@@ -22,11 +22,25 @@ from textual.content import Content
 from textual.style import Style as NativeStyle
 from textual.selection import Selection
 from textual.visual import RenderOptions
+from toad.line_blocks import LineBlock, LineRole, ToolOutputRole, MutedRole
 
 if TYPE_CHECKING:
     from textual.app import App
 
 RichColorSystem = Literal["auto", "standard", "256", "truecolor", "windows"]
+
+
+@dataclass(frozen=True)
+class RichTextBody(LineBlock):
+    """Decoded terminal text retains its spans in the shared line renderer."""
+
+    content: Text
+    role: type[LineRole] = ToolOutputRole
+    bar: type[LineRole] | None = MutedRole
+
+    @property
+    def selection_text(self) -> str:
+        return self.content.plain
 
 
 def _rebuild_style(values: tuple[object, ...]) -> Style:

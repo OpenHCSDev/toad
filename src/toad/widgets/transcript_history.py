@@ -53,7 +53,7 @@ from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
 from toad.notification_status import CheckedNotifications, UnavailableNotifications, UncheckedNotifications
 from toad.widgets.transcript_lines import (
-    LinkedRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    HorizontalRows, Lines, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
@@ -101,7 +101,7 @@ class JumpToLatest(Static, can_focus=True):
         event.stop()
         self.action_jump()
 
-class TranscriptPageView(Animated, LinkedRows, Widget):
+class TranscriptPageView(Animated, HorizontalRows, Widget):
     """One transcript page, drawn as its admitted fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
@@ -109,7 +109,7 @@ class TranscriptPageView(Animated, LinkedRows, Widget):
     A page that arrived on the live tail rises out of the background.
     """
 
-    DEFAULT_CSS = "TranscriptPageView { height: auto; }"
+    DEFAULT_CSS = "TranscriptPageView { height: auto; overflow-x: auto; overflow-y: hidden; }"
     RENDER_BATCH = 8
 
     def __init__(self, page: TranscriptPage, *, newest: bool = True,
@@ -140,6 +140,10 @@ class TranscriptPageView(Animated, LinkedRows, Widget):
     @property
     def history(self) -> LineHistory:
         return self.query_ancestor(LineHistory)
+
+    @property
+    def line_sets(self) -> tuple[Lines, ...]:
+        return tuple(lines for _, _, lines in self._layout)
 
     @handles(ToggleDetails)
     def toggle_details(self, link: ToggleDetails) -> None:
@@ -285,11 +289,6 @@ class TranscriptPageView(Animated, LinkedRows, Widget):
         if self.animation is not None:
             strip = self.app.colours.paint_rising(self.animation.frame(), strip)
         return selection_painted(self, self.on_background(strip), y)
-
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        """Selected text is read from the rows this page draws."""
-        rows = "\n".join(self.render_line(y).text.rstrip() for y in range(self._height))
-        return selection.extract(rows), "\n"
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, bool] | None:
         """Where an admitted fragment is in this page: its first measured row, and whether it is drawn.

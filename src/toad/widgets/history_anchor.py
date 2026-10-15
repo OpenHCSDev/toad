@@ -16,7 +16,6 @@ from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 
 if TYPE_CHECKING:
-    from toad.widgets.tool_call import ToolCall
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
@@ -508,10 +507,6 @@ class HistoryWindow(VerticalScroll):
             screen.history_windows.add(self)
         self.request_preparation()
 
-    def prepare_viewport(self) -> None:
-        """Native publication, rather than raw motion, owns visible tools."""
-        self.hydrate_visible_tools()
-
     def on_unmount(self) -> None:
         from toad.screens.workspace import WorkspaceScreen
 
@@ -519,6 +514,9 @@ class HistoryWindow(VerticalScroll):
         self.settle_preparation()
         if isinstance(screen := self.screen, WorkspaceScreen):
             screen.history_windows.discard(self)
+
+    def prepare_viewport(self) -> None:
+        """Window subclasses publish work that depends on committed geometry."""
 
     @cached_property
     def presentation_budget(self) -> PresentationBudget:
@@ -581,17 +579,6 @@ class HistoryWindow(VerticalScroll):
     def histories(self) -> WeakSet[TranscriptSourcePreparation]:
         """Mounted pagers register themselves; status checks need no DOM scan."""
         return WeakSet()
-
-    @cached_property
-    def pending_tool_content(self) -> WeakSet[ToolCall]:
-        """Only off-screen autoexpanded outputs need a visibility check."""
-        return WeakSet()
-
-    def hydrate_visible_tools(self, _position: float = 0) -> None:
-        if not self.pending_tool_content or not self.screen.is_current:
-            return
-        for tool in tuple(self.pending_tool_content):
-            tool.hydrate_if_visible()
 
     @property
     def follows_tail(self) -> bool:

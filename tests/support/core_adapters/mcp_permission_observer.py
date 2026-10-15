@@ -85,10 +85,10 @@ class Observer:
             frame="\n".join(strip.text for strip in self.app.screen._compositor.render_strips())
             assert any(option.text in frame for option in ask.options), "Native permission options must actually paint"
             from toad.widgets.acp_content import ACPToolCallContent
-            from toad.widgets.tool_content import MarkdownContent
+            from toad.widgets.tool_content import ToolContent
             preview = self.view.prompt.query_one(ACPToolCallContent)
-            markdown = preview.query_one(MarkdownContent)
-            assert markdown.source == tool_call["content"][0]["content"]["text"]
+            markdown = preview.query_one(ToolContent)
+            assert markdown.get_clipboard_text() == tool_call["content"][0]["content"]["text"]
             async with asyncio.timeout(10):
                 while "ACCEPTANCE_ECHO" not in frame:
                     await self.pilot.pause(.05)
@@ -110,7 +110,7 @@ class Observer:
                 assert self.agent.controller.surface.owns(replacement)
                 ask = replacement.prompt._ask
                 assert ask is not None and request.pending
-                assert replacement.prompt.query_one(ACPToolCallContent).query_one(MarkdownContent).source == markdown.source
+                assert replacement.prompt.query_one(ACPToolCallContent).query_one(ToolContent).get_clipboard_text() == markdown.get_clipboard_text()
                 (self.root / "permission-rebind.txt").write_text("Actual native permission remained pending across rich surface removal and remounted on replacement.\n")
             if self.case != "disconnect":
                 index, answer = next((i, a) for i, a in enumerate(ask.options)

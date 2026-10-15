@@ -138,7 +138,13 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def variables_changed(self, variables: dict[str, str]) -> None:
         self.variables = variables
-        self.line_theme = LineTheme.of(variables, self.depth.name)
+        from dataclasses import replace
+        from toad.rich_preparation import SyntaxPalette
+
+        self.line_theme = replace(LineTheme.of(variables, self.depth.name),
+                                  diff=self.app.settings.diff,
+                                  syntax=SyntaxPalette.of(self.app),
+                                  terminal_theme=self.app.ansi_theme)
         _row.cache_clear()
 
     # The backend.

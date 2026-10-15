@@ -202,15 +202,13 @@ def tool_status(fields: dict):
 
 
 async def wait_for_tool_diff(ui, tool):
-    """Wait for a tool call's diff to be mounted and drawn (a loading label is not a result); return it."""
-    from toad.widgets.tool_content import ToolCallDiff
+    """Wait for the shared tool rows to be prepared and drawn."""
+    from toad.widgets.tool_content import ToolContent
 
-    await ui.until(lambda: tool.query_one_optional(ToolCallDiff) is not None, seconds=10, why="the diff widget")
-    diff = tool.query_one(ToolCallDiff)
-    await diff.prepared.wait()
-    await ui.until(lambda: diff.query("PatchDiffView DiffCode, TextContent"), seconds=10, why="the diff to be drawn")
+    content = tool.query_one(ToolContent)
+    await ui.until(lambda: content._styled is not None, seconds=10, why="the styled tool rows")
     await ui.step()
-    return diff
+    return content
 
 
 def viewport_text(widget) -> str:

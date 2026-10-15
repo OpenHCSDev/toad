@@ -9,24 +9,30 @@ arrive a fragment draws plain rows, so a row is never blank.
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
 from itertools import count
 from threading import local
 
 from rich.cells import cell_len, set_cell_size
+from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
+from rich.terminal_theme import DEFAULT_TERMINAL_THEME, TerminalTheme
 from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
+from textual.scroll_view import ScrollView
+from textual.geometry import Size
+from textual.selection import Selection
+from toad.rich_preparation import RichTextBody
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import (
     Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenTarget, OpenUrl, Span, Spans,
-    Summary,
+    Summary, MutedRole,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
 from toad.menus import MenuItem
@@ -34,6 +40,9 @@ from toad.message_rows import MessageRow
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import linked_target
 from toad.render_backend import ReusableRenderTask
+from toad.patch import Patch, PatchCell
+from toad.preferences import DiffSettings
+from toad.rich_preparation import SyntaxPalette
 
 Row = tuple[Segment, ...]
 
@@ -45,17 +54,26 @@ class LineTheme:
 
     colours: tuple[tuple[type[ThemeColour], Style], ...]
     color_system: str
+    diff: DiffSettings = field(default_factory=DiffSettings)
+    syntax: SyntaxPalette = SyntaxPalette(False, True)
+    terminal_theme: TerminalTheme = DEFAULT_TERMINAL_THEME
 
     def style(self, role: type[LineRole]) -> Style:
+        from textual.color import Color
+
         for colour, style in self.colours:
             if colour is role.colour:
+                if role.background_tint:
+                    base = Color(*self.terminal_theme.background_color)
+                    fill = base.blend(Color(*style.color.get_truecolor(self.terminal_theme)), role.background_tint)
+                    style += Style(bgcolor=fill.rich_color)
                 return style + Style(italic=role.italic or None, bold=role.bold or None,
                                      underline=role.underline or None)
         raise KeyError(f"{role.__name__} asks for {role.colour.__name__}, which the theme lacks")
 
     def with_colour(self, colour: type[ThemeColour], style: Style) -> LineTheme:
         """This theme with one colour drawn another way, as a fade draws it part of the way through."""
-        return LineTheme(((colour, style), *self.colours), self.color_system)
+        return replace(self, colours=((colour, style), *self.colours))
 
     @classmethod
     def of(cls, variables: Mapping[str, str], color_system: str) -> LineTheme:
@@ -90,7 +108,7 @@ def _fit(text: str, width: int) -> str:
     return text if cell_len(text) <= width else set_cell_size(text, width - 1) + "…"
 
 
-def _text_width(block: Body, width: int) -> int:
+def _text_width(block: Body | RichTextBody, width: int) -> int:
     """The cells a body's text wraps at: the width less its bar."""
     return max(1, width - (2 if block.bar is not None else 0))
 
@@ -269,6 +287,34 @@ class LinkedRows(OpensLinks):
         return Strip.blank(width, self.rich_style)
 
 
+class HorizontalRows(LinkedRows, ScrollView):
+    """Prepared rows use Textual's horizontal viewport when code is unwrapped."""
+
+    @property
+    def line_sets(self) -> tuple[Lines, ...]:
+        raise NotImplementedError
+
+    def get_content_width(self, container, viewport) -> int:
+        return max((lines.content_width for lines in self.line_sets), default=0)
+
+    def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
+        lines = self.line_sets
+        self.set_reactive(Widget.virtual_size, Size(
+            max((item.content_width for item in lines), default=0),
+            sum(item.height for item in lines),
+        ))
+        return super()._size_updated(size, virtual_size, container_size, layout)
+
+    def on_background(self, strip: Strip) -> Strip:
+        x = self.scroll_offset.x
+        return super().on_background(strip.crop(x, x + self.scrollable_content_region.width))
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        rows = "\n".join("".join(segment.text for segment in row).rstrip()
+                         for lines in self.line_sets for row in lines.rows)
+        return selection.extract(rows), "\n"
+
+
 def _plain_lines(text: str) -> list[str]:
     """A body's text as plain mode draws it: one string per source line, tabs expanded."""
     return [line.expandtabs(4) for line in text.splitlines() or [""]]
@@ -277,6 +323,37 @@ def _plain_lines(text: str) -> list[str]:
 def _plain_spans(line: str, width: int) -> range:
     """Where plain mode breaks a line into rows: every `width` characters."""
     return range(0, max(1, len(line)), width)
+
+
+class PatchLayout:
+    """The chosen diff geometry, used by both measurement and painting."""
+
+    def __init__(self, patch: Patch, width: int, settings: DiffSettings):
+        self.patch, self.settings = patch, settings
+        self.number_width = patch.number_width
+        longest = max((cell_len(line.expandtabs(4)) for line in (*patch.before.values(), *patch.after.values())), default=0)
+        self.split = settings.view.use_split(width, 2 * (longest + self.number_width + 4) + 3)
+        self.pane_width = max(1, (width - 3) // 2 if self.split else width)
+        self.prefix_width = (self.number_width + 1 if self.split else 2 * self.number_width + 2) + (2 if settings.annotations else 0)
+        self.pane_width = settings.wrap.fitted_width(self.pane_width, longest + self.prefix_width)
+        self.code_width = max(1, self.pane_width - self.prefix_width)
+
+    @property
+    def content_width(self) -> int:
+        return self.pane_width * 2 + 3 if self.split else self.pane_width
+
+    def breaks(self, text: str) -> list[int]:
+        return divide_line(text, self.code_width, fold=True) if self.settings.wrap.enabled else []
+
+    def cell_height(self, cell: PatchCell | None) -> int:
+        return len(self.breaks(cell.text.expandtabs(4))) + 1 if cell is not None else 1
+
+    @property
+    def height(self) -> int:
+        return len(self.patch.groups) + sum(
+            max(self.cell_height(old), self.cell_height(new))
+            for old, new in self.patch.rows(self.split)
+        )
 
 
 class RichLineRenderer(MroDispatch):
@@ -293,6 +370,85 @@ class RichLineRenderer(MroDispatch):
         for block in blocks:
             self.dispatch_sync(block)
         return tuple(self.output)
+
+    @handles(Patch)
+    def patch(self, patch: Patch) -> None:
+        """One numbered patch layout for live and saved tool output."""
+        from rich.console import Console
+        from rich.syntax import Syntax
+        from rich.text import Text
+        from toad.line_blocks import TextRole
+
+        settings = self.theme.diff
+        layout = PatchLayout(patch, self.width, settings)
+        number_width, split = layout.number_width, layout.split
+        pane_width, prefix_width, code_width = layout.pane_width, layout.prefix_width, layout.code_width
+        console = Console(width=max(1, self.width), color_system=self.theme.color_system,
+                          force_terminal=True, file=io.StringIO(), legacy_windows=False)
+
+        def highlighted(lines, path):
+            code = "\n".join(lines.values()).expandtabs(4)
+            if self.plain:
+                return {number: Text(text.expandtabs(4)) for number, text in lines.items()}
+            syntax = Syntax(code, Syntax.guess_lexer(path, code), theme=self.theme.syntax.pygments_theme,
+                            background_color="default")
+            return dict(zip(lines, syntax.highlight(code).split("\n", allow_blank=True)))
+
+        before = highlighted(patch.before, patch.before_path)
+        after = highlighted(patch.after, patch.after_path)
+        def paint(cell, source, old, new):
+            if cell is None:
+                return [Text(" " * pane_width)]
+            style = self.theme.style(cell.role)
+            tint = Style(bgcolor=style.bgcolor)
+            if split:
+                prefix = f"{cell.number:>{number_width}} "
+            else:
+                prefix = f"{old:>{number_width}} {new:>{number_width}} "
+            if settings.annotations:
+                prefix += cell.role.diff_marker + " "
+            text = source[cell.number - 1].copy()
+            chunks = text.divide(layout.breaks(text.plain))
+            result = []
+            for index, chunk in enumerate(chunks):
+                chunk.truncate(code_width, overflow="crop", pad=True)
+                chunk.stylize(tint)
+                gutter = Text(prefix if index == 0 else " " * prefix_width,
+                              style=style + tint if cell.role is not TextRole else self.theme.style(MutedRole))
+                result.append(gutter + chunk)
+            return result
+
+        title = patch.after_path or patch.before_path or "Edit"
+        if patch.before_path != patch.after_path:
+            title = f"{patch.before_path} → {patch.after_path}"
+        self.output.append((Segment(_fit(f"{title} (+{patch.additions}, −{patch.deletions})", self.width),
+                                    self.theme.style(MutedRole)),))
+        for group_index, group in enumerate(patch.row_groups(split)):
+            if group_index:
+                self.output.append((Segment("…", self.theme.style(MutedRole)),))
+            for old, new in group:
+                if split:
+                    from itertools import zip_longest
+                    left, right = paint(old, before, "", ""), paint(new, after, "", "")
+                    blank = Text(" " * pane_width)
+                    for a, b in zip_longest(left, right, fillvalue=blank):
+                        self.output.append(tuple((a + Text(" │ ", style=self.theme.style(MutedRole)) + b).render(console)))
+                else:
+                    cell = old or new
+                    source = before if old is not None else after
+                    for row in paint(cell, source, str(old.number) if old else "", str(new.number) if new else ""):
+                        self.output.append(tuple(row.render(console)))
+
+    @handles(RichTextBody)
+    def rich_text(self, block: RichTextBody) -> None:
+        from rich.console import Console
+
+        inner = _text_width(block, self.width)
+        console = Console(width=inner, color_system=self.theme.color_system,
+                          force_terminal=True, file=io.StringIO(), legacy_windows=False)
+        rows = [tuple(row) for row in console.render_lines(
+            block.content, console.options, style=self.theme.style(block.role), pad=False)]
+        self._body_rows(block, rows)
 
     @handles(Divider)
     def divider(self, block: Divider) -> None:
@@ -364,6 +520,9 @@ class RichLineRenderer(MroDispatch):
         else:
             rows = [(Segment(line[start:start + inner], style),)
                     for line in _plain_lines(block.text) for start in _plain_spans(line, inner)]
+        self._body_rows(block, rows)
+
+    def _body_rows(self, block: Body | RichTextBody, rows: list[Row]) -> None:
         if block.bar is not None:
             prefix = Segment("▌ ", self.theme.style(block.bar))
             rows = [(prefix, *row) for row in rows]
@@ -373,9 +532,11 @@ class RichLineRenderer(MroDispatch):
 class PlainRowCount(MroDispatch):
     """How many rows plain mode draws blocks in at a width, without building them."""
 
-    def __init__(self, width: int):
+    def __init__(self, width: int, theme: LineTheme | None = None):
         self.width = width
+        self.theme = theme
         self.count = 0
+        self.content_width = width
 
     def height(self, blocks: tuple[LineBlock, ...]) -> int:
         self.count = 0
@@ -396,12 +557,25 @@ class PlainRowCount(MroDispatch):
     def spans(self, block: Spans) -> None:
         self.count += sum(len(_plain_spans(line, self.width)) for line in _plain_lines(block.text))
 
+    @handles(Patch)
+    def patch(self, block: Patch) -> None:
+        if self.theme is None:
+            raise ValueError("Patch measurement requires its display settings")
+        layout = PatchLayout(block, self.width, self.theme.diff)
+        self.count += layout.height
+        self.content_width = max(self.content_width, layout.content_width)
+
+    @handles(RichTextBody)
+    def rich_text(self, block: RichTextBody) -> None:
+        inner = _text_width(block, self.width)
+        self.count += sum(len(divide_line(line, inner)) + 1 for line in _plain_lines(block.content.plain))
+
 
 class Lines:
     """Rows of text at one width (`width`, `rows`); strips are built once, on first draw.
 
-    Each strip spans exactly the width, so a page draws it as it is and the
-    strip keeps what painting it computes (its terminal sequence) across
+    Each strip spans at least the width; unwrapped code can extend it. The
+    strip keeps what painting computes (its terminal sequence) across
     repaints.
     """
 
@@ -412,13 +586,17 @@ class Lines:
     def height(self) -> int:
         return len(self.rows)
 
+    @cached_property
+    def content_width(self) -> int:
+        return max((sum(segment.cell_length for segment in row) for row in self.rows), default=self.width)
+
     def strips_at(self, place: int) -> tuple[Strip, ...]:
         """The rows as strips, for the one owner (`link_place`) that draws them."""
         strips = self.__dict__.get("strips")
         if strips is None:
             width = self.width
             strips = self.__dict__["strips"] = tuple(
-                Strip(row).extend_cell_length(width).crop(0, width) for row in _each_link_apart(self.rows, place))
+                Strip(row).extend_cell_length(width) for row in _each_link_apart(self.rows, place))
         return strips
 
 
@@ -443,8 +621,18 @@ class PlainLines(Lines):
         self.blocks = blocks
 
     @cached_property
+    def _measurement(self) -> PlainRowCount:
+        measurement = PlainRowCount(self.width, self.theme)
+        measurement.height(self.blocks)
+        return measurement
+
+    @property
     def height(self) -> int:
-        return PlainRowCount(self.width).height(self.blocks)
+        return self._measurement.count
+
+    @property
+    def content_width(self) -> int:
+        return self._measurement.content_width
 
     @cached_property
     def rows(self) -> tuple[Row, ...]:

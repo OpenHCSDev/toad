@@ -24,6 +24,8 @@ class LineRole:
     italic: ClassVar[bool] = False
     bold: ClassVar[bool] = False
     underline: ClassVar[bool] = False
+    diff_marker: ClassVar[str] = " "
+    background_tint: ClassVar[float] = 0
 
 
 class TextRole(LineRole):
@@ -81,12 +83,16 @@ class AddedCodeRole(LineRole):
     """A reported added line, distinct from a tool's success status."""
 
     colour = SuccessColour
+    diff_marker = "+"
+    background_tint = .16
 
 
 class RemovedCodeRole(LineRole):
     """A reported removed line, distinct from a failed tool."""
 
     colour = ErrorColour
+    diff_marker = "−"
+    background_tint = .16
 
 
 class IncomingRole(LineRole):
@@ -242,6 +248,10 @@ class SpanText(LineBlock):
     def text(self) -> str:
         return "".join(span.text for span in self.spans)
 
+    @property
+    def selection_text(self) -> str:
+        return self.text
+
 
 @dataclass(frozen=True)
 class Spans(SpanText):
@@ -294,6 +304,10 @@ class Body(LineBlock):
     role: type[LineRole] = TextRole
     bar: type[LineRole] | None = None
     markdown: bool = True
+
+    @property
+    def selection_text(self) -> str:
+        return self.text
 
     @classmethod
     def code(cls, text: str, language: str = "", **shown) -> Body:

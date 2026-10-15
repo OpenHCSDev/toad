@@ -1,241 +1,96 @@
-"""Prepared tool output widgets; content decisions belong to tool_output."""
-
-import asyncio
-from abc import abstractmethod
-from dataclasses import dataclass
-from functools import partial
-from typing import TYPE_CHECKING
-
-from textual import containers
-from textual.app import ComposeResult
-from textual.content import Content
-from textual.widgets import Static
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.lifecycle import LifecycleState
-
-from toad.render_tasks import PatchRenderTask
-from toad.rich_preparation import SyntaxPalette
-from toad.widgets.line_markdown import LineMarkdown
-from toad.widgets.worker_static import WorkerStatic
-
-if TYPE_CHECKING:
-    from textual.signal import Signal
-    from textual.screen import Screen
-    from textual.worker import Worker
-    from toad.widgets.patch_diff import PreparedPatch
-    from toad.tool_output import PatchPreparation
+"""The shared line-block view for live tool details and permission previews."""
+from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
+from textual.geometry import Size
+from textual.strip import Strip
+from textual.widget import Widget
+from textual.worker import Worker
+from toad.block_content import BlockContent
+from toad.line_blocks import LineBlock
+from toad.widgets.transcript_lines import (
+    HorizontalRows, Lines, PlainLines, PreparedLines, TranscriptLinesRenderTask,
+    link_place, selection_painted,
+)
 
 
-class TextContent(WorkerStatic):
-    DEFAULT_CSS = """
-    TextContent
-    {
-        height: auto;
-    }
-    """
+class ToolContent(HorizontalRows, BlockContent, Widget):
+    """One live details widget painting the parts' canonical line blocks."""
 
+    DEFAULT_CSS = "ToolContent { height: auto; overflow-x: auto; overflow-y: hidden; }"
 
-class MarkdownContent(LineMarkdown):
-    """Markdown tool output, drawn as prepared lines."""
-
-
-@dataclass(frozen=True)
-class PatchWarmup:
-    source: str
-    syntax: SyntaxPalette
-    result: "asyncio.Future[PreparedPatch | None]"
-
-@dataclass(frozen=True)
-class PatchPreparationTicket:
-    generation: int
-    task: PatchRenderTask
-
-
-class PatchPublication(DeclaredFamily, LifecycleState, affix="PatchPublication"):
-    @classmethod
-    def successors(cls) -> tuple[type[PatchPublication], ...]:
-        return (WaitingPatchPublication, PreparedPatchPublication)
-
-    def publish(self, view: "ToolCallDiff") -> PatchPublication:
-        return self
-
-    @abstractmethod
-    def compose(self, view: "ToolCallDiff") -> ComposeResult: ...
-
-
-class WaitingPatchPublication(PatchPublication):
-    def compose(self, view: "ToolCallDiff") -> ComposeResult:
-        from toad.widgets.throbber import Throbber
-
-        yield Static("Preparing diff…")
-        indicator = Throbber()
-        indicator.busy = True
-        indicator.styles.height = 1
-        yield indicator
-
-
-@dataclass(frozen=True)
-class PreparedPatchPublication(PatchPublication):
-    value: "PreparedPatch"
-    task: PatchRenderTask
-
-    def compose(self, view: "ToolCallDiff") -> ComposeResult:
-        yield from WaitingPatchPublication().compose(view)
-
-    @classmethod
-    def successors(cls) -> tuple[type[PatchPublication], ...]:
-        return (WaitingPatchPublication, PublishedPatchPublication)
-
-    def publish(self, view: "ToolCallDiff") -> PatchPublication:
-        if self.task != view.render_task:
-            return self
-        from toad.widgets.tool_call import ToolCall
-
-        tool = view.query_ancestor(ToolCall)
-        if not tool.content_presentable:
-            view.wait_for_visibility()
-            return self
-        view.stop_visibility_watch()
-        view.prepared.set()
-        return PublishedPatchPublication(self.value, self.task)
-
-
-class PublishedPatchPublication(PreparedPatchPublication):
-    @classmethod
-    def successors(cls) -> tuple[type[PatchPublication], ...]:
-        return (WaitingPatchPublication, PreparedPatchPublication)
-
-    def publish(self, view: "ToolCallDiff") -> PatchPublication:
-        return self
-
-    def compose(self, view: "ToolCallDiff") -> ComposeResult:
-        if self.task != view.render_task:
-            yield from WaitingPatchPublication().compose(view)
-        elif self.value.patch is None:
-            assert self.value.plain_text is not None
-            highlighted = Content.from_rich_text(self.value.plain_text)
-            yield TextContent(Content(view.patch, list(highlighted.spans)))
-        else:
-            from toad.widgets.patch_diff import PatchDiffView
-
-            mode = view.app.settings.diff.view
-            yield PatchDiffView(self.value.patch, prepared=self.value,
-                                split=mode.split, auto_split=mode.auto_split,
-                                wrap=view.app.settings.diff.wrap.enabled,
-                                annotations=view.app.settings.diff.annotations)
-
-
-class ToolCallDiff(containers.VerticalGroup):
-    DEFAULT_CSS = """
-    ToolCallDiff {
-        height: auto;
-    }
-    """
-
-    def __init__(self, patch: str, *, preparation: "PatchPreparation | None" = None) -> None:
-        self.patch = patch
-        self._warmup = None if preparation is None else preparation.warmup
-        prepared = None if preparation is None else preparation.prepared_for(patch)
-        task = None if prepared is None else PatchRenderTask(patch, prepared.syntax)
-        self.publication: PatchPublication = (WaitingPatchPublication() if prepared is None
-                                             else PublishedPatchPublication(prepared, task))
-        self._requested_task: PatchRenderTask | None = task
-        self._preparation_generation = 0
-        self._preparation_worker: Worker[None] | None = None
-        self._visibility_signal: Signal[Screen] | None = None
-        self.prepared = asyncio.Event()
-        """Prepared data accepted for composition, not a terminal-paint receipt."""
-        if prepared is not None:
-            self.prepared.set()
-        super().__init__()
-
-    def compose(self) -> ComposeResult:
-        yield from self.publication.compose(self)
-
-    @property
-    def render_task(self) -> PatchRenderTask:
-        return PatchRenderTask(self.patch, SyntaxPalette.of(self.app))
-
-    @property
-    def render_active(self) -> bool:
-        return self.is_attached and not self._pruning
-
-    @property
-    def preparation_ticket(self) -> PatchPreparationTicket:
-        return PatchPreparationTicket(self._preparation_generation, self.render_task)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.blocks: tuple[LineBlock, ...] = ()
+        self._styled: PreparedLines | None = None
+        self._plain: PlainLines | None = None
+        self._width = 0
+        self._link_place = link_place()
+        self._render_worker: Worker[None] | None = None
 
     def on_mount(self) -> None:
-        self._ensure_preparation()
-        self.publish_if_ready()
+        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
+        self._request_render()
 
-    def on_show(self) -> None:
-        self._ensure_preparation()
-        self.publish_if_ready()
+    def _theme_changed(self, _theme) -> None:
+        self._styled = None
+        self._plain = None
+        self._request_render()
+        self.refresh(layout=True)
 
-    def notify_style_update(self) -> None:
-        super().notify_style_update()
-        if self.is_mounted:
-            self._ensure_preparation()
-
-    def _ensure_preparation(self) -> None:
-        if not self.render_active:
+    def update(self, blocks: tuple[LineBlock, ...]) -> None:
+        if blocks == self.blocks:
             return
-        task = self.render_task
-        if self._requested_task == task:
-            return
-        self._requested_task = task
-        self._preparation_generation += 1
-        self.prepared.clear()
-        self._preparation_worker = self.run_worker(
-            partial(self._prepare, self.preparation_ticket),
-            group="patch-preparation", exclusive=True,
+        previous_height = self._lines(self._width).height if self._width else 0
+        self.blocks = blocks
+        self._styled = None
+        self._plain = None
+        self._request_render()
+        current_height = self._lines(self._width).height if self._width else 0
+        self.refresh(layout=previous_height != current_height)
+
+    def _lines(self, width: int) -> Lines:
+        styled = self._styled
+        if styled is not None and styled.width == width:
+            return styled
+        if self._plain is None or self._plain.width != width:
+            self._plain = PlainLines(width, self.app.colours.line_theme, self.blocks)
+        return self._plain
+
+    @property
+    def line_sets(self) -> tuple[Lines, ...]:
+        return (self._lines(self._width),) if self._width else ()
+
+    def _request_render(self) -> None:
+        if self._width and self.is_attached:
+            self._render_worker = self.run_worker(
+                self._render, group="tool-details", exclusive=True
+            )
+
+    async def _render(self) -> None:
+        blocks, width, theme = self.blocks, self._width, self.app.colours.line_theme
+        lines = await self.app.render_processes.submit(
+            TranscriptLinesRenderTask(blocks, width, theme)
         )
+        if self.is_attached and (blocks, width, theme) == (self.blocks, self._width, self.app.colours.line_theme):
+            previous_height = self._lines(width).height
+            previous_width = self._lines(width).content_width
+            self._styled = lines
+            self.refresh(layout=(previous_height, previous_width) != (lines.height, lines.content_width))
 
-    async def _prepare(self, ticket: PatchPreparationTicket) -> None:
-        try:
-            warmup = self._warmup
-            prepared = None
-            if warmup is not None and PatchRenderTask(warmup.source, warmup.syntax) == ticket.task:
-                await asyncio.wait((warmup.result,))
-                prepared = warmup.result.result()
-            if prepared is None:
-                prepared = await self.app.render_processes.submit(ticket.task)
-            if not self.render_active:
-                return
-            if ticket != self.preparation_ticket:
-                self._ensure_preparation()
-                return
-            self.publication = PreparedPatchPublication(prepared, ticket.task)
-            self.publish_if_ready()
-        finally:
-            if ticket.generation == self._preparation_generation:
-                self._preparation_worker = None
+    @height_dependency(INDEPENDENT_HEIGHT)
+    def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
+        if width != self._width:
+            self._width = width
+            self._styled = None
+            self._plain = None
+            self.call_later(self._request_render)
+        return self._lines(width).height
 
-    def publish_if_ready(self, _screen: "Screen | None" = None) -> None:
-        if not self.render_active:
-            return
-        publication = self.publication.publish(self)
-        if publication is not self.publication:
-            self.publication = publication
-            self.refresh(recompose=True)
+    def render_line(self, y: int) -> Strip:
+        width = self._width
+        strips = self._lines(width).strips_at(self._link_place) if width else ()
+        if y >= len(strips):
+            return self.blank_row(width)
+        return selection_painted(self, self.on_background(strips[y]), y)
 
-    def wait_for_visibility(self) -> None:
-        if self._visibility_signal is None:
-            self._visibility_signal = self.screen.screen_layout_refresh_signal
-            self._visibility_signal.subscribe(self, self.publish_if_ready, immediate=True)
-
-    def stop_visibility_watch(self) -> None:
-        if self._visibility_signal is not None:
-            self._visibility_signal.unsubscribe(self)
-            self._visibility_signal = None
-
-    def on_unmount(self) -> None:
-        self._preparation_generation += 1
-        self._requested_task = None
-        self.publication = WaitingPatchPublication()
-        self._warmup = None
-        self.prepared.clear()
-        if self._preparation_worker is not None:
-            self._preparation_worker.cancel()
-            self._preparation_worker = None
-        self.stop_visibility_watch()
+    def get_clipboard_text(self) -> str:
+        return "\n".join(block.selection_text for block in self.blocks)

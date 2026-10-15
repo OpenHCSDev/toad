@@ -2,9 +2,9 @@ from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ToolCategory
 from typing import Iterable
-from contextlib import asynccontextmanager
 
 from textual.app import ComposeResult
+from textual.await_complete import AwaitComplete
 from textual import getters
 
 from textual.reactive import var
@@ -14,71 +14,19 @@ from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
-from toad.widgets.tool_content import ToolCallDiff
 from agent_comms.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
-from toad.layout import trim_trailing_margin
-from textual.layout import WidgetPlacement
-from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from textual.await_complete import AwaitComplete
 
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import SingleLineBlock
+from toad.widgets.tool_content import ToolContent
 
 
-class ToolContent(containers.VerticalGroup):
-    """The decoded output parts of one tool call."""
-
-    def __init__(self, *args, **kwargs):
-        self._mounted_parts: tuple[ToolOutputPart, ...] | None = None
-        super().__init__(*args, **kwargs)
-
-    @property
-    def output(self) -> ToolOutput:
-        return self.query_ancestor(ToolCall).output
-
-    def on_mount(self) -> None:
-        self.app.theme_changed_signal.subscribe(self, self._theme_changed)
-        self._theme_changed(None)
-
-    def _theme_changed(self, _theme) -> None:
-        self.styles.color = self.app.colours.colour(ToolOutputRole.colour)
-
-    def on_unmount(self) -> None:
-        self._mounted_parts = None
-
-    def sync(self) -> AwaitComplete:
-        if self._mounted_parts == self.output.displayed_parts:
-            return AwaitComplete()
-        return AwaitComplete(self._mount_parts())
-
-    async def recompose(self) -> None:
-        if not self.is_attached:
-            return
-        async with self.lock:
-            self._mounted_parts = None
-            await self._mount_parts()
-
-    async def _mount_parts(self) -> None:
-        output = self.output
-        parts = output.displayed_parts
-        if self._mounted_parts == parts:
-            return
-        with self.app.batch_update():
-            retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
-            if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
-                await self.remove_children()
-                await self.mount_all(widget for part in parts for widget in part.compose(output.view))
-            self._mounted_parts = parts
-
-    @height_dependency(INDEPENDENT_HEIGHT)
-    def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
-        return trim_trailing_margin(placements)
 
 
 class ToolCallHeader(SingleLineBlock):
@@ -114,15 +62,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         }
         &.-has-content #tool-content {
             margin: 0 1 1 0;
-            DiffView {
-                margin: 0 1 1 0;
-            }
-
-            Markdown {
-                layout: stream;
-                padding: 0;
-                margin: 0;
-            }
         }
         &.-expanded {
             #tool-title, #tool-content {
@@ -207,9 +146,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self._manual_expansion = expanded
         self._auto_expanded = False
         self.expanded = expanded
-        if expanded:
-            for diff in self.query(ToolCallDiff):
-                diff.publish_if_ready()
         from toad.widgets.conversation import Conversation
 
         try:
@@ -233,7 +169,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
 
-        self.watch(self.app, "theme", self.output.theme_changed, init=False)
         try:
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
@@ -251,48 +186,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
         self.set_class(self.current_status.failed, "-failed")
         self.has_content = self.output.has_content
         self.check_expand()
-
-    def notify_style_update(self) -> None:
-        super().notify_style_update()
-        self.output.theme_changed()
-
-    async def on_show(self) -> None:
-        self.output.hydrate_if_visible()
-
-    def hydrate_if_visible(self) -> None:
-        self.output.hydrate_if_visible()
-
-    def on_unmount(self) -> None:
-        self.output.retire()
-
-    def _visible_in_window(self) -> bool:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        if not self.is_attached or not self.screen.is_active:
-            return False
-        geometry = self.screen._compositor.visible_widgets.get(self)
-        if geometry is None:
-            return False
-        try:
-            window = self.query_ancestor(HistoryWindow)
-        except NoMatches:
-            return True
-        region, _clip = geometry
-        return region.overlaps(window.content_region)
-
-    @property
-    def content_open(self) -> bool:
-        return self.is_mounted and self.is_attached and self.expanded
-
-    @property
-    def content_in_view(self) -> bool:
-        return self.content_open and self._visible_in_window()
-
-    @property
-    def content_presentable(self) -> bool:
-        if not self.expanded:
-            return False
-        return not self._auto_expanded or self._visible_in_window()
 
     def check_expand(self) -> None:
         """Check if the tool call should auto-expand."""

@@ -320,7 +320,7 @@ class ToolTranscriptFragment(TranscriptFragment):
         # A multiline title needs disclosure even before output arrives. Core's
         # sent-message output still does not become a second saved message.
         return AgentActivityPresentation.tool_has_details(
-            self.tool_call, any(part.has_saved_details() for part in self.output_parts)
+            self.tool_call, any(part.has_details for part in self.output_parts)
         )
 
     def blocks(self, shown):
@@ -328,7 +328,7 @@ class ToolTranscriptFragment(TranscriptFragment):
             self.tool_call,
             has_details=self.has_details,
             details_open=shown.details_open,
-            details=(block for part in self.output_parts for block in part.line_blocks()),
+            details=(block for part in self.output_parts for block in part.line_blocks),
         )
 
 

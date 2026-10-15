@@ -240,12 +240,12 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
 @dataclass(frozen=True)
 class DiffSettings(AnnotatedDataclassValidationMixin):
     view: Annotated[
-        type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode)
+        type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode), effects.diff_style
     ] = AutoDiff
 
-    annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?")] = False
+    annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?"), effects.diff_style] = False
 
-    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode)] = NoWrapMode
+    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), effects.diff_style] = NoWrapMode
     """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
 
 

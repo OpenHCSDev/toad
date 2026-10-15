@@ -164,6 +164,10 @@ class DiffMode(Choice, DeclaredFamily, affix="Diff"):
     split = False
     auto_split = False
 
+    @classmethod
+    def use_split(cls, width: int, required: int) -> bool:
+        return cls.split
+
 
 class UnifiedDiff(DiffMode):
     pass
@@ -177,9 +181,17 @@ class AutoDiff(DiffMode):
     title = "Best fit"
     auto_split = True
 
+    @classmethod
+    def use_split(cls, width: int, required: int) -> bool:
+        return width >= required
+
 
 class WrapMode(Choice, DeclaredFamily, affix="Mode"):
     enabled = False
+
+    @classmethod
+    def fitted_width(cls, available: int, content: int) -> int:
+        return max(available, content)
 
 
 class NoWrapMode(WrapMode, declared_name="no-wrap"):
@@ -189,6 +201,10 @@ class NoWrapMode(WrapMode, declared_name="no-wrap"):
 class WrapModeEnabled(WrapMode, declared_name="wrap"):
     title = "Wrap long lines"
     enabled = True
+
+    @classmethod
+    def fitted_width(cls, available: int, content: int) -> int:
+        return available
 
 
 class Scrollbar(Choice, DeclaredFamily, affix="Scrollbar"):
