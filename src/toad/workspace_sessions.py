@@ -191,6 +191,15 @@ class WorkspaceSessions:
     def owns(self, view: "SessionView") -> bool:
         return self.source.current(view)
 
+    def visible_target(self, root):
+        """The selected logical destination, including while a modal covers its frame."""
+        if root is None:
+            return None
+        view = self.source.view
+        if view is not None and self.owns(view) and view.belongs_to_wire(root):
+            return view.navigation_target_name
+        return None
+
     def release_frame_callback(self, owner, callback) -> bool:
         """Admit mounted work through its original logical source binding.
 

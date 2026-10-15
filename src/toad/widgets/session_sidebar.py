@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from textual.content import Content
-from textual.style import Style
-
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.widgets.selection import HoverSelection
+from toad.widgets.selection import HoverSelection, ViewLabel
 
 
-class ThreadStatusRow(HoverSelection):
+class ThreadStatusRow(ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
 
     DEFAULT_CSS = """
@@ -57,12 +55,10 @@ class ThreadStatusRow(HoverSelection):
             row.label,
             f"\n  {summary}",
         )
-        self.show_content(content, highlighted=row.unread.highlighted)
+        self.show_content(content)
 
-    def show_content(self, content: Content, *, highlighted: bool = False, layout: bool = False) -> None:
-        """Apply row emphasis and repaint only changed native content."""
-        if highlighted:
-            content = content.stylize(Style(bold=True))
+    def show_content(self, content: Content, *, layout: bool = False) -> None:
+        """Repaint changed native content; visibility owns label emphasis."""
         current = self.content
         if not current.is_same(content):
             self.update(content, layout=layout and current.plain != content.plain)

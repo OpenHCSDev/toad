@@ -125,9 +125,6 @@ class RelationshipRows(SidebarGroup):
             self.member_container.scroll_to(
                 y=state.scroll.get(type(self.model), 0), animate=False)
 
-    def on_mount(self) -> None:
-        self.sync_members()
-
     def present(self, model: RelationshipGroup) -> None:
         self.model = model
 
@@ -164,7 +161,7 @@ class RelationshipRows(SidebarGroup):
             row.target = entry_target(entry)
             if not entry.available:
                 row.retire_thread_row()
-                row.remove_class("-busy", "-current")
+                row.remove_class("-busy")
                 row.add_class("-wire-thread")
                 _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
             elif entry.person is not None:

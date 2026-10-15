@@ -4,9 +4,17 @@ Focus owns widget-row selection; OptionList.highlighted owns virtual-row selecti
 Hover is an input to those owners, never another independently rendered state.
 """
 
+from rich.style import Style
 from textual import events, on
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
+
+
+class ViewLabel:
+    """Shared native label paint; callers derive visibility from the workspace."""
+
+    def paint_current(self, current: bool) -> None:
+        self.styles.text_style = Style(bold=current, underline=current, dim=False if current else None)
 
 
 class FocusSelection(Static, can_focus=True):

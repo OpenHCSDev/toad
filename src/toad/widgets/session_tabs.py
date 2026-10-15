@@ -12,7 +12,6 @@ from textual.binding import BindingType
 from textual.content import Content
 from textual.geometry import Offset, Region
 from textual.message import Message
-from textual.reactive import reactive
 from textual.renderables.bar import Bar
 from textual.strip import Strip
 from textual.style import Style
@@ -27,9 +26,10 @@ from toad.app import ToadApp
 from toad.session_tracker import OpenTab
 from toad.textual_colours import Animated
 from ui_theme.effects import TAB_WIPE
+from toad.widgets.selection import ViewLabel
 
 
-class SessionLabel(widgets.Label):
+class SessionLabel(ViewLabel, widgets.Label):
     ALLOW_SELECT = False
 
     def on_resize(self) -> None:
@@ -141,7 +141,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
 
     title_container = getters.query_one("#title-container", Widget)
 
-    current_session = reactive("", init=False)
     _last_tabs: tuple[OpenTab, ...] | None = None
 
     def __init__(self) -> None:
@@ -164,7 +163,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
     def on_mount(self) -> None:
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
-        self.current_session = self.app.selected_mode
         self.observe_core(self.app.events)
         self.subscribe_core(self.app.session_tracker.events)
         self.call_later(self._sync_tabs)
@@ -174,18 +172,18 @@ class SessionsTabs(CoreEventReceiver, Widget):
     async def handle_mode_change(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
             self.call_later(self._sync_tabs)
-
-    def watch_current_session(self, old_session: str, new_session: str) -> None:
-        self.query(".-current").remove_class("-current")
-        self.query(f"#{new_session}").add_class("-current")
-        self.show_selected_tab()
-        if old_session and new_session and self.is_mounted:
+            self.call_after_refresh(self.show_selected_tab)
             self.query_one(Underline).run_effect(TAB_WIPE)
+
+    def sync_current(self) -> None:
+        for label in self.query(SessionLabel):
+            label.paint_current(label.id == self.app.selected_mode)
 
     @property
     def selected_span(self) -> tuple[int, int]:
         """The cells under the selected tab's label; empty until that label is laid out."""
-        label = self.query_one_optional(f"#{self.current_session}", SessionLabel) if self.current_session else None
+        selected = self.app.selected_mode
+        label = self.query_one_optional(f"#{selected}", SessionLabel) if selected else None
         return (0, 0) if label is None else label.virtual_region.shrink((0, 1, 0, 1)).column_span
 
     def show_selected_tab(self) -> None:
@@ -197,14 +195,15 @@ class SessionsTabs(CoreEventReceiver, Widget):
         if not self.is_mounted or not self.is_attached:
             return
         self.query_one(Underline).refresh()
-        if self.current_session and (label := self.query_one_optional(f"#{self.current_session}", SessionLabel)):
+        selected = self.app.selected_mode
+        if selected and (label := self.query_one_optional(f"#{selected}", SessionLabel)):
             if label.virtual_region:
                 self.scroll_to_center(label, animate=False)
 
     def render_session_label(self, session: OpenTab) -> Content:
         title = session.label()
         if session.unread.label:
-            badge_style = (Style(bold=True, foreground=self.app.colours.colour(AccentColour))
+            badge_style = (Style(foreground=self.app.colours.colour(AccentColour))
                            if session.unread.highlighted else Style())
             return Content.assemble(title, (f" {session.unread.label}", badge_style))
         return title
@@ -217,7 +216,6 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 yield SessionLabel(
                     self.render_session_label(session),
                     id=session.mode_name,
-                    classes="-current" if session.mode_name == self.app.selected_mode else "",
                 )
                 yield SessionTabClose(session.mode_name)
         yield Underline()
@@ -245,13 +243,10 @@ class SessionsTabs(CoreEventReceiver, Widget):
                 return
             tabs = self.app.open_tabs
             if tabs == self._last_tabs:
-                # Selection does not change the mounted label content.
-                # Its native reactive updates the selected class and underline.
-                self.current_session = self.app.selected_mode
+                self.sync_current()
                 return
             previous_tabs = {tab.mode_name: tab for tab in self._last_tabs or ()}
             geometry_changed = self._last_tabs is None
-            mode_changed = self.current_session != self.app.selected_mode
             labels = {label.id: label for label in self.query(SessionLabel)}
             desired = {tab.mode_name for tab in tabs}
             obsolete = set(labels) - desired
@@ -287,9 +282,9 @@ class SessionsTabs(CoreEventReceiver, Widget):
             if [widget.id for widget in self.title_container.children] != list(order):
                 self.title_container.sort_children(key=lambda widget: order[widget.id])
                 geometry_changed = True
-            self.current_session = self.app.selected_mode
+            self.sync_current()
             self._last_tabs = tabs
-            if geometry_changed or mode_changed:
+            if geometry_changed:
                 self.call_after_refresh(self.show_selected_tab)
             # Mount/removal yields to metadata publications. Reconcile their
             # actual newest roster before the activation caller can finish.

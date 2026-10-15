@@ -90,15 +90,12 @@ class ChannelGroup(SidebarGroup):
     def sidebar(self) -> CommsSidebar:
         return self.query_ancestor(CommsSidebar)
 
-    def on_mount(self) -> None:
-        self.sync_members()
-
     def present(self, channel: ChannelRowModel) -> None:
         """Paint the channel header from its model row."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous is None or previous.label != channel.label or previous.unread != channel.unread:
-            row.set_label(channel.label, highlighted=channel.unread.highlighted)
+        if previous is None or previous.label != channel.label:
+            row.set_label(channel.label)
         row.tooltip = channel.tooltip
         row.set_class(channel.active, "-channel-active")
         if previous is None or previous.unread != channel.unread:
@@ -121,6 +118,7 @@ class ChannelGroup(SidebarGroup):
 
     def rows_changed(self) -> None:
         self.sidebar.navigation.rows_changed()
+        super().rows_changed()
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
@@ -189,9 +187,7 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         color: $block-cursor-foreground !important;
         text-style: $block-cursor-text-style;
     }
-    CommsRow.-current { color: $text; text-style: bold; }
-    CommsRow.-current:hover, CommsRow.-current:focus { text-style: bold underline; }
-    CommsRow.-channel-active { color: $warning 100%; text-style: bold; }
+    CommsRow.-channel-active { color: $warning 100%; }
     """
 
     BINDINGS = [
@@ -201,7 +197,6 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
     ]
 
     can_focus = True
-    current = reactive(False, toggle_class="-current")
 
     def focus_on_click(self) -> bool:
         # Pointer activation navigates; keyboard traversal still owns row focus.
@@ -220,10 +215,10 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         sidebar = self.sidebar_owner()
         return sidebar is not None and sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
-    def set_label(self, label: str, *, highlighted: bool = False) -> None:
+    def set_label(self, label: str) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
-        self.show_content(Content(label), highlighted=highlighted, layout=True)
+        self.show_content(Content(label), layout=True)
 
     def sidebar_owner(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)

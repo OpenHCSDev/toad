@@ -68,6 +68,10 @@ class SidebarGroup(VerticalGroup):
             yield from self.controls
         yield self.member_container
 
+    def on_mount(self) -> None:
+        self.sync_members()
+        self.rows_changed()
+
     def toggle_members(self) -> None:
         self.expanded = not self.expanded
         self.sync_members()
@@ -98,7 +102,8 @@ class SidebarGroup(VerticalGroup):
         return self.is_attached and not self._closing and not self._pruning
 
     def rows_changed(self) -> None:
-        """Specializations invalidate navigation after native row changes."""
+        """New, replaced and disclosed rows paint the current workspace destination."""
+        self.query_ancestor(TargetTree).sync_current()
 
     def reconcile_rows(self, keys, rows, create, update, *, replace=None):
         """Retain rows by identity; mount, remove and reorder only what differs.
@@ -216,15 +221,16 @@ class TargetTree(Vertical):
     def navigation_root(self):
         raise NotImplementedError
 
+    @property
+    def current_rows(self):
+        target = self.app.workspace_sessions.visible_target(self.navigation_root)
+        return tuple(row for row in self._ordered_rows() if row.target_name == target)
+
     def sync_current(self) -> None:
         """Every representation of the displayed destination shares its paint."""
-        view = self.app.selected_session
-        root = self.navigation_root
-        target = (view.navigation_target_name
-                  if view is not None and root is not None and view.belongs_to_wire(root)
-                  else None)
+        current = self.current_rows
         for row in self._ordered_rows():
-            row.current = row.target_name == target
+            row.paint_current(row in current)
 
     def _ordered_rows(self):
         raise NotImplementedError
