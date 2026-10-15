@@ -6,6 +6,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from textual.worker import Worker, WorkerCancelled
+from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource
@@ -194,8 +195,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self.publish_core(TranscriptSourceWorkFinished())
                 HeldReaderDestination.settle(self.window)
 
-    async def retire_source(self, *, parked: bool = False) -> None:
-        """End pager mutations before any of its bodies transfer to the shelf."""
+    def retire_source(self, *, parked: bool = False) -> AwaitComplete:
+        """Withdraw publication now; join its cancelled work independently."""
         self.retire_core_observations(self.app.coordination_access.events)
         source = self._source_state.retirement_source()
         self._source_state = (ParkedSourceTranscript(source) if parked
@@ -204,11 +205,16 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.window is not None:
             self.window.histories.discard(self)
         self._source_state.retire_preparation(self._page_buffer)
-        for worker in self.workers.cancel_node(self):
-            try:
-                await worker.wait()
-            except WorkerCancelled:
-                pass
+        workers = self.workers.cancel_node(self)
+
+        async def join():
+            for worker in workers:
+                try:
+                    await worker.wait()
+                except WorkerCancelled:
+                    pass
+
+        return AwaitComplete(join())
 
     def resume_source(self) -> None:
         self._source_state = self._source_state.resume()

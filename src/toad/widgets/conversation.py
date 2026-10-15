@@ -336,9 +336,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         from toad.screens.session_view import SessionView
 
         origin = self.query_ancestor(SessionView).origin
-        if origin is None or origin.coordination_root is None or not origin._comms_thread:
-            return None
-        return origin.coordination_root, origin._comms_thread
+        return origin.transcript_scope() if origin is not None else None
 
     def status_thread(self) -> tuple[str, str] | None:
         return self.transcript.thread_scope
@@ -706,7 +704,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         self.transcript.request()
 
     def watch_agent(self, agent: AgentBase | None) -> None:
-        self.transcript.source_changed(self)
         # A presentation remount is not a fresh attachment. Start at the
         # Agent's current projection/floor so previously queued receipts cannot
         # revive proof after its reducer entered quarantine or evidence loss.
@@ -1424,7 +1421,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             return
         self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
-            self.transcript.invalidate()
+            self.transcript.invalidate_publications()
             return
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()

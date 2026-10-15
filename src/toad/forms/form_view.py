@@ -132,7 +132,7 @@ class ValueView(FieldView):
 
     def description(self) -> Content:
         help = Content.from_markup(self.field.help)
-        if not self.editor.states_default:
+        if not self.editor.states_default or not self.field.has_default:
             return help
         default = self.editor.value_text(self.field.default)
         return Content.assemble(help, (f"\ndefault: {default}", "$text-secondary"))
@@ -211,7 +211,8 @@ class FormView(containers.VerticalScroll, can_focus=False):
     }
     """
 
-    def __init__(self, state: ObjectState, *, paths: tuple[FieldPath, ...] | None = None) -> None:
+    def __init__(self, state: ObjectState, *, paths: tuple[FieldPath, ...] | None = None,
+                 focus: FieldPath | None = None) -> None:
         super().__init__()
         self.state = state
         included = (None if paths is None else
@@ -222,6 +223,9 @@ class FormView(containers.VerticalScroll, can_focus=False):
         self.values = {
             str(view.field.path): view for part in self.parts for view in part.values()
         }
+        if focus is not None:
+            editor = self.values[str(focus)].editor
+            editor.listen(events.Mount, lambda _: editor.focus())
         self.listen(events.Mount, self.follow_state)
         self.listen(events.Unmount, self.leave_state)
 
