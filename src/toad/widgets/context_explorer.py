@@ -25,7 +25,10 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibility
 
 @dataclass
 class ContextTreeIntent:
-    """Only reader choices survive disposable sidebar widget retirement."""
+    """Detail selection and initial disclosures survive widget retirement.
+
+    The mounted Tree owns navigation; selected is the detail source, not its cursor.
+    """
     expanded: set[str] = field(default_factory=set)
     selected: ContextNode | None = None
     query: str = ""
@@ -49,19 +52,15 @@ class ContextTreeIntent:
         if self.selected is original:
             self.selected = model
 
-    def restore(self, resolve, restore_node):
+    def restore_detail(self, resolve, show_detail):
         if self.selected is None:
             return False
         node = resolve(self.selected.key)
         if node is None:
             return False
         self.selected = node.data
-        restore_node(self.selected)
+        show_detail(self.selected)
         return True
-
-    def with_selected(self, model, consume):
-        if self.selected is model:
-            consume(model)
 
 
 class ContextTree(Tree[ContextNode]):
@@ -73,6 +72,8 @@ class ContextTree(Tree[ContextNode]):
         self.show_placeholder = show_placeholder
         self.context_nodes = {}
         super().__init__("Context", id="context-tree")
+        with self.prevent(Tree.NodeExpanded):
+            self.root.expand()
 
     def clear(self):
         self.context_nodes.clear()
@@ -86,7 +87,6 @@ class ContextTree(Tree[ContextNode]):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
                           Tree.NodeHighlighted):
             self.root.set_label("Context")
-            self.root.expand()
             labels = {label for label, _, _ in groups}
             for node in tuple(self.root.children):
                 if self.owns_node(node) or node.label.plain not in labels:
@@ -97,7 +97,7 @@ class ContextTree(Tree[ContextNode]):
                 if group is None:
                     group = self.root.add(label, before=index, expand=expanded)
                 self._reconcile(group, models)
-        self.restore_reader("Select a context segment to inspect.")
+        self.restore_detail("Select a context segment to inspect.")
 
     def search_results(self, matches, description, query):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
@@ -106,7 +106,7 @@ class ContextTree(Tree[ContextNode]):
             self.root.expand()
             for model in matches:
                 self._add(self.root, model)
-        self.restore_reader("Select a matching original source to read its full public text.")
+        self.restore_detail("Select a matching original source to read its full public text.")
 
     def _reconcile(self, parent, models):
         previous = {node.data.key: node for node in parent.children}
@@ -139,23 +139,12 @@ class ContextTree(Tree[ContextNode]):
             self.context_nodes.pop(node.data.key)
         node.remove()
 
-    def restore_reader(self, placeholder):
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            # Traverse the original native tree once. The lookup contains
-            # descendants too; seeding from it and adding children revisited
-            # expanded subtrees once for every ancestor.
-            pending = list(self.root.children)
-            while pending:
-                node = pending.pop()
-                if self.owns_node(node) and node.data.key in self.intent.expanded:
-                    self._expand(node)
-                    node.expand()
-                pending.extend(node.children)
-        if not self.intent.restore(self.reveal, self._reveal_restored):
+    def restore_detail(self, placeholder):
+        if not self.intent.restore_detail(self.resolve_reader, self.show_detail):
             self.show_placeholder(placeholder)
 
-    def reveal(self, key):
-        """Materialize the current path without authoring a reader choice."""
+    def resolve_reader(self, key):
+        """Rebind the detail source without changing native navigation."""
         node = self.context_nodes.get(key)
         if node is None:
             for root in tuple(self.context_nodes.values()):
@@ -163,39 +152,18 @@ class ContextTree(Tree[ContextNode]):
                 if not path:
                     continue
                 node = root
-                with self.prevent(Tree.NodeExpanded):
-                    for model in path[1:]:
-                        self._expand(node)
-                        node.expand()
-                        node = self.context_nodes[model.key]
+                for model in path[1:]:
+                    self._expand(node)
+                    node = self.context_nodes[model.key]
                 break
-        if node is not None:
-            with self.prevent(Tree.NodeExpanded):
-                ancestor = node.parent
-                while ancestor is not None:
-                    ancestor.expand()
-                    ancestor = ancestor.parent
         return node
 
-    def _reveal_restored(self, model):
-        # The retained intent owns the reader choice. Native initialization may
-        # already highlight a data-less root or group before this callback.
-        self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
-
-    def _restore_cursor(self, model):
-        node = self.context_nodes.get(model.key)
-        if self.owns_node(node) and node.data is model:
-            # The retained native cursor already owns this selection and its
-            # scroll position. Moving it again scrolls the user's viewport back
-            # to the selected row on every background context refresh.
-            if self.cursor_node is not node:
-                with self.prevent(Tree.NodeHighlighted):
-                    self.move_cursor(node, animate=False)
-            self.show_detail(model)
-
     def _add(self, parent, model, *, before=None):
-        node = parent.add(model.label, model, before=before, allow_expand=True)
+        node = parent.add(model.label, model, before=before, allow_expand=True,
+                          expand=model.key in self.intent.expanded)
         self.context_nodes[model.key] = node
+        if node.is_expanded:
+            self._expand(node)
         return node
 
     def owns_node(self, node):
@@ -214,6 +182,13 @@ class ContextTree(Tree[ContextNode]):
                 self._add(node, model)
             node.allow_expand = bool(node.children)
 
+    def _toggle_node(self, node):
+        # Capture disclosure navigation before collapsing a selected descendant.
+        # Data-less groups are native rows too; they don't select detail sources.
+        with self.prevent(Tree.NodeHighlighted):
+            self.move_cursor(node, animate=False)
+        super()._toggle_node(node)
+
     @on(Tree.NodeExpanded, "#context-tree")
     def node_expanded(self, event):
         if self.owns_node(event.node):
@@ -226,7 +201,9 @@ class ContextTree(Tree[ContextNode]):
             self.intent.expanded.discard(event.node.data.key)
 
     def selected(self, model):
-        return self.owns_node(self.cursor_node) and self.cursor_node.data is model
+        node = self.context_nodes.get(model.key)
+        return (self.owns_node(node) and node.data is model
+                and self.intent.selected is model)
 
 
 class ContextDetail(PreparedTextArea):
