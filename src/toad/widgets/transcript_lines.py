@@ -16,6 +16,7 @@ from itertools import count
 from threading import local
 
 from rich.cells import cell_len, set_cell_size
+from rich.columns import Columns
 from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
@@ -31,7 +32,7 @@ from toad.rich_preparation import RichTextBody
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import (
-    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenTarget, OpenUrl, Span, Spans,
+    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenTarget, OpenUrl, Span, Spans, SpanColumns,
     Summary, MutedRole,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
@@ -356,6 +357,32 @@ class PatchLayout:
         )
 
 
+class SpanColumnLayout(Columns):
+    """Shared span-cell layout for immediate, styled and widget presentations.
+
+    Inherits Rich's complete-cell fitting and narrow wrapping. Original span
+    links remain clickable even before styled worker output arrives.
+    """
+
+    def __init__(self, block: SpanColumns, theme: LineTheme | None = None):
+        from rich.text import Text
+
+        self.indent = block.indent
+        self.color_system = theme.color_system if theme is not None else None
+        cells = [Text.assemble(*((span.text, (theme.style(span.role) if theme is not None else Style.null())
+                                 + link_style(span.link)) for span in cell)) for cell in block.cells]
+        super().__init__(cells, padding=(0, 2))
+
+    def rows(self, width: int) -> tuple[Row, ...]:
+        from rich.console import Console
+        from rich.padding import Padding
+
+        console = Console(width=max(1, width), force_terminal=True, file=io.StringIO(),
+                          color_system=self.color_system, legacy_windows=False)
+        layout = Padding(self, (0, 0, 0, self.indent))
+        return tuple(tuple(row) for row in console.render_lines(layout, console.options, pad=False))
+
+
 class RichLineRenderer(MroDispatch):
     """Rows for each block type; plain mode skips Markdown for immediate drawing."""
 
@@ -501,6 +528,10 @@ class RichLineRenderer(MroDispatch):
                                for span in block.spans), tab_size=4)
         self.output.extend(tuple(line.render(console)) for line in text.wrap(console, self.width))
 
+    @handles(SpanColumns)
+    def columns(self, block: SpanColumns) -> None:
+        self.output.extend(SpanColumnLayout(block, self.theme).rows(self.width))
+
     @handles(Gap)
     def gap(self, block: Gap) -> None:
         self.output.append(())
@@ -556,6 +587,10 @@ class PlainRowCount(MroDispatch):
     @handles(Spans)
     def spans(self, block: Spans) -> None:
         self.count += sum(len(_plain_spans(line, self.width)) for line in _plain_lines(block.text))
+
+    @handles(SpanColumns)
+    def columns(self, block: SpanColumns) -> None:
+        self.count += len(SpanColumnLayout(block, self.theme).rows(self.width))
 
     @handles(Patch)
     def patch(self, block: Patch) -> None:
