@@ -52,7 +52,7 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
         super().__init__()
         self.control = control
         self.state = ObjectState(form)
-        self.order_field = DeclaredField.at(self.state, FieldPath(type(form)).order)
+        self.order_field = DeclaredField(self.state, FieldPath(type(form)).order)
         self.form = FormView(self.state, focus=self.order_field.path)
         paths = control.visibility_fields()
         self.visibility_form = (FormView(self.app.saved_settings.state, paths=paths)

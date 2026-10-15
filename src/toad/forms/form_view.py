@@ -4,14 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from formbridge.forms.parameter_form_service import (
-    FormStructure,
-    ParameterAnalysisInput,
-    ParameterFormService,
-)
+from formbridge.forms.parameter_form_service import ParameterFormService
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, GenericInfo
 from objectstate import ObjectState
-from python_introspect import UnifiedParameterAnalyzer, resolve_annotated
 from textual import containers, events, lazy
 from textual.app import ComposeResult
 from textual.content import Content
@@ -19,30 +14,7 @@ from textual.widgets import Static
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews
 from toad.forms.editors import ValueEditor
-from toad.forms.field_path import FieldPath, label, steps
-
-
-def form_structure(state: ObjectState) -> FormStructure:
-    """What formbridge finds in the object the state holds.
-
-    formbridge is given each field's type without its `Annotated` metadata:
-    it does not see a nested dataclass through `Annotated` (formbridge issue #7).
-    The views read labels, choices and bounds from the declaration itself.
-    """
-    held = state.object_instance
-    declared = UnifiedParameterAnalyzer.analyze(held)
-    return ParameterFormService().analyze_parameters(
-        ParameterAnalysisInput(
-            default_value={name: state.parameters[name] for name in declared},
-            param_type={
-                name: resolve_annotated(parameter.param_type)
-                for name, parameter in declared.items()
-            },
-            field_id="",
-            description=state.parameter_descriptions,
-            parent_obj_type=type(held),
-        )
-    )
+from toad.forms.field_path import FieldPath, steps
 
 
 class FieldTitle(Static):
@@ -76,21 +48,25 @@ class GroupTitle(Static):
 class FieldView(containers.VerticalGroup, DeclaredViews):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
-    def __init__(self, field: DeclaredField, structure: FormStructure,
+    def __init__(self, field: DeclaredField,
                  included: frozenset[FieldPath] | None = None) -> None:
         super().__init__()
         self.field = field
 
     @staticmethod
-    def of(state: ObjectState, parent: FieldPath, structure: FormStructure,
+    def of(state: ObjectState, parent: FieldPath,
            included: frozenset[FieldPath] | None = None) -> list[FieldView]:
-        """A view for each parameter formbridge lists, in its order."""
+        """Show ObjectState's direct children; FormBridge supplies each field's kind.
+
+        ObjectState already extracted this topology. Reading it does not rebuild
+        a second form tree or re-analyze the held object's values.
+        """
         views = []
-        for parameter in structure.parameters:
+        for parameter in ParameterFormService().parameters_for_state(state, str(parent)):
             path = getattr(parent, parameter.name)
             if included is None or path in included:
-                field = DeclaredField.at(state, path)
-                views.append(FieldView.showing(type(parameter).__mro__)(field, structure, included))
+                field = DeclaredField(state, path)
+                views.append(FieldView.showing(type(parameter).__mro__)(field, included))
         return views
 
     def values(self) -> Iterator[ValueView]:
@@ -118,12 +94,14 @@ class ValueView(FieldView):
 
     CHANGED_MARK = " ●"
 
-    def __init__(self, field: DeclaredField, structure: FormStructure,
+    def __init__(self, field: DeclaredField,
                  included: frozenset[FieldPath] | None = None) -> None:
-        super().__init__(field, structure, included)
+        super().__init__(field, included)
         self.editor = ValueEditor.declared_for(field)
         self.title = FieldTitle(field.label)
-        self.search_text = " ".join(label(step) for step in steps(field.path)).lower()
+        self.search_text = " ".join(
+            DeclaredField(field.state, step).label for step in steps(field.path)
+        ).lower()
 
     def compose(self) -> ComposeResult:
         yield self.title
@@ -175,11 +153,10 @@ class GroupView(FieldView):
     }
     """
 
-    def __init__(self, field: DeclaredField, structure: FormStructure,
+    def __init__(self, field: DeclaredField,
                  included: frozenset[FieldPath] | None = None) -> None:
-        super().__init__(field, structure, included)
-        name = str(field.path).rpartition(".")[2]
-        self.parts = FieldView.of(field.state, field.path, structure.nested_forms[name], included)
+        super().__init__(field, included)
+        self.parts = FieldView.of(field.state, field.path, included)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -218,7 +195,7 @@ class FormView(containers.VerticalScroll, can_focus=False):
         included = (None if paths is None else
                     frozenset(step for path in paths for step in steps(path)))
         self.parts = FieldView.of(
-            state, FieldPath(type(state.object_instance)), form_structure(state), included
+            state, FieldPath(type(state.object_instance)), included
         )
         self.values = {
             str(view.field.path): view for part in self.parts for view in part.values()
