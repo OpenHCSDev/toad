@@ -210,7 +210,7 @@ See on-screen instructions for details.
 
     @property
     def can_enter_shell(self) -> bool:
-        return not self.text and not self.simple_input and not self.shell_mode
+        return self.submission_allowed and not self.text and not self.simple_input and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
         self.notify_style_update()

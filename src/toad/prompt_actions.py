@@ -56,7 +56,7 @@ class ClearInputAction(KeyboundAction, PromptAction):
     show = False
 
     def available(self, editor):
-        return bool(editor.text)
+        return bool(editor.text) and not editor.selected_text
 
     async def apply(self, editor):
         editor.editing_mode.suspend(editor)
