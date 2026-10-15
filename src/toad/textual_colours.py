@@ -137,11 +137,20 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return self._terminal_themes[name]
 
     def variables_changed(self, variables: dict[str, str]) -> None:
-        self.variables = variables
+        terminal = self.app.ansi_theme
+
+        def read(member: type[ThemeColour]) -> Rgb:
+            value = Color.parse(variables[member.name])
+            return Rgb(*value.rich_color.get_truecolor(terminal, foreground=not member.background), value.a)
+
+        self.variables = {**variables, **{
+            member.name: self.rgb(member.resolve_rgb(read)) for member in ThemeColour.members()
+            if not issubclass(member, (CoreColour, LayerColour))
+        }}
         from dataclasses import replace
         from toad.rich_preparation import SyntaxPalette
 
-        self.line_theme = replace(LineTheme.of(variables, self.depth.name),
+        self.line_theme = replace(LineTheme.of(self.variables, self.depth.name),
                                   diff=self.app.settings.diff,
                                   syntax=SyntaxPalette.of(self.app),
                                   terminal_theme=self.app.ansi_theme)
@@ -153,11 +162,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         colours = {colour.name: value.native(self) for colour, value in scheme.colours.items()
                    if issubclass(colour, (CoreColour, LayerColour))}
         theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
-                      variables={
-                          **{name: _element(value, self) for name, value in scheme.elements.items()},
-                          **{member.name: self.rgb(scheme.rgb(member)) for member in ThemeColour.members()
-                             if not issubclass(member, (CoreColour, LayerColour))},
-                      },
+                      variables={name: _element(value, self) for name, value in scheme.elements.items()},
                       **colours)
         # Resolve the scheme's paired cursor colours at the backend boundary.
         # Content rows must not re-evaluate `auto` against an inherited surface
@@ -282,7 +287,7 @@ class ThemedApp:
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()  # type: ignore[misc]
         self.colours.variables_changed(variables)
-        return variables
+        return self.colours.variables
 
     @property
     def ansi_theme(self) -> TerminalTheme:
