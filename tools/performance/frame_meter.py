@@ -54,7 +54,8 @@ def install(*, expected_pid, seconds, output):
 
     app = _running_app(expected_pid)
 
-    inputs_types = (events.Key, events.MouseScrollUp, events.MouseScrollDown)
+    # Divider drags are input too; the mouse family includes wheel events.
+    inputs_types = (events.Key, events.MouseEvent)
     clock = time.monotonic_ns
     state = {"busy": 0, "current": None, "parts": {}, "cpu": time.thread_time_ns(), "shown": clock()}
     frames, inputs, slow, slow_frames, gc_pauses = [], [], [], [], []
