@@ -226,7 +226,6 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
         self.range_changed()
 
     def on_unmount(self) -> None:
-        self.stop_effect()
         if self._render_task is not None:
             self._render_task.cancel()
 
