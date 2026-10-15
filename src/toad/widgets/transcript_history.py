@@ -392,9 +392,9 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
 
         window = self.query_ancestor(HistoryWindow)
         async with window.preserve_history(root=self):
-            for fragment, task, lines in ready:
-                task.hold(self, fragment, lines)
-            self.range_changed()
+            # Retain every result; only accepted rows can change the layout.
+            if any([task.hold(self, fragment, lines) for fragment, task, lines in ready]):
+                self.range_changed()
 
     @classmethod
     @asynccontextmanager
