@@ -183,7 +183,7 @@ class SentMessageToolOutputPart(ToolOutputPart):
             return self
         message = self.message.in_source(scope, supplies)
         return (ProjectedSentMessageToolOutputPart(message)
-                if message.scope is not None and scope.same_publication_source(message.scope) else self)
+                if message.qualified_for(scope) else self)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:

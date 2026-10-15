@@ -22,7 +22,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def owns_publication(self, message, target):
         """Wire equality cannot substitute for this original acquired surface."""
-        if message.subscription is not self.subscription or not self.subscription.active:
+        if not self.subscription.accepts(message.subscription):
             return False
         if not self.owns(target) or target.agent is not message.publisher:
             return False

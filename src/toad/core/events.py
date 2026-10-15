@@ -63,6 +63,15 @@ class ToolCall(CoreEvent):
     tool_call: Annotated[ToolCallStatus, ToolCallWire]
     scope: AssignedSourceIdentity | None = None
 
+    def in_native_source(self, scope):
+        # Missing coordination still permits literal tool evidence, never a
+        # qualified publication. A known source must remain the same author.
+        if self.scope is None:
+            return scope is None
+        if scope is None:
+            return False
+        return scope.same_publication_source(self.scope)
+
     @property
     def tool_id(self) -> str:
         from toad.acp.encode_tool_call_id import encode_tool_call_id
@@ -379,6 +388,10 @@ class Subscription:
     @property
     def active(self) -> bool:
         return self in self.stream.subscriptions
+
+    def accepts(self, original: Subscription) -> bool:
+        """Admission belongs to this exact acquired subscription while active."""
+        return self is original and self.active
 
     def close(self) -> None:
         self.stream.subscriptions.discard(self)

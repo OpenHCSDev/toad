@@ -24,10 +24,7 @@ class SessionToolCalls:
         call = event.tool_call.call
         if self.calls.get(call.tool_call_id) is not call:
             return False
-        scope = self.scope
-        if scope is None:
-            return event.scope is None
-        return event.scope is not None and scope.same_publication_source(event.scope)
+        return event.in_native_source(self.scope)
 
     def publish(self, current):
         self.agent.events.publish(events.ToolCall(ToolCallStatus.from_acp(current), self.scope))
