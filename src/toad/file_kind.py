@@ -77,16 +77,15 @@ class ImageFileKind(FileKind):
             return image.copy()
 
     @classmethod
-    async def show(cls, view, image):
+    async def show(cls, view, image, position=None):
         from textual_image.widget import Image
         content = Image(image)
         content.styles.width = "100%"
         content.styles.height = "auto"
         await view.body.mount(content)
 
-    @classmethod
-    async def show_at(cls, view, image, position):
-        await cls.show(view, image)
+    # Images have no source cursor: both declared entry points use this behavior.
+    show_at = show
 
 
 class PngFileKind(ImageFileKind):
