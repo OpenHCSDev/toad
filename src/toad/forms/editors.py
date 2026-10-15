@@ -196,6 +196,12 @@ class SelectEditor(Select[object], ValueEditor):
     def lists(self, value: object) -> bool:
         return any(value == choice for _, choice in self.offered)
 
+    def value_text(self, value: object) -> str:
+        for label, choice in self.offered:
+            if value == choice:
+                return label
+        return super().value_text(value)
+
     def changed(self, message: Select.Changed) -> None:
         message.stop()
         if message.value is not Select.NULL:
@@ -219,19 +225,13 @@ class ChoicesEditor(SelectEditor):
     def options(self) -> Iterable[tuple[str, object]]:
         return ((self.choices.label(choice), choice) for choice in self.choices.choices())
 
-    def value_text(self, value: object) -> str:
-        return self.choices.label(value)
-
 
 class EnumEditor(SelectEditor):
     shows = (Enum,)
 
     def options(self) -> Iterable[tuple[str, object]]:
         members: type[Enum] = resolve_annotated(self.field.annotation)  # type: ignore[assignment]
-        return ((self.value_text(member), member) for member in members)
-
-    def value_text(self, value: object) -> str:
-        return format_enum_display(value)  # type: ignore[arg-type]
+        return ((format_enum_display(member), member) for member in members)
 
 
 class OptionalEditor(containers.VerticalGroup, ValueEditor):

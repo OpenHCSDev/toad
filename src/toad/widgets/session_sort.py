@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Annotated
 
 from agent_comms.display_order import (
-    ChannelSort, CreatedThreadSort, DisplayOrder, NameChannelSort, ThreadSort,
+    ChannelSort, DisplayOrder, ThreadSort,
 )
 from objectstate import ObjectState
 from python_introspect import FieldLabel
@@ -28,14 +28,14 @@ from toad.setting_choices import FamilyChoices
 class ThreadSortForm:
     order: Annotated[
         type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order")
-    ] = CreatedThreadSort
+    ] = None
 
 
 @dataclass(frozen=True)
 class ChannelSortForm:
     order: Annotated[
-        type[ChannelSort], FamilyChoices(ChannelSort), FieldLabel("Channel order")
-    ] = NameChannelSort
+        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order")
+    ] = None
 
 
 class SortDialog(ModalScreen[type[DisplayOrder] | None]):
@@ -48,9 +48,11 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
         self.control = control
         self.state = ObjectState(control.form_type(control.order))
         self.form = FormView(self.state)
-        self.visibility = control.visibility_fields()
-        self.visibility_form = (FormView(self.app.saved_settings.state, paths=self.visibility)
-                                if self.visibility else None)
+        editor = self.form.values["order"].editor
+        editor.listen(events.Mount, lambda _: editor.focus())
+        paths = control.visibility_fields()
+        self.visibility_form = (FormView(self.app.saved_settings.state, paths=paths)
+                                if paths else None)
 
     def compose(self):
         with VerticalScroll() as panel:
@@ -69,7 +71,6 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
     def on_mount(self):
         self.styles.align = ("center", "middle")
         self.state.on_resolved_changed(self.order_changed)
-        self.call_after_refresh(self.focus_next)
 
     def order_changed(self, paths: set[str]):
         if "order" in paths:
@@ -79,7 +80,7 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
 
     def on_unmount(self):
         self.state.off_resolved_changed(self.order_changed)
-        if self.visibility:
+        if self.visibility_form is not None:
             self.app.run_worker(self.app.saved_settings.save(), group="channel-visibility")
 
     def action_cancel(self):
@@ -120,7 +121,7 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
         order = self.order
         label = f"{order.label()} ▾" if order is not None else "Sort ▾"
         tooltip = (f"Sort {self.scope} by {order.label().lower()}" if order is not None
-                   else f"Sort {self.scope} (currently different orders)")
+                   else f"Choose how to sort {self.scope}")
         if self.content != label:
             self.update(label)
         if self.tooltip != tooltip:
@@ -161,6 +162,10 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
 class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
     """Both channel controls write through the route that supplies their observed rows."""
 
+    def __init__(self, form: ThreadSortForm | ChannelSortForm, scope: str, *, channel: str | None = None):
+        self.channel = channel
+        super().__init__(form, scope)
+
     def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         access = self.app.coordination_access
         observed = access.observation
@@ -171,30 +176,20 @@ class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
             raise ValueError("Comms route changed before sorting")
         async def write(order):
             return await self.app.preparation.run_thread(
-                access.write, observed.selection, self.store_order, observed.service.channels, order,
+                access.write, observed.selection, order.store_channel_order, observed.service.channels, self.channel,
             )
 
         return write
 
-    @abstractmethod
-    def store_order(self, channels, order: type[Order]) -> type[Order]: ...
-
 
 class SessionSort(CommsSortControl[ThreadSort]):
     def __init__(self, channel: str):
-        self.channel = channel
-        super().__init__(ThreadSortForm(), channel)
-
-    def store_order(self, channels, order: type[ThreadSort]) -> type[ThreadSort]:
-        return channels.set_channel_sort(self.channel, order).order
+        super().__init__(ThreadSortForm(), channel, channel=channel)
 
 
 class ChannelListSort(CommsSortControl[ChannelSort]):
     def __init__(self):
         super().__init__(ChannelSortForm(), "channels")
-
-    def store_order(self, channels, order: type[ChannelSort]) -> type[ChannelSort]:
-        return channels.set_channel_order(order)
 
     def visibility_fields(self) -> tuple[FieldPath, ...]:
         return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived
