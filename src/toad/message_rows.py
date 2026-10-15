@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
 
 from agent_comms import HistoricalMessage
 from agent_comms.declared_family import DeclaredFamily
@@ -31,8 +30,6 @@ from toad.line_blocks import (
 @dataclass(frozen=True)
 class MessageRow:
     """One message: who sent it to whom, when, its text, and whether the reader's thread sent it."""
-
-    route_arrow: ClassVar[str] = " ──> "
 
     route: MessageRoute
     text: str
@@ -85,15 +82,23 @@ class MessageRow:
 
     @property
     def route_text(self) -> str:
-        targets = ", ".join(self.route.targets)
-        return f"{self.route.sender}{self.route_arrow}{targets}" if targets else self.route.sender
+        return self.header.label
 
     @property
     def header(self) -> Divider:
-        spans = [self.name(self.route.sender, self.role)]
+        sender = (self.name(self.route.sender, self.role),)
+        targets: list[Span] = []
         for index, target in enumerate(self.route.targets):
-            spans += [Span(", " if index else self.route_arrow, self.role), self.name(target)]
-        return Divider(tuple(spans), self.role, self.timestamp)
+            if index:
+                targets.append(Span(", "))
+            targets.append(self.name(target))
+        if not targets:
+            spans = sender
+        elif self.outgoing:
+            spans = sender + (Span(" ──> ", self.role),) + tuple(targets)
+        else:
+            spans = tuple(targets) + (Span(" <── ", self.role),) + sender
+        return Divider(spans, self.role, self.timestamp)
 
 
 class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
