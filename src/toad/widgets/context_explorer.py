@@ -8,7 +8,8 @@ from pathlib import Path
 from acp.exceptions import RequestError
 from textual import on, work
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Input, Static, PreparedTextArea, Tree
+from textual.widgets import Button, Input, Static, Tree
+from toad.widgets.process_text_area import ProcessTextArea
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 from agent_comms.coordinator import Coordination
@@ -206,16 +207,6 @@ class ContextTree(Tree[ContextNode]):
                 and self.intent.selected is model)
 
 
-class ContextDetail(PreparedTextArea):
-    """Borrow the App's existing process renderer for native document work."""
-
-    async def _prepare_document(self, source, width, tab_width):
-        from toad.render_tasks import ReadOnlyDocumentRenderTask
-
-        return await self.app.render_processes.submit(
-            ReadOnlyDocumentRenderTask(source, width, tab_width))
-
-
 class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     DEFAULT_CSS = """
     ContextExplorer { height: auto; }
@@ -247,7 +238,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Newer requests", id="context-newer", disabled=True)
             yield Button("Older requests", id="context-older", disabled=True)
         yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
-        yield ContextDetail("No context selected.", soft_wrap=True,
+        yield ProcessTextArea("No context selected.", soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
         yield Button("Export selected text + source", id="context-export")
@@ -369,7 +360,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.query_one(".context-status", Static).update(updated.status)
 
     def _show_placeholder(self, placeholder):
-        detail = self.query_one(ContextDetail)
+        detail = self.query_one(ProcessTextArea)
         detail.load_text_prepared(placeholder)
 
     @on(Button.Pressed, "#context-correct")
@@ -500,7 +491,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         if not self._selected(model):
             return
-        detail = self.query_one(ContextDetail)
+        detail = self.query_one(ProcessTextArea)
         self.screen.maximize(detail, container=False)
         detail.focus()
 
@@ -558,7 +549,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         # a reusable string key shared by another thread or context snapshot.
         if not self._selected(model):
             return
-        area = self.query_one(ContextDetail)
+        area = self.query_one(ProcessTextArea)
         # A read borrows the native document; it does not replace the reader's
         # selection and scroll with a temporary one-line document.
         try:

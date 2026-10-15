@@ -64,6 +64,10 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
         self._selection_generation = 0
 
     @property
+    def coordination_root(self) -> str:
+        return str(self.comms.root)
+
+    @property
     def project_root(self) -> Path:
         index = self.query_one("#saved-identity", Select).value
         return Path(self.threads[index].thread.worktree)

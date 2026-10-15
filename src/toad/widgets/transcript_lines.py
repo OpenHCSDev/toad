@@ -13,7 +13,6 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
 from itertools import count
-from threading import local
 
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
@@ -32,12 +31,14 @@ from toad.rich_preparation import RichTextBody
 from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import (
-    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenTarget, OpenUrl, Span, Spans, SpanColumns,
+    Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, OpenUrl, Span, Spans, SpanColumns,
     Summary, MutedRole,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
 from toad.menus import MenuItem
-from toad.message_rows import MessageRow
+from toad.message_rows import MessageRow, WireBody
+from toad.markdown_links import LinkContext, MessageMarkdownParser
+from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import linked_target
 from toad.render_backend import ReusableRenderTask
@@ -120,31 +121,18 @@ def _clickable(rows: list[Row]) -> list[Row]:
         style = segment.style
         if style is None or not style.link:
             return segment
-        return Segment(segment.text, style + Style.from_meta({"@click": OpenUrl(style.link).click}), segment.control)
+        return Segment(segment.text, style + link_style(LineLink.from_href(style.link)), segment.control)
 
     return [tuple(map(linked, row)) for row in rows]
 
 
-class _MarkdownParser(local):
-    """Rich's Markdown parser, linking the addresses `OpenUrl` opens: left alone it refuses files."""
-
-    def __init__(self) -> None:
-        from markdown_it import MarkdownIt
-
-        self.parser = MarkdownIt().enable("strikethrough").enable("table")
-        self.parser.validateLink = OpenUrl.opens  # type: ignore[method-assign]
-
-
-_markdown_parser = _MarkdownParser()
-
-
-def _markdown(text: str):
+def _markdown(text: str, context: LinkContext):
     """A message's text as Rich Markdown."""
     from rich.markdown import Markdown
 
     # Rich parses in its constructor with a parser of its own; parse nothing there.
     markdown = Markdown("")
-    markdown.markup, markdown.parsed = text, _markdown_parser.parser.parse(text)
+    markdown.markup, markdown.parsed = text, MessageMarkdownParser(context).parse(text)
     return markdown
 
 
@@ -200,11 +188,30 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
     def open_historical_target(self, link: OpenHistoricalTarget) -> None:
         self.publish_core(SelectHistoricalIdentity(link.target, link.source))
 
-    async def action_link(self, href: str) -> None:
-        """What a click on an address runs (`OpenUrl.click`): a file opens its preview, anything else the browser."""
-        from toad.project_path_owner import ProjectPathOwner
+    @handles(OpenReference)
+    def open_reference(self, link: OpenReference) -> None:
+        sidebar = self.app.coordination_access.sidebar
+        if sidebar is None or sidebar.snapshot is None or not link.reference.current_in(sidebar.snapshot.references):
+            self.notify("This reference belongs to an unavailable or replaced source.", severity="warning")
+            return
+        self.dispatch_sync(link.reference)
 
-        await ProjectPathOwner.link_from(self, href).preview(self)
+    @handles(ThreadDisplayReference, ChannelDisplayReference)
+    def open_current_reference(self, reference) -> None:
+        self.open_target(OpenTarget(reference.name))
+
+    @handles(HistoricalDisplayReference)
+    def open_recorded_reference(self, reference) -> None:
+        self.open_historical_target(OpenHistoricalTarget(reference.name, reference.source))
+
+    @handles(OpenUrl)
+    def open_url(self, link: OpenUrl) -> None:
+        from toad.project_path_owner import ProjectPathOwner
+        self.run_worker(ProjectPathOwner.link_from(self, link.url).preview(self), group="open-link")
+
+    def action_link(self, href: str) -> None:
+        """Decode Markdown's transport once, then use the ordinary typed actions."""
+        self.action_open(LineLink.from_href(href))
 
 
 class OpensMessageNames(OpensLinks):
@@ -418,7 +425,8 @@ class SpanColumnLayout(Columns):
 class RichLineRenderer(MroDispatch):
     """Rows for each block type; plain mode skips Markdown for immediate drawing."""
 
-    def __init__(self, theme: LineTheme, width: int, *, plain: bool = False):
+    def __init__(self, theme: LineTheme, width: int, *, context: LinkContext | None = None, plain: bool = False):
+        self.context = context
         self.theme = theme
         self.width = width
         self.plain = plain
@@ -570,6 +578,14 @@ class RichLineRenderer(MroDispatch):
     def gap(self, block: Gap) -> None:
         self.output.append(())
 
+    @handles(WireBody)
+    def wire_body(self, block: WireBody) -> None:
+        if self.plain:
+            self.body(Body(block.text, bar=block.bar, markdown=False))
+            return
+        context = self.context.for_source(block.row.source)
+        self.output.extend(RichLineRenderer(self.theme, self.width, context=context).rows((block.prepare(context),)))
+
     @handles(Body)
     def body(self, block: Body) -> None:
         inner = _text_width(block, self.width)
@@ -581,7 +597,7 @@ class RichLineRenderer(MroDispatch):
                               force_terminal=True,
                               file=io.StringIO(), legacy_windows=False)
             rows = _clickable([tuple(line) for line in console.render_lines(
-                _markdown(block.text), console.options.update(width=inner), style=style, pad=False)])
+                _markdown(block.text, self.context), console.options.update(width=inner), style=style, pad=False)])
         else:
             rows = [(Segment(line[start:start + inner], style),)
                     for line in _plain_lines(block.text) for start in _plain_spans(line, inner)]
@@ -613,7 +629,7 @@ class PlainRowCount(MroDispatch):
     def one_row(self, block: LineBlock) -> None:
         self.count += 1
 
-    @handles(Body)
+    @handles(Body, WireBody)
     def body(self, block: Body) -> None:
         inner = _text_width(block, self.width)
         self.count += sum(len(_plain_spans(line, inner)) for line in _plain_lines(block.text))
@@ -710,6 +726,7 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
     """Render a fragment's line blocks at a width in a render worker."""
 
     preparation: LinePreparation
+    context: LinkContext
 
     @property
     def blocks(self) -> tuple[LineBlock, ...]:
@@ -719,7 +736,7 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
     def execute(self) -> PreparedLines:
         preparation = self.preparation
         return PreparedLines(preparation.width, RichLineRenderer(
-            preparation.theme, preparation.width).rows(preparation.prepared_blocks))
+            preparation.theme, preparation.width, context=self.context).rows(preparation.prepared_blocks))
 
     def accept_result(self, result: object) -> PreparedLines:
         if not isinstance(result, PreparedLines) or result.width != self.preparation.width:

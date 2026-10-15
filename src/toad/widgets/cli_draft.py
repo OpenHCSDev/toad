@@ -1,6 +1,7 @@
 """The current external CLI item, drawn beside finished history."""
 
 from agent_comms.external_transcript import ExternalDraftRow
+from toad.markdown_links import LinkContext
 from textual.widget import Widget
 from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
@@ -54,7 +55,7 @@ class CliDraft(ConversationBlock, LinkedRows, Widget):
             for event in draft.events:
                 consumer.dispatch_sync(event)
             lines = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(tuple(consumer.blocks), width, theme))
+                TranscriptLinesRenderTask(tuple(consumer.blocks), width, theme, await LinkContext.acquire(self)))
             if not self.is_attached or self.draft is None:
                 return
             if ((draft.turn_id, draft.item_id) != (self.draft.turn_id, self.draft.item_id)

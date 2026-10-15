@@ -237,13 +237,17 @@ class SessionNavigation:
             await entry.ready(self)
         return entry.mode
 
-    async def preview(self, path: Path) -> str:
+    async def preview(self, path: Path, *, position=None) -> str:
         path = path.expanduser().resolve()
         entry = self.find(path)
         if entry is None:
             entry = PreviewSessionEntry.of(f"preview-{next(self.identities)}", path, self.app.selected_mode)
-            return await self.open(entry, after=self.app.selected_mode)
-        await self.app.select_session(entry.mode)
+            await self.open(entry, after=self.app.selected_mode)
+        else:
+            await self.app.select_session(entry.mode)
+        if position is not None:
+            view = self.app.workspace_sessions.views[entry.mode]
+            await view.preview.reveal(position)
         return entry.mode
 
     def entered(self, mode: str, previous: str) -> None:

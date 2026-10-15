@@ -21,4 +21,8 @@ class ProjectPathOwner:
 
     @property
     @abstractmethod
+    def coordination_root(self) -> str | None: ...
+
+    @property
+    @abstractmethod
     def project_root(self) -> Path: ...

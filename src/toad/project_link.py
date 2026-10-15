@@ -12,8 +12,9 @@ from pathlib import Path
 from typing import ClassVar
 from urllib.parse import SplitResult, quote, unquote, urlsplit
 
-from agent_comms.declared_family import DeclaredFamily
 from markdown_it.token import Token
+from toad.line_blocks import LineLink
+from toad.file_position import FilePosition
 
 
 class ProjectLinkProblem(Exception):
@@ -50,7 +51,7 @@ class EncodedProjectLink:
     def from_uri(cls, uri: SplitResult) -> ProjectLink: ...
 
 
-class ProjectLink(DeclaredFamily, affix="Link"):
+class ProjectLink(LineLink):
     @classmethod
     def from_href(cls, project_root: Callable[[], Path], href: str) -> ProjectLink:
         """Decode URI syntax once, including the external file/relative grammar."""
@@ -65,12 +66,10 @@ class ProjectLink(DeclaredFamily, affix="Link"):
             return ExternalProjectLink(href)
         root = project_root()
         value = unquote(uri.path)
-        try:
-            return DirectProjectFileLink(cls.existing_file(root, value))
-        except ProjectLinkProblem:
-            pass
-        if not (uri.scheme or uri.fragment or uri.query) and SearchProjectFileLink.accepts(value):
-            return SearchProjectFileLink(value)
+        link = cls.file_spelling(root, value, position=FilePosition.from_fragment(uri.fragment),
+                                 search=not (uri.scheme or uri.query or uri.fragment))
+        if link is not None:
+            return link
         if Path(uri.path).suffix:
             return MissingProjectFileLink(href)
         return ExternalProjectLink(href)
@@ -78,13 +77,23 @@ class ProjectLink(DeclaredFamily, affix="Link"):
     @classmethod
     def from_path(cls, root: Path, value: str) -> ProjectLink:
         """Plain token paths are filesystem spellings, never URI-decoded twice."""
+        return cls.file_spelling(root, value) or ExternalProjectLink(value)
+
+    @classmethod
+    def file_spelling(cls, root, value, *, position=None, search=True):
+        spelling, suffix = FilePosition.split(value)
+        if suffix is not None:
+            # Colons may belong to a real POSIX filename; don't erase that identity.
+            try:
+                return DirectProjectFileLink(cls.existing_file(root, value), position=position)
+            except ProjectLinkProblem:
+                value, position = spelling, position or suffix
         try:
-            return DirectProjectFileLink(cls.existing_file(root, value))
+            return DirectProjectFileLink(cls.existing_file(root, value), position=position)
         except ProjectLinkProblem:
-            pass
-        if SearchProjectFileLink.accepts(value):
-            return SearchProjectFileLink(value)
-        return ExternalProjectLink(value)
+            if search and SearchProjectFileLink.accepts(value):
+                return SearchProjectFileLink(value, position=position)
+        return None
 
     @staticmethod
     def existing_file(root: Path, value: str) -> Path:
@@ -113,13 +122,18 @@ class ProjectLink(DeclaredFamily, affix="Link"):
         return False
 
 
+@dataclass(frozen=True, kw_only=True)
 class ProjectFileLink(ProjectLink):
+    position: FilePosition | None = None
+
+    def at_position(self, href):
+        return f"{href}#{self.position.fragment}" if self.position is not None else href
+
     @abstractmethod
     async def resolve(self, root: Path) -> Path: ...
 
     def inline_tokens(self, content: Token) -> tuple[Token, ...]:
-        return (Token("link_open", "a", 1, attrs={"href": self.href}),
-                content, Token("link_close", "a", -1))
+        return LineLink.inline_tokens(self, content)
 
     async def preview(self, widget) -> None:
         await self.apply_file(widget, partial(self.preview_file, widget))
@@ -145,7 +159,7 @@ class ProjectFileLink(ProjectLink):
 
     def preview_file(self, widget, path: Path) -> None:
         # Navigation may retire this pump; finish it before changing the view.
-        widget.app.run_worker(partial(widget.app.session_navigation.preview, path))
+        widget.app.run_worker(partial(widget.app.session_navigation.preview, path, position=self.position))
 
     def copy_file(self, widget, event, path: Path) -> None:
         from toad.widgets.comms_menu import show_target_menu
@@ -163,11 +177,11 @@ class DirectProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
 
     @classmethod
     def from_uri(cls, uri: SplitResult) -> DirectProjectFileLink:
-        return cls(Path(unquote(uri.path)))
+        return cls(Path(unquote(uri.path)), position=FilePosition.from_fragment(uri.fragment))
 
     @property
     def href(self) -> str:
-        return f"{self.declared_name}:{quote(str(self.path))}"
+        return self.at_position(f"{self.declared_name}:{quote(str(self.path))}")
 
     async def resolve(self, root: Path) -> Path:
         return self.existing_file(root, str(self.path))
@@ -207,11 +221,11 @@ class SearchProjectFileLink(EncodedProjectLink, ProjectFileLink, declared_name="
 
     @classmethod
     def from_uri(cls, uri: SplitResult) -> SearchProjectFileLink:
-        return cls(unquote(uri.path))
+        return cls(unquote(uri.path), position=FilePosition.from_fragment(uri.fragment))
 
     @property
     def href(self) -> str:
-        return f"{self.declared_name}:{quote(self.name)}"
+        return self.at_position(f"{self.declared_name}:{quote(self.name)}")
 
     async def resolve(self, root: Path) -> Path:
         return await asyncio.to_thread(self.search, root)
