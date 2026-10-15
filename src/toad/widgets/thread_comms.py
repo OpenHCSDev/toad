@@ -183,7 +183,7 @@ class RelationshipRows(SidebarGroup):
             row.target = entry_target(entry)
             if not entry.available:
                 row.retire_thread_row()
-                row.remove_class("-busy", "-unread", "-current")
+                row.remove_class("-busy", "-current")
                 row.add_class("-wire-thread")
                 _update_content(row, Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"))
             elif entry.person is not None:
