@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Annotated
 
 from agent_comms.display_order import (
-    ChannelSort, CreatedThreadSort, DisplayOrder, NameChannelSort, ThreadSort,
+    ChannelSort, DisplayOrder, ThreadSort,
 )
 from objectstate import ObjectState
 from python_introspect import FieldLabel
@@ -28,14 +28,14 @@ from toad.setting_choices import FamilyChoices
 class ThreadSortForm:
     order: Annotated[
         type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order")
-    ] = CreatedThreadSort
+    ] = None
 
 
 @dataclass(frozen=True)
 class ChannelSortForm:
     order: Annotated[
-        type[ChannelSort], FamilyChoices(ChannelSort), FieldLabel("Channel order")
-    ] = NameChannelSort
+        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order")
+    ] = None
 
 
 class SortDialog(ModalScreen[type[DisplayOrder] | None]):
@@ -121,7 +121,7 @@ class SortControl[Order: DisplayOrder](Static, can_focus=True):
         order = self.order
         label = f"{order.label()} ▾" if order is not None else "Sort ▾"
         tooltip = (f"Sort {self.scope} by {order.label().lower()}" if order is not None
-                   else f"Sort {self.scope} (currently different orders)")
+                   else f"Choose how to sort {self.scope}")
         if self.content != label:
             self.update(label)
         if self.tooltip != tooltip:
