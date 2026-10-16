@@ -56,10 +56,10 @@ def _element(value: Any, backend: TextualColours) -> str:
 
 
 class BlockInk(ABC):
-    """An eighth-block's occupied edge, independent of its theme colour."""
+    """A native block's occupied edge, independent of its theme colour."""
 
-    # Native lower/upper ink at each eighth; one quantizer for both edges.
-    GLYPHS = ("  ", "▁▔", "▂🮂", "▃🮃", "▄▀", "▅🮄", "▆🮅", "▇🮆", "██")
+    # Common native half/full blocks; one quantizer for both edges.
+    GLYPHS = ("  ", "▄▀", "██")
     LEVELS = len(GLYPHS) - 1
 
     @classmethod
@@ -260,8 +260,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
                 continue
             level = max(1, min(edge.LEVELS, round(height * edge.LEVELS)))
             ink = colours[start].blend(colours[end], amount)
-            # Fade sub-eighth tails only. A taller glyph must not dim the whole
-            # band each time its height crosses the next terminal-cell step.
+            # Fade tails smaller than the first native level. Keep the body
+            # at full colour when its glyph reaches that level.
             ink = background.blend(ink, min(1.0, height * edge.LEVELS))
             segments.append(edge.paint(level, ink, background, style))
         return Strip(Segment.simplify(segments), cell_length=width)
