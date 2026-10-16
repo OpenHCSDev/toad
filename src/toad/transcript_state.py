@@ -46,6 +46,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def delivered(self, owner) -> None:
         """Only a running source operation measures time to publication."""
 
+    def rows_published(self, owner) -> None:
+        """Only a checkpoint's advance has live blocks that its saved rows replace."""
+
     def retirement_source(self) -> "TranscriptState":
         return self
 
