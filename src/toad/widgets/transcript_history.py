@@ -390,6 +390,10 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, PreparedLines]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
+        # Native frame completion owns when new row geometry may replace the
+        # measured scene. A worker finishing between layout steps must not keep
+        # a reader and cancel that frame before it has ever been displayed.
+        await self.screen.wait_for_refresh()
         # Holding rows does not change the page's measured layout. Retain every
         # result before opening a history change: keeping the reader can
         # interrupt an unfinished layout, even without accepted rows.
