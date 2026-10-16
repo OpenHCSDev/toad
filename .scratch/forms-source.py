@@ -30,6 +30,11 @@ terms = {'message_category', 'apply_block_filter', 'keep_live_block', 'block_cat
          'ModelSwitcher', 'ModelSelection', 'ConnectProvider', 'filter_models', 'select_model',
          'provider_login', 'ConfigChoice', 'SelectChoices', 'configuration_changed',
          'admission', 'admit', 'custody', 'receipt', '__setattr__',
+         'ImportSnapshot', 'ImportBuffer', 'ImportAdapter', 'CodexImportScan',
+         'SessionMetaCodexRecord', 'import_thread', 'title', 'stem',
+         'AgentSession', 'SessionDisposition', 'reconnect', 'record_failure',
+         'retirement', 'settled', 'ObservationProcess', '_close_all',
+         'AsyncResourceRelease', 'stop_observing',
          'LayoutKind', 'LayoutStrategy', 'title_components', 'is_nested',
          'unwrapped_type', 'WidgetCreationPipeline', 'WidgetCreationRuntime'}
 modules, classes, sites, errors = [], [], [], []
