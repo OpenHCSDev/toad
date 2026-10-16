@@ -408,8 +408,11 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     async def _thread_view_selected(self, event: CoreEventMessage) -> None:
         from toad.screens.session_view import SessionView
 
+        if not self.query_ancestor(SessionView).is_current:
+            return
+        self.goal_observation.invalidate()
         presentation = self._unpublished_presentation
-        if presentation is not None and self.query_ancestor(SessionView).is_current:
+        if presentation is not None:
             from toad.transcript_publication import ObservedSourcePublication
             self._unpublished_presentation = None
             self.transcript.source_requests.request(ObservedSourcePublication, presentation)
@@ -1685,7 +1688,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
-        self.set_interval(1, lambda: self.goal_controls.poll())
         await self.initialize_view()
 
     def apply_layout_preferences(self) -> None:
