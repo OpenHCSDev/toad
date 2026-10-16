@@ -396,21 +396,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             people = {entry.person.thread.name: entry.person for model in snapshot.groups
                       for entry in model.entries if entry.person is not None}
 
-            def derive() -> tuple[dict[str, ThreadRowModel], int]:
-                # ThreadView presentation may inspect process identity: off the UI thread.
-                rows = {name: ThreadRowModel.of(person, unread) for name, person in people.items()}
-                widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
-                for model in snapshot.groups:
-                    for entry in model.entries:
-                        widest = max(widest, Content(entry.target).cell_length + 8)
-                        if entry.detail:
-                            widest = max(widest, Content(entry.detail).cell_length + 8)
-                for row in rows.values():
-                    widest = max(widest, Content(row.label).cell_length + 8,
-                                 Content(row.summary).cell_length + 8)
-                return rows, min(widest, 512)
-
-            thread_rows, width = await self.app.preparation.run_thread(derive)
+            # ThreadView presentation may inspect process identity: off the UI thread.
+            thread_rows = await self.app.preparation.run_thread(
+                lambda: {name: ThreadRowModel.of(person, unread) for name, person in people.items()}
+            )
             if generation != self._generation or not self.is_attached:
                 return
             # Each group owns its prepared rows and native member fence.
@@ -435,8 +424,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 group.expanded = self.view_state.expanded.get(identity, True)
                 group.present(model)
                 group.sync_members()
-            panel = self.query_ancestor(SideBarCollapsible)
-            panel.styles.min_width = width
             self._snapshot, self._revision = snapshot, revision
         except asyncio.CancelledError:
             raise

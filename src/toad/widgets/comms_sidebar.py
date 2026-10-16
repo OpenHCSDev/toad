@@ -622,8 +622,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        # Full row text is retained; the panel grows to the widest content.
-        panel.styles.min_width = self.content_width()
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
@@ -654,14 +652,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         if live != sorted(live, key=lambda child: positions.get(child, len(positions))):
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
         self.navigation.rows_changed()
-
-    def content_width(self) -> int:
-        model = self.model
-        assert model is not None
-        widest = max((cell_len(name) + 12 for name in model.channels.rows), default=0)
-        widest = max(widest, max((cell_len(text) + 8 for row in model.threads.rows.values()
-                                  for text in (row.label, row.summary)), default=0))
-        return min(widest, 512)
 
     def find_open_views(self) -> dict[str, str]:
         """Which open tab shows each thread of this service; the first tab claims it."""
