@@ -1033,6 +1033,14 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             self._update_edges()
         else:
             await self._load_page(False, prepared)
+            if not snapshot.current(self):
+                return False
+            tail = self.pages[-1]
+            if tail.page.after != self.through:
+                # Reader movement can reject preparation. The original source
+                # cut still exposes that gap to paging and End.
+                tail.page = replace(tail.page, has_newer=True)
+                self._update_edges()
             if self.pages[-1].page.has_newer and self.window.follows_tail:
                 # More arrived than one page holds: go to the newest instead
                 # of drawing every page between.
