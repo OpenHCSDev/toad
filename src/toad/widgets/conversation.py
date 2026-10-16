@@ -181,19 +181,13 @@ class ThreadLoading(ConversationBlock, SplashText):
 
 
 class CategorizedMount:
-    """Admit blocks in their declared order with the conversation's category selection."""
+    """Mount blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
+        from toad.widgets.message_filter import apply_block_filter
 
         selected = self.selected_categories
         for widget in require_blocks(widgets):
-            classes = {"-unrouted": not keep_live_block(widget)}
-            if category := block_category(widget):
-                classes[f"-message-{category.declared_name}"] = True
-            # Registration owns the first CSS match for detached blocks. For
-            # attached blocks, Textual applies this class change as one batch.
-            widget.update_classes(classes)
             apply_block_filter(widget, selected)
         mounted = super().mount(*widgets, **kwargs)
         # Registration is synchronous: establish document order before any
@@ -300,11 +294,15 @@ This is a view of your conversation with the agent.
     BINDING_GROUP_TITLE = "View"
     BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
 
-    def compose(self) -> ComposeResult:
-        yield containers.Center(
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.jump_bar = containers.Center(
             JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
             id="back-to-bottom-bar",
         )
+
+    def compose(self) -> ComposeResult:
+        yield self.jump_bar
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -318,8 +316,15 @@ This is a view of your conversation with the agent.
             yield scrollbar, scrollbar_region
 
     def tail_follow_changed(self) -> None:
-        if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
-            control.display = self.can_jump_to_latest
+        """Show the jump bar while the reader is off the tail; bindings follow only its changes.
+
+        Every scroll offset reaches here, so an unchanged state is no change:
+        the footer would otherwise re-project the screen's bindings per frame.
+        """
+        jump = self.can_jump_to_latest
+        if self.jump_bar.display == jump:
+            return
+        self.jump_bar.display = jump
         if self.is_attached:
             self.query_ancestor(Conversation).refresh_bindings()
 
@@ -1209,7 +1214,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ) is None:
                     await self.prune_window(0, 0)
                     self.output.boundary()
-                await agent.session.reconnect()
+                await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
             self.flash(

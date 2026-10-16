@@ -17,6 +17,8 @@ from toad.core_event_carrier import CoreEventMessage
 
 import os
 import shlex
+from collections import Counter
+from collections.abc import Hashable
 
 from agent_comms.native_arguments import NativeArguments
 from functools import partial
@@ -24,7 +26,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel, ThreadRowModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
@@ -39,10 +41,11 @@ from toad.core.events import SessionChangedEvent
 from toad.core.events import ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
+from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
-from toad.widgets.session_sort import SessionSort
+from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
-from toad.widgets.side_bar import SidebarVisibilityObserver
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
 if TYPE_CHECKING:
@@ -125,33 +128,92 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
     def rows_changed(self) -> None:
         self.sidebar.navigation.rows_changed()
 
+    def show_member(self, name: str, view: ThreadRow) -> None:
+        """Paint one member row from its current model row."""
+        sidebar = self.sidebar
+        channel = self.channel
+        view.mode_name = sidebar.open_views.get(name)
+        view.target = ThreadTarget(name)
+        view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members,
+                  action_status=cast("ToadApp", self.app).thread_actions.pending.get(name))
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
         channel = self.channel
         if channel is None or not self.member_container.is_attached:
             return  # A new group syncs its members once composed (on_mount).
-        sidebar = self.sidebar
-        threads = sidebar.model.threads.rows
+        threads = self.sidebar.model.threads.rows
         wanted = tuple(name for name in channel.members
                        if name in threads and (self.expanded or name in self.rows))
-        actions = cast("ToadApp", self.app).thread_actions.pending
-
-        def create(name: str) -> ThreadRow:
-            row = threads[name]
-            return ThreadRow(ThreadTarget(name), name)
 
         def update(name: str, view: ThreadRow) -> None:
-            if changed is not None and name not in changed and view.thread_row is not None:
-                return
-            row = threads[name]
-            view.mode_name = sidebar.open_views.get(name)
-            view.target = ThreadTarget(name)
-            view.show(row, pinned=name in channel.pinned_members, action_status=actions.get(name))
+            if changed is None or name in changed or view.thread_row is None:
+                self.show_member(name, view)
 
         self.reconcile_rows(
-            wanted, create, update,
-            replace=lambda name, view: (view.thread_row is not None
-                                        and view.thread_row.incarnation != threads[name].incarnation))
+            wanted, lambda name: ThreadRow(ThreadTarget(name), name), update,
+            replace=lambda name, view: view.shows_other_incarnation(threads[name]))
+
+    def repaint_members(self, names: frozenset[str]) -> None:
+        """Repaint this group's shown rows among the changed threads ``names``.
+
+        Membership is the channel row's fact: added and removed threads change
+        its ``members`` and reach ``sync_members`` as a channel change.
+        """
+        if self.channel is None or not self.accepts_members():
+            return
+        threads = self.sidebar.model.threads.rows
+        shown = [(name, view) for name in names
+                 if (view := self.rows.get(name)) is not None and name in threads]
+        if any(view.shows_other_incarnation(threads[name]) for name, view in shown):
+            self.sync_members(names)  # A new incarnation replaces its row.
+            return
+        repainted = []
+        for name, view in shown:
+            previous = view.content
+            self.show_member(name, view)
+            if self.expanded and view.content is not previous:
+                repainted.append(view)
+        if repainted:
+            self.sidebar.sync_current(repainted)
+
+
+class RowWidths:
+    """The widest model row in cells, measuring only the rows that changed.
+
+    Widths are capped, so the widest is found among a bounded set of distinct
+    widths rather than among every row.
+    """
+
+    cap = 512
+
+    def __init__(self) -> None:
+        self.widths: dict[Hashable, int] = {}
+        self.counts: Counter[int] = Counter()
+
+    def measure(self, key: Hashable, width: int) -> None:
+        width = min(width, self.cap)
+        previous = self.widths.get(key)
+        if previous == width:
+            return
+        if previous is not None:
+            self.forget(key)
+        self.widths[key] = width
+        self.counts[width] += 1
+
+    def forget(self, key: Hashable) -> None:
+        if (width := self.widths.pop(key, None)) is not None:
+            self.counts[width] -= 1
+            if not self.counts[width]:
+                del self.counts[width]
+
+    def clear(self) -> None:
+        self.widths.clear()
+        self.counts.clear()
+
+    @property
+    def widest(self) -> int:
+        return max(self.counts, default=0)
 
 
 def _comms_root() -> Path:
@@ -279,6 +341,10 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
 
 class ThreadRow(CommsRow):
     """A retained wire thread row, with an optional currently open native view."""
+
+    def shows_other_incarnation(self, row: ThreadRowModel) -> bool:
+        """Whether this row shows an earlier incarnation of ``row``'s thread; it is replaced, not repainted."""
+        return self.thread_row is not None and self.thread_row.incarnation != row.incarnation
 
     def action_open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
@@ -536,6 +602,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.new_session: NewSessionButton | None = None
         # Thread name -> the mode of the tab that has it open.
         self.open_views: dict[str, str] = {}
+        # Full row text is retained; the panel grows to the widest row.
+        self.channel_widths = RowWidths()
+        self.thread_widths = RowWidths()
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
@@ -543,8 +612,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                 and self.app.is_running and self.screen.is_current)
 
     def accepts_observation(self) -> bool:
-        from toad.widgets.side_bar import SideBar
-
         return (self.enabled and self.accepts_publication()
                 and not self.query_ancestor(SideBar).collapsed)
 
@@ -576,6 +643,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def model_replaced(self) -> None:
         self.display = False
         self.navigation.reset()
+        self.channel_widths.clear()
+        self.thread_widths.clear()
         if self.groups:
             self.remove_children(list(self.groups.values()))
             self.groups.clear()
@@ -588,12 +657,10 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
-        from toad.widgets.session_sort import ChannelListSort
-        from toad.widgets.side_bar import SideBarCollapsible
-
         model = self.model
         assert model is not None
         rows = model.channels.rows
+        self.measure(channels, threads)
         if threads is None or threads:
             self.open_views = self.find_open_views()
         if self.new_session is None:
@@ -611,8 +678,10 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                 # Membership, pins or order changed: every member row is current.
                 group.present(channel)
                 group.sync_members()
-            elif threads is None or not threads.isdisjoint(channel.members):
-                group.sync_members(threads)
+            elif threads is None:
+                group.sync_members()
+            elif threads:
+                group.repaint_members(threads)
         if added and (self._group_mounting is None or self._group_mounting.is_finished):
             self._group_mounting = self.run_worker(self._mount_groups(), group="sidebar-groups")
         if removed or added or reorder:
@@ -622,8 +691,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        # Full row text is retained; the panel grows to the widest content.
-        panel.styles.min_width = self.content_width()
+        panel.styles.min_width = max(self.channel_widths.widest, self.thread_widths.widest)
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
@@ -633,18 +701,23 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
         Each group builds its header and member rows in loop turns of its
         own; built together, every group would be built in the same turn.
+        The mounted groups are ordered once per pass, not after each mount.
         """
         while self.is_attached and self.model is not None:
-            rows = self.model.channels.rows
-            key = next((key for key in rows if key not in self.groups), None)
-            if key is None:
+            missing = [key for key in self.model.channels.rows if key not in self.groups]
+            if not missing:
                 return
-            row = CommsRow(channel_target(key), key)
-            group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
-                key, row.target.expanded_by_default))
-            group.present(rows[key])  # Its members sync once it is mounted.
-            await self.mount(group)
-            self._order_groups()
+            for key in missing:
+                rows = self.model.channels.rows if self.model is not None else {}
+                if key not in rows or key in self.groups or not self.is_attached:
+                    continue  # Removed or mounted while the previous group mounted.
+                row = CommsRow(channel_target(key), key)
+                group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
+                    key, row.target.expanded_by_default))
+                group.present(rows[key])  # Its members sync once it is mounted.
+                await self.mount(group)
+            if self.is_attached and self.model is not None:
+                self._order_groups()
 
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
@@ -655,13 +728,23 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
         self.navigation.rows_changed()
 
-    def content_width(self) -> int:
+    def measure(self, channels: frozenset[str] | None, threads: frozenset[str] | None) -> None:
+        """Measure the changed rows' text; ``None`` measures every channel or thread."""
         model = self.model
-        assert model is not None
-        widest = max((cell_len(name) + 12 for name in model.channels.rows), default=0)
-        widest = max(widest, max((cell_len(text) + 8 for row in model.threads.rows.values()
-                                  for text in (row.label, row.summary)), default=0))
-        return min(widest, 512)
+        if channels is None:
+            self.channel_widths.clear()
+        # Channel changes name added and changed rows; removed ones are absent.
+        for name in [name for name in self.channel_widths.widths if name not in model.channels.rows]:
+            self.channel_widths.forget(name)
+        for name in model.channels.rows if channels is None else channels:
+            self.channel_widths.measure(name, cell_len(name) + 12)
+        if threads is None:
+            self.thread_widths.clear()
+        for name in model.threads.rows if threads is None else threads:
+            if (row := model.threads.rows.get(name)) is not None:
+                self.thread_widths.measure(name, max(cell_len(row.label), cell_len(row.summary)) + 8)
+            else:
+                self.thread_widths.forget(name)
 
     def find_open_views(self) -> dict[str, str]:
         """Which open tab shows each thread of this service; the first tab claims it."""
@@ -710,7 +793,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         return self.navigation.state
 
     def selection_for(self, row):
-        from toad.session_tracker import SidebarSelection
         return SidebarSelection(row.query_ancestor(ChannelGroup).row.target_name, row.target_name)
 
     def accepts_selection(self) -> bool:
