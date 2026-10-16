@@ -5,7 +5,7 @@ from toad.conversation_turn import ConversationTurn
 from pathlib import Path
 from rich.text import Text as RichText
 import shlex
-from typing import TYPE_CHECKING, Literal, Self
+from typing import TYPE_CHECKING, ClassVar, Literal, Self
 
 from textual import on, work
 import asyncio
@@ -139,6 +139,8 @@ class PromptSubmission:
 
 class PromptTextArea(CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea):
     ACTIONS = PromptAction
+    # Agent prompts and direct messages carry a pasted image as a file reference.
+    ATTACHES_IMAGES: ClassVar[bool] = True
     HELP = """\
 ## Prompt
 
@@ -304,7 +306,7 @@ See on-screen instructions for details.
             if not self.is_attached:
                 return
             if image is not None:
-                if self.simple_input or self.shell_mode:
+                if self.shell_mode or not self.ATTACHES_IMAGES:
                     self.notify("Paste images into an agent thread, not the IRC or shell composer.",
                                 title="Image attachment", severity="warning")
                     return
