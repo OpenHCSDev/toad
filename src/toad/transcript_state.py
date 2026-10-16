@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     can_draw: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
+    # Rows appended to the followed end are new to the reader and fade in.
+    rows_arrive: ClassVar[bool] = True
     accepts_source_work: ClassVar[bool] = False
 
     def checkpoint_available(self, owner) -> bool:
@@ -101,8 +103,8 @@ class LiveTranscript(TranscriptState):
     def blocks_visible_read(self, owner) -> bool:
         return owner.has_newer or not self.checkpoint_available(owner)
 
-    def reserve(self, owner) -> "WorkingTranscript":
-        return WorkingTranscript(self, owner)
+    def reserve(self, owner, operation=None) -> "WorkingTranscript":
+        return (operation or WorkingTranscript)(self, owner)
 
     def request_latest(self, owner, request: "LatestViewportRequest") -> None:
         owner.schedule_source_work(partial(owner._jump_latest, request))
@@ -320,3 +322,25 @@ class ParkedSourceTranscript(SuspendedTranscript):
         # native/assigned cursor, not rendered content, validates this resource.
         if page.after.contains(owner.through):
             owner.resume_source()
+
+
+class CommitTranscript(WorkingTranscript):
+    """A checkpoint's advance: its saved rows replace the live blocks captured with its page.
+
+    The live blocks leave in the same tree change that draws the last saved
+    row, so no frame shows both copies of the turn, or neither.
+    """
+
+    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...]):
+        super().__init__(source, owner)
+        self.live_blocks = live_blocks
+
+    @property
+    def rows_arrive(self) -> bool:
+        # Rows the reader already saw as live blocks have not arrived again.
+        return not self.live_blocks
+
+    def rows_published(self, owner) -> None:
+        if not owner.has_newer:
+            for block in self.live_blocks:
+                block.display = False

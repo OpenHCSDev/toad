@@ -75,8 +75,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def checkpoint_available(self) -> bool:
         return self.state.checkpoint_available(self)
 
-    def reserve_source_work(self) -> WorkingTranscript:
-        operation = self._source_state.reserve(self)
+    def reserve_source_work(self, operation=None) -> WorkingTranscript:
+        operation = self._source_state.reserve(self, operation)
         self._source_state = operation
         return operation
 
@@ -226,6 +226,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     return False
                 await self.remove_children(page for page in previous if page not in views)
                 self._update_edges()
+                self._source_state.rows_published(self)
             return True
 
     async def extend(self, through, publication_current: Callable[[], bool] = lambda: True) -> bool:

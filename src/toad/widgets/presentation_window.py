@@ -103,6 +103,17 @@ class PresentationBudget:
                 for owner in pair if owner is not None]
 
 
+@dataclass(frozen=True)
+class Runway:
+    """Published rows of one history above and below the viewport."""
+
+    above: int
+    below: int
+
+    def rows_toward(self, older: bool) -> int:
+        return self.above if older else self.below
+
+
 class PreparationDemand(ABC):
     """One scroll intent; its cases own prediction and incoming travel."""
 
@@ -116,7 +127,7 @@ class PreparationDemand(ABC):
         """An admitted read may finish after input settles; it admits no next read."""
         return True
 
-    def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
+    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
         """Stationary input never requests another source page."""
         return 0
 
@@ -153,11 +164,11 @@ class MovingPreparation(PreparationDemand):
     def accepts_result(self, older: bool) -> bool:
         return older == (self.velocity < 0)
 
-    def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
+    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
         if not self.accepts_result(older):
             return 0
         ahead = preparation.ahead_rows(preparation.window.outer_size.height)
-        return max(0, ceil(ahead) - runway[0 if older else 1])
+        return max(0, ceil(ahead) - runway.rows_toward(older))
 
     def prepare_ahead(self, preparation, history, page, older: bool) -> None:
         if self.accepts_result(older):
@@ -186,7 +197,7 @@ class DestinationPreparation(PreparationDemand):
         # A newer destination supersedes older work through its source snapshot.
         return older
 
-    def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
+    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
         if not older:
             return 0
         edge = history.pages[0].prepared
@@ -319,18 +330,18 @@ class DirectionalPreparation:
         runway = self.runway(history)
         return 0 if runway is None else self.demand.read_rows(self, history, older, runway)
 
-    def runway(self, history) -> tuple[int, int] | None:
-        """Published source rows above and below this viewport; no offscreen layout."""
+    def runway(self, history) -> Runway | None:
+        """Published rows above and below this viewport; None while the history is off screen."""
         window = self.window
         visible = window.screen._compositor.visible_widgets
         geometry, viewport = visible.get(history), visible.get(window)
         if geometry is None or viewport is None or not geometry[0].overlaps(viewport[0]):
             return None
         region, frame = geometry[0], viewport[0]
-        return frame.y - region.y, region.bottom - frame.bottom
+        return Runway(frame.y - region.y, region.bottom - frame.bottom)
 
     def prepare_source(self, history) -> None:
-        """Admit source demand from the active published scene, not window state."""
+        """Request the next page from what the screen shows now, not from window state."""
         window = self.window
         if (not window.screen.is_active or not history.selected_categories
                 or self.runway(history) is None):

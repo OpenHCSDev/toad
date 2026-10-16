@@ -993,9 +993,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                     return False
                 protected = {id(fragment) for fragment in self.visible_fragments()}
                 async with window.preserve_history(root=self):
-                    await self._extend_and_trim(edge, older, local, protected, staged,
-                                                current=current, fresh=fresh)
+                    await self._extend_and_trim(edge, older, local, protected, staged, current=current,
+                                                fresh=fresh and self._source_state.rows_arrive)
                     self._require_can_draw()
+                    self._source_state.rows_published(self)
             self.state.delivered(self)
             advanced = self.pages[0] if older else self.pages[-1]
             if (advanced is edge and edge.capture_range() == page_range

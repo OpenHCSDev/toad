@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
 from agent_comms.transcript_events import TranscriptEvent, UserTranscript
-from toad.transcript_state import LatestViewportRequest
+from toad.transcript_state import CommitTranscript, LatestViewportRequest
 from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageReference
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
@@ -233,14 +233,19 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
 
     async def advance_committed(
         self, through: TranscriptCursor, is_current: Callable[[], bool],
+        live_blocks: tuple[Widget, ...],
     ) -> bool:
-        """Extend a complete followed tail; read a bounded destination across a gap."""
+        """Extend a complete followed tail; read a bounded destination across a gap.
+
+        The pages already drawn stay. The saved rows replace `live_blocks`,
+        the live copies of the same turn, in the change that draws them.
+        """
         async with self.window.history_lock:
             if not self.checkpoint_available or not is_current():
                 return False
             if not self.accepts_commit(through):
                 raise ValueError("Commit replaces or rewinds the saved source")
-            operation = self.reserve_source_work()
+            operation = self.reserve_source_work(partial(CommitTranscript, live_blocks=live_blocks))
         return await operation.execute(self, partial(self._advance_committed, through, is_current))
 
     async def _advance_committed(
@@ -323,14 +328,14 @@ class FollowTailCheckpoint(CheckpointPlan):
         from toad.transcript_preparation import TranscriptPageRenderTask
         from toad.work_preparation import RenderPreparation
 
-        # An in-place advance admits bounded pages before its final paint.
-        # Anonymous captured output needs the complete source transaction,
-        # not an eager mount followed by retirement after that paint.
-        transfers = retirement_candidates(
-            captured, CommitEvidence(frozenset(captured), retained_history=history),
-        )
-        if history is not None and history.accepts_commit(page.after) and not transfers:
-            if not await history.advance_committed(page.after, is_current):
+        # The drawn history grows in place: unchanged pages keep their views,
+        # and the captured live blocks leave in the change that draws their
+        # saved rows. Only a missing or replaced source needs a new history.
+        if history is not None and history.accepts_commit(page.after):
+            live_blocks = tuple(retirement_candidates(
+                captured, CommitEvidence(frozenset(captured), retained_history=history),
+            ))
+            if not await history.advance_committed(page.after, is_current, live_blocks):
                 return None
             return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
                                   | history.covered_sequences(required_sequences(captured)))
