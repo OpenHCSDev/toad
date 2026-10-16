@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from math import floor
 from typing import NamedTuple
 from rich.text import Text as RichText
+from agent_comms.context_reading import ContextReading
 
 class Cost(NamedTuple):
     """A cost with associated currency."""
@@ -24,16 +25,12 @@ class Cost(NamedTuple):
 
 
 class ContextMeasurement(ABC):
-    available = False
-
     @abstractmethod
     def status(self) -> RichText: ...
 
     @classmethod
-    def saved(cls, usage):
-        if usage is None:
-            return ContextUnavailable("Native owner has not reported context usage")
-        return SavedContextMeasurement(usage.used, usage.size)
+    def saved(cls, reading: ContextReading) -> ContextMeasurement:
+        return SavedContextMeasurement(reading)
 
     @classmethod
     def live(cls, used, size, cost):
@@ -53,12 +50,10 @@ class ContextUnavailable(ContextMeasurement):
 
 
 @dataclass(frozen=True)
-class MeasuredContext(ContextMeasurement):
+class LiveContextMeasurement(ContextMeasurement):
     used: int
     size: int
     cost: Cost | None = None
-    available = True
-    source_label = ""
 
     @property
     def percentage_used(self):
@@ -71,16 +66,14 @@ class MeasuredContext(ContextMeasurement):
     def status(self) -> RichText:
         parts = [RichText.assemble(f"{self.used / 1000:.1f}K (",
                   (self.percentage_display, "bold"), ")")]
-        if self.source_label:
-            parts.append(RichText(self.source_label))
         if self.cost is not None:
             parts.append(RichText.assemble((f"{self.cost}", "bold")))
         return RichText(" • ").join(parts)
 
 
-class LiveContextMeasurement(MeasuredContext):
-    pass
+@dataclass(frozen=True)
+class SavedContextMeasurement(ContextMeasurement):
+    reading: ContextReading
 
-
-class SavedContextMeasurement(MeasuredContext):
-    source_label = "last response"
+    def status(self) -> RichText:
+        return RichText(self.reading.status_text())
