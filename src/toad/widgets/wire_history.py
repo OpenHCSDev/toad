@@ -204,16 +204,19 @@ class WireHistory(LineHistory):
                 await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         return True
 
-    async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None,
-                               *, fresh=False):
-        if page is not None and not fragments:
-            # Nothing of this conversation lies in that range: the edge page covers it.
+    async def _extend_and_trim(self, edge, older, local, protected, prepared,
+                               *, current, fresh=False):
+        if not local and not prepared.fragments:
+            # An empty wire interval advances its cut, not native membership.
+            if not current():
+                return
+            page = prepared.page
             edge.page = (replace(edge.page, before=page.before, has_older=page.has_older) if older
                          else replace(edge.page, after=page.after, has_newer=page.has_newer))
             self._update_edges()
             return
-        await super()._extend_and_trim(edge, older, local, page, protected, fragments, prepared,
-                                       fresh=fresh)
+        await super()._extend_and_trim(edge, older, local, protected, prepared,
+                                       current=current, fresh=fresh)
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
