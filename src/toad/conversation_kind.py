@@ -153,7 +153,7 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def compose_activity(cls, view):
-        return view.compose_channel_activity()
+        return ()
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:

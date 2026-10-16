@@ -138,11 +138,6 @@ class CommsChatView(Conversation):
                 status=Conversation.status,
             )
 
-    def compose_channel_activity(self) -> ComposeResult:
-        """A channel has no thread status widget, not an empty stand-in."""
-        self.thread_activity = None
-        return ()
-
     def compose_dm_activity(self) -> ComposeResult:
         """The direct-message view owns its peer's status widget."""
         self.thread_activity = SessionDetails(
