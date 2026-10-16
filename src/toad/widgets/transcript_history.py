@@ -1000,14 +1000,15 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                         before=edge.page.before if older else None,
                         after=edge.page.after if not older else None,
                     ))
-            # Deliver a readable viewport before preparing farther runway.
+            # The viewport owns the bounded runway demand. Publish that range
+            # together instead of forcing layout/writer joins per viewport.
             runway = self._runway()
             missing = self.prefetch_distance - (0 if runway is None else runway[0 if older else 1])
             boundary = (edge.start if older else edge.stop) if local else (len(staged.fragments) if older else 0)
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories,
                 boundary=boundary, older=older,
-                rows_needed=max(1, min(missing, window.outer_size.height)),
+                rows_needed=max(1, missing),
                 limit=self.app.preparation.max_entries,
             )
             if not current():
