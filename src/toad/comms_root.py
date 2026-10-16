@@ -32,7 +32,6 @@ from agent_comms.ui_model.observation import (
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged
-from toad.forms.declared_views import DeclaredField
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 
@@ -330,8 +329,8 @@ class CoordinationAccess(MroDispatch):
         state = self.app.saved_settings.state
         return ObserveSidebar(
             str(self.app.project_dir),
-            DeclaredField.at(state, SETTINGS.sidebar.show_stopped).value,
-            DeclaredField.at(state, SETTINGS.sidebar.show_archived).value,
+            SETTINGS.sidebar.show_stopped.bind(state).value,
+            SETTINGS.sidebar.show_archived.bind(state).value,
         )
 
     def update_sidebar_interest(self) -> None:

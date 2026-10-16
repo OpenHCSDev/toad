@@ -3,16 +3,24 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from dataclasses import MISSING, dataclass, replace
+from dataclasses import dataclass
 from inspect import cleandoc
-from typing import Annotated, ClassVar, Optional, Self, get_args, get_origin
+from typing import Annotated, ClassVar, Optional, Self, TypeVar, get_args, get_origin
 
-from objectstate import ObjectState
-from python_introspect import optional_member_type
+from formbridge.forms.ui_utils import FieldDisplayText
+from objectstate import DottedFieldPath, ObjectState
+from python_introspect import (
+    ParameterInfo,
+    declared_field_label,
+    optional_member_type,
+    resolve_annotated,
+    resolve_optional,
+)
 from python_introspect.validation import validate_annotation_value
 
-from toad.forms.field_path import FieldPath, declared, declared_annotation, declared_field, label
 from toad.forms.kinds import Placeholder
+
+Metadata = TypeVar("Metadata")
 
 
 class DeclaredViews:
@@ -23,8 +31,9 @@ class DeclaredViews:
     of field is adding a class: nothing lists the members and nothing chooses
     between them by testing types.
 
-    Textual reads a widget's focus and CSS from its first base, so a member
-    names its Textual class first and its family after it.
+    Textual follows the first DOM base for native focus and CSS. A pure editor
+    capability may precede that base so its cooperative initializer binds the
+    field before the native control consumes it.
     """
 
     shows: ClassVar[tuple[object, ...]] = ()
@@ -70,43 +79,57 @@ class DeclaredField:
     """One field of an ObjectState: where its value lives and how it was declared."""
 
     state: ObjectState
-    path: FieldPath
-    annotation: object
+    path: DottedFieldPath
 
-    @classmethod
-    def at(cls, state: ObjectState, path: FieldPath) -> DeclaredField:
-        return cls(state, path, declared_annotation(path))
+    @property
+    def declaration(self) -> ParameterInfo:
+        return self.state.parameter_structure.declarations[self.path.value]
+
+    @property
+    def annotation(self) -> object:
+        return self.declaration.param_type
+
+    def metadata(self, kind: type[Metadata]) -> Metadata | None:
+        """Metadata of the bound field, including an optional member's metadata."""
+        for annotation in (self.annotation, resolve_optional(resolve_annotated(self.annotation))):
+            if get_origin(annotation) is Annotated:
+                for item in get_args(annotation)[1:]:
+                    if isinstance(item, kind):
+                        return item
+        return None
 
     @property
     def value(self) -> object:
-        return self.state.get_resolved_value(str(self.path))
+        return self.state.get_resolved_value(self.path.value)
 
     @property
     def default(self) -> object:
-        return self.state.signature_default(str(self.path))
+        return self.declaration.default_value
 
     @property
     def has_default(self) -> bool:
-        field = declared_field(self.path)
-        return field.default is not MISSING or field.default_factory is not MISSING
+        return not self.declaration.is_required
 
     @property
     def placeholder(self) -> str:
-        hint = declared(self.path, Placeholder)
+        hint = self.metadata(Placeholder)
         return hint.text if hint is not None else ""
 
     @property
     def label(self) -> str:
-        return label(self.path)
+        return (
+            declared_field_label(self.annotation)
+            or FieldDisplayText.from_field_name(self.declaration.name).display_name
+        )
 
     @property
     def help(self) -> str:
-        return cleandoc(self.state.parameter_descriptions.get(str(self.path)) or "")
+        return cleandoc(self.declaration.description or "")
 
     @property
     def member(self) -> DeclaredField:
         """The same field as declared without `None`."""
-        return replace(self, annotation=optional_member_type(self.annotation))
+        return OptionalMemberField(self.state, self.path)
 
     def edit(self, value: object) -> None:
         """Give the field a value, unless its declaration does not accept it.
@@ -117,4 +140,12 @@ class DeclaredField:
         # ObjectState takes any value for a field of the root object and only
         # fails later, when the object is rebuilt (ObjectState issue #47).
         validate_annotation_value(self.annotation, value, path=self.label)
-        self.state.update_parameter(str(self.path), value)
+        self.state.update_parameter(self.path.value, value)
+
+
+class OptionalMemberField(DeclaredField):
+    """The member editor reads a narrower annotation, not a copied declaration."""
+
+    @property
+    def annotation(self) -> object:
+        return optional_member_type(super().annotation)

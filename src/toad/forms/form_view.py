@@ -4,93 +4,72 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from formbridge.forms.parameter_form_service import (
-    FormStructure,
-    ParameterAnalysisInput,
-    ParameterFormService,
-)
-from formbridge.forms.parameter_info_types import DirectDataclassInfo, GenericInfo
-from objectstate import ObjectState
-from python_introspect import UnifiedParameterAnalyzer, resolve_annotated
+from formbridge.forms.parameter_form_service import ParameterFormService
+from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
+from objectstate import DottedFieldPath, ObjectState
 from textual import containers, events, lazy
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
+from textual.css._style_properties import Edges
+from textual.geometry import Spacing
+from textual.layouts.stream import StreamLayout
+from rich.style import Style
+from ui_theme.scheme import BackgroundColour, ForegroundColour, MutedColour, PrimaryColour, SecondaryColour
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews
 from toad.forms.editors import ValueEditor
-from toad.forms.field_path import FieldPath, label, steps
+from toad.forms.field_path import FieldPath
+from toad.forms.presentation import AUTO, FormPart
 
 
-def form_structure(state: ObjectState) -> FormStructure:
-    """What formbridge finds in the object the state holds.
-
-    formbridge is given each field's type without its `Annotated` metadata:
-    it does not see a nested dataclass through `Annotated` (formbridge issue #7).
-    The views read labels, choices and bounds from the declaration itself.
-    """
-    held = state.object_instance
-    declared = UnifiedParameterAnalyzer.analyze(held)
-    return ParameterFormService().analyze_parameters(
-        ParameterAnalysisInput(
-            default_value={name: state.parameters[name] for name in declared},
-            param_type={
-                name: resolve_annotated(parameter.param_type)
-                for name, parameter in declared.items()
-            },
-            field_id="",
-            description=state.parameter_descriptions,
-            parent_obj_type=type(held),
-        )
-    )
+class FieldTitle(FormPart, Static):
+    padding = Spacing(0, 0, 0, 1)
+    text_style = Style(bold=True)
 
 
-class FieldTitle(Static):
-    DEFAULT_CSS = """
-    FieldTitle {
-        padding: 0 0 0 1;
-        text-style: bold;
-    }
-    """
+class FieldHelp(FormPart, Static):
+    padding = Spacing(0, 0, 0, 1)
+    margin = Spacing(0, 0, 1, 0)
+
+    @property
+    def paint_foreground(self):
+        return self.app.colours.colour(MutedColour)
 
 
-class FieldHelp(Static):
-    DEFAULT_CSS = """
-    FieldHelp {
-        color: $text-muted;
-        padding: 0 0 0 1;
-        margin-bottom: 1;
-    }
-    """
+class GroupTitle(FormPart, Static):
+    padding = Spacing(0, 0, 0, 1)
+
+    @property
+    def paint_foreground(self):
+        return self.app.colours.colour(PrimaryColour)
 
 
-class GroupTitle(Static):
-    DEFAULT_CSS = """
-    GroupTitle {
-        padding: 0 0 0 1;
-        color: $primary;
-    }
-    """
-
-
-class FieldView(containers.VerticalGroup, DeclaredViews):
+class FieldView(FormPart, containers.VerticalGroup, DeclaredViews):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
-    def __init__(self, field: DeclaredField, structure: FormStructure,
-                 included: frozenset[FieldPath] | None = None) -> None:
+    def __init__(self, field: DeclaredField,
+                 included: frozenset[DottedFieldPath] | None = None) -> None:
         super().__init__()
         self.field = field
 
+    @property
+    def margin(self) -> Spacing:
+        return Spacing(0, 0, 0 if self.last_child else 1, 0)
+
     @staticmethod
-    def of(state: ObjectState, parent: FieldPath, structure: FormStructure,
-           included: frozenset[FieldPath] | None = None) -> list[FieldView]:
-        """A view for each parameter formbridge lists, in its order."""
+    def of(state: ObjectState, parent: str = "",
+           included: frozenset[DottedFieldPath] | None = None) -> list[FieldView]:
+        """Show ObjectState's direct children; FormBridge supplies each field's kind.
+
+        ObjectState already extracted this topology. Reading it does not rebuild
+        a second form tree or re-analyze the held object's values.
+        """
         views = []
-        for parameter in structure.parameters:
-            path = getattr(parent, parameter.name)
+        for path, parameter in ParameterFormService().parameters_for_state(state, parent):
             if included is None or path in included:
-                field = DeclaredField.at(state, path)
-                views.append(FieldView.showing(type(parameter).__mro__)(field, structure, included))
+                field = DeclaredField(state, path)
+                views.append(FieldView.showing(type(parameter).__mro__)(field, included))
         return views
 
     def values(self) -> Iterator[ValueView]:
@@ -105,25 +84,19 @@ class FieldView(containers.VerticalGroup, DeclaredViews):
 class ValueView(FieldView):
     """A field with one value: its label, its help and the editor for its kind."""
 
-    shows = (GenericInfo,)
-
-    DEFAULT_CSS = """
-    ValueView {
-        margin-bottom: 1;
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
-    """
+    shows = (ParameterInfo,)
 
     CHANGED_MARK = " ●"
 
-    def __init__(self, field: DeclaredField, structure: FormStructure,
-                 included: frozenset[FieldPath] | None = None) -> None:
-        super().__init__(field, structure, included)
+    def __init__(self, field: DeclaredField,
+                 included: frozenset[DottedFieldPath] | None = None) -> None:
+        super().__init__(field, included)
         self.editor = ValueEditor.declared_for(field)
         self.title = FieldTitle(field.label)
-        self.search_text = " ".join(label(step) for step in steps(field.path)).lower()
+        self.search_text = " ".join(
+            DeclaredField(field.state, step).label
+            for step in field.state.parameter_structure.ancestors(field.path)
+        ).lower()
 
     def compose(self) -> ComposeResult:
         yield self.title
@@ -158,28 +131,20 @@ class GroupView(FieldView):
 
     shows = (DirectDataclassInfo,)
 
-    DEFAULT_CSS = """
-    GroupView {
-        border: tall $secondary-muted;
-        padding: 0 1;
-        margin-bottom: 1;
-        &:light {
-            border: tall $foreground 20%;
-        }
-        &:focus-within {
-            border: tall $secondary;
-        }
-        &:last-child {
-            margin-bottom: 0;
-        }
-    }
-    """
+    padding = Spacing(0, 1, 0, 1)
 
-    def __init__(self, field: DeclaredField, structure: FormStructure,
-                 included: frozenset[FieldPath] | None = None) -> None:
-        super().__init__(field, structure, included)
-        name = str(field.path).rpartition(".")[2]
-        self.parts = FieldView.of(field.state, field.path, structure.nested_forms[name], included)
+    @property
+    def border(self) -> Edges:
+        colours = self.app.colours
+        colour = (colours.colour(SecondaryColour) if self.has_focus_within else
+                  colours.mixed(BackgroundColour, SecondaryColour, 0.3) if colours.scheme.dark else
+                  colours.colour(ForegroundColour).multiply_alpha(0.2))
+        return Edges(*(("tall", colour),) * 4)
+
+    def __init__(self, field: DeclaredField,
+                 included: frozenset[DottedFieldPath] | None = None) -> None:
+        super().__init__(field, included)
+        self.parts = FieldView.of(field.state, field.path.value, included)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -195,7 +160,7 @@ class GroupView(FieldView):
         return bool(self.display)
 
 
-class FormView(containers.VerticalScroll, can_focus=False):
+class FormView(FormPart, containers.VerticalScroll, can_focus=False):
     """Every field of the object an ObjectState holds, edited in place.
 
     The form holds no values. An edit goes to the state; the state says which
@@ -204,27 +169,24 @@ class FormView(containers.VerticalScroll, can_focus=False):
     long form does not hold up the frame it opens in.
     """
 
-    DEFAULT_CSS = """
-    FormView {
-        layout: stream;
-        overflow: hidden scroll;
-    }
-    """
+    DEFAULT_LAYOUT = StreamLayout
+    height = None
+    overflow_y = "scroll"
 
     def __init__(self, state: ObjectState, *, paths: tuple[FieldPath, ...] | None = None,
-                 focus: FieldPath | None = None) -> None:
+                 focus: DottedFieldPath | None = None) -> None:
         super().__init__()
         self.state = state
-        included = (None if paths is None else
-                    frozenset(step for path in paths for step in steps(path)))
-        self.parts = FieldView.of(
-            state, FieldPath(type(state.object_instance)), form_structure(state), included
-        )
+        included = (None if paths is None else frozenset(
+            step for path in paths
+            for step in state.parameter_structure.ancestors(path.bind(state).path)
+        ))
+        self.parts = FieldView.of(state, included=included)
         self.values = {
-            str(view.field.path): view for part in self.parts for view in part.values()
+            view.field.path.value: view for part in self.parts for view in part.values()
         }
         if focus is not None:
-            editor = self.values[str(focus)].editor
+            editor = self.values[focus.value].editor
             editor.listen(events.Mount, lambda _: editor.focus())
         self.listen(events.Mount, self.follow_state)
         self.listen(events.Unmount, self.leave_state)
@@ -257,3 +219,9 @@ class FormView(containers.VerticalScroll, can_focus=False):
         """Show only the fields whose labels contain the term."""
         for part in self.parts:
             part.filter(term.lower())
+
+
+class InlineFormView(FormView):
+    """An intrinsically sized form inside a bounded dialog panel."""
+
+    height = AUTO
