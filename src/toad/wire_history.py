@@ -17,7 +17,7 @@ from agent_comms import HistoricalMessage
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message
-from agent_comms.presentation import WireRevision
+from agent_comms.historical_views import ConversationRevision
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
@@ -215,15 +215,16 @@ class WireSource:
         return self.kind.page(self.comms, self.target, worktree=str(self.project),
                               max_bytes=self.max_bytes, **bounds)
 
-    def observe(self, seen: WireRevision | None) -> WireObservation | None:
+    def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
-        revision = self.comms.views.revision()
+        revision = self.kind.history_view.revision(
+            self.comms.views, self.target, worktree=str(self.project))
         if revision == seen:
             return None
         high = AfterSequence(self.comms.views.latest_sequence())
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
-        replaced = seen is None or self.kind.display_changed_since(revision, seen)
+        replaced = seen is None or revision.display_changed_since(seen)
         return WireObservation(revision, high, replaced)
 
     def read(self, request: PageRequest, through: AfterSequence) -> PreparedTranscriptPage:
@@ -260,7 +261,7 @@ class WireSource:
 
 @dataclass(frozen=True)
 class WireObservation:
-    revision: WireRevision
+    revision: ConversationRevision
     through: AfterSequence
     replaced: bool
 

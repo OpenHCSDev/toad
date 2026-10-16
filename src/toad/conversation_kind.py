@@ -10,7 +10,6 @@ from agent_comms.historical_views import ChannelDisplayHistory, ConversationHist
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
-from agent_comms.presentation import WireRevision
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
@@ -35,10 +34,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     @abstractmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]: ...
-
-    @classmethod
-    def display_changed_since(cls, revision: WireRevision, earlier: WireRevision) -> bool:
-        return cls.history_view.display_changed_since(revision, earlier)
 
     @classmethod
     def label(cls, target: str) -> str:

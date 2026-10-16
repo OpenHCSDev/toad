@@ -20,7 +20,7 @@ from toad.message_rows import IrcMessageStyle, WireMessageStyle
 from toad.wire_history import AfterSequence, WireFragment, WirePage, WirePageBuffer, WireSource
 
 if TYPE_CHECKING:
-    from agent_comms.presentation import WireRevision
+    from agent_comms.historical_views import ConversationRevision
 
 
 class WireHistory(LineHistory):
@@ -38,7 +38,7 @@ class WireHistory(LineHistory):
         self.view = view
         super().__init__(PreparedTranscriptPage.empty(WirePage.unread()), None)
         # The store revision and the viewer's reading the drawn pages belong to.
-        self.revision: WireRevision | None = None
+        self.revision: ConversationRevision | None = None
         # A read mark is being written; the next one waits for it.
         self.marking = False
 
