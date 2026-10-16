@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from dataclasses import MISSING, dataclass, replace
+from dataclasses import dataclass, replace
 from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, get_args, get_origin
 
@@ -11,7 +11,7 @@ from objectstate import FieldProxy, ObjectState
 from python_introspect import optional_member_type
 from python_introspect.validation import validate_annotation_value
 
-from toad.forms.field_path import FieldPath, declared, declared_annotation, declared_field, label
+from toad.forms.field_path import FieldPath, declared, declared_annotation, label
 from toad.forms.kinds import Placeholder
 
 
@@ -55,6 +55,8 @@ def declarations(annotation: object) -> Iterator[object]:
     """
     if get_origin(annotation) is Annotated:
         base, *metadata = get_args(annotation)
+        if optional_member_type(base) is not None:
+            yield Optional
         for item in metadata:
             yield from type(item).__mro__[:-1]
         yield from declarations(base)
@@ -87,8 +89,7 @@ class DeclaredField:
 
     @property
     def has_default(self) -> bool:
-        field = declared_field(self.path)
-        return field.default is not MISSING or field.default_factory is not MISSING
+        return not self.handle.declaration.is_required
 
     @property
     def placeholder(self) -> str:
@@ -106,6 +107,10 @@ class DeclaredField:
     @property
     def member(self) -> DeclaredField:
         """The same field as declared without `None`."""
+        if get_origin(self.annotation) is Annotated:
+            base, *metadata = get_args(self.annotation)
+            member = optional_member_type(base)
+            return replace(self, annotation=Annotated[member, *metadata])
         return replace(self, annotation=optional_member_type(self.annotation))
 
     def edit(self, value: object) -> None:

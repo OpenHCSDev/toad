@@ -10,7 +10,7 @@ from formbridge.forms.parameter_form_service import (
     ParameterFormService,
 )
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, GenericInfo
-from objectstate import FieldProxy, ObjectState
+from objectstate import FieldProxy, FieldValue, ObjectState
 from python_introspect import resolve_annotated
 from textual import containers, events, lazy
 from textual.app import ComposeResult
@@ -134,7 +134,8 @@ class ValueView(FieldView):
         help = Content.from_markup(self.field.help)
         if not self.editor.states_default or not self.field.has_default:
             return help
-        default = self.editor.value_text(self.field.default)
+        value = self.field.default
+        default = self.editor.value_text(value) if FieldValue.of(value).has_value else repr(value)
         return Content.assemble(help, (f"\ndefault: {default}", "$text-secondary"))
 
     def values(self) -> Iterator[ValueView]:

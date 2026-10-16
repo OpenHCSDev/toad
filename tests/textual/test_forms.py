@@ -17,7 +17,7 @@ import toad.preferences  # noqa: F401  names the process-wide root ObjectState a
 from toad.forms import editors
 from toad.forms.field_path import FieldPath, label
 from toad.forms.form_view import FormView, GroupView, ValueView
-from toad.forms.kinds import Multiline
+from toad.forms.kinds import Multiline, Placeholder
 
 
 class Size(Enum):
@@ -71,7 +71,7 @@ async def open_form():
             if all(view.is_mounted for view in app.form.values.values()):
                 break
             await pilot.pause(0.02)
-        yield app, pilot, {path: view.editor for path, view in app.form.values.items()}
+        yield app, pilot, {field.address.value: view.editor for field, view in app.form.values.items()}
 
 
 async def leave(pilot, editor, text):
@@ -99,7 +99,7 @@ async def test_each_kind_of_field_gets_the_editor_registered_for_its_declaration
         group = app.form.parts[-1]
         assert isinstance(group, GroupView) and [type(part) for part in group.parts] == [ValueView]
         assert label(FieldPath(Everything).inner.depth) == "How deep"
-        assert "Levels below the surface." in str(app.form.values["inner.depth"].description())
+        assert "Levels below the surface." in str(app.form.values[app.state.fields.inner.depth].description())
 
 
 async def test_an_edit_of_each_kind_reaches_the_state():
@@ -122,7 +122,7 @@ async def test_an_edit_of_each_kind_reaches_the_state():
         )
         shown["limit"].holds_value.value = False
         await pilot.pause()
-        assert app.state.to_object().limit is None and not shown["limit"].member.display
+        assert app.state.to_object().limit is None and shown["limit"].member.display
 
 
 async def test_a_value_the_declaration_refuses_is_reported_and_the_editor_shows_the_state_again():
@@ -136,7 +136,7 @@ async def test_a_value_the_declaration_refuses_is_reported_and_the_editor_shows_
 
 async def test_a_changed_field_is_marked_until_it_is_saved_or_put_back():
     async with open_form() as (app, pilot, shown):
-        title = app.form.values["count"].title
+        title = app.form.values[app.state.fields.count].title
         await leave(pilot, shown["count"], "7")
         assert ValueView.CHANGED_MARK in str(title.render())
         app.state.mark_saved()
@@ -155,28 +155,52 @@ async def test_a_changed_field_is_marked_until_it_is_saved_or_put_back():
 async def test_a_change_made_elsewhere_is_painted_without_being_sent_back():
     async with open_form() as (app, pilot, shown):
         sent = []
-        app.state.on_resolved_changed(sent.append)
-        app.state.update_parameter("size", Size.LARGE)
-        app.state.update_parameter("flag", True)
-        app.state.update_parameter("notes", "elsewhere")
-        app.state.update_parameter("limit", 4)
+        release = app.state.fields.subscribe_value(sent.append)
+        app.state.fields.size.write(Size.LARGE)
+        app.state.fields.flag.write(True)
+        app.state.fields.notes.write("elsewhere")
+        app.state.fields.limit.write(4)
         await pilot.pause()
         assert shown["size"].value is Size.LARGE and shown["flag"].value is True
         assert shown["notes"].text == "elsewhere"
         assert shown["limit"].holds_value.value is True and shown["limit"].member.value == "4"
-        assert sent == [{"size"}, {"flag"}, {"notes"}, {"limit"}]
+        assert sent == [{app.state.fields.size}, {app.state.fields.flag}, {app.state.fields.notes}, {app.state.fields.limit}]
+        release()
 
 
 async def test_a_search_shows_only_the_fields_whose_labels_match():
     async with open_form() as (app, pilot, _shown):
         app.form.filter("DEEP")
         await pilot.pause()
-        assert [path for path, view in app.form.values.items() if view.display] == ["inner.depth"]
+        assert [field for field, view in app.form.values.items() if view.display] == [app.state.fields.inner.depth]
         assert app.form.parts[-1].display
         app.form.filter("count")
-        assert not app.form.parts[-1].display and app.form.values["count"].display
+        assert not app.form.parts[-1].display and app.form.values[app.state.fields.count].display
         app.form.filter("")
         assert all(view.display for view in app.form.values.values())
+
+
+async def test_nullable_annotations_keep_hints_out_of_committed_data():
+    @dataclass
+    class Hinted:
+        word: Annotated[str | None, Placeholder('type here')] = None
+    state = ObjectState(Hinted())
+    class HintApp(App):
+        def compose(self):
+            yield FormView(state)
+    app = HintApp()
+    async with app.run_test() as pilot:
+        await pilot.pause()
+        editor = app.query_one(FormView).values[state.fields.word].editor
+        assert isinstance(editor, editors.OptionalEditor)
+        assert isinstance(editor.member, editors.StrEditor)
+        assert editor.member.value == ''
+        assert editor.member.placeholder == 'type here'
+        assert state.fields.word.value is None
+        await pilot.click(editor.member)
+        await pilot.press('x', 'enter')
+        await pilot.pause()
+        assert state.fields.word.value == 'x'
 
 
 def test_the_form_package_loads_without_qt_or_the_comms_package():

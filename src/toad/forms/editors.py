@@ -7,6 +7,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, ClassVar, Optional
 
 from formbridge.forms.ui_utils import format_enum_display
+from objectstate import FieldValue
 from python_introspect import (
     AnnotationChoices,
     declared_annotation_choices,
@@ -54,8 +55,20 @@ class ValueEditor(DeclaredViews, EditorWidget):
         """Send an edit the user has not finished yet. Most controls have none."""
 
     def value_text(self, value: object) -> str:
-        """How a value of this field reads."""
-        return self.field.placeholder if value is None else str(value)
+        """A native entry projects absence without turning it into input data."""
+        return "" if value is None or not FieldValue.of(value).has_value else str(value)
+
+    def read_value(self) -> object:
+        raise NotImplementedError
+
+    def commit(self) -> None:
+        """An explicit commit reads this control, not a manufactured type default."""
+        try:
+            value = self.read_value()
+        except (TypeError, ValueError) as error:
+            self.refuse(error)
+        else:
+            self.send(value)
 
     def send(self, value: object) -> None:
         try:
@@ -73,16 +86,22 @@ class BoolEditor(Checkbox, ValueEditor):
 
     def __init__(self, field: DeclaredField) -> None:
         self.field = field
-        super().__init__(value=bool(field.value))
+        value = field.value
+        super().__init__(value=bool(FieldValue.of(value).has_value and value))
         self.listen(Checkbox.Changed, self.changed)
 
     def changed(self, message: Checkbox.Changed) -> None:
         message.stop()
         self.send(message.value)
 
+    def read_value(self) -> object:
+        return self.value
+
     def paint(self) -> None:
+        value = self.field.value
         with self.prevent(Checkbox.Changed):
-            self.value = bool(self.field.value)
+            self.value = bool(FieldValue.of(value).has_value and value)
+        self.tooltip = None if FieldValue.of(value).has_value else repr(value)
 
 
 class LineEditor(Input, ValueEditor):
@@ -93,7 +112,8 @@ class LineEditor(Input, ValueEditor):
     def __init__(self, field: DeclaredField) -> None:
         self.field = field
         super().__init__(
-            self.value_text(field.value), type=self.accepts, validators=[Function(self.acceptable)]
+            self.value_text(field.value), type=self.accepts, placeholder=field.placeholder,
+            validators=[Function(self.acceptable)]
         )
         self.listen(Input.Blurred, self.finished)
         self.listen(Input.Submitted, self.finished)
@@ -117,12 +137,10 @@ class LineEditor(Input, ValueEditor):
     def finish(self) -> None:
         if self.value == self.value_text(self.field.value):
             return
-        try:
-            value = self.read(self.value)
-        except ValueError as error:
-            self.refuse(error)
-        else:
-            self.send(value)
+        self.commit()
+
+    def read_value(self) -> object:
+        return self.read(self.value)
 
     def paint(self) -> None:
         self.value = self.value_text(self.field.value)
@@ -156,15 +174,18 @@ class MultilineEditor(TextArea, ValueEditor):
 
     def __init__(self, field: DeclaredField) -> None:
         self.field = field
-        super().__init__(str(field.value or ""))
+        super().__init__(self.value_text(field.value))
         self.listen(TextArea.Changed, self.changed)
 
     def changed(self, message: TextArea.Changed) -> None:
         message.stop()
         self.send(self.text)
 
+    def read_value(self) -> object:
+        return self.text
+
     def paint(self) -> None:
-        value = str(self.field.value or "")
+        value = self.value_text(self.field.value)
         if self.text != value:
             with self.prevent(TextArea.Changed):
                 self.load_text(value)
@@ -186,6 +207,11 @@ class SelectEditor(Select[object], ValueEditor):
         )
         self.listen(Select.Changed, self.changed)
 
+    def read_value(self) -> object:
+        if self.value is Select.NULL:
+            raise ValueError("Choose a value before committing this field")
+        return self.value
+
     def options(self) -> Iterable[tuple[str, object]]:
         """Each value on offer, with how it reads."""
         raise NotImplementedError
@@ -197,6 +223,8 @@ class SelectEditor(Select[object], ValueEditor):
         for label, choice in self.offered:
             if value == choice:
                 return label
+        if value is None or not FieldValue.of(value).has_value:
+            return self.field.placeholder
         return super().value_text(value)
 
     def changed(self, message: Select.Changed) -> None:
@@ -233,17 +261,20 @@ class EnumEditor(SelectEditor):
 
 
 class OptionalEditor(containers.VerticalGroup, ValueEditor):
-    """A field that may hold nothing: a box says whether it holds a value, and the
-    editor of that value is shown while it does."""
+    """A nullable field; controls edit data and the box projects non-nullness.
+
+    Keep the member editable while null so a numeric value can be entered before
+    committing it. Enabling never leaves a checked box over backend None.
+    """
 
     shows = (Optional,)
 
     def __init__(self, field: DeclaredField) -> None:
         self.field = field
         super().__init__()
-        self.holds_value = Checkbox("Set", value=field.value is not None)
+        value = field.value
+        self.holds_value = Checkbox("Not None", value=FieldValue.of(value).has_value and value is not None)
         self.member = ValueEditor.declared_for(field.member)
-        self.member.display = field.value is not None
         self.holds_value.listen(Checkbox.Changed, self.held_changed)
 
     def compose(self) -> ComposeResult:
@@ -252,19 +283,25 @@ class OptionalEditor(containers.VerticalGroup, ValueEditor):
 
     def held_changed(self, message: Checkbox.Changed) -> None:
         message.stop()
-        self.member.display = message.value
-        if not message.value:
+        if message.value:
+            self.member.commit()
+        else:
             self.send(None)
+        self.paint()
 
     def finish(self) -> None:
         self.member.finish()
 
     def value_text(self, value: object) -> str:
-        return "not set" if value is None else self.member.value_text(value)
+        return "None" if value is None else self.member.value_text(value)
 
     def paint(self) -> None:
-        held = self.field.value is not None
+        value = self.field.value
+        held = FieldValue.of(value).has_value and value is not None
         with self.prevent(Checkbox.Changed):
             self.holds_value.value = held
-        self.member.display = held
+        self.holds_value.tooltip = None if FieldValue.of(value).has_value else repr(value)
         self.member.paint()
+
+    def read_value(self) -> object:
+        return self.member.read_value() if self.holds_value.value else None

@@ -353,14 +353,14 @@ class SavedSettings:
         raw = {} if raw is None else raw
         self.root = FieldPath(root)
         self.state = ObjectState(FieldCodec.decode(root, raw))
-        self.named = {str(path): path for path in leaves(self.root)}
+        self.named = {path.bind(self.state): path for path in leaves(self.root)}
         self.in_file = frozenset(self.keys_held(self.root, raw))
         self.user_set = set(self.in_file)
         self.applied, self.report_error = applied, report_error
         self.events = CoreEventStream(self)
         self.save_lock = asyncio.Lock()
         self.open_edits: list[Callable[[], None]] = []
-        self.state.on_resolved_changed(self.changed)
+        self.state.fields.subscribe_value(self.changed)
 
     # The values.
 
@@ -375,13 +375,13 @@ class SavedSettings:
         setting = DeclaredField.at(self.state, path)
         setting.edit(not setting.value)
 
-    def changed(self, changed: set[str]) -> None:
+    def changed(self, changed) -> None:
         from toad.core.preference_events import PreferenceChanged
 
-        for name in changed & self.named.keys():
-            path = self.named[name]
+        for field in changed & self.named.keys():
+            path = self.named[field]
             self.user_set.add(path)
-            self.applied(path, self.state.get_resolved_value(name))
+            self.applied(path, field.value)
             self.events.publish(PreferenceChanged(path))
 
     def discard(self) -> None:
@@ -487,8 +487,8 @@ class SavedSettings:
 
     def apply_all(self) -> None:
         """Bring a starting app in line with every setting."""
-        for name, path in self.named.items():
-            self.applied(path, self.state.get_resolved_value(name))
+        for field, path in self.named.items():
+            self.applied(path, field.value)
 
     def ensure_file(self, app: ToadApp) -> None:
         path = self.file_path()
