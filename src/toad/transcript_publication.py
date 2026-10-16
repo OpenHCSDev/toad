@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
@@ -96,7 +97,6 @@ class TranscriptPublication(ABC):
             # messages whose resource custody the source needs to capture.
             self.owner.source_requests.submit(self)
             return True
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
         from agent_comms.errors import UnregisteredThreadError
 
         try:
@@ -301,7 +301,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         # backend revision and must not escape as a failed Textual worker.
         if not await self.capture_application():
             return True
-        if snapshot.identity.after is not None and self.owner.published_end is None:
+        end, after = self.owner.published_end, snapshot.identity.after
+        if end is None and after is not None:
             # The history this read extends left while reading; read the window whole.
             self.owner.require_checkpoint()
             return True
@@ -689,8 +690,8 @@ class TranscriptPresentation:
 
     async def read_past_end(self, read, **whole):
         """What follows the published end while its source only grew, else the whole latest page."""
-        from agent_comms.coordination_errors import TranscriptChanged
-        if (end := self.published_end) is not None:
+        end = self.published_end
+        if end is not None:
             try:
                 return await read(after=end)
             except TranscriptChanged:
