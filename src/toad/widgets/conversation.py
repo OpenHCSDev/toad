@@ -478,6 +478,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     native_history_status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
 
+    goal_bar: GoalBar | None = None
     goal_display: var[GoalDisplay] = var(NoGoal())
 
 
@@ -761,6 +762,21 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         if self.is_mounted:
             self.update_slash_commands()
 
+    @on(Prompt.DeliveryControlsChanged)
+    def _delivery_controls_changed(self, event: Prompt.DeliveryControlsChanged) -> None:
+        event.stop()
+        if self.goal_bar is not None:
+            self.goal_bar._queue_separator_update()
+
+    def on_resize(self) -> None:
+        # The binding owns the goal presentation, including its retained size.
+        if self.goal_bar is not None:
+            self.goal_bar.update_document_height()
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if self.goal_bar is not None:
+            self.goal_bar.begin_separator_resize(event)
+
 
 from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
@@ -937,7 +953,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 status=Conversation.status,
             )
             yield self.throbber
-            yield GoalBar(self, throbber=self.throbber, prompt=prompt)
+            self.goal_bar = GoalBar(self, throbber=self.throbber, prompt=prompt)
+            yield self.goal_bar
             yield prompt
 
     @property
@@ -1810,16 +1827,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     async def post_welcome(self) -> None:
         """Post any welcome content."""
 
-    def on_resize(self) -> None:
-        # A goal can retain its own size while the surrounding viewport changes.
-        # Reapply its user-selected height against the new viewport bound.
-        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
-            goal_bar.update_document_height()
-
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
-        if (goal_bar := self.query_one_optional(GoalBar)) is not None:
-            goal_bar.begin_separator_resize(event)
 
     def on_click(self, event: events.Click) -> None:
         from toad.screens.session_view import SessionView

@@ -67,8 +67,7 @@ class CollapseInteraction(GoalInteraction):
 
     @classmethod
     async def apply(cls, session):
-        from toad.widgets.goal_bar import GoalBar
-        bar = session.view.query_one(GoalBar)
+        bar = session.view.goal_bar
         bar.collapsed = not bar.collapsed
 
 
