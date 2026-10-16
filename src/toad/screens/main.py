@@ -40,7 +40,6 @@ from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
-from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import session_thread_name
 from toad.core.input_events import SelectTarget
@@ -404,14 +403,12 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             self.app.session_tracker.bind_identity(self.id, previous, thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
-            self.app.session_navigation.sync_recovery(self.id, self.coordination_root)
+            self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
 
     def _sync_thread_sidebar(self) -> None:
         """Bind a newly mounted right panel to the current session identity."""
         if status := self.query_one_optional(CoordinationStatus):
             status.set_thread(self._comms_thread)
-        if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(self._comms_thread, self.coordination_root)
         if comms_tree := self.query_one_optional(ThreadCommsSidebar):
             comms_tree.set_identity(self._comms_thread, self.coordination_root)
         from toad.widgets.context_explorer import ContextExplorer

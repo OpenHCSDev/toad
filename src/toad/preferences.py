@@ -111,11 +111,6 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     ] = field(default=True, metadata=saved_as("status-line"))
     """The status line shows tokens and cost (not available in all agents)."""
 
-    recovery_view: Annotated[bool, FieldLabel("Show read-only recovery status?")] = field(
-        default=False, metadata=saved_as("recovery-view")
-    )
-    """Show gateway-provided recovery status in the right sidebar when available."""
-
     agent_title: Annotated[
         bool, FieldLabel("Show agent title the info bar?"), effects.agent_title
     ] = field(default=True, metadata=saved_as("agent-title"))
