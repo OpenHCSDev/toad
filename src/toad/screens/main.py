@@ -128,9 +128,14 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         """Terminal content has no unfinished waiters to release."""
 
     async def attached(self, screen: "MainScreen") -> None:
-        """Admitted content already presents the live session."""
+        """Refresh connection feedback from the session that just became ready."""
+        self.render(screen)
 
     def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
+        agent = screen.presentation.operational_agent
+        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
+            text = f"Thread disconnected: {failure.message}: {failure.details}"
+            visible = True
         label = screen.query_one_optional("#session-opening", Static)
         if label is None:
             label = Static(id="session-opening", markup=False)
@@ -452,10 +457,10 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     @handles(core_events.AgentFail)
     def on_session_failure(self, message: CoreEventMessage) -> None:
         agent = self.presentation.operational_agent
-        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
-            # Prompt/tool failures do not fail the session. Its disposition is
-            # the original handshake/connection authority, not this view.
-            self.opening_failed(RuntimeError(f"{failure.message}: {failure.details}"))
+        if agent is not None and agent.session.disposition.current_failure() is not None:
+            # A disconnected session is not a failed history-opening operation.
+            # Keep its reason on the session; every content view reads it there.
+            self.content.render(self)
 
     _last_dm_target: str | None = None
 
