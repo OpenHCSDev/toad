@@ -53,7 +53,6 @@ def test_settings_are_read_and_routed_by_declaration():
                         "sidebar.hide",
                         "sidebar.show_stopped",
                         "sidebar.show_archived",
-                        "ui.recovery-view",
                         "shell.allow_commands",
                     }:
                         violations.append(

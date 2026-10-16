@@ -8,7 +8,6 @@ from toad.plan import PlanItem
 from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
-from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.thread_comms import RelationshipSort, RelationshipTreeState, ThreadCommsSidebar
 
@@ -97,13 +96,6 @@ class ProjectSessionPanel(SessionPanel[ProjectPanel]):
     def capture(self, widget: ProjectPanel) -> None:
         if intent := widget.capture_intent():
             self.intent = intent
-
-
-class RecoverySessionPanel(SessionPanel[RecoveryView]):
-    collapsed = True
-
-    def make_widget(self, screen: "MainScreen") -> RecoveryView:
-        return RecoveryView(screen._comms_thread, wire_root=screen.coordination_root)
 
 
 class ContextSessionPanel(SessionPanel):
