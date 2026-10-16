@@ -21,10 +21,12 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=47f9856b6762553ca10ef94e26de85b2ba069c0d#47f9856b6762553ca10ef94e26de85b2ba069c0d" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=493878cde93c0cafad523986e38c019159b8076b#493878cde93c0cafad523986e38c019159b8076b" }
 dependencies = [
+    { name = "aiohttp" },
     { name = "metaclass-registry" },
     { name = "nominal-refactor-audit" },
+    { name = "pydantic" },
 ]
 
 [package.optional-dependencies]
@@ -304,7 +306,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=47f9856b6762553ca10ef94e26de85b2ba069c0d" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=493878cde93c0cafad523986e38c019159b8076b" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -1023,7 +1025,7 @@ wheels = [
 [[package]]
 name = "nominal-refactor-audit"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor.git?subdirectory=skills%2Frefactor-audit&rev=9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10#9a98d72e10cd7ebae688b2e70d096f0ddc9a4c10" }
+source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor.git?subdirectory=skills%2Frefactor-audit&rev=120c04fb9a0eb4afafab6d621d1c5fd421bb7552#120c04fb9a0eb4afafab6d621d1c5fd421bb7552" }
 
 [[package]]
 name = "notify-py"

@@ -35,7 +35,7 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
 
     @property
     def busy(self) -> bool:
-        return self.thread_row is not None and (self.action_status is not None or self.thread_row.busy)
+        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.busy)
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False, action_status: str | None = None) -> None:
         """Render the model's row with this view's own decoration: pin and pending action."""

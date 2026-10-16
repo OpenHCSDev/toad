@@ -372,7 +372,7 @@ class ToolOutput:
     @staticmethod
     def capture_parts(tool_call: schema.ToolCall, *, content=None) -> tuple[ToolOutputPart, ...]:
         """Pure ACP interpretation, shared by live ingress and saved workers."""
-        raw_input = tool_call.raw_input or {}
+        raw_input = tool_call.raw_input
         path = (
             raw_input.get("path") or raw_input.get("file_path") or raw_input.get("filePath")
             if isinstance(raw_input, dict) else None
