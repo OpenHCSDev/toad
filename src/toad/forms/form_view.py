@@ -10,8 +10,8 @@ from formbridge.forms.parameter_form_service import (
     ParameterFormService,
 )
 from formbridge.forms.parameter_info_types import DirectDataclassInfo, GenericInfo
-from objectstate import ObjectState
-from python_introspect import UnifiedParameterAnalyzer, resolve_annotated
+from objectstate import FieldProxy, ObjectState
+from python_introspect import resolve_annotated
 from textual import containers, events, lazy
 from textual.app import ComposeResult
 from textual.content import Content
@@ -30,16 +30,16 @@ def form_structure(state: ObjectState) -> FormStructure:
     The views read labels, choices and bounds from the declaration itself.
     """
     held = state.object_instance
-    declared = UnifiedParameterAnalyzer.analyze(held)
+    declared = state.fields.children
     return ParameterFormService().analyze_parameters(
         ParameterAnalysisInput(
-            default_value={name: state.parameters[name] for name in declared},
+            default_value={field.name: field.raw for field in declared},
             param_type={
-                name: resolve_annotated(parameter.param_type)
-                for name, parameter in declared.items()
+                field.name: resolve_annotated(field.annotation)
+                for field in declared
             },
             field_id="",
-            description=state.parameter_descriptions,
+            description={field.name: field.description for field in declared},
             parent_obj_type=type(held),
         )
     )
@@ -178,8 +178,8 @@ class GroupView(FieldView):
     def __init__(self, field: DeclaredField, structure: FormStructure,
                  included: frozenset[FieldPath] | None = None) -> None:
         super().__init__(field, structure, included)
-        name = str(field.path).rpartition(".")[2]
-        self.parts = FieldView.of(field.state, field.path, structure.nested_forms[name], included)
+        name = field.handle.name
+        self.parts = FieldView.of(field.handle.state, field.path, structure.nested_forms[name], included)
 
     def compose(self) -> ComposeResult:
         yield GroupTitle(self.field.label)
@@ -221,32 +221,35 @@ class FormView(containers.VerticalScroll, can_focus=False):
             state, FieldPath(type(state.object_instance)), form_structure(state), included
         )
         self.values = {
-            str(view.field.path): view for part in self.parts for view in part.values()
+            view.field.handle: view for part in self.parts for view in part.values()
         }
         if focus is not None:
-            editor = self.values[str(focus)].editor
+            editor = self.values[focus.bind(state)].editor
             editor.listen(events.Mount, lambda _: editor.focus())
+        self._subscriptions = ()
         self.listen(events.Mount, self.follow_state)
         self.listen(events.Unmount, self.leave_state)
 
     def follow_state(self, event: events.Mount) -> None:
         lazy.Reveal.reveal(self, list(self.parts))
-        self.state.on_resolved_changed(self.values_changed)
-        self.state.on_state_changed(self.marks_changed)
-        self.marks_changed(self.state.dirty_fields)
+        self._subscriptions = (
+            self.state.fields.subscribe_value(self.values_changed),
+            self.state.fields.subscribe(self.marks_changed),
+        )
+        self.marks_changed(self.values.keys())
 
     def leave_state(self, event: events.Unmount) -> None:
-        self.state.off_resolved_changed(self.values_changed)
-        self.state.off_state_changed(self.marks_changed)
+        for release in self._subscriptions:
+            release()
+        self._subscriptions = ()
 
-    def values_changed(self, paths: set[str]) -> None:
-        for path in paths & self.values.keys():
-            self.values[path].editor.paint()
+    def values_changed(self, fields: frozenset[FieldProxy]) -> None:
+        for field in fields & self.values.keys():
+            self.values[field].editor.paint()
 
-    def marks_changed(self, paths: set[str]) -> None:
-        differ = self.state.dirty_fields
-        for path in paths & self.values.keys():
-            self.values[path].mark(path in differ)
+    def marks_changed(self, fields) -> None:
+        for field in fields & self.values.keys():
+            self.values[field].mark(field.dirty)
 
     def finish(self) -> None:
         """Send every edit the user has typed but not left yet."""

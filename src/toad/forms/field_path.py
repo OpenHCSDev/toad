@@ -17,8 +17,8 @@ class FieldPath:
     """One field of a dataclass tree: `FieldPath(Settings).sidebar.hide`.
 
     Each step is checked against the dataclass fields when the path is built,
-    so a path that exists names a declared field. `str(path)` is the dotted
-    name ObjectState keeps the field under.
+    so a path that exists names a declared field. Binding admits that
+    declaration in an editing state; string spelling is only for display.
     """
 
     __slots__ = ("_root", "_names")
@@ -31,6 +31,9 @@ class FieldPath:
         if not is_dataclass(owner) or name not in {field.name for field in fields(owner)}:
             raise AttributeError(f"{owner!r} declares no field {name!r}")
         return FieldPath(self._root, (*self._names, name))
+
+    def bind(self, state):
+        return state.fields.bind(self._root, self._names)
 
     def __str__(self) -> str:
         return ".".join(self._names)

@@ -7,7 +7,7 @@ from dataclasses import MISSING, dataclass, replace
 from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, get_args, get_origin
 
-from objectstate import ObjectState
+from objectstate import FieldProxy, ObjectState
 from python_introspect import optional_member_type
 from python_introspect.validation import validate_annotation_value
 
@@ -69,21 +69,21 @@ def declarations(annotation: object) -> Iterator[object]:
 class DeclaredField:
     """One field of an ObjectState: where its value lives and how it was declared."""
 
-    state: ObjectState
+    handle: FieldProxy
     path: FieldPath
     annotation: object
 
     @classmethod
     def at(cls, state: ObjectState, path: FieldPath) -> DeclaredField:
-        return cls(state, path, declared_annotation(path))
+        return cls(path.bind(state), path, declared_annotation(path))
 
     @property
     def value(self) -> object:
-        return self.state.get_resolved_value(str(self.path))
+        return self.handle.value
 
     @property
     def default(self) -> object:
-        return self.state.signature_default(str(self.path))
+        return self.handle.default
 
     @property
     def has_default(self) -> bool:
@@ -101,7 +101,7 @@ class DeclaredField:
 
     @property
     def help(self) -> str:
-        return cleandoc(self.state.parameter_descriptions.get(str(self.path)) or "")
+        return cleandoc(self.handle.description or "")
 
     @property
     def member(self) -> DeclaredField:
@@ -117,4 +117,4 @@ class DeclaredField:
         # ObjectState takes any value for a field of the root object and only
         # fails later, when the object is rebuilt (ObjectState issue #47).
         validate_annotation_value(self.annotation, value, path=self.label)
-        self.state.update_parameter(str(self.path), value)
+        self.handle.write(value)
