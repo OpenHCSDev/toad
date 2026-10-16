@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.transcript_preparation import PreparedTranscriptPage
+    from toad.widgets.transcript_fragments import TranscriptFragment
 
 @dataclass(frozen=True)
 class CommitEvidence:

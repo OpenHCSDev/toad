@@ -530,8 +530,8 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 
-    async def _mark_read(self) -> None:
-        """Report the painted native cursor, never an executor's inbox cursor."""
+    def read_visible(self):
+        """Capture a painted native/CLI cursor before scheduling its guarded write."""
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation, Window
 
@@ -576,11 +576,14 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
             access.write(selected, mark)
 
-        try:
-            await asyncio.to_thread(acknowledge)
-        except (OSError, ValueError):
-            # Source replacement or deletion is resolved by the next snapshot.
-            return
+        async def mark():
+            try:
+                await asyncio.to_thread(acknowledge)
+            except (OSError, ValueError):
+                # Source replacement or deletion is resolved by the next snapshot.
+                return
+
+        return mark()
 
 
     def schedule_from_thread(self, callback: Callable[[], object]) -> None:

@@ -152,12 +152,14 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     # Read marks
 
-    async def _mark_read(self) -> None:
+    def read_visible(self):
         if not self.is_attached or self.source is None:
-            return
+            return None
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
-            return
-        snapshot = self.source_snapshot()
+            return None
+        return self._mark_read(self.source_snapshot())
+
+    async def _mark_read(self, snapshot: HistorySourceSnapshot) -> None:
         if not await self.source_is_current(snapshot):
             if snapshot.current(self):
                 self.view.display = False

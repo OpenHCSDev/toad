@@ -86,8 +86,10 @@ class VisibleReadMarking:
         super().__init__(*args, **kwargs)
 
     def mark_visible(self) -> None:
-        if self._read_worker is None or self._read_worker.is_finished:
-            self._read_worker = self.run_worker(self._mark_read(), group="painted-read")
+        if self._read_worker is not None and not self._read_worker.is_finished:
+            return
+        if (work := self.read_visible()) is not None:
+            self._read_worker = self.run_worker(work, group="painted-read")
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
