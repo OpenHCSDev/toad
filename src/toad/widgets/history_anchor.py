@@ -531,10 +531,13 @@ class HistoryWindow(VerticalScroll):
         """A history about to be mounted loads the page ranges the kept position needs."""
         if self.reader_position is not None:
             self.reader_position.prepare_history(history)
+        if self.follows_tail:
+            self.lookahead.destination(self.outer_size.height, pages_read=len(history.pages))
 
     def latest_limits(self, budget: PresentationBudget) -> tuple[int, int]:
         """One native destination's row capacity and bounded fragment budget."""
-        return max(1, self.outer_size.height), self.lookahead.destination_batch(budget, self.outer_size.height)
+        return (self.presentation_budget.runway_rows(self.outer_size.height),
+                self.lookahead.destination_batch(budget, self.outer_size.height))
 
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""

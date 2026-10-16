@@ -4,6 +4,7 @@ from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
 from toad.comms_root import CoordinationAccess
+from toad.widgets.message_notifications import VisibleReadMarking
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -12,6 +13,7 @@ import gc
 import sys
 import json
 import os
+from enum import IntEnum
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
@@ -24,6 +26,7 @@ from textual import events, on, work
 from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
+from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import var
 from textual.screen import Screen
@@ -248,7 +251,22 @@ class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ScreenWidth(IntEnum):
+    """Native sizing modes; legacy breakpoint classes are derived from them."""
+
+    side_panel_width: Scalar | None
+
+    def __new__(cls, minimum_width: int, side_panel_width: Scalar | None):
+        mode = int.__new__(cls, minimum_width)
+        mode._value_ = minimum_width
+        mode.side_panel_width = side_panel_width
+        return mode
+
+    NARROW = (0, None)
+    WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
+
+
+class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -261,7 +279,9 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     project_dir = var(Path)
     show_sessions = var(False, toggle_class="-show-sessions-bar")
 
-    HORIZONTAL_BREAKPOINTS = [(0, "-narrow"), (100, "-wide")]
+    HORIZONTAL_BREAKPOINTS: list[tuple[int, str]] = [
+        (mode, f"-{mode.name.lower()}") for mode in ScreenWidth
+    ]
 
     PAUSE_GC_ON_SCROLL = True
 
@@ -529,8 +549,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 
-    async def mark_visible_thread_read(self) -> None:
-        """Report the painted native cursor, never an executor's inbox cursor."""
+    def read_visible(self):
+        """Capture a painted native/CLI cursor before scheduling its guarded write."""
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation, Window
 
@@ -575,11 +595,14 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
             access.write(selected, mark)
 
-        try:
-            await asyncio.to_thread(acknowledge)
-        except (OSError, ValueError):
-            # Source replacement or deletion is resolved by the next snapshot.
-            return
+        async def mark():
+            try:
+                await asyncio.to_thread(acknowledge)
+            except (OSError, ValueError):
+                # Source replacement or deletion is resolved by the next snapshot.
+                return
+
+        return mark()
 
 
     def schedule_from_thread(self, callback: Callable[[], object]) -> None:

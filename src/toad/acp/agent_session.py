@@ -22,6 +22,7 @@ from toad.core.events import AgentFail, AgentReady, UnsupportedResumeAgentFail, 
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
+from agent_comms.owner_protocol import IncompatibleOwner
 from agent_comms.session_load import EnsuringSessionLoadPlan, ExistingSessionLoadPlan, FailedSessionLoadPlan, SessionLoadPlan
 
 PROTOCOL_VERSION = 1
@@ -476,6 +477,8 @@ class AgentSession:
             if self.agent.queue_attachment.is_current_request(queue_token):
                 if failed_command := FailedSessionLoadPlan.from_failure(error.data):
                     self.load_plan = failed_command
+            if owner := IncompatibleOwner.from_failure(error.data):
+                raise jsonrpc.APIError(error.code, owner.line(), None) from error
             raise
         authority.require()
         if (
