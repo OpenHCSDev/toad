@@ -24,7 +24,7 @@ from toad.widgets.transcript_lines import (
     LineTheme, LinkedRows, MessageRowBlock, PreparedLines, RichLineRenderer, link_place,
 )
 
-from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.message_filter import MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 
 
@@ -154,7 +154,7 @@ class MessageRowDivider(MessageRowBlock, MessageDivider):
         self.message_row = row
 
 
-class AgentActivityDivider(ConversationBlock, SnapshotPresentation, CategorizedBlock, SingleLineBlock):
+class AgentActivityDivider(ConversationBlock, SnapshotPresentation, SingleLineBlock):
     """The shared activity-group row, filtered with the activity that follows it."""
 
     ALLOW_SELECT = False

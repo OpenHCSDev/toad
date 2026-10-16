@@ -26,7 +26,6 @@ from textual.worker import Worker
 from toad.conversation_kind import ConversationKind
 from toad import messages
 from toad.widgets.conversation import (
-    Contents,
     ContentsGrid,
     Conversation,
     CursorContainer,
@@ -120,7 +119,7 @@ class CommsChatView(Conversation):
         with Window():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with Contents(id="contents"):
+                with self.contents:
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
                     yield ChannelActivityTray(id="comms-activity")

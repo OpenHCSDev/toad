@@ -11,14 +11,14 @@ from toad.message_rows import MessageRow
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import MessageClock
-from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
+from toad.widgets.message_filter import OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.transcript_lines import MessageRowBlock
 from toad.widgets.wire_message_handling import WireMessageHandling
 from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 
 
-class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
+class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, ConversationBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
     def __init__(self, publication: PublishedSentMessage, *, binding, request, show_header: bool = True):

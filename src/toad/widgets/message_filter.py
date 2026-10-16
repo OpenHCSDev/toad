@@ -1,6 +1,8 @@
 """One semantic filter for native live blocks and saved transcript fragments."""
 
-from abc import ABC, abstractmethod
+from __future__ import annotations
+
+from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -16,18 +18,34 @@ from agent_comms.transcript_events import (
 )
 
 
-class NativeMessagePresentation(ABC):
+class MessageCategory(DeclaredFamily, affix="Category"):
     @classmethod
-    def keep_native_block(cls) -> bool:
-        return False
-
-
-class MessageCategory(NativeMessagePresentation, DeclaredFamily, affix="Category"):
-    label: str
+    @abstractmethod
+    def admits(cls, selected: frozenset[type[MessageCategory]]) -> bool: ...
 
     @classmethod
     @abstractmethod
     def observe(cls, boundary) -> bool: ...
+
+
+class SelectableCategory(MessageCategory):
+    label: str
+
+    @classmethod
+    def admits(cls, selected: frozenset[type[MessageCategory]]) -> bool:
+        return cls in selected
+
+
+class UnrestrictedCategory(MessageCategory):
+    """A source container delegates filtering to the messages it draws."""
+
+    @classmethod
+    def admits(cls, selected: frozenset[type[MessageCategory]]) -> bool:
+        return True
+
+    @classmethod
+    def observe(cls, boundary) -> bool:
+        return False
 
 
 class FromPerson:
@@ -52,39 +70,31 @@ class AgentWork:
         return show
 
 
-class RoutedMessage(NativeMessagePresentation):
-    """Messages retained while the native transcript supplies ordinary blocks."""
-
-    @classmethod
-    def keep_native_block(cls) -> bool:
-        return True
-
-
-class UserCategory(FromPerson, MessageCategory):
+class UserCategory(FromPerson, SelectableCategory):
     label = "User messages"
 
 
-class AgentCategory(FromAgent, MessageCategory):
+class AgentCategory(FromAgent, SelectableCategory):
     label = "Agent messages"
 
 
-class InboundCategory(RoutedMessage, FromPerson, MessageCategory):
+class InboundCategory(FromPerson, SelectableCategory):
     label = "Messages in"
 
 
-class OutboundCategory(RoutedMessage, FromAgent, MessageCategory):
+class OutboundCategory(FromAgent, SelectableCategory):
     label = "Messages out"
 
 
-class ThinkingCategory(AgentWork, MessageCategory):
+class ThinkingCategory(AgentWork, SelectableCategory):
     label = "Thinking"
 
 
-class ToolCategory(AgentWork, MessageCategory):
+class ToolCategory(AgentWork, SelectableCategory):
     label = "Tool calls"
 
 
-class OtherCategory(MessageCategory):
+class OtherCategory(SelectableCategory):
     label = "Other / notices"
 
     @classmethod
@@ -93,20 +103,41 @@ class OtherCategory(MessageCategory):
 
 
 def all_categories() -> frozenset[type[MessageCategory]]:
-    return frozenset(MessageCategory.members_with(MessageCategory))
+    return frozenset(MessageCategory.members_with(SelectableCategory))
 
 
 class CategorizedBlock:
-    """Nominal widget mixin for the declared presentation category.
-
-    Textual widgets own a custom metaclass, so a separate ABCMeta would be
-    inconsistent with their inheritance. Concrete blocks implement this member.
-    """
+    """Derive native block eligibility from its declaring category and container."""
 
     @property
-    def message_category(self) -> type[MessageCategory] | None:
-        """None reserves a container for its saved-history projection."""
-        raise NotImplementedError
+    def message_category(self) -> type[MessageCategory]:
+        return OtherCategory
+
+    @property
+    def display_allowed(self) -> bool:
+        return super().display_allowed and (
+            not isinstance(self.parent, CategorizedMount)
+            or self.message_category.admits(self.parent.selected_categories)
+        )
+
+
+class CategorizedMount:
+    """Own native category admission and invalidate its child view once."""
+
+    selected_categories: frozenset[type[MessageCategory]]
+
+    def mount(self, *widgets, **kwargs):
+        from toad.block_navigation import require_blocks
+
+        mounted = super().mount(*require_blocks(widgets), **kwargs)
+        # Registration is synchronous; preserve source order before mount tasks run.
+        self.sort_children(key=lambda block: block.conversation_order)
+        return mounted
+
+    def categories_changed(self, previous, selected) -> None:
+        if any(block.message_category.admits(previous) != block.message_category.admits(selected)
+               for block in self.children):
+            self.refresh_display()
 
 
 class TranscriptCategoryConsumer(MroDispatch):
@@ -147,36 +178,3 @@ def event_category(event: TranscriptEvent) -> type[MessageCategory]:
     consumer.dispatch_sync(event)
     return consumer.category
 
-
-def block_category(widget) -> type[MessageCategory] | None:
-    """Ask the native block; uncategorized controls belong to Other."""
-    return (
-        widget.message_category
-        if isinstance(widget, CategorizedBlock)
-        else OtherCategory
-    )
-
-
-def apply_block_filter(widget, selected: frozenset[type[MessageCategory]]) -> None:
-    """Change only this semantic owner, preserving its authored display rules."""
-    category = block_category(widget)
-    hidden = category is not None and category not in selected
-    marker = "-category-hidden"
-    if widget.has_class(marker) != hidden:
-        # Keep the marker available for custom styling. Ordinary filtering is a
-        # model-owned display constraint, not a request to rematch subtree CSS.
-        update_styles = widget.is_attached and widget.app.stylesheet.references_class(
-            marker
-        )
-        widget.set_class(hidden, marker, update=update_styles)
-    widget.set_display_constraint("message-category", not hidden)
-
-
-def keep_live_block(widget) -> bool:
-    category = block_category(widget)
-    return (
-        category is None
-        or category.keep_native_block()
-        or widget.has_class("-error")
-        or widget.has_class("-error-log-link")
-    )

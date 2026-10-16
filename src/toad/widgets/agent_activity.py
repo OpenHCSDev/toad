@@ -55,5 +55,5 @@ class AgentActivityBoundary:
     def reset(self) -> None:
         self._pending = True
 
-    def observe(self, category: type[MessageCategory] | None) -> bool:
-        return category.observe(self) if category is not None else False
+    def observe(self, category: type[MessageCategory]) -> bool:
+        return category.observe(self)
