@@ -8,7 +8,9 @@ from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from importlib.metadata import version
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from urllib.parse import quote
+from yarl import URL
 
 from aiohttp import web
 from textual_serve.server import Server
@@ -16,24 +18,45 @@ from textual_serve.server import Server
 type Handler = Callable[[web.Request], Awaitable[web.StreamResponse]]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, init=False)
 class LocalBrowserEndpoint:
-    host: str
+    address: IPv4Address | IPv6Address
     port: int
 
-    def __post_init__(self) -> None:
-        if self.host not in {"localhost", "127.0.0.1"} or not 1 <= self.port <= 65535:
+    def __init__(self, host: str, port: int, allow_network: bool = False) -> None:
+        address = ip_address("127.0.0.1" if host == "localhost" else host)
+        if not 1 <= port <= 65535:
+            raise ValueError("Browser serving requires a valid port")
+        if address.is_unspecified:
             raise ValueError(
-                "Browser serving requires a loopback host and a valid port"
+                "Browser authentication needs a concrete IP address, not a wildcard bind"
             )
+        if not address.is_loopback and not allow_network:
+            raise ValueError(
+                "Browser serving requires a loopback host; pass --allow-network "
+                "to serve a LAN address over plain HTTP"
+            )
+        object.__setattr__(self, "address", address)
+        object.__setattr__(self, "port", port)
+
+    @property
+    def host(self) -> str:
+        return str(self.address)
+
+    @property
+    def requires_network_opt_in(self) -> bool:
+        return not self.address.is_loopback
+
+    def _url(self) -> URL:
+        return URL.build(scheme="http", host=self.host, port=self.port)
 
     @property
     def authority(self) -> str:
-        return f"{self.host}:{self.port}"
+        return self._url().raw_authority
 
     @property
     def url(self) -> str:
-        return f"http://{self.authority}"
+        return str(self._url())
 
     @property
     def cookie_name(self) -> str:
@@ -145,12 +168,13 @@ class ToadWebServer(Server):
         host: str = "127.0.0.1",
         port: int = 8000,
         title: str | None = None,
+        allow_network: bool = False,
     ) -> None:
         if version("textual-serve") != "1.1.3":
             raise RuntimeError("Browser serving requires reviewed textual-serve 1.1.3")
-        endpoint = LocalBrowserEndpoint(host, port)
+        endpoint = LocalBrowserEndpoint(host, port, allow_network)
         super().__init__(
-            command, host=host, port=port, title=title, public_url=endpoint.url
+            command, host=endpoint.host, port=endpoint.port, title=title, public_url=endpoint.url
         )
         self.authentication = LocalBrowserAuthentication(endpoint)
 
@@ -162,6 +186,15 @@ class ToadWebServer(Server):
     async def on_startup(self, app: web.Application) -> None:
         self.console.print("Toad local browser (keep this URL private):")
         self.console.print(self.authentication.bootstrap_url)
+        if self.authentication.endpoint.requires_network_opt_in:
+            self.console.print(
+                "WARNING: serving a non-loopback address. The page gives full "
+                "control of the agents over plain HTTP. The private URL and "
+                "session cookie are credentials for this server's lifetime; "
+                "anyone who captures either can take control. Use a trusted "
+                "network only.",
+                style="bold red",
+            )
 
     async def _make_app(self) -> web.Application:
         app = await super()._make_app()
