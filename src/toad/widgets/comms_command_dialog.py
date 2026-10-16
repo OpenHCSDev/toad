@@ -5,7 +5,7 @@ from agent_comms.cli_commands import TargetAction
 
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Checkbox, Input, Select, Static, TextArea
 
 

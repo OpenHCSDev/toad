@@ -89,7 +89,7 @@ class HistoryCursor(DeclaredFamily, affix="Cursor"):
     def move(cls, editor: PromptTextArea, select: bool, ordinary) -> None:
         from toad.core.input_events import HistoryMove
 
-        if editor.selection.is_empty and not select:
+        if editor.editing_mode.accepts_text and editor.selection.is_empty and not select:
             if cls.at_edge(editor):
                 editor.publish_core(HistoryMove.for_mode(cls.direction, editor.shell_mode, editor.text))
                 return
@@ -121,7 +121,7 @@ class PromptCursor:
         from toad.widgets.prompt_popup import CompletionPopup
 
         editor = self._editor()
-        if editor is None:
+        if editor is None or not editor.editing_mode.accepts_text:
             return
         movement = CursorMovement(previous, current)
         prompt = editor.query_ancestor(Prompt)

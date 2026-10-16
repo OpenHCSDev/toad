@@ -9,7 +9,7 @@ from agent_comms.goals import Goal
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
 
 from toad.core.input_events import SelectTarget

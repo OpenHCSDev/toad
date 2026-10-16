@@ -5,7 +5,7 @@ from textual import on, work
 from textual import containers
 from textual import getters
 from textual.content import Content
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual import widgets
 from textual.widget import Widget
 
