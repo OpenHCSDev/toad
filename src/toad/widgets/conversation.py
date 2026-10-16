@@ -626,14 +626,13 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             history.state.resume_if_parked(history)
 
     def refresh_native_projection(self) -> None:
-        """Publish bound owner facts and invalidate its existing read resource."""
+        """Publish bound owner facts and invalidate the delivery read resource."""
         agent = self.agent
         if agent is None:
             return
         self.status = agent.context_measurement.status()
         self.turns.bound()
         self.submissions.publish_pending()
-        self.goal_observation.invalidate()
         self.delivery_observation.invalidate()
 
 
