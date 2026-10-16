@@ -28,13 +28,14 @@ from agent_comms.exporting import (
 )
 from agent_comms.importing import ImportFormat
 from objectstate import ObjectState
-from python_introspect import AnnotationChoices, FieldLabel, RegisteredClassChoices
+from python_introspect import AnnotationChoices, FieldLabel
 from textual.app import ComposeResult
 from textual.binding import CallBinding
 from textual.containers import HorizontalGroup, Vertical
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
+from textual.layouts.horizontal import HorizontalLayout
 from textual.widgets import Button, Static
 from ui_theme.scheme import ErrorColour, PrimaryColour, SurfaceColour
 
@@ -169,6 +170,11 @@ class DmExportScopeInput(ExportScopeInput):
         return DmScope(tuple(name.strip().removeprefix("@") for name in target.split(",")))
 
 
+class WireFormatChoices(FamilyChoices):
+    def label(self, choice: object) -> str:
+        return str(FieldCodec.encode(choice))
+
+
 class ImportFormatChoices(AnnotationChoices):
     def choices(self) -> tuple[ImportFormat, ...]:
         return tuple(ImportFormat)
@@ -201,6 +207,8 @@ class TransferError(FormPart, Static):
 
 class TransferActions(FormPart, HorizontalGroup):
     """The shared native form geometry composes with the horizontal layout."""
+
+    DEFAULT_LAYOUT = HorizontalLayout
 
 
 class TransferDialog(FormModal, ModalScreen):
@@ -274,7 +282,7 @@ class WireExportDialog(TransferDialog):
     @dataclass(frozen=True)
     class Fields(TransferDialog.Fields):
         destination: Annotated[str, FieldLabel("Destination path")]
-        format: Annotated[type[WireExportFormat], RegisteredClassChoices(SelectableWireExportFormat)] = JsonlFormat
+        format: Annotated[type[WireExportFormat], WireFormatChoices(SelectableWireExportFormat)] = JsonlFormat
         scope: Annotated[type[ExportScopeInput], FamilyChoices(ExportScopeInput)] = EverythingExportScopeInput
         target: Annotated[str, FieldLabel("Scope target"), Placeholder("#channel or first,second (for DM)")] = ""
         max_bytes: Annotated[str, FieldLabel("Max bytes (empty = full)")] = "5242880"

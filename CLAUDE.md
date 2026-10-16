@@ -25,6 +25,7 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 
 - Use plan mode before changing the scroll path (`widgets/viewport_body.py`, `presentation_window.py`, `prepared_markdown.py`, `streaming_markdown.py`, `transcript_history.py`, `transcript_fragments.py`) or the Textual fork. Tristan approves the plan.
 - One checkout and one branch for this work. No new worktrees, no evidence-only PRs.
+- Read comms orders through inbox or the current message thread. Never run `agent-comms history` against the shared live bus.
 - Delete your own generated output when done with it. Never delete raw failures, saved sessions or other agents' work.
 
 ## Background
