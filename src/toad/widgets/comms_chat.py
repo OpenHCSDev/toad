@@ -175,7 +175,7 @@ class CommsChatView(Conversation):
 
     @handles(core_events.SessionSelected)
     async def _selected_source_changed(self, event) -> None:
-        """A retained view reads current source after its original tab admission."""
+        """A retained view reads current source when its tab is shown."""
         await super()._selected_commands_changed(event)
         await self._refresh()
 
@@ -200,7 +200,7 @@ class CommsChatView(Conversation):
             # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
-        if history.revision == access.revision:
+        if history.revision.stores == access.revision:
             return
         snapshot = history.source_snapshot()
         if not snapshot.current(history):
@@ -217,7 +217,7 @@ class CommsChatView(Conversation):
             return
         if (source is history.source and snapshot.current(history)
                 and source.comms is access.observed_service
-                and history.revision != revision):
+                and history.revision.stores != revision):
             await self._refresh()
 
     def prepare_prompt(self) -> None:

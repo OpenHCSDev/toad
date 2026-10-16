@@ -17,7 +17,7 @@ from agent_comms import HistoricalMessage
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message
-from agent_comms.presentation import WireRevision
+from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
@@ -97,6 +97,26 @@ class WirePage:
     def unread(cls) -> WirePage:
         """What is drawn before the first read: nothing, up to sequence zero."""
         return cls((), None, AfterSequence(0), False, False, None)
+
+    @property
+    def undrawn(self) -> bool:
+        return self.source is None
+
+    def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
+        """The first Core page fills a placeholder; Core compares established pages."""
+        source = self.source
+        return source is None or view.same_display(page, source)
+
+    def advanced(self, interval: WirePage, *, older: bool) -> WirePage:
+        """An empty interval advances its cut and establishes the first Core page.
+
+        Existing fragments retain their original page evidence; a placeholder
+        must adopt the actual empty Core page rather than remain unobserved.
+        """
+        source = interval.source if self.undrawn else self.source
+        return (replace(self, before=interval.before, has_older=interval.has_older, source=source)
+                if older else replace(self, after=interval.after, has_newer=interval.has_newer,
+                                      source=source))
 
 
 @dataclass(kw_only=True)
@@ -215,19 +235,16 @@ class WireSource:
         return self.kind.page(self.comms, self.target, worktree=str(self.project),
                               max_bytes=self.max_bytes, **bounds)
 
-    def observe(self, seen: WireRevision | None, through: AfterSequence,
-                identity: tuple | None) -> WireObservation | None:
+    def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
-        revision = self.comms.views.revision()
+        revision = self.kind.history_view.revision(
+            self.comms.views, self.target, worktree=str(self.project))
         if revision == seen:
             return None
         high = AfterSequence(self.comms.views.latest_sequence())
-        # Without new messages the viewer, peer or channel scope may still
-        # have been replaced: the pages drawn then belong to another reading.
-        replaced = seen is None or (
-            not high.cursor > through.cursor and identity is not None
-            and revision.stores_changed_since(seen)
-            and self.kind.display_identity(self.page(limit=1)) != identity)
+        # Core's display view owns which stores can replace this reading.
+        # Notification/read/activity writes do not require a page to learn that.
+        replaced = seen is None or revision.display_changed_since(seen)
         return WireObservation(revision, high, replaced)
 
     def read(self, request: PageRequest, through: AfterSequence) -> PreparedTranscriptPage:
@@ -243,7 +260,7 @@ class WireSource:
                          if message.view_key[0] or message.seq <= through.cursor)
             if len(kept) < len(page.messages):
                 page = replace(page, messages=kept, has_newer=False)
-        evidence = page if self.kind.display_identity(page) is not None else None
+        evidence = page if self.kind.history_view.has_display_evidence(page) else None
         shown = MessageShown(style=self.style)
         fragments = tuple(
             WireFragment.of(message, shown=shown, evidence=evidence,
@@ -264,7 +281,7 @@ class WireSource:
 
 @dataclass(frozen=True)
 class WireObservation:
-    revision: WireRevision
+    revision: ConversationRevision
     through: AfterSequence
     replaced: bool
 
