@@ -9,7 +9,8 @@ from dataclasses import dataclass
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor
+from agent_comms.transcripts import TranscriptPage
 from textual.widget import Widget
 from agent_comms.transcript_events import TranscriptEvent, UserTranscript
 from toad.transcript_state import LatestViewportRequest
@@ -38,7 +39,7 @@ class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def native_current(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return True
 
     @property
@@ -58,7 +59,7 @@ class CapturedClaim(CommitClaim):
     def capture(self, settled: bool) -> bool:
         return settled
 
-    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def native_current(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return widget in captured
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
@@ -79,7 +80,7 @@ class RetainedSourceClaim(CapturedClaim):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def native_current(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return True
 
 @dataclass(frozen=True)

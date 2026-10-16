@@ -8,7 +8,8 @@ viewport shows are asked instead).
 from agent_comms.message_reference import MessageReference
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcript_events import SentTranscript, ThinkingTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.widgets.message_filter import MessageCategory, RoutedMessage, all_categories
 from toad.widgets.transcript_history import TranscriptHistory
@@ -21,7 +22,7 @@ OLDER = SentTranscript("OLDER_ROUTED_MESSAGE", source=MessageReference(1, "under
 
 def hidden_tail(count: int, name: str = "HIDDEN_TAIL"):
     return TranscriptPage(tuple(ThinkingTranscript(f"{name}_{index}") for index in range(count)),
-                          TranscriptCursor(FILE, 100), TranscriptCursor(FILE, 200), True, False)
+                          NativeCursor(FILE, 100), NativeCursor(FILE, 200), True, False)
 
 
 def routed_shown(history) -> bool:
@@ -46,7 +47,7 @@ async def test_routed_filter_reads_an_older_page_to_fill_an_empty_viewport(works
 
         async def load_page(**kwargs):
             calls.append(kwargs)
-            return TranscriptPage((OLDER,), TranscriptCursor(FILE, 0), TranscriptCursor(FILE, 100), False, True)
+            return TranscriptPage((OLDER,), NativeCursor(FILE, 0), NativeCursor(FILE, 100), False, True)
 
         tail = hidden_tail(90)
         history = await mount_then_filter(ui, tail, load_page)
@@ -64,7 +65,7 @@ async def test_filter_over_more_hidden_records_than_the_budget_still_finds_the_r
 
         async def load_page(**kwargs):
             calls.append(kwargs)
-            return TranscriptPage((OLDER,), TranscriptCursor(FILE, 0), TranscriptCursor(FILE, 100), False, True)
+            return TranscriptPage((OLDER,), NativeCursor(FILE, 0), NativeCursor(FILE, 100), False, True)
 
         sparse = await mount_then_filter(ui, hidden_tail(340, "HIDDEN_OLDER"), load_page)
         await ui.until(lambda: routed_shown(sparse), why="the older routed message past 340 hidden records")
@@ -78,7 +79,7 @@ async def test_clearing_the_filter_restores_the_transcript_and_setting_it_again_
         conversation = ui.conversation
 
         async def load_page(**kwargs):
-            return TranscriptPage((OLDER,), TranscriptCursor(FILE, 0), TranscriptCursor(FILE, 100), False, True)
+            return TranscriptPage((OLDER,), NativeCursor(FILE, 0), NativeCursor(FILE, 100), False, True)
 
         sparse = await mount_then_filter(ui, hidden_tail(340, "HIDDEN_OLDER"), load_page)
         await ui.until(lambda: routed_shown(sparse), why="the routed message under the filter")
@@ -97,8 +98,8 @@ async def test_history_with_no_routed_records_is_scanned_to_its_end_once(workspa
         async def only_hidden(**kwargs):
             reads.append(kwargs["before"].offset)
             offset = 50 if kwargs["before"].offset == 100 else 0
-            return TranscriptPage((ThinkingTranscript("NO_ROUTE"),), TranscriptCursor(FILE, offset),
-                                  TranscriptCursor(FILE, kwargs["before"].offset), bool(offset), True)
+            return TranscriptPage((ThinkingTranscript("NO_ROUTE"),), NativeCursor(FILE, offset),
+                                  NativeCursor(FILE, kwargs["before"].offset), bool(offset), True)
 
         empty = await mount_then_filter(ui, hidden_tail(90), only_hidden)
         await ui.until(lambda: empty.filter.before is not None and not empty.filter.has_older,

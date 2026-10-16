@@ -3,14 +3,15 @@
 from agent_comms.transcript_events import (
     AssistantTranscript, ContextTranscript, ToolEndTranscript, ToolStartTranscript,
 )
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.widgets.transcript_fragments import ToolTranscriptFragment
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 def saved_page():
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeCursor("fixture", 1)
     return TranscriptPage((
         AssistantTranscript("BEFORE_THE_TOOL"),
         ContextTranscript("CONTEXT_GIVEN_TO_THE_AGENT"),

@@ -166,7 +166,7 @@ class CoordinationAccess(MroDispatch):
             if observed is not None and observed.selection == selected:
                 return observed.service
             with ExitStack() as acquisition:
-                acquisition.enter_context(selected.route.admit_client())
+                acquisition.enter_context(selected.route.client_scope())
                 service = wire(selected.route)
                 if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                     raise RouteChanged("Comms route changed while opening the service")

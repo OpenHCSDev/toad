@@ -8,7 +8,8 @@ region (history is line-drawn; the words are asked of the screen).
 import re
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from support import agents
 from toad.widgets.session_details import SessionDetails
@@ -16,7 +17,7 @@ from toad.widgets.transcript_history import TranscriptHistory
 
 
 def saved_page():
-    cursor = TranscriptCursor("saved-page-proof", 1)
+    cursor = NativeCursor("saved-page-proof", 1)
     events = tuple(AssistantTranscript(
         f"Response number {number} describes interesting particular observations about segmentation.\n\n"
         "Another paragraph with considerable additional vocabulary appears afterwards.") for number in range(6))

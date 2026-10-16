@@ -7,14 +7,15 @@ Not carried over from the old script: keeping a selected paragraph widget alive 
 from unittest.mock import patch
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def test_admitting_earlier_pages_repeatedly_keeps_admission_bounded_and_the_source_untruncated(workspace):
     events = tuple(AssistantTranscript(f"Record {index}\n\n" + "long paragraph words " * 28) for index in range(120))
-    cursor = TranscriptCursor("fixture", 0)
+    cursor = NativeCursor("fixture", 0)
     async with workspace.app(size=(150, 80)) as ui:
         history = TranscriptHistory(TranscriptPage(events, cursor, cursor, False, False))
         await ui.conversation.contents.mount(history)

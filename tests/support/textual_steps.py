@@ -9,6 +9,7 @@ import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 from unittest.mock import patch
+from agent_comms.transcript_sources import NativeCursor, TranscriptCursor
 
 
 async def reveal_project_tree(ui):
@@ -141,7 +142,7 @@ async def replay_with_pending_render(workspace, events=None):
     Yields (ui, owner tab, replay tab, release); `release()` lets the render finish.
     """
     from agent_comms.transcript_events import AssistantTranscript
-    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from agent_comms.transcripts import TranscriptPage
     from support.agents import peer
     from toad.acp.agent import Agent
     from toad.core.events import AgentReady
@@ -152,7 +153,7 @@ async def replay_with_pending_render(workspace, events=None):
     if events is None:
         events = tuple(AssistantTranscript("Paragraph.\n\n" * 100) for _ in range(20))
         events += (AssistantTranscript("PREPARED_REPLAY_END"),)
-    page = TranscriptPage(events, TranscriptCursor("fixture", 0), TranscriptCursor("fixture", len(events)),
+    page = TranscriptPage(events, NativeCursor("fixture", 0), NativeCursor("fixture", len(events)),
                           False, False)
     dispatch, entered, released = asyncio.Event(), asyncio.Event(), asyncio.Event()
     shown = []

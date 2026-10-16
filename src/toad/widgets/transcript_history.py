@@ -15,7 +15,8 @@ from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor
+from agent_comms.transcripts import TranscriptPage
 from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import (

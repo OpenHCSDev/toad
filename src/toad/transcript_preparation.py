@@ -9,7 +9,8 @@ from dataclasses import dataclass, field, replace
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor
+from agent_comms.transcripts import TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 

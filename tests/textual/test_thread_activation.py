@@ -3,7 +3,8 @@
 import asyncio
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from support.agents import detached
 from support.stylesheets import INSTALLED
@@ -86,7 +87,7 @@ async def test_returning_while_older_history_is_loading_paints_the_latest_page(w
         conversation, response, window, other = await long_history_then_other_tab(ui)
         await ui.select_tab(owner)
         await conversation.contents.remove_children()
-        cursor = TranscriptCursor("test", 100)
+        cursor = NativeCursor("test", 100)
         page = TranscriptPage((AssistantTranscript("LATEST-PAGED-ACTIVITY"),), cursor, cursor, True, False)
         started, release = asyncio.Event(), asyncio.Event()
 
@@ -116,7 +117,7 @@ async def test_a_snapshot_published_into_a_conversation_paints_at_the_latest_act
         agent = detached(workspace.project, "snapshot-session")
         ui.attach_agent(agent)
         await conversation.contents.remove_children()
-        cursor = TranscriptCursor("test", 100)
+        cursor = NativeCursor("test", 100)
         snapshot = TranscriptPage(
             tuple(AssistantTranscript(f"Snapshot paragraph {i}") for i in range(100))
             + (AssistantTranscript("LATEST-SNAPSHOT-ACTIVITY"),), cursor, cursor, True, False)
