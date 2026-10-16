@@ -133,7 +133,9 @@ class CommsUpdateConsumer(MroDispatch):
         )
         agent.coordination = replace(update, wire_root=str(root))
         agent.project_root_path = Path(update.worktree)
-        agent.context_measurement = ContextMeasurement.saved(update.context_usage)
+        agent.context_measurement = agent.context_measurement.merge(
+            ContextMeasurement.saved(update.context_usage)
+        )
         agent.update_status_line()
         agent.events.publish(core_events.CommsUpdated(agent.coordination, self.session_id))
         agent.session.coordinated_title(update.title)

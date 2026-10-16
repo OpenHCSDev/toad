@@ -75,7 +75,9 @@ class SessionUpdateEffect(MroDispatch):
 
     @handles(UsageUpdate)
     def usage(self, update):
-        self.agent.context_measurement = ContextMeasurement.live(update.used, update.size, update.cost)
+        self.agent.context_measurement = self.agent.context_measurement.merge(
+            ContextMeasurement.live(update.used, update.size, update.cost)
+        )
         self.agent.update_status_line()
 
 
