@@ -285,13 +285,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:
-        info = await asyncio.to_thread(comms.configuration.answer, target)
-        return " · ".join(
-            value for value in (
-                info.model or "",
-                info.context_usage.label if info.context_usage is not None else "",
-            ) if value
-        )
+        return (await asyncio.to_thread(comms.configuration.answer, target)).status_label
 
     @classmethod
     def seen_page(cls, history, seen):
