@@ -454,11 +454,13 @@ class TranscriptFragmentConsumer(MroDispatch):
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript):
         self.text(event, IncomingMessageFragment)
+        return self.DISCARD
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
         self.reported_messages[len(self.fragments)] = event
         self.fragments.append(TranscriptFragment((event,), continuation=self.continuation))
+        return self.DISCARD
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage):
