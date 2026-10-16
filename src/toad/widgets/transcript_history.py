@@ -266,7 +266,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
             self.history.request_preparation()
 
     def prepare_viewport(self, window) -> None:
-        """Admit only the measured rows the window currently exposes."""
+        """Prepare only the measured rows the window currently exposes."""
         theme = self.app.colours.line_theme
         visible = tuple(self.visible_rows(window))
         if any(lines.width != self._width or not fragment.retains_lines(lines, theme)
@@ -386,7 +386,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
         rows = self._first_row
         pending = [fragment for fragment in self.visible_fragments(window)
                    if id(fragment) in self._pending]
-        # Render only admitted viewport rows, nearest the reader first.
+        # Render only visible viewport rows, nearest the reader first.
         if (offset := window.placed_row(self)) is not None:
             reader = window.scroll_y - offset
             pending.sort(key=lambda fragment: abs(rows[id(fragment)] - reader))
@@ -573,12 +573,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     def line_width(self) -> int:
         """Native content width; offscreen pages may retain older row widths."""
         return max(0, self.size.width - self.scrollbar_gutter.width)
-
-    def request_preparation(self) -> None:
-        if self.can_draw_on_screen:
-            for page in self.pages:
-                page.prepare_viewport(self.window)
-        super().request_preparation()
 
     async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
                            target: Contents, selected: frozenset[type[MessageCategory]],
