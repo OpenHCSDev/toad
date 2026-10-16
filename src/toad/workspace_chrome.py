@@ -51,7 +51,7 @@ class WorkspaceChrome(VerticalLayout):
         # The outer host stays full width. Its session's own native layout
         # clears both gutters, including the shared channel surface.
         nested = parent is self.channels.parent and any(
-            bar.parent is not None and bar.parent.layout is self for bar in own)
+            bar.parent.layout is self for bar in own)
         left = 0 if nested else resolved.left_gutter
         right = 0 if nested else resolved.right_gutter
         placements = [placement._replace(
