@@ -518,7 +518,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         width = self._start_width + direction * (screen_x - self._start_x)
         percent = round(100 * width / max(1, bar.screen.size.width))
         if app.sidebar_layout.width(bar.id, percent):
-            bar.screen.refresh(layout=True)
+            app.workspace_chrome.layout_sidebars(bar.screen)
 
     def action_resize(self, direction: int) -> None:
         bar = self.query_ancestor(SideBar)
@@ -821,7 +821,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if event.slider.kind == "width" and self.id is not None:
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
-                self.screen.refresh(layout=True)
+                app.workspace_chrome.layout_sidebars(self.screen)
 
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
@@ -830,7 +830,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             return
         app = cast("ToadApp", self.app)
         event.action.apply(app.sidebar_layout, self.id)
-        self.screen.refresh(layout=True)
+        app.workspace_chrome.layout_sidebars(self.screen)
 
     @on(widgets.Collapsible.Collapsed)
     @on(widgets.Collapsible.Expanded)
@@ -886,7 +886,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
         if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
-            self.screen.refresh(layout=True)
+            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
 
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""

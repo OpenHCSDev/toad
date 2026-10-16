@@ -194,13 +194,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     def _use_viewport_layout(self) -> bool:
         return self.is_current
 
-    def _start_stepped_layout(self, size=None, scroll=False, step_ns=None):
-        # Pointer events change only the placement owner and request a frame.
-        # Acquire its latest target before native layout takes the frame's
-        # invalidations, never from a Resize callback between layout steps.
-        self.app.workspace_chrome.layout_sidebars(self)
-        return super()._start_stepped_layout(size, scroll, step_ns)
-
     def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
         changes = tuple((change, change.layout_requests) for window in self.history_windows
                         if (change := window.history_change) is not None)

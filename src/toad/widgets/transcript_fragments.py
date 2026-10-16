@@ -302,6 +302,16 @@ class TranscriptFragment:
         held = self.__dict__.get("_lines")
         return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
 
+    def retains_lines(self, lines, theme) -> bool:
+        """Whether measured rows still belong to this source and palette.
+
+        Their width belongs to the rows themselves. Offscreen geometry may
+        retain that measured width until the viewport asks for another one.
+        """
+        plain = self.__dict__.get("_plain")
+        return (self.lines_for(lines.width, theme) is lines
+                or (plain is not None and plain[0] == theme and plain[1] is lines))
+
     def invalidate_lines(self):
         self.__dict__.pop("_lines", None)
 

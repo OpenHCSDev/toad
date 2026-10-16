@@ -20,7 +20,6 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 - Verify in the real application on Tristan's saved sessions with the configured provider. This is standing authorization. Fork sessions for new input; never replay an uncertain input.
 - Performance evidence is one table: `docs/performance/scroll-series.md`, one line per change, from `tools/performance/capture_live.py` on the fixed scenario (a fork of the saved session; held PageUp from the input box; wheel bursts with reversal; an active response; End; tab return). Record total frame time and input-to-paint latency, median and p95. No per-change receipts.
 - Known environment: unset `NO_COLOR` and `TOAD_VALIDATION`; run real `st` on an isolated display.
-- Privileged tooling is limited to read-only `sudo -n py-spy dump/record`. Never use sudo for Python or process-code injection, including an owned frontend. Load the existing live meter at normal-user frontend startup when attribution needs instrumentation.
 
 ## Workflow
 
