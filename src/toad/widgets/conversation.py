@@ -74,7 +74,7 @@ from toad.widgets.menu import Menu
 from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import ObservedThrobber
+from toad.widgets.throbber import AboveThrobber, BelowThrobber
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
@@ -181,19 +181,13 @@ class ThreadLoading(ConversationBlock, SplashText):
 
 
 class CategorizedMount:
-    """Admit blocks in their declared order with the conversation's category selection."""
+    """Mount blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
+        from toad.widgets.message_filter import apply_block_filter
 
         selected = self.selected_categories
         for widget in require_blocks(widgets):
-            classes = {"-unrouted": not keep_live_block(widget)}
-            if category := block_category(widget):
-                classes[f"-message-{category.declared_name}"] = True
-            # Registration owns the first CSS match for detached blocks. For
-            # attached blocks, Textual applies this class change as one batch.
-            widget.update_classes(classes)
             apply_block_filter(widget, selected)
         mounted = super().mount(*widgets, **kwargs)
         # Registration is synchronous: establish document order before any
@@ -300,11 +294,15 @@ This is a view of your conversation with the agent.
     BINDING_GROUP_TITLE = "View"
     BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
 
-    def compose(self) -> ComposeResult:
-        yield containers.Center(
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.jump_bar = containers.Center(
             JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
             id="back-to-bottom-bar",
         )
+
+    def compose(self) -> ComposeResult:
+        yield self.jump_bar
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -318,8 +316,15 @@ This is a view of your conversation with the agent.
             yield scrollbar, scrollbar_region
 
     def tail_follow_changed(self) -> None:
-        if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
-            control.display = self.can_jump_to_latest
+        """Show the jump bar while the reader is off the tail; bindings follow only its changes.
+
+        Every scroll offset reaches here, so an unchanged state is no change:
+        the footer would otherwise re-project the screen's bindings per frame.
+        """
+        jump = self.can_jump_to_latest
+        if self.jump_bar.display == jump:
+            return
+        self.jump_bar.display = jump
         if self.is_attached:
             self.query_ancestor(Conversation).refresh_bindings()
 
@@ -502,10 +507,8 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
-        self.throbber = ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
-            id="throbber",
-        )
+        self.throbber = BelowThrobber(self.working, id="throbber")
+        self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
@@ -880,8 +883,15 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
                 await DB().session_update_project(session_pk, path)
 
+    def working(self) -> bool:
+        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
+
+    def _sync_working(self) -> None:
+        for throbber in (self.throbber, self.throbber_above):
+            throbber.sync()
+
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self.throbber.sync()
+        self._sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -891,7 +901,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self.throbber.sync()
+        self._sync_working()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
@@ -927,6 +937,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ),
             )
             self.refresh_thread_status()
+            yield self.throbber_above
             yield self.thread_activity
             prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
@@ -1203,7 +1214,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ) is None:
                     await self.prune_window(0, 0)
                     self.output.boundary()
-                await agent.session.reconnect()
+                await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
             self.flash(
@@ -1348,7 +1359,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.working_directory = str(Path(event.event.path).resolve().absolute())
 
     async def watch_busy_count(self, _busy: int) -> None:
-        self.throbber.sync()
+        self._sync_working()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection):

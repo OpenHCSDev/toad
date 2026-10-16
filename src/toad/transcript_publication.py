@@ -15,6 +15,7 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
+from toad.core.events import CoordinationObserved
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -380,7 +381,8 @@ class SourcePublicationRequests:
             return
         self.observation.close()
         self.observation.callback(view.retire_core,
-            view.observe_core_callback(view.app.coordination_access.events, self.resume))
+            view.observe_core_callback(view.app.coordination_access.events,
+                                       CoordinationObserved, self.resume))
 
     def resume(self, _event=None) -> bool:
         """Resume retained work only at an existing source/preparation signal."""

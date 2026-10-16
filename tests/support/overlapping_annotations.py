@@ -7,7 +7,7 @@ from pathlib import Path
 
 from agent_comms.comms import Comms
 from agent_comms.session_revision import SessionRevision
-from agent_comms.thread_identity import ThreadIncarnation, TurnId, TurnIdentity
+from agent_comms.thread_identity import RecordedThreadIncarnation, TurnId, TurnIdentity
 from agent_comms.threads import Thread
 from agent_comms.turn_context import (
     ContextManifest, ContextSpan, ContributionCoordinates, RecordedContextTurn,
@@ -55,7 +55,7 @@ def overlapping_annotations(directory: Path) -> OverlappingAnnotations:
                                    Comms(directory / "unused-wire"), labels)
     ((_, (source,), _),) = inspection.working_memory()
     short, long = source.children()
-    corrected = HumanLabel.correct(labels[0], RuleSpan, ThreadIncarnation("authored-user", 2.0))
+    corrected = HumanLabel.correct(labels[0], RuleSpan, RecordedThreadIncarnation("authored-user", 2.0))
     refined = replace(inspection, annotations=(corrected, labels[1]))
     return OverlappingAnnotations(observed, spans, labels, inspection, short, long, corrected,
                                   refined.working_memory())

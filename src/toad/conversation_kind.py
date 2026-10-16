@@ -5,12 +5,19 @@ from __future__ import annotations
 import asyncio
 from dataclasses import replace
 from abc import abstractmethod
+from typing import ClassVar
+from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from textual.app import ComposeResult
+from toad.widgets.native_history import NativeHistory
+from toad.widgets.session_details import SessionDetails
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
+    history_view: ClassVar[type[ConversationHistoryView]]
+
     @classmethod
     def threads_needed(cls, snapshot, me, target):
         return ()
@@ -30,22 +37,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     @abstractmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]: ...
-
-    @classmethod
-    def display_identity(cls, page: MessagePage) -> tuple | None:
-        if page.historical_display is not None:
-            displayed = page.historical_display.displayed
-            return (
-                "historical",
-                displayed.viewer,
-                displayed.viewer_created_at,
-                page.history_revision,
-            )
-        return cls.current_identity(page)
-
-    @classmethod
-    @abstractmethod
-    def current_identity(cls, page: MessagePage) -> tuple | None: ...
 
     @classmethod
     def label(cls, target: str) -> str:
@@ -84,16 +75,18 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return False
 
     @classmethod
-    async def update_roster(cls, view, comms):
-        pass
-
-    @classmethod
-    async def agent_info(cls, comms, target):
-        return None
+    @abstractmethod
+    async def update_mentions(cls, view, comms) -> None: ...
 
     @classmethod
     @abstractmethod
-    def activity_widget(cls, view): ...
+    async def status_text(cls, comms, target, *, read_only: bool) -> str: ...
+
+    @classmethod
+    @abstractmethod
+    def compose_activity(cls, view) -> ComposeResult:
+        """Compose this kind's activity using the existing view state."""
+        ...
 
     @classmethod
     @abstractmethod
@@ -113,6 +106,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 
 class ChannelConversation(ConversationKind):
+    history_view = ChannelDisplayHistory
+
     @classmethod
     def channels_needed(cls, root, target):
         return ((root, target),)
@@ -133,27 +128,12 @@ class ChannelConversation(ConversationKind):
         return me, comms.channels.catalog.read().resolve(target).name
 
     @classmethod
-    def current_identity(cls, page: MessagePage) -> tuple | None:
-        scope = page.display_scope
-        if scope is None or scope.displayed is None:
-            return None
-        displayed = scope.displayed
-        return (
-            displayed.viewer,
-            displayed.viewer_created_at,
-            displayed.bus_identity,
-            scope.channel,
-            scope.targets,
-            scope.any_mode,
-            scope.participant_names if scope.any_mode else frozenset(),
-            page.history_revision,
-        )
+    def compose_activity(cls, view) -> ComposeResult:
+        return ()
 
     @classmethod
-    def activity_widget(cls, view):
-        from toad.widgets.channel_participants import ChannelParticipants
-
-        return ChannelParticipants()
+    async def status_text(cls, comms, target, *, read_only: bool) -> str:
+        return "Read-only saved view" if read_only else ""
 
     @classmethod
     def prompt(cls, target):
@@ -166,14 +146,11 @@ class ChannelConversation(ConversationKind):
         return catalog.is_view_target(target)
 
     @classmethod
-    async def update_roster(cls, view, comms):
-        from toad.widgets.channel_participants import ChannelParticipants
+    async def update_mentions(cls, view, comms):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        # The composer consumes membership and thread presentation, not the
-        # actor's inbox counts or channel activity clocks. Borrow the observed
-        # service's sidebar model rather than reading the same registry,
-        # activity and catalog again after every channel page.
+        # Mention completion consumes the observer's membership snapshot,
+        # not another registry/catalog read after every channel page.
         history = view.message_history
         source = history.source_snapshot()
         target = view.target
@@ -182,19 +159,10 @@ class ChannelConversation(ConversationKind):
         snapshot = answer.require_snapshot()
         observed = access.observation
         if observed is None or observed.service is not comms:
-            raise ValueError("Channel roster belongs to another Comms service")
-        rows = observed.sidebar.threads.rows
-
-        def prepare():
-            people = tuple(rows[person.thread.name] for person in snapshot.participants(target)
-                           if person.thread.name in rows)
-            return (ChannelParticipants.prepare_participants(people),
-                    snapshot.mention_candidates(target))
-
-        participants, mentions = await view.app.preparation.run_thread(prepare)
+            raise ValueError("Channel mentions belong to another Comms service")
+        mentions = await view.app.preparation.run_thread(snapshot.mention_candidates, target)
         if not await history.source_is_current(source) or view.target != target:
             return
-        view.query_one(ChannelParticipants).update_participants(*participants)
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
     @classmethod
@@ -229,6 +197,8 @@ class ChannelConversation(ConversationKind):
 
 
 class DmConversation(ConversationKind):
+    history_view = DMDisplayHistory
+
     @classmethod
     def historical_thread(cls, target: str) -> str:
         return target
@@ -255,34 +225,20 @@ class DmConversation(ConversationKind):
         return comms.registry.require(me).name, comms.registry.require(target).name
 
     @classmethod
-    def current_identity(cls, page: MessagePage) -> tuple | None:
-        basis = page.display_basis
-        if basis is None:
-            return None
-        return (
-            basis.root_identity,
-            basis.bus_identity,
-            basis.worktree,
-            basis.requested_peer,
-            basis.viewer,
-            basis.viewer_created_at,
-            basis.viewer_names,
-            basis.peer,
-            basis.peer_created_at,
-            basis.peer_names,
-            page.history_revision,
-        )
-
-    @classmethod
     def label(cls, target: str) -> str:
         return f"@{target}"
 
     @classmethod
-    def activity_widget(cls, view):
-        from toad.widgets.session_details import SessionDetails
+    def compose_activity(cls, view) -> ComposeResult:
+        view.thread_activity = SessionDetails(
+            history=NativeHistory(),
+            status_source=lambda: view.thread_activity.row,
+        )
+        yield view.thread_activity
 
-        view.thread_activity = SessionDetails()
-        return view.thread_activity
+    @classmethod
+    async def update_mentions(cls, view, comms) -> None:
+        """Direct-message composers have no channel mention roster."""
 
     @classmethod
     def prompt(cls, target):
@@ -291,8 +247,8 @@ class DmConversation(ConversationKind):
         return Prompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    async def agent_info(cls, comms, target):
-        return await asyncio.to_thread(comms.configuration.answer, target)
+    async def status_text(cls, comms, target, *, read_only: bool) -> str:
+        return (await asyncio.to_thread(comms.configuration.answer, target)).status_label
 
     @classmethod
     def seen_page(cls, history, seen):

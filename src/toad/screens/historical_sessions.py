@@ -82,7 +82,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             options = [
                 (
                     (
-                        f"@{item.thread.name} · {item.thread.title or 'Untitled'} · "
+                        f"@{item.thread.name} · {item.thread.display_title} · "
                         f"{Path(item.source.original_root).name} · created {item.thread.created_at}"
                     ),
                     index,

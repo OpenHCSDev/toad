@@ -47,7 +47,8 @@ class SessionNavigation:
 
     def bind_events(self) -> None:
         self.app.subscribe_core(self.events)
-        self.app.observe_core_callback(self.app.coordination_access.events, self.observed)
+        self.app.observe_core_callback(self.app.coordination_access.events,
+                                       core_events.CoordinationObserved, self.observed)
 
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar

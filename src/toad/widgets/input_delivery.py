@@ -77,7 +77,7 @@ class InputDeliveryBar(HorizontalGroup):
         if self.is_attached:
             summary = self.query_one("#delivery-summary", Static)
             summary.display = bool(current)
-            summary.update(f"Delivery · {current} {delivery.pending}")
+            summary.update(delivery.summary)
             historical = self.query_one("#delivery-history-summary", Static)
             historical.display = bool(delivery.notices)
             label = delivery.notice_label

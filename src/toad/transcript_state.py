@@ -19,10 +19,12 @@ if TYPE_CHECKING:
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     can_draw: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
+    # Rows appended to the followed end are new to the reader and fade in.
+    rows_arrive: ClassVar[bool] = True
     accepts_source_work: ClassVar[bool] = False
 
     def checkpoint_available(self, owner) -> bool:
-        """Source admission and its original resource govern checkpoint custody."""
+        """The source accepts work and its resource still holds the checkpoint."""
         return self.accepts_source_work and owner.source_checkpoint_available
 
     def blocks_visible_read(self, owner) -> bool:
@@ -30,19 +32,22 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         return True
 
     async def execute(self, owner, work):
-        raise RuntimeError("The transcript source has no admitted operation")
+        raise RuntimeError("No transcript source operation is running")
 
-    def reserve(self, owner) -> "WorkingTranscript":
-        raise RuntimeError("The transcript source cannot admit another operation")
+    def reserve(self, owner, operation=None) -> "WorkingTranscript":
+        raise RuntimeError("The transcript source cannot start another operation")
 
     def request_latest(self, owner, request: "LatestViewportRequest") -> None:
-        """Inactive source cases cannot admit a destination request."""
+        """An inactive source starts no destination request."""
 
     def check_edges(self, owner) -> None:
         """A source that takes no work draws nothing beyond its edges."""
 
     def delivered(self, owner) -> None:
-        """Only an admitted source operation measures publication delivery."""
+        """Only a running source operation measures time to publication."""
+
+    def rows_published(self, owner) -> None:
+        """Only a checkpoint's advance has live blocks that its saved rows replace."""
 
     def retirement_source(self) -> "TranscriptState":
         return self
@@ -56,7 +61,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         raise RuntimeError("Only a parked transcript can resume publication")
 
     def resume_if_parked(self, owner) -> None:
-        """Resource reveal cannot admit work from an inactive source."""
+        """Showing a resource does not start work on an inactive source."""
 
     def validate_snapshot(self, owner, page) -> None:
         """A captured source page may validate its existing parked resource."""
@@ -101,14 +106,15 @@ class LiveTranscript(TranscriptState):
     def blocks_visible_read(self, owner) -> bool:
         return owner.has_newer or not self.checkpoint_available(owner)
 
-    def reserve(self, owner) -> "WorkingTranscript":
-        return WorkingTranscript(self, owner)
+    def reserve(self, owner, operation=None) -> "WorkingTranscript":
+        return (operation or WorkingTranscript)(self, owner)
 
     def request_latest(self, owner, request: "LatestViewportRequest") -> None:
         owner.schedule_source_work(partial(owner._jump_latest, request))
 
     def check_edges(self, owner) -> None:
-        owner._check_edges()
+        if self.checkpoint_available(owner):
+            owner.window.lookahead.prepare_source(owner)
 
     @classmethod
     def successors(cls):
@@ -124,7 +130,7 @@ class SuspendedTranscript(TranscriptState):
     source: TranscriptState
 
     def blocks_visible_read(self, owner) -> bool:
-        """Retained or retiring custody has no current paint obligation."""
+        """A parked or closing source need not paint now."""
         return False
 
     @property
@@ -155,13 +161,13 @@ class LatestViewportRequest:
 
 
 class WorkingTranscript(SuspendedTranscript):
-    """One admitted source mutation; its identity owns completion custody."""
+    """One source update; only this operation can finish its work."""
 
     def __init__(self, source: TranscriptState, owner):
         super().__init__(source)
         self.window_before = owner.paging_window()
-        # Progress since admission and latency since the last publication are
-        # different cuts: one operation may deliver several readable viewports.
+        # Progress since work began and time since the last publication differ:
+        # one operation may deliver several readable viewports.
         self.delivery_window = self.window_before
         self.delivery_started = monotonic()
         self.reader_revision = owner.window.scroll_revision
@@ -169,7 +175,7 @@ class WorkingTranscript(SuspendedTranscript):
         self.edges_wait = False
 
     def blocks_visible_read(self, owner) -> bool:
-        """An admitted source operation must settle before its cursor is read."""
+        """A running source operation must finish before its cursor is read."""
         return True
 
     def progressed(self, owner) -> bool:
@@ -228,14 +234,14 @@ class WorkingTranscript(SuspendedTranscript):
                     self.delivered(owner)
                 return result
             except CoordinationReadUnavailable:
-                # The same admission remains suspended until the existing
+                # The same operation stays paused until the existing
                 # observer resumes it. Settling it here would schedule another
                 # edge read on the next frame before storage is available.
                 owner.defer_source_work(self, work)
                 completion.pop_all()
                 return False
             except StaleRevision:
-                # This admitted mutation declined its original read. Keep the
+                # This update could not use its original read. Keep the
                 # committed source; a new request owns any later advance.
                 return False
             except (OSError, ValueError) as error:
@@ -319,3 +325,25 @@ class ParkedSourceTranscript(SuspendedTranscript):
         # native/assigned cursor, not rendered content, validates this resource.
         if page.after.contains(owner.through):
             owner.resume_source()
+
+
+class CommitTranscript(WorkingTranscript):
+    """A checkpoint's advance: its saved rows replace the live blocks captured with its page.
+
+    The live blocks leave in the same tree change that draws the last saved
+    row, so no frame shows both copies of the turn, or neither.
+    """
+
+    def __init__(self, source: TranscriptState, owner, live_blocks: tuple[Widget, ...]):
+        super().__init__(source, owner)
+        self.live_blocks = live_blocks
+
+    @property
+    def rows_arrive(self) -> bool:
+        # Rows the reader already saw as live blocks have not arrived again.
+        return not self.live_blocks
+
+    def rows_published(self, owner) -> None:
+        if not owner.has_newer:
+            for block in self.live_blocks:
+                block.display = False

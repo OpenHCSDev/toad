@@ -111,7 +111,7 @@ class SeekingFilter(NoFilter):
 
     def scan_needed(self, owner):
         # Once mounted, the projection's ordinary pager owns edge admission.
-        return owner.window.scroll_y <= owner.prefetch_distance
+        return owner.window.scroll_y <= owner.window.lookahead.ahead_rows(owner.window.outer_size.height)
 
     async def advance(self, filtering, snapshot):
         from toad.widgets.transcript_history import ProjectedTranscriptHistory, _DrawingStopped
@@ -143,8 +143,7 @@ class SeekingFilter(NoFilter):
                         acquisition.pop_all()
                 drew = bool(projection.fragments_in_range)
                 owner._update_edges()
-                if not drew:
-                    projection.request_older()
+                projection.request_preparation()
                 return drew
         except _DrawingStopped:
             return False
@@ -229,7 +228,7 @@ class ScanDemand(DeclaredFamily, affix="ScanDemand"):
         owner = filtering.owner
         if snapshot.current(owner) and drew and filtering.has_older:
             # Committed painted height decides whether this batch fills the view.
-            owner.call_after_refresh(owner._check_edges)
+            owner.call_after_refresh(owner.request_preparation)
         else:
             self.request_next(filtering)
 
@@ -240,7 +239,7 @@ class ScanDemand(DeclaredFamily, affix="ScanDemand"):
 class AutomaticScanDemand(ScanDemand):
     def request_next(self, filtering):
         if filtering.scan_needed():
-            filtering.owner.call_later(filtering.owner._check_edges)
+            filtering.owner.call_later(filtering.owner.request_preparation)
 
 
 class RequestedScanDemand(ScanDemand):
@@ -314,6 +313,7 @@ class TranscriptFilter:
         if self.scanning:
             self.worker.cancel()
         owner._update_edges()
+        owner.window.prepare_history(owner)
         owner.request_preparation()
 
     def scan_needed(self) -> bool:
