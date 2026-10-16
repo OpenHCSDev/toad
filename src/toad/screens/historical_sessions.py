@@ -17,7 +17,7 @@ from agent_comms import HistoricalThread
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceScreen

@@ -12,6 +12,7 @@ from textual.reactive import var
 from textual.strip import Strip
 from ui_theme.effects import STANDBY_PULSE
 from textual.widgets import Static
+from textual.widget import PrimaryActivation
 
 from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated
@@ -20,12 +21,16 @@ from toad.widgets.goal_text import GoalText
 from toad.textual_colours import Animated
 
 
-class GoalControl(CoreEventReceiver, Static, can_focus=True):
+class GoalControl(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
     BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "activate", "Select")]
     DEFAULT_CSS = """
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
     GoalControl:hover, GoalControl:focus { text-style: underline; }
     """
+
+    @property
+    def primary_activation(self):
+        return self.action_activate
 
     def action_activate(self):
         if not self.disabled:

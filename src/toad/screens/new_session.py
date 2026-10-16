@@ -3,7 +3,7 @@ from pathlib import Path
 
 from textual import containers, on, widgets
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 
 from toad.widgets.directory_input import DirectoryInput
 
