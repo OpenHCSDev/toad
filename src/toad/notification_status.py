@@ -8,7 +8,7 @@ from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.message_reference import MessageReference
 from agent_comms.presentation import MessageNotification
-from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, Spans, WorkingRole
+from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import Shown
@@ -31,7 +31,6 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
 class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
-    visible: ClassVar[bool] = True
     working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
 
@@ -43,19 +42,23 @@ class NotificationStatus:
     def details(self) -> DetailLines:
         return ()
 
+    @property
+    def disclosure(self) -> SpanColumns:
+        return SpanColumns(self.details, indent=2)
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
-        if not self.visible:
-            return ()
         role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
         summary = shown.summary(self.title, role)
-        return ((summary, Spans.from_lines(self.details, indent="  "))
+        return ((summary, self.disclosure)
                 if shown.details_open else (summary,))
 
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    visible = False
+    # The row is drawn before Core answers, so the answer changes its text
+    # instead of inserting a row under the reader.
+    title = "Checking"
 
 
 @dataclass(frozen=True)
@@ -66,7 +69,7 @@ class CheckedNotifications(NotificationStatus):
     def for_references(cls, references: Iterable[MessageReference],
                        results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> CheckedNotifications:
         return cls(tuple(item for reference in references
-                         for item in results.get((reference.seq, reference.message_id), ())))
+                         for item in results[(reference.seq, reference.message_id)]))
 
     @property
     def ordered(self) -> list[MessageNotification]:

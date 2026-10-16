@@ -4,7 +4,7 @@ from support.textual_steps import tool_status
 from toad.setting_choices import NeverExpansion
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall, ToolCallHeader
-from toad.widgets.tool_content import MarkdownContent
+from toad.widgets.tool_content import ToolContent
 from toad.preferences import SETTINGS
 
 TEXT = "\n\n".join(f"## Section {i}\n\nOutput paragraph {i}" for i in range(40))
@@ -27,17 +27,17 @@ async def test_collapsed_tool_output_is_not_parsed_and_expands_on_demand(workspa
         for _ in range(5):
             await last.update_tool_call(last.tool_call)
         await ui.step()
-        assert not app.screen.query(MarkdownContent), "Collapsed output was parsed"
-        assert sum(len(list(tool.query("*"))) for tool in tools) <= len(tools) * 2
+        assert all(not tool.query_one(ToolContent).blocks for tool in tools), "Collapsed output was prepared"
+        assert sum(len(list(tool.query("*"))) for tool in tools) <= len(tools) * 3
         assert last.query_one(ToolCallHeader) is header
         last.expanded = True
-        await ui.until(lambda: last.query(MarkdownContent), why="the expanded output")
-        assert last.query_one(MarkdownContent).text == TEXT
+        await ui.until(lambda: last.query_one(ToolContent).blocks, why="the expanded output")
+        assert last.query_one(ToolContent).get_clipboard_text() == TEXT
         last.expanded = False
-        await ui.until(lambda: not last.query(MarkdownContent), why="the collapsed output to go")
+        await ui.until(lambda: not last.query_one(ToolContent).blocks, why="the collapsed output to go")
         await last.update_tool_call(read_call("tool-39", "## Updated\n\nNew result"))
         last.expanded = True
-        await ui.until(lambda: last.query(MarkdownContent) and "New result" in last.query_one(MarkdownContent).text,
+        await ui.until(lambda: last.query_one(ToolContent).blocks and "New result" in last.query_one(ToolContent).get_clipboard_text(),
                        why="the updated output")
 
 

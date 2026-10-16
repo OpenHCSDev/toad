@@ -9,7 +9,7 @@ from textual.selection import SELECT_ALL, SelectState
 from support.textual_steps import tool_status, wait_for_tool_diff
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.tool_call import ToolCall
-from toad.widgets.tool_content import ToolCallDiff
+from toad.widgets.tool_content import ToolContent
 from toad.preferences import SETTINGS
 
 
@@ -28,8 +28,8 @@ async def test_drag_across_clipped_diff_matches_the_full_walker(workspace):
         destination = await conversation.post(AgentResponse("After the diff.\n\nEND marker"))
         await ui.step()
         await wait_for_tool_diff(ui, tool)
-        assert tool.query_one(ToolCallDiff)
-        code = tool.query_one("DiffCode")
+        assert tool.query_one(ToolContent)
+        code = tool.query_one(ToolContent)
         assert code.is_mounted and code in app.screen._compositor.visible_widgets
         viewport = conversation.window.content_region
         assert viewport.contains_point(source.body.region.offset)

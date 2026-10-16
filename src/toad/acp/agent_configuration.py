@@ -83,6 +83,16 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
 class ModelConfigurationSetting(ConfigurationSetting):
     label = "model"
 
+    @property
+    def requires_selection(self) -> bool:
+        return self.available and not self.current
+
+    @property
+    def choices(self) -> tuple[SessionConfigSelectOption, ...]:
+        # The advertised empty current value is setup state, not a model the
+        # user can select. The existing provider action remains reachable.
+        return tuple(choice for choice in super().choices if choice.value)
+
     @classmethod
     def matches(cls, option):
         return option.category == "model" or option.id == "model"

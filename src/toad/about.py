@@ -1,4 +1,7 @@
 import os
+import shlex
+
+from agent_comms.native_arguments import NativeArguments
 from importlib.metadata import version
 import platform
 from string import Template
@@ -91,11 +94,8 @@ def render(app: ToadApp) -> str:
 
     template_data = {
         "COLORTERM": os.environ.get("COLORTERM", ""),
-        "COMMS_AGENT_ARGS": os.environ.get(
-            "AGENT_COMMS_AGENT_ARGS",
-            "--print --no-session --provider openrouter --model z-ai/glm-5.3-flash",
-        ),
-        "COMMS_AGENT_BIN": os.environ.get("AGENT_COMMS_AGENT_BIN", "pi"),
+        "COMMS_AGENT_ARGS": shlex.join(NativeArguments.configured().argv),
+        "COMMS_AGENT_BIN": NativeArguments.configured_binary(),
         "COMMS_NO_REPLY_WINDOW": os.environ.get("AGENT_COMMS_NO_REPLY_WINDOW", "2.5"),
         "COMMS_REPLY_QUIET": os.environ.get("AGENT_COMMS_REPLY_QUIET", "1.5"),
         "COMMS_REPLY_WINDOW": os.environ.get("AGENT_COMMS_REPLY_WINDOW", "8.0"),

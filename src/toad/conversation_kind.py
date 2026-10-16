@@ -68,8 +68,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def unread(cls, snapshot, target):
-        from agent_comms.ui_model.unread import ExactUnread
-        return ExactUnread(snapshot.channel_unread.get(target, 0)) if snapshot else ExactUnread()
+        from agent_comms.ui_model.unread import UnreadPresentation
+        return UnreadPresentation.for_channel(snapshot, target)
 
     @classmethod
     def placeholder(cls, target):
@@ -178,13 +178,12 @@ class ChannelConversation(ConversationKind):
         source = history.source_snapshot()
         target = view.target
         access = view.app.coordination_access
-        await access.current_sidebar()
+        answer = await access.current_sidebar()
+        snapshot = answer.require_snapshot()
         observed = access.observation
         if observed is None or observed.service is not comms:
             raise ValueError("Channel roster belongs to another Comms service")
-        snapshot, rows = observed.sidebar.snapshot, observed.sidebar.threads.rows
-        if snapshot is None:
-            raise ValueError("Sidebar read was interrupted; the next page retries")
+        rows = observed.sidebar.threads.rows
 
         def prepare():
             people = tuple(rows[person.thread.name] for person in snapshot.participants(target)
@@ -244,8 +243,8 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def unread(cls, snapshot, target):
-        from agent_comms.ui_model.unread import ExactUnread
-        return ExactUnread(snapshot.unread.get(target, 0)) if snapshot else ExactUnread()
+        from agent_comms.ui_model.unread import UnreadPresentation
+        return UnreadPresentation.for_bus(snapshot, target)
 
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
@@ -282,7 +281,8 @@ class DmConversation(ConversationKind):
     def activity_widget(cls, view):
         from toad.widgets.session_details import SessionDetails
 
-        return SessionDetails()
+        view.thread_activity = SessionDetails()
+        return view.thread_activity
 
     @classmethod
     def prompt(cls, target):

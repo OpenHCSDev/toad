@@ -1,7 +1,6 @@
 """Textual-facing: a navigation destination declared as a target class is opened by the mounted sidebar row without a dispatcher."""
 
 import asyncio
-from functools import cached_property
 from pathlib import Path
 
 from textual.app import App, ComposeResult
@@ -9,7 +8,6 @@ from textual.screen import Screen
 
 from toad.navigation_target import NavigationContext, NavigationOwner, NavigationTarget
 from toad.textual_colours import ThemedApp
-from toad.widgets.activity_spinner import BusyRows
 from toad.widgets.comms_sidebar import CommsRow
 
 
@@ -31,10 +29,6 @@ async def test_new_destination_uses_existing_row():
             yield CommsRow(TestReportTarget("report"), "Open report")
 
     class DestinationApp(ThemedApp, App):
-        @cached_property
-        def busy_rows(self):
-            return BusyRows(self)
-
         @property
         def selected_session(self):
             return self.screen

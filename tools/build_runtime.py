@@ -44,29 +44,6 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
-def verify_route() -> dict:
-    """Core owns route decoding, root identity and the selected native tree."""
-    from agent_comms.active_route import read_active_route
-    from agent_comms.field_codec import FieldCodec
-    from agent_comms.native_package import MANIFEST, NativePackageError, verify_native_package
-
-    route = read_active_route()
-    if route is None:
-        raise RuntimeError('No active route is installed')
-    route.observe_root()
-    try:
-        verify_native_package(route.native_package)
-    except NativePackageError as error:
-        pin = hashlib.sha256(MANIFEST.read_bytes()).hexdigest()
-        raise RuntimeError(
-            f'NativeRoutePinVerificationFailed: Core pin {pin}; '
-            f'route native_package {route.native_package}: {error}. '
-            'Run stack/bin/prepare-pi-native from the clean Core export, '
-            'then have the coach replace the route native_package. No old-package fallback.'
-        ) from error
-    return FieldCodec.encode(route)
-
-
 def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
     """Install before App startup, or ask an already-running App immediately."""
     from functools import partial
@@ -191,11 +168,11 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
         try:
             deadline = time.monotonic() + 30
             process = psutil.Process(terminal.pid)
-            while not (children := [child for child in process.children()
-                                    if child.name() == 'toad']):
+            while not (children := process.children()):
                 if terminal.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
                 time.sleep(0.1)
+            child, = children
             targets = output / 'targets.json'
             attempt = 0
             while True:
@@ -205,7 +182,13 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
                 remote.write_text(f'''import sys
 _ready = (hasattr(sys.modules.get("pathlib"), "PurePosixPath")
           and hasattr(sys.modules.get("textual.app"), "App")
-          and hasattr(sys.modules.get("toad.application_lifetime"), "ApplicationLifetime"))
+          and hasattr(sys.modules.get("toad.app"), "ToadApp"))
+if _ready:
+    from textual._context import NoActiveAppError
+    try:
+        sys.modules["textual.app"].App.running_app()
+    except NoActiveAppError:
+        _ready = False
 if not _ready:
     open({str(status)!r}, "w").write("not-ready")
 else:
@@ -213,13 +196,13 @@ else:
     try:
         sys.path.insert(0, {str(Path(__file__).resolve().parent)!r})
         from build_runtime import install_saved_thread_observer
-        install_saved_thread_observer({children[0].pid}, {thread!r}, {str(targets)!r})
+        install_saved_thread_observer({child.pid}, {thread!r}, {str(targets)!r})
     except BaseException:
         open({str(targets)!r}, "w").write(json.dumps({{"error": traceback.format_exc()}}))
     open({str(status)!r}, "w").write("installed")
 ''')
                 try:
-                    sys.remote_exec(children[0].pid, str(remote))
+                    sys.remote_exec(child.pid, str(remote))
                 except RuntimeError as error:
                     if str(error) not in (
                         "Can't find the main thread in the remote process",
@@ -375,7 +358,6 @@ class RuntimeBuild:
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
                 raise RuntimeError('Installed Core native pin differs from the clean export')
-            route = json.loads(run(python, Path(__file__).resolve(), '--verify-route'))
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
@@ -383,16 +365,19 @@ class RuntimeBuild:
             record = {
                 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
-                'native_manifest_sha256': native_pin, 'active_route': route,
+                'native_manifest_sha256': native_pin,
                 'packages': installed, 'runtime': str(destination),
             }
-            if self.start_acceptance_thread(destination):
-                # The launched owner now borrows this runtime even if UI acceptance fails.
-                cleanup.pop_all()
-            record['screenshot'] = str(open_saved_thread(destination, self.thread, self.display, self.scratch / f'acceptance-{destination.name}'))
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.
         return destination
+
+    def accept(self, runtime: Path) -> None:
+        """Exercise the installed schema after building or a required store conversion."""
+        self.start_acceptance_thread(runtime)
+        screenshot = open_saved_thread(
+            runtime, self.thread, self.display, self.scratch / f'acceptance-{runtime.name}')
+        (runtime / 'acceptance.json').write_text(json.dumps({'screenshot': str(screenshot)}) + '\n')
 
 
 def main() -> None:
@@ -408,11 +393,15 @@ def main() -> None:
     parser.add_argument('--start-env', type=Path,
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
+    parser.add_argument('--build-only', action='store_true',
+                        help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
     parser.add_argument('--runtimes', type=Path, default=Path.home() / '.local/share/agent-comms/runtimes')
     args = parser.parse_args()
     if args.start_thread != (args.start_env is not None):
         parser.error('--start-thread and --start-env must be used together')
+    if args.build_only and args.start_thread:
+        parser.error('--build-only cannot start an acceptance thread')
     with XvfbDisplay(args.display) as display:
         build = RuntimeBuild(
             GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
@@ -421,13 +410,14 @@ def main() -> None:
             args.scratch.resolve(), args.runtimes.resolve(), args.thread, display,
             args.start_env.resolve(strict=True) if args.start_env else None,
         )
-        print(build.build())
+        runtime = build.build()
+        if not args.build_only:
+            build.accept(runtime)
+        print(runtime)
 
 
 if __name__ == '__main__':
     if sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
-    elif sys.argv[1:] == ['--verify-route']:
-        print(json.dumps(verify_route()))
     else:
         main()

@@ -105,7 +105,6 @@ class OperationalSessionSources:
 
         self.agent = None
         self.shell = None
-        self.directory_watcher = None
         self.load_admission = EnsuringSessionLoadAdmission()
 
     def agent_info(self, conversation: Conversation) -> str:
@@ -114,9 +113,14 @@ class OperationalSessionSources:
     def accepts_inbox_submission(self, event) -> bool:
         return False
 
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        """Native sessions receive their text through their own ACP stream."""
+
     def input_ready(self, conversation: Conversation) -> bool:
         agent = conversation.agent
         if agent is None or not agent.ready:
+            return False
+        if agent.configuration.model.requires_selection:
             return False
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
@@ -129,6 +133,9 @@ class OperationalSessionSources:
         if (conversation.transcript.readable and presentation is not None
                 and ExistingOwnerAdmission.from_binding(presentation.binding) is None):
             return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+        agent = conversation.agent
+        if agent is not None and agent.configuration.model.requires_selection:
+            return "Choose a model or connect a provider (click here). Your draft is kept."
         return "Agent is not ready. Please wait while the agent connects…"
 
     def start_agent(self, conversation: Conversation) -> None:
@@ -163,11 +170,6 @@ class OperationalSessionSources:
             from toad.widgets.conversation import ConversationSessionBinding
 
             conversation.set_reactive(ConversationSessionBinding.agent, self.agent)
-        watcher, self.directory_watcher = self.directory_watcher, None
-        if watcher is not None:
-            conversation._directory_watcher = watcher
-            watcher.rebind(conversation)
-            conversation.call_after_refresh(watcher.notify_if_visible)
 
     async def present(self, conversation: Conversation) -> None:
         shell, self.shell = self.shell, None
@@ -184,15 +186,10 @@ class OperationalSessionSources:
         conversation._shell = None
         if self.shell is not None:
             await self.shell.detach()
-        self.directory_watcher = conversation._directory_watcher
-        conversation._directory_watcher = None
-        if self.directory_watcher is not None:
-            self.directory_watcher.rebind(screen)
         if self.agent is not None:
             self.agent.detach_surface(conversation)
 
     async def close(self) -> None:
-        watcher, self.directory_watcher = self.directory_watcher, None
         agent, self.agent = self.agent, None
         shell, self.shell = self.shell, None
         async with AsyncResourceRelease() as release:
@@ -200,8 +197,6 @@ class OperationalSessionSources:
                 release.push_async_callback(shell.close)
             if agent is not None:
                 release.push_async_callback(agent.stop)
-            if watcher is not None:
-                release.push_async_callback(watcher.aclose)
 
 
 class MailboxSessionSources(OperationalSessionSources):
@@ -212,10 +207,20 @@ class MailboxSessionSources(OperationalSessionSources):
         return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
 
     def input_ready(self, conversation: Conversation) -> bool:
-        return conversation.transcript.readable and conversation.user_message_ready
+        # The view's own send holds compose itself (DeliveryFailureView).
+        return conversation.transcript.readable
 
     def accepts_inbox_submission(self, event) -> bool:
         return not event.shell and bool(event.body.strip())
+
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        from toad.transcript_publication import CanonicalSourcePublication
+
+        conversation.transcript.source_requests.request(CanonicalSourcePublication)
+
+    def unavailable_reason(self, conversation: Conversation) -> str:
+        # A CLI thread has no native owner to start; only its history load holds it.
+        return "Loading thread history…"
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
@@ -333,6 +338,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         """The tab is being left: its window keeps the reader's place until it is drawn again."""
         if (conversation := self.widget) is not None:
             conversation.window.park_reader()
+
+    def external_transcript_changed(self) -> None:
+        """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
+        if self.widget is not None:
+            self.sources.external_transcript_changed(self.widget)
 
     async def remove_native_tree(self) -> None:
         if (conversation := self.widget) is None:

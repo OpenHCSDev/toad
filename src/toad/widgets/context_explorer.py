@@ -8,10 +8,12 @@ from pathlib import Path
 from acp.exceptions import RequestError
 from textual import on, work
 from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Input, Static, PreparedTextArea, Tree
+from textual.widgets import Button, Input, Static, Tree
+from toad.widgets.process_text_area import ProcessTextArea
 from textual.worker import Worker, WorkerCancelled, WorkerState, get_current_worker
 from agent_comms.mro_dispatch import handles
 from agent_comms.coordinator import Coordination
+from agent_comms.private_bus_checkpoint import ContextManifestCursor
 
 from toad.core.context_inspection import (
     ContextNode, DetachedInspection, HoldingInspection, InspectionState,
@@ -24,10 +26,25 @@ from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibility
 
 @dataclass
 class ContextTreeIntent:
-    """Only reader choices survive disposable sidebar widget retirement."""
+    """Detail selection and initial disclosures survive widget retirement.
+
+    The mounted Tree owns navigation; selected is the detail source, not its cursor.
+    """
     expanded: set[str] = field(default_factory=set)
     selected: ContextNode | None = None
     query: str = ""
+    cursor: ContextManifestCursor | None = None
+
+    def select_page(self, cursor):
+        if cursor is None:
+            return False
+        self.cursor = cursor
+        self.selected = None
+        return True
+
+    def reset_pages(self):
+        self.cursor = None
+        self.selected = None
 
     def search_current(self, query, selected):
         return self.query == query and self.selected is selected
@@ -36,19 +53,15 @@ class ContextTreeIntent:
         if self.selected is original:
             self.selected = model
 
-    def restore(self, resolve, restore_node):
+    def restore_detail(self, resolve, show_detail):
         if self.selected is None:
             return False
         node = resolve(self.selected.key)
         if node is None:
             return False
         self.selected = node.data
-        restore_node(self.selected)
+        show_detail(self.selected)
         return True
-
-    def with_selected(self, model, consume):
-        if self.selected is model:
-            consume(model)
 
 
 class ContextTree(Tree[ContextNode]):
@@ -60,6 +73,8 @@ class ContextTree(Tree[ContextNode]):
         self.show_placeholder = show_placeholder
         self.context_nodes = {}
         super().__init__("Context", id="context-tree")
+        with self.prevent(Tree.NodeExpanded):
+            self.root.expand()
 
     def clear(self):
         self.context_nodes.clear()
@@ -73,7 +88,6 @@ class ContextTree(Tree[ContextNode]):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected,
                           Tree.NodeHighlighted):
             self.root.set_label("Context")
-            self.root.expand()
             labels = {label for label, _, _ in groups}
             for node in tuple(self.root.children):
                 if self.owns_node(node) or node.label.plain not in labels:
@@ -84,7 +98,7 @@ class ContextTree(Tree[ContextNode]):
                 if group is None:
                     group = self.root.add(label, before=index, expand=expanded)
                 self._reconcile(group, models)
-        self.restore_reader("Select a context segment to inspect.")
+        self.restore_detail("Select a context segment to inspect.")
 
     def search_results(self, matches, description, query):
         with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
@@ -93,7 +107,7 @@ class ContextTree(Tree[ContextNode]):
             self.root.expand()
             for model in matches:
                 self._add(self.root, model)
-        self.restore_reader("Select a matching original source to read its full public text.")
+        self.restore_detail("Select a matching original source to read its full public text.")
 
     def _reconcile(self, parent, models):
         previous = {node.data.key: node for node in parent.children}
@@ -126,23 +140,12 @@ class ContextTree(Tree[ContextNode]):
             self.context_nodes.pop(node.data.key)
         node.remove()
 
-    def restore_reader(self, placeholder):
-        with self.prevent(Tree.NodeExpanded, Tree.NodeCollapsed, Tree.NodeSelected):
-            # Traverse the original native tree once. The lookup contains
-            # descendants too; seeding from it and adding children revisited
-            # expanded subtrees once for every ancestor.
-            pending = list(self.root.children)
-            while pending:
-                node = pending.pop()
-                if self.owns_node(node) and node.data.key in self.intent.expanded:
-                    self._expand(node)
-                    node.expand()
-                pending.extend(node.children)
-        if not self.intent.restore(self.reveal, self._reveal_restored):
+    def restore_detail(self, placeholder):
+        if not self.intent.restore_detail(self.resolve_reader, self.show_detail):
             self.show_placeholder(placeholder)
 
-    def reveal(self, key):
-        """Materialize the current path without authoring a reader choice."""
+    def resolve_reader(self, key):
+        """Rebind the detail source without changing native navigation."""
         node = self.context_nodes.get(key)
         if node is None:
             for root in tuple(self.context_nodes.values()):
@@ -150,39 +153,18 @@ class ContextTree(Tree[ContextNode]):
                 if not path:
                     continue
                 node = root
-                with self.prevent(Tree.NodeExpanded):
-                    for model in path[1:]:
-                        self._expand(node)
-                        node.expand()
-                        node = self.context_nodes[model.key]
+                for model in path[1:]:
+                    self._expand(node)
+                    node = self.context_nodes[model.key]
                 break
-        if node is not None:
-            with self.prevent(Tree.NodeExpanded):
-                ancestor = node.parent
-                while ancestor is not None:
-                    ancestor.expand()
-                    ancestor = ancestor.parent
         return node
 
-    def _reveal_restored(self, model):
-        # The retained intent owns the reader choice. Native initialization may
-        # already highlight a data-less root or group before this callback.
-        self.call_after_refresh(self.intent.with_selected, model, self._restore_cursor)
-
-    def _restore_cursor(self, model):
-        node = self.context_nodes.get(model.key)
-        if self.owns_node(node) and node.data is model:
-            # The retained native cursor already owns this selection and its
-            # scroll position. Moving it again scrolls the user's viewport back
-            # to the selected row on every background context refresh.
-            if self.cursor_node is not node:
-                with self.prevent(Tree.NodeHighlighted):
-                    self.move_cursor(node, animate=False)
-            self.show_detail(model)
-
     def _add(self, parent, model, *, before=None):
-        node = parent.add(model.label, model, before=before, allow_expand=True)
+        node = parent.add(model.label, model, before=before, allow_expand=True,
+                          expand=model.key in self.intent.expanded)
         self.context_nodes[model.key] = node
+        if node.is_expanded:
+            self._expand(node)
         return node
 
     def owns_node(self, node):
@@ -201,6 +183,13 @@ class ContextTree(Tree[ContextNode]):
                 self._add(node, model)
             node.allow_expand = bool(node.children)
 
+    def _toggle_node(self, node):
+        # Capture disclosure navigation before collapsing a selected descendant.
+        # Data-less groups are native rows too; they don't select detail sources.
+        with self.prevent(Tree.NodeHighlighted):
+            self.move_cursor(node, animate=False)
+        super()._toggle_node(node)
+
     @on(Tree.NodeExpanded, "#context-tree")
     def node_expanded(self, event):
         if self.owns_node(event.node):
@@ -213,17 +202,9 @@ class ContextTree(Tree[ContextNode]):
             self.intent.expanded.discard(event.node.data.key)
 
     def selected(self, model):
-        return self.owns_node(self.cursor_node) and self.cursor_node.data is model
-
-
-class ContextDetail(PreparedTextArea):
-    """Borrow the App's existing process renderer for native document work."""
-
-    async def _prepare_document(self, source, width, tab_width):
-        from toad.render_tasks import ReadOnlyDocumentRenderTask
-
-        return await self.app.render_processes.submit(
-            ReadOnlyDocumentRenderTask(source, width, tab_width))
+        node = self.context_nodes.get(model.key)
+        return (self.owns_node(node) and node.data is model
+                and self.intent.selected is model)
 
 
 class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
@@ -253,8 +234,11 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             yield Button("Read full", id="context-read-full")
             yield Button("Copy", id="context-copy")
             yield Button("Correct", id="context-correct")
+        with Horizontal(classes="context-controls"):
+            yield Button("Newer requests", id="context-newer", disabled=True)
+            yield Button("Older requests", id="context-older", disabled=True)
         yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
-        yield ContextDetail("No context selected.", soft_wrap=True,
+        yield ProcessTextArea("No context selected.", soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
         yield Button("Export selected text + source", id="context-export")
@@ -303,7 +287,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         self.workers.cancel_node(self)
         self.state = InspectionState.for_owner(owner, root)
-        self.intent.selected = None
+        self.intent.reset_pages()
         self.query_one(ContextTree).clear()
         self._show_placeholder("No context selected.")
         self.action_refresh()
@@ -330,7 +314,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             service = await self.app.preparation.run_thread(lambda: access.service)
             if not self._reading(previous):
                 return
-            acquired = await self.state.acquire(service, access.revision)
+            acquired = await self.state.acquire(service, access.revision,
+                cursor=self.intent.cursor)
             if not self._reading(previous):
                 return
             self.state = self.state.receive_inspection(acquired)
@@ -343,6 +328,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 status.update(f"Context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
+        self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()
+        self.query_one("#context-newer", Button).disabled = not current.inspection.page.has_newer()
         if previous.inspection_differs(current.inspection):
             current.present_acquired(previous, self._present)
         if previous.needs_native(current.inspection, force):
@@ -373,7 +360,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         self.query_one(".context-status", Static).update(updated.status)
 
     def _show_placeholder(self, placeholder):
-        detail = self.query_one(ContextDetail)
+        detail = self.query_one(ProcessTextArea)
         detail.load_text_prepared(placeholder)
 
     @on(Button.Pressed, "#context-correct")
@@ -427,6 +414,39 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
                 and not self.intent.query):
             self.query_one(ContextTree).present(groups)
 
+    @on(Button.Pressed, "#context-older")
+    def older_requests(self, event):
+        event.stop()
+        self.state.present(self._older_requests)
+
+    def _older_requests(self, current):
+        if self.intent.select_page(current.inspection.page.older):
+            self._change_page()
+
+    @on(Button.Pressed, "#context-newer")
+    def newer_requests(self, event):
+        event.stop()
+        self.state.present(self._newer_requests)
+
+    def _newer_requests(self, current):
+        if self.intent.select_page(current.inspection.page.newer):
+            self._change_page()
+
+    def _change_page(self):
+        # Destination selection ends the acquired page's lifetime now, not
+        # when the replacement read finishes. Unacquired inspection states
+        # cannot publish old groups, searches or native results.
+        self.state = InspectionState.for_owner(self.state.name, self.state.root)
+        self.workers.cancel_group(self, "context-presentation")
+        self.workers.cancel_group(self, "context-native")
+        self.workers.cancel_group(self, "context-search")
+        self.workers.cancel_group(self, "context-detail")
+        self.query_one("#context-older", Button).disabled = True
+        self.query_one("#context-newer", Button).disabled = True
+        self.query_one(ContextTree).clear()
+        self._show_placeholder("Loading recorded request page…")
+        self._read()
+
     @on(Input.Changed, "#context-search")
     def query_changed(self, event):
         event.stop()
@@ -471,7 +491,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
             return
         if not self._selected(model):
             return
-        detail = self.query_one(ContextDetail)
+        detail = self.query_one(ProcessTextArea)
         self.screen.maximize(detail, container=False)
         detail.focus()
 
@@ -529,7 +549,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         # a reusable string key shared by another thread or context snapshot.
         if not self._selected(model):
             return
-        area = self.query_one(ContextDetail)
+        area = self.query_one(ProcessTextArea)
         # A read borrows the native document; it does not replace the reader's
         # selection and scroll with a temporary one-line document.
         try:

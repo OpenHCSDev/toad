@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass, replace
+from dataclasses import MISSING, dataclass, replace
 from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, get_args, get_origin
 
@@ -11,7 +11,8 @@ from objectstate import ObjectState
 from python_introspect import optional_member_type
 from python_introspect.validation import validate_annotation_value
 
-from toad.forms.field_path import FieldPath, declared_annotation, label
+from toad.forms.field_path import FieldPath, declared, declared_annotation, declared_field, label
+from toad.forms.kinds import Placeholder
 
 
 class DeclaredViews:
@@ -83,6 +84,16 @@ class DeclaredField:
     @property
     def default(self) -> object:
         return self.state.signature_default(str(self.path))
+
+    @property
+    def has_default(self) -> bool:
+        field = declared_field(self.path)
+        return field.default is not MISSING or field.default_factory is not MISSING
+
+    @property
+    def placeholder(self) -> str:
+        hint = declared(self.path, Placeholder)
+        return hint.text if hint is not None else ""
 
     @property
     def label(self) -> str:

@@ -278,6 +278,7 @@ dependencies = [
     { name = "setproctitle" },
     { name = "textual", extra = ["syntax"] },
     { name = "textual-diff-view" },
+    { name = "textual-image", extra = ["textual"] },
     { name = "textual-serve" },
     { name = "textual-speedups" },
     { name = "typeguard" },
@@ -319,13 +320,14 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=97d73d0d5d30d9766d2c5ea9844bfa30ae96a908" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=17a3183b8d5d3a6af950b01ca95f4cac6f2a67e7" },
     { name = "textual-diff-view", git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" },
+    { name = "textual-image", extras = ["textual"], specifier = "==0.14.1" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
     { name = "typeguard", specifier = "==4.5.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
-    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=6e6f70928e8471c98add1542398f8a27cbf6358d" },
+    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=5e58d8b5907cec4dbc8810a9329aaf902f69f675" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
@@ -1616,7 +1618,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=97d73d0d5d30d9766d2c5ea9844bfa30ae96a908#97d73d0d5d30d9766d2c5ea9844bfa30ae96a908" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=17a3183b8d5d3a6af950b01ca95f4cac6f2a67e7#17a3183b8d5d3a6af950b01ca95f4cac6f2a67e7" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
@@ -1668,6 +1670,24 @@ name = "textual-diff-view"
 version = "0.1.5"
 source = { git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9#8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 dependencies = [
+    { name = "textual" },
+]
+
+[[package]]
+name = "textual-image"
+version = "0.14.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pillow" },
+    { name = "rich" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/09/19/fb4bca0ed5ff657f15b4d31cd3f415c62bc7c69cbd1ccb87457e025348bc/textual_image-0.14.1.tar.gz", hash = "sha256:502542955452ca6d67e4e0701021eed6bebbe2e1ccee8dfcb42e5083c9573eda", size = 175108, upload-time = "2026-09-25T20:41:48.657Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/43/e94a80f76b6e613a44f77ec06abcac078c5c918e8824402fb353f490488a/textual_image-0.14.1-py3-none-any.whl", hash = "sha256:fbc72aa8009c138edfdd7f57f4cd264d7da102bcc9ddbc2527ebc3491f489941", size = 183536, upload-time = "2026-09-25T20:41:46.862Z" },
+]
+
+[package.optional-dependencies]
+textual = [
     { name = "textual" },
 ]
 
@@ -2003,7 +2023,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=6e6f70928e8471c98add1542398f8a27cbf6358d#6e6f70928e8471c98add1542398f8a27cbf6358d" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=5e58d8b5907cec4dbc8810a9329aaf902f69f675#5e58d8b5907cec4dbc8810a9329aaf902f69f675" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },

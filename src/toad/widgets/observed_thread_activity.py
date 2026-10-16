@@ -8,27 +8,25 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.status import ThreadStatusModel
+from textual.message import Message
 from textual.reactive import var
-from textual.widgets import Static
+from textual.widget import Widget
 
 
-class ObservedThreadActivity(Static):
-    """Observation never starts/settles an ACP turn or changes send admission."""
+class ObservedThreadActivity(Widget):
+    """Shared observation capability; its view decides how to display the row.
 
-    DEFAULT_CSS = """
-    ObservedThreadActivity {
-        width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; color: $text-muted;
-    }
-    ObservedThreadActivity.-working { color: $accent; }
-    ObservedThreadActivity.-unavailable { color: $warning; }
+    Observation never starts/settles an ACP turn or changes send admission.
     """
 
     row: var[ThreadStatusModel | None] = var(None, init=False)
 
-    def __init__(self) -> None:
-        super().__init__("", markup=False)
-        self.display = False
+    class Changed(Message):
+        """The observed row changed; the view repaints what derives from it."""
+
+    def __init__(self, *args, **kwargs) -> None:
         self.thread: str | None = None
+        super().__init__(*args, **kwargs)
 
     def on_mount(self) -> None:
         self.app.coordination_access.thread_status.rows.subscribe(self.rows_changed)
@@ -53,10 +51,14 @@ class ObservedThreadActivity(Static):
         self.row = row
 
     def watch_row(self, row: ThreadStatusModel | None) -> None:
-        self.display = row is not None and row.shown
-        self.update("\n".join(row.lines) if row is not None else "")
-        self.set_class(row is not None and row.working, "-working")
-        self.set_class(row is not None and row.attention, "-unavailable")
+        self.activity_changed()
+
+    def activity_changed(self) -> None:
+        self.post_message(self.Changed())
+
+    @property
+    def working(self) -> bool:
+        return self.row is not None and self.row.working
 
 
 class ThreadStatusOwner:
@@ -68,6 +70,15 @@ class ThreadStatusOwner:
     root is a foreign thread: the view reads it itself on each coordination
     change, as every view did before the observation service.
     """
+
+    thread_activity: ObservedThreadActivity | None = None
+    """The composed status view; lookup never infers capabilities from CSS ancestry."""
+
+    @property
+    def _observed_working(self) -> bool:
+        """Observed work cannot settle an independently owned ACP request."""
+        activity = self.thread_activity
+        return activity is not None and activity.working
 
     def status_thread(self) -> tuple[str, str] | None:
         """The (wire root, thread name) whose status this view shows, if any."""
@@ -91,7 +102,7 @@ class ThreadStatusOwner:
 
     def refresh_thread_status(self) -> None:
         access = self.app.coordination_access
-        activity = self.query_one_optional(ObservedThreadActivity)
+        activity = self.thread_activity
         thread = self.status_thread()
         observed = access.observed_service
         if (thread is not None and observed is not None
@@ -120,6 +131,6 @@ class ThreadStatusOwner:
             presentation, row = None, ThreadStatusModel.unavailable(name)
         if (self.status_thread() or (None, None))[1] != name:
             return
-        if (activity := self.query_one_optional(ObservedThreadActivity)) is not None:
+        if (activity := self.thread_activity) is not None:
             activity.show(row)
         self.foreign_thread_read(presentation)

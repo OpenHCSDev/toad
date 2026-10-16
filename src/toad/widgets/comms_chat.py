@@ -126,7 +126,7 @@ class CommsChatView(Conversation):
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield self.conversation_kind.activity_widget(self)
-            yield self.make_throbber()
+            yield self.throbber
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
@@ -157,7 +157,6 @@ class CommsChatView(Conversation):
             IrcMessageStyle(),
         ))
         self.agent_info = Content(self._target_label())
-        self.agent_ready = True
         self.refresh_thread_status()
         self.prepare_prompt()
         self.window.anchor()
@@ -247,10 +246,6 @@ class CommsChatView(Conversation):
     def watch_agent(self, agent) -> None:
         """Keep the inherited agent reactive from turning this into a shell session."""
         self.agent_info = Content(self._target_label())
-
-    @work
-    async def watch_agent_ready(self, ready: bool) -> None:
-        """Comms readiness has no shell process to await."""
 
     def _target_label(self) -> str:
         return self.conversation_kind.label(self.target)
@@ -363,14 +358,8 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
-        if self._unknown_send is not None:
-            root_id, sequence, message_id = self._unknown_send
-            self.status = (
-                f"Send UNKNOWN {root_id}/{sequence}/{message_id}; "
-                "inspect the bus, do not retry"
-            )
-        elif self._send_block_reason:
-            self.status = self._send_block_reason
+        if self.send_block_reason:
+            self.status = self.send_block_reason
         elif info is not None:
             self.status = " · ".join(
                 value

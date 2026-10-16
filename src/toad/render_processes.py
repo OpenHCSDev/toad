@@ -32,7 +32,6 @@ def _initialize_worker() -> None:
     implementations remain owned by those tasks, rather than Markdown startup.
     No notification or rendering job is made.
     """
-    os.environ.pop("PI_AGENT_ID", None)
     os.environ.pop("AGENT_COMMS_THREAD", None)
     from toad.acp import sdk_boundary  # noqa: F401 -- declare worker ingress capabilities
     from toad import render_tasks  # noqa: F401 -- declare worker rendering capabilities

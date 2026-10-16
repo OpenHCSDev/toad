@@ -5,4 +5,4 @@ from toad.directory_suggester import DirectorySuggester
 
 class DirectoryInput(Input):
     def on_mount(self) -> None:
-        self.suggester = DirectorySuggester()
+        self.suggester = DirectorySuggester(self.app.preparation)

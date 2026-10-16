@@ -34,7 +34,7 @@ from ui_theme.clock import Animation, AnimationClock
 from ui_theme.colour import AnsiColour, Rgb, TerminalPalette
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Effect, Gradient, Mix, TextFrame
-from ui_theme.scheme import ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
+from ui_theme.scheme import BackgroundColour, ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme
 from toad.line_blocks import LineRole
@@ -137,9 +137,23 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return self._terminal_themes[name]
 
     def variables_changed(self, variables: dict[str, str]) -> None:
-        self.variables = variables
-        self.line_theme = LineTheme.of(variables, self.depth.name)
-        _row.cache_clear()
+        terminal = self.app.ansi_theme
+
+        def read(member: type[ThemeColour]) -> Rgb:
+            value = Color.parse(variables[member.name])
+            return Rgb(*value.rich_color.get_truecolor(terminal, foreground=not member.background), value.a)
+
+        self.variables = {**variables, **{
+            member.name: self.rgb(member.resolve_rgb(read)) for member in ThemeColour.members()
+            if not issubclass(member, (CoreColour, LayerColour))
+        }}
+        from dataclasses import replace
+        from toad.rich_preparation import SyntaxPalette
+
+        self.line_theme = replace(LineTheme.of(self.variables, self.depth.name),
+                                  diff=self.app.settings.diff,
+                                  syntax=SyntaxPalette.of(self.app),
+                                  terminal_theme=self.app.ansi_theme)
 
     # The backend.
 
@@ -194,15 +208,37 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return first.blend(last, amount)
 
     def paint_gradient(self, frame: Gradient, target: Strip) -> Strip:
-        """A uniform row (one glyph, one style) in the gradient; the row is built once per width."""
+        """Sample shared colour/shape into truecolour cells; never change row geometry."""
         width = target.cell_length
+        if width == 0:
+            return target
         first = next(iter(target))
-        row = _row(self, frame.stops, width, first.text[:1], first.style)
-        start = width - int(frame.offset * width) % max(width, 1)
-        return Strip(row[start:start + width], cell_length=width)
+        style = first.style or RichStyle()
+        terminal = self.app.ansi_theme
+        colours = {
+            role: Color(*self.colour(role).rich_color.get_truecolor(
+                terminal, foreground=not role.background)) for role in dict.fromkeys(frame.stops)
+        }
+        background = style.bgcolor or self.colour(BackgroundColour).rich_color
+        background = Color(*background.get_truecolor(terminal, foreground=False))
+        segments = []
+        for cell in range(width):
+            start, end, amount, height = frame.sample((cell + 0.5) / width)
+            if height <= 0:
+                segments.append(Segment(" ", style))
+                continue
+            level = max(1, min(8, round(height * 8)))
+            character = first.text[:1] if level == 8 else " ▁▂▃▄▅▆▇█"[level]
+            ink = colours[start].blend(colours[end], amount)
+            # Fade sub-eighth tails only. A taller glyph must not dim the whole
+            # band each time its height crosses the next terminal-cell step.
+            ink = background.blend(ink, min(1.0, height * 8))
+            segments.append(Segment(character, style + RichStyle(color=ink.rich_color)))
+        return Strip(Segment.simplify(segments), cell_length=width)
 
     def paint_mix(self, frame: Mix, target: Strip) -> Strip:
-        return target.apply_style(RichStyle(color=self.mixed(frame.start, frame.end, frame.amount).rich_color))
+        return Strip(Segment.apply_style(target, post_style=RichStyle(
+            color=self.mixed(frame.start, frame.end, frame.amount).rich_color)), target.cell_length)
 
     def paint_band(self, frame: Band, target: Strip) -> Strip:
         width = target.cell_length
@@ -210,8 +246,29 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         if start >= end:
             return target
         before, band, after = target.divide((start, end, width))
-        band = band.apply_style(RichStyle(color=self.colour(frame.colour).rich_color))
+        band = Strip(Segment.apply_style(band, post_style=RichStyle(
+            color=self.colour(frame.colour).rich_color)), band.cell_length)
         return Strip.join((before, band, after))
+
+    def paint_rising(self, frame: Mix, target: Strip) -> Strip:
+        """Each run's own colour `amount` of the way up from the fade's start.
+
+        Unlike `paint_mix`, the runs keep their colours: a run with none rises
+        to the fade's end. Terminal colours cannot be blended; they step.
+        """
+        start = self.colour(frame.start)
+        if start.ansi is not None or frame.amount >= 1.0:
+            return target if frame.amount >= 0.5 else self.paint_mix(frame, target)
+        end = self.colour(frame.end)
+
+        def risen(segment: Segment) -> Segment:
+            text, style, control = segment
+            own = (Color.from_rich_color(style.color) if style is not None and style.color is not None
+                   and not style.color.is_default else end)
+            colour = start.blend(own, frame.amount).rich_color
+            return Segment(text, (style or RichStyle()) + RichStyle(color=colour), control)
+
+        return Strip([risen(segment) for segment in target], target.cell_length)
 
     def paint_text(self, frame: TextFrame, target: None) -> Content:
         """Text in Textual's own styled text; each frame is built once."""
@@ -250,7 +307,7 @@ class ThemedApp:
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()  # type: ignore[misc]
         self.colours.variables_changed(variables)
-        return variables
+        return self.colours.variables
 
     @property
     def ansi_theme(self) -> TerminalTheme:
@@ -273,6 +330,9 @@ class Animated:
         if self.animation is not None:
             self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
             self.animation = None
+
+    def on_unmount(self) -> None:
+        self.stop_effect()
 
     @property
     def animation_visible(self) -> bool:
@@ -302,17 +362,3 @@ def _text(frame: TextFrame) -> Content:
         Content.assemble(*((character, VisualStyle(foreground=Color(*colour.triple)))
                            if colour is not None else character for character, colour in line))
         for line in frame.lines)
-
-
-@lru_cache(maxsize=16)
-def _row(colours: TextualColours, stops: tuple[type[ThemeColour], ...], width: int,
-         character: str, style: RichStyle | None) -> list[Segment]:
-    """Two widths of a gradient, so any window of `width` cells is a slice."""
-    frame = Gradient(stops, 0.0)
-    background = style.bgcolor if style is not None else None
-    segments = []
-    for cell in range(width * 2):
-        start, end, amount = frame.at(cell / max(width, 1))
-        colour = colours.mixed(start, end, amount)
-        segments.append(Segment(character, RichStyle.from_color(colour.rich_color, background)))
-    return segments

@@ -1,11 +1,11 @@
-"""A compact disclosure for session observations, provenance and delivery notices."""
+"""One live status row expands the session's provenance and delivery details."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from textual.reactive import var
-from textual.widgets import Collapsible
+from textual.widgets import Collapsible, Static
 
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
@@ -18,11 +18,15 @@ if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(Collapsible):
-    """Keep one summary row; native detail producers remain the state owners."""
+class SessionDetails(Collapsible, ObservedThreadActivity):
+    """The observed-thread capability and disclosure share one status view.
+
+    Core owns status for an observed thread, native or CLI. A standalone ACP
+    peer has only its local turn's status. Native turn permissions and
+    settlement remain independent of this observed-thread presentation.
+    """
 
     DETAIL_ROWS = 8
-    """Tunable maximum expanded detail height, preserving room for the composer."""
     overview_text: var[str] = var("")
 
     DEFAULT_CSS = """
@@ -34,7 +38,9 @@ class SessionDetails(Collapsible):
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
+    SessionDetails.-working > CollapsibleTitle { color: $accent; }
     SessionDetails.-attention > CollapsibleTitle { color: $warning; }
+    SessionDetails .session-notifications { height: auto; }
     """
 
     def __init__(
@@ -44,19 +50,26 @@ class SessionDetails(Collapsible):
         turns: ConversationTurn | None = None,
     ) -> None:
         self.turns = turns
-        self.activity = ObservedThreadActivity()
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
+        self.notifications = Static("", markup=False, classes="session-notifications")
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
-            self.activity, *(item for item in (history, delivery) if item is not None),
-            title="Session details", collapsed=True, id="session-details",
+            self.notifications, *(item for item in (history, delivery) if item is not None),
+            title="", collapsed=True, id="session-details",
         )
 
+    @property
+    def status_working(self) -> bool:
+        """Work described by the title, not the independent ACP request lease."""
+        if self.row is not None and self.row.shown:
+            return self.row.working
+        return self.turns is not None and self.turns.owner.busy
+
     def on_mount(self) -> None:
+        super().on_mount()
         self.query_children(self.Contents).first().styles.max_height = self.DETAIL_ROWS
-        self.watch(self.activity, "row", self._refresh_summary)
         if self.history is not None:
             self.watch(self.history, "status", self._refresh_summary)
         if self.delivery is not None:
@@ -64,39 +77,33 @@ class SessionDetails(Collapsible):
             self.watch(self.delivery, "error", self._refresh_summary)
         self._refresh_summary()
 
+    def activity_changed(self) -> None:
+        self._refresh_summary()
+        super().activity_changed()
+
     def _refresh_summary(self, *_args) -> None:
-        row = self.activity.row
+        row = self.row
         shown = row is not None and row.shown
-        parts = ["Session details"]
+        owner = self.turns.owner if self.turns is not None else None
         attention = shown and row.attention
-        if shown and not row.available:
-            parts.extend(row.summary)
-        elif self.turns is not None and self.turns.owner.busy:
-            parts.append(self.turns.owner.activity)
-        elif shown:
-            parts.extend(row.summary)
-        parts.extend(self.history_details.summary)
+        if shown:
+            title = row.summary[0]
+        else:
+            title = owner.status if owner is not None else ""
+        if self.title != title:
+            self.title = title
+        # The status is already the disclosure's title, not a second row inside.
+        detail = "\n".join(row.lines[1:]) if shown else ""
+        self.notifications.update(detail)
+        self.notifications.display = bool(detail)
         attention |= self.history_details.attention
         if self.delivery is not None:
             delivery = self.delivery.delivery
-            if delivery.current:
-                parts.append(f"{delivery.current} {delivery.pending}")
-                attention = True
-            if delivery.notices:
-                parts.append(f"{delivery.notices} notices")
-            if self.delivery.error:
-                parts.append("Delivery unavailable")
-                attention = True
-        if attention:
-            parts.insert(1, "Needs attention")
-        title = " · ".join(parts)
-        if self.title != title:
-            self.title = title
+            attention |= bool(delivery.current or self.delivery.error)
         self.set_class(attention, "-attention")
-        self.overview_text = self.history_details.overview(self.activity)
-        self.display = bool(shown
-                            or self.history is not None and self.history.status is not None
-                            or self.delivery is not None and self.delivery.display)
+        self.set_class(self.status_working, "-working")
+        self.overview_text = self.history_details.overview(row.lines if shown else ())
+        self.display = bool(title)
 
     def sync_turn(self) -> None:
         self._refresh_summary()
