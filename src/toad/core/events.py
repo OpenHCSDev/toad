@@ -363,6 +363,7 @@ class Subscription:
     """A subscriber owns this resource for as long as it wants publications."""
 
     stream: CoreEventStream
+    event_type: type[CoreEvent]
     listener: InitVar[Callable[[CoreEvent, Subscription], object]]
     _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
 
@@ -412,11 +413,13 @@ class CoreEventStream:
             raise RuntimeError("The publication resource outlived its original owner")
         return publisher
 
-    def subscribe(self, listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
-        subscription = Subscription(self, listener)
+    def subscribe(self, event_type: type[CoreEvent],
+                  listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
+        subscription = Subscription(self, event_type, listener)
         self.subscriptions.add(subscription)
         return subscription
 
     def publish(self, event: CoreEvent) -> None:
         for subscription in tuple(self.subscriptions):
-            subscription.publish(event)
+            if isinstance(event, subscription.event_type):
+                subscription.publish(event)
