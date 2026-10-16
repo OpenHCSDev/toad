@@ -44,7 +44,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
 
     def __init__(
         self, *,
-        history: NativeHistory | None = None, delivery: InputDeliveryBar | None = None,
+        history: NativeHistory, delivery: InputDeliveryBar | None = None,
         transcript: TranscriptPresentation | None = None,
         turns: ConversationTurn | None = None,
     ) -> None:
@@ -62,15 +62,13 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
     @property
     def title_role(self) -> type[LineRole]:
         """Derive existing theme paint from the original status sources."""
-        if self.history_details.attention:
-            return NoticeRole
         if self.delivery is not None and (self.delivery.delivery.current or self.delivery.error):
             return NoticeRole
         row = self.row
         if row is not None and row.shown:
-            status = row.status
+            status = self.history.status.present_status(row.status)
         elif self.turns is not None:
-            status = self.turns.owner.presentation_status
+            status = self.history.status.present_status(self.turns.owner.presentation_status)
         else:
             return MutedRole
         # Core owns the state; this is its one frontend paint decision.

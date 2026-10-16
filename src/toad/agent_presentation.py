@@ -4,13 +4,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.acp_extension import PendingQueueProjection, QueueProjection
-from toad.private_native_cursor import CursorStatus
+from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.conversation_turn import TurnBinding, LocalTurnBinding, ManagedTurnBinding
 
 
 @dataclass(frozen=True)
 class AgentAttachmentView:
-    cursor: type[CursorStatus] | None
+    cursor: type[CursorStatus]
     cursor_sequence: int
 
 
@@ -61,7 +61,7 @@ class LocalAgentPresentation(AgentPresentation):
 
     @property
     def attachments(self):
-        return AgentAttachmentView(None, 0)
+        return AgentAttachmentView(HiddenCursorStatus, 0)
 
 
 class ACPAgentPresentation(AgentPresentation):

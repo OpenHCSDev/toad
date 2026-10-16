@@ -84,7 +84,7 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity, Thread
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
-from toad.private_native_cursor import CursorStatus
+from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
@@ -473,7 +473,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     input_delivery_error: var[str] = var("")
 
 
-    native_history_status: var[type[CursorStatus] | None] = var(None)
+    native_history_status: var[type[CursorStatus]] = var(HiddenCursorStatus)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())
