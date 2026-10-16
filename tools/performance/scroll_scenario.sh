@@ -2,7 +2,7 @@
 # The fixed scroll scenario for docs/performance/scroll-series.md.
 # Usage: scroll_scenario.sh NAME [BIN_DIR]
 # Forks perf-base-20261009 (a fork of Tristan's saved agent-comms-ux session), opens it
-# with the real `toad` in st on the isolated display :121, and drives real X input:
+# with the real `toad` in st on explicit SCENARIO_DISPLAY, and drives real X input:
 # an active response, held PageUp from the input box, wheel bursts with reversal,
 # End, and a return to the open tab. capture_live.py --frame-meter times every frame.
 set -euo pipefail
@@ -13,15 +13,33 @@ out=/home/ts/.cache/agent-scratch/scroll-series/$name
 fork=perf-$name-$(date +%H%M%S)
 project=/home/ts/wt/comms-post-feature-debt-audit-20260928
 meter_seconds=${METER_SECONDS:-45}
-export DISPLAY=${SCENARIO_DISPLAY:-:131}
-rm -rf "$out"
-mkdir -p "$out"
+display=${SCENARIO_DISPLAY:?Set an explicit owned Xvfb display}
+export DISPLAY=$display
+PYTHONPATH="$tools" python3 -c '
+import sys
+from capture_live import XvfbDisplay
+with XvfbDisplay(sys.argv[1]):
+    pass
+' "$display"
+mkdir -p "$(dirname "$out")"
+mkdir "$out"
 
 agent-comms fork --name "$fork" --parent perf-base-20261009 > "$out/fork.json"
 env -u NO_COLOR -u TOAD_VALIDATION st -g145x50 -t "$fork" -e "$bin/toad" acp "$bin/agent-comms-acp" \
     --session "$fork" --project-dir "$project" --title "$fork" > "$out/st.log" 2>&1 &
 st_pid=$!
+st_created=$(python3 -c 'import psutil,sys; print(psutil.Process(int(sys.argv[1])).create_time())' "$st_pid")
+# All input goes through the recorder's display owner, never ambient DISPLAY.
+xdotool() {
+    PYTHONPATH="$tools" python3 -c '
+import sys
+from capture_live import XvfbDisplay
+with XvfbDisplay(sys.argv[1]) as display:
+    display.input(int(sys.argv[2]), int(sys.argv[3]), float(sys.argv[4]), *sys.argv[5:])
+' "$display" "$window" "$st_pid" "$st_created" "$@"
+}
 cleanup() {
+    local status=$?
     xdotool key --window "$window" ctrl+q 2>/dev/null || true
     # Wait for the app to exit by itself: killing the terminal sends SIGHUP to
     # the app and its agents, and a process killed inside a guarded registry
@@ -29,6 +47,10 @@ cleanup() {
     for _ in $(seq 60); do kill -0 "$st_pid" 2>/dev/null || break; sleep 1; done
     if kill -0 "$st_pid" 2>/dev/null; then
         echo "app did not exit within 60 s; leaving it running rather than killing it mid-write" >&2
+    fi
+    if (( status != 0 )); then
+        echo "Retaining failed run and fork $fork; no stop/delete or replay" >&2
+        return "$status"
     fi
     # A fork is a full copy of the parent's 141 MB history: delete it, which
     # removes its registration, per-thread state and session files.
@@ -39,7 +61,7 @@ trap cleanup EXIT
 
 for _ in $(seq 60); do
     app_pid=$(pgrep -P "$st_pid" | head -1 || true)
-    window=$(xdotool search --pid "$st_pid" 2>/dev/null | head -1 || true)
+    window=$(DISPLAY="$display" command xdotool search --pid "$st_pid" 2>/dev/null | head -1 || true)
     [[ -n "$app_pid" && -n "$window" ]] && break
     sleep 1
 done
@@ -50,12 +72,12 @@ if [[ -n "${UI_NICE:-}" ]]; then
     sudo -n renice -n "$UI_NICE" -p "$app_pid" > "$out/renice.log" 2>&1
 fi
 sleep "${LOAD_SECONDS:-25}"
-read -r width height < <(xdotool getwindowgeometry --shell "$window" | sed -n 's/^\(WIDTH\|HEIGHT\)=//p' | paste -sd' ')
+read -r width height < <(DISPLAY="$display" command xdotool getwindowgeometry --shell "$window" | sed -n 's/^\(WIDTH\|HEIGHT\)=//p' | paste -sd' ')
 cell() { xdotool mousemove --window "$window" $(( ($1) * width / 145 + 3 )) $(( ($2) * height / 50 + height / 100 )) click 1; }
-regions() { python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name "$1" --targets --sudo > /dev/null; }
+regions() { python3 "$tools/capture_live.py" --display "$display" --pid "$app_pid" --output-dir "$out" --name "$1" --targets --sudo > /dev/null; }
 # Who asks the app to exit is written as it happens (the app has quit by
 # itself when the second tab opened, with no error recorded).
-python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name app --trace-exit --sudo > /dev/null 2>&1 &
+python3 "$tools/capture_live.py" --display "$display" --pid "$app_pid" --output-dir "$out" --name app --trace-exit --sudo > /dev/null 2>&1 &
 # Optional: measure from here, so opening the second tab (and the closing of
 # the deleted thread's tab at the end) fall inside the measured window.
 if [[ -n "${METER_FROM_OPEN:-}" ]]; then
@@ -68,7 +90,7 @@ if [[ -n "${METER_FROM_OPEN:-}" ]]; then
     else
         measure=(--frame-meter "${METER_SECONDS:-150}")
     fi
-    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run "${measure[@]}" \
+    python3 "$tools/capture_live.py" --display "$display" --pid "$app_pid" --output-dir "$out" --name run "${measure[@]}" \
         ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} \
         ${TRACE_GARBAGE:+--trace-garbage} ${HEAP_CENSUS:+--heap-census "$HEAP_CENSUS"} ${COLLECT_ALL:+--collect-all "$COLLECT_ALL"} ${HEAP_COMPONENTS:+--heap-components "$HEAP_COMPONENTS"} ${FREEZE_HEAP:+--freeze-heap} ${TRACE_ABC:+--trace-abc} ${TRACE_POSTS:+--trace-posts} --sudo > "$out/capture.log" 2>&1 &
     capture=$!
@@ -128,7 +150,7 @@ else
     measure=(--frame-meter "$meter_seconds")
 fi
 if [[ -z "${METER_FROM_OPEN:-}" ]]; then
-python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name run \
+python3 "$tools/capture_live.py" --display "$display" --pid "$app_pid" --output-dir "$out" --name run \
     "${measure[@]}" ${TRACE_CALLS:+--trace-calls "$TRACE_CALLS"} ${TRACE_REFLOWS:+--trace-reflows} ${TRACE_RULES:+--trace-rules} --sudo > "$out/capture.log" 2>&1 &
 capture=$!
 fi
@@ -212,7 +234,7 @@ python3 "$tools/screen_checks.py" "$out" | tee "$out/screen-checks.json"
 # Optional: the per-build paint figure for this live history viewport (after
 # the checks: it repaints the history window in full, cold, warm and scrolled by a page).
 if [[ -n "${REPAINT:-}" ]]; then
-    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name repaint \
+    python3 "$tools/capture_live.py" --display "$display" --pid "$app_pid" --output-dir "$out" --name repaint \
         --repaint "$REPAINT" --sudo > /dev/null
     python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d.get('error') or {k: d[k] for k in ('cold', 'warm', 'scroll')})" \
         "$out/repaint-repaint.json" | tee "$out/repaint.txt"
@@ -221,7 +243,7 @@ fi
 # Optional: the per-build layout figure for this live widget tree (after the
 # checks, since it re-measures the screen at widths it is not shown at).
 if [[ -n "${REMEASURE:-}" ]]; then
-    python3 "$tools/capture_live.py" --pid "$app_pid" --output-dir "$out" --name remeasure \
+    python3 "$tools/capture_live.py" --display "$display" --pid "$app_pid" --output-dir "$out" --name remeasure \
         --remeasure "$REMEASURE" --sudo > /dev/null
     python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print({k: d[k] for k in ('median_ms', 'p10_ms', 'p90_ms')})" \
         "$out/remeasure-remeasure.json" | tee "$out/remeasure.txt"

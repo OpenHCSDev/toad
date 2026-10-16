@@ -1,5 +1,6 @@
-"""Measure an explicitly selected live Toad process.
+"""Measure an explicitly selected live Toad process on required --display.
 
+Input controllers use this same XvfbDisplay.input owner and terminal launch identity.
 --profile-seconds  record a py-spy speedscope profile.
 --frame-meter N    time UI work per frame and input-to-paint for N seconds (frame_meter.py).
 --targets          write where sidebar thread rows and session tabs are (frame_meter.targets).
@@ -23,6 +24,8 @@ class XvfbDisplay(AbstractContextManager):
     """Own a connection to a local framebuffer, resolving X11 aliases at Xlib."""
 
     def __init__(self, name: str):
+        if not name:
+            raise ValueError("An explicit isolated Xvfb display is required")
         x11 = ctypes.CDLL('libX11.so.6')
         x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
         x11.XOpenDisplay.restype = ctypes.c_void_p
@@ -43,6 +46,24 @@ class XvfbDisplay(AbstractContextManager):
             self.name = name
             self.custody = custody.pop_all()
 
+    @property
+    def environment(self) -> dict[str, str]:
+        return {**os.environ, "DISPLAY": self.name}
+
+    def input(self, window: int, terminal_pid: int, terminal_created: float, *commands: str):
+        """Send input only after resolving this display's window to its launch identity."""
+        terminal = psutil.Process(terminal_pid)
+        if terminal.create_time() != terminal_created or not terminal.is_running():
+            raise ValueError("Terminal launch identity changed")
+        env = self.environment
+        owner = subprocess.check_output(
+            ["xprop", "-display", self.name, "-id", str(window), "_NET_WM_PID"],
+            env=env, text=True, timeout=5,
+        )
+        if int(owner.partition("=")[2].strip()) != terminal_pid:
+            raise ValueError("Window does not belong to the selected terminal on this display")
+        return subprocess.run(["xdotool", *commands], env=env, check=True)
+
     def __exit__(self, *exception):
         return self.custody.__exit__(*exception)
 
@@ -50,6 +71,7 @@ class XvfbDisplay(AbstractContextManager):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--pid", type=int, required=True)
+    parser.add_argument("--display", required=True, help="Explicit isolated Xvfb display shared with the input controller")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--name", default="live-" + time.strftime("%Y%m%d-%H%M%S"))
     parser.add_argument("--profile-seconds", type=int, default=0)
@@ -105,6 +127,9 @@ def main():
     created = process.create_time()
     privilege = ["sudo", "-n"] if args.sudo else []
     manifest = {"pid": args.pid, "created": created, "executable": process.exe(), "started_ns": time.time_ns()}
+    custody = ExitStack()
+    display = custody.enter_context(XvfbDisplay(args.display))
+    manifest["display"] = display.name
     try:
         if args.profile_seconds:
             result = subprocess.run([*privilege, args.py_spy, "record", "--pid", str(args.pid),
@@ -182,6 +207,7 @@ def main():
             manifest["outputs"] = {path: Path(path).exists() for path in outputs}
             manifest["entered"] = Path(entered).exists()
     finally:
+        custody.close()
         manifest["finished_ns"] = time.time_ns()
         manifest_path.write_text(json.dumps(manifest, indent=2))
         print(manifest_path)
