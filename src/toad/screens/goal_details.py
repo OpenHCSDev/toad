@@ -9,6 +9,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Static
+from textual.worker import Worker
 
 from toad.core.input_events import SelectTarget
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
@@ -107,15 +108,20 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
     def _read_history(self, cursor: GoalHistoryCursor) -> None:
         self.run_worker(self._load_history(cursor), group="goal-history", exclusive=True)
 
+    @on(Worker.StateChanged)
+    def history_loading(self, event: Worker.StateChanged) -> None:
+        if event.worker.node is self:
+            loading = any(worker.node is self and not worker.is_finished for worker in self.workers)
+            self.query_one("#goal-history-newest", Button).disabled = loading
+            self.query_one("#goal-history-older", Button).disabled = loading
+
     async def _load_history(self, cursor: GoalHistoryCursor) -> None:
         view = self.source.view
         if view is None or not self.source.owns(view.agent) or view.agent is None:
             self.query_one("#goal-history-status", Static).update("No active goal-history connection.")
             return
         agent = view.agent
-        newest = self.query_one("#goal-history-newest", Button)
         older = self.query_one("#goal-history-older", Button)
-        newest.disabled = older.disabled = True
         status = self.query_one("#goal-history-status", Static)
         status.update("Loading revisions…")
         try:
@@ -134,9 +140,6 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         except (OSError, ValueError) as error:
             if self.is_attached and self.source.owns(agent):
                 status.update(str(error))
-        finally:
-            if self.is_attached:
-                newest.disabled = older.disabled = False
 
     @on(Button.Pressed, "#goal-history-newest")
     def newest_history(self) -> None:
