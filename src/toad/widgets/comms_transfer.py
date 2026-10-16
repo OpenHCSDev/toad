@@ -6,10 +6,10 @@ from toad.core import events as core_events
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import ClassVar
+from typing import Annotated, ClassVar
 import asyncio
 from functools import partial
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import FieldCodec
 from agent_comms.route_selection import RouteSelection
@@ -19,17 +19,31 @@ from agent_comms.exporting import (
     DmScope,
     EverythingScope,
     FullLimit,
+    JsonlFormat,
     MaxBytesLimit,
+    SelectableWireExportFormat,
     WireExportFormat,
     WireExportLimit,
     WireExportScope,
 )
 from agent_comms.importing import ImportFormat
-from textual import on
+from objectstate import ObjectState
+from python_introspect import AnnotationChoices, FieldLabel, RegisteredClassChoices
 from textual.app import ComposeResult
-from textual.containers import Vertical
+from textual.binding import CallBinding
+from textual.containers import HorizontalGroup, Vertical
+from textual.css._style_properties import Edges
+from textual.css.scalar import Scalar, Unit
+from textual.geometry import Spacing
+from textual.widgets import Button, Static
+from ui_theme.scheme import ErrorColour, PrimaryColour, SurfaceColour
+
+from toad.forms.field_path import FieldPath
+from toad.forms.form_view import InlineFormView
+from toad.forms.presentation import FormModal, FormPart
+from toad.forms.kinds import Placeholder
 from toad.screens.modal import ModalScreen
-from textual.widgets import Button, Input, Select, Static
+from toad.setting_choices import Choice, FamilyChoices
 
 
 class TransferRequest(DeclaredFamily, affix="Request"):
@@ -123,130 +137,199 @@ class Transfers:
             request.completed(self.app, receipt)
 
 
-class TransferDialog(ModalScreen):
-    DEFAULT_CSS = """
-    TransferDialog { align: center middle; background: $background 40%; }
-    TransferDialog #transfer-box {
-        width: 72; max-width: 95%; height: auto; max-height: 95%;
-        padding: 1 2; border: solid $primary; background: $surface;
-    }
-    TransferDialog Input, TransferDialog Select { width: 1fr; margin-bottom: 1; }
-    TransferDialog .transfer-actions { height: auto; width: 1fr; }
-    TransferDialog #transfer-error { color: $error; height: auto; }
-    """
-    BINDINGS: ClassVar[list[tuple[str, str, str]]] = [("escape", "cancel", "Cancel")]
+class ExportScopeInput(Choice, DeclaredFamily, affix="ExportScopeInput"):
+    """Decode the target text offered by each interactive scope choice."""
+
+    @classmethod
+    @abstractmethod
+    def read(cls, target: str) -> WireExportScope: ...
+
+
+class EverythingExportScopeInput(ExportScopeInput):
+    title = "Everything"
+
+    @classmethod
+    def read(cls, target: str) -> WireExportScope:
+        return EverythingScope()
+
+
+class ChannelExportScopeInput(ExportScopeInput):
+    title = "One channel"
+
+    @classmethod
+    def read(cls, target: str) -> WireExportScope:
+        return ChannelScope(target.strip())
+
+
+class DmExportScopeInput(ExportScopeInput):
+    title = "One DM"
+
+    @classmethod
+    def read(cls, target: str) -> WireExportScope:
+        return DmScope(tuple(name.strip().removeprefix("@") for name in target.split(",")))
+
+
+class ImportFormatChoices(AnnotationChoices):
+    def choices(self) -> tuple[ImportFormat, ...]:
+        return tuple(ImportFormat)
+
+
+class TransferPanel(FormPart, Vertical):
+    width = Scalar.from_number(72)
+    max_width = Scalar(95, Unit.PERCENT, Unit.WIDTH)
+    max_height = Scalar(95, Unit.VIEW_HEIGHT, Unit.HEIGHT)
+    padding = Spacing(1, 2, 1, 2)
+
+    @property
+    def border(self) -> Edges:
+        return Edges(*(("solid", self.app.colours.colour(PrimaryColour)),) * 4)
+
+    @property
+    def paint_background(self):
+        return self.app.colours.colour(SurfaceColour)
+
+
+class TransferForm(InlineFormView):
+    max_height = Scalar(60, Unit.VIEW_HEIGHT, Unit.HEIGHT)
+
+
+class TransferError(FormPart, Static):
+    @property
+    def paint_foreground(self):
+        return self.app.colours.colour(ErrorColour)
+
+
+class TransferActions(FormPart, HorizontalGroup):
+    """The shared native form geometry composes with the horizontal layout."""
+
+
+class TransferDialog(FormModal, ModalScreen):
+    """A declared form owns its edits; this screen owns layout and submission."""
+
+    heading: ClassVar[str]
+    submit_label: ClassVar[str]
+
+    class Fields(ABC):
+        @abstractmethod
+        def request(self) -> TransferRequest: ...
+
+    def __init__(self, fields: Fields, *, focus: FieldPath) -> None:
+        super().__init__()
+        self.state = ObjectState(fields)
+        self.form = TransferForm(self.state, focus=focus.bind(self.state).path)
+        self.error = TransferError("", markup=False)
+        self.submit_button = Button(self.submit_label)
+        self.cancel_button = Button("Cancel")
+        self.submit_button.listen(Button.Pressed, self.submitted)
+        self.cancel_button.listen(Button.Pressed, self.cancelled)
+        self.panel = TransferPanel()
+
+    def compose(self) -> ComposeResult:
+        with self.panel:
+            yield Static(self.heading)
+            yield self.form
+            yield self.error
+            with TransferActions():
+                yield self.submit_button
+                yield self.cancel_button
+
+    def on_mount(self) -> None:
+        self.state.on_resolved_changed(self.fields_changed)
+
+    def on_unmount(self) -> None:
+        self.state.off_resolved_changed(self.fields_changed)
+
+    def fields_changed(self, paths: set[str]) -> None:
+        """A dialog may derive another field's default from a changed choice."""
+
+    def cancelled(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.action_cancel()
+
+    def submitted(self, event: Button.Pressed) -> None:
+        event.stop()
+        self.action_submit()
 
     def action_cancel(self) -> None:
         self.dismiss(None)
 
-    @on(Button.Pressed, "#cancel-transfer")
-    def on_cancel(self) -> None:
-        self.dismiss(None)
+    def action_submit(self) -> None:
+        try:
+            self.form.finish()
+            request = self.state.to_resolved_object().request()
+        except (TypeError, ValueError) as error:
+            self.error.update(str(error))
+            return
+        self.dismiss(request)
 
-    def _error(self, error: str) -> None:
-        self.query_one("#transfer-error", Static).update(error)
+    BINDINGS = [CallBinding("escape", action_cancel, "Cancel")]
 
 
 class WireExportDialog(TransferDialog):
     """Select destination, representation, scope and an explicit size ceiling."""
 
-    def __init__(self, root: Path) -> None:
-        super().__init__()
-        self.default_path = root / "exports" / f"wire-{datetime.now(UTC):%Y%m%d-%H%M%S-%f}.jsonl"
+    heading = "Export wire history (not a Pi session)"
+    submit_label = "Export"
 
-    def compose(self) -> ComposeResult:
-        with Vertical(id="transfer-box"):
-            yield Static("Export wire history (not a Pi session)")
-            yield Input(str(self.default_path), id="export-path", placeholder="Destination path")
-            yield Select(
-                [("JSON Lines (portable wire)", "jsonl"), ("Readable text", "text")],
-                value="jsonl", id="export-format", allow_blank=False,
-            )
-            yield Select(
-                [("Everything", "everything"), ("One channel", "channel"),
-                 ("One DM", "dm")],
-                value="everything", id="export-scope", allow_blank=False,
-            )
-            yield Input(id="export-target", placeholder="#channel or first,second (for DM)")
-            yield Input("5242880", id="export-limit", placeholder="Max bytes; empty = full")
-            yield Static("", id="transfer-error")
-            yield Button("Export", id="submit-transfer")
-            yield Button("Cancel", id="cancel-transfer")
+    @dataclass(frozen=True)
+    class Fields(TransferDialog.Fields):
+        destination: Annotated[str, FieldLabel("Destination path")]
+        format: Annotated[type[WireExportFormat], RegisteredClassChoices(SelectableWireExportFormat)] = JsonlFormat
+        scope: Annotated[type[ExportScopeInput], FamilyChoices(ExportScopeInput)] = EverythingExportScopeInput
+        target: Annotated[str, FieldLabel("Scope target"), Placeholder("#channel or first,second (for DM)")] = ""
+        max_bytes: Annotated[str, FieldLabel("Max bytes (empty = full)")] = "5242880"
 
-    def on_mount(self) -> None:
-        self.query_one("#export-path", Input).focus()
-
-    @on(Select.Changed, "#export-format")
-    def on_format_changed(self, event: Select.Changed) -> None:
-        path = self.query_one_optional("#export-path", Input)
-        if path is not None and path.value in {
-            str(self.default_path), str(self.default_path.with_suffix(".txt"))
-        }:
-            path.value = str(
-                self.default_path.with_suffix(".txt")
-                if event.value == "text" else self.default_path
-            )
-
-    @on(Button.Pressed, "#submit-transfer")
-    def action_submit(self) -> None:
-        try:
-            path = self.query_one("#export-path", Input).value.strip()
+        def request(self) -> WireExportRequest:
+            path = self.destination.strip()
             if not path:
                 raise ValueError("Choose an output path.")
-            kind = self.query_one("#export-scope", Select).value
-            target = self.query_one("#export-target", Input).value.strip()
-            if kind == "channel":
-                scope = ChannelScope(target)
-            elif kind == "dm":
-                participants = [name.strip().removeprefix("@") for name in target.split(",")]
-                scope = DmScope(tuple(participants))
-            else:
-                scope = EverythingScope()
-            value = self.query_one("#export-limit", Input).value.strip()
-            limit = MaxBytesLimit(int(value)) if value else FullLimit()
-            request = WireExportRequest(
-                Path(path).expanduser(),
-                WireExportFormat.decode(self.query_one("#export-format", Select).value)(),
-                scope, limit,
+            ceiling = self.max_bytes.strip()
+            return WireExportRequest(
+                Path(path).expanduser(), self.format(), self.scope.read(self.target),
+                MaxBytesLimit(int(ceiling)) if ceiling else FullLimit(),
             )
-        except (TypeError, ValueError) as error:
-            self._error(str(error))
-            return
-        self.dismiss(request)
+
+    def __init__(self, root: Path) -> None:
+        self.default_path = root / "exports" / f"wire-{datetime.now(UTC):%Y%m%d-%H%M%S-%f}.jsonl"
+        paths = FieldPath(self.Fields)
+        super().__init__(self.Fields(str(self.default_path)), focus=paths.destination)
+        self.destination_field = paths.destination.bind(self.state)
+        self.format_field = paths.format.bind(self.state)
+
+    def fields_changed(self, paths: set[str]) -> None:
+        if self.format_field.path.value in paths:
+            defaults = {
+                str(self.default_path.with_suffix(f".{kind.declared_name}"))
+                for kind in SelectableWireExportFormat.members_with(SelectableWireExportFormat)
+            }
+            if self.destination_field.value in defaults:
+                self.destination_field.edit(str(self.default_path.with_suffix(
+                    f".{self.format_field.value.declared_name}"
+                )))
 
 
 class ThreadImportDialog(TransferDialog):
     """Create one stopped, resumable thread from OpenCode or Codex history."""
 
-    def compose(self) -> ComposeResult:
-        with Vertical(id="transfer-box"):
-            yield Static("Thread Import: OpenCode export/database or Codex rollout")
-            yield Select(
-                [("OpenCode", "opencode"), ("Codex", "codex")],
-                value="opencode", id="import-format", allow_blank=False,
+    heading = "Thread Import: OpenCode export/database or Codex rollout"
+    submit_label = "Import stopped thread"
+
+    @dataclass(frozen=True)
+    class Fields(TransferDialog.Fields):
+        format: Annotated[ImportFormat, ImportFormatChoices()] = ImportFormat.OPENCODE
+        source: Annotated[str, Placeholder("Source JSON, database or rollout JSONL")] = ""
+        name: Annotated[str, FieldLabel("New thread name")] = ""
+        session_id: Annotated[str, FieldLabel("Session ID (OpenCode database only)")] = ""
+        worktree: Annotated[str, FieldLabel("Project directory override (optional)")] = ""
+
+        def request(self) -> ThreadImportRequest:
+            source, name = self.source.strip(), self.name.strip()
+            if not source or not name:
+                raise ValueError("A source and a new thread name are required.")
+            return ThreadImportRequest(
+                Path(source).expanduser(), self.format, name,
+                self.session_id.strip() or None, self.worktree.strip() or None,
             )
-            yield Input(id="import-source", placeholder="Source JSON, database or rollout JSONL")
-            yield Input(id="import-name", placeholder="New thread name")
-            yield Input(id="import-session-id", placeholder="Session ID (OpenCode database only)")
-            yield Input(id="import-worktree", placeholder="Project directory override (optional)")
-            yield Static("", id="transfer-error")
-            yield Button("Import stopped thread", id="submit-transfer")
-            yield Button("Cancel", id="cancel-transfer")
 
-    def on_mount(self) -> None:
-        self.query_one("#import-source", Input).focus()
-
-    @on(Button.Pressed, "#submit-transfer")
-    def action_submit(self) -> None:
-        source = self.query_one("#import-source", Input).value.strip()
-        name = self.query_one("#import-name", Input).value.strip()
-        if not source or not name:
-            self._error("A source and a new thread name are required.")
-            return
-        self.dismiss(ThreadImportRequest(
-            Path(source).expanduser(),
-            ImportFormat(self.query_one("#import-format", Select).value),
-            name,
-            self.query_one("#import-session-id", Input).value.strip() or None,
-            self.query_one("#import-worktree", Input).value.strip() or None,
-        ))
+    def __init__(self) -> None:
+        super().__init__(self.Fields(), focus=FieldPath(self.Fields).source)
