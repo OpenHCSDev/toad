@@ -1,20 +1,96 @@
-from toad.forms import field_path
-from toad.preferences import SETTINGS
+"""Forms edit typed Core ordering choices; the sidebar only displays their result."""
 
-"""Shared sorting control for model-owned channel and member ordering."""
+from __future__ import annotations
 
-import asyncio
+from abc import abstractmethod
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Annotated, ClassVar
 
-from agent_comms.display_order import ChannelSort, ThreadSort
+from agent_comms.display_order import (
+    ChannelSort, DisplayOrder, ThreadSort,
+)
+from objectstate import ObjectState
+from python_introspect import FieldLabel
 from textual import events
-from textual.geometry import Offset
+from textual.containers import VerticalScroll
+from textual.screen import ModalScreen
 from textual.widgets import Static
 
-from toad.widgets.comms_menu import ContextMenu
+from toad.forms.declared_views import DeclaredField
+from toad.forms.field_path import FieldPath
+from toad.forms.form_view import FormView
+from toad.forms.kinds import Placeholder
+from toad.preferences import SETTINGS
+from toad.setting_choices import FamilyChoices
 
 
-class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
+@dataclass(frozen=True)
+class ThreadSortForm:
+    placeholder: ClassVar[Placeholder] = Placeholder("Mixed orders")
+    order: Annotated[
+        type[ThreadSort] | None, FamilyChoices(ThreadSort), FieldLabel("Member order"), placeholder
+    ]
+
+
+@dataclass(frozen=True)
+class ChannelSortForm:
+    placeholder: ClassVar[Placeholder] = Placeholder("Choose order")
+    order: Annotated[
+        type[ChannelSort] | None, FamilyChoices(ChannelSort), FieldLabel("Channel order"), placeholder
+    ]
+
+
+class SortDialog(ModalScreen[type[DisplayOrder] | None]):
+    """A short-lived edit form, not a second source of persisted ordering."""
+
+    BINDINGS = [("escape", "cancel", "Close")]
+
+    def __init__(self, control: SortControl, form: ThreadSortForm | ChannelSortForm):
+        super().__init__()
+        self.control = control
+        self.state = ObjectState(form)
+        self.order_field = DeclaredField.at(self.state, FieldPath(type(form)).order)
+        self.form = FormView(self.state, focus=self.order_field.path)
+        paths = control.visibility_fields()
+        self.visibility_form = (FormView(self.app.saved_settings.state, paths=paths)
+                                if paths else None)
+
+    def compose(self):
+        with VerticalScroll() as panel:
+            panel.styles.width = 52
+            panel.styles.max_width = "90%"
+            panel.styles.height = "auto"
+            panel.styles.max_height = "90vh"
+            panel.styles.padding = (1, 2)
+            yield Static(f"Sort {self.control.scope}")
+            self.form.styles.height = "auto"
+            yield self.form
+            if self.visibility_form is not None:
+                self.visibility_form.styles.height = "auto"
+                yield self.visibility_form
+
+    def on_mount(self):
+        self.styles.align = ("center", "middle")
+        self.state.on_resolved_changed(self.order_changed)
+
+    def order_changed(self, paths: set[str]):
+        if str(self.order_field.path) in paths:
+            order = self.order_field.value
+            if order is not None and order is not self.control.order:
+                self.dismiss(order)
+
+    def on_unmount(self):
+        self.state.off_resolved_changed(self.order_changed)
+        if self.visibility_form is not None:
+            self.app.run_worker(self.app.saved_settings.save(), group="channel-visibility")
+
+    def action_cancel(self):
+        self.dismiss(None)
+
+
+class SortControl[Order: DisplayOrder](Static, can_focus=True):
     BINDINGS = [("enter,space", "choose_sort", "Sort")]
     DEFAULT_CSS = """
     SortControl {
@@ -30,75 +106,65 @@ class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
     SortControl:hover, SortControl:focus { color: $text; text-style: underline; }
     """
 
-    def __init__(self, order: Order, scope: str):
+    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str):
         super().__init__()
         self.scope = scope
-        self.order = order
+        self.form_type = form_type
+        self.form: ThreadSortForm | ChannelSortForm | None = None
 
-    def update_order(self, order: Order) -> None:
-        if order != self.order:
-            self.order = order
+    @property
+    def order(self) -> type[Order] | None:
+        return self.form.order if self.form is not None else None
+
+    def update_order(self, order: type[Order] | None) -> None:
+        if self.form is None or order is not self.order:
+            self.form = self.form_type(order)
             self._update_label()
 
     def on_mount(self):
         self._update_label()
 
-    def _set_label(self, label: str, tooltip: str) -> None:
-        """Only text changes can invalidate this auto-width control's layout."""
+    def _update_label(self) -> None:
+        order = self.order
+        text = (order.label() if order is not None else
+                self.form.placeholder.text if self.form is not None else "Sort")
+        label = f"{text} ▾"
+        tooltip = (f"Sort {self.scope} by {order.label().lower()}" if order is not None
+                   else f"Choose how to sort {self.scope}")
         if self.content != label:
             self.update(label)
         if self.tooltip != tooltip:
             self.tooltip = tooltip
 
-    def _update_label(self) -> None:
-        label = self.order.label
-        self._set_label(f"{label} ▾", f"Sort {self.scope} by {label.lower()}")
-
     def action_choose_sort(self):
-        selected = self.selected_order.value if self.selected_order is not None else None
-        choices = {order.value: order.label for order in type(self.order)}
-
-        def choose(value: str):
-            if value in choices:
-                self.run_worker(self._save_order(type(self.order)(value)))
-            else:
-                self.choose_extra(value)
-
-        title = f"Sort {self.scope}"
-        items = [
-            (key, ("✓ " if key == selected else "  ") + label)
-            for key, label in choices.items()
-        ]
-        items.extend(self.extra_items())
-        menu_width = max(len(title), *(len(label) for _, label in items)) + 4
-        self.app.push_screen(
-            ContextMenu(
-                Offset(self.region.right - menu_width, self.region.bottom),
-                title,
-                items,
-            ),
-            choose,
-        )
-
-    @property
-    def selected_order(self):
-        """The checked choice, or None for a control spanning mixed orders."""
-        return self.order
-
-    def extra_items(self) -> list[tuple[str, str]]:
-        return []
-
-    def choose_extra(self, value: str) -> None:
-        pass
-
-    async def _save_order(self, order: Order) -> None:
+        form = self.form
+        if form is None:
+            self.notify("Ordering is not available yet", title="Sort", severity="warning")
+            return
         try:
-            self.update_order(await self.persist_order(order))
+            write = self.order_writer()
         except (OSError, ValueError) as error:
-            self.notify(str(error), title="Channel sort", severity="error")
+            self.notify(str(error), title="Sort", severity="error")
+            return
 
-    async def persist_order(self, order: Order) -> Order:
-        raise NotImplementedError
+        def choose(order):
+            if order is not None:
+                self.run_worker(self._save_order(order, write), group="sort-order")
+
+        self.app.push_screen(SortDialog(self, form), choose)
+
+    def visibility_fields(self) -> tuple[FieldPath, ...]:
+        return ()
+
+    async def _save_order(self, order: type[Order], write: Callable[[type[Order]], Awaitable[object]]) -> None:
+        try:
+            await write(order)
+            # Only the backend observation updates the displayed order.
+        except (OSError, ValueError) as error:
+            self.notify(str(error), title="Sort", severity="error")
+
+    @abstractmethod
+    def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
 
     def on_click(self, event: events.Click):
         event.stop()
@@ -106,63 +172,37 @@ class SortControl[Order: (ThreadSort, ChannelSort)](Static, can_focus=True):
             self.action_choose_sort()
 
 
-class SessionSort(SortControl[ThreadSort]):
-    def __init__(self, channel: str):
+class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
+    """Both channel controls write through the route that supplies their observed rows."""
+
+    def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str, *, channel: str | None = None):
         self.channel = channel
-        super().__init__(ThreadSort.CREATED, channel)
+        super().__init__(form_type, scope)
 
-    async def persist_order(self, order: ThreadSort) -> ThreadSort:
-        from agent_comms.route_selection import implicit_root, run_selected_write
-
-        comms = self.app.coordination_access.service
+    def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
+        access = self.app.coordination_access
+        observed = access.observation
+        if observed is None:
+            raise ValueError("Comms ordering is not available yet")
         source_root = self.screen.coordination_root
-        if source_root is None:
-            from toad.widgets.comms_sidebar import CommsSidebar
-
-            sidebar = self.screen.query_one_optional(CommsSidebar)
-            source_root = sidebar.service.root if sidebar is not None and sidebar.service is not None else None
-        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
+        if source_root is not None and observed.selection.root != Path(source_root).resolve():
             raise ValueError("Comms route changed before sorting")
-        channel = await asyncio.to_thread(
-            run_selected_write, comms.root, comms.channels.set_channel_sort,
-            self.channel, order, implicit=implicit_root(),
-        )
-        return channel.order
+        async def write(order):
+            return await self.app.preparation.run_thread(
+                access.write, observed.selection, order.store_channel_order, observed.service.channels, self.channel,
+            )
+
+        return write
 
 
-class ChannelListSort(SortControl[ChannelSort]):
+class SessionSort(CommsSortControl[ThreadSort]):
+    def __init__(self, channel: str):
+        super().__init__(ThreadSortForm, channel, channel=channel)
+
+
+class ChannelListSort(CommsSortControl[ChannelSort]):
     def __init__(self):
-        super().__init__(ChannelSort.NAME, "channels")
+        super().__init__(ChannelSortForm, "channels")
 
-    async def persist_order(self, order: ChannelSort) -> ChannelSort:
-        from agent_comms.route_selection import implicit_root, run_selected_write
-
-        comms = self.app.coordination_access.service
-        source_root = self.screen.coordination_root
-        if source_root is None:
-            from toad.widgets.comms_sidebar import CommsSidebar
-
-            sidebar = self.screen.query_one_optional(CommsSidebar)
-            source_root = sidebar.service.root if sidebar is not None and sidebar.service is not None else None
-        if source_root is not None and comms.root.resolve() != Path(source_root).resolve():
-            raise ValueError("Comms route changed before sorting")
-        return await asyncio.to_thread(
-            run_selected_write, comms.root, comms.channels.set_channel_order,
-            order, implicit=implicit_root(),
-        )
-
-    _visibility_fields = (SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived)
-
-    def extra_items(self) -> list[tuple[str, str]]:
-        shown = self.app.saved_settings.state.get_resolved_value
-        return [
-            (str(field), ("✓ " if shown(str(field)) else "  ") + field_path.label(field))
-            for field in self._visibility_fields
-        ]
-
-    def choose_extra(self, value: str) -> None:
-        for field in self._visibility_fields:
-            if str(field) == value:
-                self.app.saved_settings.toggle(field)
-                self.run_worker(self.app.saved_settings.save, group="channel-visibility")
-                return
+    def visibility_fields(self) -> tuple[FieldPath, ...]:
+        return SETTINGS.sidebar.show_stopped, SETTINGS.sidebar.show_archived

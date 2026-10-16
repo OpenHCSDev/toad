@@ -8,7 +8,13 @@ imports a terminal or rendering library.
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+import json
 import re
+from urllib.parse import quote, unquote
+
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.display_references import DisplayReference
+from agent_comms.field_codec import FieldCodec
 
 from typing import ClassVar
 
@@ -24,6 +30,8 @@ class LineRole:
     italic: ClassVar[bool] = False
     bold: ClassVar[bool] = False
     underline: ClassVar[bool] = False
+    diff_marker: ClassVar[str] = " "
+    background_tint: ClassVar[float] = 0
 
 
 class TextRole(LineRole):
@@ -43,8 +51,7 @@ class ThinkingRole(MutedRole):
 
 
 class UserRole(LineRole):
-    # The live prompt (UserInput) is drawn in the secondary colour; a committed
-    # prompt keeps that colour.
+    # A user message, live (UserInput) or committed, is a Body with this bar.
     colour = SecondaryColour
 
 
@@ -76,6 +83,22 @@ class SuccessRole(LineRole):
 class FailureRole(LineRole):
     colour = ErrorColour
     bold = True
+
+
+class AddedCodeRole(LineRole):
+    """A reported added line, distinct from a tool's success status."""
+
+    colour = SuccessColour
+    diff_marker = "+"
+    background_tint = .16
+
+
+class RemovedCodeRole(LineRole):
+    """A reported removed line, distinct from a failed tool."""
+
+    colour = ErrorColour
+    diff_marker = "−"
+    background_tint = .16
 
 
 class IncomingRole(LineRole):
@@ -127,7 +150,7 @@ class WorkingRole(LineRole):
     colour = AccentColour
 
 
-class LineLink:
+class LineLink(DeclaredFamily, affix="Link"):
     """What clicking a piece of text does; the widget that drew it opens each kind of link."""
 
     # Whether the text is underlined to show that it leads somewhere.
@@ -136,6 +159,48 @@ class LineLink:
     @property
     def click(self) -> str | tuple[str, tuple]:
         return "open", (self,)
+
+    async def copy_menu(self, widget, event):
+        return False
+
+    @property
+    def encoded_href(self) -> str:
+        """Encode only for a dependency's string-only action boundary."""
+        return "toad-link:" + quote(json.dumps(FieldCodec.encode(self)), safe="")
+
+    def inline_tokens(self, content):
+        from markdown_it.token import Token
+        return (Token("link_open", "a", 1, attrs={"href": LinkHref.capture(self)}),
+                content, Token("link_close", "a", -1))
+
+    @classmethod
+    def from_href(cls, href: str) -> LineLink:
+        if not href.startswith("toad-link:"):
+            raise ValueError("Expected a resolved Markdown action")
+        return FieldCodec.decode(cls, json.loads(unquote(href.removeprefix("toad-link:"))))
+
+
+class LinkHref(str):
+    """Keep the typed action through Rich's str(href); Textual uses the encoded string.
+
+    Rich's Markdown unconditionally calls str() and then retains the resulting
+    value in Style.link. Returning this string preserves the action without a
+    second parser or a per-render lookup table. Pickle carries the same value.
+    """
+    def __new__(cls, value, target):
+        href = super().__new__(cls, value)
+        href.target = target
+        return href
+
+    @classmethod
+    def capture(cls, target):
+        return cls(target.encoded_href, target)
+
+    def __str__(self):
+        return self
+
+    def __getnewargs__(self):
+        return (super().__str__(), self.target)
 
 
 @dataclass(frozen=True)
@@ -154,22 +219,10 @@ class OpenHistoricalTarget(LineLink):
 
 
 @dataclass(frozen=True)
-class OpenUrl(LineLink):
-    """Open an address written in a message: a web page, a mail address, a file."""
+class OpenReference(LineLink):
+    """Core's exact display identity, not a delivery mention."""
 
-    url: str
-    # An address that would run code instead of opening something is never a link.
-    runs_code: ClassVar[re.Pattern[str]] = re.compile(r"\s*(vbscript|javascript|data):", re.IGNORECASE)
-
-    @classmethod
-    def opens(cls, url: str) -> bool:
-        """Whether `[label](url)` is drawn as a link, in every style a message is drawn in."""
-        return cls.runs_code.match(url) is None
-
-    @property
-    def click(self) -> str:
-        # The action a Markdown link runs, so one handler opens an address however it was written.
-        return f"link({self.url!r})"
+    reference: DisplayReference
 
 
 @dataclass(frozen=True)
@@ -231,6 +284,10 @@ class SpanText(LineBlock):
     def text(self) -> str:
         return "".join(span.text for span in self.spans)
 
+    @property
+    def selection_text(self) -> str:
+        return self.text
+
 
 @dataclass(frozen=True)
 class Spans(SpanText):
@@ -248,6 +305,22 @@ class Spans(SpanText):
             drawn.append(replace(first, text=leading + first.text) if first.text else first)
             drawn.extend(rest)
         return cls(tuple(drawn))
+
+
+@dataclass(frozen=True)
+class SpanColumns(LineBlock):
+    """Complete span cells flow into columns at the available drawing width.
+
+    Unlike Spans, these breaks separate cells, not forced visual rows. Links
+    and roles stay on their original spans however the frontend lays them out.
+    """
+
+    cells: tuple[tuple[Span, ...], ...]
+    indent: int = 0
+
+    @property
+    def selection_text(self) -> str:
+        return "\n".join("".join(span.text for span in cell) for cell in self.cells)
 
 
 @dataclass(frozen=True)
@@ -283,6 +356,10 @@ class Body(LineBlock):
     role: type[LineRole] = TextRole
     bar: type[LineRole] | None = None
     markdown: bool = True
+
+    @property
+    def selection_text(self) -> str:
+        return self.text
 
     @classmethod
     def code(cls, text: str, language: str = "", **shown) -> Body:

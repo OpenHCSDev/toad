@@ -113,7 +113,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             recovery.set_identity(self.me, root)
 
     def rebind_project(self, project: Path) -> None:
+        changed = project != self.project_path
         self.project_path = project
+        if changed:
+            self.link_context_changed()
         if chat := self.query_one_optional(CommsChatView):
             chat.project_path = project
             chat.working_directory = str(project)

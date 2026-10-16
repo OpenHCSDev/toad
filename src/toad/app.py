@@ -311,6 +311,8 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_access = CoordinationAccess(self)
 
+        from toad.file_kind import FileKind
+        FileKind.prepare_terminal()
         super().__init__()
         self.session_navigation.bind_events()
         self.project_dir = Path(project_dir or "./").expanduser().resolve()
@@ -319,6 +321,7 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     async def _close_all(self) -> None:
         await self.thread_navigation.close()
         await self.thread_actions.close()
+        await self.coordination_access.stop_observing()
         await super()._close_all()
         # Native clients and the preparation owner have joined actual I/O.
         # A failed retirement keeps its route resource instead of certifying exit.
@@ -327,7 +330,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     async def on_unmount(self) -> None:
         self.colours.stop()
         self.terminal_attention.close()
-        await self.thread_navigation.close()
         await self.navigation_reader.aclose()
         await self.render_processes.aclose()
         if self._background_render_tasks:
@@ -489,12 +491,6 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
         return WorkspaceChrome(self)
 
     @cached_property
-    def busy_rows(self):
-        from toad.widgets.activity_spinner import BusyRows
-
-        return BusyRows(self)
-
-    @cached_property
     def workspace_sessions(self):
         from toad.workspace_sessions import WorkspaceSessions
         return WorkspaceSessions(self)
@@ -640,18 +636,23 @@ class ToadApp(CoreEventReceiver, WorkspaceSessionShutdown, ThemedApp, App, inher
     async def _broker_event(self, event_name, event, default_namespace) -> bool:
         """Offer copy-path on right-click without activating a file link."""
         if event_name == "click" and isinstance(event, events.Click) and event.button == 3:
+            from toad.line_blocks import LineLink
             action = event.style.meta.get("@click")
-            if isinstance(action, str):
+            link = None
+            if isinstance(action, tuple):
+                match action:
+                    case ("open", (LineLink() as target,)):
+                        link = target
+            elif isinstance(action, str):
                 try:
                     parsed = parse_action(action)
                 except ActionError:
                     return await super()._broker_event(event_name, event, default_namespace)
                 match parsed:
-                    case ("", "link", (str() as href,)):
-                        from toad.project_path_owner import ProjectPathOwner
-                        link = ProjectPathOwner.link_from(default_namespace, href)
-                        if await link.copy_menu(default_namespace, event):
-                            return True
+                    case ("", "link", (str() as href,)) if href.startswith("toad-link:"):
+                        link = LineLink.from_href(href)
+            if link is not None and await link.copy_menu(default_namespace, event):
+                return True
         return await super()._broker_event(event_name, event, default_namespace)
 
     def _set_mouse_over(self, widget, hover_widget) -> None:

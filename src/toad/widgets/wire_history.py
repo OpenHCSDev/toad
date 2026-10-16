@@ -10,9 +10,10 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PageRequest, PreparedPageSource
+from toad.transcript_preparation import PageRequest, PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
+from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
 from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.transcript_history import LineHistory, TranscriptPageView
 from toad.message_rows import IrcMessageStyle, WireMessageStyle
@@ -35,7 +36,7 @@ class WireHistory(LineHistory):
     def __init__(self, view) -> None:
         # The view's message filter is read while the line history is built.
         self.view = view
-        super().__init__(WirePage.unread(), None, fragments=())
+        super().__init__(PreparedTranscriptPage.empty(WirePage.unread()), None)
         # The store revision and the viewer's reading the drawn pages belong to.
         self.revision: WireRevision | None = None
         self.identity: tuple | None = None
@@ -95,7 +96,6 @@ class WireHistory(LineHistory):
             if reader is not None:
                 reader.close()
             self._page_buffer = reader = WirePageBuffer(self.loader, self.through, self.app.preparation)
-            self._prefetch_intent = None
         # Pages of earlier messages stay prepared while the bound moves.
         reader.through = self.through
         return reader
@@ -134,7 +134,7 @@ class WireHistory(LineHistory):
         """Replace what is drawn with the newest page of the source as read now."""
         await self._clear()
         self.extend_source(through)
-        await self._jump_latest(LatestViewportRequest(self.window.scroll_revision))
+        await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         source = self.pages[-1].page.source
         if source is not None:
             self.identity = self.source.kind.display_identity(source)
@@ -151,8 +151,8 @@ class WireHistory(LineHistory):
                 if len(self.pages) == 1 and self.pages[0].page.source is None:
                     return
                 retired = tuple(self.pages)
-                view = TranscriptPageView(WirePage.unread(), fragments=(),
-                                      batch_size=self.budget.batch_items)
+                view = TranscriptPageView(PreparedTranscriptPage.empty(WirePage.unread()),
+                                          batch_size=self.budget.batch_items)
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=self.newer)
                 self.pages = deque([view])
@@ -170,6 +170,10 @@ class WireHistory(LineHistory):
         if through.cursor > self.through.cursor:
             self.through = through
         edge = self.pages[-1]
+        if (edge.page.after != self.through
+                and (destination := HeldReaderDestination.held(self.window)) is not None
+                and await destination.source_arrived(self)):
+            return True
         if edge.page.after == self.through:
             return True
         if self.has_newer:
@@ -193,21 +197,23 @@ class WireHistory(LineHistory):
             edge.page = replace(edge.page, has_newer=True)
             self._update_edges()
         else:
-            await self._load_page(False, prepared)
+            await self._load_page(False, prepared, fresh=True)
             if self.pages[-1].page.has_newer and self.window.follows_tail:
                 # More arrived than one page holds: go to the newest instead
                 # of drawing every page between.
-                await self._jump_latest(LatestViewportRequest(self.window.scroll_revision))
+                await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         return True
 
-    async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None):
+    async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None,
+                               *, fresh=False):
         if page is not None and not fragments:
             # Nothing of this conversation lies in that range: the edge page covers it.
             edge.page = (replace(edge.page, before=page.before, has_older=page.has_older) if older
                          else replace(edge.page, after=page.after, has_newer=page.has_newer))
             self._update_edges()
             return
-        await super()._extend_and_trim(edge, older, local, page, protected, fragments, prepared)
+        await super()._extend_and_trim(edge, older, local, page, protected, fragments, prepared,
+                                       fresh=fresh)
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
@@ -236,7 +242,7 @@ class WireHistory(LineHistory):
             return ()
         return tuple(
             fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
-            if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
+            if (text := fragment.text_rows(lines, self.app.colours.line_theme)) and rows.start < text.stop and text.start < rows.stop)
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
@@ -248,18 +254,10 @@ class WireHistory(LineHistory):
                           for fragment in self.wire_fragments])
         self.window.scroll_end(animate=False)
 
-    async def read_notifications(self, references):
-        """Wire and native messages ask the same Core observation service."""
+    def notification_read(self, references):
         from agent_comms.ui_model.observation import ReadNotifications
 
-        source = self.source
-        if source is None or not await self.bus_is_current(source.comms):
-            raise asyncio.CancelledError()
-        results = await self.app.coordination_access.read(
-            ReadNotifications(str(source.comms.root), references))
-        if source is not self.source or not await self.bus_is_current(source.comms):
-            raise asyncio.CancelledError()
-        return results
+        return ReadNotifications(str(self.source.comms.root), references)
 
     # Read marks
 

@@ -1,8 +1,4 @@
-"""Textual-facing: the prompt widget's shell mode lasts for one submission.
-
-Shell mode has no key of its own (recalling a shell entry from input history
-sets it), so this test sets the widget's flag directly.
-"""
+"""Typing ! in an empty prompt enters shell mode for one submission."""
 
 from support.agents import peer
 from toad.widgets.prompt import Prompt
@@ -13,8 +9,8 @@ async def test_shell_mode_runs_one_command_then_returns_to_agent_input(workspace
         await ui.until_agent_ready()
         app, _pilot = ui.textual
         prompt = app.selected_session.query_one(Prompt)
-        prompt.shell_mode = True
-        await ui.step()
+        await ui.press("exclamation_mark")
+        await ui.until(lambda: prompt.shell_mode, why="! to enter shell mode")
         assert prompt.shell_mode and ui.draft() == ""
         await ui.type("echo SHELL_RAN")
         await ui.press("enter")

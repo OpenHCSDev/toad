@@ -24,18 +24,17 @@ class ThrobberVisual(Visual):
     app's colours backend paints the frame the animation shows now.
     """
 
-    def __init__(self, throbber: Throbber, character: str = "━") -> None:
+    def __init__(self, throbber: Throbber) -> None:
         self.throbber = throbber
-        self.character = character
 
     def render_strips(
         self, width: int, height: int | None, style: Style, options: RenderOptions
     ) -> list[Strip]:
         throbber = self.throbber
-        base = Strip([Segment(self.character * width, style.rich_style)], cell_length=width)
+        base = Strip([Segment("█" * width, style.rich_style)], cell_length=width)
         animation = throbber.animation
-        frame = animation.frame() if animation is not None else ACTIVITY_SWEEP.final
-        return [throbber.app.colours.paint_gradient(frame, base)]
+        frame = animation.frame() if animation is not None else throbber.effect.final
+        return [frame.paint(throbber.app.colours, base)]
 
     def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
         return container_width
@@ -47,25 +46,27 @@ class ThrobberVisual(Visual):
 class Throbber(Animated, Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
+    effect = ACTIVITY_SWEEP
 
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:
-        # The animation's time and the theme's colours are read while
-        # rendering; the gradient row stays warm in the colours backend.
+        # Glyph geometry belongs here; frame, colours and cadence stay in the
+        # shared effect. A changing band never changes the reserved row.
         return ThrobberVisual(self)
 
     def on_mount(self) -> None:
         self.watch_busy(self.busy)
 
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
     def watch_busy(self, busy: bool) -> None:
+        # A computed busy changes when it is read, often by the clock's tick,
+        # which repaints only visible running animations: repaint here so the
+        # last sweep frame never stays on screen once work ends.
         if busy and self.is_mounted:
             if self.animation is None:
-                self.run_effect(ACTIVITY_SWEEP)
+                self.run_effect(self.effect)
         else:
             self.stop_effect()
+        self.refresh()
 
     @property
     def animation_visible(self) -> bool:
@@ -97,4 +98,3 @@ class ObservedThrobber(Throbber):
 
     def sync(self) -> None:
         self.watch_busy(self.busy)
-        self.refresh()

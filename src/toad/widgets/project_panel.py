@@ -134,7 +134,7 @@ class RestorableProjectPanel(ProjectPanel):
             self._intent = None
 
 
-class FilePreview(VerticalScroll):
+class FilePreview(Vertical):
     """Bounded, read-only preview for one project file."""
 
     DEFAULT_CSS = """
@@ -157,23 +157,17 @@ class FilePreview(VerticalScroll):
         height: auto;
     }
     """
-    MAX_BYTES = 1024 * 1024
-    OVERSIZED_PREVIEW_BYTES = 64 * 1024
-
-    @staticmethod
-    def _read_prefix(path: Path, limit: int) -> bytes:
-        """Bound the read even for unexpectedly large project files."""
-        with path.open("rb") as source:
-            return source.read(limit)
-
     def __init__(self, path: Path, *, id: str) -> None:
         super().__init__(id=id)
         self.path = path
         self._ready = asyncio.Event()
+        self.loading_label = Static("Loading file…")
+        self.body = VerticalScroll()
 
     def compose(self) -> ComposeResult:
-        yield Static(str(self.path), classes="file-preview-path")
-        yield Static("Loading file…", id="file-preview-loading")
+        yield Static(str(self.path), classes="file-preview-path", markup=False)
+        yield self.loading_label
+        yield self.body
 
     def on_mount(self) -> None:
         self._load_preview()
@@ -184,31 +178,33 @@ class FilePreview(VerticalScroll):
     def on_unmount(self) -> None:
         self._ready.set()
 
-    @work(group="file-preview-load")
-    async def _load_preview(self) -> None:
+    async def reveal(self, position):
+        await self.wait_ready()
+        if not self.is_attached:
+            return
+        await self._load_preview(position).wait()
+
+    @work(group="file-preview-load", exclusive=True)
+    async def _load_preview(self, position=None) -> None:
         try:
-            try:
-                data = await asyncio.to_thread(self._read_prefix, self.path, self.MAX_BYTES + 1)
-            except OSError as error:
-                if self.is_attached and not self._pruning:
-                    self.query_one("#file-preview-loading", Static).update(f"Unable to open {self.path}: {error}")
-                return
-            if not self.is_attached or self._pruning:
-                return
-            if len(data) > self.MAX_BYTES:
-                data = data[:self.OVERSIZED_PREVIEW_BYTES]
-                await self.mount(
-                    Static("File exceeds 1 MiB; showing only the first 64 KiB.")
-                )
-            if not self.is_attached or self._pruning:
-                return
-            if b"\0" in data:
-                self.query_one("#file-preview-loading", Static).update(f"{self.path.name} is a binary file.")
-                return
-            text = data.decode("utf-8", errors="replace")
             from toad.file_kind import FileKind
-            await FileKind.for_path(self.path).preview(self, text)
+            if position is not None:
+                await self.body.remove_children()
+            self.loading_label.update("Loading file…")
+            self.loading_label.display = True
+            try:
+                kind = FileKind.for_path(self.path)
+                source = await self.app.preparation.run_thread(kind.load, self.path)
+                if self.is_attached and not self._pruning:
+                    if position is None:
+                        await kind.show(self, source)
+                    else:
+                        await kind.show_at(self, source, position)
+            except (OSError, ValueError, EOFError) as error:
+                if self.is_attached and not self._pruning:
+                    self.loading_label.update(f"Unable to open {self.path}: {error}")
+                return
             if self.is_attached and not self._pruning:
-                await self.query_one("#file-preview-loading", Static).remove()
+                self.loading_label.display = False
         finally:
             self._ready.set()

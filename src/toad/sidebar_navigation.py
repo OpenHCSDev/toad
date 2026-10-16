@@ -116,8 +116,8 @@ class SidebarNavigation:
     def apply(self) -> None:
         if self.selection_current():
             return
-        rows = self.sidebar.rows
-        identities = {self.sidebar.selection_for(row) for row in rows}
+        rows = tuple((row, self.sidebar.selection_for(row)) for row in self.sidebar.rows)
+        identities = {identity for _, identity in rows}
         # Collapsed resources still exist, but are not admitted selection or
         # range endpoints. Keep the header as the surviving navigation anchor.
         had_selection = bool(self.state.selected_targets)
@@ -129,8 +129,7 @@ class SidebarNavigation:
             if had_selection and not self.state.selected_targets and self.state.selected is not None:
                 self.state.selected_targets = (self.state.selected,)
         self.selected_row = None
-        for index, row in enumerate(rows):
-            identity = self.sidebar.selection_for(row)
+        for index, (row, identity) in enumerate(rows):
             row.set_class(identity in self.state.selected_targets, "-selected")
             if identity == self.state.selected:
                 self.selected_row = row
@@ -156,12 +155,14 @@ class SidebarNavigation:
         if not rows:
             return
         self.sidebar.sync_current()
-        if not any(row.current for row in rows):
+        current = self.sidebar.current_rows
+        if not current:
             group = self.sidebar.groups.get(ALL_COMMS_TARGET)
             if group is not None:
                 group.reveal_members()
                 rows = self.sidebar.rows
-        target = next((row for row in rows if row.current), rows[0])
+                current = self.sidebar.current_rows
+        target = current[0] if current else rows[0]
         self.sidebar._cursor = rows.index(target)
         self.sidebar._apply_cursor(rows)
         target.focus()

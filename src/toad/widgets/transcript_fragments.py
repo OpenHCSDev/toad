@@ -2,12 +2,14 @@
 
 import asyncio
 from dataclasses import dataclass, field, replace
-from functools import cached_property
+from functools import cached_property, partial
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from agent_comms.message_reference import MessageReference
+from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import (
     AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
     TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
@@ -154,7 +156,7 @@ class RenderBudget:
             yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
 
 
-class FragmentLineConsumer(MroDispatch):
+class FragmentLineConsumer(MroProjection):
     """Turn a fragment's events into line blocks, one handler per event family."""
 
     def __init__(self, *, show_divider: bool):
@@ -178,6 +180,12 @@ class FragmentLineConsumer(MroDispatch):
     def agent(self, event: AgentTextTranscript) -> None:
         self.divider("Agent", event.timestamp, AgentRole)
         self.blocks += [Body(event.text), Gap()]
+
+    @handles(SentTranscript)
+    def sent_report(self, event: SentTranscript) -> None:
+        from toad.tool_output import SentMessageToolOutputPart
+
+        self.blocks.extend(SentMessageToolOutputPart.capture(event).line_blocks)
 
     @handles(ThinkingTranscript)
     def thinking(self, event: ThinkingTranscript) -> None:
@@ -223,6 +231,17 @@ class TranscriptFragment:
     def notification_references(self) -> tuple[MessageReference, ...]:
         return ()
 
+    @classmethod
+    def text_parts(cls, source, budget):
+        return tuple(budget.split(source))
+
+    @property
+    def outgoing_sources(self):
+        return ()
+
+    def for_body_sources(self, supplied):
+        return self
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
 
@@ -240,13 +259,11 @@ class TranscriptFragment:
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return self.blocks(self.shown)
 
-    def show(self, shown: Shown, theme=None, lines=None) -> None:
-        """Draw `shown` from now on, with its already rendered lines when there are some."""
+    def show(self, shown: Shown) -> None:
+        """Change the displayed state; its render request supplies any prepared lines."""
         self.shown = shown
         for held in ("line_blocks", "_lines", "_plain"):
             self.__dict__.pop(held, None)
-        if lines is not None:
-            self.__dict__["_lines"] = theme, lines
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -281,14 +298,17 @@ class TranscriptFragment:
         return link_place()
 
     def lines_for(self, width: int, theme):
-        """Styled lines this fragment holds for a width and theme, if any."""
+        """Cached lookup is geometry-only; source changes use declared invalidation."""
         held = self.__dict__.get("_lines")
-        return held[1] if held is not None and held[0] == theme and held[1].width == width else None
+        return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
 
-    def hold_lines(self, theme, lines, blocks: tuple[LineBlock, ...]) -> None:
-        """Keep the lines rendered from `blocks`, unless the fragment shows something else by now."""
-        if blocks is self.line_blocks:
-            self.__dict__["_lines"] = theme, lines
+    def invalidate_lines(self):
+        self.__dict__.pop("_lines", None)
+
+    def hold_lines(self, request, lines) -> None:
+        """Retain the owning request, unless the fragment changed its source blocks."""
+        if request.blocks is self.line_blocks:
+            self._lines = request, lines
 
     def plain_lines(self, width: int, theme):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
@@ -315,12 +335,15 @@ class ToolTranscriptFragment(TranscriptFragment):
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
+    def for_body_sources(self, supplied):
+        parts = tuple(part.for_body_sources(supplied) for part in self.output_parts)
+        return self if all(part is original for part, original in zip(parts, self.output_parts)) else replace(self, output_parts=parts)
+
     @property
     def has_details(self) -> bool:
-        # A multiline title needs disclosure even before output arrives. Core's
-        # sent-message output still does not become a second saved message.
+        # A multiline title needs disclosure even before output arrives.
         return AgentActivityPresentation.tool_has_details(
-            self.tool_call, any(part.has_saved_details() for part in self.output_parts)
+            self.tool_call, any(part.has_details for part in self.output_parts)
         )
 
     def blocks(self, shown):
@@ -328,7 +351,7 @@ class ToolTranscriptFragment(TranscriptFragment):
             self.tool_call,
             has_details=self.has_details,
             details_open=shown.details_open,
-            details=(block for part in self.output_parts for block in part.line_blocks()),
+            details=(block for part in self.output_parts for block in part.line_blocks),
         )
 
 
@@ -337,6 +360,11 @@ class BusMessageFragment(TranscriptFragment):
     """One bus-message builder: header, styled body and Core notification feedback."""
 
     shown: MessageShown = field(default_factory=MessageShown)
+
+    @classmethod
+    def text_parts(cls, source, budget):
+        # Even an empty bus message owns its header and notification footer.
+        return super().text_parts(source, budget) or (source,)
 
     @cached_property
     def row(self) -> MessageRow:
@@ -383,7 +411,14 @@ class IncomingMessageFragment(BusMessageFragment):
         return MessageRow.incoming(self.events[0])
 
 
+@dataclass(kw_only=True)
 class SentMessageFragment(BusMessageFragment):
+    publication: PublishedSentMessage
+
+    @property
+    def outgoing_sources(self):
+        return () if self.continues else (self.publication.reference,)
+
     @cached_property
     def row(self) -> MessageRow:
         return MessageRow.sent(self.events[0])
@@ -402,10 +437,11 @@ class ContextTranscriptFragment(TranscriptFragment):
                            for event in self.events))
 
 
-class TranscriptFragmentConsumer(MroDispatch):
+class TranscriptFragmentConsumer(MroProjection):
     def __init__(self, *, continuation: bool = False, split_text: bool = True):
         self.fragments: list[TranscriptFragment] = []
         self.tools: dict[str, int] = {}
+        self.reported_messages: dict[int, SentTranscript] = {}
         self.budget = RenderBudget()
         self.boundary = AgentActivityBoundary()
         self.continuation = continuation
@@ -422,17 +458,22 @@ class TranscriptFragmentConsumer(MroDispatch):
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
-        self.text(event, SentMessageFragment)
+        self.reported_messages[len(self.fragments)] = event
+        self.fragments.append(TranscriptFragment((event,), continuation=self.continuation))
+
+    @handles(PublishedSentMessage)
+    def published(self, message: PublishedSentMessage):
+        self.text(message.message, SentMessageFragment, publication=message)
 
     @handles(UserTranscript, MarkdownTranscript)
-    def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment):
+    def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):
         starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
-        parts = tuple(self.budget.split(source)) if self.split_text else (source,)
+        parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
             kind((replace(event, text=part.text),), continuation=self.continuation or index > 0,
                  continues=index < len(parts) - 1,
-                 starts_agent_activity=starts_activity and index == 0)
+                 starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
         )
 
@@ -451,28 +492,55 @@ class TranscriptFragmentConsumer(MroDispatch):
 
 def transcript_fragments(
     events: tuple[TranscriptEvent, ...], *, continuation: bool = False, split_text: bool = True,
+    resolve_sent=lambda reports: dict(zip(map(id, reports), reports)),
 ) -> tuple[TranscriptFragment, ...]:
+    from toad.tool_output import ToolOutput
+
     consumer = TranscriptFragmentConsumer(continuation=continuation, split_text=split_text)
     for event in events:
         consumer.dispatch_sync(event)
-    # Grouping belongs to this producer. Decode once after the final event,
-    # before storage/byte accounting and before any native reconstruction.
-    for index in consumer.tools.values():
-        from toad.tool_output import ToolOutput
-
+    reports = list(consumer.reported_messages.values())
+    tools = frozenset(consumer.tools.values())
+    for index in tools:
         source = consumer.fragments[index]
         call = ToolCallStatus.from_transcript(source.events)
+        parts = ToolOutput.capture_recorded(call, source.events)
+        reports.extend(message for part in parts for message in part.sent_reports)
         consumer.fragments[index] = ToolTranscriptFragment(
             source.events, continuation=source.continuation,
             starts_agent_activity=source.starts_agent_activity,
-            tool_call=call, output_parts=ToolOutput.capture_parts(call.call),
+            tool_call=call, output_parts=parts,
         )
-    # This producer runs in the existing renderer for saved and paged sources.
-    # Deliver the measured resource with its source rather than walking nested
-    # tool inputs again in every native fragment constructor or publication.
-    for fragment in consumer.fragments:
+    resolved = resolve_sent(reports)
+    builder = TranscriptFragmentConsumer(continuation=continuation, split_text=split_text)
+    canonical = {}
+    for index, report in consumer.reported_messages.items():
+        start = len(builder.fragments)
+        builder.dispatch_sync(resolved[id(report)])
+        canonical[index] = tuple(builder.fragments[start:])
+    supplied = {reference for fragments in canonical.values() for fragment in fragments
+                for reference in fragment.outgoing_sources}
+    fragments = []
+    for index, source in enumerate(consumer.fragments):
+        if index in canonical:
+            fragments.extend(canonical[index])
+        elif index in tools:
+            parts = source.tool_call.project_output(
+                source.output_parts, partial(ToolOutput.apply_sent, resolved=resolved),
+            )
+            fragments.append(replace(source, output_parts=parts))
+            for part in parts:
+                for message in part.standalone_messages:
+                    if message.reference not in supplied:
+                        start = len(builder.fragments)
+                        builder.dispatch_sync(message)
+                        fragments.extend(builder.fragments[start:])
+                        supplied.add(message.reference)
+        else:
+            fragments.append(source)
+    for fragment in fragments:
         fragment.retained_bytes
-    return tuple(consumer.fragments)
+    return tuple(fragments)
 
 
 @dataclass(frozen=True)

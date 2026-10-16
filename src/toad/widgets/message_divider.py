@@ -145,9 +145,6 @@ class MessageDivider(Animated, SingleLineBlock):
             self.fresh = False
             self.run_effect(NEW_MESSAGE.ending_at(self.block.role.colour))
 
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
 
 class MessageRowDivider(MessageRowBlock, MessageDivider):
     """The rule above a live bus message: the cursor's menu on it opens the sender or the destination."""

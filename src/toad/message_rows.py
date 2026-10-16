@@ -14,7 +14,7 @@ from dataclasses import dataclass
 
 from agent_comms import HistoricalMessage
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mentions import ThreadMention
+from agent_comms.historical_views import HistorySource
 from agent_comms.messages import Message
 from agent_comms.routing import MessageRoute
 from agent_comms.transcript_events import IncomingTranscript, SentTranscript
@@ -35,15 +35,18 @@ class MessageRow:
     text: str
     timestamp: float | None
     outgoing: bool
-    mentions: tuple[ThreadMention, ...] = ()
     # The attached history source the message was read from: its threads open as that source recorded them.
-    history: str | None = None
+    source: HistorySource | None = None
+
+    @property
+    def history(self) -> str | None:
+        return self.source.key if self.source is not None else None
 
     @classmethod
     def of(cls, message: Message, *, outgoing: bool) -> MessageRow:
         return cls(MessageRoute(message.sender, (message.target,)), message.body, message.timestamp,
-                   outgoing, message.mentions,
-                   message.source.key if isinstance(message, HistoricalMessage) else None)
+                   outgoing,
+                   message.source if isinstance(message, HistoricalMessage) else None)
 
     @classmethod
     def incoming(cls, event: IncomingTranscript) -> MessageRow:
@@ -51,7 +54,7 @@ class MessageRow:
 
     @classmethod
     def sent(cls, event: SentTranscript) -> MessageRow:
-        return cls(event.routing.reply, event.text, event.timestamp, outgoing=True)
+        return cls(event.require_reply_route(), event.text, event.timestamp, outgoing=True)
 
     @property
     def role(self) -> type[LineRole]:
@@ -82,22 +85,63 @@ class MessageRow:
 
     @property
     def route_text(self) -> str:
-        targets = ", ".join(self.route.targets)
-        return f"{self.route.sender} → {targets}" if targets else self.route.sender
+        return self.header.label
 
     @property
     def header(self) -> Divider:
-        spans = [self.name(self.route.sender, self.role)]
+        sender = (self.name(self.route.sender, self.role),)
+        targets: list[Span] = []
         for index, target in enumerate(self.route.targets):
-            spans += [Span(", " if index else " → "), self.name(target)]
-        return Divider(tuple(spans), self.role, self.timestamp)
+            if index:
+                targets.append(Span(", "))
+            targets.append(self.name(target))
+        if not targets:
+            spans = sender
+        elif self.outgoing:
+            spans = sender + (Span(" ──> ", self.role),) + tuple(targets)
+        else:
+            spans = tuple(targets) + (Span(" <── ", self.role),) + sender
+        return Divider(spans, self.role, self.timestamp)
+
+
+@dataclass(frozen=True)
+class WireBody(LineBlock):
+    """Message provenance stays with the message, not with a theme or paragraph."""
+
+    row: MessageRow
+    bar = None
+
+    @property
+    def text(self):
+        return self.row.text
+
+    @property
+    def selection_text(self):
+        return self.text
+
+    @abstractmethod
+    def prepare(self, context) -> LineBlock: ...
+
+
+class InlineWireBody(WireBody):
+    def prepare(self, context):
+        return Spans(inline_spans(self.text, context))
+
+
+class MarkdownWireBody(WireBody):
+    @property
+    def bar(self):
+        return self.row.role
+
+    def prepare(self, context):
+        return Body(self.text, bar=self.bar)
 
 
 class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
     """How a message's own text is laid out under its header."""
 
-    @abstractmethod
-    def body(self, row: MessageRow) -> tuple[LineBlock, ...]: ...
+    def body(self, row: MessageRow) -> tuple[LineBlock, ...]:
+        return (self.body_type(row),)
 
     @abstractmethod
     def next(self) -> WireMessageStyle: ...
@@ -110,8 +154,7 @@ class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
 class IrcMessageStyle(WireMessageStyle):
     """Inline-formatted text as one wrapped paragraph."""
 
-    def body(self, row):
-        return (Spans(inline_spans(row.text, row.mentions)),)
+    body_type = InlineWireBody
 
     def next(self):
         return MarkdownMessageStyle()
@@ -121,17 +164,9 @@ class IrcMessageStyle(WireMessageStyle):
 
 
 class MarkdownMessageStyle(WireMessageStyle):
-    """The text as Markdown beside a bar, then who it mentions."""
+    """The same inline links, laid out as Markdown beside a bar."""
 
-    def body(self, row):
-        blocks: list[LineBlock] = [Body(row.text, bar=row.role)]
-        if row.mentions:
-            names = dict.fromkeys(mention.thread for mention in row.mentions)
-            mentioned = [Span("Mentioned: ")]
-            for index, target in enumerate(names):
-                mentioned += [Span(", ")] * bool(index) + [row.name(target)]
-            blocks.append(Spans(tuple(mentioned)))
-        return tuple(blocks)
+    body_type = MarkdownWireBody
 
     def next(self):
         return IrcMessageStyle()

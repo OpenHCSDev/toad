@@ -16,6 +16,11 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     def busy(self) -> bool: ...
 
     @property
+    def status(self) -> str:
+        """The local request's visible state, independent of observed thread status."""
+        return " ".join(self.activity.splitlines()) if self.busy else "Ready"
+
+    @property
     def accepts_prompt(self) -> bool:
         return not self.busy
 

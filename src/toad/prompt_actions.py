@@ -7,6 +7,20 @@ class PromptAction(NativeAction, DeclaredFamily, affix="Action"):
     pass
 
 
+class EnterShellAction(KeyboundAction, PromptAction):
+    key = "exclamation_mark"
+    description = "Shell command"
+    priority = True
+
+    def available(self, editor):
+        return editor.can_enter_shell
+
+    async def apply(self, editor):
+        from toad.widgets.prompt import Prompt
+
+        editor.query_ancestor(Prompt).shell_mode = True
+
+
 class SubmitAction(KeyboundAction, PromptAction):
     key = "enter"
     description = "Send"

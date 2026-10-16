@@ -3,6 +3,7 @@ from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
+from toad.forms.declared_views import DeclaredField
 from dataclasses import dataclass
 import asyncio
 from typing import TYPE_CHECKING, ClassVar, cast
@@ -644,7 +645,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         app = cast("ToadApp", self.app)
         if self._navigation is None:
             self.observe_core(app.saved_settings.events)
-            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
+            self.collapsed = DeclaredField.at(app.saved_settings.state, SETTINGS.sidebar.hide).value
         else:
             self.collapsed = self.hide
         self.watch_collapsed(self.collapsed)
@@ -785,14 +786,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         content = next((child for child in parent.children
                         if child.display and not isinstance(child, SideBar)), None)
         if content is not None:
-            local_dock = width if not shared else 0
+            # Bars are absolutely positioned and reserve no layout space; the
+            # resolved gutter is the whole clearance a pushed bar needs.
             content.styles.margin = (
                 0,
-                0 if shared else resolved.right_gutter
-                - (local_dock if placement.side == "right" else 0),
+                0 if shared else resolved.right_gutter,
                 0,
-                0 if shared else resolved.left_gutter
-                - (local_dock if placement.side == "left" else 0),
+                0 if shared else resolved.left_gutter,
             )
         return True
 
@@ -880,7 +880,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
         if message.event.path == SETTINGS.sidebar.hide:
-            self.collapsed = cast("ToadApp", self.app).settings.sidebar.hide
+            self.collapsed = DeclaredField.at(self.app.saved_settings.state, message.event.path).value
 
     @on(SideBarToggle.Pressed)
     def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:
@@ -915,7 +915,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             app.saved_settings.set(SETTINGS.sidebar.hide, collapsed)
             # Project this input on its visible owner immediately. The shared
             # settings signal still updates other views, idempotently.
-            self.collapsed = app.settings.sidebar.hide
+            self.collapsed = DeclaredField.at(app.saved_settings.state, SETTINGS.sidebar.hide).value
         else:
             self.collapsed = collapsed
         if collapsed:
@@ -937,7 +937,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             self.collapsed = False
 
     def action_dismiss(self) -> None:
-        if cast("ToadApp", self.app).settings.sidebar.hide:
+        if DeclaredField.at(self.app.saved_settings.state, SETTINGS.sidebar.hide).value:
             self.collapsed = True
         self.post_message(self.Dismiss())
 

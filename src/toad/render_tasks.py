@@ -15,7 +15,6 @@ from toad.rich_preparation import (
     PreparedRichContent,
     RichPresentation,
     RichSource,
-    SyntaxPalette,
 )
 
 from ui_theme.effects import PlayedText
@@ -23,7 +22,6 @@ from ui_theme.scheme import ColourScheme
 from ui_theme.splash import TextEffect
 
 if TYPE_CHECKING:
-    from toad.widgets.patch_diff import PreparedPatch
     from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey
 
 
@@ -42,24 +40,6 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
     def accept_result(self, result: object) -> WrappedDocument:
         if not isinstance(result, WrappedDocument):
             raise TypeError("Document renderer returned an invalid native view")
-        return result
-
-
-@dataclass(frozen=True)
-class PatchRenderTask(ReusableRenderTask["PreparedPatch"]):
-    source: str
-    syntax: SyntaxPalette
-
-    def execute(self) -> PreparedPatch:
-        from toad.widgets.patch_diff import prepare_patch
-
-        return prepare_patch(self.source, self.syntax)
-
-    def accept_result(self, result: object) -> PreparedPatch:
-        from toad.widgets.patch_diff import PreparedPatch
-
-        if not isinstance(result, PreparedPatch):
-            raise TypeError("Patch renderer returned an invalid result")
         return result
 
 

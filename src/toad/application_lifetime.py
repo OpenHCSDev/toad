@@ -117,12 +117,23 @@ class ApplicationLifetime:
             # No tab is open: the launch starts no agent and registers no thread.
             await app.select_session(app.tab_order.home)
         else:
+            # The thread's declaration decides how it opens, as from the sidebar.
+            navigation = await app.preparation.run_thread(self.launch_navigation)
             await app.session_navigation.new(
-                partial(app.session_navigation.default_source, self.resumed_session))
+                partial(navigation.launch_screen, app),
+                original=(navigation.root, navigation.thread.incarnation),
+            )
         app.terminal_attention.attach()
         app.set_timer(1, self.check_version)
         app.run_worker(partial(self.set_process_title, "toad"), thread=True)
         app.update_show_sessions()
+
+    def launch_navigation(self):
+        from toad.navigation_preparation import ThreadNavigationRequest
+
+        request = ThreadNavigationRequest(self.app.coordination_access.service,
+                                          self.resumed_session, self.app.project_dir, ())
+        return request.read()
 
     def check_version(self) -> None:
         self.app.run_worker(partial(self.version.check, self.app.preparation.run_thread))

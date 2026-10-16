@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
 from operator import attrgetter
@@ -5,15 +6,59 @@ from typing import Iterable, Literal, Sequence
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
+from agent_comms.ui_model.sidebar import ThreadRowModel
+from textual.content import Content
 from toad.conversation_kind import ConversationKind
 
 
 
 @dataclass(frozen=True)
-class OpenTab:
+class OpenTab(ABC):
+    """A tab reads its label and activity from the source it represents."""
+
     mode_name: str
-    title: str
+    busy = False
+
+    @property
+    @abstractmethod
+    def title(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def unread(self) -> UnreadPresentation: ...
+
+    def label(self) -> Content:
+        return Content(self.title)
+
+
+@dataclass(frozen=True)
+class NamedTab(OpenTab):
+    name: str
     unread: UnreadPresentation = ExactUnread()
+
+    @property
+    def title(self) -> str:
+        return self.name
+
+
+@dataclass(frozen=True)
+class ThreadTab(OpenTab):
+    row: ThreadRowModel
+
+    @property
+    def title(self) -> str:
+        return self.row.title
+
+    def label(self) -> Content:
+        return Content(self.row.label)
+
+    @property
+    def unread(self) -> UnreadPresentation:
+        return self.row.unread
+
+    @property
+    def busy(self) -> bool:
+        return self.row.busy
 
 
 @dataclass(frozen=True)
