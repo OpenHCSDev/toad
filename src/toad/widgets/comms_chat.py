@@ -126,7 +126,7 @@ class CommsChatView(Conversation):
                     yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield self.conversation_kind.activity_widget(self)
+            yield from self.conversation_kind.compose_activity(self)
             yield self.throbber
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
@@ -196,8 +196,8 @@ class CommsChatView(Conversation):
             return
         if self._refreshed_from != access.revision:
             # The observer announced a change while this work ran. The history
-            # may have read it from the stores already; the participants line
-            # reads the observer's sidebar, which only now shows it.
+            # may have read it from the stores already; mention completion
+            # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
         if history.revision == access.revision:
@@ -302,7 +302,7 @@ class CommsChatView(Conversation):
             finally:
                 if undrawn:
                     self.on_work_finished()
-            # A sent message may now be drawn: composing resumes before the roster is read.
+            # A sent message may now be drawn: composing resumes before mentions are read.
             self.settle_user_message()
             if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):
                 placeholder.remove()
@@ -311,7 +311,7 @@ class CommsChatView(Conversation):
         except (OSError, ValueError, RuntimeError) as error:
             self._show_wire_error(error)
             return
-        # The participants line and the status line read the observer's sidebar
+        # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
         # and the history can load pages while they wait.
@@ -327,7 +327,7 @@ class CommsChatView(Conversation):
         self.status = message
 
     async def _refresh_labels(self, comms, changed: bool, newly_announced: bool, read_only: bool) -> None:
-        """Show who is in the conversation and its status line, for the history as it is drawn now."""
+        """Refresh composer mentions and status for the history as it is drawn now."""
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         history = self.message_history
@@ -335,9 +335,9 @@ class CommsChatView(Conversation):
         source, target = history.source, self.target
         try:
             # An unchanged history may have read the stores before the observer
-            # announced the change; the participants line reads the observer's sidebar.
+            # announced the change; mention completion reads the observer's snapshot.
             if changed or newly_announced:
-                await self.conversation_kind.update_roster(self, comms)
+                await self.conversation_kind.update_mentions(self, comms)
             if changed:
                 if not await history.source_is_current(snapshot):
                     if snapshot.current(history):
@@ -349,7 +349,7 @@ class CommsChatView(Conversation):
             self.call_after_refresh(history.mark_visible)
             if not changed:
                 return
-            info = await self.conversation_kind.agent_info(comms, target)
+            status = await self.conversation_kind.status_text(comms, target, read_only=read_only)
         except (CoordinationReadUnavailable, StaleRevision):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
@@ -359,19 +359,7 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
-        if self.send_block_reason:
-            self.status = self.send_block_reason
-        elif info is not None:
-            self.status = " · ".join(
-                value
-                for value in (
-                    info.model or "",
-                    info.context_usage.label if info.context_usage is not None else "",
-                )
-                if value
-            )
-        else:
-            self.status = "Read-only saved view" if read_only else ""
+        self.status = self.send_block_reason or status
         if self.window.follows_tail:
             self.window.anchor()
         if history.has_newer or (history.has_older and self.window.max_scroll_y == 0):
