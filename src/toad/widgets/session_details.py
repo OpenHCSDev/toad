@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.mro_dispatch import handles
 from agent_comms.thread_presentation import (
-    AttentionPresentationStatus, IdlePresentationStatus, WorkingPresentationStatus,
+    AttentionThreadPresentationStatus, IdleThreadPresentationStatus,
+    WorkingThreadPresentationStatus,
 )
 from textual.content import Content
 from textual.reactive import var
@@ -30,15 +31,15 @@ class SessionStatus(MroProjection):
 
     role: ClassVar[type[LineRole]]
 
-    @handles(IdlePresentationStatus)
+    @handles(IdleThreadPresentationStatus)
     def idle_status(self, status):
         return IdleSessionStatus
 
-    @handles(WorkingPresentationStatus)
+    @handles(WorkingThreadPresentationStatus)
     def working_status(self, status):
         return WorkingSessionStatus
 
-    @handles(AttentionPresentationStatus)
+    @handles(AttentionThreadPresentationStatus)
     def attention_status(self, status):
         return AttentionSessionStatus
 
@@ -55,7 +56,7 @@ class AttentionSessionStatus(SessionStatus):
     role = NoticeRole
 
 
-class SessionDetails(Collapsible, ObservedThreadActivity, SessionStatus):
+class SessionDetails(Collapsible, ObservedThreadActivity):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -64,6 +65,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity, SessionStatus):
     """
 
     DETAIL_ROWS = 8
+    status_paint = SessionStatus()
     overview_text: var[str] = var("")
 
     DEFAULT_CSS = """
@@ -103,9 +105,9 @@ class SessionDetails(Collapsible, ObservedThreadActivity, SessionStatus):
             return AttentionSessionStatus
         row = self.row
         if row is not None and row.shown:
-            return self.dispatch_sync(row.status)
+            return self.status_paint.dispatch_sync(row.status)
         if self.turns is not None:
-            return self.dispatch_sync(self.turns.owner.presentation_status)
+            return self.status_paint.dispatch_sync(self.turns.owner.presentation_status)
         return IdleSessionStatus
 
     def on_mount(self) -> None:
