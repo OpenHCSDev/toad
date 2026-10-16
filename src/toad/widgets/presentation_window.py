@@ -1,6 +1,6 @@
 """Shared budgets for a source-backed window of native widget presentation."""
 
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass, fields
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import zip_longest
@@ -8,7 +8,7 @@ from functools import partial
 from math import ceil
 from operator import gt, ge
 from time import monotonic, get_clock_info
-from typing import TYPE_CHECKING
+from typing import Annotated, TYPE_CHECKING, get_args
 
 if TYPE_CHECKING:
     from textual.widget import Widget
@@ -39,24 +39,24 @@ class PresentationBudget:
     satisfy a widget budget.
     """
 
-    max_items: int = field(default=24, metadata={"zero_bound": gt})
-    batch_items: int = field(default=4, metadata={"zero_bound": gt})
-    reserve_batches: int = field(default=4, metadata={"zero_bound": ge})
-    minimum_widgets: int = field(default=300, metadata={"zero_bound": gt})
-    widgets_per_row: int = field(default=10, metadata={"zero_bound": ge})
-    buffer_viewports: int = field(default=3, metadata={"zero_bound": gt})
-    destination_pages: int = field(default=2, metadata={"zero_bound": gt})
-    lookahead_seconds: float = field(default=1.0, metadata={"zero_bound": gt})
-    delivery_safety_factor: float = field(default=2.0, metadata={"zero_bound": gt})
-    scroll_idle_seconds: float = field(default=0.2, metadata={"zero_bound": gt})
+    max_items: Annotated[int, gt] = 24
+    batch_items: Annotated[int, gt] = 4
+    reserve_batches: Annotated[int, ge] = 4
+    minimum_widgets: Annotated[int, gt] = 300
+    widgets_per_row: Annotated[int, ge] = 10
+    buffer_viewports: Annotated[int, gt] = 3
+    destination_pages: Annotated[int, gt] = 2
+    lookahead_seconds: Annotated[float, gt] = 1.0
+    delivery_safety_factor: Annotated[float, gt] = 2.0
+    scroll_idle_seconds: Annotated[float, gt] = 0.2
 
     def __post_init__(self) -> None:
         for declaration in fields(self):
             value = getattr(self, declaration.name)
-            bound = declaration.metadata["zero_bound"]
+            numeric_type, bound = get_args(declaration.type)
             # Python permits an integer wherever a float is declared, but a
             # bool is not a numeric budget. The declaration supplies the bound.
-            if type(value) not in (declaration.type, int) or not bound(value, 0):
+            if type(value) not in (numeric_type, int) or not bound(value, 0):
                 raise ValueError(f"{declaration.name} violates its declared {bound.__name__} zero bound")
 
     def item_limit(self, protected_items: int) -> int:
