@@ -11,8 +11,6 @@ from typing import TYPE_CHECKING, ClassVar, cast
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
-from textual.css.scalar import Scalar, ScalarOffset
-from textual.css.styles import RulesMap
 from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
@@ -599,13 +597,12 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     SideBar {
         layers: sidebar-content sidebar-toggle;
         background: transparent;
-        dock: left;
+        dock: none;
+        layer: comms-sidebar;
         overflow: hidden;
         scrollbar-size: 0 0;
         height: 1fr;
-        width: 40;
-        min-width: 40;
-        max-width: 45%;
+        width: auto;
         border: none;
     }
     SideBar > #sidebar-panels {
@@ -619,7 +616,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     }
     SideBar > #sidebar-controls {
         width: 1fr;
-        height: 2;
+        height: auto;
         margin: 0 4 0 0;
         layer: sidebar-content;
         background: $background;
@@ -630,9 +627,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     }
     SideBar #sidebar-layout-actions.-compact > #sidebar-float { column-span: 2; width: 1fr; }
     SideBar.-right {
-        dock: right;
-        width: 34;
-        min-width: 28;
         border-right: none;
         border-left: none;
     }
@@ -689,6 +683,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     def on_mount(self) -> None:
         self.trap_focus()
         app = cast("ToadApp", self.app)
+        self.parent.styles.layout = app.workspace_chrome
         if self._navigation is None:
             self.observe_core(app.saved_settings.events)
             self.collapsed = DeclaredField.at(app.saved_settings.state, SETTINGS.sidebar.hide).value
@@ -773,7 +768,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             id="sidebar-layout-actions",
         )
 
-    def _apply_layout(self, resolved) -> bool:
+    def on_resize(self, event: events.Resize) -> None:
+        self._present_controls()
+
+    def on_show(self) -> None:
+        self._present_controls()
+
+    def _present_controls(self) -> bool:
         app = cast("ToadApp", self.app)
         if self.id not in app.sidebar_layout.placements or not self.is_mounted:
             return False
@@ -781,7 +782,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if self.parent is None or not self.presentation_visible:
             self._presented_layout = None
             return False
-        geometry = resolved.bars[self.id]
+        geometry = SidebarGeometry(self.region.x, self.size.width)
         width = geometry.width
         directions = app.sidebar_layout.directions(self.id)
         current = PresentedBar(
@@ -793,28 +794,11 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if current == previous:
             return False
         self._presented_layout = current
-        shared = self is app.workspace_chrome.channels
-        offset_x = (geometry.x if shared or placement.side == "left" else
-                    geometry.x + width - self.screen.size.width)
-        # The placement resolver already bounds width. Pixel min/max rules
-        # would pin the old width and require rewriting both on every sample.
-        updates: RulesMap = {}
-        width_rule = Scalar.from_number(width)
-        offset_rule = ScalarOffset.from_offset((offset_x, 0))
-        if self.styles.width != width_rule:
-            updates["width"] = width_rule
-        if self.styles.offset != offset_rule:
-            updates["offset"] = offset_rule
-        if updates:
-            self.set_styles(**updates)
         controls = self.query_one_optional("#sidebar-controls") if self._panels_loaded else None
         slider = controls.query_one_optional("#sidebar-width-slider", SidebarSlider) if controls else None
         if previous is None or previous.presentation != current.presentation:
             self.right = placement.side == "right"
             self.set_class(self.right, "-right")
-            self.set_styles(min_width=0, max_width="100%",
-                            dock=placement.side if not shared else "none",
-                            position="absolute", overlay="none", layer="comms-sidebar")
             if toggle := self.query_one_optional(SideBarToggle):
                 toggle.right = self.right
                 toggle.set_collapsed(self.collapsed)
@@ -828,7 +812,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 if slider is None or actions is None or any(button is None for button in buttons.values()):
                     # Mounted parents can precede their composed action rows.
                     self._presented_layout = None
-                    self.call_after_refresh(self.screen.refresh, layout=True)
                 else:
                     slider.reversed = self.right
                     slider.set_range(15, 50, placement.width_percent)
@@ -840,7 +823,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                     toggle_mode.update("Push" if placement.floating else "Float", layout=False)
                     toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
                     actions.set_class(current.presentation.compact, "-compact")
-                    controls.styles.height = 3 if current.presentation.compact else 2
         if slider is not None and slider.value != placement.width_percent:
             slider.value = placement.width_percent
             slider.refresh()
@@ -852,6 +834,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if event.slider.kind == "width" and self.id is not None:
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
+                self._present_controls()
                 self.screen.refresh(layout=True)
 
     @on(SidebarAction.Pressed)
@@ -861,6 +844,8 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             return
         app = cast("ToadApp", self.app)
         event.action.apply(app.sidebar_layout, self.id)
+        for bar in (app.workspace_chrome.channels, *app.workspace_sessions.source.sidebars()):
+            bar._present_controls()
         self.screen.refresh(layout=True)
 
     @on(widgets.Collapsible.Collapsed)
@@ -874,6 +859,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         changed = self._presented_collapsed != self.collapsed
         if changed:
             self.watch_collapsed(self.collapsed)
+        self._present_controls()
         self.screen.refresh(layout=True)
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
@@ -917,6 +903,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
         if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
+            self._present_controls()
             self.screen.refresh(layout=True)
 
     def render(self) -> str:

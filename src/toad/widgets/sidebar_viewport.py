@@ -6,10 +6,9 @@ from textual.containers import HorizontalGroup, VerticalScroll
 
 
 class SidebarHeader(HorizontalGroup):
+    DEFAULT_CSS = "SidebarHeader { width: 100%; }"
+
     def on_mount(self) -> None:
-        # The collapsible fills its viewport; native percentage resolution
-        # follows that width without a style mutation inside layout.
-        self.styles.width = "100%"
         viewport = next((node for node in self.walk_ancestors()
                          if isinstance(node, SidebarViewport)), None)
         if viewport is not None:

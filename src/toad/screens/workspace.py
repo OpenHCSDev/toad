@@ -192,7 +192,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         return self.is_current
 
     def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
-        self.app.workspace_chrome.layout_sidebars(self)
         changes = tuple((change, change.layout_requests) for window in self.history_windows
                         if (change := window.history_change) is not None)
         # Each window that keeps a reader position is put back on it by this
