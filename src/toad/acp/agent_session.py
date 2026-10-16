@@ -1,10 +1,13 @@
-"""ACP session handshake, durable metadata and reconnection custody."""
+"""ACP session handshake, durable metadata and reconnection."""
 from __future__ import annotations
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.child_process import join_retirement
 import asyncio
 import os
+from pathlib import Path
 from dataclasses import dataclass, replace
+from agent_comms.acp_ingress import AcpIngress
+from agent_comms.route_selection import RouteSelection
 import toad
 from toad import constants, jsonrpc
 from toad.core import events as core_events
@@ -72,6 +75,9 @@ class RefusedSessionDisposition(FailedSessionDisposition):
 
 class AgentSession:
     """Own readiness and durable session effects; binding identity stays on the controller."""
+
+    reconnect_timeout_seconds = 30
+
     def __init__(self, agent, pk):
         self.agent = agent
         self.task = None
@@ -118,11 +124,15 @@ class AgentSession:
         self.task = asyncio.create_task(self.run())
         self.task.add_done_callback(self.session_finished)
 
-    async def retire(self):
+    def begin_retirement(self):
         self.close()
         if self.retirement is None:
             self.retirement = asyncio.create_task(self._retire())
-        await join_retirement(self.retirement)
+            self.retirement.add_done_callback(self.retirement_finished)
+        return self.retirement
+
+    async def retire(self):
+        await join_retirement(self.begin_retirement())
 
     async def _retire(self):
         pending = tuple(task for task in (self.task, *self.responses)
@@ -141,8 +151,6 @@ class AgentSession:
         error = task.exception()
         if error is not None and self.accepts_updates:
             self.startup_failed(f"{type(error).__name__}: {error}")
-            self.retirement = asyncio.create_task(self._retire())
-            self.retirement.add_done_callback(self.retirement_finished)
 
     def retirement_finished(self, task):
         if task.cancelled():
@@ -161,6 +169,7 @@ class AgentSession:
         self.failed()
         self.disposition = state(event)
         self.agent.events.publish(event)
+        self.begin_retirement()
 
     def session_failed(self, failure):
         self.record_failure(
@@ -189,7 +198,7 @@ class AgentSession:
         return self.capabilities.load_session
 
     def starting(self):
-        """Start admission clears readiness before any asynchronous work."""
+        """Starting clears readiness before any asynchronous work."""
         self.connected = False
         self.settled.clear()
         self.agent.controller.reset_configuration()
@@ -277,31 +286,27 @@ class AgentSession:
         """Reattach the existing view after login or an explicit owner start."""
         if self.reconnecting:
             return
-        if self.agent.controller.session.bound and not self.supports_load:
-            raise ValueError("This agent cannot resume its session.")
-        from pathlib import Path
-        from agent_comms.acp_ingress import AcpIngress
-        from agent_comms.route_selection import RouteSelection
-
         requested_cwd = str(self.agent.project_root_path.resolve())
         self.reconnecting = True
         try:
-            try:
-                selection = await asyncio.to_thread(
-                    RouteSelection.for_child, os.environ.copy(), requested_cwd)
-                await AcpIngress(selection, Path(requested_cwd),
-                                 self.agent.process.attached_root(self.agent)).preflight()
-            except Exception as error:
-                raise ValueError(
-                    f"Reconnect not attempted: maintenance admission denied: {error}"
-                ) from error
+            selection = await asyncio.to_thread(
+                RouteSelection.for_child, os.environ.copy(), requested_cwd)
+            await AcpIngress(selection, Path(requested_cwd),
+                             self.agent.process.attached_root(self.agent)).preflight()
             await self.agent.stop()
             self.load_admission = admission or EnsuringSessionLoadAdmission()
             self.settled.clear()
             await self.agent.start((self.agent.process,))
-            await asyncio.wait_for(self.settled.wait(), timeout=30)
-            if not self.connected:
-                raise ValueError("The agent could not reconnect.")
+            try:
+                await asyncio.wait_for(
+                    self.settled.wait(), timeout=self.reconnect_timeout_seconds)
+            except TimeoutError:
+                self.startup_failed(
+                    f"Reconnect timed out after {self.reconnect_timeout_seconds} seconds "
+                    "waiting for the session handshake to settle."
+                )
+        except (OSError, ValueError, RuntimeError, jsonrpc.APIError) as error:
+            self.startup_failed(f"Reconnect failed: {type(error).__name__}: {error}")
         finally:
             self.reconnecting = False
 

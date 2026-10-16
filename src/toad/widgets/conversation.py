@@ -1210,6 +1210,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     await self.prune_window(0, 0)
                     self.output.boundary()
                 await agent.session.reconnect()
+                if not agent.session.ready:
+                    return
             else:
                 await agent.session.authenticate(method_id)
             self.flash(
