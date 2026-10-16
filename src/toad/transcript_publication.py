@@ -159,12 +159,8 @@ class SnapshotPublication(TranscriptPublication):
 
     def admitted(self) -> bool:
         """The mounted source frontier owns admission, under its window lock."""
-        frontiers = (history.committed_cursor for history in self.owner.histories
-                     if history.is_attached and history.state.reports_coverage)
-        frontier = max((cursor for cursor in frontiers
-                        if cursor.session_file == self.page.after.session_file),
-                       key=lambda cursor: (cursor.offset, cursor.wire_seq), default=None)
-        if frontier is None:
+        frontier = self.owner.published_end
+        if frontier is None or frontier.session_file != self.page.after.session_file:
             return True
         if not frontier.contains(self.page.after):
             self.owner.require_checkpoint()
@@ -274,7 +270,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_snapshot(self):
-        return await self.owner.reader.updates(*self.thread_scope, self.owner.current_read)
+        return await self.owner.read_past_end(
+            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read))
 
     async def publish_applied(self) -> bool:
         if not self.owner.readable:
@@ -303,6 +300,10 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         # An expired application cannot publish this read; it is not a stale
         # backend revision and must not escape as a failed Textual worker.
         if not await self.capture_application():
+            return True
+        if snapshot.identity.after is not None and self.owner.published_end is None:
+            # The history this read extends left while reading; read the window whole.
+            self.owner.require_checkpoint()
             return True
         bound = self.source_bound(page.after)
         if bound != page.after:
@@ -337,9 +338,9 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         self.agent = view.agent
 
     async def read_snapshot(self):
-        identity = self.presentation.read_identity
-        return await self.owner.reader.updates(
-            *self.thread_scope, self.owner.current_read, read_identity=identity)
+        return await self.owner.read_past_end(
+            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read),
+            read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
         view = self.owner.view
@@ -419,8 +420,8 @@ class CheckpointPublication(CanonicalSourcePublication):
         self.plan = checkpoint_plan(window)
 
     async def read_snapshot(self):
-        # Replacing the visible window needs its page even when source text is unchanged.
-        return await self.owner.reader.snapshot(*self.thread_scope)
+        # Mounted history grows by what follows its end; without one the window needs a whole page.
+        return await self.owner.read_past_end(partial(self.owner.reader.snapshot, *self.thread_scope))
 
     def current(self) -> bool:
         view = self.owner.view
@@ -479,7 +480,7 @@ class CheckpointPublication(CanonicalSourcePublication):
             None,
         )
         is_current = partial(self.source_current, page.after)
-        if not page.events or not is_current():
+        if history is None and not page.events or not is_current():
             return True
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
@@ -543,6 +544,8 @@ class CheckpointPublication(CanonicalSourcePublication):
             self.owner.dirty = False
             self.owner.checkpoint_required = False
         plan.finish(view, page.after)
+        if page.has_newer:
+            self.owner.require_checkpoint()
         return True
 
 
@@ -676,6 +679,23 @@ class TranscriptPresentation:
         # live pager. Required content access belongs to actual publication.
         contents = view.query_one_optional(Contents)
         return tuple(contents.query_children(TranscriptHistory)) if contents is not None else ()
+
+    @property
+    def published_end(self) -> TranscriptCursor | None:
+        """Where the mounted saved history ends; a refresh reads only what follows it."""
+        return max((history.committed_cursor for history in self.histories
+                    if history.is_attached and history.state.reports_coverage),
+                   key=lambda cursor: (cursor.offset, cursor.wire_seq), default=None)
+
+    async def read_past_end(self, read, **whole):
+        """What follows the published end while its source only grew, else the whole latest page."""
+        from agent_comms.coordination_errors import TranscriptChanged
+        if (end := self.published_end) is not None:
+            try:
+                return await read(after=end)
+            except TranscriptChanged:
+                pass  # Another source file replaced the published one.
+        return await read(**whole)
 
     @property
     def reports_coverage(self) -> bool:

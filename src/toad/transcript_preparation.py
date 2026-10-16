@@ -328,10 +328,6 @@ class PreparedPageSource(ABC):
     def closed(self) -> bool:
         return self.scope.closed
 
-    def accepts(self, loader, through) -> bool:
-        """Whether this reader still belongs to the same immutable source cut."""
-        return self.loader is loader and self.through == through
-
     @abstractmethod
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         pass
@@ -407,7 +403,8 @@ class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[Prepar
 
     @property
     def work_key(self) -> WorkKey:
-        return WorkKey(type(self), (self.through, self.request), self.scope)
+        # An older page is immutable as its source grows; a newer read ends at the source end.
+        return WorkKey(type(self), self.request if self.request.older else (self.through, self.request), self.scope)
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
