@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from dataclasses import Field, fields, is_dataclass
-from functools import lru_cache
-from typing import Annotated, TypeVar, get_args, get_origin
+from dataclasses import fields, is_dataclass
+from typing import TYPE_CHECKING
 
-from formbridge.forms.ui_utils import FieldDisplayText
-from python_introspect import declared_field_label, resolve_annotated, resolve_optional
-from python_introspect.annotation_types import resolved_class_annotations
+if TYPE_CHECKING:
+    from objectstate import ObjectState
 
-Declared = TypeVar("Declared")
+from python_introspect import UnifiedParameterAnalyzer, resolve_annotated, resolve_optional
+
+from toad.forms.declared_views import DeclaredField
 
 
 class FieldPath:
@@ -47,11 +47,18 @@ class FieldPath:
     def __hash__(self) -> int:
         return hash((self._root, self._names))
 
+    def bind(self, state: ObjectState) -> DeclaredField:
+        """Bind this declaration to the field ObjectState declares at this path."""
+        if not issubclass(state.type_for_path(""), self._root):
+            raise TypeError(f"{self!r} does not name a field of this ObjectState")
+        return DeclaredField(state, state.parameter_structure.path(str(self)))
 
-@lru_cache(maxsize=None)
-def _annotations(owner: type) -> dict[str, object]:
-    # Declarations do not change while the process runs.
-    return resolved_class_annotations(owner)
+    def matches(self, field: DeclaredField) -> bool:
+        """Whether this declaration names the bound field, including its root type."""
+        return (
+            issubclass(field.state.type_for_path(""), self._root)
+            and field.path.parts == self._names
+        )
 
 
 def parent(path: FieldPath) -> FieldPath:
@@ -62,57 +69,11 @@ def declared_annotation(path: FieldPath) -> object:
     """The field's annotation as written, `Annotated` metadata included."""
     if not path._names:
         return path._root
-    return _annotations(declared_type(parent(path)))[path._names[-1]]
+    return UnifiedParameterAnalyzer.analyze(declared_type(parent(path)))[
+        path._names[-1]
+    ].param_type
 
 
 def declared_type(path: FieldPath) -> object:
     """The type a value of the field has, without `Annotated` and `Optional`."""
     return resolve_annotated(resolve_optional(resolve_annotated(declared_annotation(path))))
-
-
-def declared_field(path: FieldPath) -> Field[object]:
-    """The dataclass field the path names, with the metadata it was declared with."""
-    name = path._names[-1]
-    return next(field for field in fields(declared_type(parent(path))) if field.name == name)
-
-
-def declared(path: FieldPath, kind: type[Declared]) -> Declared | None:
-    """The `Annotated` metadata of one kind declared on the field, if any."""
-    annotation = declared_annotation(path)
-    for written in (annotation, resolve_optional(resolve_annotated(annotation))):
-        if get_origin(written) is Annotated:
-            for item in get_args(written)[1:]:
-                if isinstance(item, kind):
-                    return item
-    return None
-
-
-def label(path: FieldPath) -> str:
-    """What the field is called on screen: its declared label, or its name spelled out."""
-    return (
-        declared_field_label(declared_annotation(path))
-        or FieldDisplayText.from_field_name(path._names[-1]).display_name
-    )
-
-
-def steps(path: FieldPath) -> tuple[FieldPath, ...]:
-    """The fields passed on the way down to this one, itself last."""
-    return tuple(
-        FieldPath(path._root, path._names[:count]) for count in range(1, len(path._names) + 1)
-    )
-
-
-def fields_below(path: FieldPath) -> tuple[FieldPath, ...]:
-    """The fields of the dataclass this path holds; none when it holds a plain value."""
-    owner = declared_type(path)
-    if not is_dataclass(owner):
-        return ()
-    return tuple(getattr(path, field.name) for field in fields(owner))
-
-
-def leaves(path: FieldPath) -> tuple[FieldPath, ...]:
-    """Every plain-valued field at or below this path."""
-    below = fields_below(path)
-    if not below:
-        return (path,)
-    return tuple(leaf for child in below for leaf in leaves(child))

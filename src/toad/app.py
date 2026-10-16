@@ -13,6 +13,7 @@ import gc
 import sys
 import json
 import os
+from enum import IntEnum
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
@@ -25,6 +26,7 @@ from textual import events, on, work
 from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
+from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import var
 from textual.screen import Screen
@@ -249,6 +251,21 @@ class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
 
 
+class ScreenWidth(IntEnum):
+    """Native sizing modes; legacy breakpoint classes are derived from them."""
+
+    side_panel_width: Scalar | None
+
+    def __new__(cls, minimum_width: int, side_panel_width: Scalar | None):
+        mode = int.__new__(cls, minimum_width)
+        mode._value_ = minimum_width
+        mode.side_panel_width = side_panel_width
+        return mode
+
+    NARROW = (0, None)
+    WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
+
+
 class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
@@ -262,7 +279,9 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     project_dir = var(Path)
     show_sessions = var(False, toggle_class="-show-sessions-bar")
 
-    HORIZONTAL_BREAKPOINTS = [(0, "-narrow"), (100, "-wide")]
+    HORIZONTAL_BREAKPOINTS: list[tuple[int, str]] = [
+        (mode, f"-{mode.name.lower()}") for mode in ScreenWidth
+    ]
 
     PAUSE_GC_ON_SCROLL = True
 
