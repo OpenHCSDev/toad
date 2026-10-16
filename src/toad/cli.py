@@ -256,7 +256,7 @@ def replay(path: str) -> None:
     "--host",
     metavar="HOST",
     default="127.0.0.1",
-    help="Address to listen on (default 127.0.0.1).",
+    help="Concrete IP address or localhost (default 127.0.0.1; no wildcard binds).",
 )
 @click.option(
     "--allow-network",
