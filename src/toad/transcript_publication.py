@@ -9,7 +9,8 @@ from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
 from typing import TYPE_CHECKING
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage, TranscriptReadIdentity
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
 from textual.worker import Worker, WorkerCancelled
@@ -41,7 +42,7 @@ class TranscriptPublication(ABC):
         from toad.widgets.committed_presentation import CommitParticipant
 
         return self.current() and all(
-            widget.commit_claim.admits_native(widget, self.captured)
+            widget.commit_claim.native_current(widget, self.captured)
             for widget in self.contents.children if isinstance(widget, CommitParticipant)
         )
 
@@ -57,11 +58,11 @@ class TranscriptPublication(ABC):
         prefixes = tuple(bound for history in self.owner.histories
                          if history in self.captured and history.state.reports_coverage
                          for bound in (history.committed_cursor,)
-                         if bound.receipts_within(cursor))
+                         if bound.assigned_within(cursor))
         prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
                      key=lambda bound: bound.offset,
-                     default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
-        return TranscriptCursor(prefix.session_file, prefix.offset, cursor.receipts)
+                     default=next(iter(prefixes), NativeCursor(cursor.session_file, 0)))
+        return cursor.at_native_prefix(prefix)
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor

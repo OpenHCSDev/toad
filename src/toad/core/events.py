@@ -12,7 +12,7 @@ from weakref import WeakMethod, WeakSet, ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
-from agent_comms.transcript_receipts import AssignedSourceIdentity
+from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
@@ -112,11 +112,6 @@ class TabHistoryChanged(CoreEvent):
 @dataclass(frozen=True)
 class ThreadActionsChanged(CoreEvent):
     """The original application changed an admitted thread action."""
-
-
-@dataclass(frozen=True)
-class SidebarLayoutChanged(CoreEvent):
-    """The original sidebar layout changed; native panes derive their paint."""
 
 
 @dataclass(frozen=True)

@@ -4,7 +4,8 @@ from agent_comms.message_reference import MessageReference
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcript_events import IncomingTranscript, NoticeTranscript, SentTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 from toad.line_blocks import Divider
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_divider import MessageDivider
@@ -12,7 +13,7 @@ from toad.widgets.transcript_fragments import transcript_fragments
 
 TEXT = "## Context compacted\n\n" + "\n\n".join(
     f"### Section {index}\n" + "A retained fact. " * 38 for index in range(8))
-CURSOR = TranscriptCursor("", 0)
+CURSOR = NativeCursor("", 0)
 
 
 def dividers_in(event):

@@ -3,7 +3,8 @@
 from agent_comms.message_reference import MessageReference
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcript_events import IncomingTranscript, SentTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.line_blocks import OpenTarget
 from toad.widgets.comms_chat import CommsChatView
@@ -20,7 +21,7 @@ async def test_names_above_saved_and_live_messages_open_the_thread_and_the_chann
     workspace.thread("owner", "team", running=True)
     workspace.thread("peer", "team", running=True)
     wire_root = str(workspace.roots.wire)
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeCursor("fixture", 1)
     page = TranscriptPage((
         IncomingTranscript("SAVED_INCOMING", route=MessageRoute("peer", ("owner",)), timestamp=1_700_000_000.0,
                            source=MessageReference(1, "incoming-1")),

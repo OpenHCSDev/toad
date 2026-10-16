@@ -4,6 +4,7 @@ from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
 from toad.comms_root import CoordinationAccess
+from toad.widgets.message_notifications import VisibleReadMarking
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -56,6 +57,7 @@ from toad.textual_colours import ThemedApp
 from toad.application_actions import ApplicationAction, ApplicationCommands
 from toad.widget_actions import DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime
+from toad.resource_release import AsyncResourceRelease
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -247,7 +249,7 @@ class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -319,19 +321,18 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
 
     async def _close_all(self) -> None:
-        await self.thread_navigation.close()
-        await self.thread_actions.close()
-        await self.coordination_access.stop_observing()
-        await super()._close_all()
-        # Native clients and the preparation owner have joined actual I/O.
-        # A failed retirement keeps its route resource instead of certifying exit.
-        await self.coordination_access.close()
-
-    async def on_unmount(self) -> None:
-        self.colours.stop()
-        self.terminal_attention.close()
-        await self.navigation_reader.aclose()
-        await self.render_processes.aclose()
+        # View release can fail. The application still owns its observation
+        # pipe and process pools; an Unmount event may never follow that error.
+        async with AsyncResourceRelease() as release:
+            release.push_async_callback(self.render_processes.aclose)
+            release.push_async_callback(self.navigation_reader.aclose)
+            release.callback(self.terminal_attention.close)
+            release.callback(self.colours.stop)
+            release.push_async_callback(self.coordination_access.close)
+            release.push_async_callback(super()._close_all)
+            release.push_async_callback(self.coordination_access.stop_observing)
+            release.push_async_callback(self.thread_actions.close)
+            release.push_async_callback(self.thread_navigation.close)
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
 
@@ -529,8 +530,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 
-    async def mark_visible_thread_read(self) -> None:
-        """Report the painted native cursor, never an executor's inbox cursor."""
+    def read_visible(self):
+        """Capture a painted native/CLI cursor before scheduling its guarded write."""
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation, Window
 
@@ -575,11 +576,14 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
             access.write(selected, mark)
 
-        try:
-            await asyncio.to_thread(acknowledge)
-        except (OSError, ValueError):
-            # Source replacement or deletion is resolved by the next snapshot.
-            return
+        async def mark():
+            try:
+                await asyncio.to_thread(acknowledge)
+            except (OSError, ValueError):
+                # Source replacement or deletion is resolved by the next snapshot.
+                return
+
+        return mark()
 
 
     def schedule_from_thread(self, callback: Callable[[], object]) -> None:

@@ -6,13 +6,14 @@ line-drawn; there are no per-message widget trees to count).
 """
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def test_each_scroll_to_the_top_admits_earlier_records_and_until_the_first_record_is_reached(workspace):
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeCursor("fixture", 1)
     page = TranscriptPage(tuple(
         AssistantTranscript(f"Record {i}\n\n" + "\n".join(f"- item {j}" for j in range(20))) for i in range(30)),
         cursor, cursor, False, False)

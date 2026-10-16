@@ -3,7 +3,8 @@
 from agent_comms.message_reference import MessageReference
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcript_events import IncomingTranscript, SentTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.response_delivery import RoutedResponse
 from toad.widgets.agent_response import AgentResponse
@@ -37,7 +38,7 @@ async def test_enter_on_a_saved_a_sent_and_a_routed_live_message_opens_its_sende
     workspace.thread("owner", "team", running=True)
     workspace.thread("peer", "team", running=True)
     wire_root = str(workspace.roots.wire)
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeCursor("fixture", 1)
     page = TranscriptPage((
         IncomingTranscript("SAVED_INCOMING", route=MessageRoute("peer", ("owner",)), timestamp=1_700_000_000.0,
                            source=MessageReference(1, "incoming-1")),

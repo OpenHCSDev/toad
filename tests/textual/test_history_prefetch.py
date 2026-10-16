@@ -7,7 +7,8 @@ line-drawn; there are no per-message widgets).
 from agent_comms.message_reference import MessageReference
 from agent_comms.routing import MessageRoute, TurnRouting
 from agent_comms.transcript_events import AssistantTranscript, SentTranscript, ThinkingTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.widgets.message_filter import MessageCategory, RoutedMessage
 from toad.widgets.transcript_history import TranscriptHistory
@@ -23,11 +24,11 @@ async def test_older_page_is_read_before_the_viewport_reaches_the_top(workspace)
         async def loader(**kwargs):
             calls.append((window.scroll_y, kwargs))
             return TranscriptPage((AssistantTranscript("OLDER_PREFETCHED_RECORD"),),
-                                  TranscriptCursor(FILE, 0), TranscriptCursor(FILE, 100), False, True)
+                                  NativeCursor(FILE, 0), NativeCursor(FILE, 100), False, True)
 
         tail = tuple(AssistantTranscript(f"Record {i}\n\n" + "Long line\n" * 5) for i in range(64))
         history = TranscriptHistory(TranscriptPage(
-            tail, TranscriptCursor(FILE, 100), TranscriptCursor(FILE, 200), True, False), loader=loader)
+            tail, NativeCursor(FILE, 100), NativeCursor(FILE, 200), True, False), loader=loader)
         await ui.conversation.contents.mount(history)
         window.anchor()
         await ui.until(lambda: window.max_scroll_y > history.prefetch_distance, why="a scrollable history")
@@ -54,13 +55,13 @@ async def test_filtered_older_page_is_read_before_the_viewport_reaches_the_top(w
             calls.append(window.scroll_y)
             return TranscriptPage((SentTranscript("FILTERED_PREFETCH", routing=route,
                                                   source=MessageReference(2, "prefetch-filtered")),),
-                                  TranscriptCursor(FILE, 0), TranscriptCursor(FILE, 100), False, True)
+                                  NativeCursor(FILE, 0), NativeCursor(FILE, 100), False, True)
 
         tail = (*(ThinkingTranscript(f"HIDDEN_{index}") for index in range(90)),
                 SentTranscript("VISIBLE_ROUTE\n\n" + "Long routed line\n\n" * 150, routing=route,
                                source=MessageReference(1, "prefetch-visible")))
         history = TranscriptHistory(TranscriptPage(
-            tail, TranscriptCursor(FILE, 100), TranscriptCursor(FILE, 200), True, False), loader=loader)
+            tail, NativeCursor(FILE, 100), NativeCursor(FILE, 200), True, False), loader=loader)
         await ui.conversation.contents.mount(history)
         window.anchor()
         await ui.until(lambda: window.max_scroll_y > history.prefetch_distance, why="a scrollable history")

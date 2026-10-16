@@ -116,7 +116,6 @@ class CoordinationAccess(MroDispatch):
         self.opening = threading.Lock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
-        self.marking: asyncio.Task[None] | None = None
         # One status row per open thread, whichever service it was read from.
         self.thread_status = OpenThreadStatus(app.call_next)
         # Views showing the sidebar model now, and consumers waiting for current rows.
@@ -167,7 +166,7 @@ class CoordinationAccess(MroDispatch):
             if observed is not None and observed.selection == selected:
                 return observed.service
             with ExitStack() as acquisition:
-                acquisition.enter_context(selected.route.admit_client())
+                acquisition.enter_context(selected.route.client_scope())
                 service = wire(selected.route)
                 if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                     raise RouteChanged("Comms route changed while opening the service")
@@ -240,10 +239,9 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(CoordinationObserved(result.revision))
         if previous is None or result.revision.external_transcripts_changed_since(previous):
             self.events.publish(ExternalTranscriptChanged())
-        if self.sidebar_views and (self.marking is None or self.marking.done()):
-            # A shown sidebar acknowledges the painted native cursor, as each
-            # sidebar read did before; the next observation includes it.
-            self.marking = asyncio.ensure_future(self.app.mark_visible_thread_read())
+        if self.sidebar_views:
+            # The painted view owns read work, not this source observer.
+            self.app.mark_visible()
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: ObservedCommsService) -> None:

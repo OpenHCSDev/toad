@@ -1,14 +1,15 @@
 """Textual-facing: a history of one-line pages fills the viewport by reading older pages as the window's layout asks, then goes idle."""
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcript_sources import TranscriptCursor, NativeCursor
+from agent_comms.transcripts import TranscriptPage
 
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 def page(index):
     return TranscriptPage((AssistantTranscript(f"Saved activity {index}"),),
-                          TranscriptCursor("test", index), TranscriptCursor("test", index + 1),
+                          NativeCursor("test", index), NativeCursor("test", index + 1),
                           index > 0, index < 29)
 
 
