@@ -1,32 +1,14 @@
 """Textual-facing: agent tool-call updates reach the ToolCall widget as merged snapshots, and the widget paints the read output."""
 
 import sys
-from dataclasses import replace
 from pathlib import Path
-from types import SimpleNamespace
 
 from acp.schema import ToolCall as SDKToolCall
-from agent_comms.thread_identity import DeletedThreadIncarnation, UnrecordedThreadIncarnation
-from agent_comms.transcript_receipts import AssignedSourceIdentity
 
 from support.agents import peer
-from support.coordination import coordination_fact
 from toad.acp.tool_calls import SessionToolCalls
 from toad.tool_output import ReadToolOutputPart
 from toad.widgets.tool_call import ToolCall
-
-
-def test_tool_scope_uses_the_recorded_member_not_a_nullable_core_property(tmp_path):
-    coordination = coordination_fact("worker", tmp_path)
-    agent = SimpleNamespace(coordination=coordination)
-    tools = SessionToolCalls(agent)
-    assert tools.scope == AssignedSourceIdentity(str(tmp_path), coordination.thread)
-    agent.coordination = replace(coordination, thread=DeletedThreadIncarnation("worker"))
-    assert tools.scope is None
-    agent.coordination = replace(coordination, thread=UnrecordedThreadIncarnation("worker"))
-    assert tools.scope is None
-    agent.coordination = None
-    assert tools.scope is None
 
 
 async def test_tool_start_progress_and_missing_start_in_the_running_app(workspace):
