@@ -49,12 +49,6 @@ class SessionNavigation:
         self.app.subscribe_core(self.events)
         self.app.observe_core_callback(self.app.coordination_access.events, self.observed)
 
-    def default_source(self, session_id: str | None = None, *, project: Path | None = None) -> MainScreen:
-        from toad.screens.main import MainScreen
-        app = self.app
-        return MainScreen(project if project is not None else app.project_dir,
-                          app.agent_data, agent_session_id=session_id)
-
     async def reveal(self) -> None:
         from toad.widgets.comms_sidebar import CommsSidebar
         from toad.widgets.side_bar import SideBar, SideBarCollapsible
