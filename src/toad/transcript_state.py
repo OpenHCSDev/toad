@@ -34,7 +34,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     async def execute(self, owner, work):
         raise RuntimeError("No transcript source operation is running")
 
-    def reserve(self, owner) -> "WorkingTranscript":
+    def reserve(self, owner, operation=None) -> "WorkingTranscript":
         raise RuntimeError("The transcript source cannot start another operation")
 
     def request_latest(self, owner, request: "LatestViewportRequest") -> None:
