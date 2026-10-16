@@ -1,0 +1,356 @@
+"""Declared projection and scan demand own derived transcript filtering."""
+
+from __future__ import annotations
+
+from abc import abstractmethod
+from contextlib import ExitStack
+from dataclasses import dataclass
+from functools import partial
+from typing import TYPE_CHECKING
+
+from agent_comms.declared_family import DeclaredFamily
+from toad.widgets.message_filter import all_categories
+from toad.transcript_source_preparation import HistorySourceSnapshot
+
+if TYPE_CHECKING:
+    from textual.worker import Worker
+    from toad.transcript_preparation import PreparedPageSource
+    from toad.widgets.transcript_history import LineHistory, ProjectedTranscriptHistory
+
+
+class FilterState(DeclaredFamily, affix="Filter"):
+    active = False
+    overlay = None
+    before = None
+    checkpoint_available = True
+
+    @classmethod
+    def for_selection(cls, selected):
+        """Classify the typed UI selection once when its projection is retired."""
+        if selected == all_categories():
+            return NoFilter()
+        if not selected:
+            return EmptyFilter()
+        return SeekingFilter()
+
+    def owns_projection(self, projection) -> bool:
+        return False
+
+    def older_visible(self, owner) -> bool:
+        return False
+
+    def canonical_moved(self, filtering, previous, visible) -> None:
+        pass
+
+    def owns_source(self, source: PreparedPageSource) -> bool:
+        return False
+
+    def covers_incoming(self, sequence: int) -> bool:
+        return False
+
+    def visible(self, owner: LineHistory) -> bool:
+        return False
+
+    async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
+        """Only a retained projection has additional rows to prepare."""
+
+    def retire(self, filtering: TranscriptFilter) -> None:
+        pass
+
+    def remove(self, filtering: TranscriptFilter) -> None:
+        if filtering.state is self:
+            filtering.clear()
+
+    @abstractmethod
+    def has_older(self, owner: LineHistory) -> bool: ...
+
+    @abstractmethod
+    def scan_available(self, owner: LineHistory) -> bool: ...
+
+    @abstractmethod
+    def scan_needed(self, owner: LineHistory) -> bool: ...
+
+    @abstractmethod
+    async def advance(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot) -> bool: ...
+
+
+class NoFilter(FilterState):
+    def older_visible(self, owner):
+        return owner.has_older
+
+    def has_older(self, owner):
+        return owner.has_older
+
+    def scan_available(self, owner):
+        return False
+
+    def scan_needed(self, owner):
+        return False
+
+    async def advance(self, filtering, snapshot):
+        return False
+
+
+class EmptyFilter(NoFilter):
+    """No category can match; there is no history read to admit."""
+    active = True
+
+    def older_visible(self, owner):
+        return False
+
+    def has_older(self, owner):
+        return False
+
+
+class SeekingFilter(NoFilter):
+    """A restricted selection awaiting its first admitted projection."""
+    active = True
+
+    def scan_available(self, owner):
+        return owner.has_older
+
+    def scan_needed(self, owner):
+        # Once mounted, the projection's ordinary pager owns edge admission.
+        return owner.window.scroll_y <= owner.prefetch_distance
+
+    async def advance(self, filtering, snapshot):
+        from toad.widgets.transcript_history import ProjectedTranscriptHistory, _DrawingStopped
+
+        owner = filtering.owner
+        source = owner.projected_source(owner.selected_categories)
+        try:
+            prepared = await source.boundary()
+            if not snapshot.current(owner):
+                return False
+            rows, limit = snapshot.window.latest_limits(owner.budget)
+            await prepared.prepare_rows(
+                owner, lambda: snapshot.current(owner), target=owner,
+                selected=owner.selected_categories, boundary=len(prepared.fragments),
+                older=True, rows_needed=rows, limit=limit,
+            )
+            if not snapshot.current(owner):
+                return False
+            projection = ProjectedTranscriptHistory(owner, source, prepared)
+            async with snapshot.window.history_lock:
+                if not snapshot.current(owner):
+                    return False
+                async with snapshot.window.preserve_history(root=owner):
+                    with ExitStack() as acquisition:
+                        filtering.state = admitted_state = Filtered(projection)
+                        acquisition.callback(admitted_state.remove, filtering)
+                        await owner.mount(projection, before=owner.pages[0])
+                        filtering.require_projection(snapshot, projection)
+                        acquisition.pop_all()
+                drew = bool(projection.fragments_in_range)
+                owner._update_edges()
+                if not drew:
+                    projection.request_older()
+                return drew
+        except _DrawingStopped:
+            return False
+        finally:
+            if not filtering.state.owns_source(source):
+                source.close()
+
+
+@dataclass(frozen=True)
+class Filtered(FilterState):
+    active = True
+    view: ProjectedTranscriptHistory
+
+    @property
+    def overlay(self):
+        return self.view
+
+    @property
+    def before(self):
+        return self.view.pages[0].page.before
+
+    @property
+    def checkpoint_available(self):
+        return self.view.checkpoint_available
+
+    def owns_projection(self, projection):
+        return self.view is projection
+
+    def owns_source(self, source):
+        return self.view._reader() is source
+
+    def has_older(self, owner):
+        return self.view.has_older
+
+    def scan_available(self, owner):
+        return self.view.older_page_available
+
+    def scan_needed(self, owner):
+        return False
+
+    def covers_incoming(self, sequence):
+        return self.view.covers_incoming(sequence)
+
+    def visible(self, owner):
+        return bool(self.view.visible_fragments())
+
+    async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
+        # An offscreen prefix never delays the newest canonical viewport. A
+        # fragment limit, unlike filled rows, does not prove it is offscreen.
+        if rows_needed:
+            await self.view.prepare_rows(current, window=window, target=target,
+                                         selected=self.view.selected_categories, rows_needed=rows_needed)
+
+    def retire(self, filtering):
+        self.view.display = False
+        filtering.owner.run_worker(partial(filtering.retire, self), group="filter-reset")
+
+    def remove(self, filtering):
+        super().remove(filtering)
+        if self.view.is_attached:
+            self.view.remove()
+
+    def canonical_moved(self, filtering, previous, visible):
+        owner = filtering.owner
+        if visible or previous == (owner.pages[0], owner.pages[0].start):
+            return
+        # Eviction must expose the newly omitted interval, not skip it with
+        # the projection's previously accepted backward cursor.
+        filtering.remove()
+        owner.invalidate_projection()
+
+    async def advance(self, filtering, snapshot):
+        previous = {id(fragment) for fragment in self.view.fragments_in_range}
+        await self.view.load_older()
+        return any(id(fragment) not in previous for fragment in self.view.fragments_in_range)
+
+
+class ScanDemand(DeclaredFamily, affix="ScanDemand"):
+    forced = False
+
+    def resume(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot, drew: bool) -> None:
+        owner = filtering.owner
+        if snapshot.current(owner) and drew and filtering.has_older:
+            # Committed painted height decides whether this batch fills the view.
+            owner.call_after_refresh(owner._check_edges)
+        else:
+            self.request_next(filtering)
+
+    @abstractmethod
+    def request_next(self, filtering: TranscriptFilter) -> None: ...
+
+
+class AutomaticScanDemand(ScanDemand):
+    def request_next(self, filtering):
+        if filtering.scan_needed():
+            filtering.owner.call_later(filtering.owner._check_edges)
+
+
+class RequestedScanDemand(ScanDemand):
+    forced = True
+
+    def request_next(self, filtering):
+        filtering.owner.call_later(filtering.start_scan)
+
+
+class TranscriptFilter:
+    def __init__(self, owner: LineHistory):
+        self.owner = owner
+        self.state: FilterState = FilterState.for_selection(owner.selected_categories)
+        self.demand: ScanDemand = AutomaticScanDemand()
+        self.worker: Worker | None = None
+
+    @property
+    def overlay(self): return self.state.overlay
+
+    @property
+    def before(self): return self.state.before
+
+    @property
+    def has_older(self): return self.state.has_older(self.owner)
+
+    @property
+    def scanning(self):
+        # Cancellation before _run enters sets the framework cancellation flag
+        # without transitioning its PENDING enum. It has no admission authority.
+        return (self.worker is not None and not self.worker.is_cancelled
+                and not self.worker.is_finished)
+
+    @property
+    def active(self): return self.state.active
+
+    @property
+    def checkpoint_available(self):
+        return not self.scanning and self.state.checkpoint_available
+
+    def owns_projection(self, projection): return self.state.owns_projection(projection)
+    @property
+    def older_visible(self): return self.state.older_visible(self.owner)
+
+    def canonical_moved(self, previous, visible):
+        self.state.canonical_moved(self, previous, visible)
+
+    def covers_incoming(self, sequence): return self.state.covers_incoming(sequence)
+    def projection_visible(self): return self.state.visible(self.owner)
+    def request_force(self): self.demand = RequestedScanDemand()
+    def clear(self): self.state = FilterState.for_selection(self.owner.selected_categories)
+
+    def remove(self) -> None:
+        self.state.remove(self)
+
+    async def retire(self, retired: FilterState) -> None:
+        async with self.owner.window.history_lock:
+            async with self.owner.window.preserve_history(root=self.owner):
+                retired.remove(self)
+        if self.owner.is_attached:
+            self.owner.request_preparation()
+
+    def changed(self) -> None:
+        owner = self.owner
+        owner.invalidate_projection()
+        for page in owner.pages:
+            page.set_categories(owner.selected_categories)
+        retired = self.state
+        retired.retire(self)
+        self.clear()
+        self.demand = AutomaticScanDemand()
+        if self.scanning:
+            self.worker.cancel()
+        owner._update_edges()
+        owner.request_preparation()
+
+    def scan_needed(self) -> bool:
+        return self.has_older and self.state.scan_needed(self.owner)
+
+    def check_edges(self) -> None:
+        if self.scan_needed() or self.demand.forced:
+            self.start_scan()
+
+    def request_older(self) -> None:
+        self.request_force()
+        self.start_scan()
+
+    def start_scan(self) -> Worker | None:
+        if self.scanning or not self.owner.checkpoint_available:
+            return None
+        if not self.state.scan_available(self.owner):
+            return None
+        self.worker = self.owner.run_worker(self.scan_older, group="filtered-history")
+        return self.worker
+
+    def require_projection(self, snapshot, projection) -> None:
+        from toad.widgets.transcript_history import _DrawingStopped
+        if not snapshot.current(self.owner) or not self.owns_projection(projection):
+            raise _DrawingStopped
+
+    async def scan_older(self) -> None:
+        snapshot = self.owner.source_snapshot()
+        drew = False
+        try:
+            if snapshot.current(self.owner):
+                drew = await self.state.advance(self, snapshot)
+        except (OSError, ValueError) as error:
+            if snapshot.current(self.owner):
+                self.owner.notify(str(error), title="Filtered history", severity="error")
+        finally:
+            if snapshot.current(self.owner):
+                if drew or not self.has_older:
+                    self.demand = AutomaticScanDemand()
+            self.demand.resume(self, snapshot, drew)

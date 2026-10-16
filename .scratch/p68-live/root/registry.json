@@ -1,0 +1,143 @@
+{
+  "threads": {
+    "p68-seed": {
+      "name": "p68-seed",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792186596.1044047,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/saved-session.jsonl",
+      "title": null,
+      "parent": null,
+      "task": null,
+      "process_identity": null,
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "p68-failed": {
+      "name": "p68-failed",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792186711.129391,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/sessions/p68-failed.jsonl",
+      "title": null,
+      "parent": "p68-seed",
+      "task": "",
+      "process_identity": {
+        "pid": 581368,
+        "start_time": 166246333
+      },
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "p68-healthy": {
+      "name": "p68-healthy",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-b",
+      "created_at": 1792186712.901538,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/sessions/p68-healthy.jsonl",
+      "title": null,
+      "parent": "p68-seed",
+      "task": "",
+      "process_identity": {
+        "pid": 581490,
+        "start_time": 166246391
+      },
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "user": {
+      "name": "user",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792187073.1387713,
+      "session_file": null,
+      "title": null,
+      "parent": null,
+      "task": null,
+      "process_identity": null,
+      "model": null,
+      "thinking_level": null,
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "user",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    }
+  },
+  "statuses": {
+    "p68-seed": {
+      "kind": "stopped"
+    },
+    "p68-failed": {
+      "kind": "running"
+    },
+    "p68-healthy": {
+      "kind": "running"
+    },
+    "user": {
+      "kind": "running"
+    }
+  },
+  "last_seen": {
+    "p68-seed": 1792186596.1053424,
+    "p68-failed": 1792186826.2550142,
+    "p68-healthy": 1792186826.678878,
+    "user": 1792187073.1390526
+  },
+  "aliases": {},
+  "owners": {
+    "counter": 10,
+    "generations": {
+      "p68-seed": 1,
+      "p68-failed": 8,
+      "p68-healthy": 9,
+      "user": 10
+    }
+  },
+  "admissions": {
+    "counter": 10,
+    "generations": {
+      "p68-seed": 1,
+      "p68-failed": 8,
+      "p68-healthy": 9,
+      "user": 10
+    }
+  }
+}

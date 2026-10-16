@@ -1,0 +1,541 @@
+
+WorkspaceScreen {
+    /* Float sidebars above session content while keeping Screen's tooltip
+       layer front-most. */
+    layers: default comms-sidebar;
+}
+
+Note,MarkdownNote {    
+    padding: 0 1 0 0;
+    &.-error {
+        border: heavy $error;
+    }    
+    &.-stop-reason {        
+        border: wide $error;
+        padding: 0 1;
+    }
+}
+
+
+Menu {
+    border: round $accent;
+    background: transparent;
+}
+
+
+Plan {        
+    color: $primary;
+    border: none;
+    background: transparent;
+          
+    padding: 0 1 0 0;        
+    height: auto;                        
+    grid-size: 2;
+    grid-columns: auto 1fr;
+    grid-rows: auto;
+    border-title-align: center;
+
+    .-no-plan {
+        text-style: dim italic;
+    }
+
+    .plan {
+        color: $text-primary;
+    }
+
+    .status {
+        padding: 0 0 0 0;
+        color: $text-primary;        
+    }    
+    .status-pending {
+        opacity: 0.6;
+    }    
+}
+
+
+Conversation {    
+    #prompt-stack {
+        dock: bottom;
+        height: auto;
+
+        & > Prompt {
+            dock: none;
+            margin-top: 0;
+        }
+    }
+
+    Window {                      
+        layout: vertical;
+        margin: 0;                
+        scrollbar-size-vertical: 2;
+        scrollbar-gutter: stable;
+        padding: 0 1 0 0;
+        height: 1fr;                
+        align: left bottom;   
+    }
+
+    #back-to-bottom-bar {
+        display: none;
+        overlay: screen;
+        dock: bottom;
+        layer: float;
+        width: 1fr;
+        height: 3;
+        align: center middle;
+        visibility: hidden;
+
+        #back-to-bottom {
+            visibility: visible;
+            width: auto;
+            height: 1;
+            padding: 0 1;
+            color: $text-primary;
+            background: $surface-lighten-1;
+            text-style: bold;
+
+            &:hover, &:focus {
+                background: $block-cursor-background;
+                color: $block-cursor-foreground;
+                text-style: bold;
+            }
+        }
+    }
+
+    &.-scrollbar-thin {
+        Window {
+            # scrollbar-gutter: stable;
+            scrollbar-size-vertical: 1;
+        }
+        
+    }
+    &.-scrollbar-hidden {
+        Window {
+            # scrollbar-gutter: auto;
+            scrollbar-size-vertical: 0;
+        }
+    }
+
+    height: 1fr;    
+    layers: base prompt float;        
+
+    
+    &.-column {
+        max-width: 100;             
+        background: $surface;
+        
+        #info-container {            
+            margin: 0 1;
+        }                  
+    }
+    
+    Contents {        
+        layout: vertical;
+        width: 1fr;
+        overflow: hidden;         
+        height: auto;  
+        padding: 0 0 0 0;                         
+    }    
+
+    ContentsGrid {            
+        grid-size: 2;
+        grid-columns: 1 1fr;
+        grid-rows: auto;
+        height: auto;                
+    }
+
+    #cursor-container {            
+        height: auto;
+        width: 1;                    
+        color: $foreground 7%;            
+                
+        .cursor--selected { color: $text-accent; }
+        .cursor--selected-blink { color: $text-accent 20%; }
+    }        
+
+
+
+
+
+
+    LoadingIndicator {
+        height: 10;
+    }
+
+
+
+
+    padding-left: 0;
+
+   
+
+    ShellResult {        
+        border-left: blank $primary;
+        background: $foreground 4%;        
+        padding: 1 0;   
+        margin: 1 1 1 0; 
+        #prompt {
+            margin: 0 1 0 0;
+            color: $text-primary;            
+        }  
+    }
+    
+    Terminal {        
+        width: 1fr;
+        height: auto;
+        padding: 0 1 0 0;
+        margin: 1 0;
+        overflow: scroll;
+        scrollbar-size: 0 0;          
+    }
+
+    TerminalTool {
+        height: auto;   
+        border: panel $primary;
+        border-title-color: $text-primary;
+        background: $primary 10%;        
+        padding: 1 1 0 1;              
+        border-title-style: bold;
+
+        &.-success {            
+            border: panel $success;
+            border-title-color: $text-success;
+            background: $success 7%;        
+            border-title-style: not bold;
+        }
+        
+
+        &.-error {            
+            border: panel $error;
+            border-title-color: $text-error;
+            background: $error 7%;
+            border-title-style: not bold;
+        }
+                  
+    }
+         
+
+
+}
+
+
+Welcome {    
+    height: auto;       
+    #logo {
+        color: $text-success;        
+    }
+    #message {        
+        padding: 0;
+        width: 1fr;
+        height: auto;
+    }
+}
+
+
+ACPToolCallContent {    
+    Markdown {        
+        margin: 0;
+        padding-left: 0;
+    }
+}
+
+
+Prompt {            
+    padding: 0 0 0 0;    
+    height: auto;  
+    dock: bottom;  
+   
+    &.-shell-mode {
+        #prompt-container:focus-within {
+            border: tall $primary;
+        }
+    }    
+
+    PathSearch, SlashComplete {
+        display: none;
+        overlay: screen;
+        offset-y: -16;
+        height: 16;
+        Input {
+            margin: 0 1;
+            padding: 0 1;
+        }
+        OptionList,FuzzyPathOptionList {
+            border: none;
+            height: 1fr;           
+            padding: 0;
+            margin: 0 1;                     
+            overflow: hidden;
+            text-wrap: nowrap;
+            text-overflow: ellipsis;  
+            & > .option-list--option {
+                padding: 0 1;             
+            }
+        }
+        DirectoryTree {
+            margin: 0 1;
+            padding: 0 0 0 1;
+            &:focus {
+                background-tint:transparent;
+            }
+        }
+        .message {
+            background: $foreground 8%;
+            color: $text-muted;
+            margin: 0 1;    
+            padding: 0 1;        
+        }
+    }
+
+    CompletionPopup.-open { display: block; }
+
+    Question {
+        
+        display: none;
+        #title {
+            width: 1fr;            
+        }
+        height: auto;                
+        # height: 1fr;
+        # max-height: 50vh;
+        # overflow: hidden auto;
+
+        #contents {
+            
+            margin-top: 0;            
+            height: auto;            
+            overflow: hidden auto;
+            max-height: 50vh;  
+            margin-bottom: 1;
+            
+            
+            DiffView {
+                .diff-group {                    
+                    margin-bottom: 0;
+                }
+            }
+            #title {
+                margin: 0;
+            }
+            & > * {                
+                # height: 0;
+                padding-right: 1;
+                margin: 1 0 0 0;
+            } 
+                     
+            &:empty {
+                height: 1;                
+            }
+        }
+        #option-container {
+            # margin-top: 1;
+            split: bottom;
+            height: auto;
+        }
+    }
+    &.-mode-ask {
+        Question {
+            display: block;            
+        }
+        #text-prompt {
+            display: none;
+        }
+    }
+
+    PromptContainer {       
+        &:dark {
+            background: $surface;
+        }
+        &:light {
+            background: $surface;
+        }
+        height: auto;
+        margin: 0;
+        border: tall transparent;
+        border-subtitle-align: left;
+        border-subtitle-style: reverse;
+        
+        &:focus-within {
+            border: tall $secondary;            
+            #prompt {
+                color: $text;
+            }
+        }
+        #prompt {
+            padding: 0 1;
+            color: $text-muted;
+        }
+        
+        PromptTextArea {
+            padding: 0 1 0 0;
+            background: transparent;
+            border: none;
+            height: auto;
+            max-height: 50vh;
+
+            & > .text-area--placeholder {
+                color: $text-muted;
+            }
+        }
+    }
+
+    &.-working-directory-out-of-bounds #info-container CondensedPath {        
+        color: $text-error;
+    }
+    
+    #info-container {                
+        
+        height: 1;
+        margin: 0 1;
+        # padding: 1 0;
+        
+        AgentInfo {
+            padding: 0 1;
+            margin: 0 1 0 0;
+            color: $text-primary;
+            background: $primary 10%;
+            width: auto;           
+            &:ansi {
+                background: ansi_default;
+                color: ansi_default;
+                text-style: none;
+            }
+        }
+
+
+        CondensedPath { 
+            &:first-of-type {
+                margin: 0 1 0 0;
+            }
+            margin: 0 1;
+            width: 1fr;            
+            height: 1;
+            text-wrap: nowrap;
+            color: $text-secondary;            
+        }
+
+        StatusLine {            
+            color: $text-secondary;
+            margin: 0 1;
+            width: auto;
+            height: 1;    
+            text-align: right;            
+            text-wrap: nowrap;
+            text-overflow: ellipsis;                           
+        }
+        
+        ModeInfo {
+            padding: 0 1;
+            margin: 0 0;
+            color: $text-secondary;
+            background: $secondary 10%;
+            dock: right; 
+            display: none;
+            &:ansi {
+                background: ansi_default;
+                color: ansi_default;
+                text-style: none;
+            }
+        }        
+    }
+
+    &.-has-mode #info-container ModeInfo {
+        display: block;
+    }
+
+    &.-has-model #info-container AgentInfo {
+        max-width: 60%;
+        height: 1;
+        text-wrap: nowrap;
+        text-overflow: ellipsis;
+        pointer: pointer;
+        &:hover { text-style: underline; }
+    }
+
+}
+
+
+ModeInfo:hover {
+    text-style: underline;
+    pointer: pointer;
+}
+
+ModeSwitcher {
+
+    max-height: 50vh;
+        
+    border: none;
+    padding: 0;
+    width: auto;    
+    max-width: 100;
+    
+    overlay: screen;
+    overflow: hidden;
+    constrain: inside inflect;    
+    min-width: 12;    
+    margin: 1 0;
+    height: auto;     
+    
+    & > .option-list--option {
+        padding: 0 1;
+    }
+   
+    &:blur {
+        display: none;
+    }
+
+    &:focus > .option-list--option-highlighted {
+        background: $primary 30%;
+        text-style: not bold;
+    }
+}
+
+MainScreen {    
+    background: $background;
+    layers: sidebar screen base;    
+
+    & > Center { height: 1fr; }
+
+    #session-content {
+        width: 1fr;
+        height: 1fr;
+    }
+
+    SideBar {        
+        background: transparent;        
+
+        overflow: hidden;
+        scrollbar-size: 0 0;
+        box-sizing: border-box;        
+        
+        padding: 0 0;
+        margin: 0;
+        height: 1fr;             
+                         
+        DirectoryTree {  
+            height: 1fr;                                  
+            background: transparent;
+            &:focus {
+                background-tint: transparent;
+            }                                        
+        }
+
+
+        Plan {
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 1 0 0;                
+            background: transparent;            
+        }
+
+
+    }
+
+}
+
+AgentResponse.-routed, IncomingMessage {
+    border-left: tall $accent;
+    background: transparent;
+    padding-left: 1;
+}
+
+IncomingMessage > AgentResponse.routed-body { margin: 0; padding: 0; }

@@ -1,0 +1,1001 @@
+from agent_comms.mro_dispatch import handles
+from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core import events as core_events
+from toad.core.preference_events import PreferenceChanged
+from toad.preferences import SETTINGS
+from toad.forms.declared_views import DeclaredField
+from dataclasses import dataclass
+import asyncio
+from typing import TYPE_CHECKING, ClassVar, cast
+
+from textual import containers, events, on, widgets
+from textual.app import ComposeResult
+from textual.binding import Binding, BindingType
+from textual.events import Click
+from textual.geometry import Offset
+from textual.message import Message
+from textual.reactive import reactive
+from textual.widget import PrimaryActivation, Widget
+
+from toad.session_tracker import SidebarState
+from toad.sidebar_layout import SidebarPlacementAction
+from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+
+
+class SidebarVisibilityObserver:
+    """A panel whose active presentation depends on its enclosing sidebar."""
+
+    def sidebar_visibility_changed(self) -> None:
+        raise NotImplementedError
+
+
+class SidebarFocusOwner:
+    """A screen declares its return target before a focused pane is hidden."""
+
+    def sidebar_focus_target(self) -> Widget | None:
+        raise NotImplementedError
+
+
+class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
+    # Selection is drawn on the focused row. Inheriting Collapsible's container
+    # focus-within tint would restyle the entire channel tree on pointer entry.
+    BINDING_GROUP_TITLE = "Sidebar collapsible"
+    HELP = """\
+## Sidebar
+
+This is your sidebar.
+
+The Sidebar contains additonal information associated with the conversation.
+
+- **tab / shift+tab** Navigate sections
+- **enter** expand or collapse secions
+"""
+
+    DEFAULT_CSS = """
+    SideBarCollapsible, SideBarCollapsible:ansi {
+        width: 1fr;
+        height: auto;
+        min-height: 1;
+        padding: 0;
+        margin: 0;
+        border-top: none;
+        background: transparent;
+    }
+    SideBarCollapsible > CollapsibleTitle {
+        width: 1fr;
+        padding: 0;
+    }
+    SideBarCollapsible > .sidebar-header {
+        width: 1fr;
+        height: 1;
+    }
+    SideBarCollapsible > .sidebar-header > CollapsibleTitle {
+        width: 1fr;
+        height: 1;
+        padding: 0;
+    }
+    SideBarCollapsible > Contents {
+        height: auto;
+        padding: 0;
+    }
+    SideBarCollapsible.-flex {
+        height: auto;
+        min-height: 12;
+    }
+    SideBarCollapsible.-flex > Contents {
+        height: auto;
+        overflow: hidden hidden;
+    }
+    SideBarCollapsible.-collapsed {
+        height: auto;
+        min-height: 1;
+    }
+    SideBarCollapsible.-collapsed > Contents { display: none; }
+    """
+
+    def __init__(
+        self, *children: Widget, header_control: Widget | None = None, **kwargs
+    ):
+        super().__init__(*children, **kwargs)
+        self.header_control = header_control
+
+    def compose(self) -> ComposeResult:
+        if self.header_control is None:
+            yield from super().compose()
+        else:
+            with SidebarHeader(classes="sidebar-header"):
+                yield self._title
+                yield self.header_control
+            with self.Contents():
+                yield from self._contents_list
+
+
+class SideBarToggle(PrimaryActivation, widgets.Static):
+    """Full-height collapse target beside the conversation-facing resize edge."""
+
+    ALLOW_SELECT = False
+
+    DEFAULT_CSS = """
+    SideBarToggle {
+        dock: right;
+        width: 3;
+        height: 1fr;
+        content-align: center middle;
+        color: $text-muted;
+        background: $primary 8%;
+        layer: sidebar-toggle;
+    }
+    SideBarToggle:hover,
+    SideBarToggle:focus,
+    SideBarToggle.-gutter-hover {
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
+    }
+    """
+
+    can_focus = True
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("enter,space", "sidebar_toggle", "Toggle sidebar", show=False)
+    ]
+
+    class Pressed(Message):
+        def __init__(self, *, focus: bool = True) -> None:
+            super().__init__()
+            self.focus = focus
+
+    def __init__(self, collapsed: bool = False, *, right: bool = False) -> None:
+        super().__init__()
+        self.right = right
+        self.set_collapsed(collapsed)
+
+    def set_collapsed(self, collapsed: bool) -> None:
+        self.styles.dock = "left" if self.right else "right"
+        self.offset = (0 if collapsed else 1 if self.right else -1, 0)
+        text = ("<" if collapsed else ">") if self.right else (">" if collapsed else "<")
+        if self.content != text:
+            self.update(text, layout=False)
+        tooltip = "Expand sidebar" if collapsed else "Collapse sidebar"
+        if self.tooltip != tooltip:
+            self.tooltip = tooltip
+
+    @property
+    def primary_activation(self):
+        return self.action_pointer_toggle
+
+    def action_pointer_toggle(self) -> None:
+        self.query_ancestor(SideBar).toggle(focus=False)
+
+    def action_sidebar_toggle(self) -> None:
+        self.post_message(self.Pressed())
+
+    def focus_on_click(self) -> bool:
+        # Pointer activation is a visibility change. Focusing this handle first
+        # rebuilds bindings, only to move focus again when the sidebar toggles.
+        # It remains keyboard-focusable through normal Tab navigation.
+        return False
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_pointer_toggle()
+
+
+class TabHistoryButton(PrimaryActivation, widgets.Static, can_focus=True):
+    """One compact, keyboard-accessible tab-history control."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("enter,space", "navigate", "Navigate tab", show=False)
+    ]
+    DEFAULT_CSS = """
+    TabHistoryButton {
+        width: 7;
+        height: 3;
+        content-align: center middle;
+        color: $text;
+        background: $background;
+        text-style: bold;
+        pointer: pointer;
+    }
+    TabHistoryButton:hover, TabHistoryButton:focus {
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
+    }
+    TabHistoryButton.-unavailable {
+        color: $text-disabled;
+        pointer: default;
+    }
+    """
+
+    def __init__(self, direction: int) -> None:
+        super().__init__("<──" if direction == -1 else "──>",
+                         id="tab-back" if direction == -1 else "tab-forward")
+        self.direction = direction
+        self.tooltip = ("Back through visited tabs" if direction == -1
+                        else "Forward through visited tabs")
+
+    @property
+    def primary_activation(self):
+        return self.action_navigate
+
+    def action_navigate(self) -> None:
+        cast("ToadApp", self.app).tab_order.navigate(self.direction)
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_navigate()
+
+
+class MainMenuButton(PrimaryActivation, widgets.Static, can_focus=True):
+    """Open Toad's existing anchored menu beside the tab-history controls."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("enter,space", "open_menu", "Main menu", show=False)
+    ]
+    DEFAULT_CSS = """
+    MainMenuButton {
+        width: 7;
+        height: 3;
+        content-align: center middle;
+        color: $text;
+        background: $background;
+        text-style: bold;
+        pointer: pointer;
+    }
+    MainMenuButton:hover, MainMenuButton:focus {
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
+    }
+    """
+
+    class Pressed(Message):
+        pass
+
+    def __init__(self) -> None:
+        super().__init__("☰", id="main-menu")
+        self.tooltip = "Main menu: export wire or import thread"
+
+    @property
+    def primary_activation(self):
+        return self.action_open_menu
+
+    def action_open_menu(self) -> None:
+        self.post_message(self.Pressed())
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_open_menu()
+
+
+class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
+    """Left-sidebar controls shared by native thread and channel screens."""
+
+    DEFAULT_CSS = """
+    TabHistoryControls {
+        width: auto;
+        height: 3;
+        margin: 0;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield MainMenuButton()
+        yield TabHistoryButton(-1)
+        yield TabHistoryButton(+1)
+
+    @on(MainMenuButton.Pressed)
+    def on_main_menu_pressed(self, event: MainMenuButton.Pressed) -> None:
+        from toad.widgets.comms_menu import show_target_menu
+        from toad.widgets.comms_transfer import TransferRequest
+        from functools import partial
+
+        event.stop()
+        button = self.query_one(MainMenuButton)
+        show_target_menu(
+            self.screen,
+            Offset(button.region.x, button.region.y + button.size.height),
+            "Toad",
+            [(kind.declared_name, kind.menu_label) for kind in TransferRequest.menu()],
+            {kind.declared_name: partial(cast("ToadApp", self.app).transfers.open, kind)
+             for kind in TransferRequest.menu()},
+        )
+
+    def on_mount(self) -> None:
+        app = cast("ToadApp", self.app)
+        self.observe_core(app.tab_order.events)
+        self.observe_core(app.events)
+        self._sync()
+
+    @handles(core_events.TabHistoryChanged, core_events.OpenTabsChanged)
+    async def history_changed(self, event: CoreEventMessage) -> None:
+        self._sync()
+
+    def _sync(self) -> None:
+        app = cast("ToadApp", self.app)
+        for button in self.query(TabHistoryButton):
+            unavailable = app.tab_order.history_target(button.direction) is None
+            button.disabled = unavailable
+            button.set_class(unavailable, "-unavailable")
+            button.tooltip = (
+                "No earlier visited tab" if button.direction == -1 else "No later visited tab"
+            ) if unavailable else (
+                "Back through visited tabs" if button.direction == -1
+                else "Forward through visited tabs"
+            )
+
+
+class SidebarSlider(widgets.Static, can_focus=True):
+    """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
+
+    ALLOW_SELECT = False
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("left", "step(-1)", "Decrease", show=False),
+        Binding("right", "step(1)", "Increase", show=False),
+    ]
+    DEFAULT_CSS = """
+    SidebarSlider { height: 1; width: 1fr; color: $text-muted; pointer: pointer; }
+    SidebarSlider:hover, SidebarSlider:focus { color: $accent; }
+    """
+
+    @dataclass
+    class Changed(Message):
+        slider: SidebarSlider
+        value: int
+
+    def __init__(self, kind: str, minimum: int, maximum: int, value: int) -> None:
+        super().__init__(id=f"sidebar-{kind}-slider")
+        self.kind = kind
+        self.minimum = minimum
+        self.maximum = maximum
+        self.value = value
+        self.reversed = False
+        self._dragging = False
+        self._drag_origin_x = 0
+        self._drag_width = 0
+        self._drag_reversed = False
+        self.tooltip = ("Drag or use ←/→ to resize (15–50% of screen)" if kind == "width"
+                        else "Drag or use ←/→ to reveal long sidebar rows")
+
+    def set_range(self, minimum: int, maximum: int, value: int) -> None:
+        self.minimum, self.maximum = minimum, max(minimum, maximum)
+        self.value = max(self.minimum, min(self.maximum, value))
+        self.refresh()
+
+    def render(self) -> str:
+        label = f"{self.value:2d}%" if self.kind == "width" else "↔"
+        track = max(1, self.size.width - len(label) - 1)
+        ratio = (self.value - self.minimum) / max(1, self.maximum - self.minimum)
+        if self.reversed:
+            ratio = 1 - ratio
+        thumb = round(ratio * (track - 1))
+        line = "".join("●" if index == thumb else "─" for index in range(track))
+        return f"{line} {label}" if self.reversed else f"{label} {line}"
+
+    def _choose(self, x: int) -> None:
+        width = self._drag_width if self._dragging else self.size.width
+        reverse = self._drag_reversed if self._dragging else self.reversed
+        label_width = 4 if self.kind == "width" else 2
+        track = max(1, width - label_width)
+        if reverse:
+            label_width = 0
+        ratio = max(0.0, min(1.0, (x - label_width) / max(1, track - 1)))
+        if reverse:
+            ratio = 1 - ratio
+        value = round(self.minimum + ratio * (self.maximum - self.minimum))
+        if value != self.value:
+            self.value = value
+            self.refresh()
+            self.post_message(self.Changed(self, value))
+
+    def action_step(self, direction: int) -> None:
+        if self.reversed:
+            direction = -direction
+        step = 1 if self.kind == "width" else max(1, self.maximum // 30)
+        value = max(self.minimum, min(self.maximum, self.value + direction * step))
+        if value != self.value:
+            self.value = value
+            self.refresh()
+            self.post_message(self.Changed(self, value))
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if event.button == 1:
+            event.stop()
+            self._dragging = True
+            # Resizing changes this track's width and, on the right, its origin.
+            # Keep one pointer mapping until release rather than undoing the
+            # chosen value on mouse-up against the newly resized track.
+            self._drag_origin_x = self.region.x
+            self._drag_width = self.size.width
+            self._drag_reversed = self.reversed
+            self.capture_mouse()
+            self._choose(event.screen_x - self._drag_origin_x)
+
+    def on_mouse_move(self, event: events.MouseMove) -> None:
+        if self._dragging:
+            event.stop()
+            self._choose(event.screen_x - self._drag_origin_x)
+
+    def can_replace_mouse_move(
+        self, event: events.MouseMove, pending: events.MouseMove
+    ) -> bool:
+        # The captured track maps the latest absolute point to a width.
+        # Intermediate positions do not represent separate slider actions.
+        return self._dragging and event.button == pending.button == 1
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        if event.button == 1 and self._dragging:
+            event.stop()
+            self._choose(event.screen_x - self._drag_origin_x)
+            self._dragging = False
+            self.release_mouse()
+
+    def on_mouse_release(self) -> None:
+        self._dragging = False
+
+
+class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
+    """One spatial arrow or float/push action."""
+
+    BINDINGS: ClassVar[list[BindingType]] = [
+        Binding("enter,space", "activate", "Sidebar layout", show=False)
+    ]
+    DEFAULT_CSS = """
+    SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
+    SidebarAction.-direction { width: 7; content-align: center middle; text-style: bold; }
+    SidebarAction:hover, SidebarAction:focus {
+        color: $block-cursor-foreground;
+        background: $block-cursor-background;
+        text-style: $block-cursor-text-style;
+    }
+    """
+
+    @dataclass
+    class Pressed(Message):
+        action: "SidebarPlacementAction"
+
+    def __init__(self, action: "SidebarPlacementAction") -> None:
+        super().__init__(action.label, id=f"sidebar-{action.declared_name}")
+        self.action = action
+        self.set_class(action.directional, "-direction")
+
+    @property
+    def primary_activation(self):
+        return self.action_activate
+
+    def action_activate(self) -> None:
+        self.post_message(self.Pressed(self.action))
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_activate()
+
+
+class SidebarResizeHandle(widgets.Static, can_focus=True):
+    """Drag the conversation-facing edge; the placement model owns the width."""
+
+    # The screen starts text selection before forwarding MouseDown to us.
+    # Capturing/stopping that event alone cannot prevent a competing selection
+    # walk across conversation content as the edge moves under the pointer.
+    ALLOW_SELECT = False
+
+    DEFAULT_CSS = """
+    SidebarResizeHandle {
+        dock: right; width: 1; height: 1fr; padding: 0;
+        color: $success; pointer: ew-resize;
+    }
+    SidebarResizeHandle:hover, SidebarResizeHandle:focus { color: $foreground; }
+    SidebarResizeHandle:ansi { color: ansi_green; }
+    SidebarResizeHandle:ansi:hover, SidebarResizeHandle:ansi:focus { color: ansi_white; }
+    """
+    BINDINGS = [Binding("left", "resize(-1)", "Resize left", show=False),
+                Binding("right", "resize(1)", "Resize right", show=False)]
+
+    def __init__(self) -> None:
+        super().__init__(id="sidebar-resize-handle")
+        self.tooltip = "Drag toward the center to widen the sidebar"
+        self._dragging = False
+        self._start_x = 0
+        self._start_width = 0
+
+    def render(self) -> str:
+        return "\n".join("│" for _ in range(self.size.height))
+
+    def _resize(self, screen_x: int) -> None:
+        bar = self.query_ancestor(SideBar)
+        if bar.id is None or bar.parent is None:
+            return
+        app = cast("ToadApp", self.app)
+        direction = -1 if app.sidebar_layout.get(bar.id).side == "right" else 1
+        width = self._start_width + direction * (screen_x - self._start_x)
+        percent = round(100 * width / max(1, bar.screen.size.width))
+        if app.sidebar_layout.width(bar.id, percent):
+            app.events.publish(core_events.SidebarLayoutChanged())
+
+    def action_resize(self, direction: int) -> None:
+        bar = self.query_ancestor(SideBar)
+        bar.query_one("#sidebar-width-slider", SidebarSlider).action_step(direction)
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if event.button == 1:
+            event.stop()
+            self._dragging = True
+            self._start_x = event.screen_x
+            self._start_width = self.query_ancestor(SideBar).size.width
+            self.capture_mouse()
+
+    def on_mouse_move(self, event: events.MouseMove) -> None:
+        if self._dragging:
+            event.stop()
+            self._resize(event.screen_x)
+
+    def can_replace_mouse_move(
+        self, event: events.MouseMove, pending: events.MouseMove
+    ) -> bool:
+        # Width derives from the original press and the latest absolute point.
+        # Intermediate motion has no separate meaning for this captured handle.
+        return self._dragging and event.button == pending.button == 1
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        if event.button == 1 and self._dragging:
+            event.stop()
+            self._resize(event.screen_x)
+            self._dragging = False
+            self.release_mouse()
+
+    def on_mouse_release(self) -> None:
+        self._dragging = False
+
+
+class SidebarDecorations:
+    """Optional decorations are unavailable unless a panel declares them."""
+
+    def _compose_resize(self) -> ComposeResult:
+        return iter(())
+
+    def _compose_layout_controls(self) -> ComposeResult:
+        return iter(())
+
+
+class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
+    BINDING_GROUP_TITLE = "Sidebar"
+    BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
+    DEFAULT_CSS = """
+    SideBar {
+        layers: sidebar-content sidebar-toggle;
+        background: transparent;
+        dock: left;
+        overflow: hidden;
+        scrollbar-size: 0 0;
+        height: 1fr;
+        width: 40;
+        min-width: 40;
+        max-width: 45%;
+        border: none;
+    }
+    SideBar > #sidebar-panels {
+        width: 1fr;
+        height: 1fr;
+        margin: 0 4 0 0;
+        layer: sidebar-content;
+        overflow: auto auto;
+        scrollbar-size: 1 1;
+        scrollbar-gutter: stable;
+    }
+    SideBar > #sidebar-controls {
+        width: 1fr;
+        height: 2;
+        margin: 0 4 0 0;
+        layer: sidebar-content;
+        background: $background;
+    }
+    SideBar #sidebar-layout-actions { height: 1; width: 1fr; overflow: hidden hidden; }
+    SideBar #sidebar-layout-actions.-compact {
+        layout: grid; grid-size: 2; grid-columns: 1fr 1fr; height: 2;
+    }
+    SideBar #sidebar-layout-actions.-compact > #sidebar-float { column-span: 2; width: 1fr; }
+    SideBar.-right {
+        dock: right;
+        width: 34;
+        min-width: 28;
+        border-right: none;
+        border-left: none;
+    }
+    SideBar.-right > SideBarToggle { dock: left; }
+    SideBar.-right > SidebarResizeHandle { dock: left; }
+    SideBar.-right > #sidebar-panels, SideBar.-right > #sidebar-controls { margin: 0 0 0 4; }
+    """
+
+    collapsed = reactive(False)
+
+    class Dismiss(Message):
+        pass
+
+    @dataclass(frozen=True)
+    class Panel:
+        title: str
+        widget: Widget
+        flex: bool = False
+        collapsed: bool = False
+        id: str | None = None
+        header_control: Widget | None = None
+
+    def __init__(
+        self,
+        *panels: Panel,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+        hide: bool = False,
+        right: bool = False,
+        navigation: SidebarState | None = None,
+        defer_mount: bool = False,
+    ) -> None:
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.panels: list[SideBar.Panel] = [*panels]
+        self.hide = hide
+        self.right = right
+        self._navigation = navigation
+        self._panels_loaded = not defer_mount
+        self._panels_loading = False
+        self._panels_ready = asyncio.Event()
+        self._presented_collapsed: bool | None = None
+        self._presented_layout: tuple | None = None
+        self.set_class(right, "-right")
+        if navigation is not None:
+            self.collapsed = hide
+
+    @property
+    def navigation(self) -> SidebarState:
+        return (self._navigation if self._navigation is not None
+                else cast("ToadApp", self.app).sidebar_state)
+
+    def on_mount(self) -> None:
+        self.trap_focus()
+        app = cast("ToadApp", self.app)
+        if self._navigation is None:
+            self.observe_core(app.saved_settings.events)
+            self.collapsed = DeclaredField.at(app.saved_settings.state, SETTINGS.sidebar.hide).value
+        else:
+            self.collapsed = self.hide
+        self.watch_collapsed(self.collapsed)
+        app.workspace_chrome.layout_sidebars(self.screen)
+        if self._panels_loaded:
+            self._panels_ready.set()
+        else:
+            self.schedule_hydration()
+
+    def schedule_hydration(self) -> None:
+        if not self._panels_loaded and not self._panels_loading:
+            from toad.screens.workspace import WorkspaceScreen
+
+            screen = self.screen
+            if isinstance(screen, WorkspaceScreen):
+                screen.frame_presentation.defer(self, self._start_hydration)
+            else:
+                self.call_after_refresh(self._start_hydration)
+
+    @property
+    def presentation_visible(self) -> bool:
+        return self.screen.is_current and self.display and all(
+            ancestor.display for ancestor in self.ancestors if isinstance(ancestor, Widget))
+
+    def _start_hydration(self) -> None:
+        if (self._panels_loaded or self._panels_loading or not self.is_attached
+                or not self.presentation_visible or self._closing):
+            return
+        self._panels_loading = True
+        self.run_worker(self._hydrate_panels(), group="sidebar-panels")
+
+    async def _hydrate_panels(self) -> None:
+        try:
+            await self.query_one("#sidebar-panels").mount_all(self._compose_panels())
+            if not self.is_attached or self._closing or not self.presentation_visible:
+                return
+            controls = self.query_one_optional("#sidebar-controls")
+            if controls is not None:
+                await controls.mount_all(self._compose_controls())
+            if self.is_attached and not self._closing and self.presentation_visible:
+                self._panels_loaded = True
+                self._presented_layout = None
+                await self.panels_hydrated()
+                self.restore_navigation()
+        finally:
+            self._panels_ready.set()
+
+    async def panels_hydrated(self) -> None:
+        """The sidebar declaration completes its admitted panel preparation."""
+
+    async def wait_content_ready(self) -> None:
+        await self._panels_ready.wait()
+
+    def on_unmount(self) -> None:
+        self._panels_ready.set()
+
+    def compose(self) -> ComposeResult:
+        yield SideBarToggle(self.collapsed, right=self.right)
+        yield from self._compose_resize()
+        with SidebarViewport(id="sidebar-panels"):
+            if self._panels_loaded:
+                yield from self._compose_panels()
+        yield from self._compose_layout_controls()
+
+    def _compose_panels(self) -> ComposeResult:
+        navigation = self.navigation
+        for panel in self.panels:
+            yield SideBarCollapsible(
+                panel.widget, title=panel.title,
+                collapsed=navigation.panels_collapsed.get(panel.title, panel.collapsed),
+                classes="-flex" if panel.flex else "-fixed", id=panel.id,
+                header_control=panel.header_control,
+            )
+
+    def _compose_controls(self) -> ComposeResult:
+        yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
+        yield containers.Horizontal(
+            *(SidebarAction(kind()) for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)),
+            id="sidebar-layout-actions",
+        )
+
+    def _apply_layout(self, resolved) -> bool:
+        app = cast("ToadApp", self.app)
+        if self.id not in app.sidebar_layout.placements or not self.is_mounted:
+            return False
+        placement = app.sidebar_layout.get(self.id)
+        parent = self.parent
+        if parent is None or not self.presentation_visible:
+            self._presented_layout = None
+            return False
+        geometry = resolved.bars[self.id]
+        width = geometry.width
+        key = (placement, geometry, resolved.left_gutter, resolved.right_gutter,
+               self.collapsed)
+        if key == self._presented_layout:
+            return False
+        self._presented_layout = key
+        self.right = placement.side == "right"
+        self.set_class(self.right, "-right")
+        if toggle := self.query_one_optional(SideBarToggle):
+            toggle.right = self.right
+            toggle.set_collapsed(self.collapsed)
+        shared = self is app.workspace_chrome.channels
+        offset_x = (geometry.x if shared or placement.side == "left" else
+                    geometry.x + width - self.screen.size.width)
+        self.set_styles(width=width, min_width=width, max_width=width,
+                        dock=placement.side if not shared else "none",
+                        position="absolute", overlay="none", layer="comms-sidebar",
+                        offset=(offset_x, 0))
+        if handle := self.query_one_optional(SidebarResizeHandle):
+            handle.display = not self.collapsed
+        if self._panels_loaded and (controls := self.query_one_optional("#sidebar-controls")):
+            controls.display = not self.collapsed
+            directions = app.sidebar_layout.directions(self.id)
+            slider = controls.query_one_optional("#sidebar-width-slider", SidebarSlider)
+            actions = controls.query_one_optional("#sidebar-layout-actions")
+            buttons = {direction: controls.query_one_optional(f"#sidebar-{direction}", SidebarAction)
+                       for direction in (*directions, "float")}
+            if slider is None or actions is None or any(button is None for button in buttons.values()):
+                # Parent mounting can complete before its composed action rows.
+                # Reconcile at the committed child frame, not against an
+                # incomplete control tree during a resize/activation callback.
+                self._presented_layout = None
+                self.call_after_refresh(app.workspace_chrome.layout_sidebars, self.screen)
+            else:
+                slider.reversed = self.right
+                slider.set_range(15, 50, placement.width_percent)
+                for direction, action in directions.items():
+                    button = buttons[direction]
+                    button.display = action.available
+                    button.tooltip = action.tooltip(direction)
+                toggle_mode = buttons["float"]
+                toggle_mode.update("Push" if placement.floating else "Float", layout=False)
+                toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
+                compact = all(action.available for action in directions.values()) and width - 4 < 21
+                actions.set_class(compact, "-compact")
+                controls.styles.height = 3 if compact else 2
+        content = next((child for child in parent.children
+                        if child.display and not isinstance(child, SideBar)), None)
+        if content is not None:
+            # Bars are absolutely positioned and reserve no layout space; the
+            # resolved gutter is the whole clearance a pushed bar needs.
+            content.styles.margin = (
+                0,
+                0 if shared else resolved.right_gutter,
+                0,
+                0 if shared else resolved.left_gutter,
+            )
+        return True
+
+    def on_resize(self) -> None:
+        if self.is_mounted and self.screen.is_current:
+            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
+
+    @on(SidebarSlider.Changed)
+    def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
+        event.stop()
+        if event.slider.kind == "width" and self.id is not None:
+            app = cast("ToadApp", self.app)
+            if app.sidebar_layout.width(self.id, event.value):
+                app.events.publish(core_events.SidebarLayoutChanged())
+
+    @on(SidebarAction.Pressed)
+    def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
+        event.stop()
+        if self.id is None:
+            return
+        app = cast("ToadApp", self.app)
+        event.action.apply(app.sidebar_layout, self.id)
+        app.events.publish(core_events.SidebarLayoutChanged())
+
+    @on(widgets.Collapsible.Collapsed)
+    @on(widgets.Collapsible.Expanded)
+    def panel_toggled(self, event: widgets.Collapsible.Toggled) -> None:
+        panel = event.collapsible
+        if isinstance(panel, SideBarCollapsible):
+            self.navigation.panels_collapsed[str(panel.title)] = panel.collapsed
+
+    def restore_navigation(self) -> bool:
+        changed = self._presented_collapsed != self.collapsed
+        if changed:
+            self.watch_collapsed(self.collapsed)
+        changed |= cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
+        navigation = self.navigation
+        for panel in self.query(SideBarCollapsible):
+            if str(panel.title) in navigation.panels_collapsed:
+                panel.collapsed = navigation.panels_collapsed[str(panel.title)]
+        return changed
+
+    def watch_collapsed(self, collapsed: bool) -> None:
+        if self.is_mounted and not self.presentation_visible:
+            # Keep shared intent current without resizing every hidden transcript.
+            # Activation applies the latest value inside its render transaction;
+            # an open/close round trip can therefore keep unchanged geometry.
+            return
+        if not collapsed and self.is_mounted:
+            self.schedule_hydration()
+        self._presented_collapsed = collapsed
+        # The old -collapsed ancestor selector restyled every descendant row
+        # (hundreds of expensive stylesheet.apply calls per toggle). Inline
+        # box changes affect only this sidebar and its immediate panels.
+        managed = self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements
+        if not managed:
+            self.styles.width = 3 if collapsed else None
+            self.styles.min_width = 3 if collapsed else None
+            self.styles.max_width = 3 if collapsed else None
+            if self.right:
+                self.styles.border_left = ("none", "transparent") if collapsed else None
+            else:
+                self.styles.border_right = ("none", "transparent") if collapsed else None
+        if panels := self.query_one_optional("#sidebar-panels"):
+            panels.display = not collapsed
+        if controls := self.query_one_optional("#sidebar-controls"):
+            controls.display = not collapsed
+        self.tooltip = "Expand sidebar" if collapsed else None
+        toggle = self.query_one_optional(SideBarToggle)
+        if toggle is not None:
+            toggle.set_collapsed(collapsed)
+            if not collapsed:
+                toggle.remove_class("-gutter-hover")
+        for panel in self.panels:
+            if isinstance(panel.widget, SidebarVisibilityObserver):
+                panel.widget.sidebar_visibility_changed()
+        self._presented_layout = None
+        if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
+            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
+            cast("ToadApp", self.app).events.publish(core_events.SidebarLayoutChanged())
+
+    def render(self) -> str:
+        return ("<" if self.right else ">") if self.collapsed else ""
+
+    @handles(PreferenceChanged)
+    async def _settings_changed(self, message: CoreEventMessage) -> None:
+        if message.event.path == SETTINGS.sidebar.hide:
+            self.collapsed = DeclaredField.at(self.app.saved_settings.state, message.event.path).value
+
+    @on(SideBarToggle.Pressed)
+    def on_toggle_pressed(self, event: SideBarToggle.Pressed) -> None:
+        event.stop()
+        self.toggle(focus=event.focus)
+
+    def on_click(self, event: Click) -> None:
+        if self.collapsed and event.button == 1:
+            event.stop()
+            self.toggle(focus=False)
+
+    def on_enter(self) -> None:
+        if self.collapsed:
+            self.query_one(SideBarToggle).add_class("-gutter-hover")
+
+    def on_leave(self) -> None:
+        if toggle := self.query_one_optional(SideBarToggle):
+            toggle.remove_class("-gutter-hover")
+
+    def toggle(self, *, focus: bool = True) -> None:
+        collapsed = not self.collapsed
+        return_focus = collapsed and (focus or self.has_focus_within)
+        if return_focus and self.is_mounted and self.screen.is_current:
+            screen = self.screen
+            if isinstance(screen, SidebarFocusOwner):
+                target = screen.sidebar_focus_target()
+                # Native Hide otherwise reconstructs a full geometry-sorted
+                # focus chain before the queued Dismiss can return to input.
+                screen.set_focus(target, scroll_visible=False)
+        if self._navigation is None:
+            app = cast("ToadApp", self.app)
+            app.saved_settings.set(SETTINGS.sidebar.hide, collapsed)
+            # Project this input on its visible owner immediately. The shared
+            # settings signal still updates other views, idempotently.
+            self.collapsed = DeclaredField.at(app.saved_settings.state, SETTINGS.sidebar.hide).value
+        else:
+            self.collapsed = collapsed
+        if collapsed:
+            if return_focus:
+                self.post_message(self.Dismiss())
+        elif focus:
+            # Panels are already displayed by the synchronous watcher. Queue
+            # native focus now so its highlight can share the opening frame,
+            # rather than waiting for a painted frame to request another one.
+            if title := self.query_one_optional("SideBarCollapsible CollapsibleTitle"):
+                title.focus()
+            else:
+                self.schedule_hydration()
+
+    def reveal(self) -> None:
+        if self._navigation is None:
+            cast("ToadApp", self.app).saved_settings.set(SETTINGS.sidebar.hide, False)
+        else:
+            self.collapsed = False
+
+    def action_dismiss(self) -> None:
+        if DeclaredField.at(self.app.saved_settings.state, SETTINGS.sidebar.hide).value:
+            self.collapsed = True
+        self.post_message(self.Dismiss())
+
+
+if __name__ == "__main__":
+    from textual.app import App, ComposeResult
+
+    class SApp(App):
+        def compose(self) -> ComposeResult:
+            yield SideBar(
+                SideBar.Panel("Hello", widgets.Label("Hello, World!")),
+                SideBar.Panel(
+                    "Files",
+                    widgets.DirectoryTree(
+                        "~/",
+                    ),
+                    flex=True,
+                ),
+                SideBar.Panel(
+                    "Hello",
+                    widgets.Static("Where there is a Will! " * 10),
+                ),
+            )
+
+    SApp().run()
+
+
+class CommsSideBar(SideBar):
+    """Resizable comms panels share their native layout controls."""
+
+    def _compose_resize(self) -> ComposeResult:
+        yield SidebarResizeHandle()
+
+    def _compose_layout_controls(self) -> ComposeResult:
+        with containers.Vertical(id="sidebar-controls"):
+            if self._panels_loaded:
+                yield from self._compose_controls()
+
+
+class ThreadSidebar(CommsSideBar):
+    def __init__(self, *panels, **kwargs):
+        super().__init__(*panels, id="thread-sidebar", **kwargs)

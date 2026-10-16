@@ -1,0 +1,256 @@
+"""The pager's source-owned read, lookahead and retirement lifetime."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from functools import partial
+from typing import TYPE_CHECKING
+
+from textual.worker import Worker, WorkerCancelled
+from textual.await_complete import AwaitComplete
+from toad.core_event_carrier import CoreEventReceiver
+from toad.core.events import CoordinationObserved
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
+from toad.transcript_preparation import PreparedPageSource
+from toad.core.source_events import TranscriptSourceWorkFinished
+from toad.widgets.history_anchor import HeldReaderDestination
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from textual.screen import Screen
+    from toad.widgets.history_anchor import HistoryWindow, LatestPosition
+
+
+@dataclass(frozen=True)
+class HistorySourceSnapshot:
+    """One original source/view identity for page and filter publication."""
+
+    generation: int
+    window: HistoryWindow
+    screen: Screen
+    source: object
+
+    def current(self, owner: TranscriptSourcePreparation) -> bool:
+        if not owner.can_draw_on_screen:
+            return False
+        return self == owner.source_snapshot()
+
+
+class TranscriptSourcePreparation(CoreEventReceiver):
+    """Shared source preparation; native widget and operational session stay separate."""
+
+
+    def __init__(self, *args, source_state: TranscriptState, **kwargs):
+        self._source_state = source_state
+        self._generation = 0
+        self._page_buffer: PreparedPageSource | None = None
+        super().__init__(*args, **kwargs)
+
+    @property
+    def state(self) -> TranscriptState:
+        return self._source_state.observed(self)
+
+    @property
+    def can_draw_on_screen(self) -> bool:
+        if not self.state.can_draw:
+            return False
+        return self.screen.is_current
+
+    def source_snapshot(self) -> HistorySourceSnapshot:
+        return HistorySourceSnapshot(self._generation, self.window, self.screen,
+                                     self.source_identity)
+
+    @property
+    def blocks_visible_read(self) -> bool:
+        """Source mutation, remaining tail and filtering govern acknowledgement."""
+        return self.state.blocks_visible_read(self)
+
+    @property
+    def checkpoint_available(self) -> bool:
+        return self.state.checkpoint_available(self)
+
+    def reserve_source_work(self) -> WorkingTranscript:
+        operation = self._source_state.reserve(self)
+        self._source_state = operation
+        return operation
+
+    def schedule_source_work(self, work) -> Worker | None:
+        """Own source I/O on the pager worker, never its caller's event pump."""
+        if self.state.accepts_source_work:
+            return self.reserve_source_work().schedule(self, work)
+
+    def source_failed(self, error) -> None:
+        self.notify(str(error), title="History", severity="error")
+
+    def observe_source(self) -> None:
+        self.window.histories.add(self)
+        self.request_preparation()
+
+    async def on_unmount(self) -> None:
+        # Parked preparation belongs to the logical document. Unmount revokes
+        # this publisher, not the original source scope transferred with it.
+        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
+        self._generation += 1
+        self.window.histories.discard(self)
+        await self.close_source_reader()
+
+    async def close_source_reader(self) -> None:
+        """Close independent source subscriptions, separately from page custody."""
+
+    def request_preparation(self) -> None:
+        """Borrow the original frame's admission for this independent source.
+
+        The window supplies scroll/layout demand. A pager keeps its own native
+        callback scope so a held sibling cannot block its source publication.
+        The frame owns deduplication, including work requested during I/O.
+        """
+        if self.can_draw_on_screen:
+            self.screen.frame_presentation.defer(self, self.prepare_viewport)
+
+    def prepare_viewport(self) -> None:
+        """Consume committed geometry once, on this source's own pump."""
+        if self.can_draw_on_screen:
+            self.state.check_edges(self)
+
+    def _check_edges(self) -> None:
+        """The source declaration admits pages from its committed native box."""
+        raise NotImplementedError
+
+    def _request_page(self, older: bool) -> None:
+        self.schedule_source_work(partial(self._prepare_edge, older))
+
+    async def _prepare_edge(self, older: bool) -> None:
+        """Keep one admission while its committed publications request more rows."""
+        snapshot = self.source_snapshot()
+        while snapshot.current(self) and await self._load_page(older):
+            pass
+
+    async def _load_page(self, older: bool) -> bool:
+        """Publish one source range; return whether this edge still needs rows."""
+        raise NotImplementedError
+
+    def request_latest(self, destination: LatestPosition) -> None:
+        # End supersedes any admitted edge publication. Its worker may finish
+        # the source read, but the old snapshot cannot paint an intermediate page.
+        self._generation += 1
+        self.state.request_latest(self, LatestViewportRequest(destination))
+
+    async def _jump_latest(self, request: LatestViewportRequest,
+                           publication_current: Callable[[], bool] = lambda: True) -> bool:
+        """Publish one destination under its original source and reader intent.
+
+        A preceding page's restoration may have left the window off its tail.
+        Apply the still-current destination before its source read, then finish
+        native geometry after publication. Neither restoration is another user
+        scroll; movement during I/O revokes this request at its original revision.
+        """
+        if not self.can_draw_on_screen or not request.current(self.window):
+            return False
+        request.restore(self.window)
+        snapshot = self.source_snapshot()
+        current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
+        if await self._publish_latest(current):
+            # Wire acceptance advances the original reader source. Capture the
+            # published source, rather than the request that acceptance replaced.
+            self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
+            return True
+        return False
+
+    async def _publish_latest(self, current: Callable[[], bool]) -> bool:
+        """The source leaf reads/prepares and fences its original publication."""
+        raise NotImplementedError
+
+    def _complete_latest(
+        self, snapshot: HistorySourceSnapshot, request: LatestViewportRequest,
+    ) -> None:
+        if snapshot.current(self):
+            request.restore(snapshot.window)
+            request.destination.source_settled(snapshot.window)
+            snapshot.window.lookahead.destination_complete()
+
+    def defer_source_work(self, operation: WorkingTranscript, work) -> None:
+        """Keep the original read until the shared observer supplies relief.
+
+        This signal subscription is an operation resource. Its original source
+        snapshot rejects a replaced, parked or retired pager before admission.
+        """
+        snapshot = self.source_snapshot()
+
+        def resume(_event) -> None:
+            self.retire_core_observations(self.app.coordination_access.events)
+            if snapshot.current(self) and self._source_state is operation:
+                operation.schedule(self, work)
+            else:
+                self.finish_source_work(operation)
+
+        self.retire_core_observations(self.app.coordination_access.events)
+        self.observe_core_callback(self.app.coordination_access.events,
+                                   CoordinationObserved, resume)
+
+    def supersede_source_work(
+        self, operation: WorkingTranscript, request: LatestViewportRequest,
+    ) -> None:
+        """Replace an edge read with End's destination without publishing it."""
+        if self._source_state is not operation:
+            return
+        self.retire_core_observations(self.app.coordination_access.events)
+        self._source_state = operation.source
+        self.workers.cancel_node(self)
+        request.apply(self)
+
+    def finish_source_work(self, operation: WorkingTranscript) -> None:
+        # Retirement or replacement revokes this exact admission. A cancelled
+        # old operation cannot publish again or settle a newer source's work.
+        if self._source_state is operation:
+            self._source_state = operation.source
+            if self.state.can_draw:
+                self.window.check_follow()
+                # The admitted operation owns source and reader progress.
+                # Native compensation and unchanged reads cannot rearm it.
+                if operation.progressed(self):
+                    self.request_preparation()
+                self.publish_core(TranscriptSourceWorkFinished())
+                HeldReaderDestination.settle(self.window)
+
+    def retire_source(self, *, parked: bool = False) -> AwaitComplete:
+        """Withdraw publication now; join its cancelled work independently."""
+        self.retire_core_observations(self.app.coordination_access.events)
+        source = self._source_state.retirement_source()
+        self._source_state = (ParkedSourceTranscript(source) if parked
+                              else RetiredSourceTranscript(source))
+        self._generation += 1
+        if self.window is not None:
+            self.window.histories.discard(self)
+        self._source_state.retire_preparation(self._page_buffer)
+        workers = self.workers.cancel_node(self)
+
+        async def join():
+            for worker in workers:
+                try:
+                    await worker.wait()
+                except WorkerCancelled:
+                    pass
+
+        return AwaitComplete(join())
+
+    def resume_source(self) -> None:
+        self._source_state = self._source_state.resume()
+        self.window.histories.add(self)
+        self.source_resumed()
+        self.window.check_follow()
+        self.request_preparation()
+
+
+    @property
+    def drawn_extent(self) -> tuple[int, int]:
+        """Rows drawn and the source items they show, for converting rows to items."""
+        raise NotImplementedError
+
+    def source_resumed(self) -> None:
+        """A parked source publishes again: report what its drawn pages mean to their owner."""
+        raise NotImplementedError
+
+    @property
+    def prefetch_distance(self) -> int:
+        """Start background reads before the earlier edge enters the viewport."""
+        return self.window.lookahead.ahead_rows(self.window.outer_size.height)
