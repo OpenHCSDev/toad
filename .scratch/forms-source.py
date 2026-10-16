@@ -27,6 +27,8 @@ terms = {'message_category', 'apply_block_filter', 'keep_live_block', 'block_cat
          'CoordinationAccess', 'CoordinationTranscriptReader', 'WireRelationshipSource',
          'DetachedTranscriptReader', 'ObservedTranscriptReader', 'accepts_launch',
          'sync_identity', 'on_comms_session_named', 'rename_coordination', 'coordinated_title',
+         'ModelSwitcher', 'ModelSelection', 'ConnectProvider', 'filter_models', 'select_model',
+         'provider_login', 'ConfigChoice', 'SelectChoices', 'configuration_changed',
          'LayoutKind', 'LayoutStrategy', 'title_components', 'is_nested',
          'unwrapped_type', 'WidgetCreationPipeline', 'WidgetCreationRuntime'}
 modules, classes, sites, errors = [], [], [], []
