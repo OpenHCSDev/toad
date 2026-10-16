@@ -43,7 +43,7 @@ class CoreEventReceiver(MroDispatch):
         super().__init__(*args, **kwargs)
 
     def subscribe_core(self, stream: CoreEventStream) -> Subscription:
-        subscription = stream.subscribe(self.post_core_event)
+        subscription = stream.subscribe(CoreEvent, self.post_core_event)
         self._core_subscriptions.add(subscription)
         return subscription
 
@@ -67,9 +67,10 @@ class CoreEventReceiver(MroDispatch):
     def observe_core(self, stream: CoreEventStream) -> Subscription:
         """Broadcast observations terminate at their original native recipient."""
         for subscription in self._core_subscriptions:
-            if subscription.stream is stream and subscription.active:
+            if (subscription.stream is stream and subscription.event_type is CoreEvent
+                    and subscription.active):
                 return subscription
-        subscription = stream.subscribe(self.post_core_observation)
+        subscription = stream.subscribe(CoreEvent, self.post_core_observation)
         self._core_subscriptions.add(subscription)
         return subscription
 
@@ -82,7 +83,8 @@ class CoreEventReceiver(MroDispatch):
             if subscription.stream is stream:
                 self.retire_core(subscription)
 
-    def observe_core_callback(self, stream: CoreEventStream, callback) -> Subscription:
+    def observe_core_callback(self, stream: CoreEventStream,
+                              event_type: type[CoreEvent], callback) -> Subscription:
         """An original deferred operation receives relief inside its native pump."""
         recipient = ref(self)
         try:
@@ -104,7 +106,7 @@ class CoreEventReceiver(MroDispatch):
             message.bubble = False
             receiver.post_message(message)
 
-        subscription = stream.subscribe(publish)
+        subscription = stream.subscribe(event_type, publish)
         self._core_subscriptions.add(subscription)
         return subscription
 
