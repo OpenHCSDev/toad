@@ -103,18 +103,30 @@ class AgentSession:
 
     reconnect_timeout_seconds = 30
 
-    def __init__(self, agent, pk):
+    def __init__(self, agent, pk, app_events: core_events.CoreEventStream):
         self.agent = agent
+        # The app's stream: its thread rows show this session's state, attached to a view or not.
+        self.app_events = app_events
         self.task = None
         self.responses = set()
         self.retirement = None
-        self.disposition = ActiveSessionDisposition()
+        self._disposition: SessionDisposition = ActiveSessionDisposition()
         self.pk = pk
         self.chosen_name = None
         self.connected = False
         self.reconnecting = False
         self.load_plan: SessionLoadPlan = EnsuringSessionLoadPlan()
         self.settled = asyncio.Event()
+
+    @property
+    def disposition(self) -> SessionDisposition:
+        return self._disposition
+
+    @disposition.setter
+    def disposition(self, state: SessionDisposition) -> None:
+        if state is not self._disposition:
+            self._disposition = state
+            self.app_events.publish(core_events.ThreadRowStateChanged())
 
     @property
     def capabilities(self):

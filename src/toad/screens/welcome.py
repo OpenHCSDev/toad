@@ -17,7 +17,7 @@ from textual.containers import VerticalScroll
 from textual.widgets import Static
 
 from toad.constants import ALL_COMMS_TARGET
-from toad.core.events import SessionSelected, ThreadRowStateChanged
+from toad.core.events import SessionSelected
 from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
@@ -187,11 +187,6 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     @handles(SessionSelected)
     async def present_selected(self, event: CoreEventMessage) -> None:
         self.present()
-
-    @handles(ThreadRowStateChanged)
-    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
-        if self.shows_model and self.accepts_observation():
-            self.sections[1].sync_members()
 
     def _ordered_rows(self):
         return [row for section in self.sections for row in section.navigation_rows]

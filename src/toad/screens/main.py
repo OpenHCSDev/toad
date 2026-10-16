@@ -456,15 +456,12 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     @handles(core_events.AgentReady)
     async def on_session_attached(self, message: CoreEventMessage) -> None:
         await self.content.attached(self)
-        self.app.events.publish(core_events.ThreadRowStateChanged())
 
     @handles(core_events.AgentFail)
     def on_session_failure(self, message: CoreEventMessage) -> None:
         # A disconnected session is not a failed history-opening operation.
-        # Its reason stays on the session; the opening line and every thread
-        # row of this view read it there.
+        # Its reason stays on the session; the opening line reads it there.
         self.content.render(self)
-        self.app.events.publish(core_events.ThreadRowStateChanged())
 
     _last_dm_target: str | None = None
 

@@ -567,6 +567,15 @@ class SidebarModelView(CoreEventReceiver):
         if service is not None and service is not self.service:
             self.attach(service)
 
+    @handles(ThreadRowStateChanged)
+    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
+        """This app's own row state changed: every thread row repaints now, or when shown again."""
+        if self.accepts_observation() and self.shows_model:
+            self.sync(channels=frozenset(), threads=None)
+        else:
+            self.stale = True
+            self.present()
+
 
 class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     """The view of the observed service's sidebar model: channel groups and their threads.
@@ -769,12 +778,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         for group in self.groups.values():
             for name, row in group.rows.items():
                 row.mode_name = self.open_views.get(name)
-
-    @handles(ThreadRowStateChanged)
-    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
-        if self.shows_model and self.accepts_observation():
-            for group in self.groups.values():
-                group.sync_members()
 
     def sidebar_visibility_changed(self) -> None:
         self.present()
