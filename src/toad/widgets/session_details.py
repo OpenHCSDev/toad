@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from agent_comms.mro_dispatch import handles
 from agent_comms.thread_presentation import (
@@ -26,37 +26,7 @@ if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionStatus(MroProjection):
-    """Toad paint for Core's original status member, without classifying it again."""
-
-    role: ClassVar[type[LineRole]]
-
-    @handles(IdleThreadPresentationStatus)
-    def idle_status(self, status):
-        return IdleSessionStatus
-
-    @handles(WorkingThreadPresentationStatus)
-    def working_status(self, status):
-        return WorkingSessionStatus
-
-    @handles(AttentionThreadPresentationStatus)
-    def attention_status(self, status):
-        return AttentionSessionStatus
-
-
-class IdleSessionStatus(SessionStatus):
-    role = MutedRole
-
-
-class WorkingSessionStatus(SessionStatus):
-    role = WorkingRole
-
-
-class AttentionSessionStatus(SessionStatus):
-    role = NoticeRole
-
-
-class SessionDetails(Collapsible, ObservedThreadActivity):
+class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -65,7 +35,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
     """
 
     DETAIL_ROWS = 8
-    status_paint = SessionStatus()
     overview_text: var[str] = var("")
 
     DEFAULT_CSS = """
@@ -96,19 +65,31 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             title="", collapsed=True, id="session-details",
         )
 
+    @handles(IdleThreadPresentationStatus)
+    def idle_role(self, status) -> type[LineRole]:
+        return MutedRole
+
+    @handles(WorkingThreadPresentationStatus)
+    def working_role(self, status) -> type[LineRole]:
+        return WorkingRole
+
+    @handles(AttentionThreadPresentationStatus)
+    def attention_role(self, status) -> type[LineRole]:
+        return NoticeRole
+
     @property
-    def title_status(self) -> type[SessionStatus]:
-        """Derive the disclosure's one paint state from its original sources."""
+    def title_role(self) -> type[LineRole]:
+        """Derive existing theme paint from the original status sources."""
         if self.history_details.attention:
-            return AttentionSessionStatus
+            return NoticeRole
         if self.delivery is not None and (self.delivery.delivery.current or self.delivery.error):
-            return AttentionSessionStatus
+            return NoticeRole
         row = self.row
         if row is not None and row.shown:
-            return self.status_paint.dispatch_sync(row.status)
+            return self.dispatch_sync(row.status)
         if self.turns is not None:
-            return self.status_paint.dispatch_sync(self.turns.owner.presentation_status)
-        return IdleSessionStatus
+            return self.dispatch_sync(self.turns.owner.presentation_status)
+        return MutedRole
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -141,8 +122,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         detail = "\n".join(row.lines[1:]) if shown else ""
         self.notifications.update(detail)
         self.notifications.display = bool(detail)
-        status = self.title_status
-        label = Content.styled(title, self.app.colours.style(status.role))
+        label = Content.styled(title, self.app.colours.style(self.title_role))
         # Native Content compares text and spans; no last-title/status mirror.
         if not Content.from_text(self.title, markup=False).is_same(label):
             self.title = label
