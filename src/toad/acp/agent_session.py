@@ -18,7 +18,7 @@ from toad.core.events import AgentFail, AgentReady, UnsupportedResumeAgentFail, 
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.input_attempt import NotSentInput
-from agent_comms.session_load import EnsuringSessionLoadAdmission, ExistingSessionLoadAdmission, FailedSessionLoadAdmission, SessionLoadAdmission
+from agent_comms.session_load import EnsuringSessionLoadPlan, ExistingSessionLoadPlan, FailedSessionLoadPlan, SessionLoadPlan
 
 PROTOCOL_VERSION = 1
 
@@ -88,7 +88,7 @@ class AgentSession:
         self.chosen_name = None
         self.connected = False
         self.reconnecting = False
-        self.load_admission: SessionLoadAdmission = EnsuringSessionLoadAdmission()
+        self.load_plan: SessionLoadPlan = EnsuringSessionLoadPlan()
         self.settled = asyncio.Event()
 
     @property
@@ -278,11 +278,11 @@ class AgentSession:
         if self.agent.coordination is None:
             return
         binding = presentation.binding
-        if not self.load_admission.superseded_by(binding):
+        if not self.load_plan.superseded_by(binding):
             return
-        await self.reconnect(ExistingSessionLoadAdmission(binding))
+        await self.reconnect(ExistingSessionLoadPlan(binding))
 
-    async def reconnect(self, admission: SessionLoadAdmission | None = None) -> None:
+    async def reconnect(self, plan: SessionLoadPlan | None = None) -> None:
         """Reattach the existing view after login or an explicit owner start."""
         if self.reconnecting:
             return
@@ -294,7 +294,7 @@ class AgentSession:
             await AcpIngress(selection, Path(requested_cwd),
                              self.agent.process.attached_root(self.agent)).preflight()
             await self.agent.stop()
-            self.load_admission = admission or EnsuringSessionLoadAdmission()
+            self.load_plan = plan or EnsuringSessionLoadPlan()
             self.settled.clear()
             await self.agent.start((self.agent.process,))
             try:
@@ -418,17 +418,17 @@ class AgentSession:
                 if agent_data := session.meta_json.agent_data:
                     self.agent.definition = agent_data
 
-        admission, self.load_admission = self.load_admission, EnsuringSessionLoadAdmission()
+        plan, self.load_plan = self.load_plan, EnsuringSessionLoadPlan()
         with self.agent.request():
             session_load_response = api.session_load(cwd, [], request_session_id,
-                                                     admission.metadata())
+                                                     plan.metadata())
         try:
             response = await session_load_response.wait()
         except jsonrpc.APIError as error:
             authority.require()
             if self.agent.queue_attachment.is_current_request(queue_token):
-                if failed_command := FailedSessionLoadAdmission.from_failure(error.data):
-                    self.load_admission = failed_command
+                if failed_command := FailedSessionLoadPlan.from_failure(error.data):
+                    self.load_plan = failed_command
             raise
         authority.require()
         if (
@@ -501,7 +501,7 @@ class AgentSession:
 
 
     def publish_configuration(self, response):
-        self.load_admission = SessionLoadAdmission.at_response(response.field_meta)
+        self.load_plan = SessionLoadPlan.at_response(response.field_meta)
         if (modes := response.modes) is not None:
             self.agent.controller.publish_modes(modes)
         self.agent.configuration.receive(response.config_options)
