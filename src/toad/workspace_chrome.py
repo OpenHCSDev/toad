@@ -6,23 +6,13 @@ from textual.geometry import Spacing
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from textual.widgets import Footer
 from toad.session_presentation import NativeSessionSurface
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from toad.core.events import SidebarLayoutChanged
-from agent_comms.mro_dispatch import handles
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.session_view import SessionView
 
 
-class WorkspaceHeader(CoreEventReceiver, Horizontal):
-    def on_mount(self) -> None:
-        self.observe_core(self.app.events)
-
-    @handles(SidebarLayoutChanged)
-    async def sidebar_layout_changed(self, event: CoreEventMessage) -> None:
-        self.app.workspace_chrome.layout_sidebars(self.screen)
-
+class WorkspaceHeader(Horizontal):
     def compose(self) -> ComposeResult:
         from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import TabHistoryControls
