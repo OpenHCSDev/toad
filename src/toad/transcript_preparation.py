@@ -82,6 +82,19 @@ class PreparedTranscriptPage:
         start = max(0, len(fragments) - batch_size) if newest else 0
         return slice(start, min(len(fragments), start + batch_size))
 
+    def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
+        """Keep rendered members while a nonmatching source interval advances."""
+        page = prepared.page
+        self.page = replace(self.page,
+                            before=page.before if older else self.page.before,
+                            after=self.page.after if older else page.after,
+                            has_older=page.has_older if older else self.page.has_older,
+                            has_newer=self.page.has_newer if older else page.has_newer)
+
+    def can_extend(self, older: bool) -> bool:
+        """Whether this already-decoded page has an unadmitted local range."""
+        return self.start > 0 if older else self.stop < len(self.fragments)
+
     def configure(self, *, batch_size, newest=True):
         if self.fragment_range is None:
             self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
@@ -162,9 +175,18 @@ class PreparedTranscriptPage:
     async def replace_range(self, view, selected, current) -> bool:
         if not current():
             return False
-        self.set_fragment_range(selected)
-        view.range_changed()
+        if self.fragment_range != (selected.start, selected.stop):
+            self.set_fragment_range(selected)
+            view.range_changed()
         return True
+
+    def same_source(self, other: PreparedTranscriptPage) -> bool:
+        """Equal backend pages and source members can keep their original view."""
+        if self.page.before != other.page.before or self.page.after != other.page.after:
+            return False
+        return (self.page == other.page
+                and tuple(fragment.events for fragment in self.fragments)
+                == tuple(fragment.events for fragment in other.fragments))
 
     def trim(self, view, count: int, *, older: bool) -> None:
         if older:
@@ -208,6 +230,10 @@ class PageFragmentRange:
 class PageRequest:
     before: TranscriptCursor | None = None
     after: TranscriptCursor | None = None
+
+    @classmethod
+    def adjacent(cls, page: TranscriptPage, older: bool) -> PageRequest:
+        return cls(before=page.before) if older else cls(after=page.after)
 
 
 @dataclass(frozen=True)
@@ -298,9 +324,21 @@ class PreparedPageSource(ABC):
     def closed(self) -> bool:
         return self.scope.closed
 
+    def accepts(self, loader, through) -> bool:
+        """Whether this reader still belongs to the same immutable source cut."""
+        return self.loader is loader and self.through == through
+
     @abstractmethod
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         pass
+
+    @abstractmethod
+    async def prepare(self, request: PageRequest) -> None:
+        """Prepare the original runtime resource without delivering another copy."""
+
+    async def prepare_next(self, page: TranscriptPage, older: bool) -> None:
+        if not self.closed and (page.has_older if older else page.has_newer):
+            await self.prepare(PageRequest.adjacent(page, older))
 
     def close(self) -> None:
         self.runtime.discard_scope(self.scope)
@@ -410,11 +448,17 @@ class TranscriptPageBuffer(PreparedPageSource):
     def closed(self) -> bool:
         return self.scope.closed
 
-    async def get(self, request: PageRequest) -> PreparedTranscriptPage:
+    def read_task(self, request: PageRequest) -> TranscriptPageWork:
         if self.loader is None:
             raise ValueError("This transcript has no saved-source reader")
-        result = await self.runtime.submit(self.work(self.scope, self.loader, self.through, request))
+        return self.work(self.scope, self.loader, self.through, request)
+
+    async def get(self, request: PageRequest) -> PreparedTranscriptPage:
+        result = await self.runtime.submit(self.read_task(request))
         return result.for_view()
+
+    async def prepare(self, request: PageRequest) -> None:
+        await self.runtime.prepare(self.read_task(request))
 
 class ProjectedTranscriptSource(PreparedPageSource):
     """A projected prefix with a fixed boundary and ordinary bidirectional reads.
@@ -470,35 +514,28 @@ class ProjectedTranscriptSource(PreparedPageSource):
         reader = (self._upstream if older and self._upstream is not None and not self._upstream.closed
                   else self._raw)
         initial = await reader.get(request)
-        prepared = initial
-        while True:
-            prepared = await self._project(prepared)
-            if prepared.fragments:
-                break
-            more = prepared.page.has_older if older else prepared.page.has_newer
-            if not more:
-                if not older:
-                    boundary = await self.boundary()
-                    return replace(boundary, page=replace(
-                        boundary.page, before=initial.page.before,
-                        has_older=initial.page.has_older,
-                    ))
-                break
-            prepared = await reader.get(PageRequest(
-                before=prepared.page.before if older else None,
-                after=prepared.page.after if not older else None,
+        prepared = await self._project(initial)
+        if not older and not prepared.fragments and not prepared.page.has_newer:
+            boundary = await self.boundary()
+            return replace(boundary, page=replace(
+                boundary.page, before=initial.page.before,
+                has_older=initial.page.has_older,
             ))
-        # Unmatched intervals advance source cursors, not empty widget pages.
-        # Retain the whole scanned span so reversing direction cannot skip a
-        # matching record or repeatedly rediscover an empty interval.
-        page = replace(
-            prepared.page,
-            before=prepared.page.before if older else initial.page.before,
-            after=initial.page.after if older else prepared.page.after,
-            has_older=prepared.page.has_older if older else initial.page.has_older,
-            has_newer=True,
-        )
-        return replace(prepared, page=page)
+        # One requested source page, including an empty matching interval.
+        # Only the viewport or an explicit filter scan may request another;
+        # a projection cannot decode arbitrary older pages behind that request.
+        return replace(prepared, page=replace(prepared.page, has_newer=True))
+
+    async def prepare(self, request: PageRequest) -> None:
+        if self.closed:
+            return
+        if (request.before == self.through
+                or request.after == self._boundary.page.before or self._raw is None):
+            await self.boundary()
+            return
+        reader = (self._upstream if request.before is not None
+                  and self._upstream is not None and not self._upstream.closed else self._raw)
+        await reader.prepare(request)
 
     def close(self) -> None:
         super().close()

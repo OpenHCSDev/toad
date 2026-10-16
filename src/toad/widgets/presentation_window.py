@@ -1,10 +1,12 @@
 """Shared budgets for a source-backed window of native widget presentation."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import zip_longest
+from functools import partial
 from math import ceil
+from operator import gt, ge
 from time import monotonic, get_clock_info
 from typing import TYPE_CHECKING
 
@@ -37,32 +39,35 @@ class PresentationBudget:
     satisfy a widget budget.
     """
 
-    max_items: int = 24
-    batch_items: int = 4
-    reserve_batches: int = 4
-    minimum_widgets: int = 300
-    widgets_per_row: int = 10
-    buffer_viewports: int = 3
-    lookahead_seconds: float = 1.0
-    scroll_idle_seconds: float = 0.2
+    max_items: int = field(default=24, metadata={"zero_bound": gt})
+    batch_items: int = field(default=4, metadata={"zero_bound": gt})
+    reserve_batches: int = field(default=4, metadata={"zero_bound": ge})
+    minimum_widgets: int = field(default=300, metadata={"zero_bound": gt})
+    widgets_per_row: int = field(default=10, metadata={"zero_bound": ge})
+    buffer_viewports: int = field(default=3, metadata={"zero_bound": gt})
+    destination_pages: int = field(default=2, metadata={"zero_bound": gt})
+    lookahead_seconds: float = field(default=1.0, metadata={"zero_bound": gt})
+    delivery_safety_factor: float = field(default=2.0, metadata={"zero_bound": gt})
+    scroll_idle_seconds: float = field(default=0.2, metadata={"zero_bound": gt})
 
     def __post_init__(self) -> None:
-        for name in ("max_items", "batch_items", "minimum_widgets", "buffer_viewports"):
-            value = getattr(self, name)
-            if type(value) is not int or value < 1:
-                raise ValueError(f"{name} must be a positive integer")
-        for name in ("reserve_batches", "widgets_per_row"):
-            value = getattr(self, name)
-            if type(value) is not int or value < 0:
-                raise ValueError(f"{name} must be a non-negative integer")
-        if self.lookahead_seconds <= 0 or self.scroll_idle_seconds <= 0:
-            raise ValueError("Preparation timing must be positive")
+        for declaration in fields(self):
+            value = getattr(self, declaration.name)
+            bound = declaration.metadata["zero_bound"]
+            # Python permits an integer wherever a float is declared, but a
+            # bool is not a numeric budget. The declaration supplies the bound.
+            if type(value) not in (declaration.type, int) or not bound(value, 0):
+                raise ValueError(f"{declaration.name} violates its declared {bound.__name__} zero bound")
 
     def item_limit(self, protected_items: int) -> int:
         return max(self.max_items, protected_items + self.reserve_batches * self.batch_items)
 
     def widget_limit(self, viewport_rows: int) -> int:
         return max(self.minimum_widgets, viewport_rows * self.widgets_per_row)
+
+    def can_read_destination(self, pages: int) -> bool:
+        """A bottom destination has bounded source reads, even for sparse rows."""
+        return pages < self.destination_pages
 
     def runway_rows(self, viewport_rows: int) -> int:
         return max(1, viewport_rows) * self.buffer_viewports
@@ -107,9 +112,19 @@ class PreparationDemand(ABC):
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
         return MovingPreparation(travel / elapsed)
 
-    def permits(self, older: bool) -> bool:
-        """Whether this edge still serves the reader's current direction."""
+    def accepts_result(self, older: bool) -> bool:
+        """An admitted read may finish after input settles; it admits no next read."""
         return True
+
+    def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
+        """Stationary input never requests another source page."""
+        return 0
+
+    def source_read(self) -> None:
+        """Only a bounded destination counts the pages admitted by its request."""
+
+    def prepare_ahead(self, preparation, history, page, older: bool) -> None:
+        """Only measured movement speculates beyond its current destination."""
 
     def destination_painted(self) -> "PreparationDemand":
         return self
@@ -135,25 +150,52 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def permits(self, older: bool) -> bool:
+    def accepts_result(self, older: bool) -> bool:
         return older == (self.velocity < 0)
 
+    def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
+        if not self.accepts_result(older):
+            return 0
+        ahead = preparation.ahead_rows(preparation.window.outer_size.height)
+        return max(0, ceil(ahead) - runway[0 if older else 1])
 
-@dataclass(frozen=True)
+    def prepare_ahead(self, preparation, history, page, older: bool) -> None:
+        if self.accepts_result(older):
+            # The existing runtime owns the single decoded/prepared result.
+            # This native worker only waits for that original bounded work;
+            # foreground paging shares it, without a page store in the widget.
+            history.run_worker(partial(history._reader().prepare_next, page, older),
+                               group="transcript-read-ahead", exclusive=True,
+                               exit_on_error=False)
+
+
+@dataclass
 class DestinationPreparation(PreparationDemand):
-    viewport_rows: int
+    target_rows: int
+    pages_read: int = 0
 
     def rows(self, horizon: float) -> float:
-        return self.viewport_rows
+        return self.target_rows
 
     def moved(self, travel: float, elapsed: float) -> PreparationDemand:
         # End's own destination layout is not an intermediate scroll demand.
         # An explicit reversal immediately replaces the burst.
         return super().moved(travel, elapsed) if travel < 0 else self
 
-    def permits(self, older: bool) -> bool:
-        # The existing latest-page operation owns a jump, never edge traversal.
-        return False
+    def accepts_result(self, older: bool) -> bool:
+        # A newer destination supersedes older work through its source snapshot.
+        return older
+
+    def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
+        if not older:
+            return 0
+        edge = history.pages[0].prepared
+        if not edge.can_extend(older) and not preparation.budget.can_read_destination(self.pages_read):
+            return 0
+        return max(0, self.target_rows - history.drawn_extent[0])
+
+    def source_read(self) -> None:
+        self.pages_read += 1
 
     def destination_painted(self) -> PreparationDemand:
         return StationaryPreparation()
@@ -232,8 +274,8 @@ class DirectionalPreparation:
         self.demand = StationaryPreparation()
         self.delivery_seconds = 0.0
 
-    def destination(self, rows: int) -> None:
-        self.demand = DestinationPreparation(rows)
+    def destination(self, rows: int, *, pages_read: int = 0) -> None:
+        self.demand = DestinationPreparation(self.budget.runway_rows(rows), pages_read)
         self.sampled_at = monotonic()
 
     def destination_complete(self) -> None:
@@ -253,7 +295,8 @@ class DirectionalPreparation:
         elapsed = monotonic() - self.sampled_at
         if elapsed >= self.idle_seconds:
             return 0
-        return self.demand.rows(max(self.budget.lookahead_seconds, self.delivery_seconds))
+        return self.demand.rows(max(self.budget.lookahead_seconds,
+                                   self.delivery_seconds * self.budget.delivery_safety_factor))
 
     def ahead_rows(self, viewport_rows: int) -> int:
         # Travel is a demand, not a native retention limit. The existing worker
@@ -262,16 +305,22 @@ class DirectionalPreparation:
         destination = (window.scroll_target_y - window.scroll_y
                        if window.app.animator.is_being_animated(window, "scroll_y") else 0)
         baseline = self.budget.runway_rows(viewport_rows)
-        requested = max(baseline, ceil(abs(self.travel_rows)), ceil(abs(destination)))
-        # The shared preparation runtime is the admission bound. Express its
-        # fragment capacity in measured rows so source paging cannot outrun it.
-        capacity = ceil(self.window.app.preparation.max_entries * self.window.rows_per_fragment)
-        return min(requested, max(baseline, capacity))
+        return max(baseline, ceil(abs(self.travel_rows)), ceil(abs(destination)))
 
     def destination_batch(self, budget: PresentationBudget, viewport_rows: int) -> int:
         # A bottom viewport must be complete before its one tree publication.
         # One selected fragment supplies at least one drawn row; visible
         # destination items may exceed the nominal working-set item budget.
-        return min(self.window.app.preparation.max_entries, max(
-            budget.item_limit(0), viewport_rows,
-        ))
+        return max(budget.item_limit(0), viewport_rows)
+
+    def read_rows(self, history, older: bool) -> int:
+        if not (history.has_older if older else history.has_newer):
+            return 0
+        runway = self.window.runway(history)
+        return 0 if runway is None else self.demand.read_rows(self, history, older, runway)
+
+    def prepare_source(self, history) -> None:
+        for older in (True, False):
+            if self.read_rows(history, older):
+                history.request_page(older)
+                return

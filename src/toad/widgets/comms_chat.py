@@ -114,7 +114,7 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
-        self.message_history = WireHistory(self)
+        self.message_history = WireHistory(view=self)
 
     def compose(self) -> ComposeResult:
         with Window():

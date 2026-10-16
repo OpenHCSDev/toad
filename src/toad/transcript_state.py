@@ -108,7 +108,7 @@ class LiveTranscript(TranscriptState):
         owner.schedule_source_work(partial(owner._jump_latest, request))
 
     def check_edges(self, owner) -> None:
-        owner._check_edges()
+        owner.window.prepare_source(owner)
 
     @classmethod
     def successors(cls):

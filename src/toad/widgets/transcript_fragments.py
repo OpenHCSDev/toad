@@ -242,6 +242,10 @@ class TranscriptFragment:
     def for_body_sources(self, supplied):
         return self
 
+    def text_rows(self, lines, theme) -> range:
+        """The fragment's content occupies its drawn rows unless it owns a header."""
+        return range(lines.height)
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
 
