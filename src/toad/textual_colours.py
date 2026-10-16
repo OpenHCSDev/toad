@@ -60,8 +60,8 @@ class BlockInk:
     GLYPHS: ClassVar[str]
     LEVELS: ClassVar[int]
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        super().__init_subclass__(**kwargs)
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
         cls.LEVELS = len(cls.GLYPHS) - 1
 
     @classmethod
