@@ -83,6 +83,17 @@ class AfterSequence(AfterMessage):
 
 
 @dataclass(frozen=True)
+class NothingRead(AfterSequence):
+    """Where the placeholder drawn before the first read ends.
+
+    It reads like the start of the bus but never equals a cursor Core answered,
+    so even an empty bus is read once instead of taken as already drawn.
+    """
+
+    cursor: int = 0
+
+
+@dataclass(frozen=True)
 class WirePage:
     """One page as the line history pages it; `source` is Core's page with its read evidence."""
 
@@ -95,8 +106,8 @@ class WirePage:
 
     @classmethod
     def unread(cls) -> WirePage:
-        """What is drawn before the first read: nothing, up to sequence zero."""
-        return cls((), None, AfterSequence(0), False, False, None)
+        """What is drawn before the first read: nothing, ending before any answer."""
+        return cls((), None, NothingRead(), False, False, None)
 
     @property
     def undrawn(self) -> bool:
