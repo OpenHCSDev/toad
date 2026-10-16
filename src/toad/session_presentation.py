@@ -107,6 +107,12 @@ class OperationalSessionSources:
         self.shell = None
         self.load_admission = EnsuringSessionLoadAdmission()
 
+    def status_row(self, conversation: Conversation):
+        return self.activity_row(conversation).with_delivery(conversation.input_delivery)
+
+    def activity_row(self, conversation: Conversation):
+        return conversation.turns.binding.status_row(conversation.thread_activity.row)
+
     def agent_info(self, conversation: Conversation) -> str:
         return "shell"
 
@@ -216,6 +222,9 @@ class OperationalSessionSources:
 
 class MailboxSessionSources(OperationalSessionSources):
     """CLI execution receives user messages through Core's inbox, not ACP."""
+
+    def activity_row(self, conversation: Conversation):
+        return conversation.thread_activity.row
 
     def agent_info(self, conversation: Conversation) -> str:
         scope = conversation.transcript.thread_scope

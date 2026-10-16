@@ -61,7 +61,6 @@ class InputDeliveryBar(HorizontalGroup):
     InputDeliveryBar #delivery-error { width: 1fr; height: auto; color: $warning; }
     """
     delivery: var[InputDelivery] = var(InputDelivery())
-    error: var[str] = var("")
 
     def compose(self) -> ComposeResult:
         yield Static(markup=False, id="delivery-summary")
@@ -71,13 +70,10 @@ class InputDeliveryBar(HorizontalGroup):
     def watch_delivery(self) -> None:
         self._refresh_summary()
 
-    def watch_error(self) -> None:
-        self._refresh_summary()
-
     def _refresh_summary(self) -> None:
         delivery = self.delivery
         current, history = delivery.current, delivery.historical_count
-        self.display = delivery.shown or bool(self.error)
+        self.display = delivery.shown or bool(delivery.error)
         if self.is_attached:
             summary = self.query_one("#delivery-summary", Static)
             summary.display = bool(current)
@@ -88,8 +84,8 @@ class InputDeliveryBar(HorizontalGroup):
             count = f"{history} {label}" if history else f"{delivery.dismissed_historical_count} {label} cleared"
             historical.update(f"{' · ' if current else ''}{count}")
             error = self.query_one("#delivery-error", Static)
-            error.display = bool(self.error)
-            error.update(self.error)
+            error.display = bool(delivery.error)
+            error.update(delivery.error)
 
     def on_mount(self) -> None:
         self._refresh_summary()
@@ -190,12 +186,13 @@ class InputDeliveryDetails(ModalScreen[None]):
     def watch_error(self) -> None:
         if self.is_attached:
             error = self.query_one("#delivery-error", Static)
-            error.display = bool(self.error)
-            error.update(self.error)
+            error.display = bool(self.delivery.error or self.error)
+            error.update(self.delivery.error or self.error)
 
     def _refresh_records(self) -> None:
         if not self.is_attached:
             return
+        self.watch_error()
         self.query_one("#delivery-records", Static).update(
             self._records(self.delivery.inputs) or "No inputs currently awaiting start."
         )

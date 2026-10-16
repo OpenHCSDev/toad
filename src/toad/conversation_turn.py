@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from agent_comms.activity import ActivityState
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.turn_lease import TurnState
+from agent_comms.ui_model.status import ThreadStatusModel
 
 
 class TurnOwner(DeclaredFamily, affix="Turn"):
@@ -165,6 +166,9 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     def owner(self) -> TurnOwner: ...
 
     @abstractmethod
+    def status_row(self, observed: ThreadStatusModel) -> ThreadStatusModel: ...
+
+    @abstractmethod
     def accepts(self, message) -> bool: ...
 
     @abstractmethod
@@ -190,6 +194,10 @@ class LocalTurnBinding(TurnBinding):
     @property
     def owner(self):
         return self._owner
+
+    def status_row(self, observed):
+        owner = self.owner
+        return ThreadStatusModel.known("", owner.activity_state.presentation("", owner.activity))
 
     def accepts(self, message):
         """A local turn cannot accept a backend-owned managed publication."""
@@ -223,6 +231,9 @@ class ManagedTurnBinding(TurnBinding):
     @property
     def owner(self):
         return self._owner
+
+    def status_row(self, observed):
+        return observed
 
     def accepts(self, message):
         return (message.publisher is self.agent and message.event.session_id == self.agent.session_id
