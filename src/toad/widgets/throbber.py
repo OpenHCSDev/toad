@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from functools import cached_property
+from typing import ClassVar
 
 from rich.segment import Segment
 
@@ -14,7 +15,7 @@ from textual.css.styles import RulesMap
 
 from ui_theme.effects import ACTIVITY_SWEEP
 
-from toad.textual_colours import Animated
+from toad.textual_colours import Animated, BlockInk, BottomInk, TopInk
 
 
 class ThrobberVisual(Visual):
@@ -34,7 +35,7 @@ class ThrobberVisual(Visual):
         base = Strip([Segment("█" * width, style.rich_style)], cell_length=width)
         animation = throbber.animation
         frame = animation.frame() if animation is not None else throbber.effect.final
-        return [frame.paint(throbber.app.colours, base)]
+        return [throbber.app.colours.paint_gradient(frame, base, edge=throbber.ink_edge)]
 
     def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
         return container_width
@@ -47,6 +48,7 @@ class Throbber(Animated, Widget):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
     effect = ACTIVITY_SWEEP
+    ink_edge: ClassVar[type[BlockInk]]
 
     @cached_property
     def _busy_visual(self) -> ThrobberVisual:
@@ -98,3 +100,15 @@ class ObservedThrobber(Throbber):
 
     def sync(self) -> None:
         self.watch_busy(self.busy)
+
+
+class AboveThrobber(ObservedThrobber):
+    """The upper bar hugs the status from its cell's bottom edge."""
+
+    ink_edge = BottomInk
+
+
+class BelowThrobber(ObservedThrobber):
+    """The lower bar hugs the status from its cell's top edge."""
+
+    ink_edge = TopInk

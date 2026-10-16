@@ -74,7 +74,7 @@ from toad.widgets.menu import Menu
 from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import ObservedThrobber
+from toad.widgets.throbber import AboveThrobber, BelowThrobber
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
@@ -502,8 +502,8 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
-        self.throbber = ObservedThrobber(self.working, id="throbber")
-        self.throbber_above = ObservedThrobber(self.working)
+        self.throbber = BelowThrobber(self.working, id="throbber")
+        self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
