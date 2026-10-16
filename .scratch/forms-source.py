@@ -10,12 +10,16 @@ roots = [Path('/home/ts/wt/toad-forms-migration/src/toad'),
          Path('/home/ts/wt/objectstate-native-forms/src/objectstate'),
          Path('/home/ts/wt/formbridge-native-forms/src/formbridge'),
          Path('/home/ts/wt/pyqt-native-formbridge/src/pyqt_reactive'),
-         Path('/home/ts/wt/core-doctrine-segment/src/agent_comms')]
+         Path('/home/ts/wt/core-forms-migration/src/agent_comms')]
 terms = {'message_category', 'apply_block_filter', 'keep_live_block', 'block_category',
          'selected_categories', 'visible_categories', 'set_display_constraint',
          'update_classes', 'set_class', 'has_class', 'parameters_for_state',
          'is_optional', 'WidgetCreationConfig', 'widget_creation_type',
-         'shown_in', 'FieldView', 'DeclaredField', 'FormView', 'SortDialog'}
+         'shown_in', 'FieldView', 'DeclaredField', 'FormView', 'SortDialog',
+         'NewThreadCliCommand', 'ForkCliCommand', 'NewThreadSpec', 'ForkSpec',
+         'CommsForkTool', 'initial_prompt', 'pi_bin', 'prompt', 'TargetField',
+         'TargetAction', 'ModelConfigOption', 'ThinkingLevelConfigOption',
+         'ConfigOptions', 'CommandDialog', 'NativeThreadDefaults'}
 modules, classes, sites, errors = [], [], [], []
 for root in roots:
     for path in root.rglob('*.py'):
