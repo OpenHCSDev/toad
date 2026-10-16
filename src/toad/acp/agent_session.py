@@ -21,6 +21,7 @@ from toad.acp.client_session import ClientSessionRequest
 from toad.core.events import AgentFail, AgentReady, UnsupportedResumeAgentFail, LogAgentFail
 from toad.db import DB, SessionMeta
 from agent_comms.acp_failure import ACPFailure
+from agent_comms.acp_extension import HistoryOnlyQueueProjection
 from agent_comms.input_attempt import NotSentInput
 from agent_comms.owner_protocol import IncompatibleOwner
 from agent_comms.session_load import EnsuringSessionLoadPlan, ExistingSessionLoadPlan, FailedSessionLoadPlan, SessionLoadPlan
@@ -64,6 +65,16 @@ class ActiveSessionDisposition(SessionDisposition):
 
 class ClosedSessionDisposition(SessionDisposition):
     pass
+
+
+@dataclass(frozen=True)
+class HistoryOnlySessionDisposition(ActiveSessionDisposition):
+    """The thread's owner runs another Core: its history is open, its input refused."""
+
+    owner: IncompatibleOwner
+
+    def explain(self, line: str) -> str:
+        return self.owner.line()
 
 
 @dataclass(frozen=True)
@@ -477,8 +488,6 @@ class AgentSession:
             if self.agent.queue_attachment.is_current_request(queue_token):
                 if failed_command := FailedSessionLoadPlan.from_failure(error.data):
                     self.load_plan = failed_command
-            if owner := IncompatibleOwner.from_failure(error.data):
-                raise jsonrpc.APIError(error.code, owner.line(), None) from error
             raise
         authority.require()
         if (
@@ -487,10 +496,15 @@ class AgentSession:
         ):
             return
         assert response is not None
+        owner = IncompatibleOwner.from_failure(response.field_meta)
+        if owner is not None:
+            self.agent.queue_attachment.unavailable = HistoryOnlyQueueProjection(owner)
         await self.agent.comms_consumer_class(
             self.agent, self.agent.session_id,
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)
+        if owner is not None:
+            self.disposition = HistoryOnlySessionDisposition(owner)
 
         self.publish_configuration(response)
 

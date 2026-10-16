@@ -17,6 +17,8 @@ class QueueAttachment(ProjectionAttachment):
         super().__init__()
         self._last_started: InputStartedUpdate | None = None
         self._pending_starts: list[InputStartedUpdate] = []
+        # Core's load answer may name why this attachment cannot take input.
+        self.unavailable: UnavailableQueueProjection = UnavailableQueueProjection()
 
     @property
     def scope(self):
@@ -28,7 +30,7 @@ class QueueAttachment(ProjectionAttachment):
             self.current,
             available=lambda current: current.projection,
             pending=PendingQueueProjection(),
-            unavailable=UnavailableQueueProjection(),
+            unavailable=self.unavailable,
         )
 
     def _matches_request_scope(self, scope) -> bool:
@@ -54,6 +56,7 @@ class QueueAttachment(ProjectionAttachment):
 
     def begin(self, session_id):
         self._pending_starts.clear()
+        self.unavailable = UnavailableQueueProjection()
         return super().begin(session_id)
 
     def bind(self, value: QueueChangedUpdate, session_id: str, token: int):
