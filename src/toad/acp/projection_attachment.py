@@ -266,7 +266,7 @@ class CursorAttachment(ProjectionAttachment):
     """Cursor attachment lifecycle projected as named presentation states."""
 
     @property
-    def status(self) -> type[CursorStatus] | None:
+    def status(self) -> type[CursorStatus]:
         return self.state.project(
             self.current,
             available=lambda current: CursorStatus.external(current.status),

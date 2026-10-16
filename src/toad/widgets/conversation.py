@@ -84,7 +84,7 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity, Thread
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
-from toad.private_native_cursor import CursorStatus
+from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
@@ -470,10 +470,9 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     input_delivery: var[InputDelivery] = var(InputDelivery())
 
 
-    input_delivery_error: var[str] = var("")
 
 
-    native_history_status: var[type[CursorStatus] | None] = var(None)
+    native_history_status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())
@@ -736,7 +735,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         if agent is not None:
             self.bind_agent(agent)
         attachments = (agent.presentation.attachments if agent is not None
-                       else AgentAttachmentView(None, 0))
+                       else AgentAttachmentView(HiddenCursorStatus, 0))
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
         self.submissions.reset()
@@ -914,17 +913,18 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
+            from functools import partial
             self.thread_activity = SessionDetails(
-                turns=self.turns,
+                status_source=partial(self.operational_sources.status_row, self),
                 transcript=self.transcript,
                 history=NativeHistory().data_bind(
                     status=Conversation.native_history_status
                 ),
                 delivery=InputDeliveryBar().data_bind(
                     delivery=Conversation.input_delivery,
-                    error=Conversation.input_delivery_error,
                 ),
             )
+            self.refresh_thread_status()
             yield self.thread_activity
             prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
@@ -1732,16 +1732,12 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         )
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
-        details.error = self.input_delivery_error
         session_details = self.query_one_optional(SessionDetails)
         if session_details is not None:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
         details.watch(
             self, "input_delivery", lambda state: setattr(details, "delivery", state)
-        )
-        details.watch(
-            self, "input_delivery_error", lambda error: setattr(details, "error", error)
         )
         if session_details is not None:
             details.watch(
