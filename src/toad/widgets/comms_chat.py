@@ -104,8 +104,9 @@ class CommsChatView(Conversation):
         kind: type[ConversationKind],
         me: str,
         wire_root: str | None = None,
+        transcript=None,
     ) -> None:
-        super().__init__(project_path)
+        super().__init__(project_path, transcript=transcript)
         self.target = target
         self.conversation_kind = kind
         self._me = me
