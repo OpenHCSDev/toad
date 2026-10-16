@@ -54,7 +54,7 @@ class MessageRow:
 
     @classmethod
     def sent(cls, event: SentTranscript) -> MessageRow:
-        return cls(event.routing.reply, event.text, event.timestamp, outgoing=True)
+        return cls(event.require_reply_route(), event.text, event.timestamp, outgoing=True)
 
     @property
     def role(self) -> type[LineRole]:

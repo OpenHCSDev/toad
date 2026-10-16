@@ -11,6 +11,7 @@ from weakref import ReferenceType, ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
+from agent_comms.sent_message import OutgoingMessageReference
 
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
@@ -43,6 +44,7 @@ class PreparedTranscriptPage:
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     retained_bytes: int
+    outgoing_coverage: frozenset[OutgoingMessageReference] = field(kw_only=True)
     fragment_range: tuple[int, int] | None = None
     batch_size: int = field(default=BATCH, kw_only=True)
     in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
@@ -50,8 +52,32 @@ class PreparedTranscriptPage:
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
-        fragments = transcript_fragments(page.events)
-        return cls(page, fragments, retained_bytes((page, fragments)))
+        fragments = transcript_fragments(page.events, resolve_sent=page.resolve_sent_messages)
+        return cls.measured(page, fragments)
+
+    @classmethod
+    def measured(cls, page, fragments, **view):
+        coverage = frozenset(reference for fragment in fragments
+                             for reference in fragment.outgoing_sources)
+        fragments = tuple(fragment.for_body_sources(coverage) for fragment in fragments)
+        prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
+        prepared.measure_sources()
+        return prepared
+
+    def measure_sources(self, readers=(), *, seen=None):
+        self.retained_bytes = retained_bytes(
+            (self.page, self.fragments, self.outgoing_coverage, *readers), seen=seen,
+        )
+
+    @classmethod
+    def empty(cls, page):
+        return cls.measured(page, ())
+
+    def project(self, fragments):
+        if len(fragments) == len(self.fragments) and all(
+                selected is original for selected, original in zip(fragments, self.fragments)):
+            return self.for_view()
+        return type(self).measured(self.page, fragments, batch_size=self.batch_size)
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
@@ -196,7 +222,7 @@ class PageRequest:
 
 @dataclass(frozen=True)
 class FilteredTranscriptBatch:
-    fragments: tuple[TranscriptFragment, ...]
+    prepared: PreparedTranscriptPage
     stop: int
 
 
@@ -204,6 +230,7 @@ class FilteredTranscriptBatch:
 class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
     """Select the next bounded presentation batch off-loop from source data."""
 
+    page: PreparedTranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     selected: frozenset[type[MessageCategory]]
     stop: int
@@ -217,13 +244,13 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
         matches = []
         stop = self.stop
         if not self.selected:
-            return FilteredTranscriptBatch((), 0)
+            return FilteredTranscriptBatch(self.page.project(()), 0)
         while stop and len(matches) < self.limit:
             stop -= 1
             fragment = self.fragments[stop]
             if fragment.shown_in(self.selected):
                 matches.append(fragment)
-        return FilteredTranscriptBatch(tuple(reversed(matches)), stop)
+        return FilteredTranscriptBatch(self.page.project(tuple(reversed(matches))), stop)
 
 
 class PreparedPageSource(ABC):
@@ -261,12 +288,8 @@ class PreparedPageSource(ABC):
         if seen is None:
             seen = set()
         for page in pages:
-            readers = tuple(member for page_range in ranges if page_range.page() is page
-                            for member in page_range.members)
-            page.retained_bytes = retained_bytes(
-                (page.page, page.fragments, readers),
-                seen=seen,
-            )
+            readers = tuple(page_range.members for page_range in ranges if page_range.page() is page)
+            page.measure_sources(readers, seen=seen)
         if projection is not None:
             projection.measure_held(projection.held_pages, projection.projection_source,
                                          ranges, seen=seen)
@@ -306,14 +329,27 @@ class TranscriptPageProjection(ABC):
 class CategoryProjection(TranscriptPageProjection):
     selected: frozenset[type[MessageCategory]]
 
+    def fragments_for(self, page):
+        return page.fragments
+
     async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:
         # Project one source page on the model lane. Widget admission is owned
         # separately by the same bounded pager used for unfiltered history.
+        fragments = self.fragments_for(page)
         matches = await runtime.submit(TranscriptFilterWork(
-            page.fragments, self.selected, len(page.fragments), len(page.fragments),
+            page, fragments, self.selected, len(fragments), len(fragments),
         ))
-        return replace(page, fragments=matches.fragments,
-                       fragment_range=None, in_range=())
+        return matches.prepared
+
+
+@dataclass(frozen=True)
+class RangeCategoryProjection(CategoryProjection):
+    boundary: PageFragmentRange
+
+    def fragments_for(self, page):
+        if self.boundary.page() is page:
+            return self.boundary.members
+        return super().fragments_for(page)
 
 
 @dataclass(frozen=True)
@@ -411,10 +447,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         self.through = boundary.page.after
         self._raw = TranscriptPageBuffer(loader, boundary.page.before, runtime) if loader is not None else None
         self.scope = self._raw.scope if self._raw is not None else PreparationScope()
-        self._boundary = replace(boundary, page=replace(
-            boundary.page, has_newer=False,
-            has_older=boundary.page.has_older and loader is not None,
-        ))
+        self._boundary = boundary
         self._projected_boundary: PreparedTranscriptPage | None = None
 
     async def _project(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
@@ -430,7 +463,11 @@ class ProjectedTranscriptSource(PreparedPageSource):
         if self.closed:
             raise asyncio.CancelledError
         if self._projected_boundary is None:
-            self._projected_boundary = await self._project(self._boundary)
+            projected = await self._project(self._boundary)
+            self._projected_boundary = replace(projected, page=replace(
+                projected.page, has_newer=False,
+                has_older=projected.page.has_older and self.loader is not None,
+            ))
         return self._projected_boundary
 
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
