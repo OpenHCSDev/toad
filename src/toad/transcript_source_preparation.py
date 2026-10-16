@@ -201,7 +201,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 previous = tuple(self.pages)
                 views = deque()
                 if not destination:
-                    # An empty source is answered too; it needs no new widget.
+                    # An empty answer is published too: the edge draws nothing,
+                    # at its end. `latest` was never ranged by the loop above.
+                    latest.set_fragment_range(slice(len(latest.fragments), len(latest.fragments)))
                     edge.prepared = latest
                     edge.range_changed()
                     views.append(edge)
