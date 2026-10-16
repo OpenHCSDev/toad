@@ -11,6 +11,7 @@ from textual import on, work
 import asyncio
 from textual.reactive import var, Initialize
 from textual.app import ComposeResult
+from textual.message import Message
 
 from textual.actions import SkipAction
 from textual.binding import Binding
@@ -458,6 +459,8 @@ See on-screen instructions for details.
 
 
 class Prompt(containers.VerticalGroup):
+    class DeliveryControlsChanged(Message):
+        """The composing parent may need to update adjacent separators."""
 
     DEFAULT_CSS = """
     Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
@@ -520,6 +523,12 @@ class Prompt(containers.VerticalGroup):
         self.simple_placeholder = placeholder
         self.turns = turns
         self.submissions = submissions
+        self._delivery_controls: containers.HorizontalGroup | None = None
+
+    @property
+    def delivery_controls_visible(self) -> bool:
+        controls = self._delivery_controls
+        return controls is not None and controls.display and controls.visible
 
     @property
     def agent_busy(self) -> bool:
@@ -637,9 +646,7 @@ class Prompt(containers.VerticalGroup):
         if (editor := self.query_one_optional(PromptTextArea)) is not None:
             self.set_class(SubmitNowAction().available(editor), "-queue-mode")
             editor.refresh_bindings()
-        from toad.widgets.goal_bar import GoalBar
-        for goal_bar in self.parent.query(GoalBar):
-            goal_bar._queue_separator_update()
+        self.post_message(self.DeliveryControlsChanged())
 
     def sync_queue(self) -> None:
         if self.is_mounted:
@@ -824,9 +831,11 @@ class Prompt(containers.VerticalGroup):
                 yield popup
         if not self.simple_input:
             yield QueueSummary("", classes="queue-summary", markup=False)
-            with containers.HorizontalGroup(classes="delivery-controls"):
-                yield Label("Enter queues · ")
-                yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+            self._delivery_controls = containers.HorizontalGroup(
+                Label("Enter queues · "), SendNow("Send now (Ctrl+Enter / Ctrl+Y)"),
+                classes="delivery-controls",
+            )
+            yield self._delivery_controls
         with PromptContainer(id="prompt-container"):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
