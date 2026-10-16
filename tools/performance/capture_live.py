@@ -50,7 +50,7 @@ class XvfbDisplay(AbstractContextManager):
     def environment(self) -> dict[str, str]:
         return {**os.environ, "DISPLAY": self.name}
 
-    def input(self, window: int, terminal_pid: int, terminal_created: float, *commands: str):
+    def input(self, window: int, terminal_pid: int, terminal_created: float, *commands: str) -> None:
         """Send input only after resolving this display's window to its launch identity."""
         terminal = psutil.Process(terminal_pid)
         if terminal.create_time() != terminal_created or not terminal.is_running():
@@ -62,7 +62,10 @@ class XvfbDisplay(AbstractContextManager):
         )
         if int(owner.partition("=")[2].strip()) != terminal_pid:
             raise ValueError("Window does not belong to the selected terminal on this display")
-        return subprocess.run(["xdotool", *commands], env=env, check=True)
+        subprocess.run(
+            ["xdotool", "windowfocus", "--sync", str(window), *commands],
+            env=env, check=True,
+        )
 
     def __exit__(self, *exception):
         return self.custody.__exit__(*exception)

@@ -65,7 +65,6 @@ for _ in $(seq 60); do
     [[ -n "$app_pid" && -n "$window" ]] && break
     sleep 1
 done
-xdotool windowfocus --sync "$window"
 # Optional: raise the UI thread's scheduling priority (for example UI_NICE=-10)
 # to separate the app's own work from waiting for a CPU behind other processes.
 if [[ -n "${UI_NICE:-}" ]]; then
