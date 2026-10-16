@@ -9,11 +9,10 @@ from textual.app import ComposeResult
 from textual.binding import CallBinding
 from toad.screens.modal import ModalScreen
 from textual.widgets import Footer, Input
-from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
 from textual.color import Color
 
-from toad.app import ToadApp
+from toad.app import ScreenWidth, ToadApp
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView
 from toad.forms.presentation import FormInput, FormModal, FormPart
@@ -39,7 +38,7 @@ class SettingsPanel(FormPart, containers.Vertical):
 
     @property
     def width(self):
-        return None if self.screen.has_class("-narrow") else Scalar(50, Unit.PERCENT, Unit.WIDTH)
+        return ScreenWidth(self.screen.horizontal_breakpoint).side_panel_width
 
 
 class SettingsSearch(FormPart, containers.VerticalGroup):
