@@ -1,4 +1,4 @@
-"""Session-owned mounted presentation, with one bounded workspace admission owner."""
+"""Session-owned mounted presentation, with one bounded workspace owner."""
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -13,7 +13,8 @@ from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from toad.owner_preparation import ExistingOwnerAdmission
+from agent_comms.session_load import EnsuringSessionLoadPlan
+from toad.owner_preparation import ExistingOwnerPlan
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
@@ -101,11 +102,9 @@ class OperationalSessionSources:
     """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
-        from agent_comms.session_load import EnsuringSessionLoadAdmission
-
         self.agent = None
         self.shell = None
-        self.load_admission = EnsuringSessionLoadAdmission()
+        self.load_plan = EnsuringSessionLoadPlan()
 
     def status_row(self, conversation: Conversation):
         return self.activity_row(conversation).with_delivery(conversation.input_delivery)
@@ -146,13 +145,13 @@ class OperationalSessionSources:
         if conversation.transcript.readable:
             presentation = conversation.thread_presentation
             return (presentation is not None
-                    and ExistingOwnerAdmission.from_binding(presentation.binding) is not None)
+                    and ExistingOwnerPlan.from_binding(presentation.binding) is not None)
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
         presentation = conversation.thread_presentation
         if (conversation.transcript.readable and presentation is not None
-                and ExistingOwnerAdmission.from_binding(presentation.binding) is None):
+                and ExistingOwnerPlan.from_binding(presentation.binding) is None):
             return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
         agent = conversation.agent
         if agent is not None and agent.configuration.model.requires_selection:
@@ -160,7 +159,7 @@ class OperationalSessionSources:
         return "Agent is not ready. Please wait while the agent connects…"
 
     def start_agent(self, conversation: Conversation) -> None:
-        """The operational source owns connection creation and load admission."""
+        """The operational source owns connection creation and the load plan."""
         from toad.acp.agent import Agent
         from toad.core import events as core_events
 
@@ -169,16 +168,16 @@ class OperationalSessionSources:
         assert conversation._agent_data is not None
         agent = Agent(conversation.project_path, conversation._agent_data,
                       conversation._agent_session_id, conversation._session_pk)
-        agent.session.load_admission = self.load_admission
+        agent.session.load_plan = self.load_plan
         conversation.agent = agent
         conversation._native_agent_started_here = True
         conversation.bind_agent(agent)
         agent.controller.start_operation(agent.start(conversation.app.session_navigation.processes))
         conversation.publish_core(core_events.SessionSubtitleChanged(conversation.agent_title))
 
-    def attach_started(self, screen: "MainScreen", admission) -> None:
+    def attach_started(self, screen: "MainScreen", plan) -> None:
         """An explicit Start action may attach the same retained view to its new owner."""
-        self.load_admission = admission
+        self.load_plan = plan
         screen._agent = screen._agent or screen.app.agent_data
         conversation = screen.presentation.widget
         if conversation is not None:
