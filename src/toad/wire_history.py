@@ -223,7 +223,7 @@ class WireSource:
         high = AfterSequence(self.comms.views.latest_sequence())
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
-        replaced = seen is None or self.kind.display_changed_since(self.comms, revision, seen)
+        replaced = seen is None or self.kind.display_changed_since(revision, seen)
         return WireObservation(revision, high, replaced)
 
     def read(self, request: PageRequest, through: AfterSequence) -> PreparedTranscriptPage:

@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 from dataclasses import replace
 from abc import abstractmethod
+from typing import ClassVar
+from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
@@ -12,6 +14,8 @@ from agent_comms.presentation import WireRevision
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
+    history_view: ClassVar[type[ConversationHistoryView]]
+
     @classmethod
     def threads_needed(cls, snapshot, me, target):
         return ()
@@ -33,9 +37,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]: ...
 
     @classmethod
-    @abstractmethod
-    def display_changed_since(cls, comms: Comms, revision: WireRevision,
-                              earlier: WireRevision) -> bool: ...
+    def display_changed_since(cls, revision: WireRevision, earlier: WireRevision) -> bool:
+        return cls.history_view.display_changed_since(revision, earlier)
 
     @classmethod
     def display_identity(cls, page: MessagePage) -> tuple | None:
@@ -119,6 +122,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 
 class ChannelConversation(ConversationKind):
+    history_view = ChannelDisplayHistory
+
     @classmethod
     def channels_needed(cls, root, target):
         return ((root, target),)
@@ -131,11 +136,6 @@ class ChannelConversation(ConversationKind):
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
         return comms.views.channel_display_page(target, **bounds)
-
-    @classmethod
-    def display_changed_since(cls, comms: Comms, revision: WireRevision,
-                              earlier: WireRevision) -> bool:
-        return comms.views.channel_display_changed_since(revision, earlier)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
@@ -240,6 +240,8 @@ class ChannelConversation(ConversationKind):
 
 
 class DmConversation(ConversationKind):
+    history_view = DMDisplayHistory
+
     @classmethod
     def historical_thread(cls, target: str) -> str:
         return target
@@ -260,11 +262,6 @@ class DmConversation(ConversationKind):
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
         return comms.views.dm_display_page(target, **bounds)
-
-    @classmethod
-    def display_changed_since(cls, comms: Comms, revision: WireRevision,
-                              earlier: WireRevision) -> bool:
-        return comms.views.dm_display_changed_since(revision, earlier)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
