@@ -12,7 +12,6 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 - Prefer deleting code to adding it. If the current design is the problem, say so and propose the replacement.
 - Work moved to a thread is still waiting: this CPython build has a GIL, so a CPU-bound thread takes turns with the UI.
 - The UI is a view of canonical history. Never keep a second copy of queue, turn, goal or message state in a widget.
-- Activity-bar top ink uses native upper-block glyphs, not complementary lower glyphs with swapped colours. The shared animation owner owns phase. Report native one-pixel rounding honestly; do not force it with font or pixel corrections.
 - Report plainly: what changed, what evidence supports it, what still fails, the next step. No status ceremony; no hashes unless asked.
 
 ## Verification
