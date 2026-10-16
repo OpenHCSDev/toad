@@ -396,11 +396,6 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
                 task.hold(self, fragment, lines)
             self.range_changed()
 
-    def retain_sources(self) -> None:
-        """Pages hold immutable fragments; nothing native to transfer."""
-        self.prepared.retain_sources(self)
-        self.prepared.retained_bytes = 0
-
     @classmethod
     @asynccontextmanager
     async def acquire(
@@ -409,7 +404,6 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire the original prepared range, without selecting it a second time."""
         view = cls(prepared, fresh=fresh)
-        view.prepared.retain_sources(view)
         view.visible_categories = owner.selected_categories
         # Styled before it is drawn: a page drawn plain first rewraps under
         # the reader as each styled batch arrives.
@@ -433,7 +427,6 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
 
     async def select_range(
         self, selected: slice, current: Callable[[], bool],
-        *, suppliers: tuple[TranscriptFragment, ...] | None = None,
     ) -> bool:
         if not current():
             return False
@@ -442,7 +435,7 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
             if not current():
                 return False
             async with window.preserve_history(root=self):
-                return await self.prepared.replace_range(self, self.fragments, selected, current)
+                return await self.prepared.replace_range(self, selected, current)
 
 
 class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
@@ -681,8 +674,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     def capture_reader_ranges(self) -> tuple[PageFragmentRange, ...]:
         """Retain the original source ranges that a returning reader needs."""
-        for page in self.pages:
-            page.retain_sources()
         return tuple(page.prepared.capture_range() for page in self.pages)
 
     def set_reader_ranges(self, ranges) -> None:
@@ -711,8 +702,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                                 zip(page.fragments_in_range, page_range.members))):
                     continue
                 await self.prepare_fragments(page_range.members, current)
-                if not await page.select_range(slice(page_range.start, page_range.stop), current,
-                                               suppliers=page_range.members):
+                if not await page.select_range(slice(page_range.start, page_range.stop), current):
                     return False
         if (projection := self.filter.state.overlay) is not None:
             if not await projection.restore_reader_ranges(ranges, current):
@@ -1148,8 +1138,6 @@ class TranscriptHistory(LineHistory, CommittedHistory):
         source = self._reader()
         projection = self.filter.state.overlay
         projected = await projection.park_document() if projection is not None else None
-        for page in self.pages:
-            page.retain_sources()
         pages = tuple(page.prepared for page in self.pages)
         position = self.window.reader_position
         await source.runtime.run_thread(source.measure_held, pages, projected,

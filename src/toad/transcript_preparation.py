@@ -46,7 +46,6 @@ class PreparedTranscriptPage:
     retained_bytes: int
     outgoing_coverage: frozenset[OutgoingMessageReference] = field(kw_only=True)
     fragment_range: tuple[int, int] | None = None
-    in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
 
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
@@ -134,7 +133,6 @@ class PreparedTranscriptPage:
 
     def set_fragment_range(self, selected: slice) -> None:
         self.fragment_range = selected.start, selected.stop
-        self.in_range = self.fragments[selected]
 
     def capture_range(self) -> PageFragmentRange:
         return PageFragmentRange(ref(self), self.start, self.stop, self.fragments[self.start:self.stop])
@@ -146,10 +144,6 @@ class PreparedTranscriptPage:
             raise RuntimeError("Original transcript suppliers do not cover their admission")
         self.set_fragment_range(slice(fragment_range.start, fragment_range.stop))
 
-    def publish_fragments(self, fragments):
-        if fragments is not self.fragments:
-            raise ValueError("Transcript input replacement requires a new prepared page")
-
     @property
     def retained_source_bytes(self):
         return self.retained_bytes
@@ -158,15 +152,17 @@ class PreparedTranscriptPage:
     # it never mounts or removes native members.
     async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
         """Admit the staged rows; the range owner alone combines its membership."""
-        selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
-        return await self.replace_range(view, prepared.fragments, selected, current)
-
-    async def replace_range(self, view, fragments, selected, current) -> bool:
         if not current():
             return False
-        self.publish_fragments(fragments)
+        if prepared.fragments is not self.fragments:
+            raise ValueError("Transcript input replacement requires a new prepared page")
+        selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
+        return await self.replace_range(view, selected, current)
+
+    async def replace_range(self, view, selected, current) -> bool:
+        if not current():
+            return False
         self.set_fragment_range(selected)
-        self.retain_sources(view)
         view.range_changed()
         return True
 
@@ -175,11 +171,7 @@ class PreparedTranscriptPage:
             self.start += count
         else:
             self.stop -= count
-        self.retain_sources(view)
         view.range_changed()
-
-    def retain_sources(self, view) -> None:
-        self.in_range = self.fragments[self.start:self.stop]
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns admission and resolved source acquisitions.
@@ -187,8 +179,7 @@ class PreparedTranscriptPage:
         The worker's immutable source/syntax remains reusable. Its stored page
         never acquires a frontend document or another projection's lifetime.
         """
-        return replace(self, fragments=self.fragments,
-                       fragment_range=None, in_range=())
+        return replace(self, fragment_range=None)
 
 
 @dataclass(frozen=True, eq=False)
