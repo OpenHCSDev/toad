@@ -112,10 +112,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.can_draw_on_screen:
             self.state.check_edges(self)
 
-    def _check_edges(self) -> None:
-        """The source declaration admits pages from its committed native box."""
-        raise NotImplementedError
-
     def _request_page(self, older: bool) -> None:
         self.schedule_source_work(partial(self._prepare_edge, older))
 
@@ -249,8 +245,3 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def source_resumed(self) -> None:
         """A parked source publishes again: report what its drawn pages mean to their owner."""
         raise NotImplementedError
-
-    @property
-    def prefetch_distance(self) -> int:
-        """Start background reads before the earlier edge enters the viewport."""
-        return self.window.lookahead.ahead_rows(self.window.outer_size.height)

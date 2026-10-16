@@ -746,12 +746,12 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     @property
     def has_older(self) -> bool:
         page = self.pages[0]
-        return page.start > 0 or page.page.has_older
+        return page.prepared.can_extend(True) or page.page.has_older
 
     @property
     def has_newer(self) -> bool:
         page = self.pages[-1]
-        return page.stop < len(page.fragments) or page.page.has_newer
+        return page.prepared.can_extend(False) or page.page.has_newer
 
     @property
     def needs_latest_publication(self) -> bool:
@@ -842,23 +842,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         pages = [page for page in self.pages if page.line_count]
         return sum(page.line_count for page in pages), sum(page.stop - page.start for page in pages)
 
-    @property
-    def destination_needs_older(self) -> bool:
-        """Whether one more complete older fragment fits above the destination."""
-        if not self.has_older or not self._follow_source_tail:
-            return False
-        missing = self.window.scrollable_content_region.height - self.drawn_extent[0]
-        if missing <= 0:
-            return False
-        edge = self.pages[0]
-        if edge.start == 0:
-            return edge.page.has_older
-        fragment = edge.fragments[edge.start - 1]
-        if not fragment.shown_in(self.selected_categories):
-            return True
-        lines = fragment.lines_for(self.line_width, self.app.colours.line_theme)
-        return lines is None or lines.height <= missing
-
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
         # Edges are read from this history's laid-out box. A check made
         # before layout gave it one (a filter just chosen, a first page) finds
@@ -868,47 +851,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             self.request_preparation()
         return changed
 
-    def _check_edges(self) -> None:
-        if (not self.checkpoint_available
-                or not self.screen.is_active or not self.selected_categories):
-            return
-        runway = self._runway()
-        if runway is None:
-            return
-        above, below = runway
-        # Original published geometry admits source work, even while a body is
-        # preparing. Its worker owns read/prepare/native mutation; the existing
-        # viewport frame owner alone decides when those bodies may be painted.
-        if self._follow_source_tail and self.has_newer:
-            self._request_page(False)
-            return
-        if self.filter.active:
-            self.filter.check_edges()
-            return
-        if self.destination_needs_older:
-            # A destination is a bottom viewport, not one transport page. Fill
-            # its visible rows before upward input has scroll travel to spend.
-            self._request_page(True)
-            return
-        demand = self.window.lookahead.demand
-        for older, available, runway in ((True, self.has_older, above),
-                                          (False, self.has_newer, below)):
-            if available and runway <= self.prefetch_distance and demand.permits(older):
-                self._request_page(older)
-                return
-
-    def _runway(self) -> tuple[int, int] | None:
-        """Drawn rows above and below the window's viewport; None while this history is off screen."""
-        # Off-screen pagers must not ask for their region: after a scroll that
-        # falls back to rebuilding geometry for the *whole* mounted transcript.
-        # The layout signal also calls us once this pager enters the viewport.
-        visible = self.screen._compositor.visible_widgets
-        geometry, window = visible.get(self), visible.get(self.window)
-        if geometry is None or window is None or not geometry[0].overlaps(window[0]):
-            return None
-        region, viewport = geometry[0], window[0]
-        return viewport.y - region.y, region.bottom - viewport.bottom
-
     @on(JumpToLatest.Requested)
     def on_jump(self, event: JumpToLatest.Requested) -> None:
         event.stop()
@@ -917,10 +859,9 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     @on(HistoryEdge.Requested)
     def on_earlier_history(self, event: HistoryEdge.Requested) -> None:
         event.stop()
+        self.window.request_older()
         if self.filter.active:
             self.filter.request_older()
-        elif self.has_older and self.state.accepts_source_work:
-            self._request_page(True)
 
     async def _publish_latest(self, current: Callable[[], bool]) -> bool:
         """Prepare and publish the complete bottom destination as one tree change."""
@@ -941,14 +882,14 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             if not current():
                 return False
             take = prepared.stop - prepared.start
-            if take:
-                destination.insert(0, prepared)
+            destination.insert(0, prepared)
             limit -= take
             if rows <= 0 or self.loader is None:
                 break
-            if not prepared.page.has_older or limit <= 0:
+            if (not prepared.page.has_older or limit <= 0
+                    or not window.presentation_budget.can_read_destination(len(destination))):
                 break
-            prepared = (await self._reader().get(PageRequest(before=prepared.page.before))).for_view()
+            prepared = (await self._reader().get(PageRequest.adjacent(prepared.page, True))).for_view()
         if not destination:
             return False
 
@@ -980,33 +921,31 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         def current() -> bool:
             if not snapshot.current(self):
                 return False
-            return fresh or window.follows_tail or window.lookahead.demand.permits(older)
+            return fresh or window.lookahead.demand.accepts_result(older)
 
         try:
             if not current():
                 return False
             edge = self.pages[0] if older else self.pages[-1]
             page_range = edge.capture_range()
-            local = edge.start > 0 if older else edge.stop < len(edge.fragments)
+            local = edge.prepared.can_extend(older)
             staged = edge.prepared.for_view() if local else prepared
             if not local:
                 if loader is None:
                     return False
                 if staged is None:
-                    staged = await self._reader().get(PageRequest(
-                        before=edge.page.before if older else None,
-                        after=edge.page.after if not older else None,
-                    ))
-            # The viewport owns the bounded runway demand. Publish that range
-            # together instead of forcing layout/writer joins per viewport.
-            runway = self._runway()
-            missing = self.prefetch_distance - (0 if runway is None else runway[0 if older else 1])
+                    staged = await self._reader().get(PageRequest.adjacent(edge.page, older))
+            # Speculation warms the same scoped runtime entry as the next
+            # foreground request; it does not copy decoded pages into a widget.
+            window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, older)
+            missing = (window.lookahead.ahead_rows(window.outer_size.height) if fresh
+                       else window.lookahead.read_rows(self, older))
             boundary = (edge.start if older else edge.stop) if local else (len(staged.fragments) if older else 0)
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories,
                 boundary=boundary, older=older,
                 rows_needed=max(1, missing),
-                limit=self.app.preparation.max_entries,
+                limit=self.fragment_limit,
             )
             if not current():
                 return False
@@ -1028,12 +967,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 return False
             if fresh or not current():
                 return False
-            if not (self.has_older if older else self.has_newer):
-                return False
-            if older and self.destination_needs_older:
-                return True
-            runway = self._runway()
-            return runway is not None and runway[0 if older else 1] < self.prefetch_distance
+            return bool(window.lookahead.read_rows(self, older))
         except _DrawingStopped:
             return False
         finally:

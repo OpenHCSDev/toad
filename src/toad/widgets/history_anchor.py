@@ -531,10 +531,42 @@ class HistoryWindow(VerticalScroll):
         """A history about to be mounted loads the page ranges the kept position needs."""
         if self.reader_position is not None:
             self.reader_position.prepare_history(history)
+        if self.follows_tail:
+            self.lookahead.destination(self.outer_size.height)
 
     def latest_limits(self, budget: PresentationBudget) -> tuple[int, int]:
         """One native destination's row capacity and bounded fragment budget."""
-        return max(1, self.outer_size.height), self.lookahead.destination_batch(budget, self.outer_size.height)
+        return (self.presentation_budget.runway_rows(self.outer_size.height),
+                self.lookahead.destination_batch(budget, self.outer_size.height))
+
+    def runway(self, history) -> tuple[int, int] | None:
+        """Published source rows above and below this viewport; no offscreen layout."""
+        visible = self.screen._compositor.visible_widgets
+        geometry, window = visible.get(history), visible.get(self)
+        if geometry is None or window is None or not geometry[0].overlaps(window[0]):
+            return None
+        region, viewport = geometry[0], window[0]
+        return viewport.y - region.y, region.bottom - viewport.bottom
+
+    def prepare_source(self, history) -> None:
+        """The viewport admits source work from the scene it actually displays."""
+        if (not history.checkpoint_available or not self.screen.is_active
+                or not history.selected_categories or self.runway(history) is None):
+            return
+        if history._follow_source_tail and history.has_newer:
+            self.jump_to_latest()
+        elif history.filter.active:
+            # Creating a projection uses the original decoded boundary; its
+            # ordinary pager still asks this viewport for each source page.
+            history.filter.check_edges()
+        else:
+            self.lookahead.prepare_source(history)
+
+    def request_older(self) -> None:
+        """An explicit earlier-history control is reader intent, even without travel."""
+        self.lookahead.requested(-max(1, self.scrollable_content_region.height))
+        self._schedule_settle()
+        self.request_preparation()
 
     def history_geometry_targets(self) -> tuple[Widget, ...]:
         """The widgets the kept position is measured from: layout places them even off screen."""
