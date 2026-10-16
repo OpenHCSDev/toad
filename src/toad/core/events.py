@@ -115,11 +115,6 @@ class ThreadActionsChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
-class SidebarLayoutChanged(CoreEvent):
-    """The original sidebar layout changed; native panes derive their paint."""
-
-
-@dataclass(frozen=True)
 class CoordinationObserved(CoreEvent):
     """Core's stores changed; the revision Core observed, None without a service.
 
