@@ -149,7 +149,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
                 right=True, hide=True, navigation=self._thread_sidebar_state,
             ),
             containers.Vertical(*content, id="comms-content"),
-        )
+        ).set_styles(layout=self.app.workspace_chrome)
 
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""

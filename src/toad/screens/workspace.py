@@ -98,7 +98,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         from textual.containers import Horizontal, Container
         chrome = self.app.workspace_chrome
         yield chrome.navigation
-        with Horizontal(id="workspace-body"):
+        with Horizontal(id="workspace-body").set_styles(layout=chrome):
             yield chrome.channels
             yield Container(id="workspace-session-host")
         yield chrome.footer

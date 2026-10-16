@@ -369,7 +369,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        with containers.Center():
+        with containers.Center().set_styles(layout=self.app.workspace_chrome):
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
                 yield self.content.render(self)

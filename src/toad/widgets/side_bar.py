@@ -682,7 +682,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
     def on_mount(self) -> None:
         self.trap_focus()
         app = cast("ToadApp", self.app)
-        self.parent.styles.layout = app.workspace_chrome
         if self._navigation is None:
             self.observe_core(app.saved_settings.events)
             self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
