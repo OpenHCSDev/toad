@@ -14,7 +14,8 @@ from agent_comms.comms import Comms
 from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.thread_execution import ConversationPreparation
-from agent_comms.session_load import ExistingSessionLoadAdmission
+from agent_comms.session_load import ExistingSessionLoadPlan
+from toad.owner_preparation import ExistingOwnerPlan
 
 from toad.session_tracker import CommsViewKey
 from toad.conversation_kind import ConversationKind
@@ -99,10 +100,10 @@ class ExternalThreadNavigation(ThreadNavigation):
 
 @dataclass(frozen=True)
 class NativeThreadNavigation(ThreadNavigation):
-    admission: ExistingSessionLoadAdmission
+    plan: ExistingSessionLoadPlan
 
     def bind(self, screen) -> None:
-        screen.presentation.sources.load_admission = self.admission
+        screen.presentation.sources.load_plan = self.plan
 
 
 @dataclass(frozen=True)
@@ -157,13 +158,11 @@ class ThreadConversationPreparation(ConversationPreparation):
         return ExternalThreadNavigation(self.root, self.thread, self.project)
 
     def native(self) -> ThreadNavigation:
-        from toad.owner_preparation import ExistingOwnerAdmission
-
         binding = self.thread.execution.owner_binding(self.snapshot, self.thread)
-        admission = ExistingOwnerAdmission.from_binding(binding)
-        if admission is None:
+        plan = ExistingOwnerPlan.from_binding(binding)
+        if plan is None:
             return ThreadNavigation(self.root, self.thread, self.project)
-        return NativeThreadNavigation(self.root, self.thread, self.project, admission)
+        return NativeThreadNavigation(self.root, self.thread, self.project, plan)
 
 
 class ThreadOpening:

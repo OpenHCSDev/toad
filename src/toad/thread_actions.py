@@ -134,9 +134,18 @@ class ThreadAction:
             except (OSError, ValueError) as error:
                 ctx.app.notify(str(error), title=definition.label, severity='error')
 
-        if definition.editable_fields or definition.confirmation:
-            ctx.app.push_screen(CommandDialog(definition, ctx.title), accepted)
-        else:
-            async def prepare():
+        async def prepare():
+            if definition.editable_fields or definition.confirmation:
+                screen = ctx.app.screen
+                try:
+                    fields = await ctx.app.preparation.run_thread(
+                        lambda: asyncio.run(definition.prepare_fields()))
+                    ctx.current()
+                except (OSError, ValueError, RuntimeError) as error:
+                    ctx.app.notify(str(error), title=definition.label, severity='error')
+                    return
+                if ctx.app.screen is screen:
+                    ctx.app.push_screen(CommandDialog(definition, ctx.title, fields, ctx.comms), accepted)
+            else:
                 await accepted({})
-            ctx.app.run_worker(prepare)
+        ctx.app.run_worker(prepare, name='command-fields')

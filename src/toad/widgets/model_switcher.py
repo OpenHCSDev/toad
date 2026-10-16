@@ -4,12 +4,15 @@ from __future__ import annotations
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventReceiver
 
-from typing import TYPE_CHECKING, Self
+from abc import abstractmethod
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Self, Protocol
 
 from textual import events, getters, on, work
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.content import Content
+from textual.containers import VerticalGroup
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
 from textual.widget import PrimaryActivation
@@ -35,8 +38,7 @@ class ConnectProvider(PrimaryActivation, CoreEventReceiver, Static, can_focus=Tr
         return self.action_connect
 
     def action_connect(self):
-        self.query_ancestor(ModelSwitcher).action_dismiss()
-        self.publish_core(input_events.ProviderLogin())
+        self.query_ancestor(ModelSelection).connect_provider()
 
     def on_click(self, event: events.Click):
         event.stop()
@@ -62,7 +64,19 @@ def match_score(query: str, candidate: str) -> float:
     return 10 + len(query) / max(1, previous - first + 1)
 
 
-class ModelSwitcher(CoreEventReceiver, InfoPopup):
+class ModelChoice(Protocol):
+    @property
+    def value(self) -> str: ...
+
+    @property
+    def name(self) -> str: ...
+
+    @property
+    def description(self) -> str | None: ...
+
+
+class ModelSelection(CoreEventReceiver, VerticalGroup):
+    """Search, recents and provider connection shared by prompt and creation views."""
     BINDING_GROUP_TITLE = "Model search"
     BINDINGS = [
         Binding("up", "cursor_up", "Previous model", priority=True),
@@ -72,9 +86,7 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         Binding("ctrl+u", "clear_search", "Clear search", priority=True, show=False),
     ]
     DEFAULT_CSS = """
-    ModelSwitcher {
-        display: none;
-        overlay: screen;
+    ModelSelection {
         constrain: inside inflect;
         width: 80;
         max-width: 100%;
@@ -85,19 +97,18 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         padding: 0;
         margin: 1 0;
     }
-    ModelSwitcher.-open { display: block; }
-    ModelSwitcher Input { height: 1; border: none; padding: 0 1; }
-    ModelSwitcher .model-count { height: 1; padding: 0 1; color: $text-muted; }
-    ModelSwitcher ConnectProvider { height: 1; padding: 0 1; color: $text-secondary; pointer: pointer; }
-    ModelSwitcher ConnectProvider:hover, ModelSwitcher ConnectProvider:focus { text-style: underline; }
-    ModelSwitcher OptionList {
+    ModelSelection Input { height: 1; border: none; padding: 0 1; }
+    ModelSelection .model-count { height: 1; padding: 0 1; color: $text-muted; }
+    ModelSelection ConnectProvider { height: 1; padding: 0 1; color: $text-secondary; pointer: pointer; }
+    ModelSelection ConnectProvider:hover, ModelSelection ConnectProvider:focus { text-style: underline; }
+    ModelSelection OptionList {
         height: auto;
         max-height: 45vh;
         border: none;
         padding: 0;
         & > .option-list--option { padding: 0 1; }
     }
-    ModelSwitcher OptionList > .option-list--option-highlighted {
+    ModelSelection OptionList > .option-list--option-highlighted {
         background: $block-cursor-background;
         color: $block-cursor-foreground;
         text-style: $block-cursor-text-style;
@@ -107,6 +118,7 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
     search_input = getters.query_one(Input)
     option_list = getters.query_one(OptionList)
     history_scope = var("")
+    choice_name = "models"
 
     def __init__(self):
         super().__init__()
@@ -114,13 +126,26 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         self._open_generation = 0
         self._selection_moved = False
 
-    @classmethod
-    def for_prompt(cls, prompt: Prompt) -> Self | None:
-        from toad.widgets.prompt import Prompt
-        return None if prompt.simple_input else cls().data_bind(history_scope=Prompt.model_history_scope)
+    @property
+    @abstractmethod
+    def choices(self) -> Sequence[ModelChoice]: ...
+
+    @property
+    @abstractmethod
+    def current(self) -> str: ...
+
+    @property
+    @abstractmethod
+    def selection_active(self) -> bool: ...
+
+    @abstractmethod
+    def select_model(self, model_id: str) -> None: ...
+
+    @abstractmethod
+    def connect_provider(self) -> None: ...
 
     def compose_content(self) -> ComposeResult:
-        yield Input(placeholder="Search models or providers…", compact=True)
+        yield Input(placeholder=f"Search {self.choice_name} or providers…", compact=True)
         yield Static("", classes="model-count", markup=False)
         options = SelectionOptionList()
         options.can_focus = False
@@ -128,7 +153,7 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         yield ConnectProvider()
 
     def configuration_changed(self) -> None:
-        if self.is_mounted and self.is_open:
+        if self.is_mounted and self.selection_active:
             self.filter_models(preserve_selection=True)
 
     def focus_content(self, scroll_visible: bool) -> None:
@@ -144,7 +169,7 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
     async def load_recents(self, generation: int, scope: str) -> None:
         recent = await DB().recent_models(scope)
         if (
-            self.is_open
+            self.selection_active
             and generation == self._open_generation
             and scope == self.history_scope
         ):
@@ -159,11 +184,7 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         previous_id = highlighted.id if highlighted is not None else None
         terms = self.search_input.value.casefold().split()
         recent = {model_id: index for index, model_id in enumerate(self.recent_ids)}
-        from toad.widgets.prompt import Prompt
-        agent = self.query_ancestor(Prompt).agent
-        setting = agent.configuration.model if agent is not None else None
-        models = setting.choices if setting is not None else ()
-        current = setting.current if setting is not None else ""
+        models, current = self.choices, self.current
         ranked = []
         for model in models:
             fields = {model.name.casefold(), model.value.casefold()}
@@ -202,9 +223,9 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         else:
             self.option_list.highlighted = None
         self.query_one(".model-count", Static).update(
-            f"{len(options)} / {len(models)} models · {'best matches' if terms else 'recent first'}"
+            f"{len(options)} / {len(models)} {self.choice_name} · {'best matches' if terms else 'recent first'}"
             if options
-            else "No matching models"
+            else f"No matching {self.choice_name}"
         )
 
     @on(Input.Changed)
@@ -228,10 +249,6 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
         if event.option_id is not None:
             self.select_model(event.option_id)
 
-    def select_model(self, model_id: str):
-        self.publish_core(input_events.ChangeModel(model_id))
-        self.action_dismiss()
-
     def action_cursor_up(self):
         self._selection_moved = True
         self.option_list.action_cursor_up()
@@ -251,3 +268,36 @@ class ModelSwitcher(CoreEventReceiver, InfoPopup):
 
     def action_clear_search(self):
         self.search_input.clear()
+
+
+class ModelSwitcher(ModelSelection, InfoPopup):
+    DEFAULT_CSS = """
+    ModelSwitcher { display: none; overlay: screen; }
+    ModelSwitcher.-open { display: block; }
+    """
+
+    @classmethod
+    def for_prompt(cls, prompt: Prompt) -> Self | None:
+        return None if prompt.simple_input else cls().data_bind(history_scope=type(prompt).model_history_scope)
+
+    @property
+    def choices(self):
+        agent = self.prompt.agent
+        return agent.configuration.model.choices if agent is not None else ()
+
+    @property
+    def current(self):
+        agent = self.prompt.agent
+        return agent.configuration.model.current if agent is not None else ""
+
+    @property
+    def selection_active(self):
+        return self.is_open
+
+    def select_model(self, model_id: str):
+        self.publish_core(input_events.ChangeModel(model_id))
+        self.action_dismiss()
+
+    def connect_provider(self):
+        self.action_dismiss()
+        self.publish_core(input_events.ProviderLogin())
