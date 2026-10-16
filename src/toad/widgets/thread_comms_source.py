@@ -4,7 +4,8 @@ from functools import cached_property
 from pathlib import Path
 from typing import Protocol
 
-from agent_comms.comms import Comms, wire
+from agent_comms.active_route import resolve_comms_route
+from toad.comms_root import CoordinationAccess
 from agent_comms.display_order import ThreadSort
 from agent_comms.relationships import SortableRelationshipGroup, ThreadCommsSnapshot
 
@@ -21,16 +22,14 @@ class RelationshipSource(Protocol):
 
 
 class WireRelationshipSource:
-    def __init__(self, root: str, shared: Comms | None):
+    def __init__(self, root: str, access: CoordinationAccess):
         self.root = Path(root).expanduser().resolve()
-        self.shared = shared
+        self.access = access
 
     @cached_property
     def service(self):
         # Called by the widget's background read, never during composition.
-        comms = (self.shared if self.shared is not None and self.shared.root.resolve() == self.root
-                 else wire(self.root))
-        return comms.relationships
+        return self.access.acquire(resolve_comms_route(self.root)).relationships
 
     def revision(self):
         return self.service.revision()

@@ -20,6 +20,10 @@ from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
+from agent_comms.active_route import CommsRoute
+from agent_comms.comms import Comms
+from agent_comms.launch_runtime import LaunchRuntime
+from toad.acp.transcript_reader import ObservedTranscriptReader
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.private_path import FileRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
@@ -37,7 +41,6 @@ from agent_comms.display_references import PendingReferences, UnavailableReferen
 
 if TYPE_CHECKING:
     from toad.widgets.message_notifications import HistoryNotifications
-    from agent_comms.comms import Comms
     from agent_comms.presentation import WireRevision
     from toad.app import ToadApp
     from toad.widgets.observed_thread_activity import ThreadStatusOwner
@@ -101,8 +104,8 @@ class CoordinationAccess(MroDispatch):
 
     def __init__(self, app: ToadApp) -> None:
         self.app = app
-        from toad.acp.transcript_reader import ObservedTranscriptReader
-
+        self.runtime = LaunchRuntime.running()
+        self.services: dict[CommsRoute, Comms] = {}
         self.transcripts = ObservedTranscriptReader(self)
         self.observation: ObservedCommsService | None = None
         self.events = CoreEventStream(self)
@@ -112,7 +115,7 @@ class CoordinationAccess(MroDispatch):
         self.timer = None
         self.loop: asyncio.AbstractEventLoop | None = None
         self.custody = ExitStack()
-        self.opening = threading.Lock()
+        self.opening = threading.RLock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
         self.marking: asyncio.Task[None] | None = None
@@ -155,22 +158,30 @@ class CoordinationAccess(MroDispatch):
         """Capture the current route and open (or keep) its service; file I/O."""
         return self.require(RouteSelection.capture())
 
+    def acquire(self, route: CommsRoute) -> Comms:
+        """Keep one admitted service per resolved route for this application's lifetime."""
+        with self.opening:
+            if route in self.services:
+                return self.services[route]
+            with ExitStack() as acquisition:
+                acquisition.enter_context(route.admit_client())
+                route.observe_root()
+                service = Comms(route, runtime=self.runtime)
+                self.custody.enter_context(acquisition.pop_all())
+            self.services[route] = service
+            return service
+
     def require(self, selected: RouteSelection) -> Comms:
         """The service for ``selected``; a new selection opens it and starts its observation."""
-        from agent_comms.comms import wire
-
         if RouteSelection.capture() != selected:
             raise RouteChanged("Comms route changed before the operation")
         with self.opening:
             observed = self.observation
             if observed is not None and observed.selection == selected:
                 return observed.service
-            with ExitStack() as acquisition:
-                acquisition.enter_context(selected.route.admit_client())
-                service = wire(selected.route)
-                if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
-                    raise RouteChanged("Comms route changed while opening the service")
-                self.custody.enter_context(acquisition.pop_all())
+            service = self.acquire(selected.route)
+            if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+                raise RouteChanged("Comms route changed while opening the service")
             # Textual runs the models' flushes after the current message,
             # before the next frame is composed.
             self.observation = ObservedCommsService(
@@ -431,6 +442,7 @@ class CoordinationAccess(MroDispatch):
             self.observation = None
         await asyncio.gather(*self.retiring, return_exceptions=True)
         self.custody.close()
+        self.services.clear()
 
     def current_route_stamp(self) -> tuple[FileRevision | None, ...]:
         from agent_comms.active_route import active_route_path

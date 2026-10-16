@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.comms import wire
+from agent_comms.active_route import resolve_comms_route
 from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
@@ -50,7 +50,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return None
 
-    def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
+    async def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         return False
 
     def depends_on(self, mode: str) -> bool:
@@ -71,7 +71,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def forget(self, sessions: SessionNavigation) -> None:
         """Release any domain membership beyond the workspace factory itself."""
 
-    def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
+    async def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         pass
 
     def sync_recovery(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
@@ -134,7 +134,7 @@ class NativeSessionEntry(SessionEntry):
         else:
             source.presentation.sources.attach_started(source, admission)
 
-    def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
+    async def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
         if source is None or not source.has_agent():
             return False
@@ -144,7 +144,15 @@ class NativeSessionEntry(SessionEntry):
         if session_id in {source._agent_session_id, live.session_id if live else None}:
             return True
         root = source.coordination_root
-        return root is not None and wire(root).registry.canonical_name(session_id) == source.resolve_thread()
+        if root is None:
+            return False
+        canonical = await sessions.app.preparation.run_thread(
+            lambda: sessions.app.coordination_access.acquire(
+                resolve_comms_route(root),
+            ).registry.canonical_name(session_id),
+        )
+        return (self.source(sessions) is source and source.coordination_root == root
+                and canonical == source.resolve_thread())
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
@@ -219,11 +227,18 @@ class HistorySessionEntry(SessionEntry):
         await app.select_session(owner if owner in app.workspace_sessions.factories
                                  else app.tab_order.previous(self.mode))
 
-    def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
+    async def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         if self.key.owner_mode != owner:
             return
-        if self.key.me != previous and wire(self.key.root).registry.canonical_name(self.key.me) != current:
-            return
+        if self.key.me != previous:
+            key = self.key
+            canonical = await sessions.app.preparation.run_thread(
+                lambda: sessions.app.coordination_access.acquire(
+                    resolve_comms_route(key.root),
+                ).registry.canonical_name(key.me),
+            )
+            if self.key != key or canonical != current:
+                return
         self.key = replace(self.key, me=current)
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_identity(current)

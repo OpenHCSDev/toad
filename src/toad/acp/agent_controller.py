@@ -9,6 +9,7 @@ from dataclasses import dataclass, replace
 from functools import partial
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.launch_runtime import LaunchRuntime
 from toad import surface_binding
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
@@ -69,7 +70,7 @@ class AgentController(OperationalTerminalOwner):
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
-        self.transcripts = DetachedTranscriptReader()
+        self.transcripts = DetachedTranscriptReader(LaunchRuntime.running())
         self.coordination = None
         self.session = SessionBinding(None)
         self.mode_state: SessionModeState | None = None

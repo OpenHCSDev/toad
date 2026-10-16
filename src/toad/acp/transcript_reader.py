@@ -17,7 +17,9 @@ from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from agent_comms.comms import wire
+from agent_comms.active_route import resolve_comms_route
+from agent_comms.comms import Comms
+from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
@@ -28,15 +30,11 @@ from agent_comms.ui_model.observation import (
 class CoordinationTranscriptReader(ABC):
     """One agent's observed reads, and the read-side Comms service its other work binds."""
 
-    def __init__(self):
-        self._reader = None
-        self._lock = asyncio.Lock()
-
     @abstractmethod
     async def read(self, request: AwaitedRead): ...
 
-    async def service(self, root):
-        return await asyncio.to_thread(wire, root)
+    @abstractmethod
+    async def service(self, root) -> Comms: ...
 
     async def thread_presentation(self, root: str, thread: str):
         """Read one thread presentation through this reader's bound service."""
@@ -47,14 +45,7 @@ class CoordinationTranscriptReader(ABC):
 
     @asynccontextmanager
     async def bind(self, root: str):
-        async with self._lock:
-            if self._reader is None or self._reader.root != Path(root).expanduser():
-                self._reader = await self.service(root)
-            reader = self._reader
-        # The lock owns service initialization/replacement, not projections.
-        # Each caller retains this exact root service; its canonical stores own
-        # read transactions and the Agent fences publication after awaits.
-        yield reader
+        yield await self.service(root)
 
     async def publication(self, update: TranscriptSnapshotUpdate) -> TranscriptSnapshotUpdate:
         """The published page while its witness is current, else the current page."""
@@ -90,6 +81,19 @@ class CoordinationTranscriptReader(ABC):
 class DetachedTranscriptReader(CoordinationTranscriptReader):
     """An operational Agent no view has attached: nothing presents a transcript."""
 
+    def __init__(self, runtime: LaunchRuntime):
+        self.runtime = runtime
+        self._reader: Comms | None = None
+        self._lock = asyncio.Lock()
+
+    async def service(self, root):
+        async with self._lock:
+            if self._reader is None or self._reader.root != Path(root).expanduser():
+                self._reader = await asyncio.to_thread(
+                    Comms, resolve_comms_route(root), runtime=self.runtime,
+                )
+            return self._reader
+
     async def read(self, request):
         raise RuntimeError("Observed reads serve a view; no view is attached to this agent")
 
@@ -98,14 +102,12 @@ class ObservedTranscriptReader(CoordinationTranscriptReader):
     """Reads answered by the application's observation service."""
 
     def __init__(self, access):
-        super().__init__()
         self.access = access
 
     async def read(self, request):
         return await self.access.read(request)
 
     async def service(self, root):
-        shared = self.access.observed_service
-        if shared is not None and shared.root == Path(root).expanduser():
-            return shared
-        return await super().service(root)
+        return await self.access.preparation.run_thread(
+            lambda: self.access.acquire(resolve_comms_route(root)),
+        )

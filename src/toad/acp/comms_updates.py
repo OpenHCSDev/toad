@@ -118,7 +118,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent._post_queue_view(starts)
 
     @handles(CoordinationChangedUpdate)
-    def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
+    async def coordination_changed(self, update: CoordinationChangedUpdate) -> None:
         from dataclasses import replace
         from pathlib import Path
 
@@ -136,7 +136,7 @@ class CommsUpdateConsumer(MroDispatch):
         agent.context_measurement = ContextMeasurement.saved(update.context_usage)
         agent.update_status_line()
         agent.events.publish(core_events.CommsUpdated(agent.coordination, self.session_id))
-        agent.session.coordinated_title(update.title)
+        await agent.session.coordinated_title(update.title)
 
     @handles(GoalChangedUpdate)
     def goal_changed(self, update: GoalChangedUpdate) -> None:

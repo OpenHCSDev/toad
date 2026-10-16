@@ -383,14 +383,14 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self.content.close(self)
         await self.presentation.close(self)
 
-    def on_comms_session_named(self, thread_name: str) -> None:
+    async def on_comms_session_named(self, thread_name: str) -> None:
         """Tell the sidebar which thread is this screen's session."""
         previous = self._comms_thread
         self._comms_thread = thread_name
         if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
             sidebar.session_thread = thread_name
         if self.id is not None:
-            self.app.session_navigation.sync_identity(self.id, previous, thread_name)
+            await self.app.session_navigation.sync_identity(self.id, previous, thread_name)
             self.app.session_tracker.bind_identity(self.id, previous, thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
@@ -442,7 +442,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
                 self.link_context_changed()
             if event.worktree is not None:
                 self.bind_project(Path(event.worktree))
-            self.on_comms_session_named(event.thread.name)
+            await self.on_comms_session_named(event.thread.name)
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)

@@ -170,11 +170,10 @@ class SessionNavigation:
                 return
         project = project_path if project_path is not None else app.project_dir
         if agent_session_id is not None:
-            existing = next((entry for entry in self.members
-                             if entry.accepts_launch(self, agent_identity, agent_session_id)), None)
-            if existing is not None:
-                await app.select_session(existing.mode)
-                return
+            for entry in self.members:
+                if await entry.accepts_launch(self, agent_identity, agent_session_id):
+                    await app.select_session(entry.mode)
+                    return
         await self.new(lambda: MainScreen(project, agent, agent_session_id,
             session_pk=session_pk, initial_prompt=initial_prompt),
             title=title or "New Session")
@@ -246,9 +245,9 @@ class SessionNavigation:
         return self.app.tab_order.project({entry.mode: entry.tab(self, observed)
                                           for entry in self.members})
 
-    def sync_identity(self, owner: str, previous: str, current: str) -> None:
+    async def sync_identity(self, owner: str, previous: str, current: str) -> None:
         for entry in self.members:
-            entry.sync_identity(self, owner, previous, current)
+            await entry.sync_identity(self, owner, previous, current)
 
     def sync_recovery(self, owner: str, root: str | None) -> None:
         for entry in self.members:

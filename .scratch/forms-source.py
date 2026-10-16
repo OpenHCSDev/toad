@@ -23,6 +23,10 @@ terms = {'message_category', 'apply_block_filter', 'keep_live_block', 'block_cat
          'CommsForkTool', 'initial_prompt', 'pi_bin', 'prompt', 'TargetField',
          'TargetAction', 'ModelConfigOption', 'ThinkingLevelConfigOption',
          'ConfigOptions', 'CommandDialog', 'NativeThreadDefaults',
+         'wire', 'Comms', 'CommsRoute', 'resolve_comms_route', 'LaunchRuntime',
+         'CoordinationAccess', 'CoordinationTranscriptReader', 'WireRelationshipSource',
+         'DetachedTranscriptReader', 'ObservedTranscriptReader', 'accepts_launch',
+         'sync_identity', 'on_comms_session_named', 'rename_coordination', 'coordinated_title',
          'LayoutKind', 'LayoutStrategy', 'title_components', 'is_nested',
          'unwrapped_type', 'WidgetCreationPipeline', 'WidgetCreationRuntime'}
 modules, classes, sites, errors = [], [], [], []

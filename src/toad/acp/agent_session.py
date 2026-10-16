@@ -205,7 +205,7 @@ class AgentSession:
         if self.pk is not None:
             await DB().session_update_last_used(self.pk)
 
-    def coordinated_title(self, title):
+    async def coordinated_title(self, title):
         """A coordination update presents the thread's title.
 
         A name the user chose wins: it is announced as the session's title
@@ -217,7 +217,7 @@ class AgentSession:
         if self.chosen_name is not None:
             coordination = self.agent.coordination
             if coordination is not None and coordination.title != self.chosen_name:
-                self.rename_coordination(self.chosen_name)
+                await self.rename_coordination(self.chosen_name)
             return
         if title:
             self.agent.events.publish(SessionThreadTitle(title))
@@ -440,21 +440,22 @@ class AgentSession:
         self.publish_configuration(response)
 
 
-    def rename_coordination(self, display_name: str) -> None:
+    async def rename_coordination(self, display_name: str) -> None:
         if not self.accepts_session(self.agent.session_id):
             return
-        thread = self.agent.coordination.thread.name if self.agent.coordination else None
-        wire_root = self.agent.coordination.wire_root if self.agent.coordination else None
-        if thread is None or wire_root is None:
+        coordination = self.agent.coordination
+        if coordination is None or coordination.thread.name is None or coordination.wire_root is None:
             return
-
-        from agent_comms.comms import wire
-
-        result = wire(wire_root).threads.rename_managed_thread(
-            thread,
-            display_name,
-            owner_pid=self.agent.coordination.owner_pid,
-        )
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        async with self.agent.controller.transcripts.bind(coordination.wire_root) as comms:
+            authority.require()
+            result = await asyncio.to_thread(
+                comms.threads.rename_managed_thread,
+                coordination.thread.name,
+                display_name,
+                owner_pid=coordination.owner_pid,
+            )
+        authority.require()
         self.agent.coordination = replace(
             self.agent.coordination,
             thread=replace(self.agent.coordination.thread, name=result.current),
@@ -488,7 +489,7 @@ class AgentSession:
         if self.chosen_name == name:
             return
         self.chosen_name = name or None
-        self.rename_coordination(name)
+        await self.rename_coordination(name)
         if self.pk is None:
             return
         db = DB()
