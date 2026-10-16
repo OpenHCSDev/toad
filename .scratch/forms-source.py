@@ -1,6 +1,8 @@
 """NRA source evidence for the existing forms and category-filter families."""
 import ast
 import json
+import subprocess
+import sys
 from pathlib import Path
 from nominal_refactor_advisor.ast_tools import SourceModule, module_syntax_index
 from nominal_refactor_advisor.class_index import build_class_family_index
@@ -10,7 +12,8 @@ roots = [Path('/home/ts/wt/toad-forms-migration/src/toad'),
          Path('/home/ts/wt/objectstate-native-forms/src/objectstate'),
          Path('/home/ts/wt/formbridge-native-forms/src/formbridge'),
          Path('/home/ts/wt/pyqt-native-formbridge/src/pyqt_reactive'),
-         Path('/home/ts/wt/core-forms-migration/src/agent_comms')]
+         Path('/home/ts/wt/core-forms-migration/src/agent_comms'),
+         Path('/home/ts/code/projects/openhcs/openhcs')]
 terms = {'message_category', 'apply_block_filter', 'keep_live_block', 'block_category',
          'selected_categories', 'visible_categories', 'set_display_constraint',
          'update_classes', 'set_class', 'has_class', 'parameters_for_state',
@@ -19,12 +22,21 @@ terms = {'message_category', 'apply_block_filter', 'keep_live_block', 'block_cat
          'NewThreadCliCommand', 'ForkCliCommand', 'NewThreadSpec', 'ForkSpec',
          'CommsForkTool', 'initial_prompt', 'pi_bin', 'prompt', 'TargetField',
          'TargetAction', 'ModelConfigOption', 'ThinkingLevelConfigOption',
-         'ConfigOptions', 'CommandDialog', 'NativeThreadDefaults'}
+         'ConfigOptions', 'CommandDialog', 'NativeThreadDefaults',
+         'LayoutKind', 'LayoutStrategy', 'title_components', 'is_nested',
+         'unwrapped_type', 'WidgetCreationPipeline', 'WidgetCreationRuntime'}
 modules, classes, sites, errors = [], [], [], []
 for root in roots:
     for path in root.rglob('*.py'):
         try:
-            parsed = SourceModule.from_source_path(path, path.read_text()).parse()
+            source = path.read_text()
+            qt = Path('/home/ts/wt/pyqt-native-formbridge')
+            if '--qt-before' in sys.argv and path in {
+                    qt / 'src/pyqt_reactive/forms/widget_creation_config.py',
+                    qt / 'src/pyqt_reactive/forms/widget_creation_types.py'}:
+                source = subprocess.check_output(
+                    ['git', '-C', str(qt), 'show', 'HEAD:' + str(path.relative_to(qt))], text=True)
+            parsed = SourceModule.from_source_path(path, source).parse()
         except Exception as error:
             errors.append((str(path), str(error)))
             continue

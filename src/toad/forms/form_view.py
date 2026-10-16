@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 
 from formbridge.forms.parameter_form_service import ParameterFormService
-from formbridge.forms.parameter_info_types import DirectDataclassInfo, GenericInfo
+from formbridge.forms.parameter_info_types import DirectDataclassInfo, ParameterInfo
 from objectstate import DottedFieldPath, ObjectState
 from textual import containers, events, lazy
 from textual.app import ComposeResult
@@ -84,7 +84,7 @@ class FieldView(FormPart, containers.VerticalGroup, DeclaredViews):
 class ValueView(FieldView):
     """A field with one value: its label, its help and the editor for its kind."""
 
-    shows = (GenericInfo,)
+    shows = (ParameterInfo,)
 
     CHANGED_MARK = " ●"
 
