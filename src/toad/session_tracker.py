@@ -58,7 +58,7 @@ class ThreadTab(OpenTab):
 
     @property
     def busy(self) -> bool:
-        return self.row.busy
+        return self.row.status.busy
 
 
 @dataclass(frozen=True)
