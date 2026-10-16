@@ -116,7 +116,7 @@ def main():
                         help="Arrange the screen at N new widths and time each pass (frame_meter.remeasure)")
     parser.add_argument("--repaint", type=int, default=0,
                         help="Repaint the history viewport N times cold and warm, timing each (frame_meter.repaint)")
-    parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
+    parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for read-only py-spy profiling only")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
             or args.trace_reflows or args.trace_rules or args.trace_exit or args.trace_garbage or args.collect_all or args.heap_components or args.heap_census or args.freeze_heap or args.trace_abc or args.trace_posts
@@ -205,7 +205,7 @@ def main():
             ]
             script = Path(str(prefix) + "-remote.py")
             script.write_text("\n".join(lines) + "\n")
-            subprocess.run([*privilege, process.exe(), "-c",
+            subprocess.run([process.exe(), "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
             deadline = time.monotonic() + max(args.frame_meter, 60 if args.profile_layout or args.remeasure or args.repaint else 0) + 20
             outputs = [output + ".json" for output, _call, _extra in calls]
