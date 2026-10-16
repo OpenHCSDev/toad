@@ -68,8 +68,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def unread(cls, sidebar, target):
-        from agent_comms.ui_model.unread import UnreadPresentation
-        return sidebar.unread_for(lambda snapshot: UnreadPresentation.for_channel(snapshot, target))
+        return sidebar.channel_unread(target)
 
     @classmethod
     def placeholder(cls, target):
@@ -243,8 +242,7 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def unread(cls, sidebar, target):
-        from agent_comms.ui_model.unread import UnreadPresentation
-        return sidebar.unread_for(lambda snapshot: UnreadPresentation.for_bus(snapshot, target))
+        return sidebar.bus_unread(target)
 
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:

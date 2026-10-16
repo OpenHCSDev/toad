@@ -257,8 +257,8 @@ class CoordinationAccess(MroDispatch):
         if previous_references != self.reference_context(str(observed.service.root)):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
-        if result.snapshot.read_marker_notice and result.snapshot.read_marker_notice != notice:
-            app.notify(result.snapshot.read_marker_notice, title="Read positions", severity="warning")
+        for text in result.snapshot.read_marker_notice.messages_since(notice):
+            app.notify(text, title="Read positions", severity="warning")
         if app.open_tabs != tabs:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
