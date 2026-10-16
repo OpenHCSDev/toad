@@ -112,7 +112,16 @@ class ScreenContent(DeclaredFamily, affix="Content"):
     """Content state owns its label, preparation admission and completion."""
 
     @abstractmethod
-    def render(self, screen: "MainScreen") -> Static: ...
+    def line(self) -> str:
+        """The opening line this content state shows; empty hides it."""
+
+    def render(self, screen: "MainScreen") -> Static:
+        """The one decision of the opening line: a session failure outranks the state's line."""
+        agent = screen.presentation.operational_agent
+        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
+            return self.label(screen, f"Thread disconnected: {failure.message}: {failure.details}", visible=True)
+        line = self.line()
+        return self.label(screen, line, visible=bool(line))
 
     @abstractmethod
     async def wait(self, screen: "MainScreen") -> None: ...
@@ -132,10 +141,6 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         self.render(screen)
 
     def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
-        agent = screen.presentation.operational_agent
-        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
-            text = f"Thread disconnected: {failure.message}: {failure.details}"
-            visible = True
         label = screen.query_one_optional("#session-opening", Static)
         if label is None:
             label = Static(id="session-opening", markup=False)
@@ -148,10 +153,10 @@ class OpeningContent(ScreenContent):
     def __init__(self) -> None:
         self.completion = asyncio.get_running_loop().create_future()
 
-    def render(self, screen: "MainScreen") -> Static:
+    def line(self) -> str:
         from toad.widgets.conversation import ThreadLoading
 
-        return self.label(screen, ThreadLoading.LABEL, visible=True)
+        return ThreadLoading.LABEL
 
     async def wait(self, screen: "MainScreen") -> None:
         await asyncio.shield(self.completion)
@@ -177,8 +182,8 @@ class ReadyContent(ScreenContent):
     async def prepare(self, screen: "MainScreen") -> None:
         await screen._prepare_content()
 
-    def render(self, screen: "MainScreen") -> Static:
-        return self.label(screen, "", visible=False)
+    def line(self) -> str:
+        return ""
 
     async def wait(self, screen: "MainScreen") -> None:
         """The content has already been admitted."""
@@ -188,8 +193,8 @@ class FailedContent(ScreenContent):
     def __init__(self, error: BaseException) -> None:
         self.error = error
 
-    def render(self, screen: "MainScreen") -> Static:
-        return self.label(screen, f"Thread unavailable: {self.error}", visible=True)
+    def line(self) -> str:
+        return f"Thread unavailable: {self.error}"
 
     async def wait(self, screen: "MainScreen") -> None:
         raise self.error
