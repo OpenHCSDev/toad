@@ -35,7 +35,10 @@ class SessionToolCalls:
     @property
     def scope(self):
         coordination = self.agent.coordination
-        return None if coordination is None else coordination.source_identity
+        return None if coordination is None else coordination.thread.recorded_or(
+            lambda recorded: AssignedSourceIdentity(coordination.wire_root, recorded),
+            lambda: None,
+        )
 
     def capture(self, call):
         return SessionToolCall(call, ClientSessionRequest(self.agent, self.agent.session_id), self.scope)

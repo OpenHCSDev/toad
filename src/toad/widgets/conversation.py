@@ -502,10 +502,8 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
-        self.throbber = ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
-            id="throbber",
-        )
+        self.throbber = ObservedThrobber(self.working, id="throbber")
+        self.throbber_above = ObservedThrobber(self.working)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
@@ -880,8 +878,15 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
                 await DB().session_update_project(session_pk, path)
 
+    def working(self) -> bool:
+        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
+
+    def _sync_working(self) -> None:
+        for throbber in (self.throbber, self.throbber_above):
+            throbber.sync()
+
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self.throbber.sync()
+        self._sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -891,7 +896,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self.throbber.sync()
+        self._sync_working()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
@@ -927,6 +932,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ),
             )
             self.refresh_thread_status()
+            yield self.throbber_above
             yield self.thread_activity
             prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
@@ -1348,7 +1354,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.working_directory = str(Path(event.event.path).resolve().absolute())
 
     async def watch_busy_count(self, _busy: int) -> None:
-        self.throbber.sync()
+        self._sync_working()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection):

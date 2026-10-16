@@ -5,13 +5,13 @@ from __future__ import annotations
 from dataclasses import replace
 
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
-from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.thread_identity import RecordedThreadIncarnation
 
 
 def coordination_fact(thread, wire_root, *, owner_pid=1, model=None, thinking_level=None,
                       worktree=None, title=None, context_usage=None) -> CoordinationChangedUpdate:
     return CoordinationChangedUpdate(
-        ThreadIncarnation(thread, 1.0), str(wire_root), owner_pid, str(worktree or wire_root),
+        RecordedThreadIncarnation(thread, 1.0), str(wire_root), owner_pid, str(worktree or wire_root),
         model, thinking_level, title or thread, context_usage)
 
 
