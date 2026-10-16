@@ -80,7 +80,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                         )
                         yield GoalText(revision_goal.summary, classes="goal-text")
                         if revision_goal.progress:
-                            yield GoalText(revision_goal.progress, classes="goal-text")
+                            yield GoalText(revision_goal.progress.summary, classes="goal-text")
             yield Button("Close (Esc)", id="goal-details-close")
 
     def on_mount(self) -> None:
