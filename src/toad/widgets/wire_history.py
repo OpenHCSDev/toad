@@ -37,7 +37,7 @@ class WireHistory(LineHistory):
         # The view's message filter is read while the line history is built.
         self.view = view
         super().__init__(PreparedTranscriptPage.empty(WirePage.unread()), None)
-        # Core's admitted source observation is not a paint-ready flag.
+        # Core's observed revision is not a paint-ready flag.
         self.revision: ConversationRevision | None = None
         # A read mark is being written; the next one waits for it.
         self.marking = False
@@ -119,7 +119,7 @@ class WireHistory(LineHistory):
         if source is not self.source:
             return False
         if observed is not None:
-            # Admit Core's observation before asynchronous drawing. A pending
+            # Keep Core's observation before asynchronous drawing. A pending
             # viewport must not turn the same scope into another replacement.
             self.revision = observed.revision
             if observed.replaced:
@@ -129,11 +129,11 @@ class WireHistory(LineHistory):
                 return await self.extend(observed.through)
             self.extend_source(observed.through)
         elif not self.undrawn:
-            # An admitted observation may still have an unfinished page read.
+            # A captured observation may still have an unfinished page read.
             return (self.pages[-1].page.after != self.through
                     and await self.extend(self.through))
-        # The existing prepared reader owns this pending page. Retry admission,
-        # not clearing its source and starting the same read again.
+        # The existing prepared reader owns this pending page. Continue drawing
+        # without clearing its source and starting the same read again.
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         return not self.undrawn
 
