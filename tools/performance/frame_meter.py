@@ -65,19 +65,26 @@ def install(*, expected_pid, seconds, output):
     stepped_layouts = []
     run, post, dispatch = loop_events.Handle._run, MessagePump.post_message, MessagePump._dispatch_message
     refresh = Widget.refresh
-    layouts = {}
+    layout_invalidations = []
+    request_layout = Widget._request_layout
     repaints = {}
 
-    def counted_refresh(self, *regions, repaint=True, layout=False, recompose=False):
-        # Each layout request re-arranges the screen; count who asks.
-        name = type(self).__name__
-        if layout:
-            caller = sys._getframe(1)
-            while caller is not None and caller.f_code.co_name in ("refresh", "_refresh"):
+    def counted_layout(self, required=True):
+        if required:
+            caller, stack = sys._getframe(1), []
+            while caller is not None and len(stack) < 24:
+                code = caller.f_code
+                if code.co_filename != __file__:
+                    stack.append(dict(file=code.co_filename, line=caller.f_lineno,
+                                      function=code.co_qualname))
                 caller = caller.f_back
-            key = f"{name} <- {caller.f_code.co_qualname if caller else '?'}"
-            layouts[key] = layouts.get(key, 0) + 1
-        elif repaint:
+            layout_invalidations.append(dict(at_ns=clock(), widget=type(self).__name__,
+                                             stack=stack))
+        return request_layout(self, required)
+
+    def counted_refresh(self, *regions, repaint=True, layout=False, recompose=False):
+        name = type(self).__name__
+        if repaint and not layout:
             # Repaints are cheaper than layouts but each repainted widget
             # renders its lines again; count who asks.
             caller = sys._getframe(1)
@@ -310,6 +317,7 @@ def install(*, expected_pid, seconds, output):
     def finish():
         state["finished"] = True
         Widget.refresh = refresh
+        Widget._request_layout = request_layout
         Screen.refresh_bindings = refresh_bindings
         Screen._refresh_layout = refresh_layout
         if layout_step is not None:
@@ -336,7 +344,11 @@ def install(*, expected_pid, seconds, output):
                        "timed_callbacks": timed_callbacks, "long_waits": long_waits, "switch_steps": switch_steps,
                        "stepped_layouts": stepped_layouts,
                        "slow_handlers": slow, "slow_frames": slow_frames,
-                       "layout_requests": layouts, "repaint_requests": repaints,
+                       "layout_invalidations": layout_invalidations,
+                       "layout_requests": collections.Counter(
+                           f"{item['widget']} <- {item['stack'][0]['function']}"
+                           for item in layout_invalidations),
+                       "repaint_requests": repaints,
                        "binding_refreshes": binding_refreshes,
                        "stalls": sorted(stalls.items(), key=lambda item: -item[1])[:40],
                        "gc": {"tracked": len(gc.get_objects()), "frozen": gc.get_freeze_count(),
@@ -367,6 +379,7 @@ def install(*, expected_pid, seconds, output):
     gc.callbacks.append(collected)
     threading.Thread(target=watch_stalls, name="frame-meter-stalls", daemon=True).start()
     Widget.refresh = counted_refresh
+    Widget._request_layout = counted_layout
     Screen.refresh_bindings = counted_bindings
     Screen._refresh_layout = timed_layout
     if layout_step is not None:
