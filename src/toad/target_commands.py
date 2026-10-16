@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 class TargetContext:
     app: ToadApp
     comms: Comms
-    subject: str
+    subject: str | None
     actor: str
     project: Path
     mode: str | None = None
@@ -34,11 +34,11 @@ class TargetContext:
 
     @property
     def selected_targets(self):
-        return self.targets or (self.subject,)
+        return self.targets or ((self.subject,) if self.subject is not None else ())
 
     @property
     def title(self):
-        return ", ".join(self.selected_targets)
+        return ", ".join(self.selected_targets) if self.selected_targets else str(self.project)
 
     def current(self):
         if not root_is_current(self.comms.root):
