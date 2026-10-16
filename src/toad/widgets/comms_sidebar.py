@@ -40,9 +40,9 @@ from toad.core.events import ThreadActionsChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.widgets.session_sidebar import ThreadStatusRow
-from toad.widgets.session_sort import SessionSort
+from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
-from toad.widgets.side_bar import SidebarVisibilityObserver
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
 if TYPE_CHECKING:
@@ -543,8 +543,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                 and self.app.is_running and self.screen.is_current)
 
     def accepts_observation(self) -> bool:
-        from toad.widgets.side_bar import SideBar
-
         return (self.enabled and self.accepts_publication()
                 and not self.query_ancestor(SideBar).collapsed)
 
@@ -588,9 +586,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
-        from toad.widgets.session_sort import ChannelListSort
-        from toad.widgets.side_bar import SideBarCollapsible
-
         model = self.model
         assert model is not None
         rows = model.channels.rows
@@ -633,16 +628,19 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         own; built together, every group would be built in the same turn.
         """
         while self.is_attached and self.model is not None:
-            rows = self.model.channels.rows
-            key = next((key for key in rows if key not in self.groups), None)
-            if key is None:
-                return
-            row = CommsRow(channel_target(key), key)
-            group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
-                key, row.target.expanded_by_default))
-            group.present(rows[key])  # Its members sync once it is mounted.
-            await self.mount(group)
-            self._order_groups()
+            missing = tuple(key for key in self.model.channels.rows if key not in self.groups)
+            if not missing:
+                break
+            for key in missing:
+                channel = self.model.channels.rows.get(key)
+                if channel is None:
+                    continue  # Removed while the preceding group was mounting.
+                row = CommsRow(channel_target(key), key)
+                group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
+                    key, row.target.expanded_by_default))
+                group.present(channel)  # Its members sync once it is mounted.
+                await self.mount(group)
+        self._order_groups()
 
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
