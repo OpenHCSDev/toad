@@ -184,7 +184,8 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             return
 
         def read():
-            return item.source.notification_references(self.comms.bus.history, references)
+            with self.comms.bus.history.read_sources() as sources:
+                return item.source.notification_references(sources, references)
 
         try:
             results = await asyncio.to_thread(read)
