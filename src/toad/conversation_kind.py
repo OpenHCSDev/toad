@@ -8,7 +8,6 @@ from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
-from toad.widgets.session_details import SessionDetails
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
@@ -94,8 +93,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def activity_widgets(cls) -> tuple[type[SessionDetails], ...]:
-        """Declare widget classes; the composing view owns their instances."""
+    def compose_activity(cls, view):
+        """Select the view's explicit composition for this conversation kind."""
         ...
 
     @classmethod
@@ -153,8 +152,8 @@ class ChannelConversation(ConversationKind):
         )
 
     @classmethod
-    def activity_widgets(cls) -> tuple[type[SessionDetails], ...]:
-        return ()
+    def compose_activity(cls, view):
+        return view.compose_channel_activity()
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:
@@ -271,8 +270,8 @@ class DmConversation(ConversationKind):
         return f"@{target}"
 
     @classmethod
-    def activity_widgets(cls) -> tuple[type[SessionDetails], ...]:
-        return (SessionDetails,)
+    def compose_activity(cls, view):
+        return view.compose_dm_activity()
 
     @classmethod
     async def update_mentions(cls, view, comms) -> None:

@@ -34,6 +34,7 @@ from toad.widgets.conversation import (
 )
 from toad.widgets.flash import Flash
 from toad.widgets.native_history import NativeHistory
+from toad.widgets.session_details import SessionDetails
 from toad.widgets.prompt import Prompt
 from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
@@ -127,12 +128,7 @@ class CommsChatView(Conversation):
                     yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            for activity_type in self.conversation_kind.activity_widgets():
-                self.thread_activity = activity_type(
-                    history=NativeHistory(),
-                    status_source=lambda: self.thread_activity.row,
-                )
-                yield self.thread_activity
+            yield from self.conversation_kind.compose_activity(self)
             yield self.throbber
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
@@ -141,6 +137,19 @@ class CommsChatView(Conversation):
                 agent=Conversation.agent,
                 status=Conversation.status,
             )
+
+    def compose_channel_activity(self) -> ComposeResult:
+        """A channel has no thread status widget, not an empty stand-in."""
+        self.thread_activity = None
+        return ()
+
+    def compose_dm_activity(self) -> ComposeResult:
+        """The direct-message view owns its peer's status widget."""
+        self.thread_activity = SessionDetails(
+            history=NativeHistory(),
+            status_source=lambda: self.thread_activity.row,
+        )
+        yield self.thread_activity
 
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
