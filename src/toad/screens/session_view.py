@@ -9,7 +9,6 @@ from toad.project_path_owner import ProjectPathOwner
 
 if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
-    from toad.screens.main import MainScreen
 
 
 class SessionOrigin:
@@ -50,17 +49,6 @@ class SessionOrigin:
 
     def has_agent(self) -> bool:
         return self._agent is not None
-
-    def spawn(self, *, project: Path | None = None, session_id: str | None = None,
-              root: str | None = None) -> "MainScreen":
-        """Create a session of this view's agent, on its project unless another is named."""
-        from toad.screens.main import MainScreen
-
-        with self.app._context():
-            peer = MainScreen(project or self.project_path, self._agent, agent_session_id=session_id)
-        peer.initial_coordination_root = root
-        return peer
-
 
 class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
     title = reactive("")

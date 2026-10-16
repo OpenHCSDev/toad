@@ -17,7 +17,6 @@ from textual.containers import VerticalScroll
 from textual.widgets import Static
 
 from toad.constants import ALL_COMMS_TARGET
-from toad.core import session_requests
 from toad.core.events import SessionSelected, ThreadActionsChanged
 from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
@@ -263,7 +262,7 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
         await super().retire_presentation()
 
     def action_new_session(self) -> None:
-        self.app.session_navigation.events.publish(session_requests.SessionCreate(self.id))
+        self.query_one(NewSessionButton).action_create()
 
     async def action_toggle_irc(self) -> None:
         await self.open_sidebar_target(FeedTarget())

@@ -10,6 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Self
 
 from agent_comms.comms import Comms
+from agent_comms.channel_targets import CommandTarget
 from toad import messages
 from agent_comms.route_selection import root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
 class TargetContext:
     app: ToadApp
     comms: Comms
-    subject: str
+    subject: str | CommandTarget
     actor: str
     project: Path
     mode: str | None = None
@@ -34,11 +35,11 @@ class TargetContext:
 
     @property
     def selected_targets(self):
-        return self.targets or (self.subject,)
+        return self.targets or CommandTarget.named(self.subject).names
 
     @property
     def title(self):
-        return ", ".join(self.selected_targets)
+        return ", ".join(self.selected_targets) if self.selected_targets else str(self.project)
 
     def current(self):
         if not root_is_current(self.comms.root):
