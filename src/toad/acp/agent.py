@@ -24,6 +24,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
+from agent_comms.goal_history import GoalHistoryQuery, GoalHistoryRevision
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal
@@ -266,9 +267,9 @@ class Agent(AgentBase):
             consumer.dispatch_sync(fact)
         return snapshot
 
-    async def get_goal_history(self, goal_id: str):
-        result = await self.controller.request_owner("goal_history", goal_id=goal_id)
-        return result["history"]
+    async def get_goal_history(self, query: GoalHistoryQuery) -> tuple[GoalHistoryRevision, ...]:
+        result = await self.controller.request_owner("goal_history", **FieldCodec.encode(query))
+        return tuple(FieldCodec.decode(GoalHistoryRevision, entry) for entry in result["history"])
 
     async def edit_goal(self, goal: Goal, text: str) -> Goal:
         result = await self.controller.request_owner(

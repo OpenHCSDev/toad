@@ -7,6 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
+from agent_comms.goal_history import OneGoal
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.goal import GoalDisplay
@@ -43,15 +44,9 @@ class HistoryInteraction(GoalInteraction):
     @classmethod
     async def apply(cls, session):
         from toad.screens.goal_details import GoalDetails
-        view = session.view
-        goal, agent = view.goal_display.snapshot, view.agent
-        if goal is None:
-            return
-        history = await agent.get_goal_history(goal.id) if agent is not None else ()
-        if not session.owns(agent):
-            return
-        details = GoalDetails(session, history=history)
-        session.present(details)
+        goal = session.display.snapshot
+        if goal is not None:
+            session.present(GoalDetails(session, scope=OneGoal(goal.id)))
 
 
 class CollapseInteraction(GoalInteraction):
