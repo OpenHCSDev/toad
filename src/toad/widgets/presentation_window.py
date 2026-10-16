@@ -316,11 +316,39 @@ class DirectionalPreparation:
     def read_rows(self, history, older: bool) -> int:
         if not (history.has_older if older else history.has_newer):
             return 0
-        runway = self.window.runway(history)
+        runway = self.runway(history)
         return 0 if runway is None else self.demand.read_rows(self, history, older, runway)
 
+    def runway(self, history) -> tuple[int, int] | None:
+        """Published source rows above and below this viewport; no offscreen layout."""
+        window = self.window
+        visible = window.screen._compositor.visible_widgets
+        geometry, viewport = visible.get(history), visible.get(window)
+        if geometry is None or viewport is None or not geometry[0].overlaps(viewport[0]):
+            return None
+        region, frame = geometry[0], viewport[0]
+        return frame.y - region.y, region.bottom - frame.bottom
+
     def prepare_source(self, history) -> None:
-        for older in (True, False):
-            if self.read_rows(history, older):
-                history.request_page(older)
-                return
+        """Admit source demand from the active published scene, not window state."""
+        window = self.window
+        if (not window.screen.is_active or not history.selected_categories
+                or self.runway(history) is None):
+            return
+        if history.follows_source_tail and history.has_newer:
+            window.jump_to_latest()
+        elif history.filter.active:
+            # Projection scans share the original source's decoded boundary.
+            history.filter.check_edges()
+        else:
+            for older in (True, False):
+                if self.read_rows(history, older):
+                    history.request_page(older)
+                    return
+
+    def request_older(self) -> None:
+        """An explicit earlier-history control is demand, even without travel."""
+        window = self.window
+        self.requested(-max(1, window.scrollable_content_region.height))
+        window._schedule_settle()
+        window.request_preparation()

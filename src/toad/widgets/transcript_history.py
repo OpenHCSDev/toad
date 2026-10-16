@@ -860,7 +860,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     @on(HistoryEdge.Requested)
     def on_earlier_history(self, event: HistoryEdge.Requested) -> None:
         event.stop()
-        self.window.request_older()
+        self.window.lookahead.request_older()
         if self.filter.active:
             self.filter.request_older()
 
