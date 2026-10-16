@@ -59,6 +59,7 @@ class BlockInk(ABC):
     """An eighth-block's occupied edge, independent of its theme colour."""
 
     GLYPHS = " ▁▂▃▄▅▆▇█"
+    LEVELS = len(GLYPHS) - 1
 
     @classmethod
     @abstractmethod
@@ -77,7 +78,7 @@ class TopInk(BlockInk):
     def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
         # Complement the lower block and swap ink/paper: the same number
         # of eighths now occupies the top, including the tapered ends.
-        return Segment(cls.GLYPHS[8 - level], style + RichStyle(
+        return Segment(cls.GLYPHS[cls.LEVELS - level], style + RichStyle(
             color=background.rich_color, bgcolor=ink.rich_color))
 
 
@@ -255,11 +256,11 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             if height <= 0:
                 segments.append(Segment(" ", style))
                 continue
-            level = max(1, min(8, round(height * 8)))
+            level = max(1, min(edge.LEVELS, round(height * edge.LEVELS)))
             ink = colours[start].blend(colours[end], amount)
             # Fade sub-eighth tails only. A taller glyph must not dim the whole
             # band each time its height crosses the next terminal-cell step.
-            ink = background.blend(ink, min(1.0, height * 8))
+            ink = background.blend(ink, min(1.0, height * edge.LEVELS))
             segments.append(edge.paint(level, ink, background, style))
         return Strip(Segment.simplify(segments), cell_length=width)
 
