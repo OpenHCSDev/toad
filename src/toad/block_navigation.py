@@ -287,7 +287,7 @@ class ChildBlockCursor(BlockCursor):
 
 
 class ConversationBlock(CategorizedBlock, BlockContent):
-    """Nominal content admission, with an owned atomic cursor by default."""
+    """A conversation block owns its category visibility and cursor behavior."""
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1

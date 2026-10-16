@@ -21,7 +21,7 @@ from agent_comms.transcript_events import (
 class MessageCategory(DeclaredFamily, affix="Category"):
     @classmethod
     @abstractmethod
-    def admits(cls, selected: frozenset[type[MessageCategory]]) -> bool: ...
+    def visible_in(cls, selected: frozenset[type[MessageCategory]]) -> bool: ...
 
     @classmethod
     @abstractmethod
@@ -32,7 +32,7 @@ class SelectableCategory(MessageCategory):
     label: str
 
     @classmethod
-    def admits(cls, selected: frozenset[type[MessageCategory]]) -> bool:
+    def visible_in(cls, selected: frozenset[type[MessageCategory]]) -> bool:
         return cls in selected
 
 
@@ -40,7 +40,7 @@ class UnrestrictedCategory(MessageCategory):
     """A source container delegates filtering to the messages it draws."""
 
     @classmethod
-    def admits(cls, selected: frozenset[type[MessageCategory]]) -> bool:
+    def visible_in(cls, selected: frozenset[type[MessageCategory]]) -> bool:
         return True
 
     @classmethod
@@ -117,12 +117,12 @@ class CategorizedBlock:
     def display_allowed(self) -> bool:
         return super().display_allowed and (
             not isinstance(self.parent, CategorizedMount)
-            or self.message_category.admits(self.parent.selected_categories)
+            or self.message_category.visible_in(self.parent.selected_categories)
         )
 
 
 class CategorizedMount:
-    """Own native category admission and invalidate its child view once."""
+    """Own category visibility and invalidate the native child view once."""
 
     selected_categories: frozenset[type[MessageCategory]]
 
@@ -135,7 +135,7 @@ class CategorizedMount:
         return mounted
 
     def categories_changed(self, previous, selected) -> None:
-        if any(block.message_category.admits(previous) != block.message_category.admits(selected)
+        if any(block.message_category.visible_in(previous) != block.message_category.visible_in(selected)
                for block in self.children):
             self.refresh_display()
 
