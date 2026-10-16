@@ -17,6 +17,8 @@ class MentionList(SelectionOptionList):
 
 
 class ChannelTextArea(PromptTextArea):
+    ATTACHES_IMAGES = False
+
     async def action_tab_complete(self) -> None:
         prompt = self.query_ancestor(ChannelPrompt)
         prompt.refresh_mentions(force=True)
