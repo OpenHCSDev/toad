@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Self
 from agent_comms.comms import Comms
 from agent_comms.channel_targets import CommandTarget
 from toad import messages
-from agent_comms.route_selection import root_is_current
+from agent_comms.route_selection import RouteChanged, root_is_current
 from toad.slash_command import CommandPresentation, LocalCommand, SlashCommand
 from agent_comms.cli_commands import CliCommand, TargetAction
 from toad.thread_actions import ThreadAction
@@ -43,7 +43,7 @@ class TargetContext:
 
     def current(self):
         if not root_is_current(self.comms.root):
-            raise ValueError('Comms route changed; reopen this view')
+            raise RouteChanged('Comms route changed; reopen this view')
         return self
 
     def available_actions(self):

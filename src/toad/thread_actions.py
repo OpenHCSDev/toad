@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
-from agent_comms.route_selection import RouteSelection
+from agent_comms.native_pi import NativePiUnavailable
+from agent_comms.route_selection import RouteChanged, RouteSelection
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -141,11 +142,11 @@ class ThreadAction:
                     fields = await ctx.app.preparation.run_thread(
                         lambda: asyncio.run(definition.prepare_fields()))
                     ctx.current()
-                except (OSError, ValueError, RuntimeError) as error:
+                except (NativePiUnavailable, RouteChanged) as error:
                     ctx.app.notify(str(error), title=definition.label, severity='error')
                     return
                 if ctx.app.screen is screen:
-                    ctx.app.push_screen(CommandDialog(definition, ctx.title, fields, ctx.comms), accepted)
+                    ctx.app.push_screen(CommandDialog(definition, ctx.title, fields), accepted)
             else:
                 await accepted({})
         ctx.app.run_worker(prepare, name='command-fields')
