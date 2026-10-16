@@ -930,6 +930,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             prepared = edge.prepared.for_view()
         else:
             prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
+        latest = prepared
         rows, limit = window.latest_limits(self.budget)
         destination: list[PreparedTranscriptPage] = []
         while rows > 0 and limit > 0:
@@ -949,15 +950,18 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             if not prepared.page.has_older or limit <= 0:
                 break
             prepared = (await self._reader().get(PageRequest(before=prepared.page.before))).for_view()
-        if not destination:
-            return False
-
         async with window.history_lock:
             if not current() or self.pages[-1] is not edge:
                 return False
             async with window.preserve_history(root=self):
                 previous = tuple(self.pages)
                 views = deque()
+                if not destination:
+                    # An empty source is still an answered source. Reuse the
+                    # existing widget; no empty page or perpetual placeholder.
+                    edge.prepared = latest
+                    edge.range_changed()
+                    views.append(edge)
                 try:
                     for prepared in destination:
                         async with TranscriptPageView.acquire(
@@ -967,7 +971,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 except _DrawingStopped:
                     return False
                 self.pages = views
-                await self.remove_children(previous)
+                await self.remove_children(page for page in previous if page not in views)
                 self._update_edges()
             return True
 
