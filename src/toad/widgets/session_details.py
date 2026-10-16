@@ -4,10 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, ClassVar
 
+from agent_comms.mro_dispatch import handles
+from agent_comms.thread_presentation import (
+    AttentionPresentationStatus, IdlePresentationStatus, WorkingPresentationStatus,
+)
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
+from toad.core.projection import MroProjection
 from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
@@ -20,10 +25,22 @@ if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionStatus:
-    """The disclosure's paint meaning, not another backend execution state."""
+class SessionStatus(MroProjection):
+    """Toad paint for Core's original status member, without classifying it again."""
 
     role: ClassVar[type[LineRole]]
+
+    @handles(IdlePresentationStatus)
+    def idle_status(self, status):
+        return IdleSessionStatus
+
+    @handles(WorkingPresentationStatus)
+    def working_status(self, status):
+        return WorkingSessionStatus
+
+    @handles(AttentionPresentationStatus)
+    def attention_status(self, status):
+        return AttentionSessionStatus
 
 
 class IdleSessionStatus(SessionStatus):
@@ -38,7 +55,7 @@ class AttentionSessionStatus(SessionStatus):
     role = NoticeRole
 
 
-class SessionDetails(Collapsible, ObservedThreadActivity):
+class SessionDetails(Collapsible, ObservedThreadActivity, SessionStatus):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -86,12 +103,9 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             return AttentionSessionStatus
         row = self.row
         if row is not None and row.shown:
-            if row.attention:
-                return AttentionSessionStatus
-            if row.working:
-                return WorkingSessionStatus
-        elif self.turns is not None and self.turns.owner.busy:
-            return WorkingSessionStatus
+            return self.dispatch_sync(row.status)
+        if self.turns is not None:
+            return self.dispatch_sync(self.turns.owner.presentation_status)
         return IdleSessionStatus
 
     def on_mount(self) -> None:

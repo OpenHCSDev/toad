@@ -37,7 +37,7 @@ class ChannelParticipants(VerticalScroll):
         for presentation in people:
             summaries.append(f"{presentation.name}: {presentation.summary}")
             names.append(Content.styled(
-                presentation.label, "$warning" if presentation.busy else "$text-muted",
+                presentation.label, "$warning" if presentation.status.busy else "$text-muted",
             ).stylize(Style.from_meta({"@click": OpenTarget(presentation.name).click})))
         content = Content.assemble("Active: ", Content(" · ").join(names)) if names else Content("No active turns")
         return content, Content("\n".join(summaries))
