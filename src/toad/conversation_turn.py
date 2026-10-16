@@ -2,6 +2,7 @@
 from abc import abstractmethod
 from dataclasses import dataclass, replace
 
+from agent_comms.activity import ActivityState
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.turn_lease import TurnState
 
@@ -10,10 +11,15 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
     managed_id = None
     activity = ""
     started_at = None
+    activity_state = ActivityState.IDLE
 
     @property
-    @abstractmethod
-    def busy(self) -> bool: ...
+    def presentation_status(self):
+        return self.activity_state.presentation_status
+
+    @property
+    def busy(self) -> bool:
+        return self.activity_state.busy
 
     @property
     def status(self) -> str:
@@ -57,20 +63,18 @@ class TurnOwner(DeclaredFamily, affix="Turn"):
 
 @dataclass(frozen=True)
 class NoTurn(TurnOwner):
-    busy = False
     session_state = None
 
 
 @dataclass(frozen=True)
 class ClientTurn(TurnOwner):
-    busy = False
     session_state = "idle"
 
 
 @dataclass(frozen=True)
 class ActivityTurn(TurnOwner):
     activity: str
-    busy = True
+    activity_state = ActivityState.WORKING
     session_state = "busy"
 
     def with_activity(self, activity: str) -> TurnOwner:
@@ -83,7 +87,7 @@ class AgentTurn(TurnOwner):
     managed_id: str | None = None
     activity: str = "Thinking…"
     started_at: float | None = None
-    busy = True
+    activity_state = ActivityState.WORKING
     session_state = "busy"
 
     def matches_settlement(self, turn_id) -> bool:
@@ -105,6 +109,10 @@ class ManagedTurn(TurnOwner):
     @property
     def busy(self):
         return self.state.busy
+
+    @property
+    def activity_state(self):
+        return self.state.phase.activity_state
 
     @property
     def managed_id(self):

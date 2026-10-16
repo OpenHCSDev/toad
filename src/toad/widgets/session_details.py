@@ -68,11 +68,15 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             return NoticeRole
         row = self.row
         if row is not None and row.shown:
-            if row.attention:
-                return NoticeRole
-            if row.working:
-                return WorkingRole
-        elif self.turns is not None and self.turns.owner.busy:
+            status = row.status
+        elif self.turns is not None:
+            status = self.turns.owner.presentation_status
+        else:
+            return MutedRole
+        # Core owns the state; this is its one frontend paint decision.
+        if status.attention:
+            return NoticeRole
+        if status.busy:
             return WorkingRole
         return MutedRole
 
