@@ -28,15 +28,19 @@ agent-comms fork --name "$fork" --parent perf-base-20261009 > "$out/fork.json"
 env -u NO_COLOR -u TOAD_VALIDATION st -g145x50 -t "$fork" -e "$bin/toad" acp "$bin/agent-comms-acp" \
     --session "$fork" --project-dir "$project" --title "$fork" > "$out/st.log" 2>&1 &
 st_pid=$!
-st_created=$(python3 -c 'import psutil,sys; print(psutil.Process(int(sys.argv[1])).create_time())' "$st_pid")
-# All input goes through the recorder's display owner, never ambient DISPLAY.
+read -r st_created display < <(python3 -c '
+import psutil,sys
+frontend = psutil.Process(int(sys.argv[1]))
+print(frontend.create_time(), frontend.environ()["DISPLAY"])
+' "$st_pid")
+# Recorder and input both take their display from the actual frontend.
 xdotool() {
     PYTHONPATH="$tools" python3 -c '
-import sys
+import psutil,sys
 from capture_live import XvfbDisplay
-with XvfbDisplay(sys.argv[1]) as display:
-    display.input(int(sys.argv[2]), int(sys.argv[3]), float(sys.argv[4]), *sys.argv[5:])
-' "$display" "$window" "$st_pid" "$st_created" "$@"
+frontend = psutil.Process(int(sys.argv[1]))
+XvfbDisplay.input(frontend, float(sys.argv[2]), int(sys.argv[3]), *sys.argv[4:])
+' "$st_pid" "$st_created" "$window" "$@"
 }
 cleanup() {
     local status=$?

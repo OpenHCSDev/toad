@@ -50,22 +50,25 @@ class XvfbDisplay(AbstractContextManager):
     def environment(self) -> dict[str, str]:
         return {**os.environ, "DISPLAY": self.name}
 
-    def input(self, window: int, terminal_pid: int, terminal_created: float, *commands: str) -> None:
-        """Send input only after resolving this display's window to its launch identity."""
-        terminal = psutil.Process(terminal_pid)
-        if terminal.create_time() != terminal_created or not terminal.is_running():
-            raise ValueError("Terminal launch identity changed")
-        env = self.environment
-        owner = subprocess.check_output(
-            ["xprop", "-display", self.name, "-id", str(window), "_NET_WM_PID"],
-            env=env, text=True, timeout=5,
-        )
-        if int(owner.partition("=")[2].strip()) != terminal_pid:
-            raise ValueError("Window does not belong to the selected terminal on this display")
-        subprocess.run(
-            ["xdotool", "windowfocus", "--sync", str(window), *commands],
-            env=env, check=True,
-        )
+    @classmethod
+    def input(cls, frontend: psutil.Process, created: float, window: int, *commands: str) -> None:
+        """Take the display from the actual st frontend, never the controller environment."""
+        if frontend.create_time() != created or not frontend.is_running():
+            raise ValueError("Frontend launch identity changed")
+        with cls(frontend.environ()["DISPLAY"]) as display:
+            env = display.environment
+            owner = subprocess.check_output(
+                ["xprop", "-display", display.name, "-id", str(window), "_NET_WM_PID"],
+                env=env, text=True, timeout=5,
+            )
+            if int(owner.partition("=")[2].strip()) != frontend.pid:
+                raise ValueError("Window does not belong to the frontend on its display")
+            print(json.dumps({"input_target": {"display": display.name, "window": window,
+                  "frontend_pid": frontend.pid, "created": created}}), flush=True)
+            subprocess.run(
+                ["xdotool", "windowfocus", "--sync", str(window), *commands],
+                env=env, check=True,
+            )
 
     def __exit__(self, *exception):
         return self.custody.__exit__(*exception)
