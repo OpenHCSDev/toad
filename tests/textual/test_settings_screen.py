@@ -77,11 +77,11 @@ async def settings_screen(workspace):
 
 
 def editor(app, path):
-    return app.screen.form.values[str(path)].editor
+    return app.screen.form.values[path.bind(app.saved_settings.state)].editor
 
 
 def marked(app, path):
-    return ValueView.CHANGED_MARK in str(app.screen.form.values[str(path)].title.render())
+    return ValueView.CHANGED_MARK in str(app.screen.form.values[path.bind(app.saved_settings.state)].title.render())
 
 
 async def edit_text(ui, widget, value):
@@ -100,8 +100,9 @@ async def test_opening_the_editors_changes_no_preference(workspace):
 async def test_every_setting_the_user_may_edit_has_an_editor(workspace):
     async with settings_screen(workspace) as (ui, app, _file):
         shown = app.screen.form.values
-        hidden = {"anon_id"} | {str(path) for path in leaves(SETTINGS.launcher)}
-        assert set(shown) == {str(path) for path in leaves(SETTINGS)} - hidden
+        state = app.saved_settings.state
+        hidden = {SETTINGS.anon_id.bind(state)} | {path.bind(state) for path in leaves(SETTINGS.launcher)}
+        assert set(shown) == {path.bind(state) for path in leaves(SETTINGS)} - hidden
         assert isinstance(editor(app, SETTINGS.ui.footer), editors.BoolEditor)
         assert isinstance(editor(app, SETTINGS.ui.column_width), editors.IntEditor)
         assert isinstance(editor(app, SETTINGS.ui.theme), SchemeEditor)

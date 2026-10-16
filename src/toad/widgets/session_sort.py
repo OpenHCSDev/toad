@@ -74,16 +74,15 @@ class SortDialog(ModalScreen[type[DisplayOrder] | None]):
 
     def on_mount(self):
         self.styles.align = ("center", "middle")
-        self.state.on_resolved_changed(self.order_changed)
+        self._release_order = self.order_field.handle.subscribe_value(self.order_changed)
 
-    def order_changed(self, paths: set[str]):
-        if str(self.order_field.path) in paths:
-            order = self.order_field.value
-            if order is not None and order is not self.control.order:
-                self.dismiss(order)
+    def order_changed(self, _changed):
+        order = self.order_field.value
+        if order is not None and order is not self.control.order:
+            self.dismiss(order)
 
     def on_unmount(self):
-        self.state.off_resolved_changed(self.order_changed)
+        self._release_order()
         if self.visibility_form is not None:
             self.app.run_worker(self.app.saved_settings.save(), group="channel-visibility")
 

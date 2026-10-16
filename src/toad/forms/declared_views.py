@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from dataclasses import MISSING, dataclass, replace
+from dataclasses import dataclass, replace
 from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, get_args, get_origin
 
-from objectstate import ObjectState
+from objectstate import FieldProxy, ObjectState
 from python_introspect import optional_member_type
 from python_introspect.validation import validate_annotation_value
 
-from toad.forms.field_path import FieldPath, declared, declared_annotation, declared_field, label
+from toad.forms.field_path import FieldPath, declared, declared_annotation, label
 from toad.forms.kinds import Placeholder
 
 
@@ -55,6 +55,8 @@ def declarations(annotation: object) -> Iterator[object]:
     """
     if get_origin(annotation) is Annotated:
         base, *metadata = get_args(annotation)
+        if optional_member_type(base) is not None:
+            yield Optional
         for item in metadata:
             yield from type(item).__mro__[:-1]
         yield from declarations(base)
@@ -69,26 +71,25 @@ def declarations(annotation: object) -> Iterator[object]:
 class DeclaredField:
     """One field of an ObjectState: where its value lives and how it was declared."""
 
-    state: ObjectState
+    handle: FieldProxy
     path: FieldPath
     annotation: object
 
     @classmethod
     def at(cls, state: ObjectState, path: FieldPath) -> DeclaredField:
-        return cls(state, path, declared_annotation(path))
+        return cls(path.bind(state), path, declared_annotation(path))
 
     @property
     def value(self) -> object:
-        return self.state.get_resolved_value(str(self.path))
+        return self.handle.value
 
     @property
     def default(self) -> object:
-        return self.state.signature_default(str(self.path))
+        return self.handle.default
 
     @property
     def has_default(self) -> bool:
-        field = declared_field(self.path)
-        return field.default is not MISSING or field.default_factory is not MISSING
+        return not self.handle.declaration.is_required
 
     @property
     def placeholder(self) -> str:
@@ -101,11 +102,15 @@ class DeclaredField:
 
     @property
     def help(self) -> str:
-        return cleandoc(self.state.parameter_descriptions.get(str(self.path)) or "")
+        return cleandoc(self.handle.description or "")
 
     @property
     def member(self) -> DeclaredField:
         """The same field as declared without `None`."""
+        if get_origin(self.annotation) is Annotated:
+            base, *metadata = get_args(self.annotation)
+            member = optional_member_type(base)
+            return replace(self, annotation=Annotated[member, *metadata])
         return replace(self, annotation=optional_member_type(self.annotation))
 
     def edit(self, value: object) -> None:
@@ -117,4 +122,4 @@ class DeclaredField:
         # ObjectState takes any value for a field of the root object and only
         # fails later, when the object is rebuilt (ObjectState issue #47).
         validate_annotation_value(self.annotation, value, path=self.label)
-        self.state.update_parameter(str(self.path), value)
+        self.handle.write(value)
