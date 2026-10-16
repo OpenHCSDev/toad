@@ -20,7 +20,7 @@ from toad.message_rows import IrcMessageStyle, WireMessageStyle
 from toad.wire_history import AfterSequence, WireFragment, WirePage, WirePageBuffer, WireSource
 
 if TYPE_CHECKING:
-    from agent_comms.presentation import WireRevision
+    from agent_comms.historical_views import ConversationRevision
 
 
 class WireHistory(LineHistory):
@@ -37,9 +37,8 @@ class WireHistory(LineHistory):
         # The view's message filter is read while the line history is built.
         self.view = view
         super().__init__(PreparedTranscriptPage.empty(WirePage.unread()), None)
-        # The store revision and the viewer's reading the drawn pages belong to.
-        self.revision: WireRevision | None = None
-        self.identity: tuple | None = None
+        # Core's admitted source observation is not a paint-ready flag.
+        self.revision: ConversationRevision | None = None
         # A read mark is being written; the next one waits for it.
         self.marking = False
 
@@ -60,7 +59,7 @@ class WireHistory(LineHistory):
     @property
     def undrawn(self) -> bool:
         """Nothing of the bound source has been drawn yet."""
-        return self.revision is None
+        return self.pages[-1].page.undrawn
 
     @property
     def source_identity(self):
@@ -116,28 +115,33 @@ class WireHistory(LineHistory):
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.source
         observed = await self.app.preparation.run_thread(
-            source.observe, self.revision, self.through, self.identity)
-        if observed is None or source is not self.source:
+            source.observe, self.revision)
+        if source is not self.source:
             return False
-        if observed.replaced:
-            await self.show_newest(observed.through)
-            if self.has_newer and self.pages[-1].page.source is None:
-                # The newest page was not drawn (the reader moved, or the view
-                # was left): the same stores must be read again.
-                return False
-        elif not await self.extend(observed.through):
-            return False
-        self.revision = observed.revision
-        return True
+        if observed is not None:
+            # Admit Core's observation before asynchronous drawing. A pending
+            # viewport must not turn the same scope into another replacement.
+            self.revision = observed.revision
+            if observed.replaced:
+                await self.show_newest(observed.through)
+                return not self.undrawn
+            if not self.undrawn:
+                return await self.extend(observed.through)
+            self.extend_source(observed.through)
+        elif not self.undrawn:
+            # An admitted observation may still have an unfinished page read.
+            return (self.pages[-1].page.after != self.through
+                    and await self.extend(self.through))
+        # The existing prepared reader owns this pending page. Retry admission,
+        # not clearing its source and starting the same read again.
+        await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
+        return not self.undrawn
 
     async def show_newest(self, through: AfterSequence) -> None:
         """Replace what is drawn with the newest page of the source as read now."""
         await self._clear()
         self.extend_source(through)
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        source = self.pages[-1].page.source
-        if source is not None:
-            self.identity = self.source.kind.display_identity(source)
 
     async def _clear(self) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
@@ -147,8 +151,7 @@ class WireHistory(LineHistory):
                 if self._page_buffer is not None:
                     self._page_buffer.close()
                     self._page_buffer = None
-                self.revision = self.identity = None
-                if len(self.pages) == 1 and self.pages[0].page.source is None:
+                if len(self.pages) == 1 and self.pages[0].page.undrawn:
                     return
                 retired = tuple(self.pages)
                 view = TranscriptPageView(PreparedTranscriptPage.empty(WirePage.unread()),
@@ -188,8 +191,7 @@ class WireHistory(LineHistory):
         if (not await self.source_is_current(snapshot)
                 or self.pages[-1] is not edge or self.has_newer):
             return False
-        if (self.identity is not None
-                and self.source.kind.display_identity(prepared.page.source) != self.identity):
+        if not edge.page.accepts(prepared.page.source, self.source.kind.history_view):
             await self.show_newest(self.through)
         elif not prepared.fragments:
             edge.page = replace(edge.page, after=prepared.page.after)
@@ -210,9 +212,7 @@ class WireHistory(LineHistory):
             # An empty wire interval advances its cut, not native membership.
             if not current():
                 return
-            page = prepared.page
-            edge.page = (replace(edge.page, before=page.before, has_older=page.has_older) if older
-                         else replace(edge.page, after=page.after, has_newer=page.has_newer))
+            edge.page = edge.page.advanced(prepared.page, older=older)
             self._update_edges()
             return
         await super()._extend_and_trim(edge, older, local, protected, prepared,
