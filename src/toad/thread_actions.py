@@ -35,7 +35,7 @@ class ThreadActions:
             app.notify(str(error), title="Session action", severity="error")
             return
         if any(target in self.requests for target in action.resources):
-            app.notify(f"An action for @{subject} is already in progress", title="Session action")
+            app.notify(f"An action for {subject} is already in progress", title="Session action")
             return
         execution = ThreadActionExecution(self, action, selected, subject)
         for target in action.resources:
