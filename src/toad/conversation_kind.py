@@ -8,6 +8,7 @@ from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from agent_comms.presentation import WireRevision
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
@@ -30,6 +31,11 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     @abstractmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]: ...
+
+    @classmethod
+    @abstractmethod
+    def display_changed_since(cls, comms: Comms, revision: WireRevision,
+                              earlier: WireRevision) -> bool: ...
 
     @classmethod
     def display_identity(cls, page: MessagePage) -> tuple | None:
@@ -125,6 +131,11 @@ class ChannelConversation(ConversationKind):
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
         return comms.views.channel_display_page(target, **bounds)
+
+    @classmethod
+    def display_changed_since(cls, comms: Comms, revision: WireRevision,
+                              earlier: WireRevision) -> bool:
+        return comms.views.channel_display_changed_since(revision, earlier)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
@@ -249,6 +260,11 @@ class DmConversation(ConversationKind):
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
         return comms.views.dm_display_page(target, **bounds)
+
+    @classmethod
+    def display_changed_since(cls, comms: Comms, revision: WireRevision,
+                              earlier: WireRevision) -> bool:
+        return comms.views.dm_display_changed_since(revision, earlier)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:

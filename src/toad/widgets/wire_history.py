@@ -116,7 +116,7 @@ class WireHistory(LineHistory):
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.source
         observed = await self.app.preparation.run_thread(
-            source.observe, self.revision, self.through, self.identity)
+            source.observe, self.revision)
         if observed is None or source is not self.source:
             return False
         if observed.replaced:

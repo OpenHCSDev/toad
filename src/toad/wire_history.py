@@ -215,19 +215,15 @@ class WireSource:
         return self.kind.page(self.comms, self.target, worktree=str(self.project),
                               max_bytes=self.max_bytes, **bounds)
 
-    def observe(self, seen: WireRevision | None, through: AfterSequence,
-                identity: tuple | None) -> WireObservation | None:
+    def observe(self, seen: WireRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
         revision = self.comms.views.revision()
         if revision == seen:
             return None
         high = AfterSequence(self.comms.views.latest_sequence())
-        # Without new messages the viewer, peer or channel scope may still
-        # have been replaced: the pages drawn then belong to another reading.
-        replaced = seen is None or (
-            not high.cursor > through.cursor and identity is not None
-            and revision.stores_changed_since(seen)
-            and self.kind.display_identity(self.page(limit=1)) != identity)
+        # Core's display view owns which stores can replace this reading.
+        # Notification/read/activity writes do not require a page to learn that.
+        replaced = seen is None or self.kind.display_changed_since(self.comms, revision, seen)
         return WireObservation(revision, high, replaced)
 
     def read(self, request: PageRequest, through: AfterSequence) -> PreparedTranscriptPage:
