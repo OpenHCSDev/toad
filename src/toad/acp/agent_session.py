@@ -74,6 +74,10 @@ class RefusedSessionDisposition(FailedSessionDisposition):
     held_by_agent = False
 
 
+class LoginNotReady(ValueError):
+    """A terminal login finished, but the session it restarted did not become ready."""
+
+
 class AgentSession:
     """Own readiness and durable session effects; binding identity stays on the controller."""
 
@@ -315,6 +319,14 @@ class AgentSession:
         finally:
             self.reconnecting = False
 
+
+    async def reconnect_after_login(self) -> None:
+        """Only a session that is ready after its restart counts as a finished login."""
+        await self.reconnect()
+        if not self.ready:
+            failure = self.disposition.current_failure()
+            raise LoginNotReady("Session did not become ready after login" if failure is None
+                                else f"{failure.message}: {failure.details}")
 
     async def authenticate(self, method_id: str) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)

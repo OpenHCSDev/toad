@@ -1209,9 +1209,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ) is None:
                     await self.prune_window(0, 0)
                     self.output.boundary()
-                await agent.session.reconnect()
-                if not agent.session.ready:
-                    return
+                await agent.session.reconnect_after_login()
             else:
                 await agent.session.authenticate(method_id)
             self.flash(
