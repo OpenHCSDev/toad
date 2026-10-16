@@ -111,6 +111,9 @@ class OperationalSessionSources:
         return self.activity_row(conversation).with_delivery(conversation.input_delivery)
 
     def activity_row(self, conversation: Conversation):
+        # A Core history source owns status even when its ACP load fails.
+        if conversation.transcript.readable:
+            return conversation.thread_activity.row
         return conversation.turns.binding.status_row(conversation.thread_activity.row)
 
     def agent_info(self, conversation: Conversation) -> str:
