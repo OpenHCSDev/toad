@@ -112,7 +112,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.can_draw_on_screen:
             self.state.check_edges(self)
 
-    def _request_page(self, older: bool) -> None:
+    def request_page(self, older: bool) -> None:
         self.schedule_source_work(partial(self._prepare_edge, older))
 
     async def _prepare_edge(self, older: bool) -> None:

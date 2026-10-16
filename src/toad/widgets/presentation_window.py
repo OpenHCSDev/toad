@@ -1,11 +1,12 @@
 """Shared budgets for a source-backed window of native widget presentation."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import zip_longest
 from functools import partial
 from math import ceil
+from operator import gt, ge
 from time import monotonic, get_clock_info
 from typing import TYPE_CHECKING
 
@@ -38,27 +39,25 @@ class PresentationBudget:
     satisfy a widget budget.
     """
 
-    max_items: int = 24
-    batch_items: int = 4
-    reserve_batches: int = 4
-    minimum_widgets: int = 300
-    widgets_per_row: int = 10
-    buffer_viewports: int = 3
-    destination_pages: int = 2
-    lookahead_seconds: float = 1.0
-    scroll_idle_seconds: float = 0.2
+    max_items: int = field(default=24, metadata={"zero_bound": gt})
+    batch_items: int = field(default=4, metadata={"zero_bound": gt})
+    reserve_batches: int = field(default=4, metadata={"zero_bound": ge})
+    minimum_widgets: int = field(default=300, metadata={"zero_bound": gt})
+    widgets_per_row: int = field(default=10, metadata={"zero_bound": ge})
+    buffer_viewports: int = field(default=3, metadata={"zero_bound": gt})
+    destination_pages: int = field(default=2, metadata={"zero_bound": gt})
+    lookahead_seconds: float = field(default=1.0, metadata={"zero_bound": gt})
+    delivery_safety_factor: float = field(default=2.0, metadata={"zero_bound": gt})
+    scroll_idle_seconds: float = field(default=0.2, metadata={"zero_bound": gt})
 
     def __post_init__(self) -> None:
-        for name in ("max_items", "batch_items", "minimum_widgets", "buffer_viewports", "destination_pages"):
-            value = getattr(self, name)
-            if type(value) is not int or value < 1:
-                raise ValueError(f"{name} must be a positive integer")
-        for name in ("reserve_batches", "widgets_per_row"):
-            value = getattr(self, name)
-            if type(value) is not int or value < 0:
-                raise ValueError(f"{name} must be a non-negative integer")
-        if self.lookahead_seconds <= 0 or self.scroll_idle_seconds <= 0:
-            raise ValueError("Preparation timing must be positive")
+        for declaration in fields(self):
+            value = getattr(self, declaration.name)
+            bound = declaration.metadata["zero_bound"]
+            # Python permits an integer wherever a float is declared, but a
+            # bool is not a numeric budget. The declaration supplies the bound.
+            if type(value) not in (declaration.type, int) or not bound(value, 0):
+                raise ValueError(f"{declaration.name} violates its declared {bound.__name__} zero bound")
 
     def item_limit(self, protected_items: int) -> int:
         return max(self.max_items, protected_items + self.reserve_batches * self.batch_items)
@@ -121,6 +120,9 @@ class PreparationDemand(ABC):
         """Stationary input never requests another source page."""
         return 0
 
+    def source_read(self) -> None:
+        """Only a bounded destination counts the pages admitted by its request."""
+
     def prepare_ahead(self, preparation, history, page, older: bool) -> None:
         """Only measured movement speculates beyond its current destination."""
 
@@ -170,9 +172,10 @@ class MovingPreparation(PreparationDemand):
                                exit_on_error=False)
 
 
-@dataclass(frozen=True)
+@dataclass
 class DestinationPreparation(PreparationDemand):
     target_rows: int
+    pages_read: int = 0
 
     def rows(self, horizon: float) -> float:
         return self.target_rows
@@ -190,9 +193,12 @@ class DestinationPreparation(PreparationDemand):
         if not older:
             return 0
         edge = history.pages[0].prepared
-        if not edge.can_extend(older) and not preparation.budget.can_read_destination(len(history.pages)):
+        if not edge.can_extend(older) and not preparation.budget.can_read_destination(self.pages_read):
             return 0
         return max(0, self.target_rows - history.drawn_extent[0])
+
+    def source_read(self) -> None:
+        self.pages_read += 1
 
     def destination_painted(self) -> PreparationDemand:
         return StationaryPreparation()
@@ -271,8 +277,8 @@ class DirectionalPreparation:
         self.demand = StationaryPreparation()
         self.delivery_seconds = 0.0
 
-    def destination(self, rows: int) -> None:
-        self.demand = DestinationPreparation(self.budget.runway_rows(rows))
+    def destination(self, rows: int, *, pages_read: int = 0) -> None:
+        self.demand = DestinationPreparation(self.budget.runway_rows(rows), pages_read)
         self.sampled_at = monotonic()
 
     def destination_complete(self) -> None:
@@ -292,7 +298,8 @@ class DirectionalPreparation:
         elapsed = monotonic() - self.sampled_at
         if elapsed >= self.idle_seconds:
             return 0
-        return self.demand.rows(max(self.budget.lookahead_seconds, self.delivery_seconds * 2))
+        return self.demand.rows(max(self.budget.lookahead_seconds,
+                                   self.delivery_seconds * self.budget.delivery_safety_factor))
 
     def ahead_rows(self, viewport_rows: int) -> int:
         # Travel is a demand, not a native retention limit. The existing worker
@@ -318,5 +325,5 @@ class DirectionalPreparation:
     def prepare_source(self, history) -> None:
         for older in (True, False):
             if self.read_rows(history, older):
-                history._request_page(older)
+                history.request_page(older)
                 return

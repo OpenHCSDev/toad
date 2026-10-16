@@ -82,6 +82,15 @@ class PreparedTranscriptPage:
         start = max(0, len(fragments) - batch_size) if newest else 0
         return slice(start, min(len(fragments), start + batch_size))
 
+    def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
+        """Keep rendered members while a nonmatching source interval advances."""
+        page = prepared.page
+        self.page = replace(self.page,
+                            before=page.before if older else self.page.before,
+                            after=self.page.after if older else page.after,
+                            has_older=page.has_older if older else self.page.has_older,
+                            has_newer=self.page.has_newer if older else page.has_newer)
+
     def can_extend(self, older: bool) -> bool:
         """Whether this already-decoded page has an unadmitted local range."""
         return self.start > 0 if older else self.stop < len(self.fragments)

@@ -677,7 +677,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         # loaded ranges and the filter. A check that finds a read running is
         # skipped, and the read asks again only when one of these changed
         # under it, so a filter chosen during a read must count.
-        return self.through, self.filter.state, tuple(page.capture_range() for page in self.pages)
+        return self.through, self.filter.state, tuple(
+            (page.page.before, page.page.after, page.capture_range()) for page in self.pages)
 
     def capture_reader_ranges(self) -> tuple[PageFragmentRange, ...]:
         """Retain the original source ranges that a returning reader needs."""
@@ -740,7 +741,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         )
 
     @property
-    def _follow_source_tail(self) -> bool:
+    def follows_source_tail(self) -> bool:
         return self.window.follows_tail
 
     @property
@@ -872,6 +873,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         else:
             prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
         rows, limit = window.latest_limits(self.budget)
+        pages_read = 1
         destination: list[PreparedTranscriptPage] = []
         while rows > 0 and limit > 0:
             rows -= await prepared.prepare_rows(
@@ -882,14 +884,16 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             if not current():
                 return False
             take = prepared.stop - prepared.start
-            destination.insert(0, prepared)
+            if take:
+                destination.insert(0, prepared)
             limit -= take
             if rows <= 0 or self.loader is None:
                 break
             if (not prepared.page.has_older or limit <= 0
-                    or not window.presentation_budget.can_read_destination(len(destination))):
+                    or not window.presentation_budget.can_read_destination(pages_read)):
                 break
             prepared = (await self._reader().get(PageRequest.adjacent(prepared.page, True))).for_view()
+            pages_read += 1
         if not destination:
             return False
 
@@ -928,6 +932,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 return False
             edge = self.pages[0] if older else self.pages[-1]
             page_range = edge.capture_range()
+            edge_cursor = edge.page.before, edge.page.after
+            demand = window.lookahead.demand
+            missing = (window.lookahead.ahead_rows(window.outer_size.height) if fresh
+                       else window.lookahead.read_rows(self, older))
             local = edge.prepared.can_extend(older)
             staged = edge.prepared.for_view() if local else prepared
             if not local:
@@ -935,11 +943,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                     return False
                 if staged is None:
                     staged = await self._reader().get(PageRequest.adjacent(edge.page, older))
+                    demand.source_read()
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
             window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, older)
-            missing = (window.lookahead.ahead_rows(window.outer_size.height) if fresh
-                       else window.lookahead.read_rows(self, older))
             boundary = (edge.start if older else edge.stop) if local else (len(staged.fragments) if older else 0)
             await staged.prepare_rows(
                 self, current, target=self, selected=self.selected_categories,
@@ -963,7 +970,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                     self._require_can_draw()
             self.state.delivered(self)
             advanced = self.pages[0] if older else self.pages[-1]
-            if advanced is edge and edge.capture_range() == page_range:
+            if (advanced is edge and edge.capture_range() == page_range
+                    and (edge.page.before, edge.page.after) == edge_cursor):
                 return False
             if fresh or not current():
                 return False
@@ -988,7 +996,12 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             previous_start = self.pages[0], self.pages[0].start
             overlay_visible = self.filter.projection_visible()
             protected_pages: set[TranscriptPageView] = set()
-            if local:
+            if not prepared.fragments:
+                # A nonmatching interval advances the original source span,
+                # not the native tree. No empty page widget or decoded cache.
+                edge.prepared.advance_empty(prepared, older)
+                await self._page_added(prepared.page, prepared.fragments)
+            elif local:
                 previous = {id(fragment) for fragment in edge.fragments_in_range}
                 if not await edge.prepared.extend(edge, prepared, current):
                     raise _DrawingStopped
@@ -1012,7 +1025,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
             )
             excess = self.fragment_count - limit
-            trim_older = self._follow_source_tail or not older
+            trim_older = self.follows_source_tail or not older
             while (excess > 0 or len(self.pages) > limit) and (self.fragment_count > 1 or len(self.pages) > 1):
                 selected = None
                 for side in (trim_older, not trim_older):
@@ -1226,7 +1239,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     def request_older(self) -> None:
         if self.older_page_available:
-            self._request_page(True)
+            self.request_page(True)
 
     async def load_older(self) -> None:
         if self.older_page_available:
@@ -1242,7 +1255,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         return all_categories()
 
     @property
-    def _follow_source_tail(self) -> bool:
+    def follows_source_tail(self) -> bool:
         # This window is a historical prefix, not the live canonical tail.
         return False
 

@@ -532,7 +532,7 @@ class HistoryWindow(VerticalScroll):
         if self.reader_position is not None:
             self.reader_position.prepare_history(history)
         if self.follows_tail:
-            self.lookahead.destination(self.outer_size.height)
+            self.lookahead.destination(self.outer_size.height, pages_read=len(history.pages))
 
     def latest_limits(self, budget: PresentationBudget) -> tuple[int, int]:
         """One native destination's row capacity and bounded fragment budget."""
@@ -553,7 +553,7 @@ class HistoryWindow(VerticalScroll):
         if (not history.checkpoint_available or not self.screen.is_active
                 or not history.selected_categories or self.runway(history) is None):
             return
-        if history._follow_source_tail and history.has_newer:
+        if history.follows_source_tail and history.has_newer:
             self.jump_to_latest()
         elif history.filter.active:
             # Creating a projection uses the original decoded boundary; its
