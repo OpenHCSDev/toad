@@ -308,6 +308,7 @@ class NewSessionButton(Static):
 
     def action_create(self) -> None:
         from agent_comms.cli_commands import NewThreadCliCommand
+        from agent_comms.channel_targets import ProjectTarget
         from toad.target_commands import TargetContext
         from toad.thread_actions import ThreadAction
 
@@ -319,7 +320,8 @@ class NewSessionButton(Static):
         async def collect():
             try:
                 def prepare():
-                    ctx = TargetContext(app, app.coordination_access.service, None, '', project, mode)
+                    ctx = TargetContext(app, app.coordination_access.service,
+                                        ProjectTarget(str(project)), '', project, mode)
                     return ctx, next(action for action in ctx.available_actions()
                                      if action.declaration is NewThreadCliCommand)
                 ctx, definition = await app.preparation.run_thread(prepare)
