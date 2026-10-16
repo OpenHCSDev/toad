@@ -8,7 +8,7 @@ import pytest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from agent_comms import cohort_foreground
+from agent_comms import private_nk_entrypoint
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.cli_commands import StartCliCommand
 from agent_comms.comms import Comms
@@ -77,7 +77,7 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
         with (patch("asyncio.to_thread", delayed_dispatch),
               patch.object(comms_root, "run_selected_write", delayed_write),
               patch.object(StartCliCommand, "apply", safe_spy),
-              patch.object(cohort_foreground, "_trusted_package", lambda _: None)):
+              patch.object(private_nk_entrypoint, "_trusted_package", lambda _: None)):
             history = view.message_history
             ack = asyncio.create_task(history.mark_page(page, None, snapshot=history.source_snapshot()))
             request_target_command(app, StartCliCommand, "peer")

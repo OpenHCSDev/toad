@@ -95,7 +95,7 @@ class ThreadImportRequest(TransferRequest):
                                           session_id=self.session_id, worktree=self.worktree)
 
     def completed(self, app, receipt) -> None:
-        app.events.publish(core_events.ThreadActionsChanged())
+        app.events.publish(core_events.ThreadRowStateChanged())
         app.notify(f"Imported @{receipt.thread} ({receipt.imported_messages} messages) as a stopped thread",
                    title="Thread Import")
 

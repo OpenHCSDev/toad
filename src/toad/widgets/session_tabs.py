@@ -245,8 +245,9 @@ class SessionsTabs(CoreEventReceiver, Widget):
         if self.screen.is_active:
             await self._sync_tabs()
 
-    @handles(core_events.OpenTabsChanged)
+    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged)
     async def _tabs_changed(self, event: CoreEventMessage) -> None:
+        """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:
             await self._sync_tabs()
 

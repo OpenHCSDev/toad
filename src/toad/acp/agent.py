@@ -80,6 +80,8 @@ class Agent(AgentBase):
         agent: AgentDefinition,
         session_id: str | None,
         session_pk: int | None = None,
+        *,
+        app_events: core_events.CoreEventStream,
     ) -> None:
         """
 
@@ -100,7 +102,7 @@ class Agent(AgentBase):
         self.server.expose_instance(self)
         for owner in ClientRequestOwner.members_with(ClientRequestOwner):
             self.server.expose_instance(owner.resolve(self))
-        self.session = AgentSession(self, session_pk)
+        self.session = AgentSession(self, session_pk, app_events)
         self.done_event = asyncio.Event()
         self._private_cursor = CursorAttachment()
         self._private_cursor_sequence = 0
