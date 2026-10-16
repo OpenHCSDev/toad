@@ -289,7 +289,6 @@ class RuntimeBuild:
     scratch: Path
     runtimes: Path
     thread: str
-    display: XvfbDisplay
     start_env: Path | None
 
     def start_acceptance_thread(self, runtime: Path) -> bool:
@@ -372,11 +371,11 @@ class RuntimeBuild:
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.
         return destination
 
-    def accept(self, runtime: Path) -> None:
+    def accept(self, runtime: Path, display: XvfbDisplay) -> None:
         """Exercise the installed schema after building or a required store conversion."""
         self.start_acceptance_thread(runtime)
         screenshot = open_saved_thread(
-            runtime, self.thread, self.display, self.scratch / f'acceptance-{runtime.name}')
+            runtime, self.thread, display, self.scratch / f'acceptance-{runtime.name}')
         (runtime / 'acceptance.json').write_text(json.dumps({'screenshot': str(screenshot)}) + '\n')
 
 
@@ -392,7 +391,7 @@ def main() -> None:
                         help='Start the stopped acceptance thread from the built runtime')
     parser.add_argument('--start-env', type=Path,
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
-    parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
+    parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -402,18 +401,20 @@ def main() -> None:
         parser.error('--start-thread and --start-env must be used together')
     if args.build_only and args.start_thread:
         parser.error('--build-only cannot start an acceptance thread')
-    with XvfbDisplay(args.display) as display:
-        build = RuntimeBuild(
-            GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
-            GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
-            args.baseline.resolve(strict=True),
-            args.scratch.resolve(), args.runtimes.resolve(), args.thread, display,
-            args.start_env.resolve(strict=True) if args.start_env else None,
-        )
-        runtime = build.build()
-        if not args.build_only:
-            build.accept(runtime)
-        print(runtime)
+    if not args.build_only and args.display is None:
+        parser.error('--display is required for an app check')
+    build = RuntimeBuild(
+        GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
+        GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
+        args.baseline.resolve(strict=True),
+        args.scratch.resolve(), args.runtimes.resolve(), args.thread,
+        args.start_env.resolve(strict=True) if args.start_env else None,
+    )
+    runtime = build.build()
+    if not args.build_only:
+        with XvfbDisplay(args.display) as display:
+            build.accept(runtime, display)
+    print(runtime)
 
 
 if __name__ == '__main__':
