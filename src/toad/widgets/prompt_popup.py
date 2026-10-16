@@ -41,6 +41,11 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
         from toad.widgets.prompt import Prompt
         return self.query_ancestor(Prompt)
 
+    def check_consume_key(self, key: str, character: str | None = None) -> bool:
+        # The popup's actual declarations outrank ancestor shortcuts, even
+        # before a priority Key event reaches its focused control.
+        return (self.is_open and key in self._bindings.key_to_bindings) or super().check_consume_key(key, character)
+
     def admitted(self) -> bool:
         return True
 

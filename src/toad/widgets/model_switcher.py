@@ -12,6 +12,7 @@ from textual.binding import Binding
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
+from textual.widget import PrimaryActivation
 from textual.widgets.option_list import Option
 
 from toad import messages
@@ -23,11 +24,15 @@ if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class ConnectProvider(CoreEventReceiver, Static, can_focus=True):
+class ConnectProvider(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
     BINDINGS = [("enter,space", "connect", "Connect provider")]
 
     def __init__(self):
         super().__init__("Connect a provider…", markup=False)
+
+    @property
+    def primary_activation(self):
+        return self.action_connect
 
     def action_connect(self):
         self.query_ancestor(ModelSwitcher).action_dismiss()

@@ -181,6 +181,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
             self._resume_style = self._style_revision()
 
     def _on_frame_published(self) -> None:
+        super()._on_frame_published()
         if self is self.app.screen:
             self.frame_presentation.displayed()
 
