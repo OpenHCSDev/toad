@@ -10,7 +10,7 @@ from toad.block_navigation import ConversationBlock
 from toad.message_rows import MessageRow
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.message_divider import MessageClock
+from toad.widgets.message_divider import LiveMessageClock
 from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.transcript_lines import MessageRowBlock
@@ -49,6 +49,6 @@ class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, C
         yield AgentResponse(message.text,
                             delivery=ResponseDelivery.from_route(message.require_reply_route()),
                             show_divider=self.show_header,
-                            clock=MessageClock.recorded(message.timestamp))
+                            clock=LiveMessageClock())
         if self.handling_references:
             yield MessageNotifications()

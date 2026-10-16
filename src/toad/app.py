@@ -4,6 +4,7 @@ from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
 from toad.comms_root import CoordinationAccess
+from toad.widgets.message_notifications import VisibleReadMarking
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -265,7 +266,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -548,8 +549,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 
-    async def mark_visible_thread_read(self) -> None:
-        """Report the painted native cursor, never an executor's inbox cursor."""
+    def read_visible(self):
+        """Capture a painted native/CLI cursor before scheduling its guarded write."""
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation, Window
 
@@ -594,11 +595,14 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
             access.write(selected, mark)
 
-        try:
-            await asyncio.to_thread(acknowledge)
-        except (OSError, ValueError):
-            # Source replacement or deletion is resolved by the next snapshot.
-            return
+        async def mark():
+            try:
+                await asyncio.to_thread(acknowledge)
+            except (OSError, ValueError):
+                # Source replacement or deletion is resolved by the next snapshot.
+                return
+
+        return mark()
 
 
     def schedule_from_thread(self, callback: Callable[[], object]) -> None:

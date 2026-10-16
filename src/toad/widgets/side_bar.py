@@ -517,7 +517,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         width = self._start_width + direction * (screen_x - self._start_x)
         percent = round(100 * width / max(1, bar.screen.size.width))
         if app.sidebar_layout.width(bar.id, percent):
-            app.events.publish(core_events.SidebarLayoutChanged())
+            bar.screen.refresh(layout=True)
 
     def action_resize(self, direction: int) -> None:
         bar = self.query_ancestor(SideBar)
@@ -814,17 +814,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             )
         return True
 
-    def on_resize(self) -> None:
-        if self.is_mounted and self.screen.is_current:
-            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
-
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
         event.stop()
         if event.slider.kind == "width" and self.id is not None:
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
-                app.events.publish(core_events.SidebarLayoutChanged())
+                self.screen.refresh(layout=True)
 
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
@@ -833,7 +829,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             return
         app = cast("ToadApp", self.app)
         event.action.apply(app.sidebar_layout, self.id)
-        app.events.publish(core_events.SidebarLayoutChanged())
+        self.screen.refresh(layout=True)
 
     @on(widgets.Collapsible.Collapsed)
     @on(widgets.Collapsible.Expanded)
@@ -889,8 +885,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                 panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
         if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
-            cast("ToadApp", self.app).workspace_chrome.layout_sidebars(self.screen)
-            cast("ToadApp", self.app).events.publish(core_events.SidebarLayoutChanged())
+            self.screen.refresh(layout=True)
 
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""

@@ -1,5 +1,6 @@
-"""Measure an explicitly selected live Toad process.
+"""Measure an explicitly selected live Toad process on required --display.
 
+Input controllers use this same XvfbDisplay.input owner and terminal launch identity.
 --profile-seconds  record a py-spy speedscope profile.
 --frame-meter N    time UI work per frame and input-to-paint for N seconds (frame_meter.py).
 --targets          write where sidebar thread rows and session tabs are (frame_meter.targets).
@@ -23,6 +24,8 @@ class XvfbDisplay(AbstractContextManager):
     """Own a connection to a local framebuffer, resolving X11 aliases at Xlib."""
 
     def __init__(self, name: str):
+        if not name:
+            raise ValueError("An explicit isolated Xvfb display is required")
         x11 = ctypes.CDLL('libX11.so.6')
         x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
         x11.XOpenDisplay.restype = ctypes.c_void_p
@@ -33,23 +36,49 @@ class XvfbDisplay(AbstractContextManager):
         connection = x11.XOpenDisplay(name.encode())
         if not connection:
             raise ValueError(f'Cannot connect to isolated Xvfb display: {name}')
-        with ExitStack() as custody:
-            custody.callback(x11.XCloseDisplay, connection)
+        with ExitStack() as close_display:
+            close_display.callback(x11.XCloseDisplay, connection)
             with socket.fromfd(x11.XConnectionNumber(connection), socket.AF_UNIX, socket.SOCK_STREAM) as peer:
                 pid, uid, _gid = struct.unpack('3i', peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
                 address = Path(os.fsdecode(peer.getpeername()).lstrip('\0'))
             if address.name == 'X0' or uid != os.getuid() or Path(psutil.Process(pid).exe()).name != 'Xvfb':
                 raise ValueError(f'Not an owned isolated Xvfb resource: {name}')
             self.name = name
-            self.custody = custody.pop_all()
+            self.close_display = close_display.pop_all()
+
+    @property
+    def environment(self) -> dict[str, str]:
+        return {**os.environ, "DISPLAY": self.name}
+
+    @classmethod
+    def input(cls, frontend: psutil.Process, created: float, window: int, *commands: str) -> None:
+        """Take the display from the actual st frontend, never the controller environment."""
+        if frontend.create_time() != created or not frontend.is_running():
+            raise ValueError("Frontend launch identity changed")
+        with cls(frontend.environ()["DISPLAY"]) as display:
+            env = display.environment
+            owner = subprocess.check_output(
+                ["xprop", "-display", display.name, "-id", str(window), "_NET_WM_PID"],
+                env=env, text=True, timeout=5,
+            )
+            if int(owner.partition("=")[2].strip()) != frontend.pid:
+                raise ValueError("Window does not belong to the frontend on its display")
+            print(json.dumps({"at_ns": time.time_ns(), "monotonic_ns": time.monotonic_ns(),
+                  "input_target": {"display": display.name, "window": window,
+                  "frontend_pid": frontend.pid, "created": created}}), flush=True)
+            subprocess.run(
+                ["xdotool", "windowfocus", "--sync", str(window), *commands],
+                env=env, check=True,
+            )
 
     def __exit__(self, *exception):
-        return self.custody.__exit__(*exception)
+        return self.close_display.__exit__(*exception)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--pid", type=int, required=True)
+    parser.add_argument("--display", required=True, help="Explicit isolated Xvfb display shared with the input controller")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--name", default="live-" + time.strftime("%Y%m%d-%H%M%S"))
     parser.add_argument("--profile-seconds", type=int, default=0)
@@ -87,7 +116,7 @@ def main():
                         help="Arrange the screen at N new widths and time each pass (frame_meter.remeasure)")
     parser.add_argument("--repaint", type=int, default=0,
                         help="Repaint the history viewport N times cold and warm, timing each (frame_meter.repaint)")
-    parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for attach operations")
+    parser.add_argument("--sudo", action="store_true", help="Use non-interactive sudo for read-only py-spy profiling only")
     args = parser.parse_args()
     if not (args.profile_seconds > 0 or args.frame_meter > 0 or args.targets or args.profile_layout or args.trace_calls
             or args.trace_reflows or args.trace_rules or args.trace_exit or args.trace_garbage or args.collect_all or args.heap_components or args.heap_census or args.freeze_heap or args.trace_abc or args.trace_posts
@@ -105,6 +134,9 @@ def main():
     created = process.create_time()
     privilege = ["sudo", "-n"] if args.sudo else []
     manifest = {"pid": args.pid, "created": created, "executable": process.exe(), "started_ns": time.time_ns()}
+    close_display = ExitStack()
+    display = close_display.enter_context(XvfbDisplay(args.display))
+    manifest["display"] = display.name
     try:
         if args.profile_seconds:
             result = subprocess.run([*privilege, args.py_spy, "record", "--pid", str(args.pid),
@@ -161,7 +193,6 @@ def main():
             entered = str(prefix) + "-remote-entered.json"
             lines = [
                 "import importlib.util as _spec_util, json as _json, os as _os, sys as _sys, time as _time",
-                f"with open({entered!r}, 'w') as _out: _json.dump({{'pid': _os.getpid(), 'entered_ns': _time.time_ns()}}, _out)",
                 # One meter module per process: snapshots record their pauses where the meter reads them.
                 "_meter = _sys.modules.get('frame_meter')",
                 "if _meter is None:",
@@ -170,10 +201,11 @@ def main():
                 "    _spec.loader.exec_module(_meter)",
                 *(f"_meter.{call}(expected_pid={args.pid}, output={output + '.json'!r}{extra})"
                   for output, call, extra in calls),
+                f"with open({entered!r}, 'w') as _out: _json.dump({{'pid': _os.getpid(), 'entered_ns': _time.time_ns()}}, _out)",
             ]
             script = Path(str(prefix) + "-remote.py")
             script.write_text("\n".join(lines) + "\n")
-            subprocess.run([*privilege, process.exe(), "-c",
+            subprocess.run([process.exe(), "-c",
                 f"import sys; sys.remote_exec({args.pid}, {str(script)!r})"], check=True, timeout=15)
             deadline = time.monotonic() + max(args.frame_meter, 60 if args.profile_layout or args.remeasure or args.repaint else 0) + 20
             outputs = [output + ".json" for output, _call, _extra in calls]
@@ -182,6 +214,7 @@ def main():
             manifest["outputs"] = {path: Path(path).exists() for path in outputs}
             manifest["entered"] = Path(entered).exists()
     finally:
+        close_display.close()
         manifest["finished_ns"] = time.time_ns()
         manifest_path.write_text(json.dumps(manifest, indent=2))
         print(manifest_path)

@@ -5,7 +5,7 @@ from rich.style import NULL_STYLE
 from textual import events
 from textual._paint_state import PaintLayer
 from textual._styles_cache import FramePaint
-from textual.box_model import BoxGeometry
+from textual.box_model import DEFAULT_LAYER, BoxGeometry
 from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar, ScalarOffset, Unit
@@ -51,7 +51,7 @@ class FormPart(BoxGeometry, PaintLayer, FramePaint):
     overlay = constrain_x = constrain_y = "none"
     child_layout = None
     placement_offset = None
-    layer_name = "default"
+    layer_name = DEFAULT_LAYER
     layer_order = None
 
     paint_foreground = paint_background = None

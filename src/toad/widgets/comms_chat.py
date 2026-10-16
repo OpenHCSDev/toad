@@ -114,7 +114,7 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
-        self.message_history = WireHistory(self)
+        self.message_history = WireHistory(view=self)
 
     def compose(self) -> ComposeResult:
         with Window():
@@ -200,7 +200,7 @@ class CommsChatView(Conversation):
             # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
-        if history.revision == access.revision:
+        if history.revision.stores == access.revision:
             return
         snapshot = history.source_snapshot()
         if not snapshot.current(history):
@@ -217,7 +217,7 @@ class CommsChatView(Conversation):
             return
         if (source is history.source and snapshot.current(history)
                 and source.comms is access.observed_service
-                and history.revision != revision):
+                and history.revision.stores != revision):
             await self._refresh()
 
     def prepare_prompt(self) -> None:
