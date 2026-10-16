@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from textual.content import Content
 from textual.reactive import var
@@ -18,24 +18,6 @@ from toad.conversation_turn import ConversationTurn
 
 if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
-
-
-class SessionStatus:
-    """The disclosure's paint meaning, not another backend execution state."""
-
-    role: ClassVar[type[LineRole]]
-
-
-class IdleSessionStatus(SessionStatus):
-    role = MutedRole
-
-
-class WorkingSessionStatus(SessionStatus):
-    role = WorkingRole
-
-
-class AttentionSessionStatus(SessionStatus):
-    role = NoticeRole
 
 
 class SessionDetails(Collapsible, ObservedThreadActivity):
@@ -78,21 +60,21 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         )
 
     @property
-    def title_status(self) -> type[SessionStatus]:
-        """Derive the disclosure's one paint state from its original sources."""
+    def title_role(self) -> type[LineRole]:
+        """Derive existing theme paint from the original status sources."""
         if self.history_details.attention:
-            return AttentionSessionStatus
+            return NoticeRole
         if self.delivery is not None and (self.delivery.delivery.current or self.delivery.error):
-            return AttentionSessionStatus
+            return NoticeRole
         row = self.row
         if row is not None and row.shown:
             if row.attention:
-                return AttentionSessionStatus
+                return NoticeRole
             if row.working:
-                return WorkingSessionStatus
+                return WorkingRole
         elif self.turns is not None and self.turns.owner.busy:
-            return WorkingSessionStatus
-        return IdleSessionStatus
+            return WorkingRole
+        return MutedRole
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -125,8 +107,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         detail = "\n".join(row.lines[1:]) if shown else ""
         self.notifications.update(detail)
         self.notifications.display = bool(detail)
-        status = self.title_status
-        label = Content.styled(title, self.app.colours.style(status.role))
+        label = Content.styled(title, self.app.colours.style(self.title_role))
         # Native Content compares text and spans; no last-title/status mirror.
         if not Content.from_text(self.title, markup=False).is_same(label):
             self.title = label
