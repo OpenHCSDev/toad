@@ -21,11 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-<<<<<<< HEAD
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=0800ff1cae4585a359eec6268c6ce809a3af6b7f#0800ff1cae4585a359eec6268c6ce809a3af6b7f" }
-=======
 source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=00a3d74d4b1ab8962941d84a764b3e8c2e57013d#00a3d74d4b1ab8962941d84a764b3e8c2e57013d" }
->>>>>>> origin/main
 dependencies = [
     { name = "aiohttp" },
     { name = "metaclass-registry" },
@@ -310,11 +306,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-<<<<<<< HEAD
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=0800ff1cae4585a359eec6268c6ce809a3af6b7f" },
-=======
     { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=00a3d74d4b1ab8962941d84a764b3e8c2e57013d" },
->>>>>>> origin/main
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -330,11 +322,7 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-<<<<<<< HEAD
     { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=e2fd8a336c49db0f16f22fc52618b378e30968cf" },
-=======
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=18f4e7a67403d56846ef5abf55c93e3e0639be33" },
->>>>>>> origin/main
     { name = "textual-diff-view", git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" },
     { name = "textual-image", extras = ["textual"], git = "https://github.com/OpenHCSDev/textual-image.git?rev=1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" },
     { name = "textual-serve", specifier = "==1.1.3" },
@@ -1624,11 +1612,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-<<<<<<< HEAD
 source = { git = "https://github.com/OpenHCSDev/textual.git?rev=e2fd8a336c49db0f16f22fc52618b378e30968cf#e2fd8a336c49db0f16f22fc52618b378e30968cf" }
-=======
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=18f4e7a67403d56846ef5abf55c93e3e0639be33#18f4e7a67403d56846ef5abf55c93e3e0639be33" }
->>>>>>> origin/main
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
