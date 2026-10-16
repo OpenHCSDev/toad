@@ -39,7 +39,6 @@ class WireHistory(LineHistory):
         super().__init__(PreparedTranscriptPage.empty(WirePage.unread()), None)
         # The store revision and the viewer's reading the drawn pages belong to.
         self.revision: WireRevision | None = None
-        self.identity: tuple | None = None
         # A read mark is being written; the next one waits for it.
         self.marking = False
 
@@ -135,9 +134,6 @@ class WireHistory(LineHistory):
         await self._clear()
         self.extend_source(through)
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        source = self.pages[-1].page.source
-        if source is not None:
-            self.identity = self.source.kind.display_identity(source)
 
     async def _clear(self) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
@@ -147,7 +143,7 @@ class WireHistory(LineHistory):
                 if self._page_buffer is not None:
                     self._page_buffer.close()
                     self._page_buffer = None
-                self.revision = self.identity = None
+                self.revision = None
                 if len(self.pages) == 1 and self.pages[0].page.source is None:
                     return
                 retired = tuple(self.pages)
@@ -188,8 +184,9 @@ class WireHistory(LineHistory):
         if (not await self.source_is_current(snapshot)
                 or self.pages[-1] is not edge or self.has_newer):
             return False
-        if (self.identity is not None
-                and self.source.kind.display_identity(prepared.page.source) != self.identity):
+        if (edge.page.source is not None
+                and not self.source.kind.history_view.same_display(
+                    prepared.page.source, edge.page.source)):
             await self.show_newest(self.through)
         elif not prepared.fragments:
             edge.page = replace(edge.page, after=prepared.page.after)

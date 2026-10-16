@@ -239,7 +239,7 @@ class WireSource:
                          if message.view_key[0] or message.seq <= through.cursor)
             if len(kept) < len(page.messages):
                 page = replace(page, messages=kept, has_newer=False)
-        evidence = page if self.kind.display_identity(page) is not None else None
+        evidence = page if self.kind.history_view.has_display_evidence(page) else None
         shown = MessageShown(style=self.style)
         fragments = tuple(
             WireFragment.of(message, shown=shown, evidence=evidence,
