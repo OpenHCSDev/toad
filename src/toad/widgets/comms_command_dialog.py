@@ -5,7 +5,7 @@ import asyncio
 
 from agent_comms.cli_commands import CatalogTargetField, TargetAction, TargetField
 from agent_comms.login import run_login
-from agent_comms.comms import Comms
+from agent_comms.native_pi import NativePiUnavailable
 
 from textual import on, work
 from textual.app import ComposeResult
@@ -38,6 +38,11 @@ class CatalogField(Button):
                       if parameter.editor_default in {choice.value for choice in parameter.options}
                       else '')
         self.update_label()
+
+    @property
+    def prepared(self) -> bool:
+        """The catalogs were prepared for this field's current value."""
+        return self.value == self.parameter.editor_default
 
     def update_label(self):
         self.label = next((choice.name for choice in self.parameter.options
@@ -94,8 +99,8 @@ class CatalogFieldSelection(ModelSelection):
         command = self.editor.query_ancestor(CommandDialog)
         try:
             with self.app.suspend():
-                result = await asyncio.to_thread(run_login, comms=command.comms)
-        except (OSError, ValueError, RuntimeError) as error:
+                result = await asyncio.to_thread(run_login)
+        except OSError as error:
             self.notify(str(error), title='Provider login', severity='error')
             return
         if result == 0 and self.is_attached:
@@ -131,11 +136,9 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     """
     BINDINGS = [('escape', 'cancel', 'Cancel'), ('ctrl+enter', 'submit', 'Apply')]
 
-    def __init__(self, definition: TargetAction, target: str,
-                 fields: tuple[TargetField, ...], comms: Comms):
+    def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
         super().__init__()
-        self.definition, self.target = definition, target
-        self.fields, self.comms = fields, comms
+        self.definition, self.target, self.fields = definition, target, fields
 
     def compose(self) -> ComposeResult:
         with Vertical(id='command-box'):
@@ -146,7 +149,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                     for parameter in self.fields:
                         key = parameter.name
                         yield Static(parameter.description, markup=False)
-                        if parameter.catalog is not None:
+                        if isinstance(parameter, CatalogTargetField):
                             yield CatalogField(parameter)
                         elif (choices := parameter.choices) is not None:
                             value = parameter.editor_default
@@ -208,26 +211,29 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                 **{editor.name: editor.value for editor in self.query(CatalogField)}}
 
     async def refresh_catalogs(self, arguments):
-        requested = {item.name: arguments[item.name] for item in self.fields if item.catalog is not None}
+        requested = {editor.name: arguments[editor.name] for editor in self.query(CatalogField)}
         def unchanged():
             current = self.arguments()
             return all(current[name] == value for name, value in requested.items())
+        try:
+            edited = self.definition.edited(arguments)
+        except ValueError:
+            # Invalid form input; the confirmation line already reports it.
+            return
         self.query_one('#command-apply', Button).disabled = True
         try:
             fields = await self.app.preparation.run_thread(
-                lambda: asyncio.run(self.definition.edited(arguments).prepare_fields()))
-        except (OSError, ValueError, RuntimeError) as error:
+                lambda: asyncio.run(edited.prepare_fields()))
+        except NativePiUnavailable as error:
             if self.is_attached and unchanged():
                 self.notify(str(error), title='Configuration choices', severity='error')
             return
         if not self.is_attached or not unchanged():
             return
-        self.fields = fields
+        prepared = {parameter.name: parameter for parameter in fields}
         with self.prevent(CatalogField.Changed):
-            for parameter in fields:
-                if parameter.catalog is not None:
-                    editor = self.query_one('#command-field-' + parameter.name.replace('_', '-'), CatalogField)
-                    editor.configure(parameter)
+            for editor in self.query(CatalogField):
+                editor.configure(prepared[editor.name])
         self.update_confirmation()
 
     def update_confirmation(self):
@@ -242,9 +248,9 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                                    if not editor.value), None)
         async def prepare():
             def read():
+                if missing_choice is not None:
+                    return f'Choose {missing_choice.replace("_", " ")}', False
                 try:
-                    if missing_choice is not None:
-                        raise ValueError(f'Choose {missing_choice.replace("_", " ")}')
                     return self.definition.edited(arguments).confirmation, True
                 except (KeyError, ValueError, TypeError) as error:
                     return str(error), False
@@ -253,9 +259,8 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                 return
             self.query_one('#command-confirmation', Static).update(confirmation)
             confirmed.display = valid and bool(confirmation)
-            self.query_one('#command-apply', Button).disabled = not valid or any(
-                item.catalog is not None and item.editor_default != arguments[item.name]
-                for item in self.fields)
+            self.query_one('#command-apply', Button).disabled = not valid or not all(
+                editor.prepared for editor in self.query(CatalogField))
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
 
     def on_select_changed(self, event: Select.Changed):
@@ -265,9 +270,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
     def on_catalog_changed(self, event: CatalogField.Changed):
         event.stop()
         self.update_confirmation()
-        if event.editor.value and any(
-                item.name == event.editor.name and item.catalog is not None
-                and item.editor_default != event.editor.value for item in self.fields):
+        if event.editor.value and not event.editor.prepared:
             self.run_worker(self.refresh_catalogs(self.arguments()),
                             group='command-catalogs', exclusive=True)
 
