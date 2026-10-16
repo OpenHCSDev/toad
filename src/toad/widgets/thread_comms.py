@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.ui_model.sidebar import ThreadRowModel
+from agent_comms.ui_model.sidebar import ThreadRowModel, WaitingSidebar
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
@@ -389,16 +389,15 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 if generation != self._generation or not self.is_attached:
                     return
             observed = self.app.coordination_access.observation
-            unread = (observed.sidebar.snapshot
-                      if observed is not None and observed.sidebar.snapshot is not None
-                      and Path(self.wire_root).resolve() == observed.service.root.resolve()
-                      else None)
+            sidebar = WaitingSidebar()
+            if observed is not None and Path(self.wire_root).resolve() == observed.service.root.resolve():
+                sidebar = observed.sidebar.observation
             people = {entry.person.thread.name: entry.person for model in snapshot.groups
                       for entry in model.entries if entry.person is not None}
 
             def derive() -> tuple[dict[str, ThreadRowModel], int]:
                 # ThreadView presentation may inspect process identity: off the UI thread.
-                rows = {name: ThreadRowModel.of(person, unread) for name, person in people.items()}
+                rows = {name: sidebar.thread_row(person) for name, person in people.items()}
                 widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
                 for model in snapshot.groups:
                     for entry in model.entries:

@@ -149,8 +149,7 @@ class NativeSessionEntry(SessionEntry):
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
         name = source._comms_thread if source else ""
-        snapshot = observed.sidebar.snapshot if observed is not None else None
-        if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
+        if observed is None or source is None or not source.belongs_to_wire(observed.service.root):
             return NamedTab(self.mode, self.details.name.display or "New Session")
         row = observed.sidebar.threads.rows.get(name)
         originals = self.original_threads(sessions)
@@ -206,9 +205,7 @@ class HistorySessionEntry(SessionEntry):
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         unread: UnreadPresentation = UnobservedUnread()
         if observed is not None and Path(self.key.root).resolve() == observed.service.root:
-            snapshot = observed.sidebar.snapshot
-            if snapshot is not None:
-                unread = self.kind.unread(snapshot, self.key.target)
+            unread = self.kind.unread(observed.sidebar.observation, self.key.target)
         return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:

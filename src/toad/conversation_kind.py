@@ -67,9 +67,9 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         screen.app.session_navigation.direct_messages()
 
     @classmethod
-    def unread(cls, snapshot, target):
+    def unread(cls, sidebar, target):
         from agent_comms.ui_model.unread import UnreadPresentation
-        return UnreadPresentation.for_channel(snapshot, target)
+        return sidebar.unread_for(lambda snapshot: UnreadPresentation.for_channel(snapshot, target))
 
     @classmethod
     def placeholder(cls, target):
@@ -242,9 +242,9 @@ class DmConversation(ConversationKind):
         return (snapshot.require(me).incarnation, snapshot.require(target).incarnation)
 
     @classmethod
-    def unread(cls, snapshot, target):
+    def unread(cls, sidebar, target):
         from agent_comms.ui_model.unread import UnreadPresentation
-        return UnreadPresentation.for_bus(snapshot, target)
+        return sidebar.unread_for(lambda snapshot: UnreadPresentation.for_bus(snapshot, target))
 
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:

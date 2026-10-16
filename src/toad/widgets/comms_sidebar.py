@@ -448,7 +448,7 @@ class SidebarModelView(CoreEventReceiver):
 
     @property
     def shows_model(self) -> bool:
-        return self.model is not None and self.model.snapshot is not None and not self.stale
+        return self.model is not None and not self.stale
 
     def unsubscribe(self) -> None:
         if self.model is not None:
