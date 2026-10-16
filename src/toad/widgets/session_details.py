@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
+from toad.line_blocks import MutedRole, NoticeRole, WorkingRole
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -38,9 +40,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
-    SessionDetails.-working > CollapsibleTitle { color: $accent; }
-    SessionDetails.-attention > CollapsibleTitle { color: $warning; }
-    SessionDetails .session-notifications { height: auto; }
     """
 
     def __init__(
@@ -53,7 +52,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
-        self.notifications = Static("", markup=False, classes="session-notifications")
+        self.notifications = Static("", markup=False)
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
             self.notifications, *(item for item in (history, delivery) if item is not None),
@@ -81,6 +80,11 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         self._refresh_summary()
         super().activity_changed()
 
+    def notify_style_update(self) -> None:
+        super().notify_style_update()
+        if self.is_mounted:
+            self._refresh_summary()
+
     def _refresh_summary(self, *_args) -> None:
         row = self.row
         shown = row is not None and row.shown
@@ -90,8 +94,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
             title = row.summary[0]
         else:
             title = owner.status if owner is not None else ""
-        if self.title != title:
-            self.title = title
         # The status is already the disclosure's title, not a second row inside.
         detail = "\n".join(row.lines[1:]) if shown else ""
         self.notifications.update(detail)
@@ -100,8 +102,9 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         if self.delivery is not None:
             delivery = self.delivery.delivery
             attention |= bool(delivery.current or self.delivery.error)
-        self.set_class(attention, "-attention")
-        self.set_class(self.status_working, "-working")
+        role = NoticeRole if attention else WorkingRole if self.status_working else MutedRole
+        # Content owns its paint; no class names or selectors reinterpret status.
+        self.title = Content.styled(title, self.app.colours.style(role))
         self.overview_text = self.history_details.overview(row.lines if shown else ())
         self.display = bool(title)
 
