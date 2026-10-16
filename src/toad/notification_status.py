@@ -72,24 +72,17 @@ class CheckedNotifications(NotificationStatus):
                          for item in results[(reference.seq, reference.message_id)]))
 
     @property
-    def ordered(self) -> list[MessageNotification]:
-        return sorted(self.notifications, key=lambda item: (item.priority, item.recipient.casefold()))
-
-    @property
     def working(self) -> bool:
         return any(item.busy for item in self.notifications)
 
     @property
     def title(self) -> str:
-        # Core owns receipt state, time and priority. Other recipients remain
-        # in the disclosure, not competing counters in the one-line caption.
-        ordered = self.ordered
-        return ordered[0].state if ordered else "No recorded notification result"
+        return MessageNotification.summary(self.notifications)
 
     @property
     def details(self) -> DetailLines:
         lines = []
-        for item in self.ordered:
+        for item in MessageNotification.ordered(self.notifications):
             line = recipient_line(item.recipient, f": {item.state}" + (f" — {item.detail}" if item.detail else ""))
             for reader in item.displayed_to:
                 line += (Span(" · Read by ", MutedRole),
