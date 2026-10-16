@@ -11,9 +11,8 @@ one Textual timer.
 from __future__ import annotations
 
 import os
-from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Any
+from typing import Any, ClassVar
 
 from rich.segment import Segment
 from rich.style import Style as RichStyle
@@ -55,16 +54,19 @@ def _element(value: Any, backend: TextualColours) -> str:
     return value.value if isinstance(value, TextStyle) else value.native(backend)
 
 
-class BlockInk(ABC):
+class BlockInk:
     """A native block's occupied edge, independent of its theme colour."""
 
-    # Common native half/full blocks; one quantizer for both edges.
-    GLYPHS = ("  ", "▄▀", "██")
-    LEVELS = len(GLYPHS) - 1
+    GLYPHS: ClassVar[str]
+    LEVELS: ClassVar[int]
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        cls.LEVELS = len(cls.GLYPHS) - 1
 
     @classmethod
-    @abstractmethod
-    def glyph(cls, level: int) -> str: ...
+    def glyph(cls, level: int) -> str:
+        return cls.GLYPHS[level]
 
     @classmethod
     def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
@@ -73,15 +75,11 @@ class BlockInk(ABC):
 
 
 class BottomInk(BlockInk):
-    @classmethod
-    def glyph(cls, level: int) -> str:
-        return cls.GLYPHS[level][0]
+    GLYPHS = " ▄█"
 
 
 class TopInk(BlockInk):
-    @classmethod
-    def glyph(cls, level: int) -> str:
-        return cls.GLYPHS[level][1]
+    GLYPHS = " ▀█"
 
 
 class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
