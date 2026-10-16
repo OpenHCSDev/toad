@@ -17,7 +17,7 @@ from agent_comms import HistoricalMessage
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message
-from agent_comms.historical_views import ConversationRevision
+from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
@@ -97,6 +97,26 @@ class WirePage:
     def unread(cls) -> WirePage:
         """What is drawn before the first read: nothing, up to sequence zero."""
         return cls((), None, AfterSequence(0), False, False, None)
+
+    @property
+    def undrawn(self) -> bool:
+        return self.source is None
+
+    def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
+        """An initial placeholder admits its first scope; Core compares actual pages."""
+        source = self.source
+        return source is None or view.same_display(page, source)
+
+    def advanced(self, interval: WirePage, *, older: bool) -> WirePage:
+        """An empty interval advances its cut and establishes the first Core page.
+
+        Existing fragments retain their original page evidence; a placeholder
+        must adopt the actual empty Core page rather than remain unobserved.
+        """
+        source = interval.source if self.undrawn else self.source
+        return (replace(self, before=interval.before, has_older=interval.has_older, source=source)
+                if older else replace(self, after=interval.after, has_newer=interval.has_newer,
+                                      source=source))
 
 
 @dataclass(kw_only=True)
