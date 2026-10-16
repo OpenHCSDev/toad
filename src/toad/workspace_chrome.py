@@ -63,6 +63,17 @@ class WorkspaceChrome:
             for parent in dict.fromkeys(bar.parent for bar in visible):
                 if parent is None:
                     continue
+                content = next((child for child in parent.children
+                                if child.display and child not in bars), None)
+                if content is not None:
+                    # Cohort clearance changes with width, independently of a
+                    # bar's placement/collapse controls.
+                    shared = parent is self.channels.parent
+                    margin = Spacing(0, 0 if shared else resolved.right_gutter,
+                                     0, 0 if shared else resolved.left_gutter)
+                    if content.styles.margin != margin:
+                        content.styles.margin = margin
+                        changed = True
                 before = tuple(parent.children)
                 after = tuple(sorted(before, key=lambda child: order.get(child.id, len(order))))
                 if before != after:
