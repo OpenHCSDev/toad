@@ -66,7 +66,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         self.call.title = event.title
         self.call.kind = event.kind
         self.call.raw_input = event.raw_input
-        self.call.locations = [ToolCallLocation(path=event.path)] if event.path is not None else []
+        self.call.locations = [ToolCallLocation(path=path) for path in event.locations]
 
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):
