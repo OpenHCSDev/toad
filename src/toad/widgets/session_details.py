@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
-from toad.line_blocks import MutedRole, NoticeRole, WorkingRole
+from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -18,6 +18,24 @@ from toad.conversation_turn import ConversationTurn
 
 if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
+
+
+class SessionStatus:
+    """The disclosure's paint meaning, not another backend execution state."""
+
+    role: ClassVar[type[LineRole]]
+
+
+class IdleSessionStatus(SessionStatus):
+    role = MutedRole
+
+
+class WorkingSessionStatus(SessionStatus):
+    role = WorkingRole
+
+
+class AttentionSessionStatus(SessionStatus):
+    role = NoticeRole
 
 
 class SessionDetails(Collapsible, ObservedThreadActivity):
@@ -60,11 +78,21 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         )
 
     @property
-    def status_working(self) -> bool:
-        """Work described by the title, not the independent ACP request lease."""
-        if self.row is not None and self.row.shown:
-            return self.row.working
-        return self.turns is not None and self.turns.owner.busy
+    def title_status(self) -> type[SessionStatus]:
+        """Derive the disclosure's one paint state from its original sources."""
+        if self.history_details.attention:
+            return AttentionSessionStatus
+        if self.delivery is not None and (self.delivery.delivery.current or self.delivery.error):
+            return AttentionSessionStatus
+        row = self.row
+        if row is not None and row.shown:
+            if row.attention:
+                return AttentionSessionStatus
+            if row.working:
+                return WorkingSessionStatus
+        elif self.turns is not None and self.turns.owner.busy:
+            return WorkingSessionStatus
+        return IdleSessionStatus
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -89,7 +117,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         row = self.row
         shown = row is not None and row.shown
         owner = self.turns.owner if self.turns is not None else None
-        attention = shown and row.attention
         if shown:
             title = row.summary[0]
         else:
@@ -98,13 +125,11 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         detail = "\n".join(row.lines[1:]) if shown else ""
         self.notifications.update(detail)
         self.notifications.display = bool(detail)
-        attention |= self.history_details.attention
-        if self.delivery is not None:
-            delivery = self.delivery.delivery
-            attention |= bool(delivery.current or self.delivery.error)
-        role = NoticeRole if attention else WorkingRole if self.status_working else MutedRole
-        # Content owns its paint; no class names or selectors reinterpret status.
-        self.title = Content.styled(title, self.app.colours.style(role))
+        status = self.title_status
+        label = Content.styled(title, self.app.colours.style(status.role))
+        # Native Content compares text and spans; no last-title/status mirror.
+        if not Content.from_text(self.title, markup=False).is_same(label):
+            self.title = label
         self.overview_text = self.history_details.overview(row.lines if shown else ())
         self.display = bool(title)
 
