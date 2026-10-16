@@ -156,10 +156,7 @@ class MovingPreparation(PreparationDemand):
     def read_rows(self, preparation, history, older: bool, runway: tuple[int, int]) -> int:
         if not self.accepts_result(older):
             return 0
-        # A work-cache entry is not a fragment. The native fragment owner,
-        # not PreparationRuntime.max_entries, bounds its retained runway.
-        capacity = history.fragment_limit * preparation.window.rows_per_fragment
-        ahead = min(preparation.ahead_rows(preparation.window.outer_size.height), capacity)
+        ahead = preparation.ahead_rows(preparation.window.outer_size.height)
         return max(0, ceil(ahead) - runway[0 if older else 1])
 
     def prepare_ahead(self, preparation, history, page, older: bool) -> None:
