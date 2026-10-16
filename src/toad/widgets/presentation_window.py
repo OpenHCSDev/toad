@@ -107,9 +107,9 @@ class PreparationDemand(ABC):
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
         return MovingPreparation(travel / elapsed)
 
-    def edges(self, before: bool, after: bool) -> tuple[bool, bool]:
-        """Which source edges can supply rows for this reader's movement."""
-        return before, after
+    def permits(self, older: bool) -> bool:
+        """Whether this edge still serves the reader's current direction."""
+        return True
 
     def destination_painted(self) -> "PreparationDemand":
         return self
@@ -135,8 +135,8 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def edges(self, before: bool, after: bool) -> tuple[bool, bool]:
-        return (before, False) if self.velocity < 0 else (False, after)
+    def permits(self, older: bool) -> bool:
+        return older == (self.velocity < 0)
 
 
 @dataclass(frozen=True)
@@ -151,9 +151,9 @@ class DestinationPreparation(PreparationDemand):
         # An explicit reversal immediately replaces the burst.
         return super().moved(travel, elapsed) if travel < 0 else self
 
-    def edges(self, before: bool, after: bool) -> tuple[bool, bool]:
+    def permits(self, older: bool) -> bool:
         # The existing latest-page operation owns a jump, never edge traversal.
-        return False, False
+        return False
 
     def destination_painted(self) -> PreparationDemand:
         return StationaryPreparation()
@@ -267,14 +267,6 @@ class DirectionalPreparation:
         # fragment capacity in measured rows so source paging cannot outrun it.
         capacity = ceil(self.window.app.preparation.max_entries * self.window.rows_per_fragment)
         return min(requested, max(baseline, capacity))
-
-    def fragments_for(self, rows: float) -> int:
-        """How many fragments fill `rows`, at the extent the drawn ones have."""
-        # Rows and source fragments are different units: a fragment is one
-        # row or a whole long answer. The preparation runtime bounds the count.
-        return min(self.window.app.preparation.max_entries, max(
-            self.budget.batch_items, ceil(rows / self.window.rows_per_fragment),
-        ))
 
     def destination_batch(self, budget: PresentationBudget, viewport_rows: int) -> int:
         # A bottom viewport must be complete before its one tree publication.

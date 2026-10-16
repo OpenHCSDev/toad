@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PageRequest, PreparedPageSource
+from toad.transcript_preparation import PageRequest, PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
@@ -36,7 +36,7 @@ class WireHistory(LineHistory):
     def __init__(self, view) -> None:
         # The view's message filter is read while the line history is built.
         self.view = view
-        super().__init__(WirePage.unread(), None, fragments=())
+        super().__init__(PreparedTranscriptPage.empty(WirePage.unread()), None)
         # The store revision and the viewer's reading the drawn pages belong to.
         self.revision: WireRevision | None = None
         self.identity: tuple | None = None
@@ -151,8 +151,8 @@ class WireHistory(LineHistory):
                 if len(self.pages) == 1 and self.pages[0].page.source is None:
                     return
                 retired = tuple(self.pages)
-                view = TranscriptPageView(WirePage.unread(), fragments=(),
-                                      batch_size=self.budget.batch_items)
+                view = TranscriptPageView(PreparedTranscriptPage.empty(WirePage.unread()),
+                                          batch_size=self.budget.batch_items)
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=self.newer)
                 self.pages = deque([view])
@@ -204,16 +204,19 @@ class WireHistory(LineHistory):
                 await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         return True
 
-    async def _extend_and_trim(self, edge, older, local, page, protected, fragments, prepared=None,
-                               *, fresh=False):
-        if page is not None and not fragments:
-            # Nothing of this conversation lies in that range: the edge page covers it.
+    async def _extend_and_trim(self, edge, older, local, protected, prepared,
+                               *, current, fresh=False):
+        if not local and not prepared.fragments:
+            # An empty wire interval advances its cut, not native membership.
+            if not current():
+                return
+            page = prepared.page
             edge.page = (replace(edge.page, before=page.before, has_older=page.has_older) if older
                          else replace(edge.page, after=page.after, has_newer=page.has_newer))
             self._update_edges()
             return
-        await super()._extend_and_trim(edge, older, local, page, protected, fragments, prepared,
-                                       fresh=fresh)
+        await super()._extend_and_trim(edge, older, local, protected, prepared,
+                                       current=current, fresh=fresh)
 
     def prepare_viewport(self) -> None:
         super().prepare_viewport()

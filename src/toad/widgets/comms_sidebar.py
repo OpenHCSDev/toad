@@ -14,7 +14,6 @@ View, not authority: renders Core's sidebar presentation model
 from __future__ import annotations
 from toad.core.input_events import SelectTarget
 from toad.core_event_carrier import CoreEventMessage
-from toad.core import session_requests
 
 import os
 import shlex
@@ -320,8 +319,30 @@ class NewSessionButton(Static):
         super().__init__("+ New Session")
 
     def action_create(self) -> None:
-        source_mode = cast("ToadApp", self.app).selected_mode
-        self.app.session_navigation.events.publish(session_requests.SessionCreate(source_mode))
+        from agent_comms.cli_commands import NewThreadCliCommand
+        from agent_comms.channel_targets import ProjectTarget
+        from toad.target_commands import TargetContext
+        from toad.thread_actions import ThreadAction
+
+        app = cast("ToadApp", self.app)
+        mode = app.selected_mode
+        source = app.workspace_sessions.origin(mode)
+        project = source.project_path if source is not None else app.project_dir
+
+        async def collect():
+            try:
+                def prepare():
+                    ctx = TargetContext(app, app.coordination_access.service,
+                                        ProjectTarget(str(project)), '', project, mode)
+                    return ctx, next(action for action in ctx.available_actions()
+                                     if action.declaration is NewThreadCliCommand)
+                ctx, definition = await app.preparation.run_thread(prepare)
+                if app.selected_mode == mode and self.is_attached:
+                    ThreadAction.collect(ctx, definition)
+            except (OSError, ValueError, RuntimeError) as error:
+                app.notify(str(error), title="New session", severity="error")
+
+        self.run_worker(collect(), group="new-session", exclusive=True)
 
     def on_mouse_up(self, event) -> None:
         if event.button == 1:

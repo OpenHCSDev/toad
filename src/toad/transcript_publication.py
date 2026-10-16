@@ -15,6 +15,7 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
+from toad.core.events import CoordinationObserved
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -198,8 +199,7 @@ class SnapshotPublication(TranscriptPublication):
         if not self.current():
             return
         view = self.owner.view
-        history = TranscriptHistory(self.page, self.owner.get_transcript_page,
-                                    prepared=prepared, committed=False)
+        history = TranscriptHistory(prepared, self.owner.get_transcript_page, committed=False)
         await self.contents.prepare_history(
             history, partial(self.source_current, self.page.after), window=self.window,
         )
@@ -228,6 +228,7 @@ class SnapshotPublication(TranscriptPublication):
                             self.captured, retained_history=history,
                             native_inputs=frozenset(native_id for event in self.page.events
                                                     for native_id in event.native_inputs),
+                            outgoing=prepared.outgoing_coverage,
                         )
                         history.publish_committed()
                         accepted = True
@@ -380,7 +381,8 @@ class SourcePublicationRequests:
             return
         self.observation.close()
         self.observation.callback(view.retire_core,
-            view.observe_core_callback(view.app.coordination_access.events, self.resume))
+            view.observe_core_callback(view.app.coordination_access.events,
+                                       CoordinationObserved, self.resume))
 
     def resume(self, _event=None) -> bool:
         """Resume retained work only at an existing source/preparation signal."""
@@ -485,11 +487,12 @@ class CheckpointPublication(CanonicalSourcePublication):
         evidence = CommitEvidence(
             self.captured, prepared.sequences, prepared.history,
             frozenset(native_id for event in page.events for native_id in event.native_inputs),
+            prepared.outgoing,
         )
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                page, self.owner.get_transcript_page, prepared=prepared.page, committed=False,
+                prepared.page, self.owner.get_transcript_page, committed=False,
             )
             await contents.prepare_history(
                 replacement, is_current, window=window,
@@ -677,6 +680,9 @@ class TranscriptPresentation:
     @property
     def reports_coverage(self) -> bool:
         return any(history.state.reports_coverage for history in self.histories)
+
+    def covers_outgoing(self, message) -> bool:
+        return any(history.covers_outgoing(message) for history in self.histories)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether saved history already draws the input Core started under this identity.
@@ -908,6 +914,7 @@ class TranscriptPresentation:
                                   for sequence in child.commit_claim.required_sequences)),
                     history,
                     coverage.native_inputs,
+                    history.outgoing_coverage,
                 ),
             )
             protected = protected_blocks(view, candidates)

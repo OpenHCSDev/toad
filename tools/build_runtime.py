@@ -44,29 +44,6 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
-def verify_route() -> dict:
-    """Core owns route decoding, root identity and the selected native tree."""
-    from agent_comms.active_route import read_active_route
-    from agent_comms.field_codec import FieldCodec
-    from agent_comms.native_package import MANIFEST, NativePackageError, verify_native_package
-
-    route = read_active_route()
-    if route is None:
-        raise RuntimeError('No active route is installed')
-    route.observe_root()
-    try:
-        verify_native_package(route.native_package)
-    except NativePackageError as error:
-        pin = hashlib.sha256(MANIFEST.read_bytes()).hexdigest()
-        raise RuntimeError(
-            f'NativeRoutePinVerificationFailed: Core pin {pin}; '
-            f'route native_package {route.native_package}: {error}. '
-            'Run stack/bin/prepare-pi-native from the clean Core export, '
-            'then have the coach replace the route native_package. No old-package fallback.'
-        ) from error
-    return FieldCodec.encode(route)
-
-
 def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
     """Install before App startup, or ask an already-running App immediately."""
     from functools import partial
@@ -312,7 +289,6 @@ class RuntimeBuild:
     scratch: Path
     runtimes: Path
     thread: str
-    display: XvfbDisplay
     start_env: Path | None
 
     def start_acceptance_thread(self, runtime: Path) -> bool:
@@ -381,7 +357,6 @@ class RuntimeBuild:
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
                 raise RuntimeError('Installed Core native pin differs from the clean export')
-            route = json.loads(run(python, Path(__file__).resolve(), '--verify-route'))
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
@@ -389,18 +364,18 @@ class RuntimeBuild:
             record = {
                 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
-                'native_manifest_sha256': native_pin, 'active_route': route,
+                'native_manifest_sha256': native_pin,
                 'packages': installed, 'runtime': str(destination),
             }
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.
         return destination
 
-    def accept(self, runtime: Path) -> None:
+    def accept(self, runtime: Path, display: XvfbDisplay) -> None:
         """Exercise the installed schema after building or a required store conversion."""
         self.start_acceptance_thread(runtime)
         screenshot = open_saved_thread(
-            runtime, self.thread, self.display, self.scratch / f'acceptance-{runtime.name}')
+            runtime, self.thread, display, self.scratch / f'acceptance-{runtime.name}')
         (runtime / 'acceptance.json').write_text(json.dumps({'screenshot': str(screenshot)}) + '\n')
 
 
@@ -416,7 +391,7 @@ def main() -> None:
                         help='Start the stopped acceptance thread from the built runtime')
     parser.add_argument('--start-env', type=Path,
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
-    parser.add_argument('--display', required=True, help='Isolated Xvfb display for plain st acceptance')
+    parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -426,24 +401,24 @@ def main() -> None:
         parser.error('--start-thread and --start-env must be used together')
     if args.build_only and args.start_thread:
         parser.error('--build-only cannot start an acceptance thread')
-    with XvfbDisplay(args.display) as display:
-        build = RuntimeBuild(
-            GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
-            GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
-            args.baseline.resolve(strict=True),
-            args.scratch.resolve(), args.runtimes.resolve(), args.thread, display,
-            args.start_env.resolve(strict=True) if args.start_env else None,
-        )
-        runtime = build.build()
-        if not args.build_only:
-            build.accept(runtime)
-        print(runtime)
+    if not args.build_only and args.display is None:
+        parser.error('--display is required for an app check')
+    build = RuntimeBuild(
+        GitExport(args.toad_repo.resolve(), args.toad_ref, 'toad', 'batrachian-toad'),
+        GitExport(args.core_repo.resolve(), args.core_ref, 'core', 'agent-comms'),
+        args.baseline.resolve(strict=True),
+        args.scratch.resolve(), args.runtimes.resolve(), args.thread,
+        args.start_env.resolve(strict=True) if args.start_env else None,
+    )
+    runtime = build.build()
+    if not args.build_only:
+        with XvfbDisplay(args.display) as display:
+            build.accept(runtime, display)
+    print(runtime)
 
 
 if __name__ == '__main__':
     if sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
-    elif sys.argv[1:] == ['--verify-route']:
-        print(json.dumps(verify_route()))
     else:
         main()

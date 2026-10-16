@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
+from toad.core.events import CoordinationObserved
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.source_events import TranscriptSourceWorkFinished
@@ -116,7 +117,17 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         raise NotImplementedError
 
     def _request_page(self, older: bool) -> None:
-        self.schedule_source_work(partial(self._load_page, older))
+        self.schedule_source_work(partial(self._prepare_edge, older))
+
+    async def _prepare_edge(self, older: bool) -> None:
+        """Keep one admission while its committed publications request more rows."""
+        snapshot = self.source_snapshot()
+        while snapshot.current(self) and await self._load_page(older):
+            pass
+
+    async def _load_page(self, older: bool) -> bool:
+        """Publish one source range; return whether this edge still needs rows."""
+        raise NotImplementedError
 
     def request_latest(self, destination: LatestPosition) -> None:
         # End supersedes any admitted edge publication. Its worker may finish
@@ -173,7 +184,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self.finish_source_work(operation)
 
         self.retire_core_observations(self.app.coordination_access.events)
-        self.observe_core_callback(self.app.coordination_access.events, resume)
+        self.observe_core_callback(self.app.coordination_access.events,
+                                   CoordinationObserved, resume)
 
     def supersede_source_work(
         self, operation: WorkingTranscript, request: LatestViewportRequest,

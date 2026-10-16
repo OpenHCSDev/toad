@@ -8,6 +8,7 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.status import ThreadStatusModel
+from agent_comms.ui_model.observation import UnreadableHistory
 from textual.message import Message
 from textual.reactive import var
 from textual.widget import Widget
@@ -19,7 +20,7 @@ class ObservedThreadActivity(Widget):
     Observation never starts/settles an ACP turn or changes send admission.
     """
 
-    row: var[ThreadStatusModel | None] = var(None, init=False)
+    row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)
 
     class Changed(Message):
         """The observed row changed; the view repaints what derives from it."""
@@ -39,18 +40,18 @@ class ObservedThreadActivity(Widget):
         if thread != self.thread:
             self.thread = thread
             if thread is not None:
-                self.show(self.app.coordination_access.thread_status.rows.rows.get(thread))
+                self.show(self.app.coordination_access.thread_status.open(thread))
 
     def rows_changed(self, changes: Changes[str]) -> None:
         thread = self.thread
         if thread is not None and (thread in changes.changed or thread in changes.added
                                    or thread in changes.removed):
-            self.show(self.app.coordination_access.thread_status.rows.rows.get(thread))
+            self.show(self.app.coordination_access.thread_status.open(thread))
 
-    def show(self, row: ThreadStatusModel | None) -> None:
+    def show(self, row: ThreadStatusModel) -> None:
         self.row = row
 
-    def watch_row(self, row: ThreadStatusModel | None) -> None:
+    def watch_row(self, row: ThreadStatusModel) -> None:
         self.activity_changed()
 
     def activity_changed(self) -> None:
@@ -58,7 +59,7 @@ class ObservedThreadActivity(Widget):
 
     @property
     def working(self) -> bool:
-        return self.row is not None and self.row.working
+        return self.row.status.busy
 
 
 class ThreadStatusOwner:
@@ -115,8 +116,10 @@ class ThreadStatusOwner:
         if activity is not None:
             activity.bind(None)
             if thread is None:
-                activity.show(None)
+                activity.show(ThreadStatusModel.pending(""))
         if thread is not None:
+            if activity is not None:
+                activity.show(ThreadStatusModel.pending(thread[1]))
             self.run_worker(self._read_foreign_status(thread[1]), group="foreign-thread-status",
                             exclusive=True)
 
@@ -126,9 +129,9 @@ class ThreadStatusOwner:
             row = ThreadStatusModel.known(name, presentation)
         except CoordinationReadUnavailable:
             return  # A busy store; the next coordination change reads again.
-        except (OSError, ValueError, RuntimeError):
-            # Core read families present as "Agent status unavailable".
-            presentation, row = None, ThreadStatusModel.unavailable(name)
+        except (OSError, ValueError, RuntimeError) as error:
+            presentation = None
+            row = ThreadStatusModel.unreadable(name, UnreadableHistory.capture(error))
         if (self.status_thread() or (None, None))[1] != name:
             return
         if (activity := self.thread_activity) is not None:

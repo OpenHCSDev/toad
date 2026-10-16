@@ -3,24 +3,31 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from collections.abc import Callable
 
-from textual.app import ComposeResult
+from agent_comms.mro_dispatch import handles
+from agent_comms.thread_presentation import (
+    AttentionThreadPresentationStatus, IdleThreadPresentationStatus,
+    WorkingThreadPresentationStatus, StatusPending, ThreadRetired,
+)
+from agent_comms.ui_model.status import ThreadStatusModel
+from toad.core.projection import MroProjection
+from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
+from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
 from toad.widgets.session_history_details import SessionHistoryDetails
-from toad.conversation_turn import ConversationTurn
-from toad.widgets.throbber import ObservedThrobber
 
 
 if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(Collapsible, ObservedThreadActivity):
+class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -40,77 +47,80 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
-    SessionDetails.-working > CollapsibleTitle { color: $accent; }
-    SessionDetails.-attention > CollapsibleTitle { color: $warning; }
-    SessionDetails .session-notifications { height: auto; }
     """
 
     def __init__(
         self, *,
-        history: NativeHistory | None = None, delivery: InputDeliveryBar | None = None,
+        history: NativeHistory, delivery: InputDeliveryBar | None = None,
         transcript: TranscriptPresentation | None = None,
-        turns: ConversationTurn | None = None,
+        status_source: Callable[[], ThreadStatusModel],
     ) -> None:
-        self.turns = turns
-        self.activity_bar = ObservedThrobber(lambda: self.status_working, thickness=1.0)
+        self.status_source = status_source
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
-        self.notifications = Static("", markup=False, classes="session-notifications")
+        self.notifications = Static("", markup=False)
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
             self.notifications, *(item for item in (history, delivery) if item is not None),
             title="", collapsed=True, id="session-details",
         )
 
-    def compose(self) -> ComposeResult:
-        yield self.activity_bar
-        yield from super().compose()
+    @handles(IdleThreadPresentationStatus)
+    def idle_role(self, status) -> type[LineRole]:
+        return MutedRole
+
+    @handles(WorkingThreadPresentationStatus)
+    def working_role(self, status) -> type[LineRole]:
+        return WorkingRole
+
+    @handles(AttentionThreadPresentationStatus)
+    def attention_role(self, status) -> type[LineRole]:
+        return NoticeRole
+
+    @handles(StatusPending)
+    def pending_role(self, status) -> type[LineRole]:
+        return MutedRole
+
+    @handles(ThreadRetired)
+    def retired_role(self, status) -> type[LineRole]:
+        return NoticeRole
 
     @property
-    def status_working(self) -> bool:
-        """Work described by the title, not the independent ACP request lease."""
-        if self.row is not None and self.row.shown:
-            return self.row.working
-        return self.turns is not None and self.turns.owner.busy
+    def title_role(self) -> type[LineRole]:
+        return self.dispatch_sync(
+            self.history.status.present_status(self.status_source().status)
+        )
 
     def on_mount(self) -> None:
         super().on_mount()
         self.query_children(self.Contents).first().styles.max_height = self.DETAIL_ROWS
-        if self.history is not None:
-            self.watch(self.history, "status", self._refresh_summary)
+        self.watch(self.history, "status", self._refresh_summary)
         if self.delivery is not None:
             self.watch(self.delivery, "delivery", self._refresh_summary)
-            self.watch(self.delivery, "error", self._refresh_summary)
         self._refresh_summary()
 
     def activity_changed(self) -> None:
         self._refresh_summary()
         super().activity_changed()
 
+    def notify_style_update(self) -> None:
+        super().notify_style_update()
+        if self.is_mounted:
+            self._refresh_summary()
+
     def _refresh_summary(self, *_args) -> None:
-        row = self.row
-        shown = row is not None and row.shown
-        owner = self.turns.owner if self.turns is not None else None
-        attention = shown and row.attention
-        if shown:
-            title = row.summary[0]
-        else:
-            title = owner.status if owner is not None else ""
-        if self.title != title:
-            self.title = title
+        row = self.status_source()
+        title = row.summary[0]
         # The status is already the disclosure's title, not a second row inside.
-        detail = "\n".join(row.lines[1:]) if shown else ""
+        detail = "\n".join(row.lines[1:])
         self.notifications.update(detail)
         self.notifications.display = bool(detail)
-        attention |= self.history_details.attention
-        if self.delivery is not None:
-            delivery = self.delivery.delivery
-            attention |= bool(delivery.current or self.delivery.error)
-        self.set_class(attention, "-attention")
-        self.set_class(self.status_working, "-working")
-        self.activity_bar.sync()
-        self.overview_text = self.history_details.overview(row.lines if shown else ())
+        label = Content.styled(title, self.app.colours.style(self.title_role))
+        # Native Content compares text and spans; no last-title/status mirror.
+        if not Content.from_text(self.title, markup=False).is_same(label):
+            self.title = label
+        self.overview_text = self.history_details.overview(row.lines)
         self.display = bool(title)
 
     def sync_turn(self) -> None:

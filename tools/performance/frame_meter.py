@@ -943,18 +943,8 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
         for parent in parents:
             owner = getattr(owner, parent)
         declared = inspect.getattr_static(owner, name)
-        original = getattr(owner, name)
-        if isinstance(declared, classmethod):
-            # Wrap the function itself and redeclare it as a classmethod.
-            def timed_class(cls, *args, __original=declared.__func__, __target=target, **kwargs):
-                begin, cpu = time.monotonic_ns(), time.thread_time_ns()
-                result = __original(cls, *args, **kwargs)
-                calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject((cls, *args)), _result(result), begin,
-                              (time.thread_time_ns() - cpu) / 1e6))
-                return result
-            setattr(owner, name, classmethod(timed_class))
-            restore.append((owner, name, declared))
-            continue
+        descriptor = isinstance(declared, (classmethod, staticmethod))
+        original = declared.__func__ if descriptor else getattr(owner, name)
         if inspect.iscoroutinefunction(original):
             @functools.wraps(original)
             async def timed(*args, __original=original, __target=target, **kwargs):
@@ -980,8 +970,10 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
                 finally:
                     calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), _result(result), begin,
                                   (time.thread_time_ns() - cpu) / 1e6))
-        setattr(owner, name, timed)
-        restore.append((owner, name, original))
+        # Descriptor binding and sync/async execution are independent facts.
+        # All methods share the timing algorithm; restore the declaration itself.
+        setattr(owner, name, type(declared)(timed) if descriptor else timed)
+        restore.append((owner, name, declared))
 
     def finish():
         for owner, name, original in restore:

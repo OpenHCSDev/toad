@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
 from agent_comms.transcript_events import UserTranscript
+from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageReference
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
@@ -29,6 +30,7 @@ class CommitEvidence:
     sequences: frozenset[int] = frozenset()
     retained_history: Widget | None = None
     native_inputs: frozenset[str] = frozenset()
+    outgoing: frozenset[OutgoingMessageReference] = frozenset()
 
 
 class CommitClaim(ABC):
@@ -63,6 +65,16 @@ class CapturedClaim(CommitClaim):
         return widget in evidence.captured and widget is not evidence.retained_history
 
 
+@dataclass(frozen=True)
+class ToolOutputClaim(CapturedClaim):
+    """A compact tool cannot retire before its separate bodies are supplied."""
+
+    outgoing: frozenset[OutgoingMessageReference]
+
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return super().covered(widget, evidence) and self.outgoing <= evidence.outgoing
+
+
 class RetainedSourceClaim(CapturedClaim):
     """An original saved source is transferable independently of live output."""
 
@@ -85,6 +97,14 @@ class SequenceClaim(CommitClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.sequence is not None and self.sequence in evidence.sequences
+
+
+@dataclass(frozen=True)
+class OutgoingMessageClaim(CommitClaim):
+    message: PublishedSentMessage
+
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return self.message.reference in evidence.outgoing
 
 
 class NativeInputClaim(CommitClaim):
@@ -176,6 +196,13 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
 
+    @property
+    def outgoing_coverage(self) -> frozenset[OutgoingMessageReference]:
+        raise NotImplementedError
+
+    def covers_outgoing(self, message: PublishedSentMessage) -> bool:
+        return message.reference in self.outgoing_coverage
+
     def covers_input(self, native_id: str | None) -> bool:
         raise NotImplementedError
 
@@ -203,6 +230,12 @@ class PreparedCommit:
     history: CommittedHistory | None
     page: PreparedTranscriptPage | None
     sequences: frozenset[int]
+
+    @property
+    def outgoing(self) -> frozenset[OutgoingMessageReference]:
+        if self.page is not None:
+            return self.page.outgoing_coverage
+        return self.history.outgoing_coverage
 
 
 class CheckpointPlan(ABC):

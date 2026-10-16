@@ -1,12 +1,9 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.native_tools import NativeTool
-from agent_comms.tool_results import tool_result_content
 from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
 from dataclasses import dataclass
 from acp.schema import ToolCall
-from toad.jsonrpc import value_schema
 from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
@@ -52,27 +49,28 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         borrow the final ACP state, including an end without its earlier start.
         """
         first = events[0]
-        call = ToolCall(tool_call_id=first.tool_call_id, title='', status='completed')
+        call = ToolCall(tool_call_id=first.tool_call_id, title=first.title,
+                        kind=first.kind, status='completed')
         consumer = cls(call)
         for event in events:
             consumer.dispatch_sync(event)
-        start = NativeTool.start(first.tool_call_id, first.tool_name, call.raw_input or {})
-        call.title = start.title
-        call.kind = start.kind
         return cls.from_acp(call)
 
     @handles(ToolStartTranscript)
     def recorded_start(self, event: ToolStartTranscript):
+        self.call.status = 'in_progress'
+        self.call.title = event.title
+        self.call.kind = event.kind
         self.call.raw_input = event.raw_input
 
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):
         self.call.status = "completed" if event.ok else "failed"
-        # Preserve strict decoding before the SDK's salvage validator can
-        # silently discard malformed content.
-        self.call.content = value_schema(ToolCall.model_fields["content"].annotation).validate_python(
-            tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
-        )
+        # Saved output stays on its already-decoded result, not a JSON/SDK copy.
+
+    def project_output(self, parts, project):
+        """Only completed sends may replace reported output with a proved body."""
+        return project(parts) if self.completed else parts
 
     busy = False
     boundary = False

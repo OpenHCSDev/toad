@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class SessionHistoryDetails:
-    def __init__(self, transcript: TranscriptPresentation | None, native: NativeHistory | None):
+    def __init__(self, transcript: TranscriptPresentation | None, native: NativeHistory):
         self.transcript = transcript
         self.native = native
 
@@ -19,20 +19,15 @@ class SessionHistoryDetails:
         if self.transcript is not None:
             parts.append("Saved history available" if self.transcript.reports_coverage
                          else "Saved history not loaded")
-        status = self.native.status if self.native is not None else None
-        if status is not None and status.summary:
+        status = self.native.status
+        if status.summary:
             parts.append(status.summary)
         return parts
-
-    @property
-    def attention(self):
-        status = self.native.status if self.native is not None else None
-        return status is not None and status.attention
 
     def overview(self, activity_lines: tuple[str, ...]):
         return "\n\n".join([
             *self.summary,
             *activity_lines,
             *(str(item.render()) for item in (self.native,)
-              if item is not None and item.display),
+              if item.display),
         ])

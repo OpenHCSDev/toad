@@ -47,7 +47,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
 
     @property
     def link_context_events(self):
-        return self.source.view.link_context_events
+        return ProjectPathOwner.containing(self.source.view).link_context_events
 
     @property
     def goal_display(self):

@@ -80,6 +80,24 @@ class DeliveryFailureView:
         area.tooltip = state.reason or None
         self.status = state.reason
 
+    async def submit_comms_message(self, root, kind, target, body, current, present):
+        """CLI transcripts and wire pages use the same Core-send checks."""
+        if not body.strip():
+            return
+        try:
+            async with self.app.coordination_access.transcripts.bind(root) as comms:
+                catalog = await self.app.preparation.run_thread(comms.channels.catalog.read)
+        except (OSError, ValueError, RuntimeError) as error:
+            self.delivery_refused(str(error), body)
+            return
+        if kind.read_only(catalog, target):
+            self.prompt.text = body
+            self.prompt.prompt_text_area.disabled = True
+            self.status = "Read-only saved view; open an exact channel to send"
+            self.flash(self.status, style="error")
+            return
+        await self.deliver_user_message(root, kind.send_target(target), body, current, present)
+
     async def deliver_user_message(self, root, target, body, current, present):
         """One route check, write and failure path for CLI, DM and channel input."""
         from agent_comms.route_selection import root_is_current

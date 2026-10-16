@@ -21,12 +21,13 @@ class CoreEventMessage(Message):
         super().__init__()
         self.event = event
         self.subscription = subscription
+        self._publisher = subscription.stream.publisher
         # The native pump owns this delivery callback, never the wire event.
         self.consume = consume
 
     @property
     def publisher(self) -> object:
-        return self.subscription.stream.publisher
+        return self._publisher
 
     def can_replace(self, message: Message) -> bool:
         return (isinstance(message, CoreEventMessage)
@@ -42,7 +43,7 @@ class CoreEventReceiver(MroDispatch):
         super().__init__(*args, **kwargs)
 
     def subscribe_core(self, stream: CoreEventStream) -> Subscription:
-        subscription = stream.subscribe(self.post_core_event)
+        subscription = stream.subscribe(CoreEvent, self.post_core_event)
         self._core_subscriptions.add(subscription)
         return subscription
 
@@ -66,9 +67,10 @@ class CoreEventReceiver(MroDispatch):
     def observe_core(self, stream: CoreEventStream) -> Subscription:
         """Broadcast observations terminate at their original native recipient."""
         for subscription in self._core_subscriptions:
-            if subscription.stream is stream and subscription.active:
+            if (subscription.stream is stream and subscription.event_type is CoreEvent
+                    and subscription.active):
                 return subscription
-        subscription = stream.subscribe(self.post_core_observation)
+        subscription = stream.subscribe(CoreEvent, self.post_core_observation)
         self._core_subscriptions.add(subscription)
         return subscription
 
@@ -81,7 +83,8 @@ class CoreEventReceiver(MroDispatch):
             if subscription.stream is stream:
                 self.retire_core(subscription)
 
-    def observe_core_callback(self, stream: CoreEventStream, callback) -> Subscription:
+    def observe_core_callback(self, stream: CoreEventStream,
+                              event_type: type[CoreEvent], callback) -> Subscription:
         """An original deferred operation receives relief inside its native pump."""
         recipient = ref(self)
         try:
@@ -103,7 +106,7 @@ class CoreEventReceiver(MroDispatch):
             message.bubble = False
             receiver.post_message(message)
 
-        subscription = stream.subscribe(publish)
+        subscription = stream.subscribe(event_type, publish)
         self._core_subscriptions.add(subscription)
         return subscription
 
@@ -127,7 +130,9 @@ class CoreEventReceiver(MroDispatch):
             return
         await message.consume(self, message)
 
-    def _on_unmount(self) -> None:
+    def _message_pump_closing(self) -> None:
+        # Revoke queued deliveries before child shutdown can yield.
         for subscription in self._core_subscriptions:
             subscription.close()
         self._core_subscriptions.clear()
+        super()._message_pump_closing()

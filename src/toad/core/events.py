@@ -12,6 +12,7 @@ from weakref import WeakMethod, WeakSet, ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
+from agent_comms.transcript_receipts import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
@@ -60,6 +61,12 @@ class ToolCall(CoreEvent):
     """The original tool owner assembled this exact SDK call snapshot."""
 
     tool_call: Annotated[ToolCallStatus, ToolCallWire]
+    scope: AssignedSourceIdentity | None = None
+
+    def in_native_source(self, scope):
+        if self.scope is None:
+            return scope is None
+        return scope is not None and scope.same_publication_source(self.scope)
 
     @property
     def tool_id(self) -> str:
@@ -356,6 +363,7 @@ class Subscription:
     """A subscriber owns this resource for as long as it wants publications."""
 
     stream: CoreEventStream
+    event_type: type[CoreEvent]
     listener: InitVar[Callable[[CoreEvent, Subscription], object]]
     _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
 
@@ -377,6 +385,9 @@ class Subscription:
     @property
     def active(self) -> bool:
         return self in self.stream.subscriptions
+
+    def accepts(self, original: Subscription) -> bool:
+        return self is original and self.active
 
     def close(self) -> None:
         self.stream.subscriptions.discard(self)
@@ -402,11 +413,13 @@ class CoreEventStream:
             raise RuntimeError("The publication resource outlived its original owner")
         return publisher
 
-    def subscribe(self, listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
-        subscription = Subscription(self, listener)
+    def subscribe(self, event_type: type[CoreEvent],
+                  listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
+        subscription = Subscription(self, event_type, listener)
         self.subscriptions.add(subscription)
         return subscription
 
     def publish(self, event: CoreEvent) -> None:
         for subscription in tuple(self.subscriptions):
-            subscription.publish(event)
+            if isinstance(event, subscription.event_type):
+                subscription.publish(event)

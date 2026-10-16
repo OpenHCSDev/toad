@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.thread_presentation import ThreadPresentationStatus
 
 
 class CursorStatus(DeclaredFamily, affix="CursorStatus"):
@@ -16,13 +17,24 @@ class CursorStatus(DeclaredFamily, affix="CursorStatus"):
 
     label: ClassVar[str]
     summary: ClassVar[str] = ""
-    attention: ClassVar[bool] = False
+    visible: ClassVar[bool] = True
 
     @classmethod
-    def external(cls, value: str | None) -> type[CursorStatus] | None:
+    def external(cls, value: str | None) -> type[CursorStatus]:
         if value is None:
-            return None
+            return HiddenCursorStatus
         return cls.decode(value)
+
+    @classmethod
+    def present_status(cls, status: ThreadPresentationStatus) -> ThreadPresentationStatus:
+        return status
+
+
+class HiddenCursorStatus(CursorStatus):
+    """This session does not expose native cursor verification."""
+
+    label = ""
+    visible = False
 
 
 class PendingCursorStatus(CursorStatus):
@@ -45,7 +57,10 @@ class NoneCursorStatus(CursorStatus):
 class UnavailableCursorStatus(CursorStatus):
     label = "Bus input verification unavailable — check the ACP log; saved history is separate"
     summary = "Bus input verification unavailable"
-    attention = True
+
+    @classmethod
+    def present_status(cls, status: ThreadPresentationStatus) -> ThreadPresentationStatus:
+        return status.with_attention()
 
 
 TOOLTIP = (

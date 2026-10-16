@@ -122,10 +122,9 @@ class InputDeliveryObservation(SessionObservation):
 
     def publish(self, view, result: InputDelivery):
         view.input_delivery = result
-        view.input_delivery_error = ""
 
     def failed(self, view, error):
-        view.input_delivery_error = f"Delivery unavailable: {error}"
+        view.input_delivery = view.input_delivery.failed(error)
 
     def require_owner(self, agent):
         if self.view is None or not self.view.is_attached or agent is not self.view.agent:
@@ -149,8 +148,8 @@ class InputDeliveryObservation(SessionObservation):
                 continue
             await self.refresh()
             self.require_owner(agent)
-            if self.view.input_delivery_error:
-                raise ValueError(self.view.input_delivery_error)
+            if self.view.input_delivery.error:
+                raise ValueError(self.view.input_delivery.error)
             if revision + 1 != self.revision or result.history_changed(self.view.input_delivery):
                 continue
             return result.historical_inputs
@@ -161,5 +160,5 @@ class InputDeliveryObservation(SessionObservation):
         self.require_owner(agent)
         await self.refresh()
         self.require_owner(agent)
-        if self.view.input_delivery_error:
-            raise ValueError(self.view.input_delivery_error)
+        if self.view.input_delivery.error:
+            raise ValueError(self.view.input_delivery.error)

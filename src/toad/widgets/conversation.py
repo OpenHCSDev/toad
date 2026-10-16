@@ -84,7 +84,7 @@ from toad.widgets.observed_thread_activity import ObservedThreadActivity, Thread
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
-from toad.private_native_cursor import CursorStatus
+from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
@@ -402,8 +402,11 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     async def _thread_view_selected(self, event: CoreEventMessage) -> None:
         from toad.screens.session_view import SessionView
 
+        if not self.query_ancestor(SessionView).is_current:
+            return
+        self.goal_observation.invalidate()
         presentation = self._unpublished_presentation
-        if presentation is not None and self.query_ancestor(SessionView).is_current:
+        if presentation is not None:
             from toad.transcript_publication import ObservedSourcePublication
             self._unpublished_presentation = None
             self.transcript.source_requests.request(ObservedSourcePublication, presentation)
@@ -464,10 +467,9 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     input_delivery: var[InputDelivery] = var(InputDelivery())
 
 
-    input_delivery_error: var[str] = var("")
 
 
-    native_history_status: var[type[CursorStatus] | None] = var(None)
+    native_history_status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())
@@ -494,10 +496,8 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
-        self.throbber = ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
-            id="throbber",
-        )
+        self.throbber = ObservedThrobber(self.working, id="throbber")
+        self.throbber_above = ObservedThrobber(self.working)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
@@ -618,14 +618,13 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             history.state.resume_if_parked(history)
 
     def refresh_native_projection(self) -> None:
-        """Publish bound owner facts and invalidate its existing read resource."""
+        """Publish bound owner facts and invalidate the delivery read resource."""
         agent = self.agent
         if agent is None:
             return
         self.status = agent.context_measurement.status()
         self.turns.bound()
         self.submissions.publish_pending()
-        self.goal_observation.invalidate()
         self.delivery_observation.invalidate()
 
 
@@ -730,7 +729,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         if agent is not None:
             self.bind_agent(agent)
         attachments = (agent.presentation.attachments if agent is not None
-                       else AgentAttachmentView(None, 0))
+                       else AgentAttachmentView(HiddenCursorStatus, 0))
         self.native_history_status = attachments.cursor
         self._private_cursor_sequence = attachments.cursor_sequence
         self.submissions.reset()
@@ -873,8 +872,15 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
                 await DB().session_update_project(session_pk, path)
 
+    def working(self) -> bool:
+        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
+
+    def _sync_working(self) -> None:
+        for throbber in (self.throbber, self.throbber_above):
+            throbber.sync()
+
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self.throbber.sync()
+        self._sync_working()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
@@ -884,7 +890,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @on(ObservedThreadActivity.Changed)
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
-        self.throbber.sync()
+        self._sync_working()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
@@ -908,19 +914,21 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
+            from functools import partial
             self.thread_activity = SessionDetails(
-                turns=self.turns,
+                status_source=partial(self.operational_sources.status_row, self),
                 transcript=self.transcript,
                 history=NativeHistory().data_bind(
                     status=Conversation.native_history_status
                 ),
                 delivery=InputDeliveryBar().data_bind(
                     delivery=Conversation.input_delivery,
-                    error=Conversation.input_delivery_error,
                 ),
             )
+            self.refresh_thread_status()
+            yield self.throbber_above
             yield self.thread_activity
-            prompt = Prompt(turns=self.turns, submissions=self.submissions).data_bind(
+            prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -1340,7 +1348,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.working_directory = str(Path(event.event.path).resolve().absolute())
 
     async def watch_busy_count(self, _busy: int) -> None:
-        self.throbber.sync()
+        self._sync_working()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection):
@@ -1549,21 +1557,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     async def on_acp_tool_call_update(
         self, message: CoreEventMessage
     ):
-        from toad.widgets.tool_call import ToolCall
-
-        tool_call = message.event.tool_call
-        tool_call.activity(self.turns, self.output, tool_call.title)
-
-        tool_id = message.event.tool_id
-        try:
-            existing_tool_call: ToolCall | None = self.contents.get_child_by_id(
-                tool_id, ToolCall
-            )
-        except NoMatches:
-            await self.post(ToolCall(tool_call, id=message.event.tool_id), new_block=True)
-        else:
-            if existing_tool_call is not None:
-                existing_tool_call.update_tool_call(tool_call)
+        await message.publisher.controller.surface.present_tool(message, self)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
@@ -1693,7 +1687,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
-        self.set_interval(1, lambda: self.goal_controls.poll())
         await self.initialize_view()
 
     def apply_layout_preferences(self) -> None:
@@ -1740,16 +1733,12 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         )
         # A modal remains a view of the same backend snapshot, including later starts.
         details.delivery = self.input_delivery
-        details.error = self.input_delivery_error
         session_details = self.query_one_optional(SessionDetails)
         if session_details is not None:
             details.overview_text = session_details.overview_text
         self.app.push_screen(details)
         details.watch(
             self, "input_delivery", lambda state: setattr(details, "delivery", state)
-        )
-        details.watch(
-            self, "input_delivery_error", lambda error: setattr(details, "error", error)
         )
         if session_details is not None:
             details.watch(
