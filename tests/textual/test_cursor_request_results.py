@@ -11,7 +11,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.native_input_record import FullNativeExecution
 from agent_comms.native_runtime_input import CurrentNativeCursor
-from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
+from agent_comms.thread_identity import AdmissionIdentity, RecordedThreadIncarnation
 
 from support.agents import detached
 from support.textual_steps import reveal_session_details
@@ -21,7 +21,7 @@ from toad.jsonrpc import InvalidParams
 
 
 def response(session):
-    owner = AdmissionIdentity(ThreadIncarnation("owner", 1000.0), 1)
+    owner = AdmissionIdentity(RecordedThreadIncarnation("owner", 1000.0), 1)
     cursor = CurrentNativeCursor(
         wire_root_id="a" * 32, recipient_lookup="recipient", owner_thread="owner", owner_generation=1,
         owner_admission_generation=1, covered_seq=2, injected_seq=2, input_id="b" * 32,
