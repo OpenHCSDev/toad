@@ -121,6 +121,16 @@ class OperationalSessionSources:
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Native sessions receive their text through their own ACP stream."""
 
+    def prompt(self, conversation: Conversation):
+        from toad.widgets.prompt import Prompt
+
+        return Prompt(turns=conversation.turns, submissions=conversation.submissions)
+
+    async def submit(self, owner, event):
+        from toad.conversation_submission import InputSubmission
+
+        return await InputSubmission.from_event(event, owner.view).execute(owner)
+
     def input_ready(self, conversation: Conversation) -> bool:
         agent = conversation.agent
         if agent is None or not agent.ready:
@@ -211,14 +221,43 @@ class MailboxSessionSources(OperationalSessionSources):
         scope = conversation.transcript.thread_scope
         return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
 
-    def make_conversation(self, screen: "MainScreen") -> Conversation:
+    def prompt(self, conversation: Conversation):
         from toad.conversation_kind import DmConversation
-        from toad.widgets.comms_chat import CommsChatView
 
-        return CommsChatView(
-            screen.project_path, target=screen._comms_thread, kind=DmConversation,
-            me=screen._comms_thread, wire_root=screen.coordination_root,
-            transcript=screen.presentation.transcript,
+        root, name = conversation.transcript_scope()
+        return DmConversation.prompt(name)
+
+    def input_ready(self, conversation: Conversation) -> bool:
+        return conversation.transcript.readable
+
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        from toad.transcript_publication import CanonicalSourcePublication
+
+        conversation.transcript.source_requests.request(CanonicalSourcePublication)
+
+    async def present(self, conversation: Conversation) -> None:
+        await super().present(conversation)
+        self.external_transcript_changed(conversation)
+
+    async def submit(self, owner, event):
+        from toad.conversation_kind import DmConversation
+
+        view = owner.view
+        scope = view.transcript.thread_scope
+        if scope is None:
+            view.delivery_refused("CLI transcript is not ready", event.body)
+            return
+        root, target = scope
+
+        async def presented(sent):
+            view.run_worker(view.input_histories.prompt.record(event.body), group="history")
+            view.window.jump_to_latest()
+            self.external_transcript_changed(view)
+
+        await view.submit_comms_message(
+            root, DmConversation, target, event.body,
+            lambda: view.is_attached and view.transcript.thread_scope == scope,
+            presented,
         )
 
 

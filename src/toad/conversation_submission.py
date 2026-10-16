@@ -233,7 +233,7 @@ class ConversationSubmissions:
         text = event.body.strip()
         if not event.shell and text.startswith('/') and await CommandCatalog.execute(text, self.view):
             return
-        return await InputSubmission.from_event(event, self.view).execute(self)
+        return await self.view.operational_sources.submit(self, event)
 
     def accepts_failure(self, message):
         agent = self.view.agent

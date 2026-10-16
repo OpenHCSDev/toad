@@ -926,7 +926,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ),
             )
             yield self.thread_activity
-            prompt = Prompt(turns=self.turns, submissions=self.submissions).data_bind(
+            prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
