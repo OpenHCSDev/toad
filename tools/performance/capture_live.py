@@ -193,7 +193,6 @@ def main():
             entered = str(prefix) + "-remote-entered.json"
             lines = [
                 "import importlib.util as _spec_util, json as _json, os as _os, sys as _sys, time as _time",
-                f"with open({entered!r}, 'w') as _out: _json.dump({{'pid': _os.getpid(), 'entered_ns': _time.time_ns()}}, _out)",
                 # One meter module per process: snapshots record their pauses where the meter reads them.
                 "_meter = _sys.modules.get('frame_meter')",
                 "if _meter is None:",
@@ -202,6 +201,7 @@ def main():
                 "    _spec.loader.exec_module(_meter)",
                 *(f"_meter.{call}(expected_pid={args.pid}, output={output + '.json'!r}{extra})"
                   for output, call, extra in calls),
+                f"with open({entered!r}, 'w') as _out: _json.dump({{'pid': _os.getpid(), 'entered_ns': _time.time_ns()}}, _out)",
             ]
             script = Path(str(prefix) + "-remote.py")
             script.write_text("\n".join(lines) + "\n")
