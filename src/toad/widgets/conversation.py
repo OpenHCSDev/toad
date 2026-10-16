@@ -506,6 +506,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
             id="throbber",
         )
+        self.throbber_above = ObservedThrobber(lambda: self.throbber.busy)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
@@ -927,6 +928,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 ),
             )
             self.refresh_thread_status()
+            yield self.throbber_above
             yield self.thread_activity
             prompt = self.operational_sources.prompt(self).data_bind(
                 project_path=Conversation.project_path,
@@ -1687,6 +1689,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
+        self.watch(self.throbber, "busy", self.throbber_above.watch_busy)
         await self.initialize_view()
 
     def apply_layout_preferences(self) -> None:
