@@ -36,15 +36,15 @@ class XvfbDisplay(AbstractContextManager):
         connection = x11.XOpenDisplay(name.encode())
         if not connection:
             raise ValueError(f'Cannot connect to isolated Xvfb display: {name}')
-        with ExitStack() as custody:
-            custody.callback(x11.XCloseDisplay, connection)
+        with ExitStack() as close_display:
+            close_display.callback(x11.XCloseDisplay, connection)
             with socket.fromfd(x11.XConnectionNumber(connection), socket.AF_UNIX, socket.SOCK_STREAM) as peer:
                 pid, uid, _gid = struct.unpack('3i', peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
                 address = Path(os.fsdecode(peer.getpeername()).lstrip('\0'))
             if address.name == 'X0' or uid != os.getuid() or Path(psutil.Process(pid).exe()).name != 'Xvfb':
                 raise ValueError(f'Not an owned isolated Xvfb resource: {name}')
             self.name = name
-            self.custody = custody.pop_all()
+            self.close_display = close_display.pop_all()
 
     @property
     def environment(self) -> dict[str, str]:
@@ -72,7 +72,7 @@ class XvfbDisplay(AbstractContextManager):
             )
 
     def __exit__(self, *exception):
-        return self.custody.__exit__(*exception)
+        return self.close_display.__exit__(*exception)
 
 
 def main():
@@ -134,8 +134,8 @@ def main():
     created = process.create_time()
     privilege = ["sudo", "-n"] if args.sudo else []
     manifest = {"pid": args.pid, "created": created, "executable": process.exe(), "started_ns": time.time_ns()}
-    custody = ExitStack()
-    display = custody.enter_context(XvfbDisplay(args.display))
+    close_display = ExitStack()
+    display = close_display.enter_context(XvfbDisplay(args.display))
     manifest["display"] = display.name
     try:
         if args.profile_seconds:
@@ -214,7 +214,7 @@ def main():
             manifest["outputs"] = {path: Path(path).exists() for path in outputs}
             manifest["entered"] = Path(entered).exists()
     finally:
-        custody.close()
+        close_display.close()
         manifest["finished_ns"] = time.time_ns()
         manifest_path.write_text(json.dumps(manifest, indent=2))
         print(manifest_path)
