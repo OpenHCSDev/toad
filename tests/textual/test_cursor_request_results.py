@@ -16,7 +16,9 @@ from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from support.agents import detached
 from support.textual_steps import reveal_session_details
 from toad.widgets.native_history import NativeHistory
-from toad.private_native_cursor import CursorStatus, ProvenCursorStatus
+from toad.private_native_cursor import (
+    BusyCursorStatus, CursorStatus, ProvenCursorStatus, ReplacedOwnerCursorStatus,
+)
 from toad.jsonrpc import InvalidParams
 
 
@@ -34,6 +36,19 @@ def response(session):
 def test_unknown_cursor_status_is_rejected():
     with pytest.raises(ValueError, match="Unknown CursorStatus name"):
         CursorStatus.external("future-status")
+
+
+@pytest.mark.parametrize(
+    "name, expected, label",
+    [("busy", BusyCursorStatus, "Bus history: checking…"),
+     ("replaced", ReplacedOwnerCursorStatus, "Bus history: owner replaced")],
+)
+def test_cursor_status_is_neutral(name, expected, label):
+    status = CursorStatus.external(name)
+    assert status is expected
+    assert status.label == label
+    assert status.summary == ""
+    assert status.attention is False
 
 
 class Response:

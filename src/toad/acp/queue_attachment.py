@@ -29,6 +29,7 @@ class QueueAttachment(ProjectionAttachment):
             available=lambda current: current.projection,
             pending=PendingQueueProjection(),
             unavailable=UnavailableQueueProjection(),
+            replaced=UnavailableQueueProjection(),
         )
 
     def _matches_request_scope(self, scope) -> bool:

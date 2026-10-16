@@ -9,6 +9,7 @@ from typing import TypeVar
 from toad.private_native_cursor import (
     CursorStatus,
     PendingCursorStatus,
+    ReplacedOwnerCursorStatus,
     UnavailableCursorStatus,
 )
 
@@ -34,24 +35,31 @@ class AttachmentState(ABC):
         available: Callable[[AttachmentValue], T],
         pending: T,
         unavailable: T,
+        replaced: T,
     ) -> T: ...
 
 
 class PendingAttachment(AttachmentState):
     @classmethod
-    def project(cls, current, *, available, pending, unavailable):
+    def project(cls, current, *, available, pending, unavailable, replaced):
         return pending
 
 
 class UnavailableAttachment(AttachmentState):
     @classmethod
-    def project(cls, current, *, available, pending, unavailable):
+    def project(cls, current, *, available, pending, unavailable, replaced):
         return unavailable
+
+
+class ReplacedAttachment(AttachmentState):
+    @classmethod
+    def project(cls, current, *, available, pending, unavailable, replaced):
+        return replaced
 
 
 class AvailableAttachment(AttachmentState):
     @classmethod
-    def project(cls, current, *, available, pending, unavailable):
+    def project(cls, current, *, available, pending, unavailable, replaced):
         if current is None:
             raise RuntimeError("Available attachment has no projection")
         return available(current)
@@ -87,8 +95,10 @@ class ProjectionAttachment:
     def state(self) -> type[AttachmentState]:
         if self._pending:
             return PendingAttachment
-        if self.quarantined or self._uncertain or self._evidence_lost:
+        if self._uncertain or self._evidence_lost:
             return UnavailableAttachment
+        if self.quarantined:
+            return ReplacedAttachment
         return AvailableAttachment
 
     def begin(self, session_id: str | None) -> int:
@@ -272,4 +282,5 @@ class CursorAttachment(ProjectionAttachment):
             available=lambda current: CursorStatus.external(current.status),
             pending=PendingCursorStatus,
             unavailable=UnavailableCursorStatus,
+            replaced=ReplacedOwnerCursorStatus,
         )
