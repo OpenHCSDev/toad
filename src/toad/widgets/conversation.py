@@ -181,19 +181,13 @@ class ThreadLoading(ConversationBlock, SplashText):
 
 
 class CategorizedMount:
-    """Admit blocks in their declared order with the conversation's category selection."""
+    """Mount blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
+        from toad.widgets.message_filter import apply_block_filter
 
         selected = self.selected_categories
         for widget in require_blocks(widgets):
-            classes = {"-unrouted": not keep_live_block(widget)}
-            if category := block_category(widget):
-                classes[f"-message-{category.declared_name}"] = True
-            # Registration owns the first CSS match for detached blocks. For
-            # attached blocks, Textual applies this class change as one batch.
-            widget.update_classes(classes)
             apply_block_filter(widget, selected)
         mounted = super().mount(*widgets, **kwargs)
         # Registration is synchronous: establish document order before any
