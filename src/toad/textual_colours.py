@@ -58,28 +58,30 @@ def _element(value: Any, backend: TextualColours) -> str:
 class BlockInk(ABC):
     """An eighth-block's occupied edge, independent of its theme colour."""
 
-    GLYPHS = " ▁▂▃▄▅▆▇█"
+    # Native lower/upper ink at each eighth; one quantizer for both edges.
+    GLYPHS = ("  ", "▁▔", "▂🮂", "▃🮃", "▄▀", "▅🮄", "▆🮅", "▇🮆", "██")
     LEVELS = len(GLYPHS) - 1
 
     @classmethod
     @abstractmethod
-    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment: ...
+    def glyph(cls, level: int) -> str: ...
+
+    @classmethod
+    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
+        return Segment(cls.glyph(level), style + RichStyle(
+            color=ink.rich_color, bgcolor=background.rich_color))
 
 
 class BottomInk(BlockInk):
     @classmethod
-    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
-        return Segment(cls.GLYPHS[level], style + RichStyle(
-            color=ink.rich_color, bgcolor=background.rich_color))
+    def glyph(cls, level: int) -> str:
+        return cls.GLYPHS[level][0]
 
 
 class TopInk(BlockInk):
     @classmethod
-    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
-        # Complement the lower block and swap ink/paper: the same number
-        # of eighths now occupies the top, including the tapered ends.
-        return Segment(cls.GLYPHS[cls.LEVELS - level], style + RichStyle(
-            color=background.rich_color, bgcolor=ink.rich_color))
+    def glyph(cls, level: int) -> str:
+        return cls.GLYPHS[level][1]
 
 
 class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
