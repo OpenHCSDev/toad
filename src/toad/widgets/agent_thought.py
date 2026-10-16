@@ -8,13 +8,12 @@ from toad.menus import MenuItem
 from toad.widgets.agent_activity import AgentActivityPresentation
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
-from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.message_filter import MessageCategory
 
 
 class AgentThought(
     ConversationBlock,
     SnapshotPresentation,
-    CategorizedBlock,
     LineMarkdown,
     can_focus=True,
 ):

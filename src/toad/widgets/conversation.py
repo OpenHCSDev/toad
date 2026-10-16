@@ -85,7 +85,7 @@ from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
-from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from toad.block_navigation import ConversationBlock, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
@@ -97,7 +97,7 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.user_input import UserInput
-from toad.widgets.message_filter import all_categories, MessageCategory
+from toad.widgets.message_filter import all_categories, CategorizedMount, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
 from toad.menus import MenuItem
@@ -180,29 +180,6 @@ class ThreadLoading(ConversationBlock, SplashText):
         self.play()
 
 
-class CategorizedMount:
-    """Admit blocks in their declared order with the conversation's category selection."""
-
-    def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
-
-        selected = self.selected_categories
-        for widget in require_blocks(widgets):
-            classes = {"-unrouted": not keep_live_block(widget)}
-            if category := block_category(widget):
-                classes[f"-message-{category.declared_name}"] = True
-            # Registration owns the first CSS match for detached blocks. For
-            # attached blocks, Textual applies this class change as one batch.
-            widget.update_classes(classes)
-            apply_block_filter(widget, selected)
-        mounted = super().mount(*widgets, **kwargs)
-        # Registration is synchronous: establish document order before any
-        # new widget's mount task or paint can run. The stable sort preserves
-        # order within saved sources and within live output.
-        self.sort_children(key=lambda block: block.conversation_order)
-        return mounted
-
-
 class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
@@ -235,10 +212,13 @@ class Contents(containers.VerticalGroup, can_focus=False):
 class ConversationContents(CategorizedMount, Contents):
     """Conversation ordering and categories compose with the native row container."""
 
+    def __init__(self, owner: ConversationSessionBinding, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.owner = owner
+
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
-        return (self.query_ancestor(Conversation).visible_categories
-                if self.is_attached else all_categories())
+        return self.owner.visible_categories
 
 
 class ContentsGrid(containers.Grid):
@@ -499,6 +479,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         transcript: TranscriptPresentation | None = None,
     ) -> None:
         super().__init__()
+        self.contents = ConversationContents(self, id="contents")
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
         self.throbber = ObservedThrobber(
             lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
@@ -808,7 +789,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     ]
 
 
-    contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
     prompt = getters.query_one(Prompt)
@@ -817,16 +797,13 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     def watch_visible_categories(
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
-        from toad.widgets.message_filter import apply_block_filter
-
         # The reader stays on the message they are reading; when the new
         # selection hides it, on the next message still shown.
         window = self.window
         window.keep_reader()
         self.navigation.clear()
         self.screen.clear_selection()
-        for block in self.contents.children:
-            apply_block_filter(block, selected)
+        self.contents.categories_changed(previous, selected)
         for history in tuple(window.histories):
             history.projection_changed()
 
@@ -909,7 +886,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with ConversationContents(id="contents"):
+                with self.contents:
                     yield from ThreadLoading.initial_contents(self._agent_data)
                     yield self.cli_draft
         yield Flash()
@@ -1851,7 +1828,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if self.navigation.select(widget):
             self.refresh_block_cursor(lambda cursor: cursor.show_clicked(self.window))
 
-    async def post[WidgetType: Widget](
+    async def post[WidgetType: ConversationBlock](
         self,
         widget: WidgetType,
         *,
@@ -1876,11 +1853,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if not self.contents.is_attached:
             return widget
         from toad.widgets.message_divider import AgentActivityDivider
-        from toad.widgets.message_filter import block_category
 
-        category = block_category(widget)
+        category = widget.message_category
         if self._agent_activity_boundary.observe(category):
-            assert category is not None
             await self.contents.mount(AgentActivityDivider(category), widget)
         else:
             await self.contents.mount(widget)

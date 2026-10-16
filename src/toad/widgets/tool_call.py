@@ -18,7 +18,7 @@ from agent_comms.mro_dispatch import handles
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
-from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.message_filter import MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation, ToolOutputClaim
 
 from toad.widgets.agent_activity import AgentActivityPresentation
@@ -49,7 +49,7 @@ class ToolCallHeader(SingleLineBlock):
             self.app.bell()
 
 
-class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+class ToolCall(ConversationBlock, SnapshotPresentation, containers.VerticalGroup):
     DEFAULT_CSS = """
     ToolCall {
         margin: 0 !important;

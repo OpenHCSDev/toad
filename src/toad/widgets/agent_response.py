@@ -13,11 +13,10 @@ from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider, MessageRowDivider
 from toad import response_delivery
 from toad.widgets.message_filter import (
-    CategorizedBlock,
     MessageCategory,
 )
 
-class AgentResponse(MroProjection, ConversationBlock, SnapshotPresentation, CategorizedBlock, VerticalGroup):
+class AgentResponse(MroProjection, ConversationBlock, SnapshotPresentation, VerticalGroup):
     """An agent's message: its headers, then its text drawn as prepared lines.
 
     Saved history that covers it replaces it (`SnapshotPresentation`).

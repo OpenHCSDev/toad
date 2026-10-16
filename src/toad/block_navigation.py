@@ -8,6 +8,7 @@ from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
 from toad.block_content import BlockContent
+from toad.widgets.message_filter import CategorizedBlock
 
 
 
@@ -285,8 +286,8 @@ class ChildBlockCursor(BlockCursor):
         self._child = None
 
 
-class ConversationBlock(BlockContent):
-    """Nominal content admission, with an owned atomic cursor by default."""
+class ConversationBlock(CategorizedBlock, BlockContent):
+    """A conversation block owns its category visibility and cursor behavior."""
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1

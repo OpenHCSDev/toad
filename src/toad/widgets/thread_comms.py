@@ -20,7 +20,7 @@ from textual.widgets import Checkbox, Static
 
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow
-from toad.widgets.message_filter import MessageCategory
+from toad.widgets.message_filter import MessageCategory, SelectableCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
@@ -228,9 +228,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
     def compose(self):
         yield Static("Connecting…", classes="relationship-context", markup=False)
         self._filter_controls.clear()
-        for category in MessageCategory.members_with(MessageCategory):
-            checkbox = Checkbox(category.label, id=f"filter-{category.declared_name}",
-                                classes="message-filter", compact=True)
+        for category in MessageCategory.members_with(SelectableCategory):
+            checkbox = Checkbox(category.label, compact=True)
             self._filter_controls[checkbox] = category
             yield checkbox
 
@@ -315,7 +314,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         from toad.widgets.conversation import Conversation
 
         view = self.query_ancestor(SessionView).query_one_optional(Conversation)
-        checkboxes = tuple(self.query(Checkbox))
+        checkboxes = self._filter_controls
         for checkbox in checkboxes:
             checkbox.display = view is not None
         if view is not None:
@@ -326,16 +325,17 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 for checkbox in checkboxes:
                     checkbox.value = self._filter_controls[checkbox] in view.visible_categories
 
-    @on(Checkbox.Changed, ".message-filter")
-    def filter_changed(self, event):
+    @on(Checkbox.Changed)
+    def filter_changed(self, event: Checkbox.Changed):
+        if event.checkbox not in self._filter_controls:
+            return
         event.stop()
         if self._filter_view is not None:
-            category = self._filter_controls.get(event.checkbox)
-            if category is not None:
-                selected = self._filter_view.visible_categories
-                self._filter_view.visible_categories = (
-                    selected | {category} if event.value else selected - {category}
-                )
+            category = self._filter_controls[event.checkbox]
+            selected = self._filter_view.visible_categories
+            self._filter_view.visible_categories = (
+                selected | {category} if event.value else selected - {category}
+            )
 
     def _bind_screen_identity(self):
         from toad.screens.session_view import SessionView
