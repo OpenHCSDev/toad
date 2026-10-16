@@ -472,7 +472,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
 
 
 
-    native_history_status: var[type[CursorStatus]] = var(HiddenCursorStatus)
+    native_history_status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())

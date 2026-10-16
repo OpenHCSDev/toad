@@ -10,7 +10,7 @@ class NativeHistory(Static):
     DEFAULT_CSS = """
     NativeHistory { height: auto; padding: 0 1; color: $text-muted; }
     """
-    status: var[type[CursorStatus]] = var(HiddenCursorStatus)
+    status: var[type[CursorStatus]] = var(lambda: HiddenCursorStatus)
 
     def __init__(self) -> None:
         super().__init__("", markup=False)
