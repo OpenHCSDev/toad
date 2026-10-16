@@ -17,6 +17,7 @@ from agent_comms.route_selection import RouteSelection
 from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
 
+from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
@@ -51,6 +52,10 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
 
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return None
+
+    def thread_row(self, sessions: SessionNavigation, row: ThreadRowModel) -> ThreadRowModel:
+        """How this entry's own session changes a thread's row; most entries hold none."""
+        return row
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         return False
@@ -110,6 +115,13 @@ class NativeSessionEntry(SessionEntry):
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return sessions.app.workspace_sessions.views.get(self.mode)
 
+    def thread_row(self, sessions, row):
+        """The session this tab opened shows its state on that thread's row."""
+        source = self.source(sessions)
+        if source is None or all(identity != row.incarnation for _, identity in self.original_threads(sessions)):
+            return row
+        return source.session_disposition.shown_row(row)
+
     async def reconnect(self, sessions, selected, snapshot, targets):
         if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
             return
@@ -157,7 +169,7 @@ class NativeSessionEntry(SessionEntry):
                 for root, identity in originals):
             return NamedTab(self.mode, self.details.name.display or "New Session")
         if row is not None:
-            return ThreadTab(self.mode, row)
+            return ThreadTab(self.mode, source.session_disposition.shown_row(row))
         return NamedTab(self.mode, self.details.name.display or "New Session")
 
     async def return_to(self, sessions: SessionNavigation) -> None:
