@@ -448,15 +448,17 @@ class TranscriptPageBuffer(PreparedPageSource):
     def closed(self) -> bool:
         return self.scope.closed
 
-    async def get(self, request: PageRequest) -> PreparedTranscriptPage:
+    def read_task(self, request: PageRequest) -> TranscriptPageWork:
         if self.loader is None:
             raise ValueError("This transcript has no saved-source reader")
-        result = await self.runtime.submit(self.work(self.scope, self.loader, self.through, request))
+        return self.work(self.scope, self.loader, self.through, request)
+
+    async def get(self, request: PageRequest) -> PreparedTranscriptPage:
+        result = await self.runtime.submit(self.read_task(request))
         return result.for_view()
 
     async def prepare(self, request: PageRequest) -> None:
-        if self.loader is not None:
-            await self.runtime.prepare(self.work(self.scope, self.loader, self.through, request))
+        await self.runtime.prepare(self.read_task(request))
 
 class ProjectedTranscriptSource(PreparedPageSource):
     """A projected prefix with a fixed boundary and ordinary bidirectional reads.
