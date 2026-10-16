@@ -11,6 +11,7 @@ one Textual timer.
 from __future__ import annotations
 
 import os
+from abc import ABC, abstractmethod
 from functools import lru_cache
 from typing import Any
 
@@ -52,6 +53,32 @@ class _WalFileClosed(FileSystemEventHandler):
 
 def _element(value: Any, backend: TextualColours) -> str:
     return value.value if isinstance(value, TextStyle) else value.native(backend)
+
+
+class BlockInk(ABC):
+    """An eighth-block's occupied edge, independent of its theme colour."""
+
+    GLYPHS = " ▁▂▃▄▅▆▇█"
+
+    @classmethod
+    @abstractmethod
+    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment: ...
+
+
+class BottomInk(BlockInk):
+    @classmethod
+    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
+        return Segment(cls.GLYPHS[level], style + RichStyle(
+            color=ink.rich_color, bgcolor=background.rich_color))
+
+
+class TopInk(BlockInk):
+    @classmethod
+    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
+        # Complement the lower block and swap ink/paper: the same number
+        # of eighths now occupies the top, including the tapered ends.
+        return Segment(cls.GLYPHS[8 - level], style + RichStyle(
+            color=background.rich_color, bgcolor=ink.rich_color))
 
 
 class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
@@ -207,7 +234,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             return first if amount < 0.5 else last
         return first.blend(last, amount)
 
-    def paint_gradient(self, frame: Gradient, target: Strip) -> Strip:
+    def paint_gradient(self, frame: Gradient, target: Strip,
+                       *, edge: type[BlockInk] = BottomInk) -> Strip:
         """Sample shared colour/shape into truecolour cells; never change row geometry."""
         width = target.cell_length
         if width == 0:
@@ -228,12 +256,11 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
                 segments.append(Segment(" ", style))
                 continue
             level = max(1, min(8, round(height * 8)))
-            character = first.text[:1] if level == 8 else " ▁▂▃▄▅▆▇█"[level]
             ink = colours[start].blend(colours[end], amount)
             # Fade sub-eighth tails only. A taller glyph must not dim the whole
             # band each time its height crosses the next terminal-cell step.
             ink = background.blend(ink, min(1.0, height * 8))
-            segments.append(Segment(character, style + RichStyle(color=ink.rich_color)))
+            segments.append(edge.paint(level, ink, background, style))
         return Strip(Segment.simplify(segments), cell_length=width)
 
     def paint_mix(self, frame: Mix, target: Strip) -> Strip:
