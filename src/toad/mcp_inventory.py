@@ -13,6 +13,7 @@ import shutil
 from pathlib import Path
 
 from agent_comms.field_codec import FieldCodec
+from agent_comms.launch_runtime import LaunchRuntime
 from toad import mcp_declarations
 
 
@@ -53,7 +54,7 @@ def installed_mcp_command() -> tuple[str, str]:
     """Use MCP shipped inside the same verified native package as Comms."""
     from agent_comms.native_pi import NativePiRpcLaunch
 
-    package = NativePiRpcLaunch.package_for_command("pi")
+    package = NativePiRpcLaunch.package_for_command("pi", LaunchRuntime.running())
     node = shutil.which("node")
     if node is None:
         raise FileNotFoundError("Node is unavailable")
