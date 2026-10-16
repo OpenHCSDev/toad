@@ -25,9 +25,11 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
+from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.thread_presentation import ThreadPresentation
 from toad.acp.client_session import ClientSessionRequest
+from toad.acp.context_measurement import ContextMeasurement
 
 from toad.core import events as core_events
 
@@ -122,7 +124,6 @@ class CommsUpdateConsumer(MroDispatch):
         from dataclasses import replace
         from pathlib import Path
 
-        from .context_measurement import ContextMeasurement
         from agent_comms.route_selection import child_root
 
         agent = self.agent
@@ -144,8 +145,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CompactionChangedUpdate)
     def compaction_changed(self, update: CompactionChangedUpdate) -> None:
-        from .context_measurement import ContextUnavailable
-        self.agent.context_measurement = ContextUnavailable("Native context measurement is pending")
+        self.agent.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
         self.agent.update_status_line()
         self.agent.events.publish(core_events.CommsUpdated(update, self.session_id))
 
