@@ -4,7 +4,7 @@ from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
-from toad.acp.context_measurement import ContextMeasurement, ContextUnavailable
+from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
@@ -24,6 +24,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
+from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal
@@ -111,7 +112,7 @@ class Agent(AgentBase):
                 self.presentation.log_path.unlink(missing_ok=True)
         else:
             self.presentation.log_path = paths.get_log() / log_filename
-        self.context_measurement = ContextUnavailable("Native owner has not reported context usage")
+        self.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
 
     @property
     def command(self) -> str | None:
