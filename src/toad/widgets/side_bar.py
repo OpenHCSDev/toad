@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, ClassVar, cast
 from textual import containers, events, on, widgets
 from textual.app import ComposeResult
 from textual.binding import Binding, BindingType
+from textual.css.scalar import Scalar, ScalarOffset
+from textual.css.styles import RulesMap
 from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
@@ -95,7 +97,6 @@ The Sidebar contains additonal information associated with the conversation.
         padding: 0;
     }
     SideBarCollapsible > .sidebar-header {
-        width: 1fr;
         height: 1;
     }
     SideBarCollapsible > .sidebar-header > CollapsibleTitle {
@@ -797,7 +798,15 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                     geometry.x + width - self.screen.size.width)
         # The placement resolver already bounds width. Pixel min/max rules
         # would pin the old width and require rewriting both on every sample.
-        self.set_styles(width=width, offset=(offset_x, 0))
+        updates: RulesMap = {}
+        width_rule = Scalar.from_number(width)
+        offset_rule = ScalarOffset.from_offset((offset_x, 0))
+        if self.styles.width != width_rule:
+            updates["width"] = width_rule
+        if self.styles.offset != offset_rule:
+            updates["offset"] = offset_rule
+        if updates:
+            self.set_styles(**updates)
         controls = self.query_one_optional("#sidebar-controls") if self._panels_loaded else None
         slider = controls.query_one_optional("#sidebar-width-slider", SidebarSlider) if controls else None
         if previous is None or previous.presentation != current.presentation:
