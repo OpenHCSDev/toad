@@ -36,7 +36,7 @@ from textual.widgets import Static
 
 from toad.transcript_filter import TranscriptFilter
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
-from toad.transcript_source_preparation import TranscriptSourcePreparation
+from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
     RangeCategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
     ProjectedTranscriptSource,
@@ -70,9 +70,6 @@ from toad.widgets.transcript_fragments import (
 if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.conversation import Contents
-
-class _DrawingStopped(Exception):
-    """Unwind an anchor transaction whose source owner no longer publishes."""
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
@@ -808,8 +805,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     @property
     def needs_latest_publication(self) -> bool:
-        """Whether End must replace admitted source ranges to show the newest viewport."""
-        return self.has_newer or len(self.pages) > 1
+        """Whether the newest source is outside the drawn range."""
+        return self.has_newer
 
     @property
     def fragment_limit(self) -> int:
@@ -917,62 +914,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         if self.filter.active:
             self.filter.request_older()
 
-    async def _publish_latest(self, current: Callable[[], bool]) -> bool:
-        """Prepare and publish the complete bottom destination as one tree change."""
-        window = self.window
-        edge = self.pages[-1]
-        if self.loader is None or edge.page.after == self.through:
-            prepared = edge.prepared.for_view()
-        else:
-            prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
-        latest = prepared
-        rows, limit = window.latest_limits(self.budget)
-        pages_read = 1
-        destination: list[PreparedTranscriptPage] = []
-        while rows > 0 and limit > 0:
-            rows -= await prepared.prepare_rows(
-                self, current, target=self, selected=self.selected_categories,
-                boundary=len(prepared.fragments), older=True,
-                rows_needed=rows, limit=limit,
-            )
-            if not current():
-                return False
-            take = prepared.stop - prepared.start
-            if take:
-                destination.insert(0, prepared)
-            limit -= take
-            if rows <= 0 or self.loader is None:
-                break
-            if (not prepared.page.has_older or limit <= 0
-                    or not window.presentation_budget.can_read_destination(pages_read)):
-                break
-            prepared = (await self._reader().get(PageRequest.adjacent(prepared.page, True))).for_view()
-            pages_read += 1
-        async with window.history_lock:
-            if not current() or self.pages[-1] is not edge:
-                return False
-            async with window.preserve_history(root=self):
-                previous = tuple(self.pages)
-                views = deque()
-                if not destination:
-                    # An empty source is still an answered source. Reuse the
-                    # existing widget; no empty page or perpetual placeholder.
-                    edge.prepared = latest
-                    edge.range_changed()
-                    views.append(edge)
-                try:
-                    for prepared in destination:
-                        async with TranscriptPageView.acquire(
-                            self, prepared, before=self.newer, current=current,
-                        ) as view:
-                            views.append(view)
-                except _DrawingStopped:
-                    return False
-                self.pages = views
-                await self.remove_children(page for page in previous if page not in views)
-                self._update_edges()
-            return True
-
     async def show_newest(self, through, initial: PreparedTranscriptPage) -> None:
         """Replace what is drawn with the newest page of the source as read now."""
         await self._clear(initial)
@@ -997,64 +938,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self.remove_children(retired)
                 self._update_edges()
 
-    async def extend(self, through) -> bool:
-        """The bus grew to `through`: draw this conversation's new messages for a tail reader.
-
-        A reader elsewhere keeps their place and is offered the jump to them.
-        False when the drawn pages changed during the read; the next refresh
-        reads again.
-        """
-        self.through = through
-        edge = self.pages[-1]
-        if (edge.page.after != self.through
-                and (destination := HeldReaderDestination.held(self.window)) is not None
-                and await destination.source_arrived(self)):
-            return True
-        if edge.page.after == self.through:
-            return True
-        if self.has_newer:
-            # The drawn pages stop short of the end: paging from their edge
-            # reaches the new messages.
-            if not edge.page.has_newer:
-                edge.page = replace(edge.page, has_newer=True)
-            return True
-        snapshot = self.source_snapshot()
-        prepared = await self._reader().get(PageRequest(after=edge.page.after))
-        # A page read from a bus the route no longer selects is never drawn.
-        if (not await self.source_is_current(snapshot)
-                or self.pages[-1] is not edge or self.has_newer):
-            return False
-        if not await self.accept_extension(edge, prepared):
-            return False
-        if not prepared.fragments:
-            edge.prepared.advance_empty(prepared, False)
-        elif not self.window.follows_tail:
-            edge.page = replace(edge.page, has_newer=True)
-            self._update_edges()
-        else:
-            await self._load_page(False, prepared)
-            if not snapshot.current(self):
-                return False
-            tail = self.pages[-1]
-            if tail.page.after != self.through:
-                # Reader movement can reject preparation. The original source
-                # cut still exposes that gap to paging and End.
-                tail.page = replace(tail.page, has_newer=True)
-                self._update_edges()
-            if self.pages[-1].page.has_newer and self.window.follows_tail:
-                # More arrived than one page holds: go to the newest instead
-                # of drawing every page between.
-                await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        return True
-
-    async def source_is_current(self, snapshot) -> bool:
-        return snapshot.current(self)
-
-    async def accept_extension(self, edge, prepared) -> bool:
-        """The immutable transcript reader already validates its source cut."""
-        return True
-
-    async def _load_page(self, older: bool, prepared: PreparedTranscriptPage | None = None) -> bool:
+    async def _load_page(
+        self, older: bool, prepared: PreparedTranscriptPage | None = None,
+        publication_current: Callable[[], bool] = lambda: True,
+    ) -> bool:
         """Publish one readable range; report whether its edge still needs rows."""
         snapshot = self.source_snapshot()
         window, loader = snapshot.window, self.loader
@@ -1063,7 +950,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         fresh = not older and not self.has_newer and self.follows_source_tail
 
         def current() -> bool:
-            if not snapshot.current(self):
+            if not snapshot.current(self) or not publication_current():
                 return False
             return (window.follows_tail if fresh
                     else window.lookahead.demand.accepts_result(older))

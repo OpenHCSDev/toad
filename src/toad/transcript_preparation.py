@@ -175,9 +175,18 @@ class PreparedTranscriptPage:
     async def replace_range(self, view, selected, current) -> bool:
         if not current():
             return False
-        self.set_fragment_range(selected)
-        view.range_changed()
+        if self.fragment_range != (selected.start, selected.stop):
+            self.set_fragment_range(selected)
+            view.range_changed()
         return True
+
+    def same_source(self, other: PreparedTranscriptPage) -> bool:
+        """Equal backend pages and source members can keep their original view."""
+        if self.page.before != other.page.before or self.page.after != other.page.after:
+            return False
+        return (self.page == other.page
+                and tuple(fragment.events for fragment in self.fragments)
+                == tuple(fragment.events for fragment in other.fragments))
 
     def trim(self, view, count: int, *, older: bool) -> None:
         if older:

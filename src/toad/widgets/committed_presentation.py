@@ -234,19 +234,23 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     async def advance_committed(
         self, through: TranscriptCursor, is_current: Callable[[], bool],
     ) -> bool:
-        """Show the new tail as one prepared destination, not a walk through the gap."""
+        """Extend a complete followed tail; read a bounded destination across a gap."""
         async with self.window.history_lock:
             if not self.checkpoint_available or not is_current():
                 return False
-            # Reject scans started with the old bound without discarding their
-            # already accepted filtered overlay or its backward cursor.
-            self.retain_committed(through)
+            if not self.accepts_commit(through):
+                raise ValueError("Commit replaces or rewinds the saved source")
             operation = self.reserve_source_work()
-        return await operation.execute(self, partial(self._advance_committed, is_current))
+        return await operation.execute(self, partial(self._advance_committed, through, is_current))
 
-    async def _advance_committed(self, is_current: Callable[[], bool]) -> bool:
+    async def _advance_committed(
+        self, through: TranscriptCursor, is_current: Callable[[], bool],
+    ) -> bool:
         if not is_current() or not self.state.can_draw:
             return False
+        if not self.has_newer:
+            return await self.extend(through, is_current)
+        self.retain_committed(through)
         from toad.widgets.history_anchor import LatestPosition
 
         request = LatestViewportRequest(LatestPosition.hold(self.window))
