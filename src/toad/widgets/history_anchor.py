@@ -451,9 +451,6 @@ class HistoryWindow(VerticalScroll):
             if history.needs_latest_publication:
                 history.request_latest(latest)
 
-    def tail_follow_changed(self) -> None:
-        """Project the canonical tail-follow state in a specialized window."""
-
     @property
     def shown(self) -> bool:
         """Whether layout draws this window: its screen is the current one and nothing above it is hidden."""
@@ -684,10 +681,6 @@ class HistoryWindow(VerticalScroll):
         return WeakSet()
 
     @property
-    def follows_tail(self) -> bool:
-        return self.is_anchored and not self._anchor_released
-
-    @property
     def can_jump_to_latest(self) -> bool:
         return not self.follows_tail
 
@@ -696,13 +689,10 @@ class HistoryWindow(VerticalScroll):
         if not self._restoring and changed:
             self.scroll_revision += 1
         if anchor:
-            self._anchor_released = False
             # A reader cannot move a window they cannot see: a parked place stays.
             if self.reader_position is not None and self.shown:
                 self.reader_position = self.reader_position.joined_tail()
         super().anchor(anchor)
-        if changed:
-            self.tail_follow_changed()
 
     def release_anchor(self) -> None:
         changed = self.follows_tail
@@ -713,7 +703,6 @@ class HistoryWindow(VerticalScroll):
             return
         if self.reader_position is not None and not self._restoring and self.shown:
             self.reader_position = self.reader_position.left_tail(self)
-        self.tail_follow_changed()
 
     def _check_anchor(self) -> None:
         """Native geometry checks cannot turn an offset reader into a tail reader."""
@@ -738,7 +727,6 @@ class HistoryWindow(VerticalScroll):
             # still chooses follow through jump_to_latest; ordinary travel only
             # rejoins it once the current source has no unpublished newer rows.
             super()._check_anchor()
-        self.tail_follow_changed()
 
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement
