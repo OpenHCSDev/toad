@@ -122,7 +122,7 @@ class ClearInteraction(GoalInteraction):
 
 
 class GoalSession:
-    """One optional modal and control/poll custody for the actual source binding."""
+    """One optional modal and control custody for the actual source binding."""
 
     def __init__(self, view: Conversation):
         self._view = ref(view)
@@ -204,19 +204,6 @@ class GoalSession:
             if self.owns(agent):
                 raise ValueError(self.view.goal_display.action_failure(error)) from error
             raise
-
-    def poll(self) -> None:
-        view = self.view
-        if view is None or not view.is_attached:
-            return
-        try:
-            current = view.app.screen
-            visible = (current is view.screen and view in view.screen._compositor.visible_widgets
-                       or current is self.modal)
-        except ScreenStackError, UnknownModeError:
-            return
-        if visible and not view.goal_observation.active:
-            view.goal_observation.invalidate()
 
     def close(self) -> None:
         self._view = self._modal = None

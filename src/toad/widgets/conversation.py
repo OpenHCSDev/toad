@@ -408,8 +408,11 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     async def _thread_view_selected(self, event: CoreEventMessage) -> None:
         from toad.screens.session_view import SessionView
 
+        if not self.query_ancestor(SessionView).is_current:
+            return
+        self.goal_observation.invalidate()
         presentation = self._unpublished_presentation
-        if presentation is not None and self.query_ancestor(SessionView).is_current:
+        if presentation is not None:
             from toad.transcript_publication import ObservedSourcePublication
             self._unpublished_presentation = None
             self.transcript.source_requests.request(ObservedSourcePublication, presentation)
@@ -623,14 +626,13 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             history.state.resume_if_parked(history)
 
     def refresh_native_projection(self) -> None:
-        """Publish bound owner facts and invalidate its existing read resource."""
+        """Publish bound owner facts and invalidate the delivery read resource."""
         agent = self.agent
         if agent is None:
             return
         self.status = agent.context_measurement.status()
         self.turns.bound()
         self.submissions.publish_pending()
-        self.goal_observation.invalidate()
         self.delivery_observation.invalidate()
 
 
@@ -1685,7 +1687,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
-        self.set_interval(1, lambda: self.goal_controls.poll())
         await self.initialize_view()
 
     def apply_layout_preferences(self) -> None:
