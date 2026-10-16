@@ -542,7 +542,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         width = self._start_width + direction * (screen_x - self._start_x)
         percent = round(100 * width / max(1, bar.screen.size.width))
         if app.sidebar_layout.width(bar.id, percent):
-            bar.screen.refresh(layout=True)
+            app.workspace_chrome.refresh_layout()
 
     def action_resize(self, direction: int) -> None:
         bar = self.query_ancestor(SideBar)
@@ -579,17 +579,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SidebarDecorations:
-    """Optional decorations are unavailable unless a panel declares them."""
-
-    def _compose_resize(self) -> ComposeResult:
-        return iter(())
-
-    def _compose_layout_controls(self) -> ComposeResult:
-        return iter(())
-
-
-class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
+class SideBar(CoreEventReceiver, containers.Vertical):
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
     DEFAULT_CSS = """
@@ -688,7 +678,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         else:
             self.collapsed = self.hide
         self.watch_collapsed(self.collapsed)
-        self.screen.refresh(layout=True)
         if self._panels_loaded:
             self._panels_ready.set()
         else:
@@ -743,11 +732,13 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
 
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
-        yield from self._compose_resize()
+        yield SidebarResizeHandle()
         with SidebarViewport(id="sidebar-panels"):
             if self._panels_loaded:
                 yield from self._compose_panels()
-        yield from self._compose_layout_controls()
+        with containers.Vertical(id="sidebar-controls"):
+            if self._panels_loaded:
+                yield from self._compose_controls()
 
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation
@@ -774,7 +765,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
 
     def _present_controls(self) -> bool:
         app = cast("ToadApp", self.app)
-        if self.id not in app.sidebar_layout.placements or not self.is_mounted:
+        if not self.is_mounted:
             return False
         placement = app.sidebar_layout.get(self.id)
         if self.parent is None or not self.presentation_visible:
@@ -833,7 +824,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
                 self._present_controls()
-                self.screen.refresh(layout=True)
+                app.workspace_chrome.refresh_layout()
 
     @on(SidebarAction.Pressed)
     def on_sidebar_action(self, event: SidebarAction.Pressed) -> None:
@@ -844,7 +835,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         event.action.apply(app.sidebar_layout, self.id)
         for bar in (app.workspace_chrome.channels, *app.workspace_sessions.source.sidebars()):
             bar._present_controls()
-        self.screen.refresh(layout=True)
+        app.workspace_chrome.refresh_layout()
 
     @on(widgets.Collapsible.Collapsed)
     @on(widgets.Collapsible.Expanded)
@@ -857,8 +848,9 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         changed = self._presented_collapsed != self.collapsed
         if changed:
             self.watch_collapsed(self.collapsed)
-        self._present_controls()
-        self.screen.refresh(layout=True)
+        else:
+            self._present_controls()
+            cast("ToadApp", self.app).workspace_chrome.refresh_layout()
         navigation = self.navigation
         for panel in self.query(SideBarCollapsible):
             if str(panel.title) in navigation.panels_collapsed:
@@ -874,18 +866,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         if not collapsed and self.is_mounted:
             self.schedule_hydration()
         self._presented_collapsed = collapsed
-        # The old -collapsed ancestor selector restyled every descendant row
-        # (hundreds of expensive stylesheet.apply calls per toggle). Inline
-        # box changes affect only this sidebar and its immediate panels.
-        managed = self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements
-        if not managed:
-            self.styles.width = 3 if collapsed else None
-            self.styles.min_width = 3 if collapsed else None
-            self.styles.max_width = 3 if collapsed else None
-            if self.right:
-                self.styles.border_left = ("none", "transparent") if collapsed else None
-            else:
-                self.styles.border_right = ("none", "transparent") if collapsed else None
+        # Panel visibility is independent of its native placement.
         if panels := self.query_one_optional("#sidebar-panels"):
             panels.display = not collapsed
         if controls := self.query_one_optional("#sidebar-controls"):
@@ -900,9 +881,9 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
             if isinstance(panel.widget, SidebarVisibilityObserver):
                 panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
-        if self.is_mounted and self.id in cast("ToadApp", self.app).sidebar_layout.placements:
+        if self.is_mounted:
             self._present_controls()
-            self.screen.refresh(layout=True)
+            cast("ToadApp", self.app).workspace_chrome.refresh_layout()
 
     def render(self) -> str:
         return ("<" if self.right else ">") if self.collapsed else ""
@@ -972,41 +953,6 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         self.post_message(self.Dismiss())
 
 
-if __name__ == "__main__":
-    from textual.app import App, ComposeResult
-
-    class SApp(App):
-        def compose(self) -> ComposeResult:
-            yield SideBar(
-                SideBar.Panel("Hello", widgets.Label("Hello, World!")),
-                SideBar.Panel(
-                    "Files",
-                    widgets.DirectoryTree(
-                        "~/",
-                    ),
-                    flex=True,
-                ),
-                SideBar.Panel(
-                    "Hello",
-                    widgets.Static("Where there is a Will! " * 10),
-                ),
-            )
-
-    SApp().run()
-
-
-class CommsSideBar(SideBar):
-    """Resizable comms panels share their native layout controls."""
-
-    def _compose_resize(self) -> ComposeResult:
-        yield SidebarResizeHandle()
-
-    def _compose_layout_controls(self) -> ComposeResult:
-        with containers.Vertical(id="sidebar-controls"):
-            if self._panels_loaded:
-                yield from self._compose_controls()
-
-
-class ThreadSidebar(CommsSideBar):
+class ThreadSidebar(SideBar):
     def __init__(self, *panels, **kwargs):
         super().__init__(*panels, id="thread-sidebar", **kwargs)

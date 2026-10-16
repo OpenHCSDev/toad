@@ -192,7 +192,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             self.run_worker(self._load_content, group="comms-content")
 
     def _prepare_content(self) -> None:
-        self.screen.refresh(layout=True)
         self.observe_core(self.app.events)
         chat = self.query_one(CommsChatView)
         chat._me = self.me

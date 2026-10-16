@@ -41,6 +41,12 @@ class WorkspaceChrome(VerticalLayout):
         screen.frame_presentation.defer(roster, roster.navigation.start)
         return changed
 
+    def refresh_layout(self) -> None:
+        """Placement changes retire both native parent arrangements."""
+        source = self.channels.app.workspace_sessions.source
+        for parent in {bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted}:
+            parent.refresh(repaint=False, layout=True)
+
     def arrange(self, parent: Widget, children: list[Widget], size: Size,
                 greedy: bool = True) -> ArrangeResult:
         """Place chrome and conversation directly in the native layout pass."""
@@ -86,3 +92,4 @@ class WorkspaceChrome(VerticalLayout):
         self.channels.display = view.shows_channels
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)
+        self.refresh_layout()
