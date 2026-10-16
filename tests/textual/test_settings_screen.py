@@ -13,7 +13,7 @@ from ui_theme.colour import Rgb
 from ui_theme.scheme import PrimaryColour
 
 from toad.forms import editors
-from toad.forms.field_path import FieldPath, leaves
+from toad.forms.field_path import FieldPath
 from toad.forms.form_view import ValueView
 from toad.preferences import SETTINGS, SavedSettings, ToadSettings
 from toad.screens.settings import SchemeEditor, SettingsScreen
@@ -100,8 +100,11 @@ async def test_opening_the_editors_changes_no_preference(workspace):
 async def test_every_setting_the_user_may_edit_has_an_editor(workspace):
     async with settings_screen(workspace) as (ui, app, _file):
         shown = app.screen.form.values
-        hidden = {"anon_id"} | {str(path) for path in leaves(SETTINGS.launcher)}
-        assert set(shown) == {str(path) for path in leaves(SETTINGS)} - hidden
+        structure = app.saved_settings.state.parameter_structure
+        hidden = {"anon_id"} | {
+            path.value for path in structure.leaf_paths(SETTINGS.launcher.bind(app.saved_settings.state).path.value)
+        }
+        assert set(shown) == {path.value for path in structure.leaf_paths()} - hidden
         assert isinstance(editor(app, SETTINGS.ui.footer), editors.BoolEditor)
         assert isinstance(editor(app, SETTINGS.ui.column_width), editors.IntEditor)
         assert isinstance(editor(app, SETTINGS.ui.theme), SchemeEditor)

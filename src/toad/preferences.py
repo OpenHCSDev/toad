@@ -18,19 +18,13 @@ from uuid import uuid4
 
 from agent_comms.field_codec import FieldCodec
 from annotated_types import Ge
-from objectstate import ObjectState, set_base_config_type
+from objectstate import DottedFieldPath, ObjectState, set_base_config_type
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
 from toad import atomic, paths
 from toad import setting_effects as effects
 from toad.forms.declared_views import DeclaredField
-from toad.forms.field_path import (
-    FieldPath,
-    declared,
-    declared_field,
-    fields_below,
-    leaves,
-)
+from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
 from toad.setting_choices import (
     AlwaysSessionBar,
@@ -322,7 +316,7 @@ def raise_save_error(error: atomic.AtomicWriteError) -> None:
     raise error
 
 
-def no_effect(path: FieldPath, value: object) -> None:
+def no_effect(field: DeclaredField) -> None:
     """Settings held outside an app change nothing but themselves."""
 
 
@@ -340,7 +334,7 @@ class SavedSettings:
         raw: object = None,
         *,
         root: type[ToadSettings] = ToadSettings,
-        applied: Callable[[FieldPath, object], None] = no_effect,
+        applied: Callable[[DeclaredField], None] = no_effect,
         report_error: Callable[[atomic.AtomicWriteError], None] = raise_save_error,
     ) -> None:
         from toad.core.events import CoreEventStream
@@ -348,8 +342,7 @@ class SavedSettings:
         raw = {} if raw is None else raw
         self.root = FieldPath(root)
         self.state = ObjectState(FieldCodec.decode(root, raw))
-        self.named = {str(path): path for path in leaves(self.root)}
-        self.in_file = frozenset(self.keys_held(self.root, raw))
+        self.in_file = frozenset(self.keys_held("", raw))
         self.user_set = set(self.in_file)
         self.applied, self.report_error = applied, report_error
         self.events = CoreEventStream(self)
@@ -364,20 +357,24 @@ class SavedSettings:
         return self.state.to_object()
 
     def set(self, path: FieldPath, value: object) -> None:
-        DeclaredField.at(self.state, path).edit(value)
+        setting = path.bind(self.state)
+        setting.edit(value)
+        self.user_set.add(setting.path)
 
     def toggle(self, path: FieldPath) -> None:
-        setting = DeclaredField.at(self.state, path)
+        setting = path.bind(self.state)
         setting.edit(not setting.value)
 
     def changed(self, changed: set[str]) -> None:
         from toad.core.preference_events import PreferenceChanged
 
-        for name in changed & self.named.keys():
-            path = self.named[name]
-            self.user_set.add(path)
-            self.applied(path, self.state.get_resolved_value(name))
-            self.events.publish(PreferenceChanged(path))
+        for name in changed:
+            if (name in self.state.parameter_structure.declarations
+                    and not self.state.has_parameter_descendants(name)):
+                setting = DeclaredField(self.state, self.state.parameter_structure.path(name))
+                self.user_set.add(setting.path)
+                self.applied(setting)
+                self.events.publish(PreferenceChanged(setting))
 
     def discard(self) -> None:
         """Go back to what the file holds."""
@@ -390,28 +387,28 @@ class SavedSettings:
     def file_path() -> Path:
         return paths.get_config() / "toad.json"
 
-    @staticmethod
-    def saved_key(path: FieldPath) -> str:
-        declaration = declared_field(path)
-        return declaration.metadata.get("wire_name", declaration.name)
+    def saved_key(self, path: DottedFieldPath) -> str:
+        owner = self.state.type_for_path(path.parent.value)
+        return next(key for declaration, key in FieldCodec.record_fields(owner)
+                    if declaration.name == path.field_name)
 
-    def keys_held(self, path: FieldPath, raw: object) -> list[FieldPath]:
+    def keys_held(self, path: str, raw: object) -> list[DottedFieldPath]:
         """The settings and groups a document read from the file has a key for."""
         if not isinstance(raw, dict):
             return []
         held = []
-        for below in fields_below(path):
+        for below in self.state.direct_parameter_paths(path):
             if (key := self.saved_key(below)) in raw:
-                held += [below, *self.keys_held(below, raw[key])]
+                held += [below, *self.keys_held(below.value, raw[key])]
         return held
 
-    def kept(self, path: FieldPath, encoded: dict[str, Any]) -> dict[str, Any]:
+    def kept(self, path: str, encoded: dict[str, Any]) -> dict[str, Any]:
         """The part of the whole encoded tree that belongs in the file."""
         document = {}
-        for below in fields_below(path):
+        for below in self.state.direct_parameter_paths(path):
             key = self.saved_key(below)
-            if fields_below(below):
-                part = self.kept(below, encoded[key])
+            if self.state.has_parameter_descendants(below.value):
+                part = self.kept(below.value, encoded[key])
                 if part or below in self.user_set:
                     document[key] = part
             elif below in self.user_set:
@@ -419,7 +416,7 @@ class SavedSettings:
         return document
 
     def document(self) -> dict[str, Any]:
-        return self.kept(self.root, FieldCodec.encode(self.current))
+        return self.kept("", FieldCodec.encode(self.current))
 
     @property
     def json(self) -> str:
@@ -471,9 +468,9 @@ class SavedSettings:
         path = cls.file_path()
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
-        def applied(setting: FieldPath, value: object) -> None:
-            if (effect := declared(setting, effects.Effect)) is not None:
-                effect.apply(app, value)
+        def applied(field: DeclaredField) -> None:
+            if (effect := field.metadata(effects.Effect)) is not None:
+                effect.apply(app, field.value)
 
         def report(error: atomic.AtomicWriteError) -> None:
             app.notify(str(error), title="Settings", severity="error")
@@ -482,8 +479,8 @@ class SavedSettings:
 
     def apply_all(self) -> None:
         """Bring a starting app in line with every setting."""
-        for name, path in self.named.items():
-            self.applied(path, self.state.get_resolved_value(name))
+        for path in self.state.parameter_structure.leaf_paths():
+            self.applied(DeclaredField(self.state, path))
 
     def ensure_file(self, app: ToadApp) -> None:
         path = self.file_path()

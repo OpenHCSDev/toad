@@ -548,7 +548,7 @@ class StoreScreen(CoreEventReceiver, Screen):
 
     @handles(PreferenceChanged)
     async def _preferences_changed(self, message: CoreEventMessage) -> None:
-        if message.event.path == SETTINGS.launcher.agents:
+        if SETTINGS.launcher.agents.matches(message.event.field):
             await self.launcher.recompose()
 
             def focus_screen():
