@@ -1,0 +1,8 @@
+ROOT /home/ts/wt/toad-delivery-labels PACKAGE src/toad MODULES 282 UNPARSED ()
+ROOT /home/ts/wt/core-delivery-labels PACKAGE src/agent_comms MODULES 330 UNPARSED ()
+ROOT /home/ts/wt/textual-main PACKAGE src/textual MODULES 254 UNPARSED ()
+ROOT /home/ts/.local/share/agent-comms/current/lib/python3.14/site-packages PACKAGE acp MODULES 38 UNPARSED ()
+ROOT /home/ts/.local/share/agent-comms/current/lib/python3.14/site-packages PACKAGE pydantic MODULES 105 UNPARSED ()
+ROOT /home/ts/.local/share/agent-comms/current/lib/python3.14/site-packages PACKAGE textual_image MODULES 22 UNPARSED ()
+ROOT /home/ts/.local/share/agent-comms/current/lib/python3.14/site-packages PACKAGE textual_diff_view MODULES 2 UNPARSED ()
+ROOT /home/ts/.local/share/agent-comms/current/lib/python3.14/site-packages PACKAGE textual_serve MODULES 5 UNPARSED ()
