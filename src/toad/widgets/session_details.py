@@ -4,16 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from agent_comms.mro_dispatch import handles
-from agent_comms.thread_presentation import (
-    AttentionThreadPresentationStatus, IdleThreadPresentationStatus,
-    WorkingThreadPresentationStatus,
-)
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
-from toad.core.projection import MroProjection
 from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
@@ -26,7 +20,7 @@ if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
+class SessionDetails(Collapsible, ObservedThreadActivity):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -65,18 +59,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
             title="", collapsed=True, id="session-details",
         )
 
-    @handles(IdleThreadPresentationStatus)
-    def idle_role(self, status) -> type[LineRole]:
-        return MutedRole
-
-    @handles(WorkingThreadPresentationStatus)
-    def working_role(self, status) -> type[LineRole]:
-        return WorkingRole
-
-    @handles(AttentionThreadPresentationStatus)
-    def attention_role(self, status) -> type[LineRole]:
-        return NoticeRole
-
     @property
     def title_role(self) -> type[LineRole]:
         """Derive existing theme paint from the original status sources."""
@@ -86,9 +68,16 @@ class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
             return NoticeRole
         row = self.row
         if row is not None and row.shown:
-            return self.dispatch_sync(row.status)
-        if self.turns is not None:
-            return self.dispatch_sync(self.turns.owner.presentation_status)
+            status = row.status
+        elif self.turns is not None:
+            status = self.turns.owner.presentation_status
+        else:
+            return MutedRole
+        # Core owns the state; this is its one frontend paint decision.
+        if status.attention:
+            return NoticeRole
+        if status.busy:
+            return WorkingRole
         return MutedRole
 
     def on_mount(self) -> None:
