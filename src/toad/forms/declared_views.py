@@ -90,7 +90,7 @@ class DeclaredField:
         return self.declaration.param_type
 
     def metadata(self, kind: type[Metadata]) -> Metadata | None:
-        """Metadata of the admitted field, including an optional member's metadata."""
+        """Metadata of the bound field, including an optional member's metadata."""
         for annotation in (self.annotation, resolve_optional(resolve_annotated(self.annotation))):
             if get_origin(annotation) is Annotated:
                 for item in get_args(annotation)[1:]:

@@ -7,9 +7,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from objectstate import ObjectState
-    from toad.forms.declared_views import DeclaredField
 
 from python_introspect import UnifiedParameterAnalyzer, resolve_annotated, resolve_optional
+
+from toad.forms.declared_views import DeclaredField
 
 
 class FieldPath:
@@ -47,9 +48,7 @@ class FieldPath:
         return hash((self._root, self._names))
 
     def bind(self, state: ObjectState) -> DeclaredField:
-        """Bind a declaration reference through ObjectState's admitted topology."""
-        from toad.forms.declared_views import DeclaredField
-
+        """Bind this declaration to the field ObjectState declares at this path."""
         if not issubclass(state.type_for_path(""), self._root):
             raise TypeError(f"{self!r} does not name a field of this ObjectState")
         return DeclaredField(state, state.parameter_structure.path(str(self)))
