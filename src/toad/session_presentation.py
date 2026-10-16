@@ -110,11 +110,26 @@ class OperationalSessionSources:
     def agent_info(self, conversation: Conversation) -> str:
         return "shell"
 
-    def accepts_inbox_submission(self, event) -> bool:
-        return False
+    def make_conversation(self, screen: "MainScreen") -> Conversation:
+        return Conversation(
+            screen.project_path, screen._agent, screen._agent_session_id,
+            screen._session_pk, screen.app.session_tracker.sessions[screen.id].initial_title,
+            initial_prompt=screen._initial_prompt,
+            transcript=screen.presentation.transcript,
+        )
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Native sessions receive their text through their own ACP stream."""
+
+    def prompt(self, conversation: Conversation):
+        from toad.widgets.prompt import Prompt
+
+        return Prompt(turns=conversation.turns, submissions=conversation.submissions)
+
+    async def submit(self, owner, event):
+        from toad.conversation_submission import InputSubmission
+
+        return await InputSubmission.from_event(event, owner.view).execute(owner)
 
     def input_ready(self, conversation: Conversation) -> bool:
         agent = conversation.agent
@@ -206,21 +221,44 @@ class MailboxSessionSources(OperationalSessionSources):
         scope = conversation.transcript.thread_scope
         return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
 
-    def input_ready(self, conversation: Conversation) -> bool:
-        # The view's own send holds compose itself (DeliveryFailureView).
-        return conversation.transcript.readable
+    def prompt(self, conversation: Conversation):
+        from toad.conversation_kind import DmConversation
 
-    def accepts_inbox_submission(self, event) -> bool:
-        return not event.shell and bool(event.body.strip())
+        root, name = conversation.transcript_scope()
+        return DmConversation.prompt(name)
+
+    def input_ready(self, conversation: Conversation) -> bool:
+        return conversation.transcript.readable
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
         from toad.transcript_publication import CanonicalSourcePublication
 
         conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
-    def unavailable_reason(self, conversation: Conversation) -> str:
-        # A CLI thread has no native owner to start; only its history load holds it.
-        return "Loading thread history…"
+    async def present(self, conversation: Conversation) -> None:
+        await super().present(conversation)
+        self.external_transcript_changed(conversation)
+
+    async def submit(self, owner, event):
+        from toad.conversation_kind import DmConversation
+
+        view = owner.view
+        scope = view.transcript.thread_scope
+        if scope is None:
+            view.delivery_refused("CLI transcript is not ready", event.body)
+            return
+        root, target = scope
+
+        async def presented(sent):
+            view.run_worker(view.input_histories.prompt.record(event.body), group="history")
+            view.window.jump_to_latest()
+            self.external_transcript_changed(view)
+
+        await view.submit_comms_message(
+            root, DmConversation, target, event.body,
+            lambda: view.is_attached and view.transcript.thread_scope == scope,
+            presented,
+        )
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
@@ -296,7 +334,9 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             slot = screen.query_one(SessionSurfaceSlot)
             content = slot.parent
             assert isinstance(content, Widget)
-            self.widget = screen._make_conversation()
+            with screen._context():
+                self.widget = self.sources.make_conversation(screen)
+            screen._initial_prompt = None
             self.widget.display = False
         conversation = self.widget
         self.sources.wire(conversation)

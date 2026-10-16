@@ -9,14 +9,15 @@ from textual.app import ComposeResult
 from textual.containers import HorizontalGroup, Vertical, VerticalScroll
 from textual.message import Message
 from textual.reactive import var
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
+from textual.widget import PrimaryActivation
 
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
 
 
-class DetailAction(Static, can_focus=True):
+class DetailAction(PrimaryActivation, Static, can_focus=True):
     """An inline detail action owns keyboard, pointer and activation behavior."""
 
     class Activated(Message):
@@ -38,6 +39,10 @@ class DetailAction(Static, can_focus=True):
     }
     DetailAction:hover, DetailAction:focus { text-style: bold reverse; }
     """
+
+    @property
+    def primary_activation(self):
+        return self.action_activate
 
     def action_activate(self) -> None:
         if not self.disabled:

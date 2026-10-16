@@ -7,7 +7,7 @@ import asyncio
 from textual import containers, events, on
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
 
 from toad.mcp_decision import LocalDecisionPTY

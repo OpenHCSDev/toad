@@ -104,8 +104,9 @@ class CommsChatView(Conversation):
         kind: type[ConversationKind],
         me: str,
         wire_root: str | None = None,
+        transcript=None,
     ) -> None:
-        super().__init__(project_path)
+        super().__init__(project_path, transcript=transcript)
         self.target = target
         self.conversation_kind = kind
         self._me = me
@@ -394,23 +395,11 @@ class CommsChatView(Conversation):
             self.delivery_refused("Conversation source is not ready", event.body)
             return
         comms = source.comms
-        try:
-            catalog = await asyncio.to_thread(comms.channels.catalog.read)
-        except (OSError, ValueError, RuntimeError) as error:
-            self.delivery_refused(str(error), event.body)
-            return
-        if self.conversation_kind.read_only(catalog, target):
-            self.prompt.text = event.body
-            self.prompt.prompt_text_area.disabled = True
-            self.status = "Read-only saved view; open an exact channel to send"
-            self.flash(self.status, style="error")
-            return
-
         def current() -> bool:
             return self.is_attached and source is history.source and target == self.target
 
-        await self.deliver_user_message(
-            comms.root, self.conversation_kind.send_target(target), event.body, current,
+        await self.submit_comms_message(
+            comms.root, self.conversation_kind, target, event.body, current,
             partial(self._show_sent, body=event.body),
         )
 

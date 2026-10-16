@@ -10,13 +10,14 @@ from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
+from textual.widget import PrimaryActivation
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.worker_static import WorkerStatic
 
 
-class ProjectSearchButton(Static, can_focus=True):
+class ProjectSearchButton(PrimaryActivation, Static, can_focus=True):
     DEFAULT_CSS = """
     ProjectSearchButton {
         height: 1;
@@ -37,6 +38,10 @@ class ProjectSearchButton(Static, can_focus=True):
 
     def __init__(self) -> None:
         super().__init__("⌕ Search files")
+
+    @property
+    def primary_activation(self):
+        return self.action_search
 
     def action_search(self) -> None:
         self.post_message(self.Requested())
