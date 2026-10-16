@@ -7,7 +7,8 @@ import os
 from pathlib import Path
 from dataclasses import dataclass, replace
 from agent_comms.acp_ingress import AcpIngress
-from agent_comms.route_selection import RouteSelection
+from agent_comms.errors import RelationViolationError
+from agent_comms.route_selection import RouteChanged, RouteSelection
 import toad
 from toad import constants, jsonrpc
 from toad.core import events as core_events
@@ -289,10 +290,14 @@ class AgentSession:
         requested_cwd = str(self.agent.project_root_path.resolve())
         self.reconnecting = True
         try:
-            selection = await asyncio.to_thread(
-                RouteSelection.for_child, os.environ.copy(), requested_cwd)
-            await AcpIngress(selection, Path(requested_cwd),
-                             self.agent.process.attached_root(self.agent)).preflight()
+            try:
+                selection = await asyncio.to_thread(
+                    RouteSelection.for_child, os.environ.copy(), requested_cwd)
+                await AcpIngress(selection, Path(requested_cwd),
+                                 self.agent.process.attached_root(self.agent)).preflight()
+            except (RouteChanged, RelationViolationError) as error:
+                self.startup_failed(f"Reconnect blocked before restart: {error}")
+                return
             await self.agent.stop()
             self.load_plan = plan or EnsuringSessionLoadPlan()
             self.settled.clear()
@@ -305,7 +310,7 @@ class AgentSession:
                     f"Reconnect timed out after {self.reconnect_timeout_seconds} seconds "
                     "waiting for the session handshake to settle."
                 )
-        except (OSError, ValueError, RuntimeError, jsonrpc.APIError) as error:
+        except (OSError, jsonrpc.APIError) as error:
             self.startup_failed(f"Reconnect failed: {type(error).__name__}: {error}")
         finally:
             self.reconnecting = False
