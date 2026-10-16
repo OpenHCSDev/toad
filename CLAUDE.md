@@ -23,7 +23,7 @@ Responsive scrolling and interaction in the live Toad application: about 16 ms o
 
 ## Workflow
 
-- Use plan mode before changing the scroll path (`widgets/viewport_body.py`, `presentation_window.py`, `prepared_markdown.py`, `streaming_markdown.py`, `transcript_history.py`, `transcript_fragments.py`) or the Textual fork. Tristan approves the plan.
+- Review the plan for scroll-path changes (`widgets/viewport_body.py`, `presentation_window.py`, `prepared_markdown.py`, `streaming_markdown.py`, `transcript_history.py`, `transcript_fragments.py`) or the Textual fork with claude-code. Tristan's approval is not required (Tristan, 2026-10-16).
 - One checkout and one branch for this work. No new worktrees, no evidence-only PRs.
 - Delete your own generated output when done with it. Never delete raw failures, saved sessions or other agents' work.
 
