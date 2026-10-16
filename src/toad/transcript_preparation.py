@@ -315,6 +315,10 @@ class PreparedPageSource(ABC):
     def closed(self) -> bool:
         return self.scope.closed
 
+    def accepts(self, loader, through) -> bool:
+        """Whether this reader still belongs to the same immutable source cut."""
+        return self.loader is loader and self.through == through
+
     @abstractmethod
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         pass

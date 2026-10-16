@@ -119,6 +119,13 @@ class WirePage:
                                       source=source))
 
 
+class PreparedWirePage(PreparedTranscriptPage):
+    """Wire intervals preserve Core's original display page when advanced empty."""
+
+    def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
+        self.page = self.page.advanced(prepared.page, older=older)
+
+
 @dataclass(kw_only=True)
 class WireFragment(TranscriptFragment):
     """One wire message drawn as lines.
@@ -273,7 +280,7 @@ class WireSource:
             AfterMessage(page.newest_cursor) if page.has_newer and page.messages else through,
             page.has_older and bool(page.messages), page.has_newer and bool(page.messages), page,
         )
-        return PreparedTranscriptPage.measured(wire, fragments)
+        return PreparedWirePage.measured(wire, fragments)
 
     def restyled(self, style: WireMessageStyle) -> WireSource:
         return replace(self, style=style)
@@ -312,3 +319,7 @@ class WirePageBuffer(TranscriptPageBuffer):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork
+
+    def accepts(self, loader, through) -> bool:
+        # Earlier wire cuts stay valid while the bus grows.
+        return self.loader is loader

@@ -78,6 +78,26 @@ class MessageNotifications(Collapsible):
         self.show(UnavailableNotifications(str(error)))
 
 
+class VisibleReadMarking:
+    """One painted-read operation at a time, for pagers and native/CLI sessions."""
+
+    def __init__(self, *args, **kwargs):
+        self._read_worker = None
+        super().__init__(*args, **kwargs)
+
+    def mark_visible(self) -> None:
+        if self._read_worker is None or self._read_worker.is_finished:
+            self._read_worker = self.run_worker(self._mark_read(), group="painted-read")
+
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        if self.can_draw_on_screen:
+            self.mark_visible()
+
+    def source_resumed(self) -> None:
+        self.mark_visible()
+
+
 class HistoryNotifications:
     """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
 
