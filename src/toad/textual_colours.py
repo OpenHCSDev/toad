@@ -11,9 +11,8 @@ one Textual timer.
 from __future__ import annotations
 
 import os
-from abc import ABC, abstractmethod
 from functools import lru_cache
-from typing import Any
+from typing import Any, ClassVar
 
 from rich.segment import Segment
 from rich.style import Style as RichStyle
@@ -55,31 +54,32 @@ def _element(value: Any, backend: TextualColours) -> str:
     return value.value if isinstance(value, TextStyle) else value.native(backend)
 
 
-class BlockInk(ABC):
-    """An eighth-block's occupied edge, independent of its theme colour."""
+class BlockInk:
+    """A native block's occupied edge, independent of its theme colour."""
 
-    GLYPHS = " ▁▂▃▄▅▆▇█"
-    LEVELS = len(GLYPHS) - 1
+    GLYPHS: ClassVar[str]
+    LEVELS: ClassVar[int]
+
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        cls.LEVELS = len(cls.GLYPHS) - 1
 
     @classmethod
-    @abstractmethod
-    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment: ...
+    def glyph(cls, level: int) -> str:
+        return cls.GLYPHS[level]
 
-
-class BottomInk(BlockInk):
     @classmethod
     def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
-        return Segment(cls.GLYPHS[level], style + RichStyle(
+        return Segment(cls.glyph(level), style + RichStyle(
             color=ink.rich_color, bgcolor=background.rich_color))
 
 
+class BottomInk(BlockInk):
+    GLYPHS = " ▄█"
+
+
 class TopInk(BlockInk):
-    @classmethod
-    def paint(cls, level: int, ink: Color, background: Color, style: RichStyle) -> Segment:
-        # Complement the lower block and swap ink/paper: the same number
-        # of eighths now occupies the top, including the tapered ends.
-        return Segment(cls.GLYPHS[cls.LEVELS - level], style + RichStyle(
-            color=background.rich_color, bgcolor=ink.rich_color))
+    GLYPHS = " ▀█"
 
 
 class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
@@ -258,8 +258,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
                 continue
             level = max(1, min(edge.LEVELS, round(height * edge.LEVELS)))
             ink = colours[start].blend(colours[end], amount)
-            # Fade sub-eighth tails only. A taller glyph must not dim the whole
-            # band each time its height crosses the next terminal-cell step.
+            # Fade tails smaller than the first native level. Keep the body
+            # at full colour when its glyph reaches that level.
             ink = background.blend(ink, min(1.0, height * edge.LEVELS))
             segments.append(edge.paint(level, ink, background, style))
         return Strip(Segment.simplify(segments), cell_length=width)

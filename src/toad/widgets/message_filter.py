@@ -1,6 +1,6 @@
 """One semantic filter for native live blocks and saved transcript fragments."""
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -16,13 +16,7 @@ from agent_comms.transcript_events import (
 )
 
 
-class NativeMessagePresentation(ABC):
-    @classmethod
-    def keep_native_block(cls) -> bool:
-        return False
-
-
-class MessageCategory(NativeMessagePresentation, DeclaredFamily, affix="Category"):
+class MessageCategory(DeclaredFamily, affix="Category"):
     label: str
 
     @classmethod
@@ -52,14 +46,6 @@ class AgentWork:
         return show
 
 
-class RoutedMessage(NativeMessagePresentation):
-    """Messages retained while the native transcript supplies ordinary blocks."""
-
-    @classmethod
-    def keep_native_block(cls) -> bool:
-        return True
-
-
 class UserCategory(FromPerson, MessageCategory):
     label = "User messages"
 
@@ -68,11 +54,11 @@ class AgentCategory(FromAgent, MessageCategory):
     label = "Agent messages"
 
 
-class InboundCategory(RoutedMessage, FromPerson, MessageCategory):
+class InboundCategory(FromPerson, MessageCategory):
     label = "Messages in"
 
 
-class OutboundCategory(RoutedMessage, FromAgent, MessageCategory):
+class OutboundCategory(FromAgent, MessageCategory):
     label = "Messages out"
 
 
@@ -161,22 +147,4 @@ def apply_block_filter(widget, selected: frozenset[type[MessageCategory]]) -> No
     """Change only this semantic owner, preserving its authored display rules."""
     category = block_category(widget)
     hidden = category is not None and category not in selected
-    marker = "-category-hidden"
-    if widget.has_class(marker) != hidden:
-        # Keep the marker available for custom styling. Ordinary filtering is a
-        # model-owned display constraint, not a request to rematch subtree CSS.
-        update_styles = widget.is_attached and widget.app.stylesheet.references_class(
-            marker
-        )
-        widget.set_class(hidden, marker, update=update_styles)
     widget.set_display_constraint("message-category", not hidden)
-
-
-def keep_live_block(widget) -> bool:
-    category = block_category(widget)
-    return (
-        category is None
-        or category.keep_native_block()
-        or widget.has_class("-error")
-        or widget.has_class("-error-log-link")
-    )

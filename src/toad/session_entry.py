@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import wire
+from agent_comms.route_selection import RouteSelection
+from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
@@ -109,8 +111,6 @@ class NativeSessionEntry(SessionEntry):
         return sessions.app.workspace_sessions.views.get(self.mode)
 
     async def reconnect(self, sessions, selected, snapshot, targets):
-        from agent_comms.route_selection import RouteSelection
-
         if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
             return
         source = self.source(sessions)
@@ -123,16 +123,14 @@ class NativeSessionEntry(SessionEntry):
         if original is None:
             return
         thread = snapshot.require(snapshot.canonical_name(original.name))
-        from toad.owner_preparation import ExistingOwnerAdmission
-
         binding = thread.execution.owner_binding(snapshot, thread)
-        admission = ExistingOwnerAdmission.from_binding(binding)
-        if admission is None:
+        plan = ExistingOwnerPlan.from_binding(binding)
+        if plan is None:
             return
         if agent := source.presentation.operational_agent:
-            await agent.session.reconnect(admission)
+            await agent.session.reconnect(plan)
         else:
-            source.presentation.sources.attach_started(source, admission)
+            source.presentation.sources.attach_started(source, plan)
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
