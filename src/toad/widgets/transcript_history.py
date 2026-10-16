@@ -69,7 +69,7 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.widgets.history_anchor import HistoryWindow
-    from toad.widgets.conversation import Contents
+    from toad.widgets.conversation import Contents, Conversation
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
@@ -863,6 +863,13 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             # The edge rows are above and below the reader's.
             self.window.keep_reader()
             self.older.display, self.newer.display = older, newer
+
+    @property
+    def conversation(self) -> Conversation | None:
+        """The conversation whose live blocks these pages stand in for; None in a saved viewer."""
+        from toad.widgets.conversation import Conversation
+
+        return next((ancestor for ancestor in self.ancestors if isinstance(ancestor, Conversation)), None)
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:

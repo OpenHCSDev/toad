@@ -103,7 +103,7 @@ class WirePage:
         return self.source is None
 
     def accepts(self, page: MessagePage, view: type[ConversationHistoryView]) -> bool:
-        """An initial placeholder admits its first scope; Core compares actual pages."""
+        """An initial placeholder accepts its first scope; Core compares actual pages."""
         source = self.source
         return source is None or view.same_display(page, source)
 

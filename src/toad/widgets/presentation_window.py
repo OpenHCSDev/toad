@@ -124,7 +124,7 @@ class PreparationDemand(ABC):
         return MovingPreparation(travel / elapsed)
 
     def accepts_result(self, older: bool) -> bool:
-        """An admitted read may finish after input settles; it admits no next read."""
+        """A running read may finish after input settles; it starts no next read."""
         return True
 
     def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
@@ -132,7 +132,7 @@ class PreparationDemand(ABC):
         return 0
 
     def source_read(self) -> None:
-        """Only a bounded destination counts the pages admitted by its request."""
+        """Only a bounded destination counts the pages its request read."""
 
     def prepare_ahead(self, preparation, history, page, older: bool) -> None:
         """Only measured movement speculates beyond its current destination."""

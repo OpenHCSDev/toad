@@ -18,6 +18,7 @@ from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
 from toad.block_navigation import ConversationBlock
+from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 
 if TYPE_CHECKING:
@@ -174,15 +175,11 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
             self.publish_core(TranscriptCoverage(tuple(self.coverage_events)))
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
-        if self._source_state.reports_coverage:
-            from toad.widgets.conversation import Conversation
-            # The live blocks this page covers are retired as part of adding
-            # the page, without holding the conversation's message pump. A
-            # saved viewer outside a conversation has no live blocks.
-            for ancestor in self.ancestors:
-                if isinstance(ancestor, Conversation):
-                    ancestor.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(ancestor)
-                    break
+        # The live blocks this page covers are retired as part of adding
+        # the page, without holding the conversation's message pump. A
+        # saved viewer outside a conversation has no live blocks.
+        if self._source_state.reports_coverage and (conversation := self.conversation) is not None:
+            conversation.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(conversation)
 
     def publish_committed(self) -> None:
         """Acquire source ownership now; report coverage after its first painted frame."""
@@ -256,8 +253,6 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         if not self.has_newer:
             return await self.extend(through, is_current)
         self.retain_committed(through)
-        from toad.widgets.history_anchor import LatestPosition
-
         request = LatestViewportRequest(LatestPosition.hold(self.window))
         return await self._jump_latest(request, is_current)
 

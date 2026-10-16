@@ -100,7 +100,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
         if source is not self.source:
             return False
         if observed is not None:
-            # Admit Core's observation before asynchronous drawing. A pending
+            # Record Core's observation before asynchronous drawing. A pending
             # viewport must not turn the same scope into another replacement.
             self.revision = observed.revision
             if observed.replaced:
@@ -110,10 +110,10 @@ class WireHistory(VisibleReadMarking, LineHistory):
                 return await self.extend(observed.through)
             self.extend_source(observed.through)
         elif not self.undrawn:
-            # An admitted observation may still have an unfinished page read.
+            # A recorded observation may still have an unfinished page read.
             return (self.pages[-1].page.after != self.through
                     and await self.extend(self.through))
-        # The existing prepared reader owns this pending page. Retry admission,
+        # The existing prepared reader owns this pending page. Retry drawing it,
         # not clearing its source and starting the same read again.
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
         return not self.undrawn

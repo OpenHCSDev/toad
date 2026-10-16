@@ -92,7 +92,7 @@ class PreparedTranscriptPage:
                             has_newer=self.page.has_newer if older else page.has_newer)
 
     def can_extend(self, older: bool) -> bool:
-        """Whether this already-decoded page has an unadmitted local range."""
+        """Whether this already-decoded page has fragments outside its drawn range."""
         return self.start > 0 if older else self.stop < len(self.fragments)
 
     def configure(self, *, batch_size, newest=True):
@@ -234,6 +234,10 @@ class PageRequest:
     @classmethod
     def adjacent(cls, page: TranscriptPage, older: bool) -> PageRequest:
         return cls(before=page.before) if older else cls(after=page.after)
+
+    @property
+    def older(self) -> bool:
+        return self.before is not None
 
 
 @dataclass(frozen=True)
@@ -412,9 +416,9 @@ class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[Prepar
         page = await self.loader(before=request.before, after=request.after, through=self.through)
         cursor = request.before or request.after
         if cursor is not None:
-            edge = page.before if request.before is not None else page.after
-            more = page.has_older if request.before is not None else page.has_newer
-            wrong_direction = (edge.contains(cursor) if request.before is not None
+            edge = page.before if request.older else page.after
+            more = page.has_older if request.older else page.has_newer
+            wrong_direction = (edge.contains(cursor) if request.older
                                else cursor.contains(edge))
             if edge.session_file != cursor.session_file or (wrong_direction and more):
                 raise ValueError("Transcript history made no cursor progress")
@@ -504,18 +508,23 @@ class ProjectedTranscriptSource(PreparedPageSource):
             ))
         return self._projected_boundary
 
+    def _reader_for(self, request: PageRequest) -> PreparedPageSource | None:
+        """The reader that serves a request; None when the retained boundary answers it."""
+        if (request.before == self.through
+                or request.after == self._boundary.page.before or self._raw is None):
+            return None
+        if request.older and self._upstream is not None and not self._upstream.closed:
+            return self._upstream
+        return self._raw
+
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         if self.closed:
             raise asyncio.CancelledError
-        if (request.before == self.through
-                or request.after == self._boundary.page.before or self._raw is None):
+        if (reader := self._reader_for(request)) is None:
             return await self.boundary()
-        older = request.before is not None
-        reader = (self._upstream if older and self._upstream is not None and not self._upstream.closed
-                  else self._raw)
         initial = await reader.get(request)
         prepared = await self._project(initial)
-        if not older and not prepared.fragments and not prepared.page.has_newer:
+        if not request.older and not prepared.fragments and not prepared.page.has_newer:
             boundary = await self.boundary()
             return replace(boundary, page=replace(
                 boundary.page, before=initial.page.before,
@@ -529,13 +538,10 @@ class ProjectedTranscriptSource(PreparedPageSource):
     async def prepare(self, request: PageRequest) -> None:
         if self.closed:
             return
-        if (request.before == self.through
-                or request.after == self._boundary.page.before or self._raw is None):
+        if (reader := self._reader_for(request)) is None:
             await self.boundary()
-            return
-        reader = (self._upstream if request.before is not None
-                  and self._upstream is not None and not self._upstream.closed else self._raw)
-        await reader.prepare(request)
+        else:
+            await reader.prepare(request)
 
     def close(self) -> None:
         super().close()
