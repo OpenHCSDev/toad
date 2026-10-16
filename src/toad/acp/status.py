@@ -1,7 +1,6 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.tool_declaration import ToolDeclaration
 from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
 from dataclasses import dataclass
 from acp.schema import ToolCall
@@ -50,17 +49,18 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         borrow the final ACP state, including an end without its earlier start.
         """
         first = events[0]
-        call = ToolCall(tool_call_id=first.tool_call_id, title='', status='completed')
+        call = ToolCall(tool_call_id=first.tool_call_id, title=first.title,
+                        kind=first.kind, status='completed')
         consumer = cls(call)
         for event in events:
             consumer.dispatch_sync(event)
-        start = ToolDeclaration.start(first.tool_call_id, first.tool_name, call.raw_input or {})
-        call.title = start.title
-        call.kind = start.kind
         return cls.from_acp(call)
 
     @handles(ToolStartTranscript)
     def recorded_start(self, event: ToolStartTranscript):
+        self.call.status = 'in_progress'
+        self.call.title = event.title
+        self.call.kind = event.kind
         self.call.raw_input = event.raw_input
 
     @handles(ToolEndTranscript)
