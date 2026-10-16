@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
+from toad.core.events import CoordinationObserved
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource
 from toad.core.source_events import TranscriptSourceWorkFinished
@@ -183,7 +184,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self.finish_source_work(operation)
 
         self.retire_core_observations(self.app.coordination_access.events)
-        self.observe_core_callback(self.app.coordination_access.events, resume)
+        self.observe_core_callback(self.app.coordination_access.events,
+                                   CoordinationObserved, resume)
 
     def supersede_source_work(
         self, operation: WorkingTranscript, request: LatestViewportRequest,
