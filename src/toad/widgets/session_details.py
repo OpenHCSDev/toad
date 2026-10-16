@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
 
+from toad.line_blocks import LineRole, MutedRole, NoticeRole, WorkingRole
 from toad.widgets.input_delivery import DetailAction, InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.observed_thread_activity import ObservedThreadActivity
@@ -38,9 +40,6 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;
     }
     SessionDetails > Contents { height: auto; padding: 0 1; overflow-y: auto; }
-    SessionDetails.-working > CollapsibleTitle { color: $accent; }
-    SessionDetails.-attention > CollapsibleTitle { color: $warning; }
-    SessionDetails .session-notifications { height: auto; }
     """
 
     def __init__(
@@ -53,7 +52,7 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         self.history = history
         self.history_details = SessionHistoryDetails(transcript, history)
         self.delivery = delivery
-        self.notifications = Static("", markup=False, classes="session-notifications")
+        self.notifications = Static("", markup=False)
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
             self.notifications, *(item for item in (history, delivery) if item is not None),
@@ -61,11 +60,25 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         )
 
     @property
-    def status_working(self) -> bool:
-        """Work described by the title, not the independent ACP request lease."""
-        if self.row is not None and self.row.shown:
-            return self.row.working
-        return self.turns is not None and self.turns.owner.busy
+    def title_role(self) -> type[LineRole]:
+        """Derive existing theme paint from the original status sources."""
+        if self.history_details.attention:
+            return NoticeRole
+        if self.delivery is not None and (self.delivery.delivery.current or self.delivery.error):
+            return NoticeRole
+        row = self.row
+        if row is not None and row.shown:
+            status = row.status
+        elif self.turns is not None:
+            status = self.turns.owner.presentation_status
+        else:
+            return MutedRole
+        # Core owns the state; this is its one frontend paint decision.
+        if status.attention:
+            return NoticeRole
+        if status.busy:
+            return WorkingRole
+        return MutedRole
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -81,27 +94,27 @@ class SessionDetails(Collapsible, ObservedThreadActivity):
         self._refresh_summary()
         super().activity_changed()
 
+    def notify_style_update(self) -> None:
+        super().notify_style_update()
+        if self.is_mounted:
+            self._refresh_summary()
+
     def _refresh_summary(self, *_args) -> None:
         row = self.row
         shown = row is not None and row.shown
         owner = self.turns.owner if self.turns is not None else None
-        attention = shown and row.attention
         if shown:
             title = row.summary[0]
         else:
             title = owner.status if owner is not None else ""
-        if self.title != title:
-            self.title = title
         # The status is already the disclosure's title, not a second row inside.
         detail = "\n".join(row.lines[1:]) if shown else ""
         self.notifications.update(detail)
         self.notifications.display = bool(detail)
-        attention |= self.history_details.attention
-        if self.delivery is not None:
-            delivery = self.delivery.delivery
-            attention |= bool(delivery.current or self.delivery.error)
-        self.set_class(attention, "-attention")
-        self.set_class(self.status_working, "-working")
+        label = Content.styled(title, self.app.colours.style(self.title_role))
+        # Native Content compares text and spans; no last-title/status mirror.
+        if not Content.from_text(self.title, markup=False).is_same(label):
+            self.title = label
         self.overview_text = self.history_details.overview(row.lines if shown else ())
         self.display = bool(title)
 
