@@ -58,6 +58,7 @@ from toad.textual_colours import ThemedApp
 from toad.application_actions import ApplicationAction, ApplicationCommands
 from toad.widget_actions import DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime
+from toad.resource_release import AsyncResourceRelease
 
 if TYPE_CHECKING:
     from toad.db import DB
@@ -338,19 +339,18 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
 
     async def _close_all(self) -> None:
-        await self.thread_navigation.close()
-        await self.thread_actions.close()
-        await self.coordination_access.stop_observing()
-        await super()._close_all()
-        # Native clients and the preparation owner have joined actual I/O.
-        # A failed retirement keeps its route resource instead of certifying exit.
-        await self.coordination_access.close()
-
-    async def on_unmount(self) -> None:
-        self.colours.stop()
-        self.terminal_attention.close()
-        await self.navigation_reader.aclose()
-        await self.render_processes.aclose()
+        # View release can fail. The application still owns its observation
+        # pipe and process pools; an Unmount event may never follow that error.
+        async with AsyncResourceRelease() as release:
+            release.push_async_callback(self.render_processes.aclose)
+            release.push_async_callback(self.navigation_reader.aclose)
+            release.callback(self.terminal_attention.close)
+            release.callback(self.colours.stop)
+            release.push_async_callback(self.coordination_access.close)
+            release.push_async_callback(super()._close_all)
+            release.push_async_callback(self.coordination_access.stop_observing)
+            release.push_async_callback(self.thread_actions.close)
+            release.push_async_callback(self.thread_navigation.close)
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
 
