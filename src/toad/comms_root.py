@@ -169,13 +169,14 @@ class CoordinationAccess(MroDispatch):
             with ExitStack() as acquisition:
                 acquisition.enter_context(selected.route.admit_client())
                 service = wire(selected.route)
+                viewer = service.messaging.user_identity(worktree=str(self.app.project_dir))
                 if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                     raise RouteChanged("Comms route changed while opening the service")
                 self.custody.enter_context(acquisition.pop_all())
             # Textual runs the models' flushes after the current message,
             # before the next frame is composed.
             self.observation = ObservedCommsService(
-                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route))
+                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route, viewer))
             self.revision = None
             self.route_observation = WaitingRoute()
         if self.loop is not None:
