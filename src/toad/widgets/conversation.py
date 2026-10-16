@@ -59,6 +59,7 @@ from toad.widgets.splash_text import SplashText
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
+from toad.acp.agent_session import SessionDisposition
 from toad.acp.status import StopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.core.events import AgentFail, AgentReady
@@ -1133,10 +1134,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 details=message.event.details,
             )
 
-        if self.agent is not None:
-            await self.agent.session.disposition.present_failure(message.event, self)
-        else:
-            await message.event.present(self)
+        await SessionDisposition.of(self.agent).present_failure(message.event, self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
