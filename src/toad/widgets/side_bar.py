@@ -18,11 +18,37 @@ from textual.reactive import reactive
 from textual.widget import PrimaryActivation, Widget
 
 from toad.session_tracker import SidebarState
-from toad.sidebar_layout import SidebarPlacementAction
+from toad.sidebar_layout import (
+    Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
+)
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
+
+
+@dataclass(frozen=True)
+class BarPresentation:
+    side: Side
+    order: int
+    floating: bool
+    collapsed: bool
+    directions: tuple[type[SidebarShift], ...]
+    compact: bool
+
+    @classmethod
+    def from_placement(cls, placement: SidebarPlacement, *, collapsed: bool,
+                       directions: dict[Side, SidebarShift], width: int) -> "BarPresentation":
+        return cls(placement.side, placement.order, placement.floating, collapsed,
+                   tuple(type(action) for action in directions.values()),
+                   all(action.available for action in directions.values()) and width - 4 < 21)
+
+
+@dataclass(frozen=True)
+class PresentedBar:
+    presentation: BarPresentation
+    geometry: SidebarGeometry
+    width_percent: int
 
 
 class SidebarVisibilityObserver:
@@ -649,7 +675,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         self._panels_loading = False
         self._panels_ready = asyncio.Event()
         self._presented_collapsed: bool | None = None
-        self._presented_layout: tuple | None = None
+        self._presented_layout: PresentedBar | None = None
         self.set_class(right, "-right")
         if navigation is not None:
             self.collapsed = hide
@@ -757,14 +783,15 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         geometry = resolved.bars[self.id]
         width = geometry.width
         directions = app.sidebar_layout.directions(self.id)
-        compact = all(action.available for action in directions.values()) and width - 4 < 21
-        key = ((placement.side, placement.order, placement.floating, self.collapsed,
-                tuple(type(action) for action in directions.values()), compact),
-               geometry, placement.width_percent)
+        current = PresentedBar(
+            presentation=BarPresentation.from_placement(placement, collapsed=self.collapsed,
+                                                       directions=directions, width=width),
+            geometry=geometry, width_percent=placement.width_percent,
+        )
         previous = self._presented_layout
-        if key == previous:
+        if current == previous:
             return False
-        self._presented_layout = key
+        self._presented_layout = current
         shared = self is app.workspace_chrome.channels
         offset_x = (geometry.x if shared or placement.side == "left" else
                     geometry.x + width - self.screen.size.width)
@@ -773,7 +800,7 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
         self.set_styles(width=width, offset=(offset_x, 0))
         controls = self.query_one_optional("#sidebar-controls") if self._panels_loaded else None
         slider = controls.query_one_optional("#sidebar-width-slider", SidebarSlider) if controls else None
-        if previous is None or previous[0] != key[0]:
+        if previous is None or previous.presentation != current.presentation:
             self.right = placement.side == "right"
             self.set_class(self.right, "-right")
             self.set_styles(min_width=0, max_width="100%",
@@ -803,8 +830,8 @@ class SideBar(CoreEventReceiver, SidebarDecorations, containers.Vertical):
                     toggle_mode = buttons["float"]
                     toggle_mode.update("Push" if placement.floating else "Float", layout=False)
                     toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
-                    actions.set_class(compact, "-compact")
-                    controls.styles.height = 3 if compact else 2
+                    actions.set_class(current.presentation.compact, "-compact")
+                    controls.styles.height = 3 if current.presentation.compact else 2
         if slider is not None and slider.value != placement.width_percent:
             slider.value = placement.width_percent
             slider.refresh()
