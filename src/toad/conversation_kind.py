@@ -279,9 +279,10 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def activity_widget(cls, view):
+        from toad.widgets.native_history import NativeHistory
         from toad.widgets.session_details import SessionDetails
 
-        view.thread_activity = SessionDetails()
+        view.thread_activity = SessionDetails(history=NativeHistory(), status_source=lambda: view.thread_activity.row)
         return view.thread_activity
 
     @classmethod
