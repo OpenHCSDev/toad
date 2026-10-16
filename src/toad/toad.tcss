@@ -29,8 +29,9 @@ LoadingIndicator {
 
 Throbber {
     width: 100%;
-    height: 1;    
-} 
+    height: 1;
+    background: transparent;
+}
 
 .-hidden {
     display: none;
@@ -103,9 +104,6 @@ App.-compact-input {
 App.-show-sessions-bar {
     SessionsTabs {
         display: block;
-    }
-    Throbber {
-        offset-y: 1;
     }
 }
 
@@ -292,9 +290,6 @@ SessionsTabs {
                 text-style: reverse;
             }
 
-            &.-current {
-                text-style: not dim;                
-            }
         }
     }
 }

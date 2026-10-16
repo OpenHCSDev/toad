@@ -24,7 +24,7 @@ from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
     CompactRequest, InputFailedUpdate, encode_request,
 )
-from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, PromptFailureReceipt
+from agent_comms.acp_failure import ACPFailure, BackendDeliveryFailure, RequestFailure
 from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.observation import ReadInputDelivery
@@ -228,7 +228,10 @@ class AgentController(OperationalTerminalOwner):
         """Release snapshot ordering through a fresh read of the same owner."""
         try:
             self.require_owner(coordination, authority)
-            await self.agent.get_thread_presentation()
+            read = self.agent.thread_read()
+            if read is not None:
+                presentation = await self.transcripts.thread_presentation(*read.thread)
+                read.settle(presentation)
         except (CoordinationReadUnavailable, OSError, ValueError) as error:
             # A failed read cannot settle a turn or change input disposition.
             # The original coordination observer resumes reads on publication.
@@ -285,10 +288,10 @@ class AgentController(OperationalTerminalOwner):
         except jsonrpc.APIError as error:
             if authority.retired:
                 return None
-            receipt = PromptFailureReceipt.from_error(error.code, error.message, error.data)
-            failure = receipt.failure
+            request_failure = RequestFailure.from_error(error.code, error.message, error.data)
+            failure = request_failure.failure
             self._prompt_failed(command, authority, queue_scope, failure,
-                failure.title, failure.feedback, published=receipt.notification_published)
+                failure.title, failure.feedback, published=request_failure.notification_published)
             return None
         except jsonrpc.JSONRPCError as error:
             if authority.retired:
@@ -307,7 +310,8 @@ class AgentController(OperationalTerminalOwner):
         if user_text:
             agent.events.publish(core_events.CommsUpdated(InputFailedUpdate(user_text, failure), recover_draft=True, session_id=authority.session_id, queue_scope=queue_scope))
         if not published:
-            agent.events.publish(LogAgentFail(title, detail, log_path=agent.presentation.log_path))
+            agent.session.record_failure(
+                LogAgentFail(title, detail, log_path=agent.presentation.log_path))
 
     async def clear_queue(self):
         await self.submit_blocks([{'type': 'text', 'text': ' '}], ClearQueueRequest())

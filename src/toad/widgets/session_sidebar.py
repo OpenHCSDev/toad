@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 from textual.content import Content
-
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from toad.widgets.activity_spinner import animated_label
-from toad.widgets.selection import HoverSelection
+from toad.widgets.selection import HoverSelection, ViewLabel
 
 
-class ThreadStatusRow(HoverSelection):
+class ThreadStatusRow(ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
 
     DEFAULT_CSS = """
@@ -23,11 +21,9 @@ class ThreadStatusRow(HoverSelection):
         pointer: pointer;
     }
     ThreadStatusRow.-wire-thread.-busy { color: $warning; }
-    ThreadStatusRow.-wire-thread.-unread { text-style: bold; }
     ThreadStatusRow:hover, ThreadStatusRow:focus {
         background: $block-cursor-background;
         color: $block-cursor-foreground !important;
-        text-style: $block-cursor-text-style;
     }
     """
 
@@ -47,37 +43,25 @@ class ThreadStatusRow(HoverSelection):
             return
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
-        self.update_classes({"-wire-thread": True, "-busy": self.busy,
-                             "-unread": row.unread.highlighted, "-asking": False})
+        self.update_classes({"-wire-thread": True, "-busy": self.busy, "-asking": False})
         self.tooltip = Content("\n".join(str(value) for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
-        self.app.busy_rows.track(self, self.busy)
-        self.paint()
-
-    def paint(self) -> None:
-        """Paint the current spinner frame; the frame is a function of time."""
-        row = self.thread_row
-        assert row is not None
-        summary = self.action_status if self.action_status is not None else row.summary
         badge = f"{row.unread.label} " if row.unread.label else ""
-        content = Content.assemble(
-            (badge, "bold"),
-            f"{'* ' if self.pinned else ''}"
-            f"{animated_label(row.label, busy=row.busy, phase=self.app.busy_rows.phase)}"
-            f"\n  {summary}",
-        )
+        title = self.activity_content(row.title, Content(row.label), self.busy,
+                                      prefix=Content.assemble(badge, "* " if self.pinned else ""))
+        content = Content.assemble(title, f"\n  {summary}")
+        self.show_content(content)
+
+    def show_content(self, content: Content, *, layout: bool = False) -> None:
+        """Repaint changed native content; visibility owns label emphasis."""
         current = self.content
-        if not isinstance(current, Content) or not current.is_same(content):
-            self.update(content, layout=False)
+        if not current.is_same(content):
+            self.update(content, layout=layout and current.plain != content.plain)
 
     def retire_thread_row(self) -> None:
         """This row no longer shows a thread."""
+        self.stop_effect()
         if self.thread_row is not None:
-            self.update_classes({"-wire-thread": False, "-busy": False,
-                                 "-unread": False, "-asking": False})
-            self.app.busy_rows.track(self, False)
+            self.update_classes({"-wire-thread": False, "-busy": False, "-asking": False})
         self.thread_row = None
-
-    def on_unmount(self) -> None:
-        self.app.busy_rows.track(self, False)

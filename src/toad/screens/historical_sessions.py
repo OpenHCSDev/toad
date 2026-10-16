@@ -10,21 +10,33 @@ from typing import ClassVar
 from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
-from agent_comms.ui_model.observation import ReadTranscript
+from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
 from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms import HistoricalThread
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Vertical, VerticalGroup
+from textual.containers import Vertical
 from textual.screen import ModalScreen
 from textual.widgets import Select, Static
 
 from toad.screens.workspace import WorkspaceScreen
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
+from toad.widgets.conversation import Contents
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.wire_message_handling import WireMessageHandling
+
+
+class RecordedTranscriptHistory(TranscriptHistory):
+    """History and handling retain the same selected archive."""
+
+    def __init__(self, prepared, loader, *, root: str, source: str):
+        super().__init__(prepared, loader)
+        self.root, self.source = root, source
+
+    def notification_read(self, references) -> ReadRecordedNotifications:
+        return ReadRecordedNotifications(self.root, references, self.source)
 
 
 class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, ModalScreen):
@@ -51,6 +63,10 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
         self.initial_name = name
         self.initial_source = source
         self._selection_generation = 0
+
+    @property
+    def coordination_root(self) -> str:
+        return str(self.comms.root)
 
     @property
     def project_root(self) -> Path:
@@ -87,9 +103,10 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             )
             yield Select(options, allow_blank=False, value=initial, id="saved-identity")
             with HistoryWindow(id="saved-window"):
-                yield VerticalGroup(id="saved-content")
+                yield Contents(id="saved-content")
 
     @on(Select.Changed, "#saved-identity")
+    @work(exclusive=True, group="historical-selection")
     async def selected(self, event: Select.Changed) -> None:
         if event.value is Select.BLANK:
             return
@@ -97,7 +114,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
         self.workers.cancel_group(self, "historical-handling")
         generation = self._selection_generation
         item = self.threads[event.value]
-        content = self.query_one("#saved-content", VerticalGroup)
+        content = self.query_one("#saved-content", Contents)
         await content.remove_children()
         self.query_one("#source-label", Static).update(
             f"@{item.thread.name} · original incarnation {item.thread.created_at}\n"
@@ -127,17 +144,23 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            from toad.widgets.transcript_fragments import prepare_transcript_fragments
+            from toad.transcript_preparation import TranscriptPageRenderTask
+            from toad.work_preparation import RenderPreparation
 
-            fragments = await prepare_transcript_fragments(page.events, self.app.render_processes)
+            prepared = await self.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = TranscriptHistory(page, load, fragments=fragments)
-            await history.prepare_body(lambda: generation == self._selection_generation and self.is_attached)
+            history = RecordedTranscriptHistory(prepared, load, root=root, source=item.source.key)
+            window = self.query_one(HistoryWindow)
+            window.anchor()
+            await content.prepare_history(
+                history, lambda: generation == self._selection_generation and self.is_attached,
+                window=window,
+            )
             if generation != self._selection_generation or not self.is_attached:
                 return
-            await content.mount(history)
-            self.query_one(HistoryWindow).scroll_end(animate=False, immediate=True)
+            async with window.preserve_history(root=content):
+                await content.mount(history)
 
     def action_focus_prompt(self) -> None:
         self.query_one(HistoryWindow).jump_to_latest()
@@ -154,7 +177,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
         """Read the selected archive, never today's-name live notification."""
         if generation != self._selection_generation or not self.is_attached:
             return
-        content = self.query_one("#saved-content", VerticalGroup)
+        content = self.query_one("#saved-content", Contents)
         bodies = WireMessageHandling.within(content)
         references = WireMessageHandling.references_in(bodies)
         if not references:

@@ -12,7 +12,7 @@ from textual.binding import Binding
 from textual.events import ScreenResume
 from textual.widget import Widget
 from textual.worker import WorkerCancelled
-from textual.widgets import Button, Static
+from textual.widgets import Static
 
 from toad import messages
 from toad.conversation_kind import ConversationKind
@@ -38,7 +38,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     SESSION_NAVIGATION_GROUP = Binding.Group(description="Sessions")
     BINDINGS = [
         Binding("escape", "back_to_agent", "Agent session"),
-        Binding("ctrl+h", "historical_sessions", "Saved sessions"),
+        Binding("f8", "historical_sessions", "Saved sessions", priority=True),
         Binding("ctrl+g", "toggle_irc", "IRC view"),
         Binding("ctrl+t", "message_style", "IRC / Markdown"),
         Binding(
@@ -113,7 +113,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             recovery.set_identity(self.me, root)
 
     def rebind_project(self, project: Path) -> None:
+        changed = project != self.project_path
         self.project_path = project
+        if changed:
+            self.link_context_changed()
         if chat := self.query_one_optional(CommsChatView):
             chat.project_path = project
             chat.working_directory = str(project)
@@ -126,8 +129,13 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         return (sidebar,) if sidebar is not None else ()
 
     def compose(self) -> ComposeResult:
-        with containers.Center():
-            yield ThreadSidebar(
+        content = (
+            (self.create_chat(),)
+            if self._content_loaded
+            else (Static(f"Opening {self.target}…", id="comms-opening"),)
+        )
+        yield containers.Center(
+            ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
                     CoordinationStatus(self.me),
@@ -139,14 +147,9 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
                     self.me, wire_root=self.recovery_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
                 right=True, hide=True, navigation=self._thread_sidebar_state,
-            )
-            with containers.Vertical(id="comms-content"):
-                yield Button("Saved sessions", id="historical-sessions")
-                with containers.Vertical(id="comms-chat-content"):
-                    if not self._content_loaded:
-                        yield Static(f"Opening {self.target}…", id="comms-opening")
-                    else:
-                        yield self.create_chat()
+            ),
+            containers.Vertical(*content, id="comms-content"),
+        )
 
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""
@@ -167,7 +170,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             return
         self.app.push_screen(HistoricalSessions(comms, threads, name=event.event.name, source=event.event.source))
 
-    @on(Button.Pressed, "#historical-sessions")
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
         comms = self.app.coordination_access.service
@@ -208,7 +210,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             # The navigation/sidebar shell is already visible in its chosen
             # state. Hydrate only the conversation; retain those exact controls
             # and their scroll position throughout the opening transition.
-            content = self.query_one("#comms-chat-content", containers.Vertical)
+            content = self.query_one("#comms-content", containers.Vertical)
             await content.remove_children()
             await content.mount(self.create_chat())
             if self.is_attached:
@@ -278,7 +280,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     async def action_toggle_irc(self) -> None:
         await self.kind.toggle_irc(self)
 
-    async def action_toggle_dm(self) -> None:
+    async def open_direct_messages(self) -> None:
         await self.kind.toggle_dm(self)
 
     def action_session_previous(self) -> None:

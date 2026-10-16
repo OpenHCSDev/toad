@@ -13,6 +13,7 @@ from textual.widget import Widget
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PreparedPageSource
+    from toad.widgets.history_anchor import LatestPosition
 
 
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
@@ -135,28 +136,15 @@ class SuspendedTranscript(TranscriptState):
     def successors(cls): ...
 
 
-class ViewportRequest(DeclaredFamily, affix="ViewportRequest"):
-    """One bounded destination intent belonging to an admitted operation."""
-
-    @abstractmethod
-    def apply(self, owner) -> None: ...
-
-
-class IdleViewportRequest(ViewportRequest):
-    def apply(self, owner) -> None:
-        pass
-
-
 @dataclass(frozen=True)
-class LatestViewportRequest(ViewportRequest):
-    revision: int
+class LatestViewportRequest:
+    destination: "LatestPosition"
 
     def current(self, window) -> bool:
-        return window.scroll_revision == self.revision
+        return self.destination.current(window)
 
     def restore(self, window) -> None:
-        if self.current(window):
-            window.follow_latest()
+        self.destination.restore(window)
 
     def apply(self, owner) -> None:
         if self.current(owner.window):
@@ -170,9 +158,6 @@ class WorkingTranscript(SuspendedTranscript):
         super().__init__(source)
         self.window_before = owner.paging_window()
         self.reader_revision = owner.window.scroll_revision
-        # The inherited source snapshot stays immutable. Only this operation's
-        # bounded pending resource changes, never a second history-level flag.
-        self.pending_request: ViewportRequest = IdleViewportRequest()
         # The screen asked for rows beyond an edge while this work held the source.
         self.edges_wait = False
 
@@ -194,7 +179,7 @@ class WorkingTranscript(SuspendedTranscript):
         )
 
     def request_latest(self, owner, request: LatestViewportRequest) -> None:
-        self.pending_request = request
+        owner.supersede_source_work(self, request)
 
     def check_edges(self, owner) -> None:
         # One work at a time holds the source. The check is made again when

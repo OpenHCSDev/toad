@@ -60,10 +60,7 @@ class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):
     def make_header(self) -> RelationshipSort:
         return RelationshipSort()
 
-    def capture(self, widget: ThreadCommsSidebar) -> None:
-        for group in widget.groups.values():
-            widget.view_state.expanded[group.model.key] = group.expanded
-            widget.view_state.scroll[group.model.key] = group.member_container.scroll_y
+    capture = staticmethod(ThreadCommsSidebar.capture_state)
 
 
 class PlanSessionPanel(SessionPanel[Plan]):

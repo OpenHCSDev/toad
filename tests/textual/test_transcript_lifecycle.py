@@ -22,7 +22,12 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
         await ui.until(lambda: history.is_mounted, why="the history mounted")
         assert isinstance(history.state, ProvisionalTranscript)
         assert not history.state.can_draw
+        coverage = []
+        history.publish_core = coverage.append
         history.publish_committed()
+        assert not coverage, "source coverage escaped before the first painted frame"
+        await ui.step()
+        assert coverage and coverage[-1].events == page.events
         assert isinstance(history.state, LiveTranscript)
         assert history.state.can_draw
         assert history.state.reports_coverage

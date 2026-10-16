@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from collections import Counter
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import ClassVar, TYPE_CHECKING
 
+from agent_comms.message_reference import MessageReference
 from agent_comms.presentation import MessageNotification
-from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, Spans, WorkingRole
+from toad.line_blocks import LineBlock, MutedRole, NameRole, NoticeRole, OpenTarget, Span, SpanColumns, WorkingRole
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import Shown
@@ -28,40 +28,48 @@ def recipient_line(recipient: str, text: str) -> tuple[Span, ...]:
     return (Span(recipient, NameRole, OpenTarget(recipient)), Span(text, MutedRole))
 
 
-class NotificationStatus(ABC):
+class NotificationStatus:
     """One state of the check: its one-line title and the details behind it."""
 
     working: ClassVar[bool] = False
     unavailable: ClassVar[bool] = False
 
     @property
-    @abstractmethod
-    def title(self) -> str: ...
+    def title(self) -> str:
+        return ""
 
     @property
-    @abstractmethod
-    def details(self) -> DetailLines: ...
+    def details(self) -> DetailLines:
+        return ()
+
+    @property
+    def disclosure(self) -> SpanColumns:
+        return SpanColumns(self.details, indent=2)
 
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """The feedback row and its disclosure, shared by every message fragment."""
         role = NoticeRole if self.unavailable else WorkingRole if self.working else MutedRole
         summary = shown.summary(self.title, role)
-        return ((summary, Spans.from_lines(self.details, indent="  "))
+        return ((summary, self.disclosure)
                 if shown.details_open else (summary,))
 
 
 @dataclass(frozen=True)
 class UncheckedNotifications(NotificationStatus):
-    title = "Notification status not checked"
-
-    @property
-    def details(self) -> DetailLines:
-        return ((Span("Not checked yet", MutedRole),),)
+    # The row is drawn before Core answers, so the answer changes its text
+    # instead of inserting a row under the reader.
+    title = "Checking"
 
 
 @dataclass(frozen=True)
 class CheckedNotifications(NotificationStatus):
     notifications: tuple[MessageNotification, ...]
+
+    @classmethod
+    def for_references(cls, references: Iterable[MessageReference],
+                       results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> CheckedNotifications:
+        return cls(tuple(item for reference in references
+                         for item in results[(reference.seq, reference.message_id)]))
 
     @property
     def ordered(self) -> list[MessageNotification]:
@@ -73,15 +81,10 @@ class CheckedNotifications(NotificationStatus):
 
     @property
     def title(self) -> str:
-        counts = Counter(item.state for item in self.ordered)
-        states = list(counts)
-        summary = " · ".join(f"{state} ({counts[state]})" for state in states[:3])
-        if len(states) > 3:
-            summary += f" · {sum(counts[state] for state in states[3:])} others"
-        read = sum(bool(item.displayed_to) for item in self.ordered)
-        if read:
-            summary = " · ".join(filter(None, (summary, f"Read ({read})")))
-        return summary or "No recorded notification result"
+        # Core owns receipt state, time and priority. Other recipients remain
+        # in the disclosure, not competing counters in the one-line caption.
+        ordered = self.ordered
+        return ordered[0].state if ordered else "No recorded notification result"
 
     @property
     def details(self) -> DetailLines:

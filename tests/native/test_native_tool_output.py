@@ -7,10 +7,8 @@ import threading
 from support.native import ControlledProvider, native_session
 from support.textual_steps import wait_for_tool_diff
 from textual.selection import SELECT_ALL
-from toad.widgets.patch_diff import PatchDiffView
 from toad.widgets.tool_call import ToolCall
-from toad.widgets.tool_content import TextContent, ToolCallDiff
-from toad.widgets.worker_static import WorkerStatic
+from toad.widgets.tool_content import ToolContent
 
 SOURCE = "# Native tool output\nvalue = 1\n"
 CALLS = (
@@ -55,23 +53,23 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
 
             read.set_expanded(True)
             read.scroll_visible(animate=False)
-            await ui.until(lambda: bool(read.query(WorkerStatic)), why="the read output")
-            code = read.query_one(WorkerStatic)
-            await asyncio.wait_for(code.wait_ready(), 15)
+            await ui.until(lambda: bool(read.query(ToolContent)), why="the read output")
+            code = read.query_one(ToolContent)
+            await ui.until(lambda: code._styled is not None, why="prepared read rows")
             assert "value = 1" in code.get_selection(SELECT_ALL)[0]
             await ui.until(lambda: drawn(read, "value = 1"), why="the read output on screen")
             read.set_expanded(False)
             await ui.step()
-            assert not read.query(WorkerStatic)
+            assert not read.query_one(ToolContent).blocks
 
             edit.set_expanded(True)
             edit.scroll_visible(animate=False)
             diff = await wait_for_tool_diff(ui, edit)
-            assert diff.query_one(PatchDiffView).counts == (1, 1)
+            assert "value = 1" in diff.get_clipboard_text() and "value = 2" in diff.get_clipboard_text()
             await ui.until(lambda: drawn(edit, "value = 2"), why="the diff on screen")
             edit.set_expanded(False)
             await ui.step()
-            assert not edit.query(ToolCallDiff)
+            assert not edit.query_one(ToolContent).blocks
             edit.set_expanded(True)
             edit.scroll_visible(animate=False)
             await wait_for_tool_diff(ui, edit)
@@ -79,9 +77,9 @@ async def test_read_edit_and_bash_output_is_drawn_and_survives_collapse(workspac
 
             bash.set_expanded(True)
             bash.scroll_visible(animate=False)
-            await ui.until(lambda: bool(bash.query(TextContent)), why="the bash output")
-            text = bash.query_one(TextContent)
-            await asyncio.wait_for(text.wait_ready(), 15)
+            await ui.until(lambda: bool(bash.query(ToolContent)), why="the bash output")
+            text = bash.query_one(ToolContent)
+            await ui.until(lambda: text._styled is not None, why="prepared ANSI rows")
             assert "NATIVE_TOOL_TEXT" in text.get_selection(SELECT_ALL)[0]
             assert "\x1b" not in text.get_selection(SELECT_ALL)[0]
             await ui.until(lambda: drawn(bash, "NATIVE_TOOL_TEXT"), why="the bash output on screen")

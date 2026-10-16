@@ -24,12 +24,11 @@ class QueueAttachment(ProjectionAttachment):
 
     @property
     def projection(self):
-        if self.status == "available" and self.current is not None:
-            return self.current.projection
-        return (
-            PendingQueueProjection()
-            if self.status is None
-            else UnavailableQueueProjection()
+        return self.state.project(
+            self.current,
+            available=lambda current: current.projection,
+            pending=PendingQueueProjection(),
+            unavailable=UnavailableQueueProjection(),
         )
 
     def _matches_request_scope(self, scope) -> bool:

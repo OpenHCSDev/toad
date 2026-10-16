@@ -106,7 +106,7 @@ class AgentContentEffect(MessageContentEffect):
     def publish(self, content):
         text = content.text
         if text.startswith('[agent error]'):
-            text += f'\n\n{AcpLogLink(self.agent.presentation.log_path).markdown}'
+            text += f'\n\n{AcpLogLink.markdown(self.agent.presentation.log_path)}'
         from toad.response_delivery import ResponseDelivery
         stream = self.agent.presentation.turns.owner.response_stream(ResponseDelivery.from_route(self.route))
         self.agent.events.publish(events.Update(content.type, text, stream))

@@ -26,11 +26,11 @@ class FilePreviewScreen(SessionView, can_focus=False):
     def __init__(self, path: Path, content: Callable[[], Widget]) -> None:
         super().__init__(name=path.name)
         self.project_path = path.parent
-        self.content = content
+        self.preview = content()
 
     def compose(self) -> ComposeResult:
         with Vertical(id="file-preview-content"):
-            yield self.content()
+            yield self.preview
 
     async def action_back(self) -> None:
         if self.id is not None:

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.thread_execution import ConversationPreparation, ThreadExecution
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -127,20 +126,3 @@ def channel_target(name: str) -> NavigationTarget:
 def linked_target(name: str) -> NavigationTarget:
     """Decode a clicked wire identity at the link boundary."""
     return channel_target(name) if name.startswith("#") else ThreadTarget(name)
-
-
-def thread_target(execution: type[ThreadExecution], name: str, active: bool) -> NavigationTarget:
-    """The thread's execution declaration selects its live session or its bus history."""
-    return execution.prepare_conversation(ThreadConversationPreparation(name, active))
-
-
-@dataclass(frozen=True)
-class ThreadConversationPreparation(ConversationPreparation):
-    name: str
-    active: bool
-
-    def external(self) -> NavigationTarget:
-        return DirectTarget(self.name)
-
-    def native(self) -> NavigationTarget:
-        return ThreadTarget(self.name) if self.active else DirectTarget(self.name)

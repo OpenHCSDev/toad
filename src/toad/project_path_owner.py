@@ -10,14 +10,28 @@ class ProjectPathOwner:
     def containing(cls, widget: Widget) -> "ProjectPathOwner":
         return next(owner for owner in widget.ancestors_with_self if isinstance(owner, cls))
 
-    @classmethod
-    def link_from(cls, widget: Widget, href: str):
-        from toad.project_link import ProjectLink
-        return ProjectLink.from_href(lambda: cls.containing(widget).project_root.resolve(), href)
+    @property
+    def reference_context(self):
+        from agent_comms.display_references import ProjectReferences
+        root = self.coordination_root
+        return (ProjectReferences() if root is None else
+                self.app.coordination_access.reference_context(root))
+
+    @property
+    def link_context_events(self):
+        return self.core_publications
+
+    def link_context_changed(self):
+        from toad.core.events import LinkContextChanged
+        self.publish_core(LinkContextChanged())
 
     def admits_link(self, widget: Widget, root: Path) -> bool:
         return (widget.is_on_screen and widget.screen.is_current
                 and self.project_root.resolve() == root)
+
+    @property
+    @abstractmethod
+    def coordination_root(self) -> str | None: ...
 
     @property
     @abstractmethod

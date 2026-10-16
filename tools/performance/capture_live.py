@@ -6,12 +6,45 @@
 """
 
 import argparse
+from contextlib import AbstractContextManager, ExitStack
+import ctypes
 import json
+import os
+import socket
+import struct
 from pathlib import Path
 import subprocess
 import time
 
 import psutil
+
+
+class XvfbDisplay(AbstractContextManager):
+    """Own a connection to a local framebuffer, resolving X11 aliases at Xlib."""
+
+    def __init__(self, name: str):
+        x11 = ctypes.CDLL('libX11.so.6')
+        x11.XOpenDisplay.argtypes = [ctypes.c_char_p]
+        x11.XOpenDisplay.restype = ctypes.c_void_p
+        x11.XConnectionNumber.argtypes = [ctypes.c_void_p]
+        x11.XConnectionNumber.restype = ctypes.c_int
+        x11.XCloseDisplay.argtypes = [ctypes.c_void_p]
+        x11.XCloseDisplay.restype = ctypes.c_int
+        connection = x11.XOpenDisplay(name.encode())
+        if not connection:
+            raise ValueError(f'Cannot connect to isolated Xvfb display: {name}')
+        with ExitStack() as custody:
+            custody.callback(x11.XCloseDisplay, connection)
+            with socket.fromfd(x11.XConnectionNumber(connection), socket.AF_UNIX, socket.SOCK_STREAM) as peer:
+                pid, uid, _gid = struct.unpack('3i', peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12))
+                address = Path(os.fsdecode(peer.getpeername()).lstrip('\0'))
+            if address.name == 'X0' or uid != os.getuid() or Path(psutil.Process(pid).exe()).name != 'Xvfb':
+                raise ValueError(f'Not an owned isolated Xvfb resource: {name}')
+            self.name = name
+            self.custody = custody.pop_all()
+
+    def __exit__(self, *exception):
+        return self.custody.__exit__(*exception)
 
 
 def main():

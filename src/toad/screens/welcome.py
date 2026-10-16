@@ -22,7 +22,7 @@ from toad.core.events import SessionSelected, ThreadActionsChanged
 from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
-from toad.navigation_target import channel_target, thread_target
+from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, SidebarModelView, ThreadRow
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
@@ -63,7 +63,7 @@ class WelcomeTitle(SplashText):
             self.refresh()
 
 
-class WelcomeSection(SidebarGroup):
+class WelcomeSection(SidebarGroup[str, CommsRow]):
     """Some of the sidebar model's rows under a title."""
 
     TITLE = ""
@@ -76,7 +76,6 @@ class WelcomeSection(SidebarGroup):
 
     def __init__(self) -> None:
         super().__init__(Static(self.TITLE, classes="section"), expanded=True)
-        self.members: dict[str, CommsRow] = {}
         # Shown once the model lists something for it.
         self.display = False
 
@@ -100,7 +99,7 @@ class WelcomeSection(SidebarGroup):
             if changed is None or key in changed or not row.is_attached:
                 self.update(model, key, row)
 
-        self.reconcile_rows(keys, self.members, lambda key: self.create(model, key), update)
+        self.reconcile_rows(keys, lambda key: self.create(model, key), update)
 
 
 class WelcomeChannels(WelcomeSection):
@@ -116,9 +115,10 @@ class WelcomeChannels(WelcomeSection):
 
     def update(self, model, key, row):
         channel = model.channels.rows[key]
-        row.set_label(f"{channel.label} ({channel.unread})" if channel.unread else channel.label)
+        row.set_label(
+            f"{channel.label} {channel.unread.label}" if channel.unread.label else channel.label,
+        )
         row.tooltip = channel.tooltip
-        row.set_class(bool(channel.unread), "-unread")
         row.set_class(channel.active, "-channel-active")
 
 
@@ -134,11 +134,11 @@ class WelcomeThreads(WelcomeSection):
 
     def create(self, model, key):
         thread = model.threads.rows[key]
-        return ThreadRow(thread_target(thread.execution, key, thread.active), key)
+        return ThreadRow(ThreadTarget(key), key)
 
     def update(self, model, key, row):
         thread = model.threads.rows[key]
-        row.target = thread_target(thread.execution, key, thread.active)
+        row.target = ThreadTarget(key)
         row.show(thread, action_status=cast("ToadApp", self.app).thread_actions.pending.get(key))
 
 
@@ -186,7 +186,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         thread_list.sync_members(threads)
 
     @handles(SessionSelected)
-    async def session_selected(self, event: CoreEventMessage) -> None:
+    async def present_selected(self, event: CoreEventMessage) -> None:
         self.present()
 
     @handles(ThreadActionsChanged)
@@ -195,8 +195,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
             self.sections[1].sync_members()
 
     def _ordered_rows(self):
-        return [row for section in self.sections for row in section.visible_members
-                if row.is_navigation_row()]
+        return [row for section in self.sections for row in section.navigation_rows]
 
 
 class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):

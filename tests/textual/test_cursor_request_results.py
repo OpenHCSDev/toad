@@ -16,6 +16,7 @@ from agent_comms.thread_identity import AdmissionIdentity, ThreadIncarnation
 from support.agents import detached
 from support.textual_steps import reveal_session_details
 from toad.widgets.native_history import NativeHistory
+from toad.private_native_cursor import CursorStatus, ProvenCursorStatus
 from toad.jsonrpc import InvalidParams
 
 
@@ -28,6 +29,11 @@ def response(session):
     fact = CursorAdvancedUpdate(CursorEnvelope(
         CursorScope(session, "a" * 32, owner, 1234), 1, VerifiedCursorObservation(cursor)))
     return NewSessionResponse(sessionId=session, _meta=encode_updates(fact))
+
+
+def test_unknown_cursor_status_is_rejected():
+    with pytest.raises(ValueError, match="Unknown CursorStatus name"):
+        CursorStatus.external("future-status")
 
 
 class Response:
@@ -63,7 +69,7 @@ async def test_late_answer_to_a_replaced_session_request_cannot_change_session_o
                 await second.started.wait()
                 second.result.set_result(response("new-session"))
                 await replacement
-                await ui.until(lambda: view.native_history_status == "proven", why="the newer session's proof")
+                await ui.until(lambda: view.native_history_status is ProvenCursorStatus, why="the newer session's proof")
                 assert agent.session_id == "new-session"
             else:
                 await agent.stop()
@@ -87,5 +93,5 @@ async def test_late_answer_to_a_replaced_session_request_cannot_change_session_o
             assert row.display and row in app.screen._compositor.visible_widgets
         else:
             assert agent._private_cursor.current is None
-            assert status != "proven"
+            assert status is not ProvenCursorStatus
         await agent.stop()

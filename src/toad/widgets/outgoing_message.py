@@ -2,7 +2,7 @@
 
 from functools import cached_property
 
-from agent_comms.transcript_events import SentTranscript
+from agent_comms.sent_message import PublishedSentMessage
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 
@@ -15,32 +15,40 @@ from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.transcript_lines import MessageRowBlock
 from toad.widgets.wire_message_handling import WireMessageHandling
+from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 
 
-class OutgoingMessage(MessageRowBlock, WireMessageHandling, ConversationBlock, CategorizedBlock, VerticalGroup):
+class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, event: SentTranscript, *, show_header: bool = True):
+    def __init__(self, publication: PublishedSentMessage, *, binding, request, show_header: bool = True):
         super().__init__()
-        self.event = event
+        self.publication = publication
+        self.binding = binding
+        self.request = request
         self.show_header = show_header
+
+    @property
+    def commit_claim(self):
+        return OutgoingMessageClaim(self.publication)
 
     @cached_property
     def message_row(self) -> MessageRow:
-        return MessageRow.sent(self.event)
+        return MessageRow.sent(self.publication.message)
 
     @property
     def message_reference(self):
-        return self.event.source
+        return self.publication.message.source
 
     @property
     def message_category(self):
         return OutboundCategory
 
     def compose(self) -> ComposeResult:
-        yield AgentResponse(self.event.text,
-                            delivery=ResponseDelivery.from_route(self.event.routing.reply),
+        message = self.publication.message
+        yield AgentResponse(message.text,
+                            delivery=ResponseDelivery.from_route(message.require_reply_route()),
                             show_divider=self.show_header,
-                            clock=MessageClock.recorded(self.event.timestamp))
+                            clock=MessageClock.recorded(message.timestamp))
         if self.handling_references:
             yield MessageNotifications()

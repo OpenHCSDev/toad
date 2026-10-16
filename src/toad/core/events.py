@@ -12,13 +12,12 @@ from weakref import WeakMethod, WeakSet, ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
+from agent_comms.transcript_receipts import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream
 from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, RequestFailedUpdate
-from agent_comms.acp_failure import NativeMessageFailureSource, UnrecordedFailureSource
-from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 
@@ -62,6 +61,12 @@ class ToolCall(CoreEvent):
     """The original tool owner assembled this exact SDK call snapshot."""
 
     tool_call: Annotated[ToolCallStatus, ToolCallWire]
+    scope: AssignedSourceIdentity | None = None
+
+    def in_native_source(self, scope):
+        if self.scope is None:
+            return scope is None
+        return scope is not None and scope.same_publication_source(self.scope)
 
     @property
     def tool_id(self) -> str:
@@ -131,6 +136,14 @@ class CoordinationObserved(CoreEvent):
 
 
 @dataclass(frozen=True)
+class ExternalTranscriptChanged(CoreEvent):
+    """A CLI published text; its open transcript reads the current source."""
+
+    def can_replace(self, event: CoreEvent) -> bool:
+        return self == event
+
+
+@dataclass(frozen=True)
 class Thinking(CoreEvent):
     type: str
     text: str
@@ -170,6 +183,16 @@ class SessionThreadTitle(CoreEvent):
 @dataclass(frozen=True)
 class SessionSubtitleChanged(CoreEvent):
     subtitle: str
+
+
+@dataclass(frozen=True)
+class SessionAgentAttached(CoreEvent):
+    """The selected session's operational agent is now attached."""
+
+
+@dataclass(frozen=True)
+class LinkContextChanged(CoreEvent):
+    """The original project or reference observation changed; redraw from its owner."""
 
 
 @dataclass(frozen=True)
@@ -224,6 +247,10 @@ class AgentFail(CoreEvent):
 
     message: str
     details: str
+
+    async def present_session(self, view) -> None:
+        """Specialized setup/help feedback survives the session's failure label."""
+        await self.present(view)
 
     async def present(self, view) -> None:
         from textual.content import Content
@@ -285,7 +312,7 @@ class FailureLog:
         from toad.widgets.agent_response import AgentResponse
         from toad.widgets.message_filter import OtherCategory
 
-        link = AgentResponse(AcpLogLink(self.log_path).markdown,
+        link = AgentResponse(AcpLogLink.markdown(self.log_path),
                              show_divider=False, category=OtherCategory)
         link.add_class("-error-log-link")
         await view.post(link)
@@ -295,14 +322,19 @@ class FailureLog:
 class LogAgentFail(FailureLog, TextAgentFail):
     log_path: Annotated[Path, PathText] = field(kw_only=True)
 
+    async def present_session(self, view) -> None:
+        # MainScreen presents the current terminal failure. Retain its journal
+        # link, not a second error panel that outlives a recovered session.
+        await self.show_log(view)
+
     async def present(self, view) -> None:
         await super().present(view)
         await self.show_log(view)
 
 
 @dataclass(frozen=True)
-class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
-    """The decoded request failure retains its source through presentation."""
+class RequestAgentFail(FailureLog, AgentFail):
+    """The decoded request failure asks its source where feedback belongs."""
 
     update: RequestFailedUpdate
     log_path: Annotated[Path, PathText]
@@ -316,15 +348,10 @@ class RequestAgentFail(FailureLog, AgentFail, MroDispatch):
         return self.update.failure.feedback
 
     async def present(self, view) -> None:
-        await self.dispatch(self.update.source, view)
-
-    @handles(UnrecordedFailureSource)
-    async def show_unrecorded(self, source, view) -> None:
-        await super().present(view)
-        await self.show_log(view)
-
-    @handles(NativeMessageFailureSource)
-    async def show_native(self, source, view) -> None:
+        if not self.update.source.retained_in_history:
+            await super().present(view)
+            await self.show_log(view)
+            return
         # message_end precedes the journal append. The existing source observer
         # resolves the saved row and its time; this event mounts no tail copy.
         view.transcript.require_checkpoint()
@@ -357,6 +384,9 @@ class Subscription:
     @property
     def active(self) -> bool:
         return self in self.stream.subscriptions
+
+    def accepts(self, original: Subscription) -> bool:
+        return self is original and self.active
 
     def close(self) -> None:
         self.stream.subscriptions.discard(self)

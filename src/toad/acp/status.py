@@ -2,11 +2,10 @@
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.native_tools import NativeTool
-from agent_comms.tool_results import tool_result_content
 from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
 from dataclasses import dataclass
 from acp.schema import ToolCall
-from toad.jsonrpc import value_schema
+from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
 class StopReason(DeclaredFamily, affix='StopReason'):
@@ -67,16 +66,29 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):
         self.call.status = "completed" if event.ok else "failed"
-        # Preserve strict decoding before the SDK's salvage validator can
-        # silently discard malformed content.
-        self.call.content = value_schema(ToolCall.model_fields["content"].annotation).validate_python(
-            tool_result_content(event.tool_call_id, event.text, event.diff, event.sent_message), strict=True,
-        )
+        # Saved output stays on its already-decoded result, not a JSON/SDK copy.
+
+    def project_output(self, parts, project):
+        """Only completed sends may replace reported output with a proved body."""
+        return project(parts) if self.completed else parts
 
     busy = False
     boundary = False
     completed = False
     failed = False
+    summary_suffix = ''
+    summary_role = WorkingRole
+
+    @property
+    def title(self) -> str:
+        return self.call.title or 'Tool'
+
+    @property
+    def summary(self) -> Summary:
+        """The argument may clip; the outcome keeps its space and meaning."""
+        verb, separator, argument = self.title.partition(' ')
+        return Summary((Span(verb, ToolVerbRole), Span(separator + argument, ToolArgumentRole)),
+                       kept=(Span(self.summary_suffix, self.summary_role),))
 
     @classmethod
     def activity(cls, turns, output, title):
@@ -88,15 +100,21 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
 
 class PendingToolCallStatus(ToolCallStatus):
     busy = True
+    summary_suffix = ' ⌛'
 
 
 class InProgressToolCallStatus(ToolCallStatus):
     busy = True
+    summary_suffix = ' · running'
 
 
 class CompletedToolCallStatus(ToolCallStatus):
     boundary = completed = True
+    summary_suffix = ' ✔'
+    summary_role = SuccessRole
 
 
 class FailedToolCallStatus(ToolCallStatus):
     boundary = failed = True
+    summary_suffix = ' · failed'
+    summary_role = FailureRole

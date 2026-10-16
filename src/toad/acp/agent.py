@@ -27,7 +27,6 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.goals import Goal
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from agent_comms.ui_model.observation import ReadOwnerGoal
 
 import toad
@@ -36,7 +35,7 @@ from toad.core import events as core_events
 from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer, ThreadRead
-from toad.acp.projection_attachment import ProjectionAttachment
+from toad.acp.projection_attachment import CursorAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.core.events import UnsupportedResumeAgentFail, AgentReady
 from toad.agent import AgentBase
@@ -102,7 +101,7 @@ class Agent(AgentBase):
             self.server.expose_instance(owner.resolve(self))
         self.session = AgentSession(self, session_pk)
         self.done_event = asyncio.Event()
-        self._private_cursor = ProjectionAttachment()
+        self._private_cursor = CursorAttachment()
         self._private_cursor_sequence = 0
         self.queue_attachment = QueueAttachment()
         log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
@@ -277,14 +276,6 @@ class Agent(AgentBase):
         )
         return FieldCodec.decode(Goal, result["goal"])
 
-    @property
-    def transcript_ready(self) -> bool:
-        return (
-            self.coordination.wire_root if self.coordination else None
-        ) is not None and (
-            self.coordination.thread.name if self.coordination else None
-        ) is not None
-
     def observed_thread(self) -> tuple[str, str] | None:
         coordination = self.coordination
         if coordination is None or coordination.wire_root is None or coordination.thread.name is None:
@@ -301,54 +292,8 @@ class Agent(AgentBase):
                           OwnerSnapshotConsumer(self, self.session_id,
                                                 turn_token=self.presentation.turns.sequence))
 
-    async def get_thread_presentation(self):
-        from toad.owner_preparation import read_thread_presentation
-
-        if (read := self.thread_read()) is None:
-            return None
-        root, thread = read.thread
-        async with self.controller.transcripts.bind(root) as reader:
-            presentation = await asyncio.to_thread(read_thread_presentation, reader, thread)
-        return read.settle(presentation)
-
-    async def get_message_notifications(self, references):
-        coordination = self.coordination
-        if coordination is None:
-            return {}
-        results = await self.controller.transcripts.notifications(coordination.wire_root, references)
-        if self.coordination is None or self.coordination.wire_root != coordination.wire_root:
-            raise ValueError("Thread attachment changed during original-message notification read")
-        return results
-
     async def observe_thread_presentation(self, presentation) -> None:
         await self.session.observe_owner(presentation)
-
-    async def get_transcript_page(
-        self,
-        *,
-        before: "TranscriptCursor | None" = None,
-        after: "TranscriptCursor | None" = None,
-        through: "TranscriptCursor | None" = None,
-        read_identity: "TranscriptReadIdentity | None" = None,
-    ) -> "TranscriptPage":
-        if (self.coordination.wire_root if self.coordination else None) is None or (
-            self.coordination.thread.name if self.coordination else None
-        ) is None:
-            raise ValueError("Transcript paging requires an agent-comms thread.")
-        root, thread = (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
-        )
-        page = await self.controller.transcripts.page(
-            root, thread, before=before, after=after, through=through,
-            read_identity=read_identity,
-        )
-        if (root, thread) != (
-            (self.coordination.wire_root if self.coordination else None),
-            (self.coordination.thread.name if self.coordination else None),
-        ):
-            raise ValueError("Thread attachment changed while reading transcript")
-        return page
 
     async def update_project(self, path: str) -> str:
         if (self.coordination.wire_root if self.coordination else None) is None or (

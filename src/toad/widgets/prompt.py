@@ -17,7 +17,6 @@ from textual.binding import Binding
 
 from textual.content import Content, Span
 from textual import getters
-from textual.message import Message
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
 from textual.widget import Widget
@@ -39,7 +38,6 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
-from agent_comms.acp_extension import QueueProjection, PendingQueueProjection
 from toad.widgets.selection import SelectionOptionList
 from toad.widget_actions import DeclaredWidgetActions
 from toad.prompt_actions import PromptAction, SubmitNowAction
@@ -198,8 +196,9 @@ See on-screen instructions for details.
     def queue_supported(self) -> bool:
         return not self.simple_input and self.query_ancestor(Prompt).queue_supported
 
-    class CancelShell(Message):
-        pass
+    @property
+    def can_enter_shell(self) -> bool:
+        return not self.text and not self.simple_input and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
         self.notify_style_update()
@@ -302,7 +301,7 @@ See on-screen instructions for details.
             self.app.bell()
             self.post_message(
                 messages.Flash(
-                    "Agent is not ready. Please wait while the agent connects…",
+                    self.query_ancestor(Prompt).operational_submissions.unavailable_reason,
                     "error",
                 )
             )
@@ -324,7 +323,7 @@ See on-screen instructions for details.
         self.publish_core(UserInputSubmitted(self.text, shell, immediate=immediate))
         self.clear()
         if shell:
-            self.post_message(self.CancelShell())
+            self.query_ancestor(Prompt).shell_mode = False
 
     def action_cursor_up(self, select: bool = False):
         PreviousHistoryCursor.move(self, select, super().action_cursor_up)
@@ -335,7 +334,7 @@ See on-screen instructions for details.
     def action_delete_left(self) -> None:
         selection = self.selection
         if selection.start == selection.end and self.selection.end == (0, 0):
-            self.post_message(self.CancelShell())
+            self.query_ancestor(Prompt).shell_mode = False
             return
         return super().action_delete_left()
 
@@ -490,8 +489,14 @@ class Prompt(containers.VerticalGroup):
         return self.turns.owner.busy if self.turns is not None else False
 
     @property
+    def operational_submissions(self):
+        if self.submissions is None:
+            raise RuntimeError("Operational prompt requires its submission owner")
+        return self.submissions
+
+    @property
     def agent_ready(self) -> bool:
-        return self.simple_input or self.shell_mode or (self.agent is not None and self.agent.ready)
+        return self.simple_input or self.shell_mode or self.operational_submissions.ready
 
     @property
     def queue_supported(self) -> bool:
@@ -608,11 +613,12 @@ class Prompt(containers.VerticalGroup):
     def _update_queue_summary(self) -> None:
         if self.simple_input:
             return
-        projection = self.submissions.queue_projection if self.submissions else PendingQueueProjection()
-        queued = [row.text for row in self.submissions.queued_inputs] if self.submissions else []
+        submissions = self.operational_submissions
+        projection = submissions.queue_projection
+        queued = [row.text for row in submissions.queued_inputs]
         restored = [row.text for row in projection.restored]
         feedback = projection.feedback(self.queue_supported)
-        delivering = self.submissions.delivering if self.submissions else ()
+        delivering = submissions.delivering
         self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []
         if feedback:
@@ -657,7 +663,7 @@ class Prompt(containers.VerticalGroup):
         if self.agent_ready:
             self.query_one(AgentInfo).update(agent_info)
         else:
-            self.query_one(AgentInfo).update("Initializing…")
+            self.query_one(AgentInfo).update(self.operational_submissions.unavailable_reason)
 
     def watch_multiline(self) -> None:
         self.update_prompt()
@@ -756,11 +762,6 @@ class Prompt(containers.VerticalGroup):
 
         self.update_prompt()
 
-    @on(PromptTextArea.CancelShell)
-    def on_cancel_shell(self, event: PromptTextArea.CancelShell):
-        self.shell_mode = False
-
-
     @on(Question.Answer)
     def on_question_answer(self, event: Question.Answer) -> None:
         """An old prompt must not select an option on a successor request."""
@@ -800,10 +801,12 @@ class Prompt(containers.VerticalGroup):
             for kind in InfoPopup.members_with(InfoPopup):
                 if (popup := kind.for_prompt(self)) is not None:
                     yield popup
-            with containers.HorizontalGroup(id="info-container"):
+        with containers.HorizontalGroup(id="info-container"):
+            if not self.simple_input:
                 yield AgentInfo()
                 yield CondensedPath().data_bind(path=Prompt.display_directory)
-                yield StatusLine(markup=False).data_bind(status=Prompt.status)
+            yield StatusLine(markup=False).data_bind(status=Prompt.status)
+            if not self.simple_input:
                 yield ModeSwitcher()
                 yield ModeInfo("mode")
 

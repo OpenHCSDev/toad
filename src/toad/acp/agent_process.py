@@ -58,9 +58,9 @@ class AgentProcess:
                 acquisition.enter_context(selection.route.admit_client())
                 await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
             except (OSError, ValueError, RuntimeError) as error:
-                agent.session.failed()
-                agent.events.publish(LogAgentFail("Failed to start agent", details=str(error),
-                                                 log_path=agent.presentation.log_path))
+                agent.session.record_failure(LogAgentFail(
+                    "Failed to start agent", details=str(error),
+                    log_path=agent.presentation.log_path))
                 return self
             if not agent.session.accepts_updates:
                 return self
@@ -189,10 +189,9 @@ class AgentProcess:
         env = (self.env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
         if (command := self.command) is None:
-            agent.session.failed()
-            agent.events.publish(
-                LogAgentFail("Failed to start agent; no run command for this OS", log_path=agent.presentation.log_path)
-            )
+            agent.session.record_failure(LogAgentFail(
+                "Failed to start agent; no run command for this OS",
+                log_path=agent.presentation.log_path))
             return
         try:
             process = self.process = await self.ingress(agent).spawn(
@@ -200,8 +199,9 @@ class AgentProcess:
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
         except (OSError, ValueError, RuntimeError) as error:
-            agent.session.failed()
-            agent.events.publish(LogAgentFail("Failed to start agent", details=str(error), log_path=self.agent.presentation.log_path))
+            agent.session.record_failure(LogAgentFail(
+                "Failed to start agent", details=str(error),
+                log_path=self.agent.presentation.log_path))
             return
         agent.session.start()
         assert process.stdout is not None
@@ -244,10 +244,9 @@ class AgentProcess:
             if not session.accepts_updates:
                 continue
             if process.returncode:
-                session.failed()
                 assert process.stderr is not None
                 fail_details = (await process.stderr.read()).decode("utf-8", "replace")
-                session.agent.events.publish(LogAgentFail(
+                session.record_failure(LogAgentFail(
                     f"Agent returned a failure code: [b]{process.returncode}",
                     details=fail_details, log_path=session.agent.presentation.log_path))
             elif not session.settled.is_set():

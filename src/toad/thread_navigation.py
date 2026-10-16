@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.main import MainScreen
     from toad.screens.session_view import SessionOrigin
-    from toad.navigation_preparation import NativeThreadNavigation
+    from toad.navigation_preparation import ThreadNavigation
 
 
 @dataclass(frozen=True)
@@ -45,12 +45,11 @@ class ThreadNavigator:
         if source is None:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
-        try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.service)
-            requested_root = str(comms.root)
-        except (OSError, ValueError, RuntimeError) as error:
-            app.notify(str(error), title="Thread unavailable", severity="error")
+        comms = app.coordination_access.observed_service
+        if comms is None:
+            app.notify("The bus is not available", title="Thread unavailable", severity="error")
             return app.selected_mode
+        requested_root = str(comms.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode
         mounted_root = str(Path(requested_root).expanduser())
@@ -83,24 +82,16 @@ class ThreadNavigator:
             task.cancel()
         await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def mount(self, prepared: NativeThreadNavigation, opening: ThreadOpening) -> str:
-        from toad.screens.main import MainScreen
+    async def mount_loading(self, opening: ThreadOpening) -> None:
+        await self.app.session_navigation.new(lambda: opening.view, title=opening.request.target)
 
-        app = self.app
-        source = opening.origin.source
-        if not source.has_agent():
-            app.notify("The owning agent session is unavailable", title="Thread unavailable", severity="error")
-            return opening.owner_mode
-
-        def get_screen() -> MainScreen:
-            screen = source.spawn(project=prepared.project, session_id=prepared.thread.name,
-                                  root=prepared.root)
-            screen._comms_thread = prepared.thread.name
-            return screen
-
-        details = await app.session_navigation.new(get_screen, title=prepared.thread.name,
-                                                  original=(prepared.root, prepared.thread.incarnation))
-        view = app.session_navigation.source(details.mode_name)
-        if view is not None:
-            await view.wait_content_ready()
-        return details.mode_name if app.workspace_sessions.views.get(details.mode_name) else app.selected_mode
+    async def mount(self, prepared: ThreadNavigation, opening: ThreadOpening) -> str:
+        view = opening.view
+        prepared.bind(view)
+        self.app.session_navigation.bind_opened(
+            view, original=(prepared.root, prepared.thread.incarnation),
+            name=prepared.thread.name, project=prepared.project,
+        )
+        await view._prepare_content()
+        await view.wait_content_ready()
+        return view.id if self.app.workspace_sessions.views.get(view.id) is view else self.app.selected_mode

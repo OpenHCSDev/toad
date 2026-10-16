@@ -6,7 +6,6 @@ from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
 from toad.transcript_publication import TranscriptPresentation
 from toad.goal_interaction import GoalSession
-from toad.widgets.message_filter import OtherCategory
 
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -15,12 +14,11 @@ import asyncio
 from abc import abstractmethod
 from contextlib import suppress
 from toad.resource_release import AsyncResourceRelease
-from functools import partial
 from itertools import filterfalse
 
 from operator import attrgetter
 from pathlib import Path
-from time import monotonic, time, time_ns
+from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
 from agent_comms import agent_events as comms_events
@@ -32,8 +30,6 @@ from agent_comms.acp_extension import (
     InputStartedUpdate,
     PromptCancelledUpdate,
     McpClientReceiptUpdate,
-    PendingQueueProjection,
-    QueueProjection,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
@@ -42,10 +38,10 @@ from agent_comms.goal_presentation import GoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
 from rich.text import Text as RichText
-from textual import containers, events, getters, log, on, work
+from textual import containers, events, getters, on, work
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.actions import SkipAction
-from textual.app import ComposeResult, ScreenStackError, UnknownModeError
+from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.content import Content
 from textual.css.query import NoMatches
@@ -63,7 +59,7 @@ from toad.widgets.splash_text import SplashText
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
-from toad.acp.status import StopReason, EndTurnStopReason
+from toad.acp.status import StopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.core.events import AgentFail, AgentReady
 from toad.agent import AgentBase
@@ -71,24 +67,22 @@ from toad.widgets.terminal_tool import TerminalTool
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
-from toad.directory_watcher import DirectoryWatcher
-from toad.core.source_events import DirectoryChanged, CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested
-from toad.format_path import format_path
+from toad.core.source_events import CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested
 from toad.input_history import InputHistories
 from toad.widgets.flash import Flash
 from toad.widgets.menu import Menu
 from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
-from toad.widgets.throbber import Throbber, ObservedThrobber
+from toad.widgets.throbber import ObservedThrobber
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
-from toad.widgets.goal_bar import GoalBar, GoalControl
+from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.transcript_history import TranscriptHistory
-from toad.widgets.wire_message_handling import WireMessageHandling
-from toad.widgets.observed_thread_activity import ThreadStatusOwner
+from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
+from toad.widgets.cli_draft import CliDraft
+from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus
 from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
@@ -103,7 +97,6 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.user_input import UserInput
-from toad.response_delivery import ResponseDelivery
 from toad.widgets.message_filter import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
@@ -123,9 +116,9 @@ def make_session_title(prompt: str) -> str:
 
 
 if TYPE_CHECKING:
-    from toad.widgets.agent_response import AgentResponse
     from toad.widgets.question import Ask
     from toad.widgets.terminal import Terminal
+    from toad.widgets.transcript_history import LineHistory
 
 
 
@@ -187,41 +180,13 @@ class ThreadLoading(ConversationBlock, SplashText):
         self.play()
 
 
-class TurnActivity(Static):
-    DEFAULT_CSS = "TurnActivity { height: 1; padding: 0 1; color: $text-muted; text-overflow: ellipsis; }"
-
-    def __init__(self, turns: ConversationTurn):
-        super().__init__()
-        self.turns = turns
-
-    @property
-    def owner(self) -> TurnOwner:
-        return self.turns.owner
-
-    def on_mount(self) -> None:
-        self.sync()
-
-    def sync(self) -> None:
-        owner = self.owner
-        self.visible = bool(owner.activity)
-        self.auto_refresh = 1 if owner.activity and owner.started_at is not None else None
-        self.refresh()
-
-    def render(self) -> Content:
-        text = " ".join(self.owner.activity.splitlines())
-        if self.owner.started_at is not None:
-            elapsed = max(0, int(time() - self.owner.started_at))
-            text += f" · {elapsed // 60}:{elapsed % 60:02d} elapsed"
-        return Content(text)
-
-
 class CategorizedMount:
     """Admit blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
         from toad.widgets.message_filter import apply_block_filter, block_category, keep_live_block
 
-        selected = self.query_ancestor(Conversation).visible_categories if self.is_attached else all_categories()
+        selected = self.selected_categories
         for widget in require_blocks(widgets):
             classes = {"-unrouted": not keep_live_block(widget)}
             if category := block_category(widget):
@@ -238,15 +203,42 @@ class CategorizedMount:
         return mounted
 
 
-class Contents(CategorizedMount, containers.VerticalGroup, can_focus=False):
+class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
+
+    @property
+    def line_width(self) -> int:
+        """The native width of full-width history rows prepared before mounting."""
+        return self.content_size.width
+
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return all_categories()
+
+    async def prepare_history(self, history: LineHistory, current: Callable[[], bool], *,
+                              window: HistoryWindow) -> None:
+        """Supply a laid-out native target before its detached history prepares rows."""
+        if not self.line_width:
+            await self.wait_for_refresh()
+        rows, _limit = window.latest_limits(history.budget)
+        await history.prepare_rows(current, window=window, target=self, selected=self.selected_categories,
+                                   rows_needed=rows)
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def process_layout(
         self, placements: list[WidgetPlacement]
     ) -> list[WidgetPlacement]:
         return trim_trailing_margin(placements)
+
+
+class ConversationContents(CategorizedMount, Contents):
+    """Conversation ordering and categories compose with the native row container."""
+
+    @property
+    def selected_categories(self) -> frozenset[type[MessageCategory]]:
+        return (self.query_ancestor(Conversation).visible_categories
+                if self.is_attached else all_categories())
 
 
 class ContentsGrid(containers.Grid):
@@ -308,6 +300,34 @@ This is a view of your conversation with the agent.
     BINDING_GROUP_TITLE = "View"
     BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
 
+    def compose(self) -> ComposeResult:
+        yield containers.Center(
+            JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
+            id="back-to-bottom-bar",
+        )
+
+    def on_mount(self) -> None:
+        super().on_mount()
+        self.tail_follow_changed()
+
+    def _arrange_scrollbars(self, region: Region):
+        """Place the vertical bar after the viewport's trailing separator."""
+        for scrollbar, scrollbar_region in super()._arrange_scrollbars(region):
+            if scrollbar is self.vertical_scrollbar:
+                scrollbar_region = scrollbar_region.translate((self.styles.padding.right, 0))
+            yield scrollbar, scrollbar_region
+
+    def tail_follow_changed(self) -> None:
+        if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
+            control.display = self.can_jump_to_latest
+        if self.is_attached:
+            self.query_ancestor(Conversation).refresh_bindings()
+
+    @on(JumpToLatest.Requested)
+    def on_back_to_bottom(self, event: JumpToLatest.Requested) -> None:
+        event.stop()
+        self.query_ancestor(Conversation).jump_to_latest()
+
     def action_focus_prompt(self) -> None:
         self.query_ancestor(Conversation).focus_prompt()
 
@@ -321,13 +341,92 @@ class AgentWindow(Window):
 
 
 
-class ConversationSessionBinding(containers.Vertical):
+class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
+
+    thread_presentation = None
+    """The agent thread's latest settled presentation."""
+
+    _thread_read = None
+    """The capture the next observed presentation settles against (ThreadRead)."""
+
+    _unpublished_presentation = None
+    """An observed presentation whose transcript refresh waits for this view to be shown."""
+
+    @property
+    def operational_sources(self):
+        from toad.screens.session_view import SessionView
+
+        return self.query_ancestor(SessionView).presentation.sources
+
+    def transcript_scope(self) -> tuple[str, str] | None:
+        """The native session identity whose canonical transcript this view shows."""
+        from toad.screens.session_view import SessionView
+
+        origin = self.query_ancestor(SessionView).origin
+        return origin.transcript_scope() if origin is not None else None
+
+    def status_thread(self) -> tuple[str, str] | None:
+        return self.transcript.thread_scope
+
+    def arm_thread_read(self) -> None:
+        """Capture turn token and client authority for the next observed presentation."""
+        self._thread_read = self.agent.thread_read() if self.agent is not None else None
+
+    def thread_observed(self, presentation) -> None:
+        """Settle the agent's turn from an observed presentation, as its own read would."""
+        read = self._thread_read
+        self.arm_thread_read()
+        if read is not None:
+            try:
+                presentation = read.settle(presentation)
+            except ValueError as error:
+                self.log.warning("Observed thread presentation not settled", error)
+                return
+        self.thread_presented(presentation)
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_session()
+
+    def foreign_thread_read(self, presentation) -> None:
+        self.thread_presented(presentation)
+
+    def thread_presented(self, presentation) -> None:
+        """A settled presentation refreshes the transcript source of the shown view."""
+        from toad.screens.session_view import SessionView
+
+        self.thread_presentation = presentation
+        if presentation is None or not self.transcript.readable:
+            return
+        if self.query_ancestor(SessionView).is_current:
+            from toad.transcript_publication import ObservedSourcePublication
+            self._unpublished_presentation = None
+            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+        else:
+            self._unpublished_presentation = presentation
+
+    @handles(core_events.SessionSelected)
+    async def _thread_view_selected(self, event: CoreEventMessage) -> None:
+        from toad.screens.session_view import SessionView
+
+        presentation = self._unpublished_presentation
+        if presentation is not None and self.query_ancestor(SessionView).is_current:
+            from toad.transcript_publication import ObservedSourcePublication
+            self._unpublished_presentation = None
+            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
+
+    @handles(core_events.CoordinationObserved)
+    async def _thread_route_observed(self, event: CoreEventMessage) -> None:
+        # The observed root can change; a foreign thread reads again.
+        self.refresh_thread_status()
+        # Read/handling changes can leave source text unchanged. Ask the same
+        # publication owner to refresh both live bodies and saved message rows.
+        self.transcript.request_handling()
 
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
 
         agent.attach_surface(AttachedSurfaceBinding(self, agent.events))
+        self.publish_core(core_events.SessionAgentAttached())
 
     @abstractmethod
     def _turn_changed(self, owner: TurnOwner) -> None:
@@ -355,7 +454,6 @@ class ConversationSessionBinding(containers.Vertical):
 
     agent: var[AgentBase | None] = var(None, bindings=True)
     agent_info: var[Content] = var(Content())
-    agent_ready: var[bool] = var(False)
     model_history_scope = var("")
     @property
     def queue_supported(self) -> bool:
@@ -375,7 +473,7 @@ class ConversationSessionBinding(containers.Vertical):
     input_delivery_error: var[str] = var("")
 
 
-    native_history_status: var[CursorStatus | None] = var(None)
+    native_history_status: var[type[CursorStatus] | None] = var(None)
 
 
     goal_display: var[GoalDisplay] = var(NoGoal())
@@ -402,6 +500,10 @@ class ConversationSessionBinding(containers.Vertical):
     ) -> None:
         super().__init__()
         self.turns = ConversationTurn(self._turn_changed, lambda: self.agent.presentation.turns if self.agent else None)
+        self.throbber = ObservedThrobber(
+            lambda: self.busy_count > 0 or self.turns.owner.busy or self._observed_working,
+            id="throbber",
+        )
         self._initialize_session(project_path, agent, agent_session_id, session_pk,
                                  session_title, initial_prompt, transcript)
 
@@ -423,7 +525,6 @@ class ConversationSessionBinding(containers.Vertical):
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
-        self.set_class(agent is not None, "-initial-loading")
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -451,8 +552,6 @@ class ConversationSessionBinding(containers.Vertical):
         self._turn_count = 0
         self._shell_count = 0
 
-        self._directory_watcher: DirectoryWatcher | None = None
-
         self._initial_prompt = initial_prompt
         self._native_agent_started_here = False
 
@@ -460,24 +559,19 @@ class ConversationSessionBinding(containers.Vertical):
         self.goal_controls = GoalSession(self)
         self.delivery_observation = InputDeliveryObservation(self)
         self.transcript = transcript if transcript is not None else TranscriptPresentation()
+        self.cli_draft = CliDraft()
         self.transcript.bind(self)
         self.tool_expansions: dict[str, bool] = {}
         # Both explicit eviction and Textual unmount consume this same lifetime.
         # The stack removes callbacks before calling them and continues on error.
         self._source_resources = AsyncResourceRelease()
-        self._source_resources.push_async_callback(self._close_directory_watcher)
         self._source_resources.push_async_callback(
             SessionObservation.close_all, self.goal_observation, self.delivery_observation,
         )
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
-
-    async def _close_directory_watcher(self) -> None:
-        # A parked session takes the handle out of this view before release.
-        watcher, self._directory_watcher = self._directory_watcher, None
-        if watcher is not None:
-            await watcher.aclose()
+        self._source_resources.callback(self.app.coordination_access.show_thread, self, None)
 
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
@@ -485,7 +579,6 @@ class ConversationSessionBinding(containers.Vertical):
             if self.agent is not None:
                 release.push_async_callback(self.agent.retire_surface, self)
             release.push_async_callback(self._release_source_resources)
-            self.app.coordination_access.show_thread(self, None)
 
     def _publish_session_end(self) -> None:
         if self._agent_data is not None and self.session_start_time is not None:
@@ -521,12 +614,7 @@ class ConversationSessionBinding(containers.Vertical):
             await self._release_source_resources()
 
     async def prepare_retained_session(self) -> None:
-        """The actual source chooses restoration; a history widget is not an actor."""
-        agent = self.agent
-        if agent is None:
-            self.resume_retained_history()
-        elif agent.ready:
-            await agent.presentation.restore_saved_history(self)
+        await self.transcript.restore()
 
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
@@ -549,11 +637,6 @@ class ConversationSessionBinding(containers.Vertical):
 
 
     def start_native_session(self) -> None:
-        # Source identity must include its filesystem owner before the first
-        # saved-history publication, rather than changing after AgentReady.
-        if self._directory_watcher is None:
-            self._directory_watcher = DirectoryWatcher(self.project_path, self)
-            self._directory_watcher.start()
         if self.agent is None and self._agent_data is not None:
             from toad.screens.workspace import WorkspaceScreen
             screen = self.screen
@@ -561,35 +644,25 @@ class ConversationSessionBinding(containers.Vertical):
                 screen.frame_presentation.defer(self, self._start_agent)
             else:
                 self.call_after_refresh(self._start_agent)
-        else:
-            self.agent_ready = self.agent.ready if self.agent is not None else True
+        elif self.agent is None:
+            self.agent_info = Content(self.operational_sources.agent_info(self))
+            self._session_ready()
+        elif self.agent.ready:
+            self._session_ready()
 
     def _start_agent(self) -> None:
-        """Admit one operational startup after the source's written frame."""
-        if self.agent is not None:
-            return
-        assert self._agent_data is not None
-        from toad.acp.agent import Agent
-
-        self.agent = Agent(self.project_path, self._agent_data,
-                           self._agent_session_id, self._session_pk)
-        self._native_agent_started_here = True
-        self.bind_agent(self.agent)
-        self.agent.controller.start_operation(
-            self.agent.start(self.app.session_navigation.processes))
-        self.publish_core(core_events.SessionSubtitleChanged(self.agent_title))
+        self.operational_sources.start_agent(self)
 
     @work
-    async def watch_agent_ready(self, ready: bool) -> None:
+    async def _session_ready(self) -> None:
+        """The agent (or the shell) can take input: drop loading, then post start content."""
         presentation = self.transcript
         if presentation.view is not self:
             return
-        if ready:
-            self.remove_class("-initial-loading")
-            await self.query(ThreadLoading).remove()
-            if self.transcript is not presentation or presentation.view is not self:
-                return
-        if ready and self._native_agent_started_here and (agent_data := self._agent_data) is not None:
+        await self.query(ThreadLoading).remove()
+        if self.transcript is not presentation or presentation.view is not self:
+            return
+        if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
             if welcome is not None:
                 from toad.widgets.markdown_note import MarkdownNote
@@ -597,7 +670,11 @@ class ConversationSessionBinding(containers.Vertical):
                 await self.post(MarkdownNote(welcome))
                 if self.transcript is not presentation or presentation.view is not self:
                     return
-        if ready and self._initial_prompt is not None:
+        self._native_agent_started_here = False
+        if self.agent is not None and self.agent.configuration.model.requires_selection:
+            self.prompt.model_switcher.focus()
+            return
+        if self._initial_prompt is not None:
             prompt = self._initial_prompt
             if prompt.startswith("!"):
                 self.publish_core(
@@ -608,24 +685,93 @@ class ConversationSessionBinding(containers.Vertical):
                     input_events.UserInputSubmitted(prompt, shell=False)
                 )
             self.take_initial_prompt()
-        if ready:
-            self._native_agent_started_here = False
+
+    @handles(core_events.ConfigurationChanged)
+    async def on_acp_configuration_changed(self, message: CoreEventMessage):
+        self._update_model_info()
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_configuration()
+            prompt.sync_session()
+        if self._initial_prompt is not None and self.agent is not None and self.agent.ready:
+            self._session_ready()
+        self.refresh_bindings()
+
+    def _update_model_info(self) -> None:
+        agent = self.agent
+        model = agent.configuration.model.selected if agent is not None else None
+        if model is not None:
+            level = agent.configuration.thinking.current
+            suffix = f" · {level}" if level else ""
+            self.agent_info = Content(model.name + suffix)
+        else:
+            self.agent_info = (
+                Content(self.agent.get_info()) if self.agent is not None else Content()
+            )
+
+    @handles(AgentReady)
+    async def on_agent_ready(self, message: CoreEventMessage) -> None:
+        if not message.event.reconnected:
+            self.session_start_time = monotonic()
+            if self.agent is not None:
+                content = Content.assemble(self.agent.get_info(), " connected")
+                self.flash(content, style="success")
+                if self._agent_data is not None:
+                    self.app.application.usage.publish(
+                        "agent-session-begin",
+                        agent=self._agent_data.identity,
+                    )
+
+        self._session_ready()
+        self.prompt.sync_session()
+        self.arm_thread_read()
+        self.refresh_thread_status()
+        self.call_later(self.goal_observation.invalidate)
+        self.call_later(self.delivery_observation.invalidate)
+        self.transcript.request()
+
+    def watch_agent(self, agent: AgentBase | None) -> None:
+        # A presentation remount is not a fresh attachment. Start at the
+        # Agent's current projection/floor so previously queued receipts cannot
+        # revive proof after its reducer entered quarantine or evidence loss.
+        if agent is not None:
+            self.bind_agent(agent)
+        attachments = (agent.presentation.attachments if agent is not None
+                       else AgentAttachmentView(None, 0))
+        self.native_history_status = attachments.cursor
+        self._private_cursor_sequence = attachments.cursor_sequence
+        self.submissions.reset()
+        # The observed presentation is Core's answer for this thread, not the
+        # agent's; it stays until the next observation replaces it.
+        self.arm_thread_read()
+        if self.is_attached:
+            self.refresh_thread_status()
+        self.turns.bound()
+        self.busy_count = 0
+        if agent is None:
+            self.agent_info = Content.styled("shell")
+        else:
+            self._update_model_info()
+            self.status = agent.context_measurement.status()
+            if agent.ready:
+                self._session_ready()
+                self.call_later(self.goal_observation.invalidate)
+                self.call_later(self.delivery_observation.invalidate)
+
+        if self.is_mounted:
+            self.update_slash_commands()
 
 
 from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
 
 
-class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, ConversationSessionBinding):
+from toad.delivery_failure_view import DeliveryFailureView
+
+
+class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions, ConversationSessionBinding):
     ACTIONS = ConversationAction
     """Holds the agent conversation (input, output, and various controls / information)."""
 
-    thread_presentation = None
-    """The agent thread's latest settled presentation."""
-    _thread_read = None
-    """The capture the next observed presentation settles against (ThreadRead)."""
-    _unpublished_presentation = None
-    """An observed presentation whose transcript refresh waits for this view to be shown."""
 
     BLANK = True
     MAX_LIVE_BLOCKS = 32
@@ -662,7 +808,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     ]
 
 
-    throbber: getters.query_one[Throbber] = getters.query_one("#throbber")
     contents = getters.query_one("#contents", Contents)
     window = getters.query_one(Window)
     cursor = getters.query_one(CursorContainer)
@@ -723,12 +868,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         self.working_directory = str(path)
         self.project_data_path = paths.get_project_data(path)
         self.input_histories.bind_project(self.project_data_path)
-        if self._directory_watcher is not None:
-            await self._directory_watcher.aclose()
-            self._directory_watcher = None
-        if self.agent_ready:
-            self._directory_watcher = DirectoryWatcher(path, self)
-            self._directory_watcher.start()
         if self._shell is not None and not self._shell.is_finished:
             with suppress(TimeoutError):
                 async with asyncio.timeout(2):
@@ -741,19 +880,17 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                 await DB().session_update_project(session_pk, path)
 
     def _turn_changed(self, owner: TurnOwner) -> None:
-        self._sync_throbber()
-        if (activity := self.query_one_optional(TurnActivity)) is not None:
-            activity.sync()
+        self.throbber.sync()
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_turn()
         if (details := self.query_one_optional(SessionDetails)) is not None:
             details.sync_turn()
         self.refresh_bindings()
 
-    def make_throbber(self) -> ObservedThrobber:
-        return ObservedThrobber(
-            lambda: self.busy_count > 0 or self.turns.owner.busy, id="throbber"
-        )
+    @on(ObservedThreadActivity.Changed)
+    def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
+        event.stop()
+        self.throbber.sync()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):
@@ -770,12 +907,12 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with Contents(id="contents"):
+                with ConversationContents(id="contents"):
                     yield from ThreadLoading.initial_contents(self._agent_data)
+                    yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield TurnActivity(self.turns)
-            yield SessionDetails(
+            self.thread_activity = SessionDetails(
                 turns=self.turns,
                 transcript=self.transcript,
                 history=NativeHistory().data_bind(
@@ -786,9 +923,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                     error=Conversation.input_delivery_error,
                 ),
             )
-            yield self.make_throbber()
-            yield GoalBar(self)
-            yield Prompt(turns=self.turns, submissions=self.submissions).data_bind(
+            yield self.thread_activity
+            prompt = Prompt(turns=self.turns, submissions=self.submissions).data_bind(
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
@@ -796,6 +932,9 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                 model_history_scope=Conversation.model_history_scope,
                 status=Conversation.status,
             )
+            yield self.throbber
+            yield GoalBar(self, throbber=self.throbber, prompt=prompt)
+            yield prompt
 
     @property
     def _terminal(self) -> Terminal | None:
@@ -831,17 +970,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self.navigation.clear()
             self.flash("Command interrupted", style="success")
 
-    @handles(DirectoryChanged)
-    def on_directory_changed(self, event: CoreEventMessage) -> None:
-        event.stop()
-        if self.turns.owner.accepts_prompt:
-            self.check_directory()
-
     def check_directory(self) -> None:
-        """Invalidate native projections from the original watcher, once consumed."""
-        watcher = self._directory_watcher
-        if watcher is not None and not watcher.consume_change(self) and watcher.enabled:
-            return
+        """A finished turn or command may have changed the project's files."""
         self.prompt.project_directory_updated()
         self.publish_core(input_events.ProjectDirectoryUpdated())
 
@@ -923,92 +1053,15 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     def cursor_block_child(self) -> Widget | None:
         return self.navigation.selected
 
-    def status_thread(self) -> tuple[str, str] | None:
-        return self.agent.observed_thread() if self.agent is not None else None
 
-    def arm_thread_read(self) -> None:
-        """Capture turn token and client authority for the next observed presentation."""
-        self._thread_read = self.agent.thread_read() if self.agent is not None else None
+    def draws_user_message(self, sent) -> bool:
+        from agent_comms.message_reference import MessageReference
 
-    def thread_observed(self, presentation) -> None:
-        """Settle the agent's turn from an observed presentation, as its own read would."""
-        read = self._thread_read
-        self.arm_thread_read()
-        if read is None:
-            return
-        try:
-            presentation = read.settle(presentation)
-        except ValueError as error:
-            # The attachment changed after the capture; the next observation settles.
-            self.log.warning("Observed thread presentation not settled", error)
-            return
-        self.thread_presented(presentation)
+        reference = MessageReference(sent.seq, sent.message_id)
+        return any(reference in fragment.notification_references
+                   for history in self.transcript.histories
+                   for fragment in history.visible_fragments())
 
-    async def read_foreign_thread(self):
-        agent = self.agent
-        if agent is None:
-            return None
-        presentation = await agent.get_thread_presentation()
-        if agent is not self.agent:
-            raise ValueError("Agent attachment changed")
-        return presentation
-
-    def foreign_thread_read(self, presentation) -> None:
-        self.thread_presented(presentation)
-
-    def thread_presented(self, presentation) -> None:
-        """A settled presentation refreshes the transcript source of the shown view."""
-        from toad.screens.session_view import SessionView
-
-        self.thread_presentation = presentation
-        if presentation is None or self.agent is None:
-            return
-        if self.query_ancestor(SessionView).is_current:
-            from toad.transcript_publication import ObservedSourcePublication
-            self._unpublished_presentation = None
-            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
-        else:
-            self._unpublished_presentation = presentation
-
-    @handles(core_events.SessionSelected)
-    async def _thread_view_selected(self, event: CoreEventMessage) -> None:
-        from toad.screens.session_view import SessionView
-
-        presentation = self._unpublished_presentation
-        if presentation is not None and self.query_ancestor(SessionView).is_current:
-            from toad.transcript_publication import ObservedSourcePublication
-            self._unpublished_presentation = None
-            self.transcript.source_requests.request(ObservedSourcePublication, presentation)
-
-    @handles(core_events.CoordinationObserved)
-    async def _thread_route_observed(self, event: CoreEventMessage) -> None:
-        # The observed root can change; a foreign thread reads again.
-        self.refresh_thread_status()
-        # Read/handling changes can leave source text unchanged. Ask the same
-        # publication owner to refresh both live bodies and saved message rows.
-        self.transcript.request_handling()
-
-
-    @handles(AgentReady)
-    async def on_agent_ready(self, message: CoreEventMessage) -> None:
-        if not message.event.reconnected:
-            self.session_start_time = monotonic()
-            if self.agent is not None:
-                content = Content.assemble(self.agent.get_info(), " connected")
-                self.flash(content, style="success")
-                if self._agent_data is not None:
-                    self.app.application.usage.publish(
-                        "agent-session-begin",
-                        agent=self._agent_data.identity,
-                    )
-
-        self.agent_ready = True
-        self.prompt.sync_session()
-        self.arm_thread_read()
-        self.refresh_thread_status()
-        self.call_later(self.goal_observation.invalidate)
-        self.call_later(self.delivery_observation.invalidate)
-        self.transcript.request()
     async def _apply_session_name(self, name: str) -> None:
         if self.agent is not None:
             await self.agent.set_session_name(name)
@@ -1049,10 +1102,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
-        self.remove_class("-initial-loading")
         await self.query(ThreadLoading).remove()
         self.turns.finish_client()
-        self.agent_ready = True
         self._agent_fail = True
         self.prompt.sync_session()
         self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
@@ -1065,7 +1116,10 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
                 details=message.event.details,
             )
 
-        await message.event.present(self)
+        if self.agent is not None:
+            await self.agent.session.disposition.present_failure(message.event, self)
+        else:
+            await message.event.present(self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
@@ -1289,12 +1343,8 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
         if self._shell is None or self._shell.pending_directory is None:
             self.working_directory = str(Path(event.event.path).resolve().absolute())
 
-    def _sync_throbber(self) -> None:
-        if (throbber := self.query_one_optional("#throbber", ObservedThrobber)) is not None:
-            throbber.sync()
-
     async def watch_busy_count(self, _busy: int) -> None:
-        self._sync_throbber()
+        self.throbber.sync()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection):
@@ -1394,7 +1444,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             return
         self.app.events.publish(core_events.OpenTabsChanged())
         if self.turns.owner.busy:
-            self.transcript.invalidate()
+            self.transcript.invalidate_publications()
             return
         await self._clear_mcp_live()
         self._agent_activity_boundary.reset()
@@ -1503,21 +1553,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     async def on_acp_tool_call_update(
         self, message: CoreEventMessage
     ):
-        from toad.widgets.tool_call import ToolCall
-
-        tool_call = message.event.tool_call
-        tool_call.activity(self.turns, self.output, tool_call.call.title or 'Using tool')
-
-        tool_id = message.event.tool_id
-        try:
-            existing_tool_call: ToolCall | None = self.contents.get_child_by_id(
-                tool_id, ToolCall
-            )
-        except NoMatches:
-            await self.post(ToolCall(tool_call, id=message.event.tool_id), new_block=True)
-        else:
-            if existing_tool_call is not None:
-                existing_tool_call.update_tool_call(tool_call)
+        await message.publisher.controller.surface.present_tool(message, self)
 
     @handles(core_events.AvailableCommandsUpdate)
     async def on_acp_available_commands_update(
@@ -1550,25 +1586,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self.flash(
                 Content.from_markup("Mode changed to [b]$mode", mode=mode.name),
                 style="success",
-            )
-
-    @handles(core_events.ConfigurationChanged)
-    async def on_acp_configuration_changed(self, message: CoreEventMessage):
-        self._update_model_info()
-        if (prompt := self.query_one_optional(Prompt)) is not None:
-            prompt.sync_configuration()
-        self.refresh_bindings()
-
-    def _update_model_info(self) -> None:
-        agent = self.agent
-        model = agent.configuration.model.selected if agent is not None else None
-        if model is not None:
-            level = agent.configuration.thinking.current
-            suffix = f" · {level}" if level else ""
-            self.agent_info = Content(model.name + suffix)
-        else:
-            self.agent_info = (
-                Content(self.agent.get_info()) if self.agent is not None else Content()
             )
 
     @handles(input_events.HistoryMove)
@@ -1794,37 +1811,6 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
     async def post_welcome(self) -> None:
         """Post any welcome content."""
 
-    def watch_agent(self, agent: AgentBase | None) -> None:
-        self.transcript.source_changed(self)
-        # A presentation remount is not a fresh attachment. Start at the
-        # Agent's current projection/floor so previously queued receipts cannot
-        # revive proof after its reducer entered quarantine or evidence loss.
-        if agent is not None:
-            self.bind_agent(agent)
-        attachments = (agent.presentation.attachments if agent is not None
-                       else AgentAttachmentView(None, 0))
-        self.native_history_status = attachments.cursor
-        self._private_cursor_sequence = attachments.cursor_sequence
-        self.submissions.reset()
-        self.thread_presentation = self._unpublished_presentation = None
-        self.arm_thread_read()
-        if self.is_attached:
-            self.refresh_thread_status()
-        self.turns.bound()
-        self.busy_count = 0
-        if agent is None:
-            self.agent_info = Content.styled("shell")
-        else:
-            self._update_model_info()
-            self.agent_ready = agent.ready
-            self.status = agent.context_measurement.status()
-            if self.agent_ready:
-                self.call_later(self.goal_observation.invalidate)
-                self.call_later(self.delivery_observation.invalidate)
-
-        if self.is_mounted:
-            self.update_slash_commands()
-
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.
         # Reapply its user-selected height against the new viewport bound.
@@ -1908,7 +1894,7 @@ class Conversation(CoreEventReceiver, DeclaredWidgetActions, ThreadStatusOwner, 
             self._require_check_prune = False
             low_mark = self.app.settings.ui.prune_low_mark
             high_mark = low_mark + self.app.settings.ui.prune_excess
-            if self.agent is not None and self.agent.transcript_ready:
+            if self.transcript.readable:
                 # Height pressure is not source evidence. Dropping the source
                 # pager or an uncovered wire claim lets a later observation
                 # recreate the same record as a new tail arrival.

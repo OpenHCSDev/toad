@@ -2,141 +2,75 @@ from toad.block_navigation import ConversationBlock
 
 from toad.widgets.message_filter import ToolCategory
 from typing import Iterable
-from contextlib import asynccontextmanager
 
-from textual import on
-from textual import events
 from textual.app import ComposeResult
+from textual.await_complete import AwaitComplete
 from textual import getters
 
-from textual.content import Content
 from textual.reactive import var
 from textual.css.query import NoMatches
 from textual import containers
-from textual.widgets import Static
 from textual.widget import Widget
 
 from toad.app import ToadApp
 from toad.tool_output import ToolOutput, ToolOutputPart
-from toad.widgets.tool_content import ToolCallDiff
-from acp import schema as protocol
-from agent_comms.mro_dispatch import MroDispatch, handles
-from toad.acp.status import (
-    ToolCallStatus, PendingToolCallStatus, InProgressToolCallStatus,
-    CompletedToolCallStatus, FailedToolCallStatus,
-)
+from agent_comms.mro_dispatch import handles
+from toad.acp.status import ToolCallStatus
+from toad.line_blocks import ToggleDetails, ToolOutputRole
 from toad.menus import MenuItem
-from toad.pill import pill
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
-from toad.widgets.committed_presentation import SnapshotPresentation
-from toad.layout import trim_trailing_margin
-from textual.layout import WidgetPlacement
-from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
-from textual.await_complete import AwaitComplete
+from toad.widgets.committed_presentation import SnapshotPresentation, ToolOutputClaim
 
-class ToolContent(containers.VerticalGroup):
-    """The decoded output parts of one tool call."""
-
-    def __init__(self, *args, **kwargs):
-        self._mounted_parts: tuple[ToolOutputPart, ...] | None = None
-        super().__init__(*args, **kwargs)
-
-    @property
-    def output(self) -> ToolOutput:
-        return self.query_ancestor(ToolCall).output
-
-    def on_unmount(self) -> None:
-        self._mounted_parts = None
-
-    def sync(self) -> AwaitComplete:
-        if self._mounted_parts == self.output.displayed_parts:
-            return AwaitComplete()
-        return AwaitComplete(self._mount_parts())
-
-    async def recompose(self) -> None:
-        if not self.is_attached:
-            return
-        async with self.lock:
-            self._mounted_parts = None
-            await self._mount_parts()
-
-    async def _mount_parts(self) -> None:
-        output = self.output
-        parts = output.displayed_parts
-        if self._mounted_parts == parts:
-            return
-        with self.app.batch_update():
-            retained = len(parts) == len(self._mounted_parts or ()) == len(self.children) == 1
-            if not retained or not parts[0].update_widget(self._mounted_parts[0], self.children[0]):
-                await self.remove_children()
-                await self.mount_all(widget for part in parts for widget in part.compose(output.view))
-            self._mounted_parts = parts
-
-    @height_dependency(INDEPENDENT_HEIGHT)
-    def process_layout(self, placements: list[WidgetPlacement]) -> list[WidgetPlacement]:
-        return trim_trailing_margin(placements)
+from toad.widgets.agent_activity import AgentActivityPresentation
+from toad.widgets.line_markdown import LineMarkdown
+from toad.widgets.message_divider import SingleLineBlock
+from toad.widgets.tool_content import ToolContent
 
 
-class ToolCallHeader(Static):
+
+
+class ToolCallHeader(SingleLineBlock):
     ALLOW_SELECT = False
     DEFAULT_CSS = """
     ToolCallHeader {
-        width: auto;
-        max-width: 1fr;
+        width: 1fr;
         &:hover {
             background: $panel;
         }
     }
     """
 
+    @handles(ToggleDetails)
+    def toggle_details(self, link: ToggleDetails) -> None:
+        tool = self.query_ancestor(ToolCall)
+        if tool.has_details:
+            tool.set_expanded(not tool.expanded)
+        else:
+            self.app.bell()
 
-class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
+
+class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, containers.VerticalGroup):
     DEFAULT_CSS = """
     ToolCall {
-        # margin: 0 0 0 0 !important;
-        margin: 0 0 0 1 !important;
-
+        margin: 0 !important;
         width: 1fr;
         layout: vertical;
         height: auto;
 
-        .icon {
-            width: auto;
-            margin-right: 1;
-        }
-        #tool-content {
+        #tool-title, #tool-content {
             display: none;
         }
         &.-has-content #tool-content {
-            margin: 1 1 1 0;
-            DiffView {
-                margin: 0 1 1 0;
-            }
-
-            Markdown {
-                layout: stream;
-                padding: 0;
-                margin: 0 0 0 0;
-            }
+            margin: 0 1 1 0;
         }
         &.-expanded {
-            #tool-content {
+            #tool-title, #tool-content {
                 display: block;
-            }
-            ToolCallHeader {
-                text-wrap: wrap;
-                text-overflow: fold;
             }
         }
 
         ToolCallHeader {
-            color: $text-secondary;
             pointer: pointer;
-            width: auto;
-            max-width: 1fr;
-            margin: 0 1 0 0;
-            text-wrap: nowrap;
-            text-overflow: ellipsis;
         }
     }
     """
@@ -159,27 +93,40 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         id: str | None = None,
         classes: str | None = None,
         output_parts: tuple[ToolOutputPart, ...] | None = None,
+        binding=None,
+        request=None,
     ) -> None:
         self.set_reactive(ToolCall.tool_call, tool_call)
+        self.binding = binding
+        self.request = request
         super().__init__(id=id, classes=classes)
         self.output = ToolOutput(self)
         self.output.replace(tool_call.call, parts=output_parts)
         self._manual_expansion: bool | None = None
         self._auto_expanded = False
 
-    def update_tool_call(self, tool_call: ToolCallStatus) -> AwaitComplete:
+    @property
+    def current_status(self) -> ToolCallStatus:
+        status = self.tool_call
+        assert status
+        return status
+
+    @property
+    def commit_claim(self):
+        return ToolOutputClaim(frozenset(message.reference for part in self.output.parts
+                                        for message in part.standalone_messages))
+
+    def update_tool_call(self, tool_call: ToolCallStatus, *, output_parts=None) -> AwaitComplete:
         """Update metadata in place; materialize output only when expanded.
 
         Args:
             tool_call: New Tool call data.
         """
         self.tool_call = tool_call
-        self.output.replace(tool_call.call)
+        self.output.replace(tool_call.call, parts=output_parts)
         self._update_metadata()
-        header = self.query_one(ToolCallHeader)
-        content = self.tool_call_header_content
-        if header.content != content:
-            header.update(content)
+        self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
+        self.query_one("#tool-title", LineMarkdown).update(self.current_status.title)
         return self.output.sync()
 
     def get_block_menu(self) -> Iterable[MenuItem]:
@@ -208,16 +155,13 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         self._manual_expansion = expanded
         self._auto_expanded = False
         self.expanded = expanded
-        if expanded:
-            for diff in self.query(ToolCallDiff):
-                diff.publish_if_ready()
         from toad.widgets.conversation import Conversation
 
         try:
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
             return
-        tool_id = self.tool_call.call.tool_call_id if self.tool_call else None
+        tool_id = self.current_status.call.tool_call_id
         if isinstance(tool_id, str):
             conversation.remember_tool_expansion(tool_id, expanded)
 
@@ -225,23 +169,21 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         return self.expanded
 
     def compose(self) -> ComposeResult:
-        assert self.tool_call is not None
         self._update_metadata()
-        yield ToolCallHeader(self.tool_call_header_content, markup=False).with_tooltip(
-            "Expand to see full title"
-        )
+        yield ToolCallHeader(self.activity_rows[0]).with_tooltip("Expand to see full title")
+        yield LineMarkdown(self.current_status.title, role=ToolOutputRole,
+                           markdown=False, id="tool-title")
         yield ToolContent(id="tool-content")
 
     def on_mount(self) -> None:
         from toad.widgets.conversation import Conversation
 
-        self.watch(self.app, "theme", self.output.theme_changed, init=False)
         try:
             conversation = self.query_ancestor(Conversation)
         except NoMatches:
             pass
         else:
-            tool_id = self.tool_call.call.tool_call_id if self.tool_call else None
+            tool_id = self.current_status.call.tool_call_id
             if isinstance(tool_id, str):
                 self._manual_expansion = conversation.tool_expansions.get(tool_id)
                 if self._manual_expansion is not None:
@@ -250,52 +192,9 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         self.output.sync()
 
     def _update_metadata(self) -> None:
-        assert self.tool_call is not None
-        self.set_class(self.tool_call.failed, "-failed")
+        self.set_class(self.current_status.failed, "-failed")
         self.has_content = self.output.has_content
         self.check_expand()
-
-    def notify_style_update(self) -> None:
-        super().notify_style_update()
-        self.output.theme_changed()
-
-    async def on_show(self) -> None:
-        self.output.hydrate_if_visible()
-
-    def hydrate_if_visible(self) -> None:
-        self.output.hydrate_if_visible()
-
-    def on_unmount(self) -> None:
-        self.output.retire()
-
-    def _visible_in_window(self) -> bool:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        if not self.is_attached or not self.screen.is_active:
-            return False
-        geometry = self.screen._compositor.visible_widgets.get(self)
-        if geometry is None:
-            return False
-        try:
-            window = self.query_ancestor(HistoryWindow)
-        except NoMatches:
-            return True
-        region, _clip = geometry
-        return region.overlaps(window.content_region)
-
-    @property
-    def content_open(self) -> bool:
-        return self.is_mounted and self.is_attached and self.expanded
-
-    @property
-    def content_in_view(self) -> bool:
-        return self.content_open and self._visible_in_window()
-
-    @property
-    def content_presentable(self) -> bool:
-        if not self.expanded:
-            return False
-        return not self._auto_expanded or self._visible_in_window()
 
     def check_expand(self) -> None:
         """Check if the tool call should auto-expand."""
@@ -303,8 +202,7 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
             return
         if not self.has_content:
             return
-        tool_call = self.tool_call
-        assert tool_call is not None
+        tool_call = self.current_status
         if self.output.suppress_auto_expansion:
             # Don't auto expand reads, as it can generate a lot of noise
             return
@@ -319,52 +217,19 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
         self._auto_expanded = self.expanded
 
     @property
-    def tool_call_header_content(self) -> Content:
-        tool_call = self.tool_call
-        assert tool_call is not None
-        title = tool_call.call.title
-        status = tool_call
+    def has_details(self) -> bool:
+        return AgentActivityPresentation.tool_has_details(self.current_status, self.has_content)
 
-        expand_icon: Content = Content()
-        if self.has_content:
-            expand_icon = Content.from_markup(
-                "[$text-secondary]▼ " if self.expanded else "[$text-secondary]▶ "
-            )
-        else:
-            expand_icon = Content.from_markup(
-                "[$text-secondary 30%]▼ "
-                if self.expanded
-                else "[$text-secondary 30%]▶ "
-            )
-
-        parts = [Content.assemble(expand_icon, "🔧 ", title)]
-        self.dispatch_sync(status, parts)
-        return Content.assemble(*parts)
-
-    @handles(PendingToolCallStatus)
-    def pending_header(self, status, parts):
-        parts.append(Content(' ⌛'))
-
-    @handles(InProgressToolCallStatus)
-    def running_header(self, status, parts):
-        parts.append(Content.assemble(' ', pill(
-            'running', '$warning-muted', '$warning',
-            filled=not self.app.native_ansi_color)))
-
-    @handles(CompletedToolCallStatus)
-    def completed_header(self, status, parts):
-        parts.append(Content.from_markup(' [$success]✔'))
-
-    @handles(FailedToolCallStatus)
-    def failed_header(self, status, parts):
-        parts.append(Content.assemble(' ', pill(
-            'failed', '$error-muted', '$error',
-            filled=not self.app.native_ansi_color)))
+    @property
+    def activity_rows(self):
+        return AgentActivityPresentation.tool(
+            self.current_status, has_details=self.has_details, details_open=self.expanded
+        )
 
     def watch_expanded(self) -> None:
         self.output.sync()
         try:
-            self.query_one(ToolCallHeader).update(self.tool_call_header_content)
+            self.query_one(ToolCallHeader).update_block(self.activity_rows[0])
         except NoMatches:
             pass
         from toad.widgets.conversation import Conversation
@@ -375,11 +240,3 @@ class ToolCall(MroDispatch, ConversationBlock, SnapshotPresentation, Categorized
             pass
         else:
             self.call_after_refresh(conversation.cursor.refresh)
-
-    @on(events.Click, "ToolCallHeader")
-    def on_click_tool_call_header(self, event: events.Click) -> None:
-        event.stop()
-        if self.has_content:
-            self.set_expanded(not self.expanded)
-        else:
-            self.app.bell()

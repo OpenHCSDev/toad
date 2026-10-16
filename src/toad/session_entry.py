@@ -15,10 +15,10 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import wire
 from agent_comms.thread_identity import ThreadIncarnation
 
-from agent_comms.ui_model.unread import UnreadPresentation
+from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
-from toad.session_tracker import CommsViewKey, OpenTab, SessionDetails
+from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
 
 if TYPE_CHECKING:
     from toad.session_navigation import SessionNavigation
@@ -113,14 +113,26 @@ class NativeSessionEntry(SessionEntry):
 
         if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
             return
-        if source := self.source(sessions):
-            if agent := source.conversation.agent:
-                if binding := agent.coordination:
-                    if ((binding.wire_root, binding.thread) in self.original_threads(sessions)
-                            and Path(binding.wire_root).resolve() == selected.root
-                            and any(binding.thread.matches_recorded_name(target, snapshot)
-                                    for target in targets)):
-                        await agent.session.reconnect()
+        source = self.source(sessions)
+        if source is None:
+            return
+        original = next((identity for root, identity in self.original_threads(sessions)
+                         if Path(root).resolve() == selected.root
+                         and any(identity.matches_recorded_name(target, snapshot)
+                                 for target in targets)), None)
+        if original is None:
+            return
+        thread = snapshot.require(snapshot.canonical_name(original.name))
+        from toad.owner_preparation import ExistingOwnerAdmission
+
+        binding = thread.execution.owner_binding(snapshot, thread)
+        admission = ExistingOwnerAdmission.from_binding(binding)
+        if admission is None:
+            return
+        if agent := source.presentation.operational_agent:
+            await agent.session.reconnect(admission)
+        else:
+            source.presentation.sources.attach_started(source, admission)
 
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         source = self.source(sessions)
@@ -132,22 +144,23 @@ class NativeSessionEntry(SessionEntry):
         if session_id in {source._agent_session_id, live.session_id if live else None}:
             return True
         root = source.coordination_root
-        return root is not None and wire(root).registry.canonical_name(session_id) == source._resolve_comms_thread()
+        return root is not None and wire(root).registry.canonical_name(session_id) == source.resolve_thread()
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
         name = source._comms_thread if source else ""
         snapshot = observed.sidebar.snapshot if observed is not None else None
         if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
-            return OpenTab(self.mode, self.details.name.display or "New Session")
+            return NamedTab(self.mode, self.details.name.display or "New Session")
         row = observed.sidebar.threads.rows.get(name)
         originals = self.original_threads(sessions)
         if row is not None and originals and not any(
                 Path(root).resolve() == observed.service.root and identity == row.incarnation
                 for root, identity in originals):
-            return OpenTab(self.mode, self.details.name.display or "New Session")
-        return OpenTab(self.mode, row.label if row else self.details.name.display or "New Session",
-                       UnreadPresentation.for_thread(snapshot, name))
+            return NamedTab(self.mode, self.details.name.display or "New Session")
+        if row is not None:
+            return ThreadTab(self.mode, row)
+        return NamedTab(self.mode, self.details.name.display or "New Session")
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
@@ -191,10 +204,12 @@ class HistorySessionEntry(SessionEntry):
         return sessions.source(self.key.owner_mode)
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        return OpenTab(self.mode, self.key.title, self.kind.unread(
-            observed.sidebar.snapshot
-            if observed is not None and Path(self.key.root).resolve() == observed.service.root
-            else None, self.key.target))
+        unread: UnreadPresentation = UnobservedUnread()
+        if observed is not None and Path(self.key.root).resolve() == observed.service.root:
+            snapshot = observed.sidebar.snapshot
+            if snapshot is not None:
+                unread = self.kind.unread(snapshot, self.key.target)
+        return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
         return super().depends_on(mode) or self.key.owner_mode == mode
@@ -258,7 +273,7 @@ class PreviewSessionEntry(SessionEntry):
         return self.path
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        return OpenTab(self.mode, self.title)
+        return NamedTab(self.mode, self.title)
 
     def entered(self, previous: str) -> None:
         if previous != self.mode:

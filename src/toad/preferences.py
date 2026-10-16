@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Annotated, Any
 from uuid import uuid4
 
 from agent_comms.field_codec import FieldCodec
-from annotated_types import Ge, Le
+from annotated_types import Ge
 from objectstate import ObjectState, set_base_config_type
 from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
@@ -175,15 +175,6 @@ class NotificationsSettings(AnnotatedDataclassValidationMixin):
 class SidebarSettings(AnnotatedDataclassValidationMixin):
     hide: Annotated[bool, FieldLabel("Hide the sidebar when not in use?")] = False
 
-    spinner_frames_per_second: Annotated[
-        int,
-        FieldLabel("Busy sidebar animation frames per second"),
-        Ge(1),
-        Le(60),
-        effects.sidebar_spinner_frames_per_second,
-    ] = field(default=30, metadata=saved_as("spinner-frames-per-second"))
-    """Animation cadence for busy threads. Frame stalls remain visible when the UI is occupied."""
-
     show_stopped: Annotated[
         bool, FieldLabel("Show stopped threads in Channels?"), effects.sidebar_filters
     ] = True
@@ -240,12 +231,12 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
 @dataclass(frozen=True)
 class DiffSettings(AnnotatedDataclassValidationMixin):
     view: Annotated[
-        type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode)
+        type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode), effects.diff_style
     ] = AutoDiff
 
-    annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?")] = False
+    annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?"), effects.diff_style] = False
 
-    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode)] = NoWrapMode
+    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), effects.diff_style] = NoWrapMode
     """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
 
 

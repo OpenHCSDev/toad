@@ -13,6 +13,7 @@ from textual.widget import Widget
 from textual.widgets.text_area import TextAreaState
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from toad.owner_preparation import ExistingOwnerAdmission
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
@@ -83,7 +84,7 @@ class SessionSurfaceLifetime(ABC):
 
 
 class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
-    """Shared actual editor-state custody and active shell close semantics."""
+    """Own retained editor state and active shell close semantics."""
 
     def __init__(self) -> None:
         self.state: SessionViewState | None = None
@@ -97,23 +98,78 @@ class EditorSessionSurfaceLifetime(SessionSurfaceLifetime):
 
 
 class OperationalSessionSources:
-    """Logical session custody of existing operational owners, without a view."""
+    """Own existing operational resources while the view is detached."""
 
     def __init__(self) -> None:
+        from agent_comms.session_load import EnsuringSessionLoadAdmission
+
         self.agent = None
         self.shell = None
-        self.directory_watcher = None
+        self.load_admission = EnsuringSessionLoadAdmission()
+
+    def agent_info(self, conversation: Conversation) -> str:
+        return "shell"
+
+    def accepts_inbox_submission(self, event) -> bool:
+        return False
+
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        """Native sessions receive their text through their own ACP stream."""
+
+    def input_ready(self, conversation: Conversation) -> bool:
+        agent = conversation.agent
+        if agent is None or not agent.ready:
+            return False
+        if agent.configuration.model.requires_selection:
+            return False
+        if conversation.transcript.readable:
+            presentation = conversation.thread_presentation
+            return (presentation is not None
+                    and ExistingOwnerAdmission.from_binding(presentation.binding) is not None)
+        return True
+
+    def unavailable_reason(self, conversation: Conversation) -> str:
+        presentation = conversation.thread_presentation
+        if (conversation.transcript.readable and presentation is not None
+                and ExistingOwnerAdmission.from_binding(presentation.binding) is None):
+            return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+        agent = conversation.agent
+        if agent is not None and agent.configuration.model.requires_selection:
+            return "Choose a model or connect a provider (click here). Your draft is kept."
+        return "Agent is not ready. Please wait while the agent connects…"
+
+    def start_agent(self, conversation: Conversation) -> None:
+        """The operational source owns connection creation and load admission."""
+        from toad.acp.agent import Agent
+        from toad.core import events as core_events
+
+        if conversation.agent is not None:
+            return
+        assert conversation._agent_data is not None
+        agent = Agent(conversation.project_path, conversation._agent_data,
+                      conversation._agent_session_id, conversation._session_pk)
+        agent.session.load_admission = self.load_admission
+        conversation.agent = agent
+        conversation._native_agent_started_here = True
+        conversation.bind_agent(agent)
+        agent.controller.start_operation(agent.start(conversation.app.session_navigation.processes))
+        conversation.publish_core(core_events.SessionSubtitleChanged(conversation.agent_title))
+
+    def attach_started(self, screen: "MainScreen", admission) -> None:
+        """An explicit Start action may attach the same retained view to its new owner."""
+        self.load_admission = admission
+        screen._agent = screen._agent or screen.app.agent_data
+        conversation = screen.presentation.widget
+        if conversation is not None:
+            conversation._agent_data = screen._agent
+            if screen.is_current:
+                conversation.start_native_session()
 
     def wire(self, conversation: Conversation) -> None:
         if self.agent is not None:
             from toad.widgets.conversation import ConversationSessionBinding
 
             conversation.set_reactive(ConversationSessionBinding.agent, self.agent)
-        watcher, self.directory_watcher = self.directory_watcher, None
-        if watcher is not None:
-            conversation._directory_watcher = watcher
-            watcher.rebind(conversation)
-            conversation.call_after_refresh(watcher.notify_if_visible)
 
     async def present(self, conversation: Conversation) -> None:
         shell, self.shell = self.shell, None
@@ -130,15 +186,10 @@ class OperationalSessionSources:
         conversation._shell = None
         if self.shell is not None:
             await self.shell.detach()
-        self.directory_watcher = conversation._directory_watcher
-        conversation._directory_watcher = None
-        if self.directory_watcher is not None:
-            self.directory_watcher.rebind(screen)
         if self.agent is not None:
             self.agent.detach_surface(conversation)
 
     async def close(self) -> None:
-        watcher, self.directory_watcher = self.directory_watcher, None
         agent, self.agent = self.agent, None
         shell, self.shell = self.shell, None
         async with AsyncResourceRelease() as release:
@@ -146,8 +197,30 @@ class OperationalSessionSources:
                 release.push_async_callback(shell.close)
             if agent is not None:
                 release.push_async_callback(agent.stop)
-            if watcher is not None:
-                release.push_async_callback(watcher.aclose)
+
+
+class MailboxSessionSources(OperationalSessionSources):
+    """CLI execution receives user messages through Core's inbox, not ACP."""
+
+    def agent_info(self, conversation: Conversation) -> str:
+        scope = conversation.transcript.thread_scope
+        return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
+
+    def input_ready(self, conversation: Conversation) -> bool:
+        # The view's own send holds compose itself (DeliveryFailureView).
+        return conversation.transcript.readable
+
+    def accepts_inbox_submission(self, event) -> bool:
+        return not event.shell and bool(event.body.strip())
+
+    def external_transcript_changed(self, conversation: Conversation) -> None:
+        from toad.transcript_publication import CanonicalSourcePublication
+
+        conversation.transcript.source_requests.request(CanonicalSourcePublication)
+
+    def unavailable_reason(self, conversation: Conversation) -> str:
+        # A CLI thread has no native owner to start; only its history load holds it.
+        return "Loading thread history…"
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
@@ -167,7 +240,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @property
     def retained_widget_count(self) -> int:
-        """Native custody includes the complete tree, even while parked."""
+        """The retained native view includes its complete widget tree."""
         return 1 + self.widget.descendant_count if self.widget is not None else 0
 
     @property
@@ -265,6 +338,11 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         """The tab is being left: its window keeps the reader's place until it is drawn again."""
         if (conversation := self.widget) is not None:
             conversation.window.park_reader()
+
+    def external_transcript_changed(self) -> None:
+        """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
+        if self.widget is not None:
+            self.sources.external_transcript_changed(self.widget)
 
     async def remove_native_tree(self) -> None:
         if (conversation := self.widget) is None:

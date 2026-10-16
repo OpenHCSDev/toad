@@ -1,4 +1,10 @@
 
+WorkspaceScreen {
+    /* Float sidebars above session content while keeping Screen's tooltip
+       layer front-most. */
+    layers: default comms-sidebar;
+}
+
 Note,MarkdownNote {    
     padding: 0 1 0 0;
     &.-error {
@@ -48,18 +54,9 @@ Plan {
 
 
 Conversation {    
-    &.-initial-loading {
-        Window { align: center middle; }
-        ContentsGrid, Contents { height: 1fr; }
-    }
-
     #prompt-stack {
         dock: bottom;
         height: auto;
-
-        & > Throbber {
-            offset-y: 0;
-        }
 
         & > Prompt {
             dock: none;
@@ -75,6 +72,33 @@ Conversation {
         padding: 0 1 0 0;
         height: 1fr;                
         align: left bottom;   
+    }
+
+    #back-to-bottom-bar {
+        display: none;
+        overlay: screen;
+        dock: bottom;
+        layer: float;
+        width: 1fr;
+        height: 3;
+        align: center middle;
+        visibility: hidden;
+
+        #back-to-bottom {
+            visibility: visible;
+            width: auto;
+            height: 1;
+            padding: 0 1;
+            color: $text-primary;
+            background: $surface-lighten-1;
+            text-style: bold;
+
+            &:hover, &:focus {
+                background: $block-cursor-background;
+                color: $block-cursor-foreground;
+                text-style: bold;
+            }
+        }
     }
 
     &.-scrollbar-thin {

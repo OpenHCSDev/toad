@@ -5,7 +5,6 @@ from textual.app import ComposeResult
 from textual import containers
 from toad.widgets.line_markdown import LineMarkdown
 
-from toad.widgets.non_selectable_label import NonSelectableLabel
 from toad.line_blocks import Divider, UserRole
 from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
@@ -18,23 +17,7 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
     UserInput {
         background: transparent;
         padding: 0;
-        margin: 0 1 1 0;
-        & > .user-input-body {
-            border-left: blank $secondary;
-            background: $secondary 15%;
-            padding: 0 1 0 0;
-        }
-        LineMarkdown {
-            padding: 0 2 0 0;
-        }
-        #prompt {
-            margin: 0 1 0 0;
-            color: $text-secondary;
-        }
-        &:ansi > .user-input-body {
-            background: ansi_default;
-            border-left: tall ansi_cyan;
-        }
+        margin: 0 0 1 0;
     }
     """
 
@@ -57,9 +40,8 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
     def compose(self) -> ComposeResult:
         if self.show_divider:
             yield MessageDivider(Divider.titled("User", UserRole), clock=self.clock)
-        with containers.HorizontalGroup(classes="user-input-body"):
-            yield NonSelectableLabel("❯" if self.show_divider else " ", id="prompt")
-            yield LineMarkdown(self.content, id="content")
+        # The same Body block committed history draws for this message.
+        yield LineMarkdown(self.content, bar=UserRole, markdown=False, id="content")
 
     def get_clipboard_text(self) -> str | None:
         return self.content

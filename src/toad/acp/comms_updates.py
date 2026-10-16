@@ -184,7 +184,7 @@ class CommsUpdateConsumer(MroDispatch):
     def request_failed(self, update):
         from toad.core.events import RequestAgentFail
 
-        self.agent.events.publish(
+        self.agent.session.record_failure(
             RequestAgentFail(update, self.agent.presentation.log_path)
         )
 

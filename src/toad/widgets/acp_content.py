@@ -16,5 +16,8 @@ class ACPToolCallContent(containers.VerticalGroup):
         super().__init__(id=id, classes=classes)
 
     def compose(self) -> ComposeResult:
-        for part in self.parts:
-            yield from part.compose(self)
+        from toad.widgets.tool_content import ToolContent
+
+        content = ToolContent()
+        content.update(tuple(block for part in self.parts for block in part.line_blocks))
+        yield content

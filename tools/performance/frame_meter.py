@@ -22,6 +22,10 @@ from contextlib import contextmanager
 PAUSES: list[tuple[int, int]] = []
 
 
+class CaptureProcessMismatch(RuntimeError):
+    """Remote capture entered a process other than the requested application."""
+
+
 @contextmanager
 def measuring_pause():
     begin = time.monotonic_ns()
@@ -33,18 +37,11 @@ def measuring_pause():
 
 def _running_app(expected_pid):
     """The application running in this process (remote code runs outside its context)."""
-    import asyncio
-    from textual._context import active_app
+    from textual.app import App
 
     if os.getpid() != expected_pid:
-        raise RuntimeError("Unexpected capture process")
-    app = active_app.get(None)
-    for task in () if app is not None else asyncio.all_tasks():
-        if (app := task.get_context().get(active_app, None)) is not None:
-            break
-    if app is None:
-        raise RuntimeError("No application context")
-    return app
+        raise CaptureProcessMismatch("Unexpected capture process")
+    return App.running_app()
 
 
 def install(*, expected_pid, seconds, output):
@@ -408,7 +405,9 @@ def _targets(*, expected_pid, output):
         region = window.scrollable_content_region
         message_window = {"region": tuple(region), "scroll_y": window.scroll_y,
                           "max_scroll_y": window.max_scroll_y, "follows_tail": window.follows_tail}
-    fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    # Readers wait for the path to exist, so it appears only once complete.
+    partial = f"{output}.partial"
+    fd = os.open(partial, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, "w") as file:
         arranged = {}
         for node in compositor._layout_map:
@@ -424,6 +423,8 @@ def _targets(*, expected_pid, output):
             for node in owner.widget.walk_children(with_self=True))
         json.dump({"threads": rows, "tabs": tabs, "text": text, "message_window": message_window,
                    "arranged": arranged, "retained": retained, "mounted": dict(mounted.most_common())}, file)
+    os.link(partial, output)  # fails, like the exclusive create did, if output exists
+    os.unlink(partial)
 
 
 def profile_layout(*, expected_pid, output, calls=40, target="textual.screen:Screen._refresh_layout"):
@@ -958,10 +959,15 @@ def trace_calls(*, expected_pid, output, targets, seconds=60):
             @functools.wraps(original)
             async def timed(*args, __original=original, __target=target, **kwargs):
                 begin, cpu = time.monotonic_ns(), time.thread_time_ns()
+                result = None
                 try:
-                    return await __original(*args, **kwargs)
+                    result = await __original(*args, **kwargs)
+                    return result
                 finally:
-                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), None, begin,
+                    # Publication decisions matter; do not recursively repr a page.
+                    outcome = (repr(result) if result is None or isinstance(result, (bool, int, float))
+                               else type(result).__name__)
+                    calls.append((__target, (time.monotonic_ns() - begin) / 1e6, _subject(args), outcome, begin,
                                   (time.thread_time_ns() - cpu) / 1e6))
         else:
             @functools.wraps(original)
