@@ -110,8 +110,13 @@ class OperationalSessionSources:
     def agent_info(self, conversation: Conversation) -> str:
         return "shell"
 
-    def accepts_inbox_submission(self, event) -> bool:
-        return False
+    def make_conversation(self, screen: "MainScreen") -> Conversation:
+        return Conversation(
+            screen.project_path, screen._agent, screen._agent_session_id,
+            screen._session_pk, screen.app.session_tracker.sessions[screen.id].initial_title,
+            initial_prompt=screen._initial_prompt,
+            transcript=screen.presentation.transcript,
+        )
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
         """Native sessions receive their text through their own ACP stream."""
@@ -206,21 +211,15 @@ class MailboxSessionSources(OperationalSessionSources):
         scope = conversation.transcript.thread_scope
         return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
 
-    def input_ready(self, conversation: Conversation) -> bool:
-        # The view's own send holds compose itself (DeliveryFailureView).
-        return conversation.transcript.readable
+    def make_conversation(self, screen: "MainScreen") -> Conversation:
+        from toad.conversation_kind import DmConversation
+        from toad.widgets.comms_chat import CommsChatView
 
-    def accepts_inbox_submission(self, event) -> bool:
-        return not event.shell and bool(event.body.strip())
-
-    def external_transcript_changed(self, conversation: Conversation) -> None:
-        from toad.transcript_publication import CanonicalSourcePublication
-
-        conversation.transcript.source_requests.request(CanonicalSourcePublication)
-
-    def unavailable_reason(self, conversation: Conversation) -> str:
-        # A CLI thread has no native owner to start; only its history load holds it.
-        return "Loading thread history…"
+        return CommsChatView(
+            screen.project_path, target=screen._comms_thread, kind=DmConversation,
+            me=screen._comms_thread, wire_root=screen.coordination_root,
+            transcript=screen.presentation.transcript,
+        )
 
 
 class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
@@ -296,7 +295,9 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             slot = screen.query_one(SessionSurfaceSlot)
             content = slot.parent
             assert isinstance(content, Widget)
-            self.widget = screen._make_conversation()
+            with screen._context():
+                self.widget = self.sources.make_conversation(screen)
+            screen._initial_prompt = None
             self.widget.display = False
         conversation = self.widget
         self.sources.wire(conversation)

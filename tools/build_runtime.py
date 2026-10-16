@@ -44,29 +44,6 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
-def verify_route() -> dict:
-    """Core owns route decoding, root identity and the selected native tree."""
-    from agent_comms.active_route import read_active_route
-    from agent_comms.field_codec import FieldCodec
-    from agent_comms.native_package import MANIFEST, NativePackageError, verify_native_package
-
-    route = read_active_route()
-    if route is None:
-        raise RuntimeError('No active route is installed')
-    route.observe_root()
-    try:
-        verify_native_package(route.native_package)
-    except NativePackageError as error:
-        pin = hashlib.sha256(MANIFEST.read_bytes()).hexdigest()
-        raise RuntimeError(
-            f'NativeRoutePinVerificationFailed: Core pin {pin}; '
-            f'route native_package {route.native_package}: {error}. '
-            'Run stack/bin/prepare-pi-native from the clean Core export, '
-            'then have the coach replace the route native_package. No old-package fallback.'
-        ) from error
-    return FieldCodec.encode(route)
-
-
 def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
     """Install before App startup, or ask an already-running App immediately."""
     from functools import partial
@@ -381,7 +358,6 @@ class RuntimeBuild:
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
                 raise RuntimeError('Installed Core native pin differs from the clean export')
-            route = json.loads(run(python, Path(__file__).resolve(), '--verify-route'))
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
@@ -389,7 +365,7 @@ class RuntimeBuild:
             record = {
                 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
-                'native_manifest_sha256': native_pin, 'active_route': route,
+                'native_manifest_sha256': native_pin,
                 'packages': installed, 'runtime': str(destination),
             }
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
@@ -443,7 +419,5 @@ def main() -> None:
 if __name__ == '__main__':
     if sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
-    elif sys.argv[1:] == ['--verify-route']:
-        print(json.dumps(verify_route()))
     else:
         main()

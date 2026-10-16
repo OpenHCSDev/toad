@@ -10,13 +10,16 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from difflib import unified_diff
-from functools import cached_property
+from functools import cached_property, partial
 from pathlib import PurePath
 import re
 from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.transcript_events import SentTranscript
+from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
+from agent_comms.tool_results import ToolDiff, ToolText
+from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.transcript_receipts import AssignedTranscriptSource
 from textual.await_complete import AwaitComplete
 from rich.text import Text
 
@@ -24,7 +27,7 @@ from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.line_blocks import Body, LineBlock, MutedRole, ToolOutputRole
 from toad.patch import parse_patch, parse_numbered_patch
-from toad.message_rows import MarkdownMessageStyle, MessageRow
+from toad.message_rows import MessageRow
 from toad.rich_preparation import RichTextBody
 
 
@@ -46,6 +49,20 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
     def permission_preview(self) -> ToolOutputPart | None:
         """Permission previews admit only text and file diffs."""
         return None
+
+    @property
+    def sent_reports(self) -> tuple[SentTranscript, ...]:
+        return ()
+
+    @property
+    def standalone_messages(self) -> tuple[PublishedSentMessage, ...]:
+        return ()
+
+    def project_messages(self, resolved) -> ToolOutputPart:
+        return self
+
+    def for_body_sources(self, supplied) -> ToolOutputPart:
+        return self
 
     @property
     def preview_dimensions(self) -> tuple[int, int] | None:
@@ -165,16 +182,74 @@ class NumberedPatchToolOutputPart(ToolOutputPart):
         return (parse_numbered_patch(self.source),)
 
 
-@dataclass
+@dataclass(frozen=True)
 class SentMessageToolOutputPart(ToolOutputPart):
-    """Render the send owner's original publication through semantic rows."""
+    """A report without source proof retains its full, non-interactive evidence."""
 
     message: SentTranscript
+    literal: str
+
+    @classmethod
+    def capture(cls, message, literal=None):
+        if literal is None:
+            import json
+            from agent_comms.field_codec import FieldCodec
+
+            literal = json.dumps(FieldCodec.encode(message))
+        return cls(message, literal)
+
+    @property
+    def sent_reports(self):
+        return (self.message,)
+
+    def project_messages(self, resolved):
+        decoder = ToolContentDecoder(report=self)
+        decoder.dispatch_sync(resolved[id(self.message)])
+        return decoder.part
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
-        row = MessageRow.sent(self.message)
-        return (row.header, *MarkdownMessageStyle().body(row))
+        return PlainTextToolOutputPart(self.literal).line_blocks
+
+
+@dataclass(frozen=True)
+class PublishedSentMessageToolOutputPart(ToolOutputPart):
+    """A proved publication retains its source even without a separate body."""
+
+    message: PublishedSentMessage
+    literal: str
+
+    def for_body_sources(self, supplied):
+        return (self.with_body() if self.message.reference in supplied
+                else self.without_body())
+
+    def with_body(self):
+        return SuppliedSentMessageToolOutputPart(self.message, self.literal)
+
+    def without_body(self):
+        return self
+
+    @cached_property
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return PlainTextToolOutputPart(self.literal).line_blocks
+
+
+class SuppliedSentMessageToolOutputPart(PublishedSentMessageToolOutputPart):
+    """Only a supplied normal body permits compact tool details."""
+
+    @property
+    def standalone_messages(self):
+        return (self.message,)
+
+    def with_body(self):
+        return self
+
+    def without_body(self):
+        return PublishedSentMessageToolOutputPart(self.message, self.literal)
+
+    @cached_property
+    def line_blocks(self) -> tuple[LineBlock, ...]:
+        return (MessageRow.sent(self.message.message).header,)
 
 
 @dataclass(frozen=True)
@@ -220,15 +295,16 @@ class TerminalToolOutputPart(OmittedToolOutputPart):
     terminal_id: str
 
 class ToolContentDecoder(MroDispatch):
-    def __init__(self, read_path=None):
+    def __init__(self, read_path=None, *, report=None):
         self.read_path = read_path
+        self.report = report
         self.part = None
 
     @handles(schema.ContentToolCallContent)
     def content(self, item):
         self.dispatch_sync(item.content)
 
-    @handles(schema.TextContentBlock)
+    @handles(schema.TextContentBlock, ToolText)
     def text(self, item):
         self.part = TextToolOutputPart.from_text(item.text, self.read_path)
 
@@ -236,20 +312,33 @@ class ToolContentDecoder(MroDispatch):
     def resource(self, item):
         self.dispatch_sync(item.resource)
 
-    @handles(schema.TextResourceContents)
+    @handles(schema.TextResourceContents, ToolDiff)
     def text_resource(self, item):
         from agent_comms.tool_results import SENT_MESSAGE_MIME
 
         if item.mime_type == SENT_MESSAGE_MIME:
             import json
             from agent_comms.field_codec import FieldCodec
-            from agent_comms.transcript_events import SentTranscript
-
-            self.part = SentMessageToolOutputPart(FieldCodec.decode(SentTranscript, json.loads(item.text)))
+            try:
+                message = FieldCodec.decode(SentTranscript, json.loads(item.text))
+            except (TypeError, ValueError):
+                # Unsupported or malformed external evidence stays complete.
+                self.part = PlainTextToolOutputPart(item.text)
+            else:
+                self.part = SentMessageToolOutputPart.capture(message, item.text)
         elif item.mime_type == 'application/vnd.agent-comms.numbered-diff':
             self.part = NumberedPatchToolOutputPart(item.text)
         else:
             self.part = PatchToolOutputPart(item.text) if item.mime_type == 'text/x-diff' else UnrenderedToolOutputPart(item)
+
+    @handles(SentTranscript)
+    def sent_report(self, message):
+        self.part = self.report or SentMessageToolOutputPart.capture(message)
+
+    @handles(PublishedSentMessage)
+    def published_message(self, message):
+        assert self.report is not None
+        self.part = SuppliedSentMessageToolOutputPart(message, self.report.literal)
 
     @handles(schema.FileEditToolCallContent)
     def diff(self, item):
@@ -281,7 +370,7 @@ class ToolOutput:
         return view
 
     @staticmethod
-    def capture_parts(tool_call: schema.ToolCall) -> tuple[ToolOutputPart, ...]:
+    def capture_parts(tool_call: schema.ToolCall, *, content=None) -> tuple[ToolOutputPart, ...]:
         """Pure ACP interpretation, shared by live ingress and saved workers."""
         raw_input = tool_call.raw_input or {}
         path = (
@@ -289,7 +378,30 @@ class ToolOutput:
             if isinstance(raw_input, dict) else None
         )
         read_path = path if tool_call.kind == "read" and isinstance(path, str) else None
-        return tuple(decode_content(item, read_path) for item in tool_call.content or ())
+        contents = (tool_call.content or ()) if content is None else content
+        return tuple(decode_content(item, read_path) for item in contents)
+
+    @staticmethod
+    def project_sent(parts, scope):
+        reports = tuple(message for part in parts for message in part.sent_reports)
+        if scope is None or not reports:
+            return parts
+        resolved = dict(zip(map(id, reports), AssignedTranscriptSource.open(scope).resolve_sent(reports)))
+        return ToolOutput.apply_sent(parts, resolved)
+
+    @staticmethod
+    def apply_sent(parts, resolved):
+        return tuple(part.project_messages(resolved) for part in parts)
+
+    @classmethod
+    def capture_recorded(cls, status, events):
+        end = next((event for event in reversed(events) if isinstance(event, ToolEndTranscript)), None)
+        return cls.capture_parts(status.call, content=end.result_parts if end is not None else ())
+
+    @classmethod
+    def capture_projection(cls, status, scope):
+        return status.project_output(cls.capture_parts(status.call),
+                                     partial(cls.project_sent, scope=scope))
 
     def replace(
         self, tool_call: schema.ToolCall, *, parts: tuple[ToolOutputPart, ...] | None = None,
