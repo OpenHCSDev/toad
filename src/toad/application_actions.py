@@ -28,7 +28,7 @@ class KeyboundAction:
 
     @classmethod
     def binding(cls) -> Binding:
-        return Binding(cls.key, FieldCodec.encode(cls), cls.description, tooltip=cls.tooltip,
+        return Binding(cls.key, cls.binding_name(), cls.description, tooltip=cls.tooltip,
                        show=cls.show, priority=cls.priority, system=cls.system,
                        group=cls.group, key_display=cls.key_display)
 
@@ -51,6 +51,12 @@ Context = TypeVar("Context")
 class NativeAction(Command, Generic[Context]):
     """Only the Textual boundary decodes an external action name."""
 
+    binding_prefix: ClassVar[str] = ""
+
+    @classmethod
+    def binding_name(cls) -> str:
+        return cls.binding_prefix + FieldCodec.encode(cls)
+
     @classmethod
     def parse(cls, parameters: tuple[object, ...]):
         if parameters:
@@ -69,10 +75,12 @@ class NativeAction(Command, Generic[Context]):
 
 
 class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
-    """Application action membership is owned by its declarations."""
+    """Application action membership and native namespace belong here."""
+
+    binding_prefix = "app."
 
 
-class SettingsAction(ApplicationAction, KeyboundAction, PaletteAction):
+class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction):
     key = "f2,ctrl+comma"
     description = "Settings"
     tooltip = "Settings screen"
@@ -118,7 +126,7 @@ class ToggleFooterAction(ApplicationAction, PaletteAction):
         await SetFooterAction(not app.settings.ui.footer).apply(app)
 
 
-class QuitAction(ApplicationAction, KeyboundAction, PaletteAction):
+class QuitAction(KeyboundAction, ApplicationAction, PaletteAction):
     key = "ctrl+q"
     description = "Quit"
     tooltip = "Quit the app and return to the command prompt."
@@ -132,7 +140,7 @@ class QuitAction(ApplicationAction, KeyboundAction, PaletteAction):
         app.application.quit()
 
 
-class HelpQuitAction(ApplicationAction, KeyboundAction):
+class HelpQuitAction(KeyboundAction, ApplicationAction):
     key = "ctrl+c"
     system = True
 
@@ -140,7 +148,7 @@ class HelpQuitAction(ApplicationAction, KeyboundAction):
         app.application.confirm_quit()
 
 
-class ToggleHelpPanelAction(ApplicationAction, KeyboundAction, PaletteAction):
+class ToggleHelpPanelAction(KeyboundAction, ApplicationAction, PaletteAction):
     key = "f1"
     description = "Help"
     priority = True
@@ -156,7 +164,7 @@ class ToggleHelpPanelAction(ApplicationAction, KeyboundAction, PaletteAction):
             app.action_show_help_panel()
 
 
-class SessionsAction(ApplicationAction, KeyboundAction, PaletteAction):
+class SessionsAction(KeyboundAction, ApplicationAction, PaletteAction):
     key = "ctrl+s"
     description = "Channels"
     show = True
@@ -169,7 +177,7 @@ class SessionsAction(ApplicationAction, KeyboundAction, PaletteAction):
         app.run_worker(app.session_navigation.reveal)
 
 
-class DirectMessagesAction(ApplicationAction, KeyboundAction, PaletteAction):
+class DirectMessagesAction(KeyboundAction, ApplicationAction, PaletteAction):
     """Reach the pairwise message view without changing thread-row navigation."""
 
     key = "ctrl+shift+d"
@@ -182,6 +190,104 @@ class DirectMessagesAction(ApplicationAction, KeyboundAction, PaletteAction):
 
     async def apply(self, app: ToadApp) -> None:
         app.session_navigation.direct_messages()
+
+
+class VimApplicationAction(KeyboundAction, ApplicationAction):
+    def available(self, app):
+        return app.settings.ui.vim_keys and app.current_mode == "workspace"
+
+
+class VimNavigationAction(VimApplicationAction):
+    """Aliases act on the selected view; focus and native input retain custody."""
+
+    @staticmethod
+    def conversation(app):
+        from toad.widgets.conversation import Conversation
+        view = app.selected_session
+        return None if view is None else view.query_one_optional(Conversation)
+
+    def available(self, app):
+        return super().available(app) and self.conversation(app) is not None
+
+
+class VimScrollDownAction(VimNavigationAction):
+    key = "j"
+
+    async def apply(self, app):
+        self.conversation(app).window.action_scroll_down()
+
+
+class VimScrollUpAction(VimNavigationAction):
+    key = "k"
+
+    async def apply(self, app):
+        self.conversation(app).window.action_scroll_up()
+
+
+class VimScrollLeftAction(VimNavigationAction):
+    key = "h"
+
+    async def apply(self, app):
+        self.conversation(app).window.action_scroll_left()
+
+
+class VimScrollRightAction(VimNavigationAction):
+    key = "l"
+
+    async def apply(self, app):
+        self.conversation(app).window.action_scroll_right()
+
+
+class VimPageDownAction(VimNavigationAction):
+    key = "ctrl+d"
+
+    async def apply(self, app):
+        self.conversation(app).window.action_page_down()
+
+
+class VimPageUpAction(VimNavigationAction):
+    key = "ctrl+u"
+
+    async def apply(self, app):
+        self.conversation(app).window.action_page_up()
+
+
+class VimLatestAction(VimNavigationAction):
+    key = "G"
+
+    async def apply(self, app):
+        self.conversation(app).jump_to_latest()
+
+
+class VimFocusPromptAction(VimNavigationAction):
+    key = "i"
+
+    async def apply(self, app):
+        from textual.widgets.text_area import VimInsert
+        conversation = self.conversation(app)
+        conversation.prompt.prompt_text_area.editing_mode = VimInsert()
+        conversation.focus_prompt(reset_cursor=False, scroll_end=False)
+
+
+class VimHintsAction(VimApplicationAction):
+    key = "f"
+
+    async def apply(self, app):
+        await app.screen.action_show_hints()
+
+
+class VimNextTabAction(VimNavigationAction):
+    key = "J"
+
+    async def apply(self, app):
+        app.selected_session.action_session_next()
+
+
+class VimPreviousTabAction(VimNavigationAction):
+    key = "K"
+
+    async def apply(self, app):
+        app.selected_session.action_session_previous()
 
 
 class ApplicationCommands(Provider):

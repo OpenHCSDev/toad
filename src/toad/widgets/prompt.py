@@ -19,7 +19,7 @@ from textual.content import Content, Span
 from textual import getters
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
-from textual.widget import Widget
+from textual.widget import PrimaryActivation, Widget
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 from textual import events
@@ -59,12 +59,18 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
         self.blur()
 
 
-class AgentInfo(Label):
-    pass
+class AgentInfo(PrimaryActivation, Label):
+    @property
+    def primary_activation(self):
+        return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(Label, can_focus=True):
+class SendNow(PrimaryActivation, Label, can_focus=True):
     BINDINGS = [("enter,space", "send_now", "Send now")]
+
+    @property
+    def primary_activation(self):
+        return self.action_send_now
 
     def action_send_now(self):
         self.post_message(messages.SendPromptNow())
@@ -74,8 +80,10 @@ class SendNow(Label, can_focus=True):
         self.action_send_now()
 
 
-class ModeInfo(Label):
-    pass
+class ModeInfo(PrimaryActivation, Label):
+    @property
+    def primary_activation(self):
+        return self.query_ancestor(Prompt).on_mode_info_click
 
 
 class StatusLine(Label):
@@ -87,10 +95,14 @@ class StatusLine(Label):
         self.tooltip = status
 
 
-class QueueSummary(Label, can_focus=True):
+class QueueSummary(PrimaryActivation, Label, can_focus=True):
     """Shows the remote queue; activation reports available control support."""
 
     BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
+
+    @property
+    def primary_activation(self):
+        return self.action_edit_queue
 
     def action_edit_queue(self) -> None:
         from toad.widgets.conversation import Conversation
@@ -198,7 +210,7 @@ See on-screen instructions for details.
 
     @property
     def can_enter_shell(self) -> bool:
-        return not self.text and not self.simple_input and not self.shell_mode
+        return self.submission_allowed and not self.text and not self.simple_input and not self.shell_mode
 
     def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
         self.notify_style_update()
@@ -230,6 +242,26 @@ See on-screen instructions for details.
     def on_mount(self) -> None:
         self.highlight_cursor_line = False
         self.hide_suggestion_on_blur = False
+        self.apply_keyboard_profile()
+        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
+
+    def show_editing_mode(self, mode) -> None:
+        if self.is_mounted:
+            self.query_ancestor(PromptContainer).border_subtitle = mode.label
+
+    def apply_keyboard_profile(self) -> None:
+        from textual.widgets.text_area import EditingMode, VimInsert
+        enabled = self.app.settings.ui.vim_keys
+        if self.editing_mode.modal != enabled:
+            self.editing_mode = VimInsert() if enabled else EditingMode()
+
+    @property
+    def submission_allowed(self) -> bool:
+        return self.editing_mode.accepts_text and not self.query_ancestor(Prompt).active_popup
+
+    def leave_modal_editor(self) -> None:
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).window.focus(scroll_visible=False)
 
     def on_key(self, event: events.Key) -> None:
         if self.shell_mode and event.key == "tab":
@@ -239,7 +271,7 @@ See on-screen instructions for details.
             self.suggestion = ""
 
     def action_newline(self) -> None:
-        self.insert("\n")
+        self._replace_via_keyboard("\n", *self.selection)
 
     def action_line_feed(self) -> None:
         self.action_newline()
@@ -257,6 +289,7 @@ See on-screen instructions for details.
     def _paste_clipboard_text(self, text: str) -> None:
         # A fresh Paste event posted directly here would bubble to App and be
         # forwarded back to the focused TextArea, inserting it a second time.
+        self.editing_mode = self.editing_mode.pasted()
         if result := self._replace_via_keyboard(text, *self.selection):
             self.move_cursor(result.end_location)
 
@@ -281,7 +314,7 @@ See on-screen instructions for details.
                 self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
                             title="Image attachment")
                 return
-            text = await self.app.clipboard_transport.paste(self.app)
+            text = (await self.app.clipboard_transport.paste(self.app)).text
             if text:
                 self._paste_clipboard_text(text)
             else:
@@ -293,7 +326,7 @@ See on-screen instructions for details.
     def _submit(self) -> None:
         self._submit_pending = False
         immediate, self._submit_immediate = self._submit_immediate, False
-        if not self.has_focus:
+        if not self.has_focus or not self.submission_allowed:
             return
         input_text = CommandText.decode_input(self.text, self.slash_commands)
         local_command = not input_text.requires_agent
@@ -332,6 +365,8 @@ See on-screen instructions for details.
         NextHistoryCursor.move(self, select, super().action_cursor_down)
 
     def action_delete_left(self) -> None:
+        if not self.editing_mode.accepts_text:
+            return super().action_delete_left()
         selection = self.selection
         if selection.start == selection.end and self.selection.end == (0, 0):
             self.query_ancestor(Prompt).shell_mode = False
@@ -340,6 +375,8 @@ See on-screen instructions for details.
 
     def action_cursor_line_end(self, select: bool = False) -> None:
         """Move the cursor to the end of the line."""
+        if not self.editing_mode.accepts_text:
+            return super().action_cursor_line_end(select)
         if not self._has_cursor:
             self.scroll_end()
             return
@@ -354,7 +391,7 @@ See on-screen instructions for details.
             self.move_cursor(location, select=select)
 
     async def action_tab_complete(self) -> None:
-        if not self.shell_mode:
+        if not self.editing_mode.accepts_text or not self.shell_mode:
             return
 
         import shlex
@@ -509,7 +546,11 @@ class Prompt(containers.VerticalGroup):
     @property
     def supports_completion(self) -> bool:
         """This composer owns whether its current input mode admits completion."""
-        return not self.simple_input and not self.shell_mode
+        return not self.simple_input and not self.shell_mode and self.prompt_text_area.editing_mode.accepts_text
+
+    @property
+    def active_popup(self) -> PromptPopup | None:
+        return next((popup for popup in self.query(PromptPopup) if popup.is_open), None)
 
     @text.setter
     def text(self, text: str) -> None:

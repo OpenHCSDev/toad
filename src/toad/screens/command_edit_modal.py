@@ -1,6 +1,6 @@
 from textual import on, work
 from textual.app import ComposeResult
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual import widgets
 from textual import containers
 from textual import getters

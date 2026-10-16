@@ -56,6 +56,15 @@ def theme(app: ToadApp, value: str) -> None:
 
 
 @Effect
+def vim_keys(app: ToadApp, value: bool) -> None:
+    from toad.widgets.prompt import PromptTextArea
+    for view in app.workspace_sessions.views.values():
+        for editor in view.query(PromptTextArea):
+            editor.apply_keyboard_profile()
+    app.refresh_bindings()
+
+
+@Effect
 def compact_input(app: ToadApp, value: bool) -> None:
     app.set_class(value, "-compact-input")
 

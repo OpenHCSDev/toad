@@ -32,6 +32,7 @@ from textual.content import Content
 from textual.dom import DOMNode
 from textual.reactive import reactive
 from textual.widgets import Static
+from textual.widget import PrimaryActivation
 
 
 from agent_comms.mro_dispatch import handles
@@ -56,13 +57,20 @@ class ChannelDisclosure(SidebarDisclosure):
     pass
 
 
-class ChannelUnread(Static):
+class ChannelUnread(PrimaryActivation, Static):
     DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
         if event.button == 1:
             event.stop()
-            self.query_ancestor(ChannelGroup).row.action_open_selected()
+            self.action_open_selected()
+
+    @property
+    def primary_activation(self):
+        return self.action_open_selected
+
+    def action_open_selected(self):
+        self.query_ancestor(ChannelGroup).row.action_open_selected()
 
 
 class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
@@ -160,7 +168,7 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class CommsRow(CoreEventReceiver, ThreadStatusRow):
+class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
 
     mode_name: str | None = None
@@ -231,6 +239,10 @@ class CommsRow(CoreEventReceiver, ThreadStatusRow):
         sidebar = self.sidebar_owner()
         if sidebar is not None:
             sidebar.action_cursor_up()
+
+    @property
+    def primary_activation(self):
+        return self.action_open_selected
 
     def action_open_selected(self) -> None:
         if sidebar := self.sidebar_owner():

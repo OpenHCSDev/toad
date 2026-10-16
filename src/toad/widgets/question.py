@@ -10,7 +10,7 @@ from textual import containers
 from textual.content import Content
 from textual.reactive import var, reactive
 from textual.message import Message
-from textual.widget import Widget
+from textual.widget import PrimaryActivation, Widget
 
 from textual import widgets
 
@@ -36,7 +36,7 @@ class NonSelectableLabel(widgets.Label):
     ALLOW_SELECT = False
 
 
-class Option(containers.HorizontalGroup):
+class Option(PrimaryActivation, containers.HorizontalGroup):
     ALLOW_SELECT = False
     DEFAULT_CSS = """
     Option {
@@ -106,6 +106,13 @@ class Option(containers.HorizontalGroup):
 
     def on_click(self, event: events.Click) -> None:
         event.stop()
+        self.action_select()
+
+    @property
+    def primary_activation(self):
+        return self.action_select
+
+    def action_select(self) -> None:
         self.post_message(self.Selected(self.index))
 
 
