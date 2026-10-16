@@ -63,7 +63,8 @@ class XvfbDisplay(AbstractContextManager):
             )
             if int(owner.partition("=")[2].strip()) != frontend.pid:
                 raise ValueError("Window does not belong to the frontend on its display")
-            print(json.dumps({"input_target": {"display": display.name, "window": window,
+            print(json.dumps({"at_ns": time.time_ns(), "monotonic_ns": time.monotonic_ns(),
+                  "input_target": {"display": display.name, "window": window,
                   "frontend_pid": frontend.pid, "created": created}}), flush=True)
             subprocess.run(
                 ["xdotool", "windowfocus", "--sync", str(window), *commands],
