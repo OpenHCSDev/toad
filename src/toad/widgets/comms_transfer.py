@@ -28,7 +28,7 @@ from agent_comms.importing import ImportFormat
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.screen import ModalScreen
+from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Input, Select, Static
 
 

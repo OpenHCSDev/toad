@@ -77,6 +77,11 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     theme: Annotated[str, SchemeName(), effects.theme] = "wal"
     """wal follows pywal's palette in true colour. ANSI themes inherit your terminal palette."""
 
+    vim_keys: Annotated[bool, FieldLabel("Vim editing and navigation"), effects.vim_keys] = field(
+        default=False, metadata=saved_as("vim-keys")
+    )
+    """Opt in to modal prompts. Escape leaves Insert; Normal Enter never sends. Ctrl+Alt+X cancels a turn."""
+
     prompt_message: Annotated[str, FieldLabel("Prompt message")] = "How can I help you today?"
     """Text shown as placeholder in prompt text area"""
 

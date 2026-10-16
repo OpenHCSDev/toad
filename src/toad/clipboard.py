@@ -7,6 +7,7 @@ from collections.abc import Callable
 from agent_comms.declared_family import DeclaredFamily
 from pyperclip import PyperclipException
 from textual.app import App
+from textual._clipboard import ClipboardContent
 
 
 class Clipboard(DeclaredFamily, affix="Clipboard"):
@@ -21,19 +22,13 @@ class Clipboard(DeclaredFamily, affix="Clipboard"):
             else TerminalClipboard()
         )
 
-    def copy(self, app: App, text: str) -> Clipboard:
-        transport = self.publish(app, text)
-        # This is Textual's existing local-value authority, not another cache.
-        app._clipboard = text
-        return transport
-
     @abstractmethod
     def publish(self, app: App, text: str) -> Clipboard: ...
 
-    def read(self, app: App) -> str:
-        return app.clipboard
+    def read(self, app: App) -> ClipboardContent:
+        return app.clipboard_content
 
-    async def paste(self, app: App) -> str:
+    async def paste(self, app: App) -> ClipboardContent:
         return await asyncio.to_thread(self.read, app)
 
 
@@ -51,14 +46,14 @@ class SystemClipboard(Clipboard):
             return TerminalClipboard().publish(app, text)
         return self
 
-    def read(self, app: App) -> str:
+    def read(self, app: App) -> ClipboardContent:
         try:
-            return self.native_paste()
+            return ClipboardContent(self.native_paste())
         except OSError, PyperclipException:
             return super().read(app)
 
 
 class TerminalClipboard(Clipboard):
     def publish(self, app: App, text: str) -> Clipboard:
-        App.copy_to_clipboard(app, text)
+        App.publish_clipboard(app, text)
         return self
