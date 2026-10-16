@@ -116,7 +116,17 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         raise NotImplementedError
 
     def _request_page(self, older: bool) -> None:
-        self.schedule_source_work(partial(self._load_page, older))
+        self.schedule_source_work(partial(self._prepare_edge, older))
+
+    async def _prepare_edge(self, older: bool) -> None:
+        """Keep one admission while its committed publications request more rows."""
+        snapshot = self.source_snapshot()
+        while snapshot.current(self) and await self._load_page(older):
+            pass
+
+    async def _load_page(self, older: bool) -> bool:
+        """Publish one source range; return whether this edge still needs rows."""
+        raise NotImplementedError
 
     def request_latest(self, destination: LatestPosition) -> None:
         # End supersedes any admitted edge publication. Its worker may finish

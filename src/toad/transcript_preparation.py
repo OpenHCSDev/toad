@@ -46,8 +46,6 @@ class PreparedTranscriptPage:
     retained_bytes: int
     outgoing_coverage: frozenset[OutgoingMessageReference] = field(kw_only=True)
     fragment_range: tuple[int, int] | None = None
-    batch_size: int = field(default=BATCH, kw_only=True)
-    in_range: tuple[TranscriptFragment, ...] = field(default=(), kw_only=True, compare=False, repr=False)
 
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
@@ -77,7 +75,7 @@ class PreparedTranscriptPage:
         if len(fragments) == len(self.fragments) and all(
                 selected is original for selected, original in zip(fragments, self.fragments)):
             return self.for_view()
-        return type(self).measured(self.page, fragments, batch_size=self.batch_size)
+        return type(self).measured(self.page, fragments)
 
     @staticmethod
     def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
@@ -85,30 +83,36 @@ class PreparedTranscriptPage:
         return slice(start, min(len(fragments), start + batch_size))
 
     def configure(self, *, batch_size, newest=True):
-        self.batch_size = batch_size
         if self.fragment_range is None:
             self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
 
-    async def prepare_latest(self, view: LineHistory, current: Callable[[], bool], *,
-                             target: LineHistory | Contents, selected: frozenset[type[MessageCategory]],
-                             rows_needed: int, limit: int) -> int:
-        """Own the bottom range, selected from rendered rows rather than transport size."""
+    async def prepare_rows(self, view: LineHistory, current: Callable[[], bool], *,
+                           target: LineHistory | Contents, selected: frozenset[type[MessageCategory]],
+                           boundary: int, older: bool, rows_needed: int, limit: int) -> int:
+        """Select one directional range from its actual rendered rows.
+
+        Latest destinations and ordinary edge travel use the same selection.
+        This is a staged page: its range cannot change the mounted reader until
+        the source owner publishes it under its original fences.
+        """
         take = rows = 0
-        while take < len(self.fragments) and take < limit and rows < rows_needed:
-            stop = len(self.fragments) - take
-            start = max(0, stop - min(view.budget.batch_items, limit - take))
-            batch = self.fragments[start:stop]
+        available = boundary if older else len(self.fragments) - boundary
+        while take < min(available, limit) and rows < rows_needed:
+            count = min(view.budget.batch_items, limit - take, available - take)
+            start = boundary - take - count if older else boundary + take
+            batch = self.fragments[start:start + count]
             await view.prepare_fragments(batch, current, target=target, selected=selected)
             if not current():
                 return 0
-            for fragment in reversed(batch):
+            for fragment in reversed(batch) if older else batch:
                 lines = (fragment.lines_for(target.line_width, view.app.colours.line_theme)
                          if fragment.shown_in(selected) else None)
                 take += 1
                 rows += 0 if lines is None else lines.height
                 if rows >= rows_needed:
                     break
-        self.set_fragment_range(slice(len(self.fragments) - take, len(self.fragments)))
+        self.set_fragment_range(slice(boundary - take, boundary) if older
+                                else slice(boundary, boundary + take))
         return rows
 
     @property
@@ -127,13 +131,8 @@ class PreparedTranscriptPage:
     def stop(self, stop):
         self.fragment_range = self.start, stop
 
-    def extension_slice(self, older: bool) -> slice:
-        return (slice(max(0, self.start - self.batch_size), self.start) if older
-                else slice(self.stop, min(len(self.fragments), self.stop + self.batch_size)))
-
     def set_fragment_range(self, selected: slice) -> None:
         self.fragment_range = selected.start, selected.stop
-        self.in_range = self.fragments[selected]
 
     def capture_range(self) -> PageFragmentRange:
         return PageFragmentRange(ref(self), self.start, self.stop, self.fragments[self.start:self.stop])
@@ -145,29 +144,25 @@ class PreparedTranscriptPage:
             raise RuntimeError("Original transcript suppliers do not cover their admission")
         self.set_fragment_range(slice(fragment_range.start, fragment_range.stop))
 
-    def publish_fragments(self, fragments):
-        if fragments is not self.fragments:
-            raise ValueError("Transcript input replacement requires a new prepared page")
-
     @property
     def retained_source_bytes(self):
         return self.retained_bytes
 
     # A page draws its admitted fragments as lines: admission moves a range,
     # it never mounts or removes native members.
-    async def extend(self, view, older: bool, current, *, prefix=()) -> bool:
-        extension = self.extension_slice(older)
-        selected = slice(extension.start if older else self.start,
-                         self.stop if older else extension.stop)
-        return await self.replace_range(view, self.fragments, selected, None, current)
-
-    async def replace_range(self, view, fragments, selected, previous, current, *, prefix=(),
-                            acquired=None, suppliers=None) -> bool:
+    async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
+        """Admit the staged rows; the range owner alone combines its membership."""
         if not current():
             return False
-        self.publish_fragments(fragments)
+        if prepared.fragments is not self.fragments:
+            raise ValueError("Transcript input replacement requires a new prepared page")
+        selected = slice(min(self.start, prepared.start), max(self.stop, prepared.stop))
+        return await self.replace_range(view, selected, current)
+
+    async def replace_range(self, view, selected, current) -> bool:
+        if not current():
+            return False
         self.set_fragment_range(selected)
-        self.retain_sources(view)
         view.range_changed()
         return True
 
@@ -176,11 +171,7 @@ class PreparedTranscriptPage:
             self.start += count
         else:
             self.stop -= count
-        self.retain_sources(view)
         view.range_changed()
-
-    def retain_sources(self, view) -> None:
-        self.in_range = self.fragments[self.start:self.stop]
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns admission and resolved source acquisitions.
@@ -188,8 +179,7 @@ class PreparedTranscriptPage:
         The worker's immutable source/syntax remains reusable. Its stored page
         never acquires a frontend document or another projection's lifetime.
         """
-        return replace(self, fragments=self.fragments,
-                       fragment_range=None, in_range=())
+        return replace(self, fragment_range=None)
 
 
 @dataclass(frozen=True, eq=False)
