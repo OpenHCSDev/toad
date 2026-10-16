@@ -42,7 +42,7 @@ ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "aaa35af5
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "00a3d74d4b1ab8962941d84a764b3e8c2e57013d" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "e2fd8a336c49db0f16f22fc52618b378e30968cf" }
 objectstate = { git = "https://github.com/OpenHCSDev/ObjectState.git", rev = "82a6213263c9532f1b7cd4ebb2e9e368fdc5e2bd" }
-formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "1a45b8e0af860f824e5ce7ce47491ecd6555fb43" }
+formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "dc5d21e482d086c02b07dbfa5916f409487894d4" }
 textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", rev = "1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 

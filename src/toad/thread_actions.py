@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
 from agent_comms.route_selection import RouteSelection
+from agent_comms.tool_caller import NoThreadCaller
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -66,7 +67,7 @@ class ThreadActionExecution:
     def apply(self):
         access = self.owner.app.coordination_access
         comms = access.require(self.selected)
-        return access.write(self.selected, self.action.request.apply, comms)
+        return access.write(self.selected, self.action.request.apply, comms, caller=NoThreadCaller())
 
     async def run(self):
         app = self.owner.app
