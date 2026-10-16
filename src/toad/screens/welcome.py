@@ -17,7 +17,7 @@ from textual.containers import VerticalScroll
 from textual.widgets import Static
 
 from toad.constants import ALL_COMMS_TARGET
-from toad.core.events import SessionSelected, ThreadActionsChanged
+from toad.core.events import SessionSelected, ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventMessage
 from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
@@ -138,7 +138,7 @@ class WelcomeThreads(WelcomeSection):
     def update(self, model, key, row):
         thread = model.threads.rows[key]
         row.target = ThreadTarget(key)
-        row.show(thread, action_status=cast("ToadApp", self.app).thread_actions.pending.get(key))
+        row.show(thread)
 
 
 class WelcomeEntries(SidebarModelView, TargetTree):
@@ -188,8 +188,8 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     async def present_selected(self, event: CoreEventMessage) -> None:
         self.present()
 
-    @handles(ThreadActionsChanged)
-    async def thread_actions_changed(self, event: CoreEventMessage) -> None:
+    @handles(ThreadRowStateChanged)
+    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
         if self.shows_model and self.accepts_observation():
             self.sections[1].sync_members()
 

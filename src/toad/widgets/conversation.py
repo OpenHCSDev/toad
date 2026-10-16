@@ -1121,6 +1121,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()
+        if (details := self.query_one_optional(SessionDetails)) is not None:
+            details.sync_turn()
         self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:

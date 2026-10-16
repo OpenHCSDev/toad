@@ -110,8 +110,8 @@ class TabHistoryChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
-class ThreadActionsChanged(CoreEvent):
-    """The original application changed an admitted thread action."""
+class ThreadRowStateChanged(CoreEvent):
+    """Something this app shows on thread rows changed: a pending action or an open session's state."""
 
 
 @dataclass(frozen=True)

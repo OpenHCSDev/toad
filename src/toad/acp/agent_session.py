@@ -9,6 +9,9 @@ from dataclasses import dataclass, replace
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteChanged, RouteSelection
+from agent_comms.thread_presentation import SessionDisconnected
+from agent_comms.ui_model.sidebar import ThreadRowModel
+from agent_comms.ui_model.status import ThreadStatusModel
 import toad
 from toad import constants, jsonrpc
 from toad.core import events as core_events
@@ -30,11 +33,21 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     # shared process has to ask it to close the session.
     held_by_agent = True
 
+    @staticmethod
+    def of(agent) -> "SessionDisposition":
+        """A view that has not started an agent holds no session."""
+        return ClosedSessionDisposition() if agent is None else agent.session.disposition
+
     def close(self, agent):
         return self
 
-    def current_failure(self) -> AgentFail | None:
-        return None
+    def explain(self, line: str) -> str:
+        """The line a view of this session shows; only a failed session replaces it."""
+        return line
+
+    def shown_row[Row: (ThreadRowModel, ThreadStatusModel)](self, row: Row) -> Row:
+        """A sidebar, tab or status row of this session's thread, as this session shows it."""
+        return row
 
     async def present_failure(self, failure: AgentFail, view) -> None:
         await failure.present(view)
@@ -58,8 +71,15 @@ class FailedSessionDisposition(SessionDisposition):
 
     failure: AgentFail
 
-    def current_failure(self) -> AgentFail:
-        return self.failure
+    @property
+    def status(self) -> SessionDisconnected:
+        return SessionDisconnected(f"{self.failure.message}: {self.failure.details}")
+
+    def explain(self, line: str) -> str:
+        return self.status.notice
+
+    def shown_row[Row: (ThreadRowModel, ThreadStatusModel)](self, row: Row) -> Row:
+        return row.disconnected(self.status)
 
     async def present_failure(self, failure: AgentFail, view) -> None:
         if failure is self.failure:
@@ -324,9 +344,7 @@ class AgentSession:
         """Only a session that is ready after its restart counts as a finished login."""
         await self.reconnect()
         if not self.ready:
-            failure = self.disposition.current_failure()
-            raise LoginNotReady("Session did not become ready after login" if failure is None
-                                else f"{failure.message}: {failure.details}")
+            raise LoginNotReady(self.disposition.explain("Session did not become ready after login"))
 
     async def authenticate(self, method_id: str) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)

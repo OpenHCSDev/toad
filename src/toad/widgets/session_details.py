@@ -7,7 +7,7 @@ from collections.abc import Callable
 
 from agent_comms.mro_dispatch import handles
 from agent_comms.thread_presentation import (
-    AttentionThreadPresentationStatus, IdleThreadPresentationStatus,
+    AttentionThreadPresentationStatus, IdleThreadPresentationStatus, SessionDisconnected,
     WorkingThreadPresentationStatus, StatusPending, ThreadRetired,
 )
 from agent_comms.ui_model.status import ThreadStatusModel
@@ -84,6 +84,10 @@ class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
 
     @handles(ThreadRetired)
     def retired_role(self, status) -> type[LineRole]:
+        return NoticeRole
+
+    @handles(SessionDisconnected)
+    def disconnected_role(self, status) -> type[LineRole]:
         return NoticeRole
 
     @property
