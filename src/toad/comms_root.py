@@ -259,7 +259,7 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(LinkContextChanged())
         self.sidebar_current = result.request
         if result.snapshot.read_marker_notice and result.snapshot.read_marker_notice != notice:
-            app.notify(result.snapshot.read_marker_notice, title="Read positions", severity="warning")
+            app.notify(str(result.snapshot.read_marker_notice), title="Read positions", severity="warning")
         if app.open_tabs != tabs:
             app.events.publish(OpenTabsChanged())
         for waiter in self.take_sidebar_waiters(result.request):
