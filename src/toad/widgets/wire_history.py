@@ -59,7 +59,7 @@ class WireHistory(LineHistory):
     @property
     def undrawn(self) -> bool:
         """Nothing of the bound source has been drawn yet."""
-        return self.pages[-1].page.undrawn
+        return all(view.page.undrawn for view in self.pages)
 
     @property
     def source_identity(self):
