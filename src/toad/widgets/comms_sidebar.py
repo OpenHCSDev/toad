@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel, ThreadRowModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
@@ -152,8 +152,7 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
 
         self.reconcile_rows(
             wanted, lambda name: ThreadRow(ThreadTarget(name), name), update,
-            replace=lambda name, view: (view.thread_row is not None
-                                        and view.thread_row.incarnation != threads[name].incarnation))
+            replace=lambda name, view: view.shows_other_incarnation(threads[name]))
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint this group's shown rows among the changed threads ``names``.
@@ -166,8 +165,7 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         threads = self.sidebar.model.threads.rows
         shown = [(name, view) for name in names
                  if (view := self.rows.get(name)) is not None and name in threads]
-        if any(view.thread_row is not None and view.thread_row.incarnation != threads[name].incarnation
-               for name, view in shown):
+        if any(view.shows_other_incarnation(threads[name]) for name, view in shown):
             self.sync_members(names)  # A new incarnation replaces its row.
             return
         repainted = []
@@ -343,6 +341,10 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
 
 class ThreadRow(CommsRow):
     """A retained wire thread row, with an optional currently open native view."""
+
+    def shows_other_incarnation(self, row: ThreadRowModel) -> bool:
+        """Whether this row shows an earlier incarnation of ``row``'s thread; it is replaced, not repainted."""
+        return self.thread_row is not None and self.thread_row.incarnation != row.incarnation
 
     def action_open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
