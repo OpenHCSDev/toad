@@ -33,6 +33,7 @@ async def test_tool_start_progress_and_missing_start_in_the_running_app(workspac
             await agent.updates.receive(agent.session_id, {
                 "sessionUpdate": "tool_call", "toolCallId": "native-read", "title": "Read file",
                 "kind": "read", "status": "pending", "rawInput": {"path": "first.py"},
+                "locations": [{"path": "first.py"}],
                 "content": [{"type": "content", "content": {"type": "text", "text": "original = 1"}}]})
             await ui.until(lambda: view.query(ToolCall), seconds=20, why="the tool call widget")
             first = agent.tools.calls["native-read"]
@@ -42,7 +43,7 @@ async def test_tool_start_progress_and_missing_start_in_the_running_app(workspac
                 "sessionUpdate": "tool_call_update", "toolCallId": "native-read", "status": "in_progress"})
             await agent.updates.receive(agent.session_id, {
                 "sessionUpdate": "tool_call_update", "toolCallId": "native-read", "status": "completed",
-                "rawInput": {"path": "second.txt"}})
+                "rawInput": {"path": "second.txt"}, "locations": [{"path": "second.txt"}]})
             await ui.until(lambda: view.query_one(ToolCall).tool_call.completed, seconds=20,
                            why="the tool call to complete")
             tool = view.query_one(ToolCall)

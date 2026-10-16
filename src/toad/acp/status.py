@@ -3,7 +3,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
 from dataclasses import dataclass
-from acp.schema import ToolCall
+from acp.schema import ToolCall, ToolCallLocation
 from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
@@ -62,6 +62,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         self.call.title = event.title
         self.call.kind = event.kind
         self.call.raw_input = event.raw_input
+        self.call.locations = [ToolCallLocation(path=event.path)] if event.path is not None else []
 
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):
