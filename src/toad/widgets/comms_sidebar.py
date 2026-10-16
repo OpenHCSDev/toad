@@ -739,8 +739,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         if event.button != 3:
             return
         event.stop()
+        widget, _ = self.screen.get_widget_at(event.screen_x, event.screen_y)
         row = None
-        node: DOMNode | None = event.widget
+        node: DOMNode | None = widget
         while node is not None:
             if isinstance(node, CommsRow):
                 row = node
