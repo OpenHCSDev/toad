@@ -8,6 +8,7 @@ from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from toad.widgets.session_details import SessionDetails
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
@@ -84,16 +85,18 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return False
 
     @classmethod
-    async def update_mentions(cls, view, comms):
-        pass
+    @abstractmethod
+    async def update_mentions(cls, view, comms) -> None: ...
 
     @classmethod
-    async def agent_info(cls, comms, target):
-        return None
+    @abstractmethod
+    async def status_text(cls, comms, target, *, read_only: bool) -> str: ...
 
     @classmethod
-    def activity_widgets(cls, view):
-        return ()
+    @abstractmethod
+    def activity_widgets(cls) -> tuple[type[SessionDetails], ...]:
+        """Declare widget classes; the composing view owns their instances."""
+        ...
 
     @classmethod
     @abstractmethod
@@ -148,6 +151,14 @@ class ChannelConversation(ConversationKind):
             scope.participant_names if scope.any_mode else frozenset(),
             page.history_revision,
         )
+
+    @classmethod
+    def activity_widgets(cls) -> tuple[type[SessionDetails], ...]:
+        return ()
+
+    @classmethod
+    async def status_text(cls, comms, target, *, read_only: bool) -> str:
+        return "Read-only saved view" if read_only else ""
 
     @classmethod
     def prompt(cls, target):
@@ -260,11 +271,12 @@ class DmConversation(ConversationKind):
         return f"@{target}"
 
     @classmethod
-    def activity_widgets(cls, view):
-        from toad.widgets.session_details import SessionDetails
+    def activity_widgets(cls) -> tuple[type[SessionDetails], ...]:
+        return (SessionDetails,)
 
-        view.thread_activity = SessionDetails()
-        yield view.thread_activity
+    @classmethod
+    async def update_mentions(cls, view, comms) -> None:
+        """Direct-message composers have no channel mention roster."""
 
     @classmethod
     def prompt(cls, target):
@@ -273,8 +285,14 @@ class DmConversation(ConversationKind):
         return Prompt(simple_input=True, placeholder=cls.placeholder(target))
 
     @classmethod
-    async def agent_info(cls, comms, target):
-        return await asyncio.to_thread(comms.configuration.answer, target)
+    async def status_text(cls, comms, target, *, read_only: bool) -> str:
+        info = await asyncio.to_thread(comms.configuration.answer, target)
+        return " · ".join(
+            value for value in (
+                info.model or "",
+                info.context_usage.label if info.context_usage is not None else "",
+            ) if value
+        )
 
     @classmethod
     def seen_page(cls, history, seen):

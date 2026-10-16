@@ -33,6 +33,7 @@ from toad.widgets.conversation import (
     Window,
 )
 from toad.widgets.flash import Flash
+from toad.widgets.native_history import NativeHistory
 from toad.widgets.prompt import Prompt
 from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
@@ -126,7 +127,12 @@ class CommsChatView(Conversation):
                     yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield from self.conversation_kind.activity_widgets(self)
+            for activity_type in self.conversation_kind.activity_widgets():
+                self.thread_activity = activity_type(
+                    history=NativeHistory(),
+                    status_source=lambda: self.thread_activity.row,
+                )
+                yield self.thread_activity
             yield self.throbber
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
@@ -196,8 +202,8 @@ class CommsChatView(Conversation):
             return
         if self._refreshed_from != access.revision:
             # The observer announced a change while this work ran. The history
-            # may have read it from the stores already; the participants line
-            # reads the observer's sidebar, which only now shows it.
+            # may have read it from the stores already; mention completion
+            # reads the observer's snapshot, which only now shows it.
             await self._refresh()
             return
         if history.revision == access.revision:
@@ -349,7 +355,7 @@ class CommsChatView(Conversation):
             self.call_after_refresh(history.mark_visible)
             if not changed:
                 return
-            info = await self.conversation_kind.agent_info(comms, target)
+            status = await self.conversation_kind.status_text(comms, target, read_only=read_only)
         except (CoordinationReadUnavailable, StaleRevision):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
@@ -359,19 +365,7 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
-        if self.send_block_reason:
-            self.status = self.send_block_reason
-        elif info is not None:
-            self.status = " · ".join(
-                value
-                for value in (
-                    info.model or "",
-                    info.context_usage.label if info.context_usage is not None else "",
-                )
-                if value
-            )
-        else:
-            self.status = "Read-only saved view" if read_only else ""
+        self.status = self.send_block_reason or status
         if self.window.follows_tail:
             self.window.anchor()
         if history.has_newer or (history.has_older and self.window.max_scroll_y == 0):
