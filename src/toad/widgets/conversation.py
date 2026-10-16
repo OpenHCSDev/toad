@@ -294,11 +294,15 @@ This is a view of your conversation with the agent.
     BINDING_GROUP_TITLE = "View"
     BINDINGS = [Binding("end", "focus_prompt", "Latest / prompt")]
 
-    def compose(self) -> ComposeResult:
-        yield containers.Center(
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.jump_bar = containers.Center(
             JumpToLatest("↓ Back to bottom · Esc", id="back-to-bottom"),
             id="back-to-bottom-bar",
         )
+
+    def compose(self) -> ComposeResult:
+        yield self.jump_bar
 
     def on_mount(self) -> None:
         super().on_mount()
@@ -312,8 +316,15 @@ This is a view of your conversation with the agent.
             yield scrollbar, scrollbar_region
 
     def tail_follow_changed(self) -> None:
-        if (control := self.query_one_optional("#back-to-bottom-bar", containers.Center)) is not None:
-            control.display = self.can_jump_to_latest
+        """Show the jump bar while the reader is off the tail; bindings follow only its changes.
+
+        Every scroll offset reaches here, so an unchanged state is no change:
+        the footer would otherwise re-project the screen's bindings per frame.
+        """
+        jump = self.can_jump_to_latest
+        if self.jump_bar.display == jump:
+            return
+        self.jump_bar.display = jump
         if self.is_attached:
             self.query_ancestor(Conversation).refresh_bindings()
 
