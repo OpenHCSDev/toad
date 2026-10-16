@@ -84,7 +84,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return False
 
     @classmethod
-    async def update_roster(cls, view, comms):
+    async def update_mentions(cls, view, comms):
         pass
 
     @classmethod
@@ -92,8 +92,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return None
 
     @classmethod
-    @abstractmethod
-    def activity_widget(cls, view): ...
+    def activity_widgets(cls, view):
+        return ()
 
     @classmethod
     @abstractmethod
@@ -150,12 +150,6 @@ class ChannelConversation(ConversationKind):
         )
 
     @classmethod
-    def activity_widget(cls, view):
-        from toad.widgets.channel_participants import ChannelParticipants
-
-        return ChannelParticipants()
-
-    @classmethod
     def prompt(cls, target):
         from toad.widgets.channel_prompt import ChannelPrompt
 
@@ -166,14 +160,11 @@ class ChannelConversation(ConversationKind):
         return catalog.is_view_target(target)
 
     @classmethod
-    async def update_roster(cls, view, comms):
-        from toad.widgets.channel_participants import ChannelParticipants
+    async def update_mentions(cls, view, comms):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        # The composer consumes membership and thread presentation, not the
-        # actor's inbox counts or channel activity clocks. Borrow the observed
-        # service's sidebar model rather than reading the same registry,
-        # activity and catalog again after every channel page.
+        # Mention completion consumes the observer's membership snapshot,
+        # not another registry/catalog read after every channel page.
         history = view.message_history
         source = history.source_snapshot()
         target = view.target
@@ -182,19 +173,10 @@ class ChannelConversation(ConversationKind):
         snapshot = answer.require_snapshot()
         observed = access.observation
         if observed is None or observed.service is not comms:
-            raise ValueError("Channel roster belongs to another Comms service")
-        rows = observed.sidebar.threads.rows
-
-        def prepare():
-            people = tuple(rows[person.thread.name] for person in snapshot.participants(target)
-                           if person.thread.name in rows)
-            return (ChannelParticipants.prepare_participants(people),
-                    snapshot.mention_candidates(target))
-
-        participants, mentions = await view.app.preparation.run_thread(prepare)
+            raise ValueError("Channel mentions belong to another Comms service")
+        mentions = await view.app.preparation.run_thread(snapshot.mention_candidates, target)
         if not await history.source_is_current(source) or view.target != target:
             return
-        view.query_one(ChannelParticipants).update_participants(*participants)
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
 
     @classmethod
@@ -278,11 +260,11 @@ class DmConversation(ConversationKind):
         return f"@{target}"
 
     @classmethod
-    def activity_widget(cls, view):
+    def activity_widgets(cls, view):
         from toad.widgets.session_details import SessionDetails
 
         view.thread_activity = SessionDetails()
-        return view.thread_activity
+        yield view.thread_activity
 
     @classmethod
     def prompt(cls, target):

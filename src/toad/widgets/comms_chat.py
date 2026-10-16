@@ -126,7 +126,7 @@ class CommsChatView(Conversation):
                     yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
-            yield self.conversation_kind.activity_widget(self)
+            yield from self.conversation_kind.activity_widgets(self)
             yield self.throbber
             yield self.conversation_kind.prompt(self.target).data_bind(
                 project_path=Conversation.project_path,
@@ -302,7 +302,7 @@ class CommsChatView(Conversation):
             finally:
                 if undrawn:
                     self.on_work_finished()
-            # A sent message may now be drawn: composing resumes before the roster is read.
+            # A sent message may now be drawn: composing resumes before mentions are read.
             self.settle_user_message()
             if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):
                 placeholder.remove()
@@ -311,7 +311,7 @@ class CommsChatView(Conversation):
         except (OSError, ValueError, RuntimeError) as error:
             self._show_wire_error(error)
             return
-        # The participants line and the status line read the observer's sidebar
+        # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
         # and the history can load pages while they wait.
@@ -327,7 +327,7 @@ class CommsChatView(Conversation):
         self.status = message
 
     async def _refresh_labels(self, comms, changed: bool, newly_announced: bool, read_only: bool) -> None:
-        """Show who is in the conversation and its status line, for the history as it is drawn now."""
+        """Refresh composer mentions and status for the history as it is drawn now."""
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         history = self.message_history
@@ -335,9 +335,9 @@ class CommsChatView(Conversation):
         source, target = history.source, self.target
         try:
             # An unchanged history may have read the stores before the observer
-            # announced the change; the participants line reads the observer's sidebar.
+            # announced the change; mention completion reads the observer's snapshot.
             if changed or newly_announced:
-                await self.conversation_kind.update_roster(self, comms)
+                await self.conversation_kind.update_mentions(self, comms)
             if changed:
                 if not await history.source_is_current(snapshot):
                     if snapshot.current(history):
