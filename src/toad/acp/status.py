@@ -1,7 +1,7 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.native_tools import NativeTool
+from agent_comms.tool_declaration import ToolDeclaration
 from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
 from dataclasses import dataclass
 from acp.schema import ToolCall
@@ -54,7 +54,7 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
         consumer = cls(call)
         for event in events:
             consumer.dispatch_sync(event)
-        start = NativeTool.start(first.tool_call_id, first.tool_name, call.raw_input or {})
+        start = ToolDeclaration.start(first.tool_call_id, first.tool_name, call.raw_input or {})
         call.title = start.title
         call.kind = start.kind
         return cls.from_acp(call)
