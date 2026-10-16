@@ -18,6 +18,7 @@ from weakref import ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, ToolText
+from agent_comms.tool_declaration import PathTool
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_receipts import AssignedTranscriptSource
 from textual.await_complete import AwaitComplete
@@ -372,12 +373,7 @@ class ToolOutput:
     @staticmethod
     def capture_parts(tool_call: schema.ToolCall, *, content=None) -> tuple[ToolOutputPart, ...]:
         """Pure ACP interpretation, shared by live ingress and saved workers."""
-        raw_input = tool_call.raw_input
-        path = (
-            raw_input.get("path") or raw_input.get("file_path") or raw_input.get("filePath")
-            if isinstance(raw_input, dict) else None
-        )
-        read_path = path if tool_call.kind == "read" and isinstance(path, str) else None
+        read_path = (PathTool.recorded_path(tool_call.raw_input) or None) if tool_call.kind == "read" else None
         contents = (tool_call.content or ()) if content is None else content
         return tuple(decode_content(item, read_path) for item in contents)
 
