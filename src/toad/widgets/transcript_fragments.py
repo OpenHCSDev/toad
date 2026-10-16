@@ -6,7 +6,8 @@ from functools import cached_property, partial
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.mro_dispatch import handles
+from toad.core.projection import MroProjection
 from agent_comms.message_reference import MessageReference
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_events import (
@@ -155,7 +156,7 @@ class RenderBudget:
             yield select(pending_first, pending_stop, pending_token_first, pending_token_stop)
 
 
-class FragmentLineConsumer(MroDispatch):
+class FragmentLineConsumer(MroProjection):
     """Turn a fragment's events into line blocks, one handler per event family."""
 
     def __init__(self, *, show_divider: bool):
@@ -436,7 +437,7 @@ class ContextTranscriptFragment(TranscriptFragment):
                            for event in self.events))
 
 
-class TranscriptFragmentConsumer(MroDispatch):
+class TranscriptFragmentConsumer(MroProjection):
     def __init__(self, *, continuation: bool = False, split_text: bool = True):
         self.fragments: list[TranscriptFragment] = []
         self.tools: dict[str, int] = {}
@@ -454,13 +455,11 @@ class TranscriptFragmentConsumer(MroDispatch):
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript):
         self.text(event, IncomingMessageFragment)
-        return self.DISCARD
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
         self.reported_messages[len(self.fragments)] = event
         self.fragments.append(TranscriptFragment((event,), continuation=self.continuation))
-        return self.DISCARD
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage):
