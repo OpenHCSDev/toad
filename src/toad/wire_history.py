@@ -191,7 +191,7 @@ class MessageFragment(BusMessageFragment, WireFragment):
         if not isinstance(message, HistoricalMessage):
             return super().leading
         return (Gap(), Summary.titled(f"History · {message.source.original_root} · @{message.sender} "
-                               f"created {message.sender_created_at}"), self.row.header)
+                               f"{message.sender_incarnation.birth_description}"), self.row.header)
 
 @dataclass(frozen=True, eq=False)
 class WireSource:

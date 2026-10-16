@@ -89,7 +89,7 @@ class WelcomeSection(SidebarGroup[str, CommsRow]):
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         model = self.query_ancestor(WelcomeEntries).model
-        if model is None or model.snapshot is None or not self.member_container.is_attached:
+        if model is None or not self.member_container.is_attached:
             return
         keys = self.keys(model)[:self.LIMIT]
         self.display = bool(keys)
