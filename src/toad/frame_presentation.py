@@ -8,6 +8,10 @@ from weakref import ref
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
+from rich.style import NULL_STYLE
+from textual._paint_state import PaintLayer
+from textual.color import Color, TRANSPARENT
+from ui_theme.scheme import TurnBandColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
@@ -16,6 +20,28 @@ from ui_theme.effects import Effect, Fade, Frame
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
+
+
+class WidgetPaint(PaintLayer):
+    """Native paint shared independently of a widget's geometry or behaviour."""
+
+    paint_foreground = paint_background = None
+    background_tint = TRANSPARENT
+    text_style = NULL_STYLE
+    text_opacity = layer_opacity = 1.0
+    auto_color = False
+    paint_key = None
+    paint_cacheable = False
+
+    @property
+    def paint_layer(self) -> PaintLayer:
+        return self
+
+
+class TurnBandPaint(WidgetPaint):
+    @property
+    def paint_background(self) -> Color:
+        return self.app.colours.colour(TurnBandColour)
 
 
 class FrameState(DeclaredFamily, affix="Frame"):

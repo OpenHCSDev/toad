@@ -18,11 +18,8 @@ class Flash(Static):
         background: $success 10%;
         color: $text-success;
         text-align: center;
-        visibility: hidden;
         text-wrap: nowrap;
         text-overflow: ellipsis;     
-        # overlay: screen;
-        # offset-y: -1;           
         &.-default {
             background: $primary 10%;
             color: $text-primary;
@@ -53,6 +50,10 @@ class Flash(Static):
     app = getters.app(ToadApp)
     flash_timer: var[Timer | None] = var(None)
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.display = False
+
     def flash(
         self,
         content: str | Content,
@@ -69,16 +70,16 @@ class Flash(Static):
         """
         if self.flash_timer is not None:
             self.flash_timer.stop()
-        self.visible = False
+        self.display = False
 
         def hide() -> None:
-            """Hide the content after a while."""
-            self.visible = False
+            """Hide the content without reserving a transcript row."""
+            self.display = False
 
         self.update(content)
         self.remove_class("-default", "-success", "-warning", "-error", update=False)
         self.add_class(f"-{style}")
-        self.visible = True
+        self.display = True
 
         if duration is None:
             duration = self.app.settings.ui.flash_duration
