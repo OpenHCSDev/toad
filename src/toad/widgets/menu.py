@@ -13,6 +13,7 @@ from textual.layouts.horizontal import HorizontalLayout
 
 from toad.menus import MenuItem
 from toad.widgets.selection import SelectionListItem
+from toad.frame_presentation import UntintedTonePaint
 
 
 
@@ -35,7 +36,7 @@ class MenuOption(SelectionListItem):
         yield NonSelectableLabel(self._description, id="description")
 
 
-class Menu(ListView, can_focus=True):
+class Menu(UntintedTonePaint, ListView, can_focus=True):
     BINDINGS = [Binding("escape", "dismiss", "Dismiss")]
 
     DEFAULT_CSS = """
@@ -68,23 +69,6 @@ class Menu(ListView, can_focus=True):
            
         }
 
-        &:blur {
-            background-tint: transparent;
-            & > ListItem.-highlight {
-                color: $block-cursor-blurred-foreground;
-                background: $block-cursor-blurred-background;
-                text-style: $block-cursor-blurred-text-style;
-            }
-        }
-        
-        &:focus {
-            background-tint: transparent;
-            & > ListItem.-highlight {
-                color: $block-cursor-foreground;
-                background: $block-cursor-background;
-                text-style: $block-cursor-text-style;
-            }
-        }
     }
     """
 

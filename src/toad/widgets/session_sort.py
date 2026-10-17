@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from toad.widgets.selection import InlineSelection
+from ui_theme.scheme import ForegroundColour
+
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -88,7 +91,9 @@ class SortDialog(FormModal[type[DisplayOrder] | None]):
             self.app.run_worker(self.app.saved_settings.save(), group="channel-visibility")
 
 
-class SortControl[Order: DisplayOrder](PrimaryActivation, Static, can_focus=True):
+class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Static, can_focus=True):
+    highlight_foreground = ForegroundColour
+
     BINDINGS = [("enter,space", "choose_sort", "Sort")]
     DEFAULT_CSS = """
     SortControl {
@@ -101,7 +106,6 @@ class SortControl[Order: DisplayOrder](PrimaryActivation, Static, can_focus=True
         color: $text-muted;
         pointer: pointer;
     }
-    SortControl:hover, SortControl:focus { color: $text; text-style: underline; }
     """
 
     def __init__(self, form_type: type[ThreadSortForm] | type[ChannelSortForm], scope: str):

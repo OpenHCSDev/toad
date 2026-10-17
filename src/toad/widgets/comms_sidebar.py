@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel, ThreadRowModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
@@ -39,10 +39,10 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
 from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
-from toad.widgets.selection import ChangingText
+from toad.widgets.selection import ChangingText, HoverSelection
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -132,22 +132,16 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         view.target = ThreadTarget(name)
         view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members)
 
+    @property
+    def member_keys(self):
+        channel = self.sidebar.model.channels.rows.get(self.row.target_name)
+        return channel.members if channel is not None else ()
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
-        """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
-        channel = self.channel
-        if channel is None or not self.member_container.is_attached:
-            return  # A new group syncs its members once composed (on_mount).
-        threads = self.sidebar.model.threads.rows
-        wanted = tuple(name for name in channel.members
-                       if name in threads and (self.expanded or name in self.rows))
-
-        def update(name: str, view: ThreadRow) -> None:
-            if changed is None or name in changed or view.thread_row is None:
-                self.show_member(name, view)
-
+        if self.channel is None or not self.member_container.is_attached:
+            return  # A new group syncs once composed (on_mount).
         self.reconcile_rows(
-            wanted, lambda name: ThreadRow(ThreadTarget(name), name), update,
-            replace=lambda name, view: view.shows_other_incarnation(threads[name]))
+            lambda name: ThreadRow(ThreadTarget(name), name), self.show_member, changed=changed)
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint this group's shown rows among the changed threads ``names``.
@@ -160,9 +154,6 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         threads = self.sidebar.model.threads.rows
         shown = [(name, view) for name in names
                  if (view := self.rows.get(name)) is not None and name in threads]
-        if any(view.shows_other_incarnation(threads[name]) for name, view in shown):
-            self.sync_members(names)  # A new incarnation replaces its row.
-            return
         for name, view in shown:
             self.show_member(name, view)
 
@@ -216,12 +207,12 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
         return self.is_navigation_row() and self.navigation_tree.row_selected(self)
 
     @property
-    def highlighted(self) -> bool:
-        return self.selected or super().highlighted
+    def paint_highlighted(self) -> bool:
+        return self.selected or super().paint_highlighted
 
     @property
     def paint_foreground(self):
-        if self.is_navigation_row() and not self.highlighted and self.navigation_tree.channel_active(self):
+        if self.is_navigation_row() and not self.paint_highlighted and self.navigation_tree.channel_active(self):
             return self.app.colours.colour(WarningColour)
         return super().paint_foreground
 
@@ -257,10 +248,6 @@ class ThreadRow(CommsRow):
     def mode_name(self) -> str | None:
         return self.navigation_tree.open_views.get(self.target_name)
 
-    def shows_other_incarnation(self, row: ThreadRowModel) -> bool:
-        """Whether this row shows an earlier incarnation of ``row``'s thread; it is replaced, not repainted."""
-        return self.thread_row is not None and self.thread_row.incarnation != row.incarnation
-
     def action_open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
             super().action_open_selected()
@@ -269,7 +256,7 @@ class ThreadRow(CommsRow):
             self.app.select_session(self.mode_name)
 
 
-class NewSessionButton(TargetTreeMember, Static):
+class NewSessionButton(HoverSelection, TargetTreeMember, Static):
     """Create another agent session for the current project."""
 
     DEFAULT_CSS = """
@@ -279,12 +266,6 @@ class NewSessionButton(TargetTreeMember, Static):
         padding: 0;
         color: $text-muted;
         pointer: pointer;
-    }
-    NewSessionButton:hover,
-    NewSessionButton:focus {
-        background: $block-cursor-background;
-        color: $block-cursor-foreground;
-        text-style: $block-cursor-text-style;
     }
     """
 
@@ -518,6 +499,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.enabled = enabled
         self.present()
 
+    @RowReconciliation.sync
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
@@ -530,8 +512,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             self.new_session = NewSessionButton()
             self.mount(self.new_session)
         removed = [key for key in self.groups if key not in rows]
-        if removed:
-            self.remove_children([self.groups.pop(key) for key in removed])
         added = False
         for key, channel in rows.items():
             group = self.groups.get(key)
@@ -569,6 +549,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         while self.is_attached and self.model is not None:
             missing = [key for key in self.model.channels.rows if key not in self.groups]
             if not missing:
+                self._order_groups()
                 return
             for key in missing:
                 rows = self.model.channels.rows if self.model is not None else {}
@@ -579,11 +560,18 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                     key, row.target.expanded_by_default))
                 group.present(rows[key])  # Its members sync once it is mounted.
                 await self.mount(group)
-            if self.is_attached and self.model is not None:
-                self._order_groups()
+
+    @property
+    def member_keys(self):
+        return (key for channel in self.model.channels.rows.values() for key in channel.members)
 
     def _order_groups(self) -> None:
-        """Place the mounted groups in the model's order."""
+        """Order current groups, retiring old groups after their rows can move."""
+        removed = [key for key in self.groups if key not in self.model.channels.rows]
+        if removed:
+            with self.reconcile_members():
+                self.row_reconciliation.finish()
+            self.remove_children([self.groups.pop(key) for key in removed])
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
         live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:

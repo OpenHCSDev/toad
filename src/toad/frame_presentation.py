@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
 from textual._paint_state import PaintLayer, PaintState
-from textual.color import Color
+from textual.color import Color, TRANSPARENT
 from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
@@ -28,7 +28,7 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity")
+    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity", "text_style", "background_tint")
 
     def __init__(self, styles, tone: Color | None, opacity: float, paint) -> None:
         self.styles = styles
@@ -38,10 +38,12 @@ class ToneLayer(PaintLayer):
             stated = styles.paint_background
         foreground = paint.paint_foreground
         self.paint_foreground = styles.paint_foreground if foreground is None else foreground
-        self.auto_color = styles.auto_color if foreground is None else False
+        self.auto_color = styles.auto_color if foreground is None else foreground.auto
+        text_style = paint.text_style
+        self.text_style = styles.text_style if text_style is None else text_style
+        tint = paint.background_tint
+        self.background_tint = styles.background_tint if tint is None else tint
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
-    background_tint = property(lambda self: self.styles.background_tint)
-    text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
 
 
@@ -49,7 +51,7 @@ class TonePaint:
     """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
 
     tone: ClassVar[type[ThemeColour] | None]
-    paint_background = paint_foreground = None
+    paint_background = paint_foreground = text_style = background_tint = None
     paint_opacity = 1.0
 
     @property
@@ -57,6 +59,13 @@ class TonePaint:
         tone = self.tone
         return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
                          self.paint_opacity, self)
+
+
+class UntintedTonePaint(TonePaint):
+    """Keep the parent's area tone without an additional focus tint."""
+
+    tone = None
+    background_tint = TRANSPARENT
 
 
 class AlternatingTonePaint(TonePaint):
@@ -253,12 +262,22 @@ class Animated[FrameT: Frame](Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.effects: dict[Effect, Animation] = {}
+        self.hidden_effects: set[Effect] | None = None
 
     def run_effect(self, effect: Effect) -> None:
         self.stop_effect(effect)
+        if self.hidden_effects is not None:
+            if not effect.finite:
+                self.hidden_effects.add(effect)
+            return
         self.effects[effect] = self.app.colours.clock.start(effect, self)
 
     def stop_effect(self, *effects: Effect) -> None:
+        if self.hidden_effects is not None:
+            if effects:
+                self.hidden_effects.difference_update(effects)
+            else:
+                self.hidden_effects.clear()
         for effect in effects or tuple(self.effects):
             if animation := self.effects.pop(effect, None):
                 animation.stop()
@@ -271,9 +290,15 @@ class Animated[FrameT: Frame](Widget):
         self.stop_effect()
 
     def on_hide(self) -> None:
-        for effect in tuple(self.effects):
-            if effect.finite:
-                self.stop_effect(effect)
+        hidden = {effect for effect in self.effects if not effect.finite}
+        self.stop_effect()
+        self.hidden_effects = hidden
+        self.refresh()
+
+    def on_show(self) -> None:
+        hidden, self.hidden_effects = self.hidden_effects or set(), None
+        for effect in hidden:
+            self.run_effect(effect)
         self.refresh()
 
     def paint_effects(self, strip: Strip) -> Strip:

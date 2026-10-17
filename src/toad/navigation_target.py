@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
+from agent_comms.channel_targets import CommandTarget, ChannelTarget as CoreChannelTarget, ThreadTarget as CoreThreadTarget
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
+from toad.line_blocks import LineLink, OpenHistoricalTarget, OpenTarget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -44,6 +46,19 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
 
     expanded_by_default: ClassVar[bool] = False
 
+    @classmethod
+    def named(cls, name: str) -> NavigationTarget:
+        """Adapt Core's decoded wire identity to its frontend destination."""
+        match CommandTarget.named(name):
+            case CoreChannelTarget(name=name):
+                return channel_target(name)
+            case CoreThreadTarget(name=name):
+                return ThreadTarget(name)
+        raise TypeError("Expected a named channel or thread target")
+
+    def message_link(self, history: str | None) -> LineLink:
+        return OpenTarget(self.name)
+
     def menu_context(self, sidebar, *, mode_name=None, channel=None):
         from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.service, self.name,
@@ -70,6 +85,10 @@ class SessionTarget(NavigationTarget):
 
 
 class ThreadTarget(NavigationTarget):
+    def message_link(self, history: str | None) -> LineLink:
+        return (OpenHistoricalTarget(self.name, history)
+                if history is not None else OpenTarget(self.name))
+
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,
@@ -121,8 +140,3 @@ class DirectTarget(HistoryTarget):
 def channel_target(name: str) -> NavigationTarget:
     """The aggregate name's canonical destination, chosen at row construction."""
     return FeedTarget() if name == ALL_COMMS_TARGET else ChannelTarget(name)
-
-
-def linked_target(name: str) -> NavigationTarget:
-    """Decode a clicked wire identity at the link boundary."""
-    return channel_target(name) if name.startswith("#") else ThreadTarget(name)

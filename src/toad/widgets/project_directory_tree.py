@@ -10,9 +10,10 @@ from textual.widgets import DirectoryTree
 from textual.widgets.directory_tree import DirEntry
 
 from toad.path_filter import PathFilter
+from toad.frame_presentation import UntintedTonePaint
 
 
-class ProjectDirectoryTree(DirectoryTree):
+class ProjectDirectoryTree(UntintedTonePaint, DirectoryTree):
     BINDING_GROUP_TITLE = "Tree view"
     HELP = """\
 ## Project files

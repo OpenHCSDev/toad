@@ -15,20 +15,21 @@ from textual._activation import PrimaryActivation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.worker_static import WorkerStatic
+from toad.widgets.selection import HoverSelection
+from rich.style import Style as RichStyle
+from ui_theme.scheme import ForegroundColour, SurfaceHoverColour
 
 
-class ProjectSearchButton(PrimaryActivation, Static, can_focus=True):
+class ProjectSearchButton(HoverSelection, PrimaryActivation, Static, can_focus=True):
+    highlight_foreground = ForegroundColour
+    highlight_background = SurfaceHoverColour
+    highlighted_text_style = RichStyle(bold=True)
+
     DEFAULT_CSS = """
     ProjectSearchButton {
         height: 1;
         color: $text-muted;
         pointer: pointer;
-    }
-    ProjectSearchButton:hover,
-    ProjectSearchButton:focus {
-        color: $text;
-        background: $surface-lighten-2;
-        text-style: bold;
     }
     """
     BINDINGS = [Binding("enter", "search", "Search files", show=False)]
