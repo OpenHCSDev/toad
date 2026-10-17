@@ -64,7 +64,6 @@ class ActiveQuestionMount(QuestionMount):
             self.timer.resume()
         else:
             self.timer.pause()
-            self.blink(False)
 
     def reset(self):
         self.timer.reset()
