@@ -23,9 +23,17 @@ class WireMessageHandling(CoreEventReceiver):
 
     @classmethod
     def within(cls, contents):
-        """The original mounted resources declare their handling capability."""
-        return tuple(body for body in contents.walk_children()
-                     if isinstance(body, cls) and body.handling_references)
+        """Refresh line-history pages and collect handling bodies at their mount level."""
+        from toad.widgets.transcript_history import LineHistory
+
+        bodies = []
+        for body in contents.children:
+            if isinstance(body, LineHistory):
+                body.check_notifications()
+                bodies.extend(cls.within(body))
+            elif isinstance(body, cls) and body.handling_references:
+                bodies.append(body)
+        return tuple(bodies)
 
     @classmethod
     def references_in(cls, bodies) -> tuple[MessageReference, ...]:

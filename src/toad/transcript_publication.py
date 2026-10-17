@@ -148,13 +148,10 @@ class HandlingPublication(TranscriptPublication):
 
     async def publish_applied(self) -> bool:
         from toad.widgets.wire_message_handling import WireMessageHandling
-        from toad.widgets.transcript_history import LineHistory
 
-        for history in self.contents.query(LineHistory):
-            history.check_notifications()
+        bodies = WireMessageHandling.within(self.contents)
         if not self.owner.readable:
             return True
-        bodies = WireMessageHandling.within(self.contents)
         references = WireMessageHandling.references_in(bodies)
         if not references:
             return True
