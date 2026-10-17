@@ -55,7 +55,7 @@ class AgentProcess:
         selection = RouteSelection.for_child(env, cwd)
         with ExitStack() as acquisition:
             try:
-                acquisition.enter_context(selection.route.admit_client())
+                acquisition.enter_context(selection.route.hold_client_route())
                 await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
             except (OSError, ValueError, RuntimeError) as error:
                 agent.session.record_failure(LogAgentFail(
