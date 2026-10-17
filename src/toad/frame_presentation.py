@@ -43,27 +43,30 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable", "layer_opacity")
+    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "paint_key", "paint_cacheable", "layer_opacity")
 
-    def __init__(self, styles, tone: Color | None, cacheable: bool, opacity: float) -> None:
+    def __init__(self, styles, tone: Color | None, cacheable: bool, opacity: float, paint) -> None:
         self.styles = styles
         self.layer_opacity = styles.layer_opacity * opacity
         self.paint_cacheable = cacheable
-        stated = styles.paint_background
+        stated = paint.paint_background
+        if stated is None:
+            stated = styles.paint_background
+        foreground = paint.paint_foreground
+        self.paint_foreground = styles.paint_foreground if foreground is None else foreground
+        self.auto_color = styles.auto_color if foreground is None else False
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
-        self.paint_key = hash((styles.paint_key, self.paint_background, opacity))
-
-    paint_foreground = property(lambda self: self.styles.paint_foreground)
+        self.paint_key = hash((styles.paint_key, self.paint_background, self.paint_foreground, self.auto_color, opacity))
     background_tint = property(lambda self: self.styles.background_tint)
     text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
-    auto_color = property(lambda self: self.styles.auto_color)
 
 
 class TonePaint:
     """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
 
     tone: ClassVar[type[ThemeColour] | None]
+    paint_background = paint_foreground = None
     # A tone read from layout changes without a style or tree revision.
     tone_cacheable: ClassVar[bool] = True
     paint_opacity = 1.0
@@ -72,7 +75,7 @@ class TonePaint:
     def paint_layer(self) -> PaintLayer:
         tone = self.tone
         return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
-                         self.tone_cacheable, self.paint_opacity)
+                         self.tone_cacheable, self.paint_opacity, self)
 
 
 class AlternatingTonePaint(TonePaint):

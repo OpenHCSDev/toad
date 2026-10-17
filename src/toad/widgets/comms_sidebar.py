@@ -29,13 +29,14 @@ from textual.dom import DOMNode
 from textual.reactive import reactive
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
+from ui_theme.scheme import WarningColour
 
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import channel_target, ThreadTarget
+from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
 from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.selection import ChangingText
@@ -103,7 +104,7 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         if previous is None or previous.label != channel.label:
             row.set_label(channel.label)
         row.tooltip = channel.tooltip
-        row.set_class(channel.active, "-channel-active")
+        row.refresh_paint()
         if previous is None or previous.unread != channel.unread:
             label = channel.unread.label
             # Equal-width badges need paint only; visibility owns its layout.
@@ -116,14 +117,13 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         super().toggle_members()
         sidebar = self.sidebar
         sidebar.navigation.state.expanded[self.row.target_name] = self.expanded
-        sidebar.navigation.apply()
 
     def reveal_members(self) -> None:
         if not self.expanded:
             self.toggle_members()
 
     def rows_changed(self) -> None:
-        self.sidebar.navigation.rows_changed()
+        self.sidebar.navigation.apply()
 
     def show_member(self, name: str, view: ThreadRow) -> None:
         """Paint one member row from its current model row."""
@@ -193,18 +193,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
 
 
-    DEFAULT_CSS = """
-    CommsRow {
-        height: auto;
-        padding: 0;
-    }
-    CommsRow.-selected, CommsRow.-selected:hover, CommsRow.-selected:focus {
-        background: $block-cursor-background;
-        color: $block-cursor-foreground !important;
-    }
-    CommsRow.-channel-active { color: $warning 100%; }
-    """
-
     BINDINGS = [
         Binding("down", "cursor_down", "Next", show=False),
         Binding("up", "cursor_up", "Previous", show=False),
@@ -227,8 +215,17 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
     @property
     def selected(self) -> bool:
-        sidebar = self.navigation_tree
-        return sidebar.selection_for(self) in sidebar.selection_state.selected_targets
+        return self.is_navigation_row() and self.navigation_tree.row_selected(self)
+
+    @property
+    def highlighted(self) -> bool:
+        return self.selected or super().highlighted
+
+    @property
+    def paint_foreground(self):
+        if self.is_navigation_row() and not self.highlighted and self.navigation_tree.channel_active(self):
+            return self.app.colours.colour(WarningColour)
+        return super().paint_foreground
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
@@ -244,9 +241,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
             partial(self.app.selected_session.open_sidebar_target, self.target),
             group="sidebar-open",
         )
-
-    def on_focus(self) -> None:
-        self.navigation_tree.focus_row(self)
 
     def on_click(self, event) -> None:
         if event.button == 3:
@@ -313,16 +307,6 @@ class NewSessionButton(TargetTreeMember, Static):
         if event.button == 1:
             await self.action_create()
 
-    def on_focus(self) -> None:
-        self.navigation_tree._cursor = -1
-
-    def action_cursor_up(self) -> None:
-        sidebar = self.navigation_tree
-        rows = sidebar.rows
-        if rows:
-            sidebar._cursor = len(rows)
-            sidebar.action_cursor_up()
-
 
 class CoordinationStatus(Static):
     """Compact diagnostics for the persistent coordination wire."""
@@ -383,6 +367,10 @@ class SidebarModelView(CoreEventReceiver):
     @property
     def navigation_root(self):
         return self.service.root if self.service is not None else None
+
+    def channel_active(self, row) -> bool:
+        channel = self.model.channels.rows.get(row.target_name) if self.shows_model and isinstance(row.target, ChannelLike) else None
+        return channel is not None and channel.active
 
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
@@ -486,7 +474,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         from toad.sidebar_navigation import SidebarNavigation
         self.session_thread = session_thread
         self.can_focus = True
-        self._cursor = 0
         self.navigation = SidebarNavigation(self)
         self.enabled = observe
         self.groups: dict[str, ChannelGroup] = {}
@@ -528,7 +515,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         if self.groups:
             self.remove_children(list(self.groups.values()))
             self.groups.clear()
-            self.navigation.rows_changed()
 
     def set_enabled(self, enabled: bool) -> None:
         self.enabled = enabled
@@ -605,7 +591,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
-        self.navigation.rows_changed()
+        self.navigation.apply()
 
     def find_open_views(self) -> dict[str, str]:
         """Which open tab shows each thread of this service; the first tab claims it."""
@@ -646,23 +632,11 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def accepts_selection(self) -> bool:
         return not self.navigation.restoring
 
-    def apply_selection(self) -> None:
-        self.navigation.selection_applied = False
-        self.navigation.apply()
-
-    def action_open_selected(self) -> None:
-        rows = self.rows
-        focused = self.app.focused if self.app else None
-        if isinstance(focused, CommsRow) and focused in rows:
-            target = focused
-            self._cursor = rows.index(target)
-        elif 0 <= self._cursor < len(rows):
-            target = rows[self._cursor]
-        else:
-            return
-        self._apply_cursor(rows)
-        self.remember_row(target)
-        target.action_open_selected()
+    def row_for(self, selection):
+        group = self.groups.get(selection.channel)
+        if group is None or not group.accepts_navigation():
+            return None
+        return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.expanded else None
 
     def on_click(self, event) -> None:
         """Right click anywhere -> menu on the row under the mouse."""

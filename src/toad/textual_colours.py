@@ -36,7 +36,7 @@ from ui_theme.clock import AnimationClock
 from ui_theme.colour import AnsiColour, Rgb, TerminalPalette
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Gradient, Mix, TextFrame
-from ui_theme.scheme import BackgroundColour, ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
+from ui_theme.scheme import BackgroundColour, BlockCursorBackgroundColour, BlockCursorForegroundColour, ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 from toad.line_blocks import LineRole
@@ -168,6 +168,12 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def variables_changed(self, variables: dict[str, str]) -> None:
         terminal = self.app.ansi_theme
+        variables = dict(variables)
+        cursor = Styles.parse(f"color: {variables[BlockCursorForegroundColour.name]}; "
+                              f"background: {variables[BlockCursorBackgroundColour.name]};",
+                              read_from=(__file__, "cursor colours"))
+        if cursor.auto_color:
+            variables[BlockCursorForegroundColour.name] = cursor.background.get_contrast_text(cursor.color.a).hex
 
         def read(member: type[ThemeColour]) -> Rgb:
             value = Color.parse(variables[member.name])
@@ -196,15 +202,6 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
                       variables={name: _element(value, self) for name, value in scheme.elements.items()},
                       **colours)
-        # Resolve the scheme's paired cursor colours at the backend boundary.
-        # Content rows must not re-evaluate `auto` against an inherited surface
-        # after the cursor background has already been applied.
-        variables = theme.to_color_system().generate()
-        cursor = Styles.parse(f"color: {variables['block-cursor-foreground']}; "
-                              f"background: {variables['block-cursor-background']};",
-                              read_from=(__file__, f"{scheme.name} selection"))
-        if cursor.auto_color:
-            theme.variables['block-cursor-foreground'] = cursor.background.get_contrast_text(cursor.color.a).hex
         return theme
 
     def palette(self, palette: TerminalPalette) -> TerminalTheme:

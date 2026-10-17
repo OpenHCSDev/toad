@@ -1,4 +1,4 @@
-"""Hydration and painted selection of the existing shared channel hierarchy."""
+"""Hydration and navigation of the existing shared channel hierarchy."""
 from __future__ import annotations
 import asyncio
 from toad.session_tracker import SidebarSelection, SidebarState
@@ -10,11 +10,6 @@ class SidebarNavigation:
         self.sidebar = sidebar
         self.ready = asyncio.Event()
         self.revision = 0
-        self.worker = None
-        self.painted_selection = None
-        self.painted_targets = ()
-        self.selected_row = None
-        self.selection_applied = False
 
     @property
     def state(self) -> SidebarState:
@@ -26,8 +21,6 @@ class SidebarNavigation:
 
     def reset(self) -> None:
         self.ready.clear()
-        self.selected_row = None
-        self.selection_applied = False
 
     def capture(self) -> None:
         if not self.restoring:
@@ -54,18 +47,8 @@ class SidebarNavigation:
         """Rebuild native rows only after the selected shell has been painted."""
         if not self.sidebar.accepts_publication():
             return
-        if self.worker is None or self.worker.is_finished:
-            self.worker = self.sidebar.run_worker(
-                self.hydrate, group="sidebar-navigation",
-            )
-
-    async def hydrate(self) -> None:
-        while self.sidebar.accepts_publication():
-            revision = self.revision
-            self.sidebar.present()
-            if revision == self.revision:
-                self.sidebar.call_after_refresh(self.finish, revision)
-                return
+        self.sidebar.present()
+        self.sidebar.call_after_refresh(self.finish, self.revision)
 
     def finish(self, revision: int) -> None:
         if revision != self.revision or not self.sidebar.accepts_publication():
@@ -94,41 +77,18 @@ class SidebarNavigation:
                     for name in names}
         return replace(context, targets=names, mode=None, channel=channels)
 
-    def selection_current(self) -> bool:
-        """One selected destination has one retained painted row identity."""
-        painted = self.selected_row
-        return (self.selection_applied and self.painted_selection == self.state.selected
-                and self.painted_targets == self.state.selected_targets
-                and (painted is None or painted.is_attached))
-
-    def rows_changed(self) -> None:
-        """Native row replacement invalidates retained navigation paint."""
-        self.selection_applied = False
-
     def apply(self) -> None:
-        if self.selection_current():
-            return
-        rows = tuple((row, self.sidebar.selection_for(row)) for row in self.sidebar.rows)
-        identities = {identity for _, identity in rows}
-        # Collapsed resources still exist, but are not admitted selection or
-        # range endpoints. Keep the header as the surviving navigation anchor.
-        had_selection = bool(self.state.selected_targets)
-        self.state.selected_targets = tuple(
-            target for target in self.state.selected_targets if target in identities)
-        if self.state.selected is not None and self.state.selected not in identities:
-            header = SidebarSelection(self.state.selected.channel, self.state.selected.channel)
-            self.state.selected = header if header in identities else None
-            if had_selection and not self.state.selected_targets and self.state.selected is not None:
-                self.state.selected_targets = (self.state.selected,)
-        self.selected_row = None
-        for index, (row, identity) in enumerate(rows):
-            row.set_class(identity in self.state.selected_targets, "-selected")
-            if identity == self.state.selected:
-                self.selected_row = row
-                self.sidebar._cursor = index
-        self.painted_selection = self.state.selected
-        self.painted_targets = self.state.selected_targets
-        self.selection_applied = True
+        """Reconcile the canonical selection with visible rows after membership changes."""
+        state = self.state
+        had_selection = bool(state.selected_targets)
+        self.sidebar.apply_selection()
+        selected = state.selected
+        if selected is not None and self.sidebar.row_for(selected) is None:
+            with self.sidebar.selection_change():
+                header = SidebarSelection(selected.channel, selected.channel)
+                state.selected = header if self.sidebar.row_for(header) is not None else None
+                if had_selection and not state.selected_targets and state.selected is not None:
+                    state.selected_targets = (state.selected,)
 
     def restore_scroll(self) -> bool:
         if not self.sidebar.shows_model:
@@ -155,6 +115,4 @@ class SidebarNavigation:
                 rows = self.sidebar.rows
                 current = self.sidebar.current_rows
         target = current[0] if current else rows[0]
-        self.sidebar._cursor = rows.index(target)
-        self.sidebar._apply_cursor(rows)
-        target.focus()
+        self.sidebar.focus_row(target)

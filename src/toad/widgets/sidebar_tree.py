@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterable
+from contextlib import contextmanager
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
@@ -136,7 +137,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     @property
     def visible_rows(self):
         """Header and disclosed members in their native order."""
-        if not self.display or not self.accepts_members():
+        if not self.accepts_navigation():
             return ()
         header = (self.row,) if self.navigation_header else ()
         members = tuple(self.member_container.children) if self.expanded else ()
@@ -146,6 +147,9 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     def navigation_rows(self):
         """Native-order destinations, excluding explanatory placeholder widgets."""
         return tuple(row for row in self.visible_rows if row.is_navigation_row())
+
+    def accepts_navigation(self) -> bool:
+        return self.display and self.accepts_members()
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""
@@ -236,15 +240,33 @@ class TargetTree(Vertical):
     def accepts_selection(self) -> bool:
         return True
 
+    def row_for(self, selection):
+        raise NotImplementedError
+
+    def row_selected(self, row) -> bool:
+        return self.selection_for(row) in self.selection_state.selected_targets
+
+    def channel_active(self, row) -> bool:
+        return False
+
+    @contextmanager
+    def selection_change(self):
+        previous = set(self.selection_state.selected_targets)
+        try:
+            yield
+        finally:
+            for identity in previous.symmetric_difference(self.selection_state.selected_targets):
+                if (row := self.row_for(identity)) is not None:
+                    row.refresh_paint()
+
     def remember_row(self, row) -> None:
         """Navigation establishes a range anchor; it is not bulk selection."""
         rows = self.rows
         if self.accepts_selection() and row in rows:
-            self._cursor = rows.index(row)
-            state = self.selection_state
-            state.selected = self.selection_for(row)
-            state.selected_targets = ()
-            self.apply_selection()
+            with self.selection_change():
+                state = self.selection_state
+                state.selected = self.selection_for(row)
+                state.selected_targets = ()
 
     def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
         if not self.accepts_selection():
@@ -258,26 +280,24 @@ class TargetTree(Vertical):
         if menu and selected in current:
             return
         identities = tuple(self.selection_for(item) for item in rows)
-        if shift and state.selected in identities:
-            start, end = sorted((identities.index(state.selected), identities.index(selected)))
-            span = identities[start:end + 1]
-            state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
-        elif control:
-            state.selected_targets = (tuple(item for item in current if item != selected)
-                                      if selected in current else (*current, selected))
-            state.selected = selected
-        else:
-            state.selected = selected
-            state.selected_targets = (selected,)
-        self.apply_selection()
+        with self.selection_change():
+            if shift and state.selected in identities:
+                start, end = sorted((identities.index(state.selected), identities.index(selected)))
+                span = identities[start:end + 1]
+                state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
+            elif control:
+                state.selected_targets = (tuple(item for item in current if item != selected)
+                                          if selected in current else (*current, selected))
+                state.selected = selected
+            else:
+                state.selected = selected
+                state.selected_targets = (selected,)
 
     def apply_selection(self) -> None:
-        rows = self.rows
-        state = self.selection_state
-        identities = {self.selection_for(row) for row in rows}
-        state.selected_targets = tuple(target for target in state.selected_targets if target in identities)
-        for row in rows:
-            row.set_class(self.selection_for(row) in state.selected_targets, "-selected")
+        with self.selection_change():
+            state = self.selection_state
+            state.selected_targets = tuple(identity for identity in state.selected_targets
+                                           if self.row_for(identity) is not None)
 
     @property
     def navigation_root(self):
@@ -303,31 +323,24 @@ class TargetTree(Vertical):
     def rows(self) -> list[CommsRow]:
         return [row for group in self.navigation_groups for row in group.navigation_rows]
 
-    def focus_row(self, row) -> None:
-        rows = self.rows
-        if row in rows:
-            self._cursor = rows.index(row)
-
     def action_cursor_up(self) -> None:
-        rows = self.rows
-        if rows:
-            self._cursor = max(0, min(len(rows) - 1, self._cursor - 1))
-            self._apply_cursor(rows)
-            rows[self._cursor].focus()
+        self.move_cursor(-1)
 
     def action_cursor_down(self) -> None:
+        self.move_cursor(1)
+
+    def move_cursor(self, direction: int) -> None:
         rows = self.rows
         if rows:
-            self._cursor = min(len(rows) - 1, self._cursor + 1)
-            self._apply_cursor(rows)
-            rows[self._cursor].focus()
+            focused = self.app.focused
+            index = rows.index(focused) if focused in rows else -1 if direction > 0 else len(rows)
+            row = rows[max(0, min(len(rows) - 1, index + direction))]
+            self.focus_row(row)
 
-    def _apply_cursor(self, rows) -> None:
-        rows[self._cursor].scroll_visible(animate=False)
+    def focus_row(self, row) -> None:
+        row.scroll_visible(animate=False)
+        self.screen.set_focus(row, scroll_visible=False)
 
     def action_open_selected(self) -> None:
-        rows = self.rows
-        focused = self.app.focused
-        row = focused if focused in rows else rows[self._cursor] if rows else None
-        if row is not None:
+        if (row := self.app.focused) in self.rows:
             row.action_open_selected()
