@@ -122,11 +122,6 @@ class Agent(AgentBase):
         acp_command = toad.get_os_matrix(self.definition.run_command)
         return acp_command
 
-    @property
-    def supports_load_session(self) -> bool:
-        """Does the agent support loading sessions?"""
-        return self.session.supports_load
-
     def __rich_repr__(self) -> rich.repr.Result:
         yield self.project_root_path
         yield self.command

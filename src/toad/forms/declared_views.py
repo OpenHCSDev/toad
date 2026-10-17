@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from inspect import cleandoc
 from typing import Annotated, ClassVar, Optional, Self, TypeVar, get_args, get_origin
@@ -37,7 +37,7 @@ class DeclaredViews:
     """
 
     shows: ClassVar[tuple[object, ...]] = ()
-    shown_by: ClassVar[dict[object, type]]
+    shown_by: ClassVar[dict[object, Callable]]
 
     def __init_subclass__(cls, **kwargs: object) -> None:
         super().__init_subclass__(**kwargs)
@@ -47,7 +47,7 @@ class DeclaredViews:
             cls.shown_by[declaration] = cls
 
     @classmethod
-    def showing(cls, declarations: Iterable[object]) -> type[Self]:
+    def showing(cls, declarations: Iterable[object]) -> Callable[..., Self]:
         """The member registered under the first of these declarations that has one."""
         declarations = tuple(declarations)
         for declaration in declarations:

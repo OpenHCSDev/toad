@@ -113,7 +113,7 @@ class ScreenContent(DeclaredFamily, affix="Content"):
 
     def render(self, screen: "MainScreen") -> Static:
         """The opening line: the session's disposition decides whether a failure replaces it."""
-        line = screen.session_disposition.explain(self.line())
+        line = screen.session_disposition.present(self.line(), lambda status: status.notice)
         return self.label(screen, line, visible=bool(line))
 
     @abstractmethod
