@@ -8,15 +8,15 @@ from textual import events, on
 from rich.segment import Segment
 from textual.content import Content
 from textual.strip import Strip
-from ui_theme.effects import SPINNER
+from ui_theme.effects import SPINNER, TextFrame
 
-from toad.textual_colours import Animated
+from toad.frame_presentation import Animated
 from textual.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
 
-class ViewLabel(Animated):
+class ViewLabel(Animated[TextFrame]):
     """Native label paint: workspace emphasis and clock-driven activity ink."""
 
     def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:

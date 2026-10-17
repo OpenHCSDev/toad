@@ -21,11 +21,10 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=00be560e89a3d68e4a0a6f5d002bbf1aa80ea960#00be560e89a3d68e4a0a6f5d002bbf1aa80ea960" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=bf8ee988c8fdfb3fb86fe0bd35d333f6c639be43#bf8ee988c8fdfb3fb86fe0bd35d333f6c639be43" }
 dependencies = [
     { name = "aiohttp" },
     { name = "metaclass-registry" },
-    { name = "nominal-refactor-audit" },
     { name = "pydantic" },
 ]
 
@@ -306,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=00be560e89a3d68e4a0a6f5d002bbf1aa80ea960" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=bf8ee988c8fdfb3fb86fe0bd35d333f6c639be43" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -329,7 +328,7 @@ requires-dist = [
     { name = "textual-speedups", specifier = "==0.2.1" },
     { name = "typeguard", specifier = "==4.5.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
-    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c1822f006e3128b1614def5ddc5d7698ce8ad833" },
+    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c5e9ed70063c111965fcff0caf8eb8747649cbc7" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
@@ -1017,11 +1016,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/a2/6e/371856a3fb9d31ca8
 wheels = [
     { url = "https://files.pythonhosted.org/packages/79/7b/2c79738432f5c924bef5071f933bcc9efd0473bac3b4aa584a6f7c1c8df8/mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505", size = 4963, upload-time = "2025-04-22T14:54:22.983Z" },
 ]
-
-[[package]]
-name = "nominal-refactor-audit"
-version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/NominalRefactorAdvisor.git?subdirectory=skills%2Frefactor-audit&rev=120c04fb9a0eb4afafab6d621d1c5fd421bb7552#120c04fb9a0eb4afafab6d621d1c5fd421bb7552" }
 
 [[package]]
 name = "notify-py"
@@ -2013,7 +2007,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c1822f006e3128b1614def5ddc5d7698ce8ad833#c1822f006e3128b1614def5ddc5d7698ce8ad833" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c5e9ed70063c111965fcff0caf8eb8747649cbc7#c5e9ed70063c111965fcff0caf8eb8747649cbc7" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },

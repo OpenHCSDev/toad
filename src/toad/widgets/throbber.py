@@ -13,9 +13,10 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
-from ui_theme.effects import ACTIVITY_SWEEP
+from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 
-from toad.textual_colours import Animated, BlockInk, BottomInk, TopInk
+from toad.frame_presentation import Animated
+from toad.textual_colours import BlockInk, BottomInk, TopInk
 
 
 class ThrobberVisual(Visual):
@@ -44,7 +45,7 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(Animated, Widget):
+class Throbber(Animated[Ribbon]):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
     effect = ACTIVITY_SWEEP
@@ -60,19 +61,13 @@ class Throbber(Animated, Widget):
         self.watch_busy(self.busy)
 
     def watch_busy(self, busy: bool) -> None:
-        # A computed busy changes when it is read, often by the clock's tick,
-        # which repaints only visible running animations: repaint here so the
-        # last sweep frame never stays on screen once work ends.
+        # The activity owner's sync changes animation ownership and retires its paint.
         if busy and self.is_mounted:
             if self.animation is None:
                 self.run_effect(self.effect)
         else:
             self.stop_effect()
         self.refresh()
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.busy and super().animation_visible
 
     def render(self) -> ThrobberVisual | str:
         return self._busy_visual if self.busy else ""

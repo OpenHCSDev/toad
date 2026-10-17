@@ -15,10 +15,10 @@ from textual.strip import Strip
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.widget import Widget
 
-from ui_theme.effects import NEW_MESSAGE
+from ui_theme.effects import NEW_MESSAGE, Mix
 
 from toad.line_blocks import Divider, LineBlock
-from toad.textual_colours import Animated
+from toad.frame_presentation import Animated
 from toad.message_rows import MessageRow
 from toad.widgets.transcript_lines import (
     LineTheme, LinkedRows, MessageRowBlock, PreparedLines, RichLineRenderer, link_place,
@@ -110,7 +110,7 @@ class SingleLineBlock(LinkedRows, BlockContent, Widget):
         return 1
 
 
-class MessageDivider(Animated, SingleLineBlock):
+class MessageDivider(Animated[Mix], SingleLineBlock):
     """The rule above a live message: the same `Divider` block saved history draws.
 
     A message that has just arrived fades in from the accent colour.

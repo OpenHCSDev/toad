@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from textual.content import Content
 from textual.widgets import Static
-from ui_theme.effects import PlayedText
+from ui_theme.effects import PlayedText, TextFrame
 from ui_theme.scheme import ColourScheme
 from ui_theme.splash import loading_splash
 
-from toad.textual_colours import Animated
+from toad.frame_presentation import Animated
 
 
-class SplashText(Animated, Static):
+class SplashText(Animated[TextFrame], Static):
     """Shows ``TEXT`` plainly until its effect's frames arrive, then plays them.
 
     The frames are built in a render worker, once per colour scheme. A
