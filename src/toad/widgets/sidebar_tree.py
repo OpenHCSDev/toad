@@ -300,12 +300,14 @@ class TargetTree(Vertical):
 
     @property
     def row_reconciliation(self):
-        return self._member_reconciliation or RowReconciliation(self)
+        if self._member_reconciliation is None:
+            raise RuntimeError("Row reconciliation requires an active member sync")
+        return self._member_reconciliation
 
     @contextmanager
     def reconcile_members(self):
         previous = self._member_reconciliation
-        self._member_reconciliation = self.row_reconciliation
+        self._member_reconciliation = RowReconciliation(self) if previous is None else previous
         try:
             yield
         finally:

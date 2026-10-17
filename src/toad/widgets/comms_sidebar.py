@@ -628,6 +628,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         while self.is_attached and self.model is not None:
             missing = [key for key in self.model.channels.rows if key not in self.groups]
             if not missing:
+                self._order_groups()
                 return
             for key in missing:
                 rows = self.model.channels.rows if self.model is not None else {}
@@ -638,8 +639,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                     key, row.target.expanded_by_default))
                 group.present(rows[key])  # Its members sync once it is mounted.
                 await self.mount(group)
-            if self.is_attached and self.model is not None:
-                self._order_groups()
 
     @property
     def member_keys(self):
@@ -649,6 +648,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         """Order current groups, retiring old groups after their rows can move."""
         removed = [key for key in self.groups if key not in self.model.channels.rows]
         if removed:
+            with self.reconcile_members():
+                self.row_reconciliation.finish()
             self.remove_children([self.groups.pop(key) for key in removed])
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
         live = tuple(child for child in self.children if not child.is_leaving)

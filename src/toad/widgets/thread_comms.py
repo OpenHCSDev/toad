@@ -5,7 +5,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 
-from toad.navigation_target import NavigationTarget, linked_target, ThreadTarget
+from toad.navigation_target import NavigationTarget, ThreadTarget
 
 import asyncio
 from dataclasses import dataclass, field
@@ -30,7 +30,7 @@ from toad.widgets.thread_comms_source import RelationshipSource
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     person = entry.person
     if person is None:
-        return linked_target(entry.target)
+        return NavigationTarget.named(entry.target)
     return ThreadTarget(person.thread.name)
 
 
