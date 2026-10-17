@@ -76,8 +76,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         return self.state.blocks_visible_read(self)
 
     @property
-    def checkpoint_available(self) -> bool:
-        return self.state.checkpoint_available(self)
+    def source_ready(self) -> bool:
+        return self.state.source_ready(self)
 
     def reserve_source_work(self, operation=None) -> WorkingTranscript:
         operation = self._source_state.reserve(self, operation)

@@ -23,9 +23,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     rows_arrive: ClassVar[bool] = True
     accepts_source_work: ClassVar[bool] = False
 
-    def checkpoint_available(self, owner) -> bool:
-        """The source accepts work and its resource still holds the saved rows."""
-        return self.accepts_source_work and owner.source_checkpoint_available
+    def source_ready(self, owner) -> bool:
+        """The source accepts work and the filter is not scanning."""
+        return self.accepts_source_work and owner.filter.idle
 
     def blocks_visible_read(self, owner) -> bool:
         """An unpublished source must settle before its cursor is read."""
@@ -102,7 +102,7 @@ class LiveTranscript(TranscriptState):
     accepts_source_work = True
 
     def blocks_visible_read(self, owner) -> bool:
-        return owner.has_newer or not self.checkpoint_available(owner)
+        return owner.has_newer or not self.source_ready(owner)
 
     def reserve(self, owner, operation=None) -> "WorkingTranscript":
         return (operation or WorkingTranscript)(self, owner)
@@ -111,7 +111,7 @@ class LiveTranscript(TranscriptState):
         owner.schedule_source_work(partial(owner._jump_latest, request))
 
     def check_edges(self, owner) -> None:
-        if self.checkpoint_available(owner):
+        if self.source_ready(owner):
             owner.window.lookahead.prepare_source(owner)
 
     @classmethod
