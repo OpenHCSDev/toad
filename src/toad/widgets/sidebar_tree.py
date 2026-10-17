@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterable
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
@@ -197,6 +198,8 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
+    navigation_groups: Iterable[SidebarGroup]
+
     @property
     def selection_state(self):
         raise NotImplementedError
@@ -209,7 +212,7 @@ class TargetTree(Vertical):
 
     def remember_row(self, row) -> None:
         """Navigation establishes a range anchor; it is not bulk selection."""
-        rows = self._ordered_rows()
+        rows = self.rows
         if self.accepts_selection() and row in rows:
             self._cursor = rows.index(row)
             state = self.selection_state
@@ -220,7 +223,7 @@ class TargetTree(Vertical):
     def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
         if not self.accepts_selection():
             return
-        rows = self._ordered_rows()
+        rows = self.rows
         if row not in rows:
             return
         selected = self.selection_for(row)
@@ -243,7 +246,7 @@ class TargetTree(Vertical):
         self.apply_selection()
 
     def apply_selection(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         state = self.selection_state
         identities = {self.selection_for(row) for row in rows}
         state.selected_targets = tuple(target for target in state.selected_targets if target in identities)
@@ -257,7 +260,7 @@ class TargetTree(Vertical):
     @property
     def current_rows(self):
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
-        return tuple(row for row in self._ordered_rows() if row.target_name == target)
+        return tuple(row for row in self.rows if row.target_name == target)
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:
@@ -265,28 +268,29 @@ class TargetTree(Vertical):
 
     def sync_current(self, rows=None) -> None:
         """One workspace answer paints the supplied resources, or a selection change."""
-        rows = self._ordered_rows() if rows is None else rows
+        rows = self.rows if rows is None else rows
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
         for row in rows:
             row.paint_current(row.is_navigation_row() and row.target_name == target)
 
-    def _ordered_rows(self):
-        raise NotImplementedError
+    @property
+    def rows(self) -> list[CommsRow]:
+        return [row for group in self.navigation_groups for row in group.navigation_rows]
 
     def focus_row(self, row) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         if row in rows:
             self._cursor = rows.index(row)
 
     def action_cursor_up(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         if rows:
             self._cursor = max(0, min(len(rows) - 1, self._cursor - 1))
             self._apply_cursor(rows)
             rows[self._cursor].focus()
 
     def action_cursor_down(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         if rows:
             self._cursor = min(len(rows) - 1, self._cursor + 1)
             self._apply_cursor(rows)
@@ -296,7 +300,7 @@ class TargetTree(Vertical):
         rows[self._cursor].scroll_visible(animate=False)
 
     def action_open_selected(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         focused = self.app.focused
         row = focused if focused in rows else rows[self._cursor] if rows else None
         if row is not None:
