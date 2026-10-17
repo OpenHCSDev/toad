@@ -15,7 +15,6 @@ from __future__ import annotations
 from toad.core.input_events import SelectTarget
 from toad.core_event_carrier import CoreEventMessage
 
-import os
 import shlex
 from agent_comms.native_arguments import NativeArguments
 from functools import partial
@@ -173,12 +172,6 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
                 repainted.append(view)
         if repainted:
             self.sidebar.sync_current(repainted)
-
-
-def _comms_root() -> Path:
-    from agent_comms.route_selection import current_root
-
-    return current_root()
 
 
 def _display_path(path: Path) -> str:
@@ -403,8 +396,9 @@ class CoordinationStatus(Static):
     }
     """
 
-    def __init__(self, thread: str = "") -> None:
+    def __init__(self, service: Comms, thread: str = "") -> None:
         super().__init__()
+        self.service = service
         self.thread = thread
         self.refresh_status()
 
@@ -413,12 +407,8 @@ class CoordinationStatus(Static):
         self.refresh_status()
 
     def refresh_status(self) -> None:
-        try:
-            root = _comms_root()
-        except (OSError, ValueError, RuntimeError) as error:
-            self.update(f"Wire unavailable: {error}")
-            self.tooltip = "Invalid Comms route"
-            return
+        root = self.service.root
+        timing = self.service.configuration.reply_timing
         backend = NativeArguments.configured_binary()
         thread = self.thread or "connecting..."
         self.update(
@@ -437,9 +427,9 @@ class CoordinationStatus(Static):
             f"AGENT_COMMS_ROOT={root.resolve()}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
             f"AGENT_COMMS_AGENT_ARGS={args}\n"
-            f"AGENT_COMMS_REPLY_WINDOW={os.environ.get('AGENT_COMMS_REPLY_WINDOW', '8.0')}\n"
-            f"AGENT_COMMS_NO_REPLY_WINDOW={os.environ.get('AGENT_COMMS_NO_REPLY_WINDOW', '2.5')}\n"
-            f"AGENT_COMMS_REPLY_QUIET={os.environ.get('AGENT_COMMS_REPLY_QUIET', '1.5')}"
+            f"Reply window={timing.reply_window}\n"
+            f"No-reply window={timing.no_reply_window}\n"
+            f"Reply quiet={timing.reply_quiet}"
         )
 
 

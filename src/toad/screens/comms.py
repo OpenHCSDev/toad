@@ -133,7 +133,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
-                    CoordinationStatus(self.me),
+                    CoordinationStatus(self.app.coordination_access.service, self.me),
                     id="coordination-panel",
                 ),
                 SideBar.Panel("Comms", ThreadCommsSidebar(
