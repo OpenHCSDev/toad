@@ -35,7 +35,7 @@ from textual.widget import PrimaryActivation
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
-from toad.core.events import ThreadActionsChanged, CoordinationObserved
+from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
@@ -131,8 +131,7 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         channel = self.channel
         view.mode_name = sidebar.open_views.get(name)
         view.target = ThreadTarget(name)
-        view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members,
-                  action_status=cast("ToadApp", self.app).thread_actions.pending.get(name))
+        view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members)
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
@@ -527,6 +526,15 @@ class SidebarModelView(CoreEventReceiver):
         if service is not None and service is not self.service:
             self.attach(service)
 
+    @handles(ThreadRowStateChanged)
+    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
+        """This app's own row state changed: every thread row repaints now, or when shown again."""
+        if self.accepts_observation() and self.shows_model:
+            self.sync(channels=frozenset(), threads=None)
+        else:
+            self.stale = True
+            self.present()
+
 
 class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     """The view of the observed service's sidebar model: channel groups and their threads.
@@ -705,12 +713,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         for group in self.groups.values():
             for name, row in group.rows.items():
                 row.mode_name = self.open_views.get(name)
-
-    @handles(ThreadActionsChanged)
-    async def thread_actions_changed(self, event: CoreEventMessage) -> None:
-        if self.shows_model and self.accepts_observation():
-            for group in self.groups.values():
-                group.sync_members()
 
     def sidebar_visibility_changed(self) -> None:
         self.present()

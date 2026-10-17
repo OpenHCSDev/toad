@@ -114,7 +114,6 @@ class AgentController(OperationalTerminalOwner):
         from toad.core.events import AvailableCommandsUpdate
         if self.surface is not binding:
             return
-        session = self.session
         agent = self.agent
         # Retained operational facts are available now. A source read must not
         # hold modes, commands, plan, queue and cursor behind filesystem I/O.
@@ -127,17 +126,8 @@ class AgentController(OperationalTerminalOwner):
         agent._post_queue_view()
         agent._post_private_cursor()
         if agent.coordination is not None:
-            coordination = agent.coordination
-            authority = ClientSessionRequest(agent, agent.session_id)
-            self.agent.events.publish(CommsUpdated(coordination, agent.session_id))
-            snapshot = await self.transcripts.snapshot(
-                coordination.wire_root, coordination.thread.name)
-            if self.surface is not binding:
-                return
-            if self.session is not session:
-                return
-            self.require_owner(coordination, authority)
-            self.agent.events.publish(CommsUpdated(snapshot, agent.session_id))
+            # The conversation's own refresh reads its history; this only reports the thread.
+            self.agent.events.publish(CommsUpdated(agent.coordination, agent.session_id))
         binding.schedule_terminal_presentation(self)
 
 

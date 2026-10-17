@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-from agent_comms import cohort_foreground
+from agent_comms import private_nk_entrypoint
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
@@ -34,7 +34,7 @@ def published(tmp_path, monkeypatch, native_package):
     private, private_id = private_root(tmp_path / "wire", tmp_path, "PRIVATE-ONLY")
     route = ActiveRoute(private, private_id, native_package)
     assert current_root() == legacy
-    with patch.object(cohort_foreground, "_trusted_package", lambda _: None):
+    with patch.object(private_nk_entrypoint, "_trusted_package", lambda _: None):
         publish_active_route(route)
     assert current_root() == private
     return SimpleNamespace(legacy=legacy, private=private, private_id=private_id, route=route, cwd=tmp_path)

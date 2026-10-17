@@ -15,6 +15,7 @@ from textual.widgets.text_area import TextAreaState
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.session_load import EnsuringSessionLoadPlan
 from toad.owner_preparation import ExistingOwnerPlan
+from toad.acp.agent_session import SessionDisposition
 
 from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
@@ -107,7 +108,8 @@ class OperationalSessionSources:
         self.load_plan = EnsuringSessionLoadPlan()
 
     def status_row(self, conversation: Conversation):
-        return self.activity_row(conversation).with_delivery(conversation.input_delivery)
+        row = self.activity_row(conversation).with_delivery(conversation.input_delivery)
+        return SessionDisposition.of(conversation.agent).shown_row(row)
 
     def activity_row(self, conversation: Conversation):
         # A Core history source owns status even when its ACP load fails.
@@ -152,6 +154,9 @@ class OperationalSessionSources:
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
+        return SessionDisposition.of(conversation.agent).explain(self.ordinary_unavailable_reason(conversation))
+
+    def ordinary_unavailable_reason(self, conversation: Conversation) -> str:
         presentation = conversation.thread_presentation
         if (conversation.transcript.readable and presentation is not None
                 and ExistingOwnerPlan.from_binding(presentation.binding) is None):
@@ -170,7 +175,8 @@ class OperationalSessionSources:
             return
         assert conversation._agent_data is not None
         agent = Agent(conversation.project_path, conversation._agent_data,
-                      conversation._agent_session_id, conversation._session_pk)
+                      conversation._agent_session_id, conversation._session_pk,
+                      app_events=conversation.app.events)
         agent.session.load_plan = self.load_plan
         conversation.agent = agent
         conversation._native_agent_started_here = True

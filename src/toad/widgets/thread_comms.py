@@ -133,7 +133,6 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
         rows = tree.thread_rows
-        actions = tree.app.thread_actions.pending
         container = self.member_container
         entries = {entry.identity: entry for entry in self.model.entries}
         empty = container.query_one_optional(".relationship-empty")
@@ -166,7 +165,7 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             elif entry.person is not None:
                 name = entry.person.thread.name
                 if changed is None or name in changed or row.thread_row is None:
-                    row.show(rows[name], action_status=actions.get(entry.target))
+                    row.show(rows[name])
             else:
                 row.set_label(entry.target)
                 row.tooltip = entry.target
@@ -292,9 +291,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             group.display = False
         self.refresh_relationships(force=True)
 
-    @handles(core_events.ThreadActionsChanged)
-    async def _actions_changed(self, event: CoreEventMessage) -> None:
-        """Pending actions decorate rows; they are not a relationship read."""
+    @handles(core_events.ThreadRowStateChanged)
+    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
+        """Pending actions and session state decorate rows; they are not a relationship read."""
         if self.is_attached and self.screen.is_current:
             for group in self.groups.values():
                 group.sync_members()

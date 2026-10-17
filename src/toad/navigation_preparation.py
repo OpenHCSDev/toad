@@ -35,7 +35,7 @@ class NavigationRequest(ABC, Generic[ResultT]):
 @dataclass(frozen=True)
 class CommsNavigation:
     key: CommsViewKey
-    recovery_root: str | None
+    owner_root: str | None
     participants: tuple[ThreadIncarnation, ...]
 
 
@@ -46,18 +46,18 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
     me: str
     target: str
     kind: type[ConversationKind]
-    recovery_root: str | None
+    owner_root: str | None
 
     def read(self) -> CommsNavigation:
         comms = self.comms
         root = comms.root
         me, target = self.kind.resolve(comms, self.me, self.target)
-        recovery_root = self.recovery_root
-        if recovery_root is not None and Path(recovery_root).expanduser().resolve() != root:
-            recovery_root = None
+        owner_root = self.owner_root
+        if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
+            owner_root = None
         return CommsNavigation(
             CommsViewKey(str(root), self.owner_mode, me, self.kind, target),
-            recovery_root,
+            owner_root,
             self.kind.threads_needed(comms.registry.snapshot(), me, target),
         )
 

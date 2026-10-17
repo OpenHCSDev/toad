@@ -24,7 +24,6 @@ from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.session_tracker import SidebarState
 from toad.widgets.side_bar import SideBar
 from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
@@ -63,7 +62,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         me: str,
         target: str,
         kind: type[ConversationKind],
-        recovery_root: str | None = None,
+        owner_root: str | None = None,
         wire_root: str | None = None,
     ) -> None:
         super().__init__()
@@ -72,7 +71,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         self.me = me
         self.target = target
         self.kind = kind
-        self.recovery_root = recovery_root
+        self.owner_root = owner_root
         self.wire_root = wire_root
         self._thread_sidebar_state = SidebarState()
         self._content_ready = asyncio.Event()
@@ -94,7 +93,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         return self.target
 
     def relationship_context(self) -> tuple[str, str | None]:
-        return self.me, self.recovery_root
+        return self.me, self.owner_root
 
     def rebind_identity(self, identity: str) -> None:
         self.me = identity
@@ -104,13 +103,9 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             sidebar.session_thread = identity
         if status := self.query_one_optional(CoordinationStatus):
             status.set_thread(identity)
-        if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(identity, self.recovery_root)
 
-    def rebind_recovery(self, root: str | None) -> None:
-        self.recovery_root = root
-        if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(self.me, root)
+    def rebind_owner_root(self, root: str | None) -> None:
+        self.owner_root = root
 
     def rebind_project(self, project: Path) -> None:
         changed = project != self.project_path
@@ -141,10 +136,8 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
                     CoordinationStatus(self.me),
                     id="coordination-panel",
                 ),
-                SideBar.Panel("Recovery", RecoveryView(self.me, wire_root=self.recovery_root), collapsed=True,
-                              id="recovery-panel"),
                 SideBar.Panel("Comms", ThreadCommsSidebar(
-                    self.me, wire_root=self.recovery_root, live=True),
+                    self.me, wire_root=self.owner_root, live=True),
                     id="thread-comms-panel", header_control=RelationshipSort()),
                 right=True, hide=True, navigation=self._thread_sidebar_state,
             ),
