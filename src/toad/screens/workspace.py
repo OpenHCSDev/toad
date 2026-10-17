@@ -1,9 +1,7 @@
 """The one native workspace frame; session surfaces never own compositors."""
 
-import asyncio
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import TYPE_CHECKING
 
 from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
@@ -19,10 +17,6 @@ from toad.widget_view import WidgetView
 from toad.widgets.side_bar import SidebarFocusOwner
 from agent_comms.declared_family import DeclaredFamily
 from abc import abstractmethod
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
 
 @dataclass(frozen=True)
 class ViewStyleRevision:
