@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from textual import events
+from textual.binding import Binding
 from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
@@ -74,6 +75,8 @@ class FormSelectCurrent(FramedControl, SelectCurrent):
 class FormModal(WidgetView):
     """Shared native modal presentation and theme invalidation lifecycle."""
 
+    BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
+
     height = None
     align_horizontal = "center"
     align_vertical = "middle"
@@ -92,3 +95,6 @@ class FormModal(WidgetView):
     def theme_changed(self, theme) -> None:
         # A theme changes the entire visible modal, not each offscreen field.
         self.refresh()
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)

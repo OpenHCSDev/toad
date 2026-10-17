@@ -79,10 +79,10 @@ class SettingsScreen(FormModal, ModalScreen[None]):
         message.stop()
         self.form.filter(message.value)
 
-    def close(self) -> None:
+    def action_cancel(self) -> None:
         """Leave with every edit sent; the settings are saved once the screen is gone."""
         self.form.finish()
-        self.dismiss()
+        super().action_cancel()
 
     def focus_search(self) -> None:
         self.search.focus()
@@ -94,7 +94,6 @@ class SettingsScreen(FormModal, ModalScreen[None]):
         self.app.saved_settings.discard()
 
     BINDINGS = [
-        CallBinding("escape", close, "Dismiss settings"),
         CallBinding("ctrl+s", focus_search, "Focus search", available=search_wanted),
         CallBinding("ctrl+r", discard, "Discard changes"),
     ]
