@@ -15,6 +15,11 @@ from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
+from textual.layouts.vertical import VerticalLayout
+from textual._measurement import FLOW_HEIGHT, height_dependency
+from ui_theme.effects import Frame, SIDEBAR_ENTER
+from toad.frame_presentation import Animated
+from toad.widgets.session_sidebar import ThreadStatusRow
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
@@ -41,7 +46,17 @@ class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
             self.action_toggle()
 
 
-class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
+class SidebarRowLayout(VerticalLayout):
+    """Native flow owns destinations; rows add time-derived paint displacement."""
+
+    @height_dependency(FLOW_HEIGHT)
+    def arrange(self, parent, children, size, greedy=True):
+        return [placement.widget.place(placement)
+                if isinstance(placement.widget, ThreadStatusRow) else placement
+                for placement in super().arrange(parent, children, size, greedy)]
+
+
+class SidebarGroup[KeyT, RowT: "CommsRow"](Animated[Frame], VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
@@ -73,6 +88,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         self.controls = controls
         container = VerticalScroll if scrollable else VerticalGroup
         self.member_container = container(classes="group-members channel-members")
+        self.member_container.styles.layout = SidebarRowLayout()
         self.expanded = expanded
 
     def compose(self) -> ComposeResult:
@@ -84,6 +100,13 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
 
     def on_mount(self) -> None:
         self.sync_members()
+
+    def repaint(self) -> None:
+        for child in tuple(self.member_container.children):
+            if isinstance(child, ThreadStatusRow):
+                child.refresh_motion()
+        self.member_container.refresh(layout=True)
+        self.refresh()
 
     def toggle_members(self) -> None:
         self.expanded = not self.expanded
@@ -145,9 +168,15 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         wanted = set(keys)
         retired = [key for key, row in rows.items()
                    if key not in wanted or (replace is not None and replace(key, row))]
+        animate = self.expanded and self.animation_visible
+        origins = {row: row.painted_position() for row in rows.values()} if animate else {}
         if retired:
-            # Retire the exact set in one DOM operation.
-            self.member_container.remove_children([rows.pop(key) for key in retired])
+            retiring = [rows.pop(key) for key in retired]
+            if animate:
+                for row in retiring:
+                    row.disappear(self)
+            else:
+                self.member_container.remove_children(retiring)
         mounted = []
         deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         for key in keys:
@@ -161,6 +190,8 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
                 # Mounted one at a time: styling each is most of its cost,
                 # and the deadline must see it.
                 self.member_container.mount(current)
+                if animate:
+                    current.run_effect(SIDEBAR_ENTER, target=self)
                 mounted.append(current)
                 if self.expanded:
                     changed.append(current)
@@ -178,6 +209,10 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
             positions = {row: index for index, row in enumerate(ordered)}
             self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
         if retired or mounted or reordered:
+            if animate:
+                for row in ordered:
+                    if row not in mounted:
+                        row.slide(self, origins[row])
             self.rows_changed()
         if changed:
             self.query_ancestor(TargetTree).sync_current(changed)

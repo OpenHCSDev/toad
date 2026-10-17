@@ -15,7 +15,7 @@ from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
-from ui_theme.clock import Animation
+from ui_theme.clock import Animation, AnimationTarget
 from ui_theme.effects import Effect, Fade, Frame
 
 if TYPE_CHECKING:
@@ -45,20 +45,21 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable")
+    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable", "opacity")
 
-    def __init__(self, styles, tone: Color | None, cacheable: bool) -> None:
+    def __init__(self, styles, tone: Color | None, cacheable: bool, opacity: float) -> None:
         self.styles = styles
+        self.opacity = opacity
         self.paint_cacheable = cacheable
         stated = styles.paint_background
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
-        self.paint_key = hash((styles.paint_key, self.paint_background))
+        self.paint_key = hash((styles.paint_key, self.paint_background, opacity))
 
     paint_foreground = property(lambda self: self.styles.paint_foreground)
     background_tint = property(lambda self: self.styles.background_tint)
     text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
-    layer_opacity = property(lambda self: self.styles.layer_opacity)
+    layer_opacity = property(lambda self: self.styles.layer_opacity * self.opacity)
     auto_color = property(lambda self: self.styles.auto_color)
 
 
@@ -68,12 +69,13 @@ class TonePaint:
     tone: ClassVar[type[ThemeColour] | None]
     # A tone read from layout changes without a style or tree revision.
     tone_cacheable: ClassVar[bool] = True
+    paint_opacity = 1.0
 
     @property
     def paint_layer(self) -> PaintLayer:
         tone = self.tone
         return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
-                         self.tone_cacheable)
+                         self.tone_cacheable, self.paint_opacity)
 
 
 class AlternatingTonePaint(TonePaint):
@@ -272,9 +274,9 @@ class Animated[FrameT: Frame](Widget):
         super().__init__(*args, **kwargs)
         self.effects: dict[Effect, Animation] = {}
 
-    def run_effect(self, effect: Effect) -> None:
+    def run_effect(self, effect: Effect, *, target: AnimationTarget | None = None) -> None:
         self.stop_effect(effect)
-        self.effects[effect] = self.app.colours.clock.start(effect, self)
+        self.effects[effect] = self.app.colours.clock.start(effect, self if target is None else target)
 
     def stop_effect(self, *effects: Effect) -> None:
         for effect in effects or tuple(self.effects):
