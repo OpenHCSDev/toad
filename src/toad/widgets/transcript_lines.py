@@ -618,7 +618,7 @@ class BlockLines(Lines):
         draw = self.renderer.at_width(self.width)
         return tuple(block.prepared_rows(self.width, draw) for block in self.preparation.blocks)
 
-    @property
+    @cached_property
     def height(self) -> int:
         return sum(block.height for block in self.prepared_blocks)
 

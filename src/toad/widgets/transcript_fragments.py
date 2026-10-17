@@ -320,7 +320,8 @@ class TranscriptFragment:
         plain = self.__dict__.get("_plain")
         return (held is not None and held[0].preparation.theme == theme
                 and held[1].preparation is lines.preparation
-                or plain is not None and plain[0] == theme and plain[1] is lines)
+                or plain is not None and plain.preparation.theme == theme
+                and plain.preparation.blocks is lines.preparation.blocks)
 
     def invalidate_lines(self):
         self.__dict__.pop("_lines", None)
@@ -337,9 +338,10 @@ class TranscriptFragment:
         from toad.widgets.transcript_lines import PlainLines
 
         held = self.__dict__.get("_plain")
-        if held is None or held[0] != renderer.theme or held[1].width != width:
-            held = self.__dict__["_plain"] = renderer.theme, PlainLines(width, renderer, self.line_blocks)
-        return held[1]
+        if held is None or held.preparation.theme != renderer.theme:
+            held = PlainLines(width, renderer, self.line_blocks)
+        self._plain = held.rewrap(width)
+        return self._plain
 
 
     @cached_property
