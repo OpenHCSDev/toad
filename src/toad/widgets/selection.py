@@ -12,7 +12,9 @@ from textual.strip import Strip
 from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from textual.visual import VisualType
 
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, TonePaint
+from textual.color import Color
+from rich.style import Style as RichStyle
 from textual.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
@@ -83,13 +85,44 @@ class FocusSelection(Static, can_focus=True):
         self._pointer_focus = False
 
 
-class HoverSelection(Static, can_focus=True):
-    """A focusable row that highlights from CSS `:hover`.
+class HoverSelection(TonePaint):
+    """Paint a control from native pointer/focus state, without CSS transitions."""
 
-    Taking keyboard focus on every pointer move runs the whole focus machinery
-    (focus-within restyles, binding refresh). Rows only need a repaint, so
-    pointer movement must not change focus.
-    """
+    tone = None
+    cursor_palette = "block-cursor"
+
+    @property
+    def paint_highlighted(self):
+        return self.has_focus or self.mouse_hover
+
+    @property
+    def highlight_foreground(self):
+        return f"{self.cursor_palette}-foreground"
+
+    @property
+    def highlight_background(self):
+        return f"{self.cursor_palette}-background"
+
+    @property
+    def highlighted_text_style(self):
+        return RichStyle.parse(self.app.colours.variables[f"{self.cursor_palette}-text-style"])
+
+    @property
+    def paint_foreground(self):
+        return (Color.parse(self.app.colours.variables[self.highlight_foreground])
+                if self.paint_highlighted and self.highlight_foreground else None)
+
+    @property
+    def paint_background(self):
+        return (Color.parse(self.app.colours.variables[self.highlight_background])
+                if self.paint_highlighted and self.highlight_background else None)
+
+    @property
+    def text_style(self):
+        return self.highlighted_text_style if self.paint_highlighted else None
+
+    def watch_mouse_hover(self):
+        self.refresh_paint()
 
 
 class SelectionOptionList(OptionList):

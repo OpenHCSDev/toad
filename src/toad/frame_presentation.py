@@ -28,7 +28,7 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity")
+    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity", "text_style")
 
     def __init__(self, styles, tone: Color | None, opacity: float, paint) -> None:
         self.styles = styles
@@ -39,9 +39,10 @@ class ToneLayer(PaintLayer):
         foreground = paint.paint_foreground
         self.paint_foreground = styles.paint_foreground if foreground is None else foreground
         self.auto_color = styles.auto_color if foreground is None else False
+        text_style = paint.text_style
+        self.text_style = styles.text_style if text_style is None else text_style
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
     background_tint = property(lambda self: self.styles.background_tint)
-    text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
 
 
@@ -49,7 +50,7 @@ class TonePaint:
     """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
 
     tone: ClassVar[type[ThemeColour] | None]
-    paint_background = paint_foreground = None
+    paint_background = paint_foreground = text_style = None
     paint_opacity = 1.0
 
     @property

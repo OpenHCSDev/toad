@@ -23,6 +23,7 @@ from textual.widget import Widget
 from ui_theme.scheme import SidebarToneColour
 
 from toad.frame_presentation import TonePaint
+from toad.widgets.selection import HoverSelection
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
     Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
@@ -151,7 +152,12 @@ The Sidebar contains additonal information associated with the conversation.
                 yield from self._contents_list
 
 
-class SideBarToggle(PrimaryActivation, widgets.Static):
+class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
+    @property
+    def paint_highlighted(self):
+        bar = self.query_ancestor(SideBar)
+        return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
+
     """Full-height collapse target beside the conversation-facing resize edge."""
 
     ALLOW_SELECT = False
@@ -165,13 +171,6 @@ class SideBarToggle(PrimaryActivation, widgets.Static):
         color: $text-muted;
         background: $primary 8%;
         layer: sidebar-toggle;
-    }
-    SideBarToggle:hover,
-    SideBarToggle:focus,
-    SideBarToggle.-gutter-hover {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
     }
     """
 
@@ -222,7 +221,11 @@ class SideBarToggle(PrimaryActivation, widgets.Static):
             self.action_pointer_toggle()
 
 
-class HeaderButton(PrimaryActivation, widgets.Static, can_focus=True):
+class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
+    @property
+    def highlight_foreground(self):
+        return "text-disabled" if self.has_class("-unavailable") else super().highlight_foreground
+
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -236,11 +239,6 @@ class HeaderButton(PrimaryActivation, widgets.Static, can_focus=True):
         color: $text;
         text-style: bold;
         pointer: pointer;
-    }
-    HeaderButton:hover, HeaderButton:focus {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
     }
     HeaderButton.-unavailable {
         color: $text-disabled;
@@ -338,7 +336,10 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
             )
 
 
-class SidebarSlider(widgets.Static, can_focus=True):
+class SidebarSlider(HoverSelection, widgets.Static, can_focus=True):
+    highlight_foreground = "accent"
+    highlight_background = highlighted_text_style = None
+
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
     ALLOW_SELECT = False
@@ -349,7 +350,6 @@ class SidebarSlider(widgets.Static, can_focus=True):
     ]
     DEFAULT_CSS = """
     SidebarSlider { height: 1; width: 1fr; color: $text-muted; pointer: pointer; }
-    SidebarSlider:hover, SidebarSlider:focus { color: $accent; }
     """
 
     @dataclass
@@ -448,7 +448,7 @@ class SidebarSlider(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
+class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -457,11 +457,6 @@ class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
     DEFAULT_CSS = """
     SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
     SidebarAction.-direction { width: 7; content-align: center middle; text-style: bold; }
-    SidebarAction:hover, SidebarAction:focus {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
-    }
     """
 
     @dataclass
@@ -862,8 +857,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         toggle = self.query_one_optional(SideBarToggle)
         if toggle is not None:
             toggle.set_collapsed(collapsed)
-            if not collapsed:
-                toggle.remove_class("-gutter-hover")
+            toggle.refresh_paint()
         for panel in self.panels:
             if isinstance(panel.widget, SidebarVisibilityObserver):
                 panel.widget.sidebar_visibility_changed()
@@ -890,13 +884,10 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             event.stop()
             self.toggle(focus=False)
 
-    def on_enter(self) -> None:
-        if self.collapsed:
-            self.query_one(SideBarToggle).add_class("-gutter-hover")
-
-    def on_leave(self) -> None:
-        if toggle := self.query_one_optional(SideBarToggle):
-            toggle.remove_class("-gutter-hover")
+    @on(events.Enter)
+    @on(events.Leave)
+    def gutter_hover_changed(self) -> None:
+        self.query_one(SideBarToggle).refresh_paint()
 
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed

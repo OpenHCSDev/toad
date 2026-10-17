@@ -20,14 +20,18 @@ from textual.widgets.option_list import Option
 
 from toad import messages
 from toad.db import DB
-from toad.widgets.selection import SelectionOptionList
+from toad.widgets.selection import SelectionOptionList, HoverSelection
+from rich.style import Style as RichStyle
 from toad.widgets.prompt_popup import InfoPopup
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class ConnectProvider(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
+class ConnectProvider(HoverSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
+    highlight_foreground = highlight_background = None
+    highlighted_text_style = RichStyle(underline=True)
+
     BINDINGS = [("enter,space", "connect", "Connect provider")]
 
     def __init__(self):
@@ -100,7 +104,6 @@ class ModelSelection(CoreEventReceiver, VerticalGroup):
     ModelSelection Input { height: 1; border: none; padding: 0 1; }
     ModelSelection .model-count { height: 1; padding: 0 1; color: $text-muted; }
     ModelSelection ConnectProvider { height: 1; padding: 0 1; color: $text-secondary; pointer: pointer; }
-    ModelSelection ConnectProvider:hover, ModelSelection ConnectProvider:focus { text-style: underline; }
     ModelSelection OptionList {
         height: auto;
         max-height: 45vh;

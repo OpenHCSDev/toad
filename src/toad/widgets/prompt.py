@@ -44,7 +44,8 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
-from toad.widgets.selection import ChangingText, SelectionOptionList
+from toad.widgets.selection import ChangingText, SelectionOptionList, HoverSelection
+from rich.style import Style as RichStyle
 from toad.widget_actions import DeclaredWidgetActions
 from toad.frame_presentation import TonePaint
 from ui_theme.scheme import PrimaryColour, SecondaryColour, PromptToneColour
@@ -81,7 +82,10 @@ class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting
         return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(PrimaryActivation, Label, can_focus=True):
+class SendNow(HoverSelection, PrimaryActivation, Label, can_focus=True):
+    highlight_foreground = highlight_background = None
+    highlighted_text_style = RichStyle(underline=True)
+
     BINDINGS = [("enter,space", "send_now", "Send now")]
 
     @property
@@ -517,7 +521,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
     Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
     Prompt.-queue-mode .delivery-controls { display: block; }
     Prompt SendNow { color: $text-secondary; pointer: pointer; }
-    Prompt SendNow:hover, Prompt SendNow:focus { text-style: underline; }
     """
 
     BINDINGS = [
