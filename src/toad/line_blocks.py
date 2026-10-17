@@ -24,7 +24,7 @@ from ui_theme.scheme import (
     ThemeColour, WarningColour,
 )
 
-class LineRole:
+class LineRole(DeclaredFamily, affix="Role"):
     """The meaning of a piece of text, and the theme colour it is drawn in."""
 
     colour: ClassVar[type[ThemeColour]] = ForegroundColour

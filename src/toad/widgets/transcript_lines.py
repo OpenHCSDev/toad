@@ -21,7 +21,7 @@ from rich.text import Text
 from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
-from rich.terminal_theme import DEFAULT_TERMINAL_THEME, TerminalTheme
+from rich.terminal_theme import TerminalTheme
 from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
@@ -55,47 +55,45 @@ Row = tuple[Segment, ...]
 
 @dataclass(frozen=True)
 class LineTheme:
-    """Rich styles for the theme colours, resolved once per theme from its CSS variables,
-    and the host terminal's colour system (Rich's name for the colour depth)."""
+    """Fully resolved role styles for one theme and terminal colour system."""
 
-    colours: tuple[tuple[type[ThemeColour], Style], ...]
+    styles: Mapping[type[LineRole], Style]
     color_system: str
     diff: DiffSettings = field(default_factory=DiffSettings)
     syntax: SyntaxPalette = SyntaxPalette(False, True)
-    terminal_theme: TerminalTheme = DEFAULT_TERMINAL_THEME
 
     def style(self, role: type[LineRole]) -> Style:
+        return self.styles[role]
+
+    @staticmethod
+    def _style(role: type[LineRole], style: Style, terminal_theme: TerminalTheme) -> Style:
         from textual.color import Color
 
-        for colour, style in self.colours:
-            if colour is role.colour:
-                if role.background_tint:
-                    base = Color(*self.terminal_theme.background_color)
-                    fill = base.blend(Color(*style.color.get_truecolor(self.terminal_theme)), role.background_tint)
-                    style += Style(bgcolor=fill.rich_color)
-                return style + Style(italic=role.italic or None, bold=role.bold or None,
-                                     underline=role.underline or None)
-        raise KeyError(f"{role.__name__} asks for {role.colour.__name__}, which the theme lacks")
+        if role.background_tint:
+            base = Color(*terminal_theme.background_color)
+            fill = base.blend(Color(*style.color.get_truecolor(terminal_theme)), role.background_tint)
+            style += Style(bgcolor=fill.rich_color)
+        return style + Style(italic=role.italic or None, bold=role.bold or None,
+                             underline=role.underline or None)
 
-    def with_colour(self, colour: type[ThemeColour], style: Style) -> LineTheme:
+    def with_colour(self, colour: type[ThemeColour], style: Style, terminal_theme: TerminalTheme) -> LineTheme:
         """This theme with one colour drawn another way, as a fade draws it part of the way through."""
-        return replace(self, colours=((colour, style), *self.colours))
+        return replace(self, styles={role: self._style(role, style, terminal_theme)
+                                     if role.colour is colour else held for role, held in self.styles.items()})
 
     @classmethod
-    def of(cls, variables: Mapping[str, str], color_system: str) -> LineTheme:
+    def of(cls, variables: Mapping[str, str], color_system: str,
+           terminal_theme: TerminalTheme) -> LineTheme:
         from textual.color import Color
 
         def colour(name: str) -> Style:
             return Style(color=Color.parse(variables[name]).rich_color)
 
-        foreground = Color.parse(variables["foreground"])
-        # RGB recipes belong to the semantic colour declaration. Native ANSI
-        # text retains its distinct dim attribute rather than a palette guess.
-        muted = Style(dim=True) if foreground.ansi is not None else colour(MutedColour.name)
-        return cls(tuple(
-            (member, muted if member is MutedColour else colour(member.name))
-            for member in ThemeColour.__registry__.values()
-        ), color_system)
+        # Native ANSI text retains its distinct dim attribute rather than a palette guess.
+        muted = Style(dim=True) if Color.parse(variables["foreground"]).ansi is not None else colour(MutedColour.name)
+        return cls({role: cls._style(role, muted if role.colour is MutedColour else colour(role.colour.name),
+                                    terminal_theme) for role in LineRole.members_with(LineRole)},
+                   color_system)
 
 
 def link_style(link: LineLink | None) -> Style:
@@ -646,7 +644,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         return self.preparation.blocks
 
     def current_for(self, view) -> bool:
-        return self.context.current_for(view) and self.preparation.theme == view.app.colours.line_theme
+        return self.context.current_for(view) and self.preparation.theme is view.app.colours.line_theme
 
     def hold(self, view, fragment, lines) -> bool:
         return self.current_for(view) and fragment.hold_lines(self, lines.wrap(view.line_width, view.app.colours.line_renderer))

@@ -181,8 +181,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         from toad.rich_preparation import SyntaxPalette
 
         self.line_renderer = RichLineRenderer(replace(
-            LineTheme.of(self.variables, self.depth.name), diff=self.app.settings.diff,
-            syntax=SyntaxPalette.of(self.app), terminal_theme=self.app.ansi_theme))
+            LineTheme.of(self.variables, self.depth.name, self.app.ansi_theme), diff=self.app.settings.diff,
+            syntax=SyntaxPalette.of(self.app)))
 
     @property
     def line_theme(self) -> LineTheme:

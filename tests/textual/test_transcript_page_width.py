@@ -27,7 +27,8 @@ def page_view(count: int) -> TranscriptPageView:
 
 class TranscriptPageWidth(unittest.TestCase):
     def setUp(self):
-        theme = LineTheme.of(App().get_css_variables(), "truecolor")
+        app = App()
+        theme = LineTheme.of(app.get_css_variables(), "truecolor", app.ansi_theme)
         # An app that is not running: the page stays detached and starts no renderer.
         self.reset = active_app.set(SimpleNamespace(colours=SimpleNamespace(line_theme=theme), _exit=True))
 
