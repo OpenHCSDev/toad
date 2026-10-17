@@ -472,12 +472,12 @@ class HistoryWindow(VerticalScroll):
 
     def displays(self, widget: Widget) -> bool:
         """Whether a widget inside this window is displayed, with everything between them."""
-        for node in widget.ancestors_with_self:
-            if node is self:
-                return True
-            if not isinstance(node, Widget) or not node.display:
+        node = widget
+        while node is not self:
+            if not node.display or not isinstance(node.parent, Widget):
                 return False
-        return False
+            node = node.parent
+        return True
 
     def placed_row(self, widget: Widget) -> int | None:
         """The widget's first row in this window's laid-out content, or None if layout did not place it.
@@ -509,8 +509,8 @@ class HistoryWindow(VerticalScroll):
         from toad.widgets.transcript_history import TranscriptPageView
 
         pages = (widget for widget in self.screen._compositor.published_widgets
-                 if isinstance(widget, TranscriptPageView) and self.displays(widget))
-        yield from self.visible_history_items(pages)
+                 if isinstance(widget, TranscriptPageView))
+        return (page for page in self.visible_history_items(pages) if self.displays(page))
 
     def keep_reader(self) -> None:
         """What this window draws is about to change: layout keeps the reader where they are now."""
