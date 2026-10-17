@@ -469,7 +469,6 @@ MainScreen {
         DirectoryTree {  
             height: 1fr;                                  
             background: transparent;
-                                        
         }
 
 
