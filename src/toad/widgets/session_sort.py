@@ -15,7 +15,6 @@ from objectstate import ObjectState
 from python_introspect import FieldLabel
 from textual import events
 from textual.containers import VerticalScroll
-from toad.screens.modal import ModalScreen
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
 from textual.css.scalar import Scalar, Unit
@@ -54,7 +53,7 @@ class SortPanel(WidgetView, VerticalScroll):
     overflow_y = "auto"
 
 
-class SortDialog(FormModal, ModalScreen[type[DisplayOrder] | None]):
+class SortDialog(FormModal[type[DisplayOrder] | None]):
     """A short-lived edit form, not a second source of persisted ordering."""
 
     def __init__(self, control: SortControl, form: ThreadSortForm | ChannelSortForm):

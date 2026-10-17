@@ -7,7 +7,6 @@ from collections.abc import Iterable
 from textual import containers, events, getters
 from textual.app import ComposeResult
 from textual.binding import CallBinding
-from toad.screens.modal import ModalScreen
 from textual.widgets import Footer, Input
 from textual.geometry import Spacing
 from textual.color import Color
@@ -49,7 +48,7 @@ class SettingsSearch(WidgetView, containers.VerticalGroup):
     padding = Spacing(1, 0, 1, 0)
 
 
-class SettingsScreen(FormModal, ModalScreen[None]):
+class SettingsScreen(FormModal[None]):
     align_horizontal = "right"
     align_vertical = "top"
     app = getters.app(ToadApp)

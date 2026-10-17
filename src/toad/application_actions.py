@@ -13,8 +13,6 @@ from textual.command import DiscoveryHit, Hit, Hits, Provider
 from toad.preferences import SETTINGS
 from agent_comms.cli_commands import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
-from toad.target_commands import TargetContext
-from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -112,13 +110,16 @@ class NewThreadAction(ApplicationAction, MenuAction):
     async def collect(self, app, mode, project):
         try:
             def prepare():
+                from toad.target_commands import TargetContext
+                from toad.thread_actions import ThreadAction
                 ctx = TargetContext(app, app.coordination_access.service,
                                     ProjectTarget(str(project)), '', project, mode)
-                return ctx, next(action for action in ctx.available_actions()
-                                 if action.declaration is NewThreadCliCommand)
-            ctx, definition = await app.preparation.run_thread(prepare)
+                definition = next(action for action in ctx.available_actions()
+                                  if action.declaration is NewThreadCliCommand)
+                return partial(ThreadAction.collect, ctx, definition)
+            open_form = await app.preparation.run_thread(prepare)
             if app.selected_mode == mode:
-                ThreadAction.collect(ctx, definition)
+                open_form()
         except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title="New session", severity="error")
 

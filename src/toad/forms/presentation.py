@@ -12,6 +12,7 @@ from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 from toad.widget_view import AUTO, WidgetView
+from toad.screens.modal import ModalScreen
 
 
 class FramedControl(WidgetView):
@@ -72,7 +73,7 @@ class FormSelectCurrent(FramedControl, SelectCurrent):
         return self.parent.has_focus or self.parent.has_focus_within
 
 
-class FormModal(WidgetView):
+class FormModal[Result](WidgetView, ModalScreen[Result]):
     """Shared native modal presentation and theme invalidation lifecycle."""
 
     BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
