@@ -306,7 +306,7 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
    if not any(line.strip() for line in text): return
    if {selected!r} == 'welcome' and not any('startup-saved' in line for line in text): return
    destination=Path({str(completed)!r}) if {name!r} == 'saved' and Path({str(observation)!r}).exists() else Path({str(observation)!r})
-   destination.write_text(json.dumps(dict(mode=app.current_mode, text=text)))
+   destination.write_text(json.dumps(dict(mode=app.selected_mode, text=text)))
   app.schedule_from_thread(observe)
 ''')
                             child = None
@@ -349,6 +349,8 @@ app.schedule_from_thread(open_channel)
                             window = subprocess.check_output(
                                 ['xdotool', 'search', '--onlyvisible', '--pid', str(terminal.pid)],
                                 env=environment, text=True).strip()
+                            if name == 'saved':
+                                check_filtered_return(runtime, output, child, terminal, display, int(window), home)
                             XvfbDisplay.input(psutil.Process(terminal.pid),
                                               psutil.Process(terminal.pid).create_time(), int(window), 'key', 'ctrl+q')
                             terminal_code = terminal.wait(timeout=10)
@@ -365,9 +367,80 @@ app.schedule_from_thread(open_channel)
         finally:
             server.terminate()
             server.wait(timeout=5)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', channel='passed', evidence=str(output))
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', channel='passed', filtered_return='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
+
+
+def check_filtered_return(runtime: Path, output: Path, child, terminal, display, window: int, home: Path) -> None:
+    """Return to a retained user-only viewport after physical PageUp input."""
+    import psutil
+
+    def execute(name, body):
+        script = output / f'{name}.py'
+        script.write_text('from textual.app import App\napp=App.running_app()\n' + body)
+        subprocess.run(['sudo', '-n', str(runtime / 'bin/python'), '-I', '-B', '-c',
+                        f'import sys; sys.remote_exec({child.pid}, {str(script)!r})'], check=True, timeout=5)
+
+    def wait_for(name):
+        deadline = time.monotonic() + 30
+        while not (output / name).exists():
+            crashes = list(home.rglob('Terminal_crash_*.txt'))
+            if crashes or terminal.poll() is not None or time.monotonic() >= deadline:
+                raise RuntimeError(f'Filtered return failed waiting for {name}: {crashes}')
+            time.sleep(.1)
+        return json.loads((output / name).read_text())
+
+    execute('filter-user', f'''import asyncio,json
+from pathlib import Path
+from toad.widgets.conversation import Conversation
+from toad.widgets.message_filter import UserCategory
+from toad.widgets.transcript_history import ProjectedTranscriptHistory
+async def prepare():
+ await app.select_session(json.loads(Path({str(output / 'saved.json')!r}).read_text())['mode'])
+ conversation=app.selected_session.query_one(Conversation)
+ conversation.visible_categories=frozenset({{UserCategory}})
+ conversation.prompt.prompt_text_area.focus()
+ while not any(isinstance(h,ProjectedTranscriptHistory) and h.fragment_count for h in conversation.contents.line_histories()):
+  await asyncio.sleep(.1)
+ await asyncio.sleep(.5)
+ Path({str(output / 'filter-ready.json')!r}).write_text(json.dumps(dict(scroll=conversation.window.scroll_y)))
+app.schedule_from_thread(lambda: app.run_worker(prepare()))
+''')
+    ready = wait_for('filter-ready.json')
+    owner = psutil.Process(terminal.pid)
+    XvfbDisplay.input(owner, owner.create_time(), window, 'key', '--repeat', '3', '--delay', '300', 'Page_Up')
+    time.sleep(1)
+    run('import', '-display', display.name, '-window', 'root', output / 'filtered-before.png')
+    execute('filter-return', f'''import asyncio,json
+from pathlib import Path
+from toad.widgets.conversation import Conversation
+from toad.widgets.message_filter import UserCategory
+from toad.widgets.history_anchor import ReaderPosition, FragmentPosition
+async def returning():
+ mode=app.selected_mode
+ conversation=app.selected_session.query_one(Conversation)
+ before=conversation.window.scroll_y
+ histories=tuple(conversation.contents.line_histories())
+ pages=tuple(id(page) for history in histories for page in history.pages)
+ position=ReaderPosition.of(conversation.window)
+ assert isinstance(position,FragmentPosition), ('PageUp did not reach a message',position)
+ await app.select_session(json.loads(Path({str(output / 'any.json')!r}).read_text())['mode'])
+ await asyncio.sleep(.3)
+ await app.select_session(mode)
+ await asyncio.sleep(1)
+ after=conversation.window.scroll_y
+ assert conversation.visible_categories == frozenset({{UserCategory}})
+ assert tuple(conversation.contents.line_histories()) == histories
+ assert tuple(id(page) for history in histories for page in history.pages) == pages
+ returned=ReaderPosition.of(conversation.window)
+ assert isinstance(returned,FragmentPosition) and returned.fragment is position.fragment
+ assert abs(returned.fraction-position.fraction) < .001, (position.fraction,returned.fraction)
+ Path({str(output / 'filtered-return.json')!r}).write_text(json.dumps(dict(before=before,after=after,warm_pages=len(pages),fragment=id(position.fragment),fraction=returned.fraction)))
+app.schedule_from_thread(lambda: app.run_worker(returning()))
+''')
+    wait_for('filtered-return.json')
+    run('import', '-display', display.name, '-window', 'root', output / 'filtered-return.png')
 
 
 def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
