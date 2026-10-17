@@ -837,9 +837,14 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         window = self.window
         window.keep_reader()
         self.navigation.clear()
-        self.screen.clear_selection()
         for block in self.contents.children:
             apply_block_filter(block, selected)
+        screen = self.screen
+        screen.selections = {
+            widget: selection
+            for widget, selection in screen.selections.items()
+            if all(node.display for node in widget.walk_ancestors(with_self=True))
+        }
         for history in tuple(window.histories):
             history.projection_changed()
 
