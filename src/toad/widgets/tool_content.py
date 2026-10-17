@@ -8,7 +8,7 @@ from toad.block_content import BlockContent
 from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.line_blocks import LineBlock
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, PlainLines, PreparedLines, TranscriptLinesRenderTask,
+    BlockLines, HorizontalRows, LinePreparation, Lines, PlainLines, TranscriptLinesRenderTask,
     link_place, selection_painted,
 )
 
@@ -21,7 +21,7 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.blocks: tuple[LineBlock, ...] = ()
-        self._styled: PreparedLines | None = None
+        self._styled: BlockLines | None = None
         self._plain: PlainLines | None = None
         self._width = 0
         self._link_place = link_place()
@@ -50,13 +50,14 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
 
     def _lines(self, width: int) -> Lines:
         styled = self._styled
-        if styled is not None and styled.width == width:
-            return styled
+        if styled is not None:
+            self._styled = styled.rewrap(width)
+            return self._styled
         return self._plain_lines(width)
 
     def _plain_lines(self, width: int) -> PlainLines:
         if self._plain is None or self._plain.width != width:
-            self._plain = PlainLines(width, self.app.colours.line_theme, self.blocks)
+            self._plain = PlainLines(width, self.app.colours.line_renderer, self.blocks)
         return self._plain
 
     @property
@@ -70,28 +71,28 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
             )
 
     async def _render(self) -> None:
-        blocks, width, theme = self.blocks, self._width, self.app.colours.line_theme
-        preparation = self._plain_lines(width).preparation
+        blocks, theme = self.blocks, self.app.colours.line_theme
+        preparation = LinePreparation(blocks, theme)
         context = await LinkContext.acquire(self)
-        lines = await self.app.render_processes.submit(
+        source = await self.app.render_processes.submit(
             TranscriptLinesRenderTask(preparation, context)
         )
         if not context.current_for(self):
             self.call_later(self._request_render)
             return
-        if self.is_attached and (blocks, width, theme) == (self.blocks, self._width, self.app.colours.line_theme):
-            previous_height = self._lines(width).height
-            previous_width = self._lines(width).content_width
-            self._styled = lines
+        if self.is_attached and (blocks, theme) == (self.blocks, self.app.colours.line_theme):
+            previous_height = self._lines(self._width).height
+            previous_width = self._lines(self._width).content_width
+            self._styled = lines = source.wrap(self._width, self.app.colours.line_renderer)
             self.refresh(layout=(previous_height, previous_width) != (lines.height, lines.content_width))
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
         if width != self._width:
             self._width = width
-            self._styled = None
             self._plain = None
-            self.call_later(self._request_render)
+            if self._styled is None:
+                self.call_later(self._request_render)
         return self._lines(width).height
 
     def render_line(self, y: int) -> Strip:

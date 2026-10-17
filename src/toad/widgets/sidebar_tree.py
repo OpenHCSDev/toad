@@ -15,14 +15,28 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
 from textual.geometry import Offset
 from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
-from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
+from toad.widgets.sidebar_viewport import SidebarHeader
+
+
+class TargetTreeMember:
+    """A navigation control belongs to one required native tree."""
+
+    @property
+    def navigation_tree(self) -> TargetTree:
+        return self.query_ancestor(TargetTree)
+
+    def action_cursor_up(self) -> None:
+        self.navigation_tree.action_cursor_up()
+
+    def action_cursor_down(self) -> None:
+        self.navigation_tree.action_cursor_down()
 
 
 class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
@@ -51,13 +65,7 @@ class SidebarRowLayout(VerticalLayout):
     @height_dependency(FLOW_HEIGHT)
     def arrange(self, parent, children, size, greedy=True):
         placements = super().arrange(parent, children, size, greedy)
-        if not placements:
-            return placements
-        viewport = placements[0].widget.query_ancestor(SidebarViewport)
-        reader = next((p for p in placements if viewport.scroll_y
-                       and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
-                       and p.widget.is_navigation_row()), None)
-        shift = Offset() if reader is None else viewport.preserve_reader(reader)
+        shift = parent.query_ancestor(TargetTree).reader_shift(placements)
         return [placement.widget.place(placement, shift) for placement in placements]
 
 
@@ -214,6 +222,9 @@ class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
+
+    def reader_shift(self, placements) -> Offset:
+        return Offset()
 
     @property
     def selection_state(self):

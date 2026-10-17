@@ -14,7 +14,7 @@ from textual.reactive import var
 from textual.strip import Strip
 from ui_theme.effects import STANDBY_PULSE, Mix
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 
 from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated

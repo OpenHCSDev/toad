@@ -173,3 +173,60 @@ Two runtimes built by `build_runtime.py` that differ only in Toad: main 3114f9e1
 | #709 f31e221ac, run 1 (first run after build) / run 2 | 12.0 / 45.5 · 9.3 / 29.8 | 12.1 / 51.9 · 10.0 / 34.4 | 397/532 frames, 151/157 inputs, all painted. The second run matches main. No regression and no improvement shown. py-spy (read-only, 200 Hz) during the hold: 43% of busy main-thread samples in `Screen._layout_step`/`_finish_stepped_layout`, 8% in Toad `_prepare_edge`. |
 
 P60/P57 on the same pair, opening sessionless thread `p60-cli` and channel `#p60` with 120 seeded messages and one message arriving from another thread. Main, DM view: 2 drawn pages unmounted and 2 rebuilt pages mounted, with no fade. #709, DM view: 1 new page mounted with its fade and 0 unmounted. Channel view on both: 1 mount with its fade and 0 unmounted. A message that arrives while the tab is hidden fades once when the reader returns; paging older pages and End do not replay it. Raw data: `~/.cache/agent-scratch/claude-p60/runs/`, removed after the PR record.
+
+## 2026-10-16: P21 installed sidebar drag (not the fixed scrolling scenario)
+
+| Change | Drag frame median/p95 ms | Input-to-paint median/p95 ms | Result |
+|---|---:|---:|---|
+| Installed Toad6fe55cee0/Textuald290813a2, P32 clock build | 66.4 / 154.4 | Not isolated to drag | 17 affected frames; native layout starts/frame maximum2. Separate read-only 1000Hz/2s profile around one 1s drag: render_regions24, _get_dispatch_methods14, queue dumps13 self samples, not milliseconds. Raw `~/.cache/agent-scratch/toad-sidebar-frame-owner/{p32-installed,p21-installed-profile}/`. Fails16ms. |
+| Private styled-source Toad a9b584e4e/Textual4a9d7f780, real saved-session startup | Unmeasured | Unmeasured | Opening #comms crashed before any drag/meter: source factories incorrectly used event-preserving dispatch_sync. No after counts or improvement established. Both frontend/st exited; raw failure and exact log retained under `toad-sidebar-frame-owner/p21-after/`. Source repaired in861d72cd5 using declared factory handlers; corrected private build/drag still required. No provider input, replay, overlay or default promotion. |
+| Final prepared-source/class-declaration pair: Toad9b716d8e7/Textual8d3825e62, Core6348 unchanged; Toad+246/-246, native+66/-69, tests0 | 91.3 / 238.3 | 80.0 / 195.0 | **Fails16ms.** Real saved #comms loads and remains drawn through the one1s sidebar drag; final sidebar[0,3,50,42],28%. 11 affected frames, native starts/frame max3;24/24 physical mouse inputs painted. Self samples at1000Hz/2s: render_regions24→17, dispatch14→4, queue dumps13→0. Not causal A/B: before self-profile had no frame meter; after includes meter/video; sampling errors516/563, source/Core/load differ. Native primitive duplicate paint and selector-loop collision fixed; normal shutdown confirmed. Raw `toad-sidebar-frame-owner/p21-after/final/`; parent result.json records full numbers/limits. No provider input, replay, overlay, rebuild or default promotion. |
+
+### 2026-10-17 P21 takeover: baseline only, still failing
+
+Exact private T052959Z (Toad b31180197, Textual 8d3825e62, Core 96cc6874e), plain `st` on isolated Xvfb :214, showing the real saved `p35-main-show-once-20261017` fork. No new model input. The recorded app MouseDown-to-MouseUp interval is 1.551 s; physical driver timestamps were not retained. Thirteen width changes produced ten paints: **drag-only median 146.07 ms, p95 392.85 ms**. This fails 50 ms and is not the predecessor's rich-history cohort or the fixed scrolling scenario. The full six-second capture's 10.4/167 ms is not the drag statistic.
+
+Read-only py-spy main-thread samples point to `Compositor._get_renders` (`textual/_compositor.py:1940`), `_render_chops` (:2291) and `arrange_widget` (:1438). Across the drag, native reflow was 789 ms inclusive, row rendering 112 ms and page measurement 125 ms; nested times must not be added. Off-screen page measurement took 0.15–0.8 ms per call, retaining its rows. Existing `PreparedBlock.prepared_rows` already retains one width snapshot; `TranscriptPageView._measure` already retains off-screen geometry. This capture does not demonstrate repeated all-history row layout, so no second cache or speculative source fix was added.
+
+Baseline raw source/results/screenshots: `~/.cache/agent-scratch/core-native-runtime-p21-drag/`.
+
+### 2026-10-17 P21 native layout scope: private after, still failing
+
+A normal-startup observation showed that content refresh of the fixed `Horizontal` started its layout walk at its parent, requesting the entire `WorkspaceScreen`. Textual #141 separates content placement (`LayoutChildren`) from outer-box placement (`Layout`); each request owns its ancestor walk, and the existing typed dispatcher delivers the whole family. Screen tracks actual requester-set membership rather than mistaking dictionary-key presence for a handled request. No additional cache, throttle or skipped paint was introduced.
+
+Private installed pair: Textual `408926de3`, Toad `b48e407d6` (includes main `1c08cd1fd`), Core `20688dce0`. Same saved fork, isolated Xvfb :214/plain `st`, physical drag with retained monotonic driver timestamps, read-only 100Hz/6s py-spy. Thirteen width changes produced eleven paints and nine layout starts: **median 118.16 ms, p95 222.70 ms; FAILS 50 ms**. Scoped reflow now runs (379 ms inclusive), full reflow remains (127 ms), and page measurement costs 116 ms; these nested totals are not additive. Native `_render_chops` remains a main-thread hot frame. Updated Toad/Core mains mean this is not controlled causal A/B. An earlier intermediate build failed typed subclass delivery and is retained separately, not counted as acceptance.
+
+Source versus current mains: Textual seven files +96/-79; Toad sixteen files +323/-360 (net -37). Raw after data/screenshots/profile: `~/.cache/agent-scratch/core-native-runtime-p21-after-b/`; machine result: `~/.cache/agent-scratch/rts-results/P21/drag.json`. No default publication, further fork input or performance acceptance.
+
+### 2026-10-17 P21 warm private SDK-fork comparison — fails
+
+Same private wire root with 24 actual saved-session SDK forks; no model input or comms-tool calls. Both initial screenshots show ready history, identical 149×45 geometry and 40% sidebar. Main is Toad5264f66b2/Textualeaedd4ac7; pair is Toada89186bb4/Textualee5897ac6, both Corefcb9e4c30. The pair integrates the current mains normally; no new performance implementation was added during this takeover.
+
+| Change | Drag frame median/p95 ms | Moving-input-to-paint median/p95 ms | Result |
+|---|---:|---:|---|
+| P21 warm main → merged pair | 19.46/41.80 → 73.00/118.37 | 35.26/77.03 → 76.10/95.97 | **Fails50ms.** Same physical40→27% drag, but main stops at56 columns/38%, while pair reaches40 columns/27%; different geometry work, not a causal performance win. Main worst88.81ms; pair worst118.37ms. Source Toad+327/−362, Textual+78/−79, combined net−36. |
+
+Frame window is first accepted width change through the final changed-width paint. Moving-input numbers use the original handled MouseMove records and first subsequent actual paint; both have21 samples. The earlier451ms all-input p95 was a no-op MouseUp/Click waiting for the normal0.5s hover tooltip, not delayed motion: release handled in0.86ms, final width already painted19.8ms before release. Raw all-input timings remain retained, not silently replaced.
+
+Warm profiles and original frame/call/input records: `.artifacts/p21-takeover/{main-warm,pair-warm}/`; each contains `py-spy.chrometrace.json`, `summary.json`, `moving-inputs.json`, and before/after PNGs. Three timed owners in the pair's118.37ms frame: `DOMNode._measure_content_height` (`textual/dom.py:332`,16.15ms inclusive), `Compositor._render_chops` (`textual/_compositor.py:2223`,91.06ms), and its nested `StylesCache.render_widget` (`textual/_styles_cache.py:171`,64.17ms). These overlap and must not be added. Earlier cold/unmerged captures are not acceptance. Both private frontends/workers/displays and the single new runtime were retired; saved forks and failures retained. This is not the fixed scrolling scenario or default-install acceptance.
+
+### 2026-10-17 P21 width-owner takeover — still not accepted
+
+Source: Textual `a3c4b121bb8c4c8b2045ac1021827d41ddeade45` (#143), Toad `2252d3e10` (#770). Final private build T081832Z uses Toad c7447d4ba, whose src is identical to2252. Core fcb9e4c30/native70 and the original saved-fork root remain unchanged. Existing launch/capture/summarize/retire driver only; no model input, Toad tests, TCSS changes, throttle or second cache.
+
+| Warm run | Frame median/p95 ms | Moving-input median/p95 ms | Final sidebar |
+|---|---:|---:|---|
+| Same-cohort main rerun | 22.668 /63.283 | 39.663 /74.731 | 56cols, requested27% |
+| First corrected takeover pair, e5c360b3b /892f54f2 | 79.738 /121.999 | 78.005 /118.866 | 40cols /27% |
+| Final local-paint-identity pair, a3c4b121b /2252d3e10 | 49.211 /85.694 | 61.709 /107.122 | 40cols /27% |
+
+**Both final p95s still lose to main.** Different final geometry still prevents a causal like-for-like win. No merge/default-install/performance acceptance claimed. Main's requested width really reaches27 in the original width events while the published box stays56; a literal38% clamp was not found or deleted. The native LayoutChildren declaration and Screen request-member correction were already in the transferred pair; their exact contribution to that stop has not been isolated. Do not claim an invented clamp file:line.
+
+Deleted work: `PaintState.rich_style` owns Rich-style assembly; `StylesCache.render_widget:184` takes one resolved state instead of separately resolving backgrounds twice, Rich style and opacity, and absent border labels skip their CSS inputs. `PaintLayer.paint_key:22` derives identity from its own input declarations. `DOMNode._resolved_paint_state:1406` reuses its existing resolved value after checking local identity and parent, while unsteady sources still require ancestor reads; global-epoch stability is not confused with local source identity. Toad deletes WidgetPaint's null-key override. No compositor algorithm change was made by this takeover. HeightDependency supplies keys for Widget's existing content-height cache, including native containers, independent height proofs and original geometry revision; unknown declarations retain all inputs. Actual height-call counts remain317 versus330 in the inherited pair, so the broader height-cost target is unfinished.
+
+Paint CPU in the timed window: inherited pair454.19ms/693 render_widget calls; final231.35ms/996 calls. Frame windows differ; this is work attribution, not a causal total-latency speedup. Final height measurement313.31ms CPU remains substantial.
+
+Current src shortstat: Textual11files +136/-127; Toad28files +344/-376; combined net-23. AST full baseline254 Textual/282 Toad modules, zero parse omissions; final targeted5 native/13 Toad modules, zero omissions. Dynamic dispatch is not proven. The extra full Toad import census timed out and is retained incomplete; the complete installed-package import search found Button plus12 Toad activation consumers. Our first private build failed because unused-import deletion removed that re-export; all consumers now import the defining activation owner, and the failed launch/log remain retained. Installed ToadApp/Button imports pass. Ten existing pure Textual styles-cache checks pass0.32s; the initial checker lacked rich and its collection failure remains recorded. No new tests.
+
+Evidence: `.artifacts/p21-takeover/{main-owner-warm,pair-owner-warm,pair-owner-corrected-warm,pair-owner-final-warm}/`; original raw frames/inputs/profile/PNG retained. Main/first/final frontends, native owners and X displays closed; two superseded private runtimes retired after borrower/pointer checks, with16 inspection gaps recorded. Final runtime retained for the unfinished comparison. Core-read-locks remains the implementation owner; next work is the remaining measurement/placement lifetime, not another harness or a claimed pass.
+

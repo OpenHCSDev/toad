@@ -17,7 +17,8 @@ from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 
 from ui_theme.scheme import SidebarToneColour
 
@@ -57,7 +58,14 @@ class PresentedBar:
 
 
 class SidebarVisibilityObserver:
-    """A panel whose active presentation depends on its enclosing sidebar."""
+    """A panel whose viewport and active presentation belong to its enclosing sidebar."""
+
+    @property
+    def scroll_container(self) -> SidebarViewport:
+        return self.query_ancestor(SideBar).panels_viewport
+
+    def reader_shift(self, placements) -> Offset:
+        return self.scroll_container.preserve_reader(placements)
 
     def sidebar_visibility_changed(self) -> None:
         raise NotImplementedError
@@ -569,7 +577,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         width: auto;
         border: none;
     }
-    SideBar > #sidebar-panels {
+    SideBar > SidebarViewport {
         width: 1fr;
         height: 1fr;
         margin: 0 4 0 0;
@@ -595,10 +603,11 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     }
     SideBar.-right > SideBarToggle { dock: left; }
     SideBar.-right > SidebarResizeHandle { dock: left; }
-    SideBar.-right > #sidebar-panels, SideBar.-right > #sidebar-controls { margin: 0 0 0 4; }
+    SideBar.-right > SidebarViewport, SideBar.-right > #sidebar-controls { margin: 0 0 0 4; }
     """
 
     collapsed = reactive(False)
+    PANEL_WORKER_GROUP = "panels"
 
     class Dismiss(Message):
         pass
@@ -626,6 +635,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
+        self.panels_viewport: SidebarViewport = SidebarViewport()
         self.hide = hide
         self.right = right
         self._navigation = navigation
@@ -681,11 +691,11 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
                 or not self.presentation_visible or self.is_leaving):
             return
         self._panels_loading = True
-        self.run_worker(self._hydrate_panels(), group="sidebar-panels")
+        self.run_worker(self._hydrate_panels(), group=self.PANEL_WORKER_GROUP)
 
     async def _hydrate_panels(self) -> None:
         try:
-            await self.query_one("#sidebar-panels").mount_all(self._compose_panels())
+            await self.panels_viewport.mount_all(self._compose_panels())
             if not self.is_attached or self.is_leaving or not self.presentation_visible:
                 return
             controls = self.query_one_optional("#sidebar-controls")
@@ -711,7 +721,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
         yield SidebarResizeHandle()
-        with SidebarViewport(id="sidebar-panels"):
+        with self.panels_viewport:
             if self._panels_loaded:
                 yield from self._compose_panels()
         with containers.Vertical(id="sidebar-controls"):
@@ -845,8 +855,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             self.schedule_hydration()
         self._presented_collapsed = collapsed
         # Panel visibility is independent of its native placement.
-        if panels := self.query_one_optional("#sidebar-panels"):
-            panels.display = not collapsed
+        self.panels_viewport.display = not collapsed
         if controls := self.query_one_optional("#sidebar-controls"):
             controls.display = not collapsed
         self.tooltip = "Expand sidebar" if collapsed else None

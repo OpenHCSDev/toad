@@ -38,7 +38,7 @@ from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Gradient, Mix, TextFrame
 from ui_theme.scheme import BackgroundColour, ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
-from toad.widgets.transcript_lines import LineTheme
+from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 from toad.line_blocks import LineRole
 
 class _WalFileClosed(FileSystemEventHandler):
@@ -92,7 +92,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         self.depth: type[ColourDepth] = ColourDepth.of_terminal(os.environ)
         self.wal_directory = WalFile.directory(os.environ)
         # Set from the theme's CSS variables, which the app builds before it runs.
-        self.line_theme: LineTheme
+        self.line_renderer: RichLineRenderer
         self.variables: dict[str, str] = {}
         self.schemes: dict[str, ColourScheme] = {}
         # Textual asks for the terminal palette before themes can be registered.
@@ -180,10 +180,13 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         from dataclasses import replace
         from toad.rich_preparation import SyntaxPalette
 
-        self.line_theme = replace(LineTheme.of(self.variables, self.depth.name),
-                                  diff=self.app.settings.diff,
-                                  syntax=SyntaxPalette.of(self.app),
-                                  terminal_theme=self.app.ansi_theme)
+        self.line_renderer = RichLineRenderer(replace(
+            LineTheme.of(self.variables, self.depth.name, self.app.ansi_theme), diff=self.app.settings.diff,
+            syntax=SyntaxPalette.of(self.app)))
+
+    @property
+    def line_theme(self) -> LineTheme:
+        return self.line_renderer.theme
 
     # The backend.
 

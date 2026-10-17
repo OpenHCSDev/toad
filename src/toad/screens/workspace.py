@@ -1,9 +1,7 @@
 """The one native workspace frame; session surfaces never own compositors."""
 
-import asyncio
 from dataclasses import dataclass, replace
 from functools import cached_property
-from typing import TYPE_CHECKING
 
 from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
@@ -19,10 +17,6 @@ from toad.widget_view import WidgetView
 from toad.widgets.side_bar import SidebarFocusOwner
 from agent_comms.declared_family import DeclaredFamily
 from abc import abstractmethod
-
-if TYPE_CHECKING:
-    from toad.app import ToadApp
-
 
 @dataclass(frozen=True)
 class ViewStyleRevision:
@@ -106,6 +100,13 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
             yield chrome.channels
             yield Container(id="workspace-session-host")
         yield chrome.footer
+
+    def belongs_to_wire(self, root) -> bool:
+        """Shared workspace chrome follows the observed wire, not a retained tab."""
+        return True
+
+    def start_sidebar_navigation(self, sidebar) -> None:
+        self.frame_presentation.defer(sidebar, sidebar.navigation.start)
 
     def sidebar_focus_target(self):
         return self.app.workspace_sessions.source.sidebar_focus_target()
@@ -199,21 +200,16 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
     def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
         changes = tuple((change, change.layout_requests) for window in self.history_windows
                         if (change := window.history_change) is not None)
-        # Each window that keeps a reader position is put back on it by this
-        # layout. Only the kept position is read before layout: reading
-        # virtual_region here can itself rebuild Textual's invalidated map.
-        kept = tuple(window for window in self.history_windows if window.reader_for_layout() is not None)
-        if not kept:
-            # Resize and clamping alone are handled by HistoryWindow._size_updated.
+        # Capture the old rows before any descendant measures its new width;
+        # that layout and reader placement belong to one unpublished frame.
+        with self.app.batch_update():
+            for window in self.history_windows:
+                if window.shown:
+                    window.keep_reader()
             yield from super()._layout_steps(size, scroll, deadline)
-        else:
-            # Screen normally paints from inside _refresh_layout. Do not show
-            # rows added or removed above the reader before the window has
-            # scrolled by their height.
-            with self.app.batch_update():
-                yield from super()._layout_steps(size, scroll, deadline)
-                if any([window.place_reader() for window in kept]):
-                    yield from super()._layout_steps(size, scroll=True)
+            if any([window.place_reader() for window in self.history_windows
+                    if window.reader_for_layout() is not None]):
+                yield from super()._layout_steps(size, scroll=True)
         for change, answered in changes:
             change.finish_layout(answered)
 
@@ -231,10 +227,6 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
             self.check_idle()
 
     def _screen_resized(self, size: Size) -> None:
-        if size != self._size:
-            # Rows above the reader wrap differently at the new width.
-            for window in self.history_windows:
-                window.keep_reader()
         if self._navigation_layout.reusable(self, size, include_scroll=False):
             # A resumed mounted tab has already been measured at this width.
             # Textual's full reflow walks all descendants even when only the
@@ -291,7 +283,6 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
         await self.layout_in_steps(self.app.size)
         if roster.navigation.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
-        self._dirty_widgets.clear()
         self._navigation_layout = MeasuredWorkspaceLayout(WorkspaceLayoutSnapshot.ready(self, self.app.size))
 
     def _on_screen_resume(self, event: ScreenResume) -> None:

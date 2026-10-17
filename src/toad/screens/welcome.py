@@ -23,7 +23,7 @@ from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
-from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, SidebarModelView, ThreadRow
+from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, SidebarModelView
 from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.splash_text import SplashText
@@ -133,8 +133,7 @@ class WelcomeThreads(WelcomeSection):
                      if name in model.threads.rows)
 
     def create(self, model, key):
-        thread = model.threads.rows[key]
-        return ThreadRow(ThreadTarget(key), key)
+        return CommsRow(ThreadTarget(key), key)
 
     def update(self, model, key, row):
         thread = model.threads.rows[key]
