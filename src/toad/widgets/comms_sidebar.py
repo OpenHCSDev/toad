@@ -129,7 +129,6 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         """Paint one member row from its current model row."""
         sidebar = self.sidebar
         channel = self.channel
-        view.mode_name = sidebar.open_views.get(name)
         view.target = ThreadTarget(name)
         view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members)
 
@@ -183,8 +182,6 @@ def _display_path(path: Path) -> str:
 
 class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
-
-    mode_name: str | None = None
 
     @property
     def target_name(self) -> str:
@@ -263,6 +260,10 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
 class ThreadRow(CommsRow):
     """A retained wire thread row, with an optional currently open native view."""
+
+    @property
+    def mode_name(self) -> str | None:
+        return self.navigation_tree.open_views.get(self.target_name)
 
     def shows_other_incarnation(self, row: ThreadRowModel) -> bool:
         """Whether this row shows an earlier incarnation of ``row``'s thread; it is replaced, not repainted."""
@@ -539,7 +540,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         model = self.model
         assert model is not None
         rows = model.channels.rows
-        if threads is None or threads:
+        if threads is None:
             self.open_views = self.find_open_views()
         if self.new_session is None:
             self.new_session = NewSessionButton()
@@ -627,9 +628,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         if not self.shows_model:
             return
         self.open_views = self.find_open_views()
-        for group in self.groups.values():
-            for name, row in group.rows.items():
-                row.mode_name = self.open_views.get(name)
 
     def sidebar_visibility_changed(self) -> None:
         self.present()
