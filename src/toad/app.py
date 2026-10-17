@@ -319,17 +319,6 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         self.session_navigation.entered(mode, self.selected_mode)
         return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
 
-    def _load_screen_css(self, screen: Screen) -> None:
-        from toad.screens.workspace import WorkspaceScreen
-
-        super()._load_screen_css(screen)
-        if isinstance(screen, WorkspaceScreen) and not screen.is_mounted:
-            # Registration applies current styles to each newly mounted child.
-            # Mark this fresh root current too, avoiding Textual's two complete
-            # stylesheet reparses while initializing a new screen-stack mode.
-            self.stylesheet.apply(screen)
-            screen._css_update_count = self._css_update_count
-
     async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:
         async with self._mode_switch_lock:
             previous = self.selected_mode
