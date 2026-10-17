@@ -119,7 +119,7 @@ class WelcomeChannels(WelcomeSection):
             f"{channel.label} {channel.unread.label}" if channel.unread.label else channel.label,
         )
         row.tooltip = channel.tooltip
-        row.set_class(channel.active, "-channel-active")
+        row.refresh_paint()
 
 
 class WelcomeThreads(WelcomeSection):
@@ -150,7 +150,6 @@ class WelcomeEntries(SidebarModelView, TargetTree):
 
     def __init__(self) -> None:
         super().__init__()
-        self._cursor = -1
         self.navigation_groups = (WelcomeChannels(), WelcomeThreads())
 
     def compose(self) -> ComposeResult:
@@ -176,6 +175,9 @@ class WelcomeEntries(SidebarModelView, TargetTree):
 
     def accepts_selection(self) -> bool:
         return False  # Rows open; the view keeps no selected set.
+
+    def row_selected(self, row) -> bool:
+        return False
 
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
