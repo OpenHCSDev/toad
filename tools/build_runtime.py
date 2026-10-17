@@ -254,6 +254,7 @@ with Coordination(str(c.root/'coordination.sqlite3')) as store: store.install_pr
                                '--session', 'startup-saved'], 'saved'),
                 ):
                     observation = output / f'{name}.json'
+                    completed = output / 'any.json' if name == 'saved' else observation
                     exit_status = output / f'{name}-exit-code'
                     with (output / f'{name}.log').open('w') as terminal_log:
                         terminal = subprocess.Popen(
@@ -280,12 +281,19 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
     if app.current_mode != 'store': return
    elif {selected!r} == 'saved':
     from toad.screens.main import MainScreen
+    from toad.screens.comms import CommsScreen
     from toad.widgets.conversation import Conversation
     screen=app.selected_session
-    if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
-    conversation=screen.query_one(Conversation)
-    if conversation.transcript.displayed_cursor is None: return
-    if not screen.presentation.transcript.reports_coverage: return
+    if Path({str(observation)!r}).exists():
+     if not isinstance(screen, CommsScreen) or screen.target != '#any': return
+     from toad.widgets.comms_chat import CommsChatView
+     chat=screen.query_one_optional(CommsChatView)
+     if chat is None or not chat.prompt.is_on_screen: return
+    else:
+     if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
+     conversation=screen.query_one(Conversation)
+     if conversation.transcript.displayed_cursor is None: return
+     if not screen.presentation.transcript.reports_coverage: return
    else:
     from toad.screens.welcome import WelcomeScreen, WelcomeThreads
     from toad.navigation_target import ThreadTarget
@@ -297,11 +305,13 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
    text=[strip.text for strip in app.screen._compositor.render_strips()]
    if not any(line.strip() for line in text): return
    if {selected!r} == 'welcome' and not any('startup-saved' in line for line in text): return
-   Path({str(observation)!r}).write_text(json.dumps(dict(mode=app.current_mode, text=text)))
+   destination=Path({str(completed)!r}) if {name!r} == 'saved' and Path({str(observation)!r}).exists() else Path({str(observation)!r})
+   destination.write_text(json.dumps(dict(mode=app.current_mode, text=text)))
   app.schedule_from_thread(observe)
 ''')
                             child = None
-                            while not observation.exists():
+                            channel_opened = False
+                            while not completed.exists():
                                 crashes = list(home.rglob('Terminal_crash_*.txt'))
                                 if crashes:
                                     raise RuntimeError(f'{name} crashed: {crashes}')
@@ -320,8 +330,22 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
                                     subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
                                                     f'import sys; sys.remote_exec({child.pid}, {str(remote)!r})'],
                                                    check=True, timeout=5)
+                                    if name == 'saved' and observation.exists() and not channel_opened:
+                                        run('import', '-display', display.name, '-window', 'root', output / 'saved.png')
+                                        navigation = output / 'open-any.py'
+                                        navigation.write_text('''from textual.app import App
+from toad.navigation_target import NavigationTarget
+app=App.running_app()
+def open_channel():
+ app.run_worker(app.selected_session.open_sidebar_target(NavigationTarget.named('#any')))
+app.schedule_from_thread(open_channel)
+''')
+                                        channel_opened = True
+                                        subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
+                                                        f'import sys; sys.remote_exec({child.pid}, {str(navigation)!r})'],
+                                                       check=True, timeout=5)
                                 time.sleep(.5)
-                            run('import', '-display', display.name, '-window', 'root', output / f'{name}.png')
+                            run('import', '-display', display.name, '-window', 'root', output / f'{completed.stem}.png')
                             window = subprocess.check_output(
                                 ['xdotool', 'search', '--onlyvisible', '--pid', str(terminal.pid)],
                                 env=environment, text=True).strip()
@@ -341,7 +365,7 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
         finally:
             server.terminate()
             server.wait(timeout=5)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', evidence=str(output))
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', channel='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
 
@@ -640,6 +664,8 @@ class GitExport:
         name = metadata['Name'].lower().replace('_', '-')
         if name != self.package_name or installed[name]['version'] != metadata['Version']:
             raise RuntimeError(f'{self.package_name} differs from its clean-export wheel')
+        if installed[name]['source']['url'] != wheel.resolve().as_uri():
+            raise RuntimeError(f'{self.package_name} was installed from a different wheel')
 
     @staticmethod
     def only_wheel(directory: Path) -> Path:
@@ -721,30 +747,45 @@ class RuntimeBuild:
             if (core_package / 'package-lock.json').is_file():
                 run('npm', 'ci', '--ignore-scripts', '--omit=dev', cwd=core_package)
             run('uv', 'pip', 'check', '--python', python)
-            installed = read_inventory(python)
             # Locate through Core, not an assumed interpreter/version layout.
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
                 raise RuntimeError('Installed Core native pin differs from the clean export')
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
-            for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
-                export.verify_wheel(wheel, installed)
             # Keep an installed but unqualified candidate available for diagnosis.
             # Only build.json below certifies readiness; never rebuild to inspect it.
             cleanup.pop_all()
-            startup = check_startup(destination, self.scratch / f'startup-{destination.name}', self.baseline, self.thread)
-            wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
-                                      self.scratch / f'startup-{destination.name}')
-            record = {
-                'baseline': str(self.baseline),
-                'toad_commit': toad_commit, 'core_commit': core_commit,
-                'native_manifest_sha256': native_pin,
-                'packages': installed, 'runtime': str(destination),
-                'startup': startup,
-                'message_wake': wake,
-            }
-            (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+        return self.qualify(destination)
+
+    def qualify(self, destination: Path) -> Path:
+        """Finish the existing readiness checks on an installed candidate."""
+        if (destination / 'build.json').exists():
+            raise ValueError('Runtime is already qualified')
+        toad_commit, core_commit = self.toad.commit, self.core.commit
+        installed = read_inventory(destination / 'bin/python')
+        for export, commit in ((self.toad, toad_commit), (self.core, core_commit)):
+            wheel = export.only_wheel(self.scratch / 'wheels' / f'{export.label}-{commit}')
+            export.verify_wheel(wheel, installed)
+        resources = Path(run(destination / 'bin/python', '-c',
+                             'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
+        manifest = subprocess.check_output([
+            'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'])
+        if (resources / 'pi-native.sha256').read_bytes() != manifest:
+            raise RuntimeError('Installed Core native pin differs from the clean export')
+        native_pin = hashlib.sha256(manifest).hexdigest()
+        startup = check_startup(destination, self.scratch / f'startup-{destination.name}', self.baseline, self.thread)
+        wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
+                                  self.scratch / f'startup-{destination.name}')
+        record = {
+            'baseline': str(self.baseline),
+            'toad_commit': toad_commit, 'core_commit': core_commit,
+            'native_manifest_sha256': native_pin,
+            'packages': installed, 'runtime': str(destination),
+            'startup': startup,
+            'message_wake': wake,
+        }
+        (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
         return destination
 
     def accept(self, runtime: Path, display: XvfbDisplay) -> None:
@@ -768,6 +809,7 @@ def main() -> None:
     parser.add_argument('--start-env', type=Path,
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
+    parser.add_argument('--qualify-runtime', type=Path, help='Finish gates on an existing unqualified candidate; build nothing')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -786,7 +828,7 @@ def main() -> None:
         args.scratch.resolve(), args.runtimes.resolve(), args.thread,
         args.start_env.resolve(strict=True) if args.start_env else None,
     )
-    runtime = build.build()
+    runtime = build.qualify(args.qualify_runtime.resolve(strict=True)) if args.qualify_runtime else build.build()
     if not args.build_only:
         with XvfbDisplay(args.display) as display:
             build.accept(runtime, display)
