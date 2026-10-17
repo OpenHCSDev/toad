@@ -34,6 +34,11 @@ class PreparedChoices(AnnotationChoices):
         return next((label for label, value in self.parameter.choices if value == choice), 'Choose…')
 
 
+ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
+    (field.metadata(PreparedChoices).parameter.catalog, AnnotationChoices)
+)(field)
+
+
 class CatalogField(ValueEditor, Button):
     """The shared model selector edits the form's canonical draft value."""
     shows = (ModelConfigOption,)
@@ -42,16 +47,12 @@ class CatalogField(ValueEditor, Button):
     def parameter(self):
         return self.field.metadata(PreparedChoices).parameter
 
-    @property
-    def value(self):
-        return self.field.value
-
     def bind_control(self):
         self.paint()
 
     def paint(self):
         self.label = next((choice.name for choice in self.parameter.options
-                           if choice.value == self.value), 'Choose / connect a provider…')
+                           if choice.value == self.field.value), 'Choose / connect a provider…')
 
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()
@@ -75,7 +76,7 @@ class CatalogFieldSelection(ModelSelection):
 
     @property
     def current(self):
-        return self.editor.value
+        return self.editor.field.value
 
     @property
     def selection_active(self):
@@ -143,8 +144,6 @@ class CommandDialog(ModalScreen[dict[str, str]]):
         declarations = []
         for parameter in fields:
             hints = [FieldLabel(parameter.description)]
-            if parameter.catalog is not None:
-                hints.append(parameter.catalog)
             if parameter.choices is not None:
                 self.choices[parameter.name] = choices = PreparedChoices(parameter)
                 hints.append(choices)
