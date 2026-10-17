@@ -241,11 +241,16 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, Alternati
     def paint_highlighted(self) -> bool:
         return self.selected or super().paint_highlighted
 
+    def resting_ink(self):
+        """Ink while not highlighted; the highlight always paints its own contrast."""
+        if self.is_navigation_row() and self.navigation_tree.channel_active(self):
+            return WarningColour
+        return None
+
     @property
     def paint_foreground(self):
-        if self.is_navigation_row() and not self.paint_highlighted and self.navigation_tree.channel_active(self):
-            return self.app.colours.colour(WarningColour)
-        return super().paint_foreground
+        ink = None if self.paint_highlighted else self.resting_ink()
+        return self.app.colours.colour(ink) if ink is not None else super().paint_foreground
 
     def set_label(self, label: str) -> None:
         self.update(Content(label))
@@ -289,11 +294,8 @@ class ThreadStatusRow(CommsRow):
     def busy(self) -> bool:
         return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
 
-    @property
-    def paint_foreground(self):
-        if self.busy:
-            return self.app.colours.colour(WarningColour)
-        return super().paint_foreground or self.app.colours.colour(MutedColour)
+    def resting_ink(self):
+        return WarningColour if self.busy else MutedColour
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model with this app's pin and pending action."""
