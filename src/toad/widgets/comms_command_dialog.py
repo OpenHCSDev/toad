@@ -7,6 +7,7 @@ from typing import Annotated
 
 from agent_comms.cli_commands import ChoiceTargetField, TargetAction, TargetField
 from agent_comms.config_options import ModelConfigOption
+from agent_comms.field_codec import compile_decoder
 from agent_comms.login import run_login
 from agent_comms.native_pi import NativePiUnavailable
 from objectstate import ObjectState
@@ -144,7 +145,7 @@ class CommandDialog(ModalScreen[dict[str, str | None]]):
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
                 hints.append(Multiline())
-            declarations.append((parameter.name, Annotated[parameter.editor_annotation, *hints],
+            declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
         self.form = InlineFormView(self.state)
