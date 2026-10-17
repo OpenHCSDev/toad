@@ -101,10 +101,6 @@ class RelationshipRow(CommsRow):
         if self.entry == entry:
             self._show_person(entry, model)
 
-    @property
-    def thread_incarnation(self):
-        return self.entry.person.thread.incarnation if self.entry is not None and self.entry.person is not None else None
-
     def action_copy_identity(self) -> None:
         self.app.copy_to_clipboard(self.target_name)
 
@@ -137,6 +133,12 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         state = self.query_ancestor(ThreadCommsSidebar).view_state
         state.expanded[type(self.model)] = expanded
 
+    @property
+    def member_keys(self):
+        snapshot = self.query_ancestor(ThreadCommsSidebar)._snapshot
+        model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
+        return frozenset(entry.target for entry in model.entries) if model is not None else frozenset()
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
         if not self.member_container.is_attached or not self.accepts_members():
@@ -158,11 +160,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
             entry = entries[key]
             row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
 
-        wanted = tuple(key for key in entries if self.expanded or key in self.rows)
-        self.reconcile_rows(
-            wanted, create, update,
-            replace=lambda key, row: row.thread_incarnation != (
-                entries[key].person.thread.incarnation if entries[key].person is not None else None))
+        self.reconcile_rows(create, update)
         tree.apply_selection()
 
 
@@ -363,10 +361,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     return
             models = snapshot.groups_by_type
             absent = self.groups.keys() - models.keys()
-            if absent:
-                await self.remove_children([self.groups.pop(key) for key in absent])
-                if generation != self._generation or not self.is_attached:
-                    return
+            self._snapshot, self._revision = snapshot, revision
             context = self.query_one(".relationship-context", Static)
             context.update(Content.assemble((f"For @{snapshot.owner}", "bold"),
                 " · recent window" if snapshot.history_limited else ""), layout=False)
@@ -374,18 +369,22 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             control = self.query_ancestor(SideBarCollapsible).query_one_optional(RelationshipSort)
             if control is not None:
                 control.update_groups(snapshot.sortable_groups)
-            for identity, model in models.items():
-                group = self.groups.get(identity)
-                if group is None:
-                    # A new group reconciles its members once composed (on_mount).
-                    group = self.groups[identity] = RelationshipRows(
-                        model, self.view_state.expanded.get(identity, True))
-                    self.mount(group)
-                group.display = True
-                group.expanded = self.view_state.expanded.get(identity, True)
-                group.model = model
-                group.sync_members()
-            self._snapshot, self._revision = snapshot, revision
+            with self.reconcile_members():
+                for identity, model in models.items():
+                    group = self.groups.get(identity)
+                    if group is None:
+                        # A new group reconciles once composed (on_mount).
+                        group = self.groups[identity] = RelationshipRows(
+                            model, self.view_state.expanded.get(identity, True))
+                        await self.mount(group)
+                        if generation != self._generation or not self.is_attached:
+                            return
+                    group.display = True
+                    group.expanded = self.view_state.expanded.get(identity, True)
+                    group.model = model
+                    group.sync_members()
+            if absent:
+                await self.remove_children([self.groups.pop(key) for key in absent])
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError) as error:
@@ -393,6 +392,10 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context = self.query_one(".relationship-context", Static)
                 context.update(Content("Comms unavailable"), layout=False)
                 context.tooltip = str(error)
+
+    @property
+    def member_keys(self):
+        return (entry.target for model in self._snapshot.groups for entry in model.entries) if self._snapshot is not None else ()
 
     @property
     def navigation_groups(self):
