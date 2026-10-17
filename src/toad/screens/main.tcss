@@ -86,11 +86,6 @@ Conversation {
             background: $surface-lighten-1;
             text-style: bold;
 
-            &:hover, &:focus {
-                background: $block-cursor-background;
-                color: $block-cursor-foreground;
-                text-style: bold;
-            }
         }
     }
 

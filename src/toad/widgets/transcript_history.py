@@ -50,6 +50,7 @@ from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
 from toad.frame_presentation import Animated
+from toad.widgets.selection import HoverSelection
 from ui_theme.effects import NEW_TEXT, Mix
 from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
@@ -91,7 +92,8 @@ class HistoryEdge(PrimaryActivation, Static, can_focus=True):
             event.stop()
             self.action_earlier()
 
-class JumpToLatest(PrimaryActivation, Static, can_focus=True):
+class JumpToLatest(HoverSelection, PrimaryActivation, Static, can_focus=True):
+    highlighted_text_style = None
     BINDINGS = [("enter,space", "jump", "Jump to latest")]
     DEFAULT_CSS = "JumpToLatest { height: 1; color: $text-secondary; pointer: pointer; }"
 
