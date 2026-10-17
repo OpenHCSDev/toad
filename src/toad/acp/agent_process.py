@@ -103,7 +103,7 @@ class AgentProcess:
         return AcpIngress(self.route_selection, Path(self.cwd), self.attached_root(agent))
 
     @asynccontextmanager
-    async def admitted_prompt(self, agent):
+    async def locked_prompt(self, agent):
         """Keep Core's input lock until the prompt is written to stdin.
 
         Acquire the lock off this loop; keep the write on it. Without a

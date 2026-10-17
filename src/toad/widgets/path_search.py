@@ -131,6 +131,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
 
 
 class PathSearch(CompletionPopup):
+    requires_completion = True
 
     BINDING_GROUP_TITLE = "Path search"
 
@@ -172,9 +173,6 @@ class PathSearch(CompletionPopup):
     def for_prompt(cls, prompt: Prompt) -> Self | None:
         from toad.widgets.prompt import Prompt
         return None if prompt.simple_input else cls(prompt.project_path).data_bind(root=Prompt.project_path)
-
-    def admitted(self) -> bool:
-        return self.prompt.supports_completion
 
     def watch_root(self) -> None:
         self.invalidate_paths()

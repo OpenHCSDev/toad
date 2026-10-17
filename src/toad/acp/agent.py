@@ -161,7 +161,7 @@ class Agent(AgentBase):
         Waiting for permission can suspend, so ``require`` checks the caller
         again once permission is held, before any request is opened.
         """
-        async with self.process.admitted_prompt(self):
+        async with self.process.locked_prompt(self):
             require()
             with self.request() as request:
                 yield request
