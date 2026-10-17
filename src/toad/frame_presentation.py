@@ -5,13 +5,14 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 from weakref import ref
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
+from textual.strip import Strip
 from ui_theme.clock import Animation
-from ui_theme.effects import Effect, Frame
+from ui_theme.effects import Effect, Fade, Frame
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
@@ -195,25 +196,41 @@ class FramePresentation:
 class Animated[FrameT: Frame](Widget):
     """A native widget whose effect uses the app clock and published visibility."""
 
-    animation: Animation[FrameT] | None = None
+    text_fades: ClassVar[tuple[Fade, ...]] = ()
 
-    def run_effect(self, effect: Effect[FrameT]) -> None:
-        self.stop_effect()
-        self.animation = self.app.colours.clock.start(effect, self)  # type: ignore[attr-defined]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.effects: dict[Effect, Animation] = {}
 
-    def stop_effect(self) -> None:
-        if self.animation is not None:
-            self.animation.stop()
-            self.animation = None
+    def run_effect(self, effect: Effect) -> None:
+        self.stop_effect(effect)
+        self.effects[effect] = self.app.colours.clock.start(effect, self)
+
+    def stop_effect(self, *effects: Effect) -> None:
+        for effect in effects or tuple(self.effects):
+            if animation := self.effects.pop(effect, None):
+                animation.stop()
+
+    def effect_frame(self, effect: Effect[FrameT]) -> FrameT:
+        animation = self.effects.get(effect)
+        return effect.final if animation is None else animation.frame()
 
     def on_unmount(self) -> None:
-        self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
-        self.animation = None
+        self.stop_effect()
 
     def on_hide(self) -> None:
-        if self.animation is not None and self.animation.effect.finite:
-            self.stop_effect()
-            self.refresh()
+        for effect in tuple(self.effects):
+            if effect.finite:
+                self.stop_effect(effect)
+        self.refresh()
+
+    def paint_effects(self, strip: Strip) -> Strip:
+        for effect in self.text_fades:
+            strip = self.app.colours.paint_rising(self.effect_frame(effect), strip)
+        return strip
+
+    def render_line(self, y: int) -> Strip:
+        return self.paint_effects(super().render_line(y))
 
     @property
     def animation_visible(self) -> bool:

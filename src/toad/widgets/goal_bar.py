@@ -55,16 +55,16 @@ class StandbyPulse(Animated[Mix], Static):
 
     def watch_active(self) -> None:
         if self.active and self.is_mounted:
-            if self.animation is None:
+            if STANDBY_PULSE not in self.effects:
                 self.run_effect(STANDBY_PULSE)
         else:
-            self.stop_effect()
+            self.stop_effect(STANDBY_PULSE)
         self.update("◌" if self.active else "")
 
     def render_line(self, y: int) -> Strip:
         strip = super().render_line(y)
         if self.active:
-            frame = self.animation.frame() if self.animation is not None else STANDBY_PULSE.final
+            frame = self.effect_frame(STANDBY_PULSE)
             return frame.paint(self.app.colours, strip)
         return strip
 

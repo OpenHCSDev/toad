@@ -8,8 +8,7 @@ from textual import events, on
 from rich.segment import Segment
 from textual.content import Content
 from textual.strip import Strip
-from ui_theme.clock import Animation
-from ui_theme.effects import NEW_TEXT, SPINNER, Frame, Mix, TextFrame
+from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from textual.visual import VisualType
 
 from toad.frame_presentation import Animated
@@ -21,33 +20,14 @@ from textual.widgets import ListItem, ListView, OptionList, Static
 class ChangingText[FrameT: Frame](Animated[FrameT], Static):
     """Changed content fades into its own colours through the shared app clock."""
 
-    transition_effect = NEW_TEXT
-    transition: Animation[Mix] | None = None
+    text_fades = (NEW_TEXT,)
 
     def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
-        previous = self.visual
+        if self.content == content:
+            return
         super().update(content, layout=layout)
-        if self.is_mounted and previous != self.visual:
-            self.change()
-
-    def change(self) -> None:
-        self.stop_transition()
-        self.transition = self.app.colours.clock.start(self.transition_effect, self)
-        self.refresh()
-
-    def on_hide(self) -> None:
-        self.stop_transition()
-
-    def stop_transition(self) -> None:
-        if self.transition is not None:
-            self.transition.stop()
-            self.transition = None
-
-    def render_line(self, y: int) -> Strip:
-        line = super().render_line(y)
-        if self.transition is not None:
-            return self.app.colours.paint_rising(self.transition.frame(), line)
-        return line
+        if self.is_mounted:
+            self.run_effect(NEW_TEXT)
 
 
 class ViewLabel(ChangingText[TextFrame]):
@@ -56,18 +36,17 @@ class ViewLabel(ChangingText[TextFrame]):
     def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
         """One activity slot, before decorations; idle keeps its declared marker."""
         if not busy:
-            self.stop_effect()
+            self.stop_effect(SPINNER)
             return Content.assemble(prefix, label)
-        if self.animation is None:
+        if SPINNER not in self.effects:
             self.run_effect(SPINNER)
         return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
 
     def render_line(self, y: int) -> Strip:
         line = super().render_line(y)
-        animation = self.animation
-        if animation is None or y != 0:
+        if SPINNER not in self.effects or y != 0:
             return line
-        glyph = animation.frame().paint(self.app.colours, None)
+        glyph = self.effect_frame(SPINNER).paint(self.app.colours, None)
         style = next((segment.style for segment in line), None)
         # Native clipping owns empty or partial lines.
         return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),

@@ -46,9 +46,7 @@ class SplashText(Animated[TextFrame], Static):
             self.refresh()
 
     def render(self) -> Content:
-        animation, played = self.animation, self.played
-        if animation is not None:
-            return self.app.colours.paint_text(animation.frame(), None)
+        played = self.played
         if played is not None:
-            return self.app.colours.paint_text(played.final, None)
+            return self.app.colours.paint_text(self.effect_frame(played), None)
         return Content(self.TEXT)

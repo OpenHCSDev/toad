@@ -117,6 +117,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
     """
 
     DEFAULT_CSS = "TranscriptPageView { height: auto; overflow-x: auto; overflow-y: hidden; }"
+    text_fades = (NEW_TEXT,)
     RENDER_BATCH = 8
 
     def __init__(self, prepared: PreparedTranscriptPage, *, newest: bool = True,
@@ -298,8 +299,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
             return selection_painted(self, self.blank_row(width), y)
         # Prepared rows span exactly this width (Lines.strips_at).
         strip = lines.strips_at(fragment.link_place)[row]
-        if self.animation is not None:
-            strip = self.app.colours.paint_rising(self.animation.frame(), strip)
+        strip = self.paint_effects(strip)
         return selection_painted(self, self.on_background(strip), y)
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, bool] | None:

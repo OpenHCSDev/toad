@@ -13,7 +13,6 @@ from textual.content import Content
 from textual.geometry import Offset, Region
 from textual.message import Message
 from textual.renderables.bar import Bar
-from textual.strip import Strip
 from textual.style import Style
 from ui_theme.scheme import AccentColour
 from textual.widget import PrimaryActivation, Widget
@@ -115,6 +114,7 @@ class SessionTabClose(PrimaryActivation, widgets.Static, can_focus=True):
 class Underline(Animated[Mix]):
     """The chosen tab's underline uses the shared content-change fade."""
 
+    text_fades = (NEW_TEXT,)
     COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
     """
     | Class | Description |
@@ -145,17 +145,6 @@ class Underline(Animated[Mix]):
             highlight_style=RichStyle.from_color(bar_style.color),
             background_style=RichStyle.from_color(bar_style.bgcolor),
         )
-
-    def render_line(self, y: int) -> Strip:
-        strip = super().render_line(y)
-        animation = self.animation
-        width = strip.cell_length
-        # The highlighted tab can lie partly or wholly beyond the visible strip.
-        start, end = (min(cell, width) for cell in self._highlight_range)
-        if animation is None or start >= end:
-            return strip
-        tab = self.app.colours.paint_rising(animation.frame(), strip.crop(start, end))
-        return Strip.join((strip.crop(0, start), tab, strip.crop(end, width)))
 
     def _on_click(self, event: events.Click):
         """Catch clicks, so that the underline can activate the tabs."""

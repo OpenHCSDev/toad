@@ -243,7 +243,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
-        self.show_content(Content(label), layout=True)
+        self.update(Content(label))
 
     def sidebar_owner(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
