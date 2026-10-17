@@ -39,7 +39,7 @@ members = ["toad"]
 
 [tool.uv.sources]
 ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "89ec59b64bc1330c73733f95868f72640047fdee" }
-agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "4d691d469c9af160246e546614815506ef3dc038" }
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "0016adcfeac9bcbc0a4a47ab8893a27fbed984c1" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "d290813a240b7eb5ec1638a712104df5fa723a81" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
 objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "ad8727278d9e83f9c0d4bfa94334177d5ea8fdf3" }

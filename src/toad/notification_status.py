@@ -73,7 +73,7 @@ class CheckedNotifications(NotificationStatus):
 
     @property
     def working(self) -> bool:
-        return any(item.busy for item in self.notifications)
+        return any(item.state.working for item in self.notifications)
 
     @property
     def title(self) -> str:
@@ -83,7 +83,7 @@ class CheckedNotifications(NotificationStatus):
     def details(self) -> DetailLines:
         lines = []
         for item in MessageNotification.ordered(self.notifications):
-            line = recipient_line(item.recipient, f": {item.state}" + (f" — {item.detail}" if item.detail else ""))
+            line = recipient_line(item.recipient, f": {item.label}" + (f" — {item.state.detail}" if item.state.detail else ""))
             for reader in item.displayed_to:
                 line += (Span(" · Read by ", MutedRole),
                          Span(reader.name, NameRole, OpenTarget(reader.name)))
