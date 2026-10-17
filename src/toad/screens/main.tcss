@@ -149,7 +149,6 @@ Conversation {
         color: $foreground 7%;            
                 
         .cursor--selected { color: $text-accent; }
-        .cursor--selected-blink { color: $text-accent 20%; }
     }        
 
 
