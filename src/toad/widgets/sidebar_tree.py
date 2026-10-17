@@ -363,7 +363,7 @@ class TargetTree(Vertical):
             self.focus_row(row)
 
     def focus_row(self, row) -> None:
-        row.scroll_visible(animate=False)
+        row.scroll_visible(animate=False, immediate=True)
         self.screen.set_focus(row, scroll_visible=False)
 
     def action_open_selected(self) -> None:
