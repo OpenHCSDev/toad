@@ -249,6 +249,8 @@ with Coordination(str(c.root/'coordination.sqlite3')) as store: store.install_pr
                 for name, arguments, selected in (
                     ('plain', [], 'store'),
                     ('welcome', ['acp', f'{python} -I -B -m agent_comms.acp', str(home)], 'welcome'),
+                    ('saved', ['acp', f'{python} -I -B -m agent_comms.acp', str(home),
+                               '--session', 'startup-saved'], 'saved'),
                 ):
                     observation = output / f'{name}.json'
                     exit_status = output / f'{name}-exit-code'
@@ -275,6 +277,14 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
    if app._exception is not None: raise app._exception
    if {selected!r} == 'store':
     if app.current_mode != 'store': return
+   elif {selected!r} == 'saved':
+    from toad.screens.main import MainScreen
+    from toad.widgets.conversation import Conversation
+    screen=app.selected_session
+    if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
+    conversation=screen.query_one(Conversation)
+    if conversation.transcript.displayed_cursor is None: return
+    if not screen.presentation.transcript.reports_coverage: return
    else:
     from toad.screens.welcome import WelcomeScreen, WelcomeThreads
     from toad.navigation_target import ThreadTarget
@@ -330,7 +340,7 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
         finally:
             server.terminate()
             server.wait(timeout=5)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', evidence=str(output))
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
 
