@@ -351,6 +351,9 @@ class RuntimeBuild:
             # The clean Toad lock owns the complete dependency set; the two reviewed
             # source exports replace only their own packages.
             run('uv', 'pip', 'install', '--python', python, '--no-deps', '-r', requirements, toad_wheel, core_wheel)
+            core_package = Path(run(python, '-c', 'import agent_comms; print(agent_comms.__path__[0])'))
+            if (core_package / 'package-lock.json').is_file():
+                run('npm', 'ci', '--ignore-scripts', '--omit=dev', cwd=core_package)
             run('uv', 'pip', 'check', '--python', python)
             installed = read_inventory(python)
             # Locate through Core, not an assumed interpreter/version layout.
