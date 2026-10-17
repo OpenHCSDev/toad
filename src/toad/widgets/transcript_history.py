@@ -885,15 +885,11 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return self.filter.checkpoint_available
 
     def _reader(self) -> PreparedPageSource:
-        reader = self._page_buffer
-        if reader is None or not reader.accepts(self.loader, self.through):
-            if reader is not None:
-                reader.close()
-            self._page_buffer = reader = self.page_buffer(
-                self.loader, self.through, self.app.preparation,
-            )
-        reader.through = self.through
-        return reader
+        # The source only grows under one reader; replacing the source clears it (_clear).
+        if self._page_buffer is None:
+            self._page_buffer = self.page_buffer(self.loader, self.through, self.app.preparation)
+        self._page_buffer.through = self.through
+        return self._page_buffer
 
     @property
     def drawn_extent(self) -> tuple[int, int]:

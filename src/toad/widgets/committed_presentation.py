@@ -295,11 +295,22 @@ class CheckpointPlan(ABC):
     def ready(self, history: CommittedHistory | None) -> bool:
         return history is None or history.checkpoint_available
 
-    @abstractmethod
     async def prepare(self, view: Conversation, history: CommittedHistory | None,
                       page: TranscriptPage, captured: frozenset[Widget],
                       is_current: Callable[[], bool]) -> PreparedCommit | None:
-        pass
+        """Grow a history that accepts the page; otherwise the page replaces it."""
+        from toad.transcript_preparation import TranscriptPageRenderTask
+        from toad.work_preparation import RenderPreparation
+
+        if history is not None and history.accepts_commit(page.after):
+            return await self.extend(view, history, page, captured, is_current)
+        prepared = await view.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
+        return PreparedCommit(None, prepared, TranscriptCoverage(page.events).sequences)
+
+    @abstractmethod
+    async def extend(self, view: Conversation, history: CommittedHistory, page: TranscriptPage,
+                     captured: frozenset[Widget], is_current: Callable[[], bool]) -> PreparedCommit | None:
+        """Commit the page's records onto the history that already ends where it starts."""
 
     def commit(self, prepared: PreparedCommit, cursor: TranscriptCursor) -> None:
         """Apply source metadata only after the final retirement checks."""
@@ -319,25 +330,16 @@ class FollowTailCheckpoint(CheckpointPlan):
     def current(self, window: HistoryWindow) -> bool:
         return window.follows_tail and window.scroll_revision == self.revision
 
-    async def prepare(self, view, history, page, captured, is_current):
-        from toad.transcript_preparation import TranscriptPageRenderTask
-        from toad.work_preparation import RenderPreparation
-
+    async def extend(self, view, history, page, captured, is_current):
         # The drawn history grows in place: unchanged pages keep their views,
-        # and the captured live blocks leave in the change that draws their
-        # saved rows. Only a missing or replaced source needs a new history.
-        if history is not None and history.accepts_commit(page.after):
-            live_blocks = tuple(retirement_candidates(
-                captured, CommitEvidence(frozenset(captured), retained_history=history),
-            ))
-            if not await history.advance_committed(page.after, is_current, live_blocks):
-                return None
-            return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
-                                  | history.covered_sequences(required_sequences(captured)))
-        prepared = await view.app.preparation.submit(
-            RenderPreparation(TranscriptPageRenderTask(page))
-        )
-        return PreparedCommit(None, prepared, TranscriptCoverage(page.events).sequences)
+        # and the captured live blocks leave in the change that draws their saved rows.
+        live_blocks = tuple(retirement_candidates(
+            captured, CommitEvidence(frozenset(captured), retained_history=history),
+        ))
+        if not await history.advance_committed(page.after, is_current, live_blocks):
+            return None
+        return PreparedCommit(history, None, TranscriptCoverage(page.events).sequences
+                              | history.covered_sequences(required_sequences(captured)))
 
     def finish(self, view, cursor):
         view.transcript.painted(cursor)
@@ -355,9 +357,6 @@ class RetainViewportCheckpoint(CheckpointPlan):
         # Retirement checks the current viewport again when applying the change.
         return not window.follows_tail
 
-    def ready(self, history: CommittedHistory | None) -> bool:
-        return history is not None and history.checkpoint_available
-
     def permits(self, view, candidates):
         candidates = tuple(candidates)
         if not super().permits(view, candidates):
@@ -373,11 +372,7 @@ class RetainViewportCheckpoint(CheckpointPlan):
         return not any(widget in visible and visible[widget][0].overlaps(viewport)
                        for widget in candidates)
 
-    async def prepare(self, view, history, page, captured, is_current):
-
-        if (history is None or not history.accepts_commit(page.after)
-                or not history.checkpoint_available):
-            return None
+    async def extend(self, view, history, page, captured, is_current):
         required = required_sequences(captured)
         known = TranscriptCoverage(page.events).sequences | history.covered_sequences(required)
         covered = frozenset(sequence for sequence in required
@@ -385,8 +380,8 @@ class RetainViewportCheckpoint(CheckpointPlan):
         return PreparedCommit(history, None, known | covered)
 
     def commit(self, prepared, cursor):
-        assert prepared.history is not None
-        prepared.history.retain_committed(cursor)
+        if prepared.history is not None:  # A replacement history already owns its source.
+            prepared.history.retain_committed(cursor)
 
 def checkpoint_plan(window: HistoryWindow) -> CheckpointPlan:
     return FollowTailCheckpoint(window) if window.follows_tail else RetainViewportCheckpoint()
