@@ -115,7 +115,8 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
             sidebar = self.app.workspace_chrome.channels
             return sidebar.display and not sidebar.has_focus_within
         if action == "back_to_bottom":
-            return self.back_to_bottom_window is not None
+            return (not (self.focused is not None and self.focused.uses_screen_coordinates)
+                    and self.back_to_bottom_window is not None)
         return super().check_action(action, parameters)
 
     @property
