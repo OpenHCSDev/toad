@@ -78,8 +78,8 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         return placement._replace(offset=placement.offset + offset)
 
     def repaint(self) -> None:
-        if self.leaving and (not self.app.colours.clock.enabled
-                or not self.animation_visible or SIDEBAR_EXIT.finished(self.effects[SIDEBAR_EXIT].elapsed)):
+        if self.leaving and (not self.animation_visible
+                or self.effect_frame(SIDEBAR_EXIT) == SIDEBAR_EXIT.final):
             self.remove()
             return
         moving = SIDEBAR_MOVE in self.effects

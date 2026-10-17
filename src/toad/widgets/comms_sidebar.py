@@ -540,7 +540,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
-        return (self.is_attached and self.display
+        return (self.is_attached and not self.is_leaving
                 and self.app.is_running and self.screen.is_current)
 
     def accepts_observation(self) -> bool:
@@ -555,11 +555,11 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         try:
             service = await app.preparation.run_thread(lambda: app.coordination_access.service)
         except (OSError, ValueError, RuntimeError):
-            self.visible = False
+            self.display = False
             return
         screen = self.screen
         if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(service.root):
-            self.visible = False
+            self.display = False
             return
         self.subscribe_core(app.session_tracker.events)
         self.observe_core(app.events)
@@ -573,7 +573,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.stop_showing()
 
     def model_replaced(self) -> None:
-        self.visible = False
+        self.display = False
         self.navigation.reset()
         if self.groups:
             self.remove_children(list(self.groups.values()))
@@ -621,7 +621,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        self.visible = True
+        self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
 
@@ -651,7 +651,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
-        live = tuple(child for child in self.children if child in ordered)
+        live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))

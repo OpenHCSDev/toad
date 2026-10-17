@@ -200,16 +200,16 @@ class FilePreview(Vertical):
             try:
                 kind = FileKind.for_path(self.path)
                 source = await self.app.preparation.run_thread(kind.load, self.path)
-                if self.is_attached and not self._pruning:
+                if self.is_attached and not self.is_leaving:
                     if position is None:
                         await kind.show(self, source)
                     else:
                         await kind.show_at(self, source, position)
             except (OSError, ValueError, EOFError) as error:
-                if self.is_attached and not self._pruning:
+                if self.is_attached and not self.is_leaving:
                     self.loading_label.update(f"Unable to open {self.path}: {error}")
                 return
-            if self.is_attached and not self._pruning:
+            if self.is_attached and not self.is_leaving:
                 self.loading_label.display = False
         finally:
             self._ready.set()
