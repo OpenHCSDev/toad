@@ -50,7 +50,7 @@ class TransferRequest(DeclaredFamily, affix="Request"):
     def apply(self, comms): ...
 
     @abstractmethod
-    def completed(self, app, receipt) -> None: ...
+    def completed(self, app, result) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -71,8 +71,8 @@ class WireExportRequest(TransferRequest):
     def apply(self, comms):
         return comms.views.export_wire(self.destination, format=self.format, scope=self.scope, limit=self.limit)
 
-    def completed(self, app, receipt) -> None:
-        app.notify(f"Exported {receipt.exported_messages} messages to {receipt.destination}", title="Wire export")
+    def completed(self, app, result) -> None:
+        app.notify(f"Exported {result.exported_messages} messages to {result.destination}", title="Wire export")
 
 
 @dataclass(frozen=True)
@@ -95,9 +95,9 @@ class ThreadImportRequest(TransferRequest):
         return comms.threads.import_thread(self.source, self.format, name=self.name,
                                           session_id=self.session_id, worktree=self.worktree)
 
-    def completed(self, app, receipt) -> None:
+    def completed(self, app, result) -> None:
         app.events.publish(core_events.ThreadRowStateChanged())
-        app.notify(f"Imported @{receipt.thread} ({receipt.imported_messages} messages) as a stopped thread",
+        app.notify(f"Imported @{result.thread} ({result.imported_messages} messages) as a stopped thread",
                    title="Thread Import")
 
 
@@ -142,11 +142,11 @@ class Transfers:
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
         try:
             comms = self.app.coordination_access.require(selected)
-            receipt = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
+            result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
         except (OSError, ValueError) as error:
             self.app.notify(str(error), title=request.failure_title, severity="error")
         else:
-            request.completed(self.app, receipt)
+            request.completed(self.app, result)
 
 
 class TransferDialog(ModalScreen):
