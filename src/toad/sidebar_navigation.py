@@ -91,7 +91,7 @@ class SidebarNavigation:
     def menu_context(self, row: CommsRow):
         from dataclasses import replace
         context = row.target.menu_context(
-            self.sidebar, mode_name=row.mode_name,
+            self.sidebar, mode_name=self.sidebar.open_views.get(row.target_name),
             channel=self.sidebar.selection_for(row).channel)
         selected = self.state.selected_targets
         names = tuple(dict.fromkeys(item.target for item in selected))
