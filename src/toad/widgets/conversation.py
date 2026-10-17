@@ -57,6 +57,7 @@ from toad import jsonrpc, messages, paths
 from toad.widgets.splash_text import SplashText
 
 from toad.core import events as core_events
+from toad.widgets.comms_menu import ContextMenu
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
 from toad.acp.agent_session import SessionDisposition
@@ -1157,23 +1158,16 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         from toad.agent_schema import Command
         from toad.catalog_actions import CatalogCommandAction
         from toad.screens.action_modal import ActionModal
-        from toad.widgets.comms_menu import ContextMenu
 
         agent = self.agent
         methods = agent.presentation.auth_methods if agent is not None else []
         if not methods:
             self.flash("This agent has not advertised any login methods", style="error")
             return
-        method_id = await self.app.push_screen_wait(
-            ContextMenu(
-                Offset(
-                    self.prompt.region.x,
-                    max(0, self.prompt.region.y - len(methods) - 4),
-                ),
-                "Connect a provider",
-                [(method.id, method.name) for method in methods],
-            ),
-            mode="workspace",
+        method_id = await ContextMenu.choose(
+            self.screen,
+            Offset(self.prompt.region.x, max(0, self.prompt.region.y - len(methods) - 4)),
+            "Connect a provider", [(method.id, method.name) for method in methods],
         )
         if not method_id:
             self.prompt.focus()
@@ -1243,7 +1237,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             from textual.geometry import Offset
 
             from toad.db import DB
-            from toad.widgets.comms_menu import ContextMenu
 
             # Recent-model persistence is optional metadata, not a prerequisite
             # for opening the model's already advertised thinking choices.
@@ -1251,16 +1244,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                                                    last_used=time_ns()))
             levels = [choice.value for choice in agent.configuration.thinking.choices]
             if len(levels) > 1:
-                level = await self.app.push_screen_wait(
-                    ContextMenu(
-                        Offset(
-                            self.prompt.region.x,
-                            max(0, self.prompt.region.y - len(levels) - 4),
-                        ),
-                        f"Thinking level for {model.name}",
-                        [(value, value.title()) for value in levels],
-                    ),
-                    mode="workspace",
+                level = await ContextMenu.choose(
+                    self.screen,
+                    Offset(self.prompt.region.x, max(0, self.prompt.region.y - len(levels) - 4)),
+                    f"Thinking level for {model.name}", [(value, value.title()) for value in levels],
                 )
                 if (
                     level

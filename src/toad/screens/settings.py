@@ -15,7 +15,8 @@ from textual.color import Color
 from toad.app import ScreenWidth, ToadApp
 from toad.forms.editors import SelectEditor
 from toad.forms.form_view import FormView
-from toad.forms.presentation import FormInput, FormModal, FormPart
+from toad.forms.presentation import FormInput, FormModal
+from toad.widget_view import WidgetView
 from toad.setting_choices import SchemeName
 
 
@@ -29,7 +30,7 @@ class SchemeEditor(SelectEditor):
         return ((name, name) for name in self.app.colours.schemes)
 
 
-class SettingsPanel(FormPart, containers.Vertical):
+class SettingsPanel(WidgetView, containers.Vertical):
     """The side of the screen the settings are shown in."""
 
     height = None
@@ -41,7 +42,7 @@ class SettingsPanel(FormPart, containers.Vertical):
         return ScreenWidth(self.screen.horizontal_breakpoint).side_panel_width
 
 
-class SettingsSearch(FormPart, containers.VerticalGroup):
+class SettingsSearch(WidgetView, containers.VerticalGroup):
     """Stays above the settings while they scroll."""
 
     dock = "top"
