@@ -24,7 +24,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     accepts_source_work: ClassVar[bool] = False
 
     def checkpoint_available(self, owner) -> bool:
-        """The source accepts work and its resource still holds the checkpoint."""
+        """The source accepts work and its resource still holds the saved rows."""
         return self.accepts_source_work and owner.source_checkpoint_available
 
     def blocks_visible_read(self, owner) -> bool:
