@@ -25,7 +25,7 @@ class ShellOperationalSource(ABC):
         return self._operation.outcome().finished
 
     async def wait_for_ready(self) -> None:
-        await self._operation.custody()
+        await self._operation.process()
 
     def focus_output(self) -> None:
         if self.output is not None:

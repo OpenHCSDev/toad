@@ -50,14 +50,14 @@ class Shell(ShellOperationalSource):
 
     async def is_busy(self) -> bool:
         """Observe the children of this SAME acquired shell incarnation."""
-        custody = await self._operation.custody()
+        process = await self._operation.process()
         import psutil
 
         def children():
-            if not custody.child.alive():
+            if not process.child.alive():
                 return False
             try:
-                return bool(psutil.Process(custody.child.pid).children(recursive=True))
+                return bool(psutil.Process(process.child.pid).children(recursive=True))
             except psutil.NoSuchProcess, psutil.AccessDenied:
                 return False
 
@@ -150,11 +150,11 @@ class Shell(ShellOperationalSource):
         # exec, in the SAME identity-bound child, never Python preexec_fn.
         launch = ControllingTerminalCommand(command.shell_command)
         BUFFER_SIZE = 64 * 1024
-        async with AsyncExitStack() as custody:
+        async with AsyncExitStack() as cleanup:
             acquired = await PtyProcess.acquire(
                 launch.argv(), env=command.env, cwd=command.cwd,
                 width=self._terminal_size[0], height=max(self._terminal_size[1], 1),
-                custody=custody, buffer_size=BUFFER_SIZE,
+                cleanup=cleanup, buffer_size=BUFFER_SIZE,
             )
             ready.set_result(acquired)
             if shell_start := self.shell_start.strip():

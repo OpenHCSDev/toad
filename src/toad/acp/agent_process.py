@@ -22,7 +22,7 @@ class AgentProcess:
         self.process = None
         self.runner = None
         self.retirement = None
-        self.custody = ExitStack()
+        self.cleanup = ExitStack()
         self.sessions = set()
         self.initialization = None
         self.command = None
@@ -82,7 +82,7 @@ class AgentProcess:
             connection.sessions.add(agent.session)
             agent.controller.replace_terminal_session()
             connection.runner = asyncio.create_task(connection.run())
-            connection.custody.enter_context(acquisition.pop_all())
+            connection.cleanup.enter_context(acquisition.pop_all())
             return connection
 
     def send(self, request, agent):
@@ -135,7 +135,7 @@ class AgentProcess:
                 await self.process.stop()
             self.process = None
             self.sessions.clear()
-            self.custody.close()
+            self.cleanup.close()
 
     async def detach(self, session):
         from . import api
