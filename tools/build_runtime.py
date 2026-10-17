@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build an immutable Toad/Core checkpoint; publication stays with the coach.
+"""Build, qualify and publish a reviewed Toad/Core runtime.
 
 Uses clean git exports and wheels, with dependencies owned by Toad's locked graph.
 Native package verification belongs to Core's native_package module.
@@ -29,6 +29,135 @@ from performance.capture_live import XvfbDisplay
 def run(*args: str | Path, cwd: Path | None = None) -> str:
     print("+ " + " ".join(map(str, args)), file=sys.stderr, flush=True)
     return subprocess.check_output(list(map(str, args)), cwd=cwd, text=True).strip()
+
+
+def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
+    """Inspect every process as root; an unreadable live process forbids pruning."""
+    if os.geteuid() != 0:
+        raise PermissionError('Runtime reference inspection requires sudo')
+    references = {str(path): [] for path in runtimes}
+    for process in Path('/proc').iterdir():
+        if not process.name.isdigit() or int(process.name) == os.getpid():
+            continue
+        try:
+            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
+            identity = state[19]
+            if state[0] == b'Z' or int(state[6]) & 0x00200000:
+                continue  # Zombies and kernel threads hold no userspace runtime.
+        except FileNotFoundError:
+            continue
+        contents = []
+        errors = []
+        for name in ('environ', 'cmdline', 'maps'):
+            try:
+                contents.append((process / name).read_bytes())
+            except OSError as error:
+                errors.append(error)
+        for link in (process / 'cwd', process / 'exe'):
+            try:
+                contents.append(os.fsencode(link.readlink()))
+            except OSError as error:
+                errors.append(error)
+        try:
+            for descriptor in (process / 'fd').iterdir():
+                try:
+                    contents.append(os.fsencode(descriptor.readlink()))
+                except FileNotFoundError:
+                    pass  # A descriptor may close during the scan.
+        except OSError as error:
+            errors.append(error)
+        try:
+            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
+            after = state[19]
+            if state[0] == b'Z':
+                continue
+        except FileNotFoundError:
+            continue
+        if identity != after:
+            raise RuntimeError(f'Process identity changed during inspection: {process.name}')
+        if errors:
+            raise RuntimeError(f'Incomplete process inspection: {process.name}: {errors}')
+        for path, pids in references.items():
+            if any(os.fsencode(path) in value for value in contents):
+                pids.append(int(process.name))
+    return references
+
+
+def prune_runtimes(current: Path, previous: Path, *, delete: bool) -> dict:
+    """Keep the two published versions and every prefix still used by a process."""
+    selected = current.resolve(strict=True)
+    previous = previous.resolve(strict=True)
+    directory = selected.parent
+    if previous.parent != directory or not current.is_symlink():
+        raise ValueError('Current and previous must be installed sibling runtimes')
+    runtimes = sorted(directory.iterdir())
+    if any(path.is_symlink() or not path.is_dir() for path in runtimes):
+        raise ValueError('Runtime directory contains unexpected files or symlinks')
+    references = runtime_references(runtimes)
+    result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
+              'kept_by_pid': {path: pids for path, pids in references.items() if pids},
+              'deleted': []}
+    if delete:
+        for path in runtimes:
+            if path in (selected, previous) or references[str(path)]:
+                continue
+            # Repeat immediately before deletion: a viewer may have started since
+            # the inventory. A changed default invalidates this whole operation.
+            if current.resolve(strict=True) != selected:
+                raise RuntimeError('Default changed during runtime cleanup')
+            borrowers = runtime_references([path])[str(path)]
+            if borrowers:
+                result['kept_by_pid'][str(path)] = borrowers
+                continue
+            shutil.rmtree(path)
+            result['deleted'].append(str(path))
+            print(f'Removed unused runtime {path}', file=sys.stderr, flush=True)
+    result['after'] = len(list(directory.iterdir()))
+    return result
+
+
+def publish_runtime(publication_tools: Path, root: Path) -> None:
+    """Use Core's publication owner, then retire older unused installations.
+
+    Run with the qualified target Python inside the reviewed publication window.
+    Native stopping/restarting remains with Core's existing cutover owner.
+    """
+    sys.path.insert(0, str(publication_tools.resolve(strict=True)))
+    from publish_runtime import RuntimePublication
+
+    publication = RuntimePublication.installed()
+    record = json.loads((publication.runtime / 'build.json').read_text())
+    if record['runtime'] != str(publication.runtime):
+        raise ValueError('Build record does not describe the installed runtime')
+    previous = publication.current.resolve(strict=True)
+    if previous == publication.runtime:
+        raise ValueError('Runtime is already current; do not repeat publication')
+    publication.publish(root)
+    print(f'Linked {publication.runtime}', flush=True)
+    # Pass the actual prior pointer, not a build baseline or a persistent list.
+    print(run('sudo', '-n', sys.executable, Path(__file__).resolve(), '--prune-runtimes',
+              '--current', publication.current, '--previous', previous, '--delete'))
+
+
+def installation_main() -> None:
+    parser = argparse.ArgumentParser(description='Publish or prune qualified runtimes')
+    actions = parser.add_mutually_exclusive_group(required=True)
+    actions.add_argument('--prune-runtimes', action='store_true')
+    actions.add_argument('--publish-runtime', action='store_true')
+    parser.add_argument('--current', type=Path)
+    parser.add_argument('--previous', type=Path)
+    parser.add_argument('--delete', action='store_true')
+    parser.add_argument('--publication-tools', type=Path)
+    parser.add_argument('--root', type=Path)
+    args = parser.parse_args()
+    if args.prune_runtimes:
+        if args.current is None or args.previous is None:
+            parser.error('--prune-runtimes requires --current and --previous')
+        print(json.dumps(prune_runtimes(args.current, args.previous, delete=args.delete), indent=2))
+    else:
+        if args.publication_tools is None or args.root is None:
+            parser.error('--publish-runtime requires --publication-tools and --root')
+        publish_runtime(args.publication_tools, args.root)
 
 
 def inventory() -> dict:
@@ -121,6 +250,8 @@ with Coordination(str(c.root/'coordination.sqlite3')) as store: store.install_pr
                 for name, arguments, selected in (
                     ('plain', [], 'store'),
                     ('welcome', ['acp', f'{python} -I -B -m agent_comms.acp', str(home)], 'welcome'),
+                    ('saved', ['acp', f'{python} -I -B -m agent_comms.acp', str(home),
+                               '--session', 'startup-saved'], 'saved'),
                 ):
                     observation = output / f'{name}.json'
                     exit_status = output / f'{name}-exit-code'
@@ -147,6 +278,14 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
    if app._exception is not None: raise app._exception
    if {selected!r} == 'store':
     if app.current_mode != 'store': return
+   elif {selected!r} == 'saved':
+    from toad.screens.main import MainScreen
+    from toad.widgets.conversation import Conversation
+    screen=app.selected_session
+    if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
+    conversation=screen.query_one(Conversation)
+    if conversation.transcript.displayed_cursor is None: return
+    if not screen.presentation.transcript.reports_coverage: return
    else:
     from toad.screens.welcome import WelcomeScreen, WelcomeThreads
     from toad.navigation_target import ThreadTarget
@@ -202,7 +341,7 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
         finally:
             server.terminate()
             server.wait(timeout=5)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', evidence=str(output))
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
 
@@ -655,7 +794,9 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--inventory']:
+    if '--prune-runtimes' in sys.argv or '--publish-runtime' in sys.argv:
+        installation_main()
+    elif sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
     else:
         main()
