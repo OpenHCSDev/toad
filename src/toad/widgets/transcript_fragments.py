@@ -30,6 +30,7 @@ from toad.widgets.message_filter import MessageCategory, event_category
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
     from toad.tool_output import ToolOutputPart
+    from toad.widgets.transcript_lines import PlainLines
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
@@ -226,6 +227,8 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     checks_notifications: ClassVar[bool] = False
+    _lines: ClassVar[tuple | None] = None
+    _plain: ClassVar["PlainLines | None"] = None
 
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
@@ -266,8 +269,9 @@ class TranscriptFragment:
     def show(self, shown: Shown) -> None:
         """Change the displayed state; its render request supplies any prepared lines."""
         self.shown = shown
-        for held in ("line_blocks", "_lines", "_plain"):
-            self.__dict__.pop(held, None)
+        self.__dict__.pop("line_blocks", None)
+        self.invalidate_lines()
+        self._plain = None
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -303,7 +307,7 @@ class TranscriptFragment:
 
     def lines_for(self, width: int, theme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
-        held = self.__dict__.get("_lines")
+        held = self._lines
         if held is not None and held[0].preparation.theme == theme:
             lines = held[1].rewrap(width)
             self._lines = held[0], lines
@@ -316,15 +320,14 @@ class TranscriptFragment:
         Their width belongs to the rows themselves. Offscreen geometry may
         retain that measured width until the viewport asks for another one.
         """
-        held = self.__dict__.get("_lines")
-        plain = self.__dict__.get("_plain")
+        held, plain = self._lines, self._plain
         return (held is not None and held[0].preparation.theme == theme
                 and held[1].preparation is lines.preparation
                 or plain is not None and plain.preparation.theme == theme
                 and plain.preparation.blocks is lines.preparation.blocks)
 
     def invalidate_lines(self):
-        self.__dict__.pop("_lines", None)
+        self._lines = None
 
     def hold_lines(self, request, lines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
@@ -337,7 +340,7 @@ class TranscriptFragment:
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
         from toad.widgets.transcript_lines import PlainLines
 
-        held = self.__dict__.get("_plain")
+        held = self._plain
         if held is None or held.preparation.theme != renderer.theme:
             held = PlainLines(width, renderer, self.line_blocks)
         self._plain = held.rewrap(width)
