@@ -10,7 +10,8 @@ from textual import containers
 from textual.content import Content
 from textual.reactive import var, reactive
 from textual.message import Message
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 
 from textual import widgets
 

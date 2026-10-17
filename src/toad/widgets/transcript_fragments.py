@@ -1,6 +1,5 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
-import asyncio
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from collections.abc import Iterator
@@ -16,7 +15,7 @@ from agent_comms.transcript_events import (
 )
 
 from toad.line_blocks import (
-    AgentRole, Body, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ToggleDetails, UserRole,
+    AgentRole, Body, MarkdownBody, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ToggleDetails, UserRole,
 )
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
@@ -30,6 +29,7 @@ from toad.widgets.message_filter import MessageCategory, event_category
 if TYPE_CHECKING:
     from toad.render_backend import Renderer
     from toad.tool_output import ToolOutputPart
+    from toad.widgets.transcript_lines import PlainLines
 
 async def prepare_transcript_fragments(
     events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
@@ -174,12 +174,12 @@ class FragmentLineConsumer(MroProjection):
     @handles(UserTranscript)
     def user(self, event: UserTranscript) -> None:
         self.divider("User", event.timestamp, UserRole)
-        self.blocks += [Body(event.text, bar=UserRole, markdown=False), Gap()]
+        self.blocks += [Body(event.text, bar=UserRole), Gap()]
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript) -> None:
         self.divider("Agent", event.timestamp, AgentRole)
-        self.blocks += [Body(event.text), Gap()]
+        self.blocks += [MarkdownBody(event.text), Gap()]
 
     @handles(SentTranscript)
     def sent_report(self, event: SentTranscript) -> None:
@@ -226,6 +226,8 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     checks_notifications: ClassVar[bool] = False
+    _lines: ClassVar[tuple | None] = None
+    _plain: ClassVar["PlainLines | None"] = None
 
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
@@ -242,7 +244,7 @@ class TranscriptFragment:
     def for_body_sources(self, supplied):
         return self
 
-    def text_rows(self, lines, theme) -> range:
+    def text_rows(self, lines) -> range:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
 
@@ -266,8 +268,9 @@ class TranscriptFragment:
     def show(self, shown: Shown) -> None:
         """Change the displayed state; its render request supplies any prepared lines."""
         self.shown = shown
-        for held in ("line_blocks", "_lines", "_plain"):
-            self.__dict__.pop(held, None)
+        self.__dict__.pop("line_blocks", None)
+        self.invalidate_lines()
+        self._plain = None
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -303,8 +306,12 @@ class TranscriptFragment:
 
     def lines_for(self, width: int, theme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
-        held = self.__dict__.get("_lines")
-        return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
+        held = self._lines
+        if held is not None and held[0].preparation.theme == theme:
+            lines = held[1].rewrap(width)
+            self._lines = held[0], lines
+            return lines
+        return None
 
     def retains_lines(self, lines, theme) -> bool:
         """Whether measured rows still belong to this source and palette.
@@ -312,12 +319,14 @@ class TranscriptFragment:
         Their width belongs to the rows themselves. Offscreen geometry may
         retain that measured width until the viewport asks for another one.
         """
-        plain = self.__dict__.get("_plain")
-        return (self.lines_for(lines.width, theme) is lines
-                or (plain is not None and plain[0] == theme and plain[1] is lines))
+        held, plain = self._lines, self._plain
+        return (held is not None and held[0].preparation.theme == theme
+                and held[1].preparation is lines.preparation
+                or plain is not None and plain.preparation.theme == theme
+                and plain.preparation.blocks is lines.preparation.blocks)
 
     def invalidate_lines(self):
-        self.__dict__.pop("_lines", None)
+        self._lines = None
 
     def hold_lines(self, request, lines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
@@ -326,14 +335,15 @@ class TranscriptFragment:
             return True
         return False
 
-    def plain_lines(self, width: int, theme):
+    def plain_lines(self, width: int, renderer):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
         from toad.widgets.transcript_lines import PlainLines
 
-        held = self.__dict__.get("_plain")
-        if held is None or held[0] != theme or held[1].width != width:
-            held = self.__dict__["_plain"] = theme, PlainLines(width, theme, self.line_blocks)
-        return held[1]
+        held = self._plain
+        if held is None or held.preparation.theme != renderer.theme:
+            held = PlainLines(width, renderer, self.line_blocks)
+        self._plain = held.rewrap(width)
+        return self._plain
 
 
     @cached_property
@@ -449,7 +459,7 @@ class ContextTranscriptFragment(TranscriptFragment):
         summary = shown.summary("Agent coordination context")
         if not shown.details_open:
             return (summary,)
-        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole, markdown=False)
+        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole)
                            for event in self.events))
 
 

@@ -7,7 +7,7 @@ from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.transcript_lines import LinkedRows, LinePreparation, TranscriptLinesRenderTask, PreparedLines
+from toad.widgets.transcript_lines import BlockLines, LinkedRows, LinePreparation, TranscriptLinesRenderTask
 from toad.widgets.transcript_fragments import FragmentLineConsumer
 
 
@@ -19,7 +19,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     def __init__(self):
         super().__init__()
         self.draft: ExternalDraftRow | None = None
-        self._lines: PreparedLines | None = None
+        self._lines: BlockLines | None = None
         self._width = 0
         self._render_worker: Worker[None] | None = None
         self.display = False
@@ -57,19 +57,18 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
             for event in draft.events:
                 consumer.dispatch_sync(event)
             context = await LinkContext.acquire(self)
-            lines = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), width, theme), context))
+            source = await self.app.render_processes.submit(
+                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), theme), context))
             if not context.current_for(self):
                 continue
             if not self.is_attached or self.draft is None:
                 return
             if ((draft.turn_id, draft.item_id) != (self.draft.turn_id, self.draft.item_id)
-                    or theme is not self.app.colours.line_theme
-                    or width != (self._width or self.query_ancestor(HistoryWindow).content_size.width)):
+                    or theme is not self.app.colours.line_theme):
                 continue
             window = self.query_ancestor(HistoryWindow)
             window.keep_reader()
-            self._lines = lines
+            self._lines = source.wrap(self._width or width, self.app.colours.line_renderer)
             self.display = True
             self.refresh(layout=True)
             if window.follows_tail:
@@ -81,7 +80,10 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     def get_content_height(self, container, viewport, width: int) -> int:
         if width != self._width:
             self._width = width
-            self.call_later(self._request_render)
+            if self._lines is not None:
+                self._lines = self._lines.rewrap(width)
+            else:
+                self.call_later(self._request_render)
         return self._lines.height if self._lines is not None else 0
 
     def render_line(self, y):

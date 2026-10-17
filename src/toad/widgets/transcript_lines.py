@@ -1,9 +1,7 @@
-"""The Rich/Textual frontend for transcript line blocks.
+"""The shared line renderer: workers style source; native views wrap it at their width.
 
-`toad.line_blocks` says what a fragment shows. This module decides how it looks
-in Textual: a theme maps each role's colour to a style, and a renderer turns each block
-into rows. Styled rows are rendered in the render worker processes; until they
-arrive a fragment draws plain rows, so a row is never blank.
+`toad.line_blocks` owns content. Prepared source survives resizing, while each
+viewport owns its measured rows. Unprepared source retains its initial preview.
 """
 
 from __future__ import annotations
@@ -16,6 +14,10 @@ from itertools import count
 
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
+from rich.console import Console
+from rich.containers import Renderables
+from rich.syntax import Syntax
+from rich.text import Text
 from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
@@ -33,17 +35,18 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import (
     Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, Span, Spans, SpanColumns,
-    Summary, MutedRole,
+    Summary, MutedRole, TextRole,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
 from toad.menus import MenuItem
 from toad.message_rows import MessageRow, WireBody
-from toad.markdown_links import LinkContext, MessageMarkdownParser
+from toad.markdown_links import LinkContext
+from toad.markdown_preparation import MarkdownStyleConsole
 from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import linked_target
 from toad.render_backend import ReusableRenderTask
-from toad.patch import Patch, PatchCell
+from toad.patch import Patch
 from toad.preferences import DiffSettings
 from toad.rich_preparation import SyntaxPalette
 
@@ -123,16 +126,6 @@ def _clickable(rows: list[Row]) -> list[Row]:
         return Segment(segment.text, style + link_style(style.link.target), segment.control)
 
     return [tuple(map(linked, row)) for row in rows]
-
-
-def _markdown(text: str, context: LinkContext):
-    """A message's text as Rich Markdown."""
-    from rich.markdown import Markdown
-
-    # Rich parses in its constructor with a parser of its own; parse nothing there.
-    markdown = Markdown("")
-    markdown.markup, markdown.parsed = text, MessageMarkdownParser(context).parse(text)
-    return markdown
 
 
 _row_owners = count()
@@ -332,7 +325,7 @@ def _plain_spans(line: str, width: int) -> range:
 
 
 class PatchLayout:
-    """The chosen diff geometry, used by both measurement and painting."""
+    """Diff geometry used by the native row painter."""
 
     def __init__(self, patch: Patch, width: int, settings: DiffSettings):
         self.patch, self.settings = patch, settings
@@ -344,22 +337,8 @@ class PatchLayout:
         self.pane_width = settings.wrap.fitted_width(self.pane_width, longest + self.prefix_width)
         self.code_width = max(1, self.pane_width - self.prefix_width)
 
-    @property
-    def content_width(self) -> int:
-        return self.pane_width * 2 + 3 if self.split else self.pane_width
-
     def breaks(self, text: str) -> list[int]:
         return divide_line(text, self.code_width, fold=True) if self.settings.wrap.enabled else []
-
-    def cell_height(self, cell: PatchCell | None) -> int:
-        return len(self.breaks(cell.text.expandtabs(4))) + 1 if cell is not None else 1
-
-    @property
-    def height(self) -> int:
-        return len(self.patch.groups) + sum(
-            max(self.cell_height(old), self.cell_height(new))
-            for old, new in self.patch.rows(self.split)
-        )
 
 
 class Lines:
@@ -393,8 +372,25 @@ class PreparedLines(Lines, LineBlock):
     width: int
     rows: tuple[Row, ...]
 
+    def prepared_rows(self, width, draw) -> PreparedLines:
+        if width != self.width:
+            raise ValueError("Prepared rows belong to a different width")
+        return self
 
-class SpanColumnLayout(Columns):
+
+class PreparedBlock(LineBlock):
+    """A prepared source owns one immutable row snapshot; views borrow it."""
+
+    _rows: PreparedLines | None = None
+
+    def prepared_rows(self, width, draw) -> PreparedLines:
+        rows = self._rows
+        if rows is None or rows.width != width:
+            self._rows = rows = draw(self)
+        return rows
+
+
+class SpanColumnLayout(Columns, PreparedBlock):
     """Shared span-cell layout for immediate, styled and widget presentations.
 
     Inherits Rich's complete-cell fitting and narrow wrapping. Original span
@@ -402,65 +398,67 @@ class SpanColumnLayout(Columns):
     """
 
     def __init__(self, block: SpanColumns, theme: LineTheme | None = None):
-        from rich.text import Text
-
         self.indent = block.indent
-        self.color_system = theme.color_system if theme is not None else None
         cells = [Text.assemble(*((span.text, (theme.style(span.role) if theme is not None else Style.null())
                                  + link_style(span.link)) for span in cell)) for cell in block.cells]
         super().__init__(cells, padding=(0, 2))
 
-    def rows(self, width: int) -> tuple[Row, ...]:
-        from rich.console import Console
+    def rows(self, console: Console) -> tuple[Row, ...]:
         from rich.padding import Padding
 
-        console = Console(width=max(1, width), force_terminal=True, file=io.StringIO(),
-                          color_system=self.color_system, legacy_windows=False)
-        layout = Padding(self, (0, 0, 0, min(self.indent, max(0, width - 1))))
+        layout = Padding(self, (0, 0, 0, min(self.indent, max(0, console.width - 1))))
         return tuple(tuple(row) for row in console.render_lines(layout, console.options, pad=False))
 
 
-class RichLineRenderer(MroDispatch):
-    """Rows for each block type; plain mode skips Markdown for immediate drawing."""
+@dataclass
+class StyledBody(PreparedBlock):
+    source: Body | RichTextBody
+    content: tuple
 
-    def __init__(self, theme: LineTheme, width: int, *, context: LinkContext | None = None, plain: bool = False):
-        self.context = context
-        self.theme = theme
-        self.width = width
-        self.plain = plain
+    @property
+    def selection_text(self) -> str:
+        return self.source.selection_text
+
+
+@dataclass(slots=True)
+class StyledPatch(Patch, PreparedBlock):
+    before_text: dict[int, Text] = field()
+    after_text: dict[int, Text] = field()
+
+
+class RichLineRenderer(MroDispatch):
+    """Paint each primitive through its most-specific declared renderer."""
+
+    def __init__(self, theme: LineTheme, width: int = 1):
+        self.theme, self.width = theme, max(1, width)
         self.output: list[Row] = []
+
+    @cached_property
+    def console(self) -> Console:
+        return Console(width=self.width, color_system=self.theme.color_system,
+                       force_terminal=True, file=io.StringIO(), legacy_windows=False)
+
+    def at_width(self, width: int) -> RichLineRenderer:
+        self.width = self.console.width = max(1, width)
+        return self
+
+    def __call__(self, block: LineBlock) -> PreparedLines:
+        return PreparedLines(self.width, self.rows((block,)))
 
     def rows(self, blocks: tuple[LineBlock, ...]) -> tuple[Row, ...]:
         self.output = []
         for block in blocks:
-            self.dispatch_sync(block)
+            next(self.handlers_for(block))(block)
         return tuple(self.output)
 
     @handles(Patch)
     def patch(self, patch: Patch) -> None:
-        """One numbered patch layout for live and saved tool output."""
-        from rich.console import Console
-        from rich.syntax import Syntax
-        from rich.text import Text
-        from toad.line_blocks import TextRole
-
+        before, after = patch.before_text, patch.after_text
         settings = self.theme.diff
         layout = PatchLayout(patch, self.width, settings)
         number_width, split = layout.number_width, layout.split
         pane_width, prefix_width, code_width = layout.pane_width, layout.prefix_width, layout.code_width
-        console = Console(width=max(1, self.width), color_system=self.theme.color_system,
-                          force_terminal=True, file=io.StringIO(), legacy_windows=False)
-
-        def highlighted(lines, path):
-            code = "\n".join(lines.values()).expandtabs(4)
-            if self.plain:
-                return {number: Text(text.expandtabs(4)) for number, text in lines.items()}
-            syntax = Syntax(code, Syntax.guess_lexer(path, code), theme=self.theme.syntax.pygments_theme,
-                            background_color="default")
-            return dict(zip(lines, syntax.highlight(code).split("\n", allow_blank=True)))
-
-        before = highlighted(patch.before, patch.before_path)
-        after = highlighted(patch.after, patch.after_path)
+        console = self.console
         def paint(cell, source, old, new):
             if cell is None:
                 return [Text(" " * pane_width)]
@@ -506,13 +504,10 @@ class RichLineRenderer(MroDispatch):
 
     @handles(RichTextBody)
     def rich_text(self, block: RichTextBody) -> None:
-        from rich.console import Console
-
         inner = _text_width(block, self.width)
-        console = Console(width=inner, color_system=self.theme.color_system,
-                          force_terminal=True, file=io.StringIO(), legacy_windows=False)
+        console = self.console
         rows = [tuple(row) for row in console.render_lines(
-            block.content, console.options, style=self.theme.style(block.role), pad=False)]
+            block.content, console.options.update(width=inner), style=self.theme.style(block.role), pad=False)]
         self._body_rows(block, rows)
 
     @handles(Divider)
@@ -552,25 +547,13 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:
-        if self.plain:
-            self.output.extend((Segment(line[start:start + self.width]),)
-                               for line in _plain_lines(block.text)
-                               for start in _plain_spans(line, self.width))
-            return
-        from rich.console import Console
-        from rich.text import Text
-
-        console = Console(width=self.width, color_system=self.theme.color_system,  # type: ignore[arg-type]
-                          force_terminal=True, file=io.StringIO(), legacy_windows=False)
-        text = Text.assemble(*((span.text, self.theme.style(span.role) + link_style(span.link))
-                               for span in block.spans), tab_size=4)
-        self.output.extend(tuple(line.render(console)) for line in text.wrap(console, self.width))
+        self.output.extend((Segment(line[start:start + self.width]),)
+                           for line in _plain_lines(block.text)
+                           for start in _plain_spans(line, self.width))
 
     @handles(PreparedLines)
     def prepared(self, block: PreparedLines) -> None:
-        if block.width != self.width:
-            raise ValueError("Prepared rows belong to a different width")
-        self.output.extend(block.rows)
+        self.output.extend(block.prepared_rows(self.width, self).rows)
 
     @handles(Gap)
     def gap(self, block: Gap) -> None:
@@ -578,28 +561,30 @@ class RichLineRenderer(MroDispatch):
 
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> None:
-        if self.plain:
-            self.body(Body(block.text, bar=block.bar, markdown=False))
-            return
-        context = self.context.for_source(block.row.source)
-        self.output.extend(RichLineRenderer(self.theme, self.width, context=context).rows((block.prepare(context),)))
+        self.body(Body(block.text, bar=block.bar))
+
+    @handles(SpanColumns)
+    def columns(self, block: SpanColumns) -> None:
+        self.prepared_columns(SpanColumnLayout(block, self.theme))
+
+    @handles(SpanColumnLayout)
+    def prepared_columns(self, block: SpanColumnLayout) -> None:
+        self.output.extend(block.rows(self.console))
+
+    @handles(StyledBody)
+    def styled_body(self, block: StyledBody) -> None:
+        source = block.source
+        rows = _clickable([tuple(line) for line in self.console.render_lines(
+            Renderables(block.content), self.console.options.update(width=_text_width(source, self.width)),
+            style=self.theme.style(source.role), pad=False)])
+        self._body_rows(source, rows)
 
     @handles(Body)
     def body(self, block: Body) -> None:
         inner = _text_width(block, self.width)
         style = self.theme.style(block.role)
-        if block.markdown and not self.plain:
-            from rich.console import Console
-
-            console = Console(width=inner, color_system=self.theme.color_system,  # type: ignore[arg-type]
-                              force_terminal=True,
-                              file=io.StringIO(), legacy_windows=False)
-            rows = _clickable([tuple(line) for line in console.render_lines(
-                _markdown(block.text, self.context), console.options.update(width=inner), style=style, pad=False)])
-        else:
-            rows = [(Segment(line[start:start + inner], style),)
-                    for line in _plain_lines(block.text) for start in _plain_spans(line, inner)]
-        self._body_rows(block, rows)
+        self._body_rows(block, [(Segment(line[start:start + inner], style),)
+                               for line in _plain_lines(block.text) for start in _plain_spans(line, inner)])
 
     def _body_rows(self, block: Body | RichTextBody, rows: list[Row]) -> None:
         if block.bar is not None:
@@ -608,122 +593,49 @@ class RichLineRenderer(MroDispatch):
         self.output.extend(rows)
 
 
-class PlainRowCount(MroDispatch):
-    """How many rows plain mode draws blocks in at a width, without building them."""
-
-    def __init__(self, width: int, theme: LineTheme | None = None):
-        self.width = width
-        self.theme = theme
-        self.count = 0
-        self.content_width = width
-
-    def height(self, blocks: tuple[LineBlock, ...]) -> int:
-        self.count = 0
-        for block in blocks:
-            self.dispatch_sync(block)
-        return self.count
-
-    @handles(Divider, Summary, Gap)
-    def one_row(self, block: LineBlock) -> None:
-        self.count += 1
-
-    @handles(Body, WireBody)
-    def body(self, block: Body) -> None:
-        inner = _text_width(block, self.width)
-        self.count += sum(len(_plain_spans(line, inner)) for line in _plain_lines(block.text))
-
-    @handles(Spans)
-    def spans(self, block: Spans) -> None:
-        self.count += sum(len(_plain_spans(line, self.width)) for line in _plain_lines(block.text))
-
-    @handles(PreparedLines)
-    def prepared(self, block: PreparedLines) -> None:
-        self.count += block.height
-        self.content_width = max(self.content_width, block.content_width)
-
-    @handles(Patch)
-    def patch(self, block: Patch) -> None:
-        if self.theme is None:
-            raise ValueError("Patch measurement requires its display settings")
-        layout = PatchLayout(block, self.width, self.theme.diff)
-        self.count += layout.height
-        self.content_width = max(self.content_width, layout.content_width)
-
-    @handles(RichTextBody)
-    def rich_text(self, block: RichTextBody) -> None:
-        inner = _text_width(block, self.width)
-        self.count += sum(len(divide_line(line, inner)) + 1 for line in _plain_lines(block.content.plain))
-
-
 @dataclass(frozen=True)
-class LinePreparation(MroDispatch):
-    """One immutable source/width/theme admission shared by measurement and paint.
-
-    Column geometry depends only on these spans, links, width and theme, so
-    it is prepared once. Markdown/body styling and contextual link resolution
-    remain worker jobs; their plain and styled wrapping need not agree.
-    """
+class LinePreparation:
+    """Source styling and palette, independent of every viewport's width."""
 
     blocks: tuple[LineBlock, ...]
-    width: int
     theme: LineTheme
-    prepared_blocks: tuple[LineBlock, ...] = field(init=False, repr=False)
 
-    def matches(self, width, theme) -> bool:
-        return (self.width, self.theme) == (width, theme)
-
-    def __post_init__(self) -> None:
-        # This is a factory: choose the most specific declared supply, not
-        # the event pipeline (whose replacements must keep event identity).
-        object.__setattr__(self, "prepared_blocks", tuple(
-            next(self.handlers_for(block))(block) for block in self.blocks))
-
-    @handles(LineBlock)
-    def unchanged(self, block: LineBlock) -> LineBlock:
-        return block
-
-    @handles(SpanColumns)
-    def columns(self, block: SpanColumns) -> PreparedLines:
-        return PreparedLines(self.width, SpanColumnLayout(block, self.theme).rows(self.width))
+    def wrap(self, width: int, renderer: RichLineRenderer) -> BlockLines:
+        return BlockLines(width, self, renderer)
 
 
-class PlainLines(Lines):
-    """A fragment's plain rows at a width, drawn until its styled rows arrive.
+class BlockLines(Lines):
+    """A viewport retains immutable references to block-owned row snapshots."""
 
-    Only columns need physical rows to know their height; the immutable
-    preparation retains those once. Other blocks keep cheap measurement
-    and defer plain paint or richer worker wrapping until requested.
-    """
+    def __init__(self, width: int, preparation: LinePreparation, renderer: RichLineRenderer):
+        self.width, self.preparation, self.renderer = width, preparation, renderer
 
-    def __init__(self, width: int, theme: LineTheme, blocks: tuple[LineBlock, ...]):
-        self.preparation = LinePreparation(blocks, width, theme)
-
-    @property
-    def width(self) -> int:
-        return self.preparation.width
+    def rewrap(self, width: int) -> BlockLines:
+        return self if self.width == width else self.preparation.wrap(width, self.renderer)
 
     @cached_property
-    def _measurement(self) -> PlainRowCount:
-        measurement = PlainRowCount(self.width, self.preparation.theme)
-        measurement.height(self.preparation.prepared_blocks)
-        return measurement
+    def prepared_blocks(self) -> tuple[PreparedLines, ...]:
+        draw = self.renderer.at_width(self.width)
+        return tuple(block.prepared_rows(self.width, draw) for block in self.preparation.blocks)
 
-    @property
+    @cached_property
     def height(self) -> int:
-        return self._measurement.count
+        return sum(block.height for block in self.prepared_blocks)
 
     @property
-    def content_width(self) -> int:
-        return self._measurement.content_width
-
-    @cached_property
     def rows(self) -> tuple[Row, ...]:
-        return RichLineRenderer(self.preparation.theme, self.width, plain=True).rows(self.preparation.prepared_blocks)
+        return tuple(row for block in self.prepared_blocks for row in block.rows)
 
+
+class PlainLines(BlockLines):
+    """Unstyled source measurement before its first worker result arrives."""
+
+    def __init__(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
+        super().__init__(width, LinePreparation(blocks, renderer.theme), renderer)
 
 @dataclass(frozen=True)
-class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
-    """Render a fragment's line blocks at a width in a render worker."""
+class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]):
+    """Style one source once; width never enters the worker contract."""
 
     preparation: LinePreparation
     context: LinkContext
@@ -734,11 +646,10 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
         return self.preparation.blocks
 
     def current_for(self, view) -> bool:
-        return (self.context.current_for(view) and
-                self.preparation.matches(view.line_width, view.app.colours.line_theme))
+        return self.context.current_for(view) and self.preparation.theme == view.app.colours.line_theme
 
     def hold(self, view, fragment, lines) -> bool:
-        return self.current_for(view) and fragment.hold_lines(self, lines)
+        return self.current_for(view) and fragment.hold_lines(self, lines.wrap(view.line_width, view.app.colours.line_renderer))
 
     @staticmethod
     def show(view, fragment, shown, rendered) -> None:
@@ -748,27 +659,62 @@ class TranscriptLinesRenderTask(ReusableRenderTask[PreparedLines]):
             request, lines = rendered
             if request.current_for(view):
                 fragment.line_blocks = request.blocks
-                fragment.hold_lines(request, lines)
+                fragment.hold_lines(request, lines.wrap(view.line_width, view.app.colours.line_renderer))
 
-    def execute(self) -> PreparedLines:
-        preparation = self.preparation
-        return PreparedLines(preparation.width, RichLineRenderer(
-            preparation.theme, preparation.width, context=self.context).rows(preparation.prepared_blocks))
+    def execute(self) -> LinePreparation:
+        return LinePreparation(tuple(next(self.handlers_for(block))(block) for block in self.blocks), self.preparation.theme)
 
-    def accept_result(self, result: object) -> PreparedLines:
-        if not isinstance(result, PreparedLines) or result.width != self.preparation.width:
-            raise TypeError("Transcript line renderer returned rows for a different width")
+    @handles(LineBlock)
+    def unchanged(self, block: LineBlock) -> LineBlock:
+        return block
+
+    @handles(Body)
+    def body(self, block: Body) -> LineBlock:
+        return block.prepare(self.markdown)
+
+    def markdown(self, block: Body) -> StyledBody:
+        console = MarkdownStyleConsole(force_terminal=True, file=io.StringIO(),
+                                       color_system=self.preparation.theme.color_system)
+        return StyledBody(block, console.prepare(block.text, self.context))
+
+    @handles(WireBody)
+    def wire_body(self, block: WireBody) -> LineBlock:
+        prepared = block.prepare(self.context.for_source(block.row.source))
+        return next(self.handlers_for(prepared))(prepared)
+
+    @handles(RichTextBody)
+    def rich_text(self, block: RichTextBody) -> StyledBody:
+        return StyledBody(block, (block.content,))
+
+    @handles(SpanColumns)
+    def columns(self, block: SpanColumns) -> SpanColumnLayout:
+        return SpanColumnLayout(block, self.preparation.theme)
+
+    @handles(Spans)
+    def spans(self, block: Spans) -> StyledBody:
+        text = Text.assemble(*((span.text, self.preparation.theme.style(span.role) + link_style(span.link))
+                               for span in block.spans), tab_size=4)
+        return self.rich_text(RichTextBody(text, role=TextRole, bar=None))
+
+    @handles(Patch)
+    def patch(self, block: Patch) -> StyledPatch:
+        def highlight(lines, path):
+            code = "\n".join(lines.values()).expandtabs(4)
+            syntax = Syntax(code, Syntax.guess_lexer(path, code),
+                            theme=self.preparation.theme.syntax.pygments_theme, background_color="default")
+            return dict(zip(lines, syntax.highlight(code).split("\n", allow_blank=True)))
+        return StyledPatch(block.before_path, block.after_path, block.before, block.after, block.groups,
+                           highlight(block.before, block.before_path), highlight(block.after, block.after_path))
+
+    def accept_result(self, result: object) -> LinePreparation:
+        if not isinstance(result, LinePreparation):
+            raise TypeError("Transcript styling returned an invalid source")
         return result
 
 
 @dataclass(frozen=True)
-class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[PreparedLines, ...]]):
-    """Render several fragments' lines in one worker round trip.
-
-    History lookahead prepares fragments in batches; one task per fragment
-    cost a task, a process round trip and worker-thread hops each, flooding
-    the UI loop with callbacks while scrolling.
-    """
+class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, ...]]):
+    """Style several newly acquired sources in one worker round trip."""
 
     items: tuple[TranscriptLinesRenderTask, ...]
 
@@ -783,10 +729,10 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[PreparedLines, ...
         lines = await view.app.render_processes.submit(cls(items))
         return tuple(zip(items, lines))
 
-    def execute(self) -> tuple[PreparedLines, ...]:
+    def execute(self) -> tuple[LinePreparation, ...]:
         return tuple(item.execute() for item in self.items)
 
-    def accept_result(self, result: object) -> tuple[PreparedLines, ...]:
+    def accept_result(self, result: object) -> tuple[LinePreparation, ...]:
         if not isinstance(result, tuple) or len(result) != len(self.items):
             raise TypeError("Transcript batch renderer returned a different number of fragments")
         return tuple(item.accept_result(lines) for item, lines in zip(self.items, result))

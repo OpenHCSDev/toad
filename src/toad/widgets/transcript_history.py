@@ -29,7 +29,8 @@ from textual.containers import VerticalGroup
 from textual.geometry import Region
 from textual.message import Message
 from textual.selection import Selection
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 from textual.walk import walk_depth_first
 from textual.strip import Strip
 from textual.widgets import Static
@@ -237,7 +238,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending[id(fragment)] = fragment
-            lines = fragment.plain_lines(width, theme)
+            lines = fragment.plain_lines(width, self.app.colours.line_renderer)
         return lines
 
     def _measure(self, width: int) -> None:
@@ -399,13 +400,13 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
                 return
             for fragment in batch:
                 del self._pending[id(fragment)]
-            width, theme = self._width, self.app.colours.line_theme
+            theme = self.app.colours.line_theme
             ready = await TranscriptLinesBatchRenderTask.render_for(self,
-                (fragment.plain_lines(width, theme).preparation for fragment in batch))
+                (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
             await self._publish([(fragment, task, lines)
                                  for fragment, (task, lines) in zip(batch, ready)])
 
-    async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, PreparedLines]]) -> None:
+    async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, LinePreparation]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         # Native frame completion owns when new row geometry may replace the
@@ -563,7 +564,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 return
             batch = todo[:self.budget.batch_items]
             ready = await TranscriptLinesBatchRenderTask.render_for(target,
-                (fragment.plain_lines(width, theme).preparation for fragment in batch))
+                (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
             if not current():
                 return
             for fragment, (task, lines) in zip(batch, ready):
@@ -616,7 +617,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             return ()
         return tuple(
             fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
-            if (text := fragment.text_rows(lines, self.app.colours.line_theme)) and rows.start < text.stop and text.start < rows.stop)
+            if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
@@ -632,7 +633,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
-            (LinePreparation(fragment.blocks(shown), width, theme) for fragment, shown in drawn))
+            (LinePreparation(fragment.blocks(shown), theme) for fragment, shown in drawn))
         if not self.state.can_draw:
             return
         ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}

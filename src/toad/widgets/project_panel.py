@@ -10,7 +10,7 @@ from textual.binding import Binding
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_tree_intent import ProjectTreeIntent
