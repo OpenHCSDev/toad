@@ -1,4 +1,4 @@
-"""Original PTY custody and nominal outcomes; mounted views are projections."""
+"""Owns the original PTY and its outcomes; mounted views only display them."""
 from __future__ import annotations
 
 import asyncio

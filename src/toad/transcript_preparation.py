@@ -285,7 +285,7 @@ class PreparedPageSource(ABC):
     loader: Callable[..., Awaitable[TranscriptPage]] | None
 
     def __init__(self) -> None:
-        # Custody moves here when native membership is revoked. These are the
+        # This source holds the resources after their widgets detach. These are the
         # original admitted resources, not another cache of transport pages.
         self.held_pages: tuple[PreparedTranscriptPage, ...] = ()
         self.projection_source: ProjectedTranscriptSource | None = None
@@ -300,7 +300,7 @@ class PreparedPageSource(ABC):
                           projection: ProjectedTranscriptSource | None = None,
                           ranges: tuple[PageFragmentRange, ...] = (),
                           *, seen: set[int] | None = None) -> None:
-        """Partition retained source custody in the existing preparation worker.
+        """Measure retained resources by owner in the existing preparation worker.
 
         A tool's mutable acquisition need not be a field of its immutable
         dataclass input. Include each owner's declared suppliers, rather than

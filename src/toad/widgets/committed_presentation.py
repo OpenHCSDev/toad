@@ -115,7 +115,7 @@ class NativeInputClaim(CommitClaim):
 
 @dataclass(frozen=True)
 class StartedInputClaim(NativeInputClaim):
-    """The original native start receipt owns request and journal identity."""
+    """The native start notification supplies the original request and journal identity."""
 
     source: InputStartedUpdate
 

@@ -57,7 +57,7 @@ class LocalDecisionPTY:
     ) -> DecisionOutcome:
         """Recheck the typed package snapshot before a direct exec, then show raw PTY output.
 
-        The return is a *process outcome*, never an approval receipt. On failure,
+        The return reports a *process outcome*, never approval. On failure,
         no child is started; after spawn all output is human-visible or the child
         is killed at the output cap. The caller must not infer a ledger decision.
         """

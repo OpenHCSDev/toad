@@ -58,7 +58,7 @@ class AvailableAttachment(AttachmentState):
 
 
 class ProjectionAttachment:
-    """One attachment, at most 32 pre-response receipts; no I/O or input effects.
+    """One attachment buffers at most 32 updates before binding; no I/O or input effects.
 
     begin() must run when a trusted new/load request is *initiated*, not when
     its result arrives. The returned token fences overlapping/delayed results.
@@ -71,7 +71,7 @@ class ProjectionAttachment:
         self.quarantined = False
         self.floor: CursorScope | QueueScope | None = None
         self._buffer: list[tuple[str, CursorEnvelope]] = []
-        # Scope-only invalidation evidence outlives disposable status receipts.
+        # Keep invalidating scopes after their status updates are discarded.
         # In particular begin() after uncertainty must not erase a newer generation
         # merely because an older in-flight result has not arrived yet.
         self._prebind_floors: dict[
@@ -224,7 +224,7 @@ class ProjectionAttachment:
             elif len(self._prebind_floors) < self.MAX_PREBIND:
                 self._prebind_floors[key] = other
             else:
-                # A distinct identity would lose an generation floor. Unlike receipt
+                # A distinct identity would lose a generation floor. Unlike update
                 # overflow, no later result on this attachment can prove it
                 # superseded the discarded observation. Require a fresh Agent.
                 self._evidence_lost = True

@@ -1,4 +1,4 @@
-"""Local process outcomes, never approval receipts."""
+"""Local process outcomes do not establish approval."""
 
 from agent_comms.declared_family import DeclaredFamily
 
