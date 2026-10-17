@@ -115,5 +115,4 @@ class SidebarNavigation:
                 rows = self.sidebar.rows
                 current = self.sidebar.current_rows
         target = current[0] if current else rows[0]
-        target.scroll_visible(animate=False)
-        target.focus()
+        self.sidebar.focus_row(target)

@@ -335,8 +335,11 @@ class TargetTree(Vertical):
             focused = self.app.focused
             index = rows.index(focused) if focused in rows else -1 if direction > 0 else len(rows)
             row = rows[max(0, min(len(rows) - 1, index + direction))]
-            row.scroll_visible(animate=False)
-            row.focus()
+            self.focus_row(row)
+
+    def focus_row(self, row) -> None:
+        row.scroll_visible(animate=False)
+        self.screen.set_focus(row, scroll_visible=False)
 
     def action_open_selected(self) -> None:
         if (row := self.app.focused) in self.rows:
