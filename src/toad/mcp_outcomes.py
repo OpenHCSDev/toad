@@ -8,7 +8,7 @@ class DecisionOutcome(DeclaredFamily, affix="Outcome"):
 
 
 class ExitedZeroOutcome(DecisionOutcome):
-    message = "CLI exited zero; inspect its visible applied receipt. Changes apply next Pi turn."
+    message = "CLI exited zero; check its printed result. Changes apply next Pi turn."
 
 
 class ExitedErrorOutcome(DecisionOutcome):

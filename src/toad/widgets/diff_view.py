@@ -3,7 +3,7 @@ from toad.block_navigation import ConversationBlock
 
 
 class DiffView(ConversationBlock, NativeDiffView):
-    """A native diff admitted as one atomic conversation block."""
+    """A native diff shown as one atomic conversation block."""
 
 
 from toad.app import ToadApp
