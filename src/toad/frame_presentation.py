@@ -8,9 +8,8 @@ from weakref import ref
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
-from rich.style import NULL_STYLE
 from textual._paint_state import PaintLayer, PaintState
-from textual.color import Color, TRANSPARENT
+from textual.color import Color
 from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
@@ -20,20 +19,6 @@ from ui_theme.effects import Effect, Fade, Frame
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
-
-
-class WidgetPaint(PaintLayer):
-    """Native paint shared independently of a widget's geometry or behaviour."""
-
-    paint_foreground = paint_background = None
-    background_tint = TRANSPARENT
-    text_style = NULL_STYLE
-    text_opacity = layer_opacity = 1.0
-    auto_color = False
-
-    @property
-    def paint_layer(self) -> PaintLayer:
-        return self
 
 
 class ToneLayer(PaintLayer):

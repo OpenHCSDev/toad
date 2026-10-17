@@ -2,19 +2,19 @@
 from __future__ import annotations
 
 from textual import events
+from textual._paint_state import PaintLayer
 from textual._styles_cache import FramePaint
 from textual.box_model import DEFAULT_LAYER, BoxGeometry
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar, ScalarOffset, Unit
 from textual.geometry import Spacing
-from toad.frame_presentation import WidgetPaint
 
 AUTO = Scalar(1.0, Unit.AUTO, Unit.AUTO)
 FILL = Scalar(1.0, Unit.FRACTION, Unit.WIDTH)
 
 
-class WidgetView(BoxGeometry, WidgetPaint, FramePaint):
+class WidgetView(BoxGeometry, PaintLayer, FramePaint):
     """The view supplies native inputs directly, without a CSS declaration mirror."""
 
     width = None
