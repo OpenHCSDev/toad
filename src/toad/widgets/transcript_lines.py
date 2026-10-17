@@ -718,7 +718,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
                 fragment.hold_lines(request, lines.wrap(view.line_width))
 
     def execute(self) -> LinePreparation:
-        return LinePreparation(tuple(self.dispatch_sync(block) for block in self.blocks), self.preparation.theme)
+        return LinePreparation(tuple(next(self.handlers_for(block))(block) for block in self.blocks), self.preparation.theme)
 
     @handles(LineBlock)
     def unchanged(self, block: LineBlock) -> LineBlock:
@@ -736,7 +736,8 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
 
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> LineBlock:
-        return self.dispatch_sync(block.prepare(self.context.for_source(block.row.source)))
+        prepared = block.prepare(self.context.for_source(block.row.source))
+        return next(self.handlers_for(prepared))(prepared)
 
     @handles(Spans)
     def spans(self, block: Spans) -> RichTextBody:
