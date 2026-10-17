@@ -245,6 +245,9 @@ class Span:
 class LineBlock:
     """One visual part of a fragment."""
 
+    def prepared_rows[RowsT](self, width: int, draw: Callable[[LineBlock], RowsT]) -> RowsT:
+        return draw(self)
+
     @property
     def selection_text(self) -> str:
         return ""
@@ -361,12 +364,12 @@ class Body(LineBlock):
     def selection_text(self) -> str:
         return self.text
 
-    def prepare(self, markdown: Callable[[Body], Body]) -> Body:
+    def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
         return self
 
 
 class MarkdownBody(Body):
-    def prepare(self, markdown: Callable[[Body], Body]) -> Body:
+    def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
         return markdown(self)
 
     @classmethod
