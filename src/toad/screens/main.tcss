@@ -1,10 +1,4 @@
 
-WorkspaceScreen {
-    /* Float sidebars above session content while keeping Screen's tooltip
-       layer front-most. */
-    layers: default comms-sidebar;
-}
-
 Note,MarkdownNote {    
     padding: 0 1 0 0;
     &.-error {

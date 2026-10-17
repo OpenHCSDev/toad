@@ -58,9 +58,7 @@ class AgentProcess:
                 acquisition.enter_context(selection.route.hold_client_route())
                 await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
             except (OSError, ValueError, RuntimeError) as error:
-                agent.session.record_failure(LogAgentFail(
-                    "Failed to start agent", details=str(error),
-                    log_path=agent.presentation.log_path))
+                agent.session.startup_failed(str(error))
                 return self
             if not agent.session.accepts_updates:
                 return self
@@ -189,9 +187,7 @@ class AgentProcess:
         env = (self.env or os.environ).copy()
         env["TOAD_CWD"] = str(Path("./").absolute())
         if (command := self.command) is None:
-            agent.session.record_failure(LogAgentFail(
-                "Failed to start agent; no run command for this OS",
-                log_path=agent.presentation.log_path))
+            agent.session.startup_failed("No run command for this OS")
             return
         try:
             process = self.process = await self.ingress(agent).spawn(
@@ -199,9 +195,7 @@ class AgentProcess:
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
         except (OSError, ValueError, RuntimeError) as error:
-            agent.session.record_failure(LogAgentFail(
-                "Failed to start agent", details=str(error),
-                log_path=self.agent.presentation.log_path))
+            agent.session.startup_failed(str(error))
             return
         agent.session.start()
         assert process.stdout is not None
@@ -216,7 +210,6 @@ class AgentProcess:
                 result = await recipient.server.call(request)
             if result is not None:
                 result_json = json.dumps(result).encode("utf-8")
-                assert process.stdin is not None
                 process.stdin.write(b"%s\n" % result_json)
 
         while line := (await process.stdout.readline()):
@@ -240,14 +233,15 @@ class AgentProcess:
                 agent.log(f"[error] {error}")
                 continue
             await incoming.receive(self.recipient(agent_data), call_jsonrpc)
+        fail_details = await process.stderr_tail()
+        outcome = await process.wait()
         for session in tuple(self.sessions):
             if not session.accepts_updates:
                 continue
-            if process.returncode:
-                assert process.stderr is not None
-                fail_details = (await process.stderr.read()).decode("utf-8", "replace")
+            if not outcome.successful:
+                session.agent.log(f"[error] {fail_details}")
                 session.record_failure(LogAgentFail(
-                    f"Agent returned a failure code: [b]{process.returncode}",
+                    f"Agent {outcome.summary}",
                     details=fail_details, log_path=session.agent.presentation.log_path))
             elif not session.settled.is_set():
                 session.startup_failed("ACP process closed before session initialization completed.")

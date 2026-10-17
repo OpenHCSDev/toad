@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=2705c51555d0d487644101eebe845a59aa93b328#2705c51555d0d487644101eebe845a59aa93b328" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=fcb9e4c302ebc379ea38db7b4b1f9445e254e4c7#fcb9e4c302ebc379ea38db7b4b1f9445e254e4c7" }
 dependencies = [
     { name = "aiohttp" },
     { name = "metaclass-registry" },
@@ -305,7 +305,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=2705c51555d0d487644101eebe845a59aa93b328" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=fcb9e4c302ebc379ea38db7b4b1f9445e254e4c7" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -321,14 +321,14 @@ requires-dist = [
     { name = "pyperclip", specifier = "==1.11.0" },
     { name = "rich", specifier = "==15.0.0" },
     { name = "setproctitle", specifier = "==1.3.7" },
-    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=d290813a240b7eb5ec1638a712104df5fa723a81" },
+    { name = "textual", extras = ["syntax"], git = "https://github.com/OpenHCSDev/textual.git?rev=eaedd4ac7f0b48db9cdd83882c13ea7cf85cacc4" },
     { name = "textual-diff-view", git = "https://github.com/OpenHCSDev/textual-diff-view.git?rev=8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" },
     { name = "textual-image", extras = ["textual"], git = "https://github.com/OpenHCSDev/textual-image.git?rev=1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" },
     { name = "textual-serve", specifier = "==1.1.3" },
     { name = "textual-speedups", specifier = "==0.2.1" },
     { name = "typeguard", specifier = "==4.5.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
-    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c2b0bebf045e6fb2a4873405acd1877cb8971d53" },
+    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=73de3ed423d9490a8cd291c833cbbdf9a07df458" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
@@ -1606,7 +1606,7 @@ wheels = [
 [[package]]
 name = "textual"
 version = "8.2.8"
-source = { git = "https://github.com/OpenHCSDev/textual.git?rev=d290813a240b7eb5ec1638a712104df5fa723a81#d290813a240b7eb5ec1638a712104df5fa723a81" }
+source = { git = "https://github.com/OpenHCSDev/textual.git?rev=eaedd4ac7f0b48db9cdd83882c13ea7cf85cacc4#eaedd4ac7f0b48db9cdd83882c13ea7cf85cacc4" }
 dependencies = [
     { name = "markdown-it-py", extra = ["linkify"] },
     { name = "mdit-py-plugins" },
@@ -2007,7 +2007,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c2b0bebf045e6fb2a4873405acd1877cb8971d53#c2b0bebf045e6fb2a4873405acd1877cb8971d53" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=73de3ed423d9490a8cd291c833cbbdf9a07df458#73de3ed423d9490a8cd291c833cbbdf9a07df458" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },

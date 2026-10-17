@@ -79,9 +79,7 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
             self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset + shift
             self.run_effect(SIDEBAR_MOVE)
         self._motion_target = placement.region.offset
-        frame = self.effect_frame(SIDEBAR_MOVE)
-        offset = Offset(round(frame.displacement(self._motion_origin.x, self._motion_target.x)),
-                        round(frame.displacement(self._motion_origin.y, self._motion_target.y)))
+        offset = self._motion_origin.blend(self._motion_target, self.effect_frame(SIDEBAR_MOVE).value) - self._motion_target
         return placement._replace(offset=placement.offset + offset)
 
     def repaint(self) -> None:

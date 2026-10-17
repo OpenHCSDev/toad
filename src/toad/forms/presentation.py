@@ -2,88 +2,18 @@
 from __future__ import annotations
 
 from textual import events
-from textual._styles_cache import FramePaint
-from textual.box_model import DEFAULT_LAYER, BoxGeometry
 from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
-from textual.css.scalar import Scalar, ScalarOffset, Unit
+from textual.css.scalar import Scalar
 from textual.geometry import Spacing
 from textual.layouts.horizontal import HorizontalLayout
 from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
-from toad.frame_presentation import WidgetPaint
+from toad.widget_view import AUTO, WidgetView
 
 
-AUTO = Scalar(1.0, Unit.AUTO, Unit.AUTO)
-
-
-class FormPart(BoxGeometry, WidgetPaint, FramePaint):
-    """The widget itself supplies native inputs; there is no styles mirror.
-
-    Mutable state remains on the native control. Non-versioned paint inputs
-    are read live instead of being cached under an unrelated CSS generation.
-    The existing line cache still retains rendered strips and checks its inputs.
-    """
-
-    width = None
-    height = AUTO
-    min_width = min_height = max_width = max_height = None
-    padding = margin = Spacing(0, 0, 0, 0)
-    border = outline = Edges(*(("", TRANSPARENT),) * 4)
-    box_sizing = "border-box"
-    width_policy = "greedy"
-    dock = split = "none"
-    overflow_x = overflow_y = "hidden"
-    scrollbar_policy = "auto"
-    vertical_scrollbar_size = 2
-    horizontal_scrollbar_size = 1
-    scrollbar_visibility = "visible"
-    align_horizontal = "left"
-    align_vertical = "top"
-    grid_rows = grid_columns = ()
-    grid_size_columns = 1
-    grid_size_rows = grid_gutter_horizontal = grid_gutter_vertical = 0
-    row_span = column_span = 1
-    keyline = ("none", TRANSPARENT)
-    position = "relative"
-    overlay = constrain_x = constrain_y = "none"
-    child_layout = None
-    placement_offset = None
-    layer_name = DEFAULT_LAYER
-    layer_order = None
-
-    tint = TRANSPARENT
-    hatch = None
-    border_title_align = "left"
-    border_subtitle_align = "right"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.listen(events.DescendantFocus, self.focus_changed)
-        self.listen(events.DescendantBlur, self.focus_changed)
-
-    @property
-    def geometry(self) -> BoxGeometry:
-        return self
-
-    @property
-    def frame_paint(self) -> FramePaint:
-        return self
-
-    @property
-    def paint_gutter(self) -> Spacing:
-        return self.box_gutter
-
-    def set_placement_offset(self, offset: ScalarOffset) -> None:
-        self.placement_offset = offset
-        self.refresh(layout=True)
-
-    def focus_changed(self, event) -> None:
-        self.refresh_paint()
-
-
-class FramedControl(FormPart):
+class FramedControl(WidgetView):
     height = Scalar.from_number(3)
     padding = Spacing(0, 2, 0, 2)
     horizontal_scrollbar_size = 0
@@ -141,7 +71,7 @@ class FormSelectCurrent(FramedControl, SelectCurrent):
         return self.parent.has_focus or self.parent.has_focus_within
 
 
-class FormModal(FormPart):
+class FormModal(WidgetView):
     """Shared native modal presentation and theme invalidation lifecycle."""
 
     height = None
