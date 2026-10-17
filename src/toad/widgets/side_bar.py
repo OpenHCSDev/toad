@@ -2,7 +2,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 from textual.content import Content
-from toad.application_actions import ApplicationAction
+from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS

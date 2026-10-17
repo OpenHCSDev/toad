@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from toad.core import events as core_events
-from toad.application_actions import ApplicationAction, MenuAction
+from toad.widget_actions import ApplicationAction, MenuAction
 
 from dataclasses import dataclass
 from datetime import UTC, datetime

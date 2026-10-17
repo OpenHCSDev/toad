@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
 from textual.binding import Binding
-from toad.application_actions import NativeAction, KeyboundAction
+from toad.widget_actions import NativeAction, KeyboundAction
 
 if TYPE_CHECKING:
     from toad.widgets.question import Question
