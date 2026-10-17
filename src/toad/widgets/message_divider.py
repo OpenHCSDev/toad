@@ -132,10 +132,7 @@ class MessageDivider(Animated[Mix], SingleLineBlock):
     @property
     def line_theme(self) -> LineTheme:
         theme = self.app.colours.line_theme
-        animation = self.animation
-        if animation is None:
-            return theme
-        mix = animation.frame()
+        mix = self.effect_frame(NEW_MESSAGE.ending_at(self.block.role.colour))
         colour = self.app.colours.mixed(mix.start, mix.end, mix.amount)
         return theme.with_colour(self.block.role.colour, Style(color=colour.rich_color))
 

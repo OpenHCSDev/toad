@@ -34,8 +34,7 @@ class ThrobberVisual(Visual):
     ) -> list[Strip]:
         throbber = self.throbber
         base = Strip([Segment("█" * width, style.rich_style)], cell_length=width)
-        animation = throbber.animation
-        frame = animation.frame() if animation is not None else throbber.effect.final
+        frame = throbber.effect_frame(throbber.effect)
         return [throbber.app.colours.paint_gradient(frame, base, edge=throbber.ink_edge)]
 
     def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
@@ -63,10 +62,10 @@ class Throbber(Animated[Ribbon]):
     def watch_busy(self, busy: bool) -> None:
         # The activity owner's sync changes animation ownership and retires its paint.
         if busy and self.is_mounted:
-            if self.animation is None:
+            if self.effect not in self.effects:
                 self.run_effect(self.effect)
         else:
-            self.stop_effect()
+            self.stop_effect(self.effect)
         self.refresh()
 
     def render(self) -> ThrobberVisual | str:

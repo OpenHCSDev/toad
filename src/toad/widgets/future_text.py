@@ -42,7 +42,7 @@ class FutureText(Animated[Band], Static):
         return self.text.cell_length
 
     def render(self) -> Content:
-        frame = self.animation.frame() if self.animation is not None else self.effect.final
+        frame = self.effect_frame(self.effect)
         if frame.start == frame.end:
             return self.text
         progress, fraction = divmod(frame.end * (len(self.text) + 1), 1)

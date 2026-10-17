@@ -273,8 +273,8 @@ class CursorContainer(Animated[Mix], containers.Vertical):
             origin = visible[self][0].y + crop.y
             style = self.get_component_rich_style("cursor--selected")
             selected_strip = Strip([Segment("▌", style)], cell_length=1)
-            if self.animation is not None and self.animation_visible:
-                selected_strip = self.app.colours.paint_mix(self.animation.frame(), selected_strip)
+            if CURSOR_BLINK in self.effects and self.animation_visible:
+                selected_strip = self.app.colours.paint_mix(self.effect_frame(CURSOR_BLINK), selected_strip)
             for row in range(max(0, region.y - origin), min(crop.height, region.bottom - origin)):
                 strips[row] = selected_strip
         return strips
