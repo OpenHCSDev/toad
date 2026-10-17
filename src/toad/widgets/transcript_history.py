@@ -301,7 +301,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         # Prepared rows span exactly this width (Lines.strips_at).
         strip = lines.strips_at(fragment.link_place)[row]
         strip = self.paint_effects(strip)
-        return selection_painted(self, self.on_background(strip, paint), y)
+        return selection_painted(self, self.on_background(strip, paint, y), y)
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, int, bool] | None:
         """A fragment's first measured row, height and whether the page draws it.

@@ -271,7 +271,16 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
 class LinkedRows(OpensLinks):
     """A widget that draws rendered rows: on its own background, opening the links clicked in them."""
 
-    def on_background(self, strip: Strip, paint: PaintState) -> Strip:
+    @property
+    def line_sets(self) -> tuple[Lines, ...]:
+        raise NotImplementedError
+
+    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
+        rows = "\n".join("".join(segment.text for segment in row).rstrip()
+                         for lines in self.line_sets for row in lines.rows)
+        return selection.extract(rows), "\n"
+
+    def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
         """A row as this widget draws it.
 
         Rendered rows carry text colours only. Textual fills a widget's
@@ -279,7 +288,7 @@ class LinkedRows(OpensLinks):
         each row takes the widget's style here. A strip remembers the styles
         applied to it, so a repaint reuses the same drawn row.
         """
-        return strip.apply_style(paint.rich_style)
+        return strip.apply_style(paint.rich_style).apply_offsets(x, y)
 
     def blank_row(self, width: int, paint: PaintState) -> Strip:
         return Strip.blank(width, paint.rich_style)
@@ -287,10 +296,6 @@ class LinkedRows(OpensLinks):
 
 class HorizontalRows(LinkedRows, ScrollView):
     """Prepared rows use Textual's horizontal viewport when code is unwrapped."""
-
-    @property
-    def line_sets(self) -> tuple[Lines, ...]:
-        raise NotImplementedError
 
     def get_content_width(self, container, viewport) -> int:
         return max((lines.content_width for lines in self.line_sets), default=0)
@@ -303,14 +308,10 @@ class HorizontalRows(LinkedRows, ScrollView):
         ))
         return super()._size_updated(size, virtual_size, container_size, layout)
 
-    def on_background(self, strip: Strip, paint: PaintState) -> Strip:
-        x = self.scroll_offset.x
-        return super().on_background(strip.crop(x, x + self.scrollable_content_region.width), paint)
-
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        rows = "\n".join("".join(segment.text for segment in row).rstrip()
-                         for lines in self.line_sets for row in lines.rows)
-        return selection.extract(rows), "\n"
+    def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
+        start = self.scroll_offset.x
+        x += len(strip.crop(0, start).text) if start else 0
+        return super().on_background(strip.crop(start, start + self.scrollable_content_region.width), paint, y, x)
 
 
 def _plain_lines(text: str) -> list[str]:

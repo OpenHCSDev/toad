@@ -101,7 +101,7 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
         strips = self._lines(width).strips_at(self._link_place) if width else ()
         if y >= len(strips):
             return self.blank_row(width, paint)
-        return selection_painted(self, self.on_background(strips[y], paint), y)
+        return selection_painted(self, self.on_background(strips[y], paint, y), y)
 
     def get_clipboard_text(self) -> str:
         return "\n".join(block.selection_text for block in self.blocks)
