@@ -11,20 +11,18 @@ import asyncio
 import re
 from pathlib import Path
 
-from agent_comms.comms import Comms
 from agent_comms.field_codec import FieldCodec
 from agent_comms.mro_dispatch import handles
 from toad.core import events as core_events
 from toad.core.source_events import TranscriptSourceWorkFinished
 from agent_comms.messages import Message as WireMessage
-from textual import containers, work
+from textual import containers
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Static
 from textual.worker import Worker
 
 from toad.conversation_kind import ConversationKind
-from toad import messages
 from toad.widgets.conversation import (
     Contents,
     ContentsGrid,
@@ -115,6 +113,9 @@ class CommsChatView(Conversation):
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
         self.message_history = WireHistory(view=self)
+
+    def working(self) -> bool:
+        return self.conversation_kind.working(self)
 
     def compose(self) -> ComposeResult:
         with Window():
@@ -295,13 +296,7 @@ class CommsChatView(Conversation):
                 self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
                 self.status = "Read-only saved view"
             undrawn = history.undrawn
-            if undrawn:
-                self.on_work_started()
-            try:
-                changed = await history.read_changes()
-            finally:
-                if undrawn:
-                    self.on_work_finished()
+            changed = await history.read_changes()
             # A sent message may now be drawn: composing resumes before mentions are read.
             self.settle_user_message()
             if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):

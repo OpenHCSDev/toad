@@ -372,12 +372,8 @@ class ToolOutput:
     @staticmethod
     def capture_parts(tool_call: schema.ToolCall, *, content=None) -> tuple[ToolOutputPart, ...]:
         """Pure ACP interpretation, shared by live ingress and saved workers."""
-        raw_input = tool_call.raw_input
-        path = (
-            raw_input.get("path") or raw_input.get("file_path") or raw_input.get("filePath")
-            if isinstance(raw_input, dict) else None
-        )
-        read_path = path if tool_call.kind == "read" and isinstance(path, str) else None
+        read_path = (tool_call.locations[0].path
+                     if tool_call.kind == "read" and tool_call.locations else None)
         contents = (tool_call.content or ()) if content is None else content
         return tuple(decode_content(item, read_path) for item in contents)
 

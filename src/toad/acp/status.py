@@ -1,9 +1,9 @@
 """Specification-spelled reasons and statuses own toolkit independent facts."""
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript
+from agent_comms.transcript_events import ToolTranscript, ToolStartTranscript, ToolEndTranscript, ToolPendingTranscript
 from dataclasses import dataclass
-from acp.schema import ToolCall
+from acp.schema import ToolCall, ToolCallLocation
 from toad.line_blocks import FailureRole, Span, SuccessRole, Summary, ToolArgumentRole, ToolVerbRole, WorkingRole
 
 
@@ -56,12 +56,17 @@ class ToolCallStatus(MroDispatch, DeclaredFamily, affix='ToolCallStatus'):
             consumer.dispatch_sync(event)
         return cls.from_acp(call)
 
+    @handles(ToolPendingTranscript)
+    def recorded_pending(self, event: ToolPendingTranscript):
+        self.call.status = PendingToolCallStatus.declared_name
+
     @handles(ToolStartTranscript)
     def recorded_start(self, event: ToolStartTranscript):
         self.call.status = 'in_progress'
         self.call.title = event.title
         self.call.kind = event.kind
         self.call.raw_input = event.raw_input
+        self.call.locations = [ToolCallLocation(path=path) for path in event.locations]
 
     @handles(ToolEndTranscript)
     def recorded_end(self, event: ToolEndTranscript):

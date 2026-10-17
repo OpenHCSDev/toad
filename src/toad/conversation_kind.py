@@ -75,6 +75,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return False
 
     @classmethod
+    def working(cls, view) -> bool:
+        return False
+
+    @classmethod
     @abstractmethod
     async def update_mentions(cls, view, comms) -> None: ...
 
@@ -227,6 +231,10 @@ class DmConversation(ConversationKind):
     @classmethod
     def label(cls, target: str) -> str:
         return f"@{target}"
+
+    @classmethod
+    def working(cls, view) -> bool:
+        return view.thread_activity.row.status.working
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:

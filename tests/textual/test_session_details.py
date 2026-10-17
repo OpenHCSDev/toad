@@ -72,7 +72,6 @@ async def test_live_activity_stays_above_the_details_row_and_the_draft_survives(
         details = view.query_one(SessionDetails)
         activity = view.query_one(TurnActivity)
         view.native_history_status = "none"
-        view.busy_count = 1
         view.turns.start_client()
         view.prompt.text = "Keep this unsent draft"
         for ansi, size in ((False, (100, 32)), (True, (76, 26))):

@@ -440,7 +440,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         """Publish the concrete conversation's changed turn projection."""
         raise NotImplementedError
 
-    busy_count = var(0)
 
 
     visible_categories: var[frozenset[type[MessageCategory]]] = var(lambda: all_categories(), init=False)
@@ -749,7 +748,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         if self.is_attached:
             self.refresh_thread_status()
         self.turns.bound()
-        self.busy_count = 0
         if agent is None:
             self.agent_info = Content.styled("shell")
         else:
@@ -883,7 +881,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 await DB().session_update_project(session_pk, path)
 
     def working(self) -> bool:
-        return self.busy_count > 0 or self.turns.owner.busy or self._observed_working
+        return self.operational_sources.activity_row(self).status.working
 
     def _sync_working(self) -> None:
         for throbber in (self.throbber, self.throbber_above):
@@ -1134,12 +1132,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
         await SessionDisposition.of(self.agent).present_failure(message.event, self)
 
-    def on_work_started(self) -> None:
-        self.busy_count += 1
-
-    def on_work_finished(self) -> None:
-        self.busy_count -= 1
-
     @work
     @handles(input_events.ChangeMode)
     async def on_change_mode(self, event: CoreEventMessage) -> None:
@@ -1355,9 +1347,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     ) -> None:
         if self._shell is None or self._shell.pending_directory is None:
             self.working_directory = str(Path(event.event.path).resolve().absolute())
-
-    async def watch_busy_count(self, _busy: int) -> None:
-        self._sync_working()
 
     @on(TerminalTool.Projection)
     async def on_terminal_projection(self, message: TerminalTool.Projection):

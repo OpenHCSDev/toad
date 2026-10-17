@@ -1,6 +1,7 @@
 """The current external CLI item, drawn beside finished history."""
 
 from agent_comms.external_transcript import ExternalDraftRow
+from agent_comms.mro_dispatch import handles
 from toad.markdown_links import LinkContext, ReferenceRendering
 from textual.widget import Widget
 from textual.worker import Worker
@@ -8,7 +9,8 @@ from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_lines import LinkedRows, LinePreparation, TranscriptLinesRenderTask, PreparedLines
-from toad.widgets.transcript_fragments import FragmentLineConsumer
+from toad.widgets.transcript_fragments import prepare_transcript_fragments, Shown
+from toad.line_blocks import ToggleDetails
 
 
 class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
@@ -19,10 +21,15 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     def __init__(self):
         super().__init__()
         self.draft: ExternalDraftRow | None = None
+        self.shown = Shown()
         self._lines: PreparedLines | None = None
         self._width = 0
         self._render_worker: Worker[None] | None = None
         self.display = False
+
+    @property
+    def line_width(self) -> int:
+        return self._width or self.query_ancestor(HistoryWindow).content_size.width
 
     def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self.invalidate_lines)
@@ -35,12 +42,20 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     def show(self, draft: ExternalDraftRow | None) -> None:
         if draft == self.draft:
             return
+        if (self.draft is None or draft is None
+                or (self.draft.turn_id, self.draft.item_id) != (draft.turn_id, draft.item_id)):
+            self.shown = Shown()
         self.draft = draft
         if draft is None:
             self.display = False
             self._lines = None
         else:
             self._request_render()
+
+    @handles(ToggleDetails)
+    def toggle_details(self, link: ToggleDetails) -> None:
+        self.shown = self.shown.toggled()
+        self.invalidate_lines()
 
     def _request_render(self) -> None:
         if self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
@@ -49,23 +64,19 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
     async def _draw(self) -> None:
         while self.is_attached and self.draft is not None:
             draft = self.draft
-            width = self._width or self.query_ancestor(HistoryWindow).content_size.width
+            shown = self.shown
+            width = self.line_width
             if width <= 0:
                 return
             theme = self.app.colours.line_theme
-            consumer = FragmentLineConsumer(show_divider=True)
-            for event in draft.events:
-                consumer.dispatch_sync(event)
+            fragments = await prepare_transcript_fragments(draft.events, self.app.render_processes)
+            blocks = tuple(block for fragment in fragments for block in fragment.blocks(shown))
             context = await LinkContext.acquire(self)
-            lines = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), width, theme), context))
-            if not context.current_for(self):
-                continue
+            request = TranscriptLinesRenderTask(LinePreparation(blocks, width, theme), context)
+            lines = await self.app.render_processes.submit(request)
             if not self.is_attached or self.draft is None:
                 return
-            if ((draft.turn_id, draft.item_id) != (self.draft.turn_id, self.draft.item_id)
-                    or theme is not self.app.colours.line_theme
-                    or width != (self._width or self.query_ancestor(HistoryWindow).content_size.width)):
+            if draft != self.draft or shown != self.shown or not request.current_for(self):
                 continue
             window = self.query_ancestor(HistoryWindow)
             window.keep_reader()
@@ -74,8 +85,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
             self.refresh(layout=True)
             if window.follows_tail:
                 self.call_after_refresh(window.anchor)
-            if draft == self.draft:
-                return
+            return
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container, viewport, width: int) -> int:
