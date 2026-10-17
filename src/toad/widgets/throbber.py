@@ -61,19 +61,13 @@ class Throbber(Animated[Ribbon]):
         self.watch_busy(self.busy)
 
     def watch_busy(self, busy: bool) -> None:
-        # A computed busy changes when it is read, often by the clock's tick,
-        # which repaints only visible running animations: repaint here so the
-        # last sweep frame never stays on screen once work ends.
+        # The activity owner's sync changes animation ownership and retires its paint.
         if busy and self.is_mounted:
             if self.animation is None:
                 self.run_effect(self.effect)
         else:
             self.stop_effect()
         self.refresh()
-
-    @property
-    def animation_visible(self) -> bool:
-        return self.busy and super().animation_visible
 
     def render(self) -> ThrobberVisual | str:
         return self._busy_visual if self.busy else ""

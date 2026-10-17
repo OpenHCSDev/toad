@@ -209,7 +209,7 @@ class Animated[FrameT: Frame](Widget):
         self.stop_effect()
 
     def on_hide(self) -> None:
-        if self.animation is not None and self.animation.effect.duration is not None:
+        if self.animation is not None and self.animation.effect.finite:
             self.stop_effect()
             self.refresh()
 

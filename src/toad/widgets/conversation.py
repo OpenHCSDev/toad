@@ -253,6 +253,7 @@ class CursorContainer(Animated[Mix], containers.Vertical):
     COMPONENT_CLASSES = {"cursor--selected"}
 
     def on_mount(self) -> None:
+        self.watch(self.get_ancestor(Window), "has_focus", self.app.colours.clock.refresh)
         self.run_effect(CURSOR_BLINK)
 
     @property
