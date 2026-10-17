@@ -45,8 +45,8 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
-def check_startup(runtime: Path, output: Path) -> dict:
-    """Import the installed family and paint both no-session CLI entrypoints."""
+def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> dict:
+    """Import the installed family and paint welcome with copied saved history."""
     import psutil
 
     output.mkdir()
@@ -67,6 +67,29 @@ print(json.dumps(names))
     (output / 'imports.json').write_text(json.dumps(modules, indent=2))
     home = output / 'home'
     home.mkdir(mode=0o700)
+    saved = json.loads(run(baseline / 'bin/python', '-I', '-B', '-c', '''
+import json,sys
+from agent_comms.active_route import read_active_route
+from agent_comms.comms import wire
+from agent_comms.field_codec import FieldCodec
+c=wire(read_active_route()); t=c.registry.require(sys.argv[1])
+print(json.dumps(dict(path=str(t.runtime.path), backend=FieldCodec.encode(t.backend), model=t.model,
+                     package=str(read_active_route().native_package))))
+''', thread))
+    project = output / 'project'
+    project.mkdir(mode=0o700)
+    with Path(saved['path']).open('rb') as stream:
+        captured = stream.read(os.fstat(stream.fileno()).st_size)
+    captured = captured[:captured.rfind(b'\n') + 1]
+    if not captured:
+        raise ValueError('Startup requires nonempty saved history')
+    source = project / 'saved.jsonl'
+    source.write_bytes(captured)
+    source.chmod(0o600)
+    (output / 'saved-source.json').write_text(json.dumps(saved, indent=2))
+    pointer = home / '.local/share/agent-comms/current'
+    pointer.parent.mkdir(parents=True)
+    pointer.symlink_to(runtime)
     environment = {k: v for k, v in os.environ.items()
                    if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
                    and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
@@ -74,8 +97,18 @@ print(json.dumps(names))
                    XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
                    AGENT_COMMS_ROOT=str(output / 'wire'))
     environment.update(private)
-    subprocess.run([str(python), '-I', '-B', '-c',
-                    'from agent_comms.comms import wire; wire().messaging.initialize_private_initial_protocol()'],
+    subprocess.run([str(python), '-I', '-B', '-c', '''
+import sys
+from agent_comms.comms import wire
+from agent_comms.coordinator import Coordination
+from agent_comms.threads import Thread
+from agent_comms.agent_backend import AgentBackend
+from agent_comms.field_codec import FieldCodec
+c=wire(); c.messaging.initialize_private_initial_protocol()
+c.registry.declare(Thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
+    backend=FieldCodec.decode(type[AgentBackend],sys.argv[3])))
+with Coordination(str(c.root/'coordination.sqlite3')) as store: store.install_private_runtime()
+''', str(project), str(source), saved['backend']],
                    env=environment, check=True)
     with (output / 'xvfb.log').open('w') as log:
         server = subprocess.Popen(['Xvfb', '-displayfd', '1', '-screen', '0',
@@ -115,21 +148,36 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
    if {selected!r} == 'store':
     if app.current_mode != 'store': return
    else:
-    from toad.screens.welcome import WelcomeScreen
+    from toad.screens.welcome import WelcomeScreen, WelcomeThreads
+    from toad.navigation_target import ThreadTarget
     if not isinstance(app.selected_session, WelcomeScreen): return
+    rows=[row for group in app.selected_session.walk_children(WelcomeThreads)
+          for row in group.member_container.children]
+    rows=[row for row in rows if row.target == ThreadTarget('startup-saved')]
+    if not rows: return
    text=[strip.text for strip in app.screen._compositor.render_strips()]
    if not any(line.strip() for line in text): return
+   if {selected!r} == 'welcome' and not any('startup-saved' in line for line in text): return
    Path({str(observation)!r}).write_text(json.dumps(dict(mode=app.current_mode, text=text)))
-  app.schedule_from_thread(lambda: app.call_after_refresh(observe))
+  app.schedule_from_thread(observe)
 ''')
+                            child = None
                             while not observation.exists():
+                                crashes = list(home.rglob('Terminal_crash_*.txt'))
+                                if crashes:
+                                    raise RuntimeError(f'{name} crashed: {crashes}')
                                 if terminal.poll() is not None or time.monotonic() >= deadline:
+                                    run('import', '-display', display.name, '-window', 'root', output / f'{name}-failed.png')
                                     raise RuntimeError(f'{name} launch did not paint; see {output}')
-                                children = [child for child in psutil.Process(terminal.pid).children(recursive=True)
-                                            if str(runtime / 'bin/toad') in child.cmdline()
-                                            and child.name() != 'sh']
-                                if children:
-                                    child, = children
+                                if child is None:
+                                    children = [process for process in psutil.Process(terminal.pid).children(recursive=True)
+                                                if str(runtime / 'bin/toad') in process.cmdline()
+                                                and process.name() != 'sh']
+                                    if children:
+                                        child, = children
+                                if child is not None:
+                                    if not child.is_running():
+                                        raise RuntimeError(f'{name} child exited before painting; see {output}')
                                     subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
                                                     f'import sys; sys.remote_exec({child.pid}, {str(remote)!r})'],
                                                    check=True, timeout=5)
@@ -144,6 +192,9 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
                             (output / f'{name}-terminal-exit-code').write_text(str(terminal_code))
                             if int(exit_status.read_text()) != 0:
                                 raise RuntimeError(f'{name} exited unsuccessfully; see {output}')
+                            crashes = list(home.rglob('Terminal_crash_*.txt'))
+                            if crashes:
+                                raise RuntimeError(f'{name} crashed: {crashes}')
                         finally:
                             if terminal.poll() is None:
                                 terminal.terminate()
@@ -154,6 +205,70 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
     result = dict(import_count=len(modules), plain='passed', welcome='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
+
+
+def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
+    """Deliver one new message to a fresh private SDK fork and require its reply."""
+    output.mkdir(mode=0o700)
+    environment = {k: v for k, v in os.environ.items()
+                   if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
+                   and k not in ('PYTHONPATH', 'PYTHONHOME')}
+    with (output / 'wake.log').open('w') as log:
+        subprocess.run([str(runtime / 'bin/python'), '-I', '-B', '-c', '''
+import asyncio,hashlib,json,os,sys,time
+from pathlib import Path
+from agent_comms.active_route import ActiveRoute,active_route_path
+from agent_comms.comms import wire,Comms
+from agent_comms.threads import Thread
+from agent_comms.thread_status import StoppedThreadStatus
+from agent_comms.agent_backend import AgentBackend
+from agent_comms.field_codec import FieldCodec
+from agent_comms.launch_runtime import LaunchRuntime
+from agent_comms.wire_record import WireRecord
+out, startup, runtime=map(Path,sys.argv[1:])
+saved=json.loads((startup/'saved-source.json').read_text())
+source=startup/'project/saved.jsonl'; digest=hashlib.sha256(source.read_bytes()).hexdigest()
+home=out/'home';home.mkdir(mode=0o700)
+pointer=home/'.local/share/agent-comms/current';pointer.parent.mkdir(parents=True);pointer.symlink_to(runtime)
+os.environ.update(HOME=str(home), PI_CODING_AGENT_DIR=str(out/'pi'),
+                  AGENT_COMMS_NATIVE_CONFIG_DIR='/home/ts/.pi/agent')
+for kind in ('CONFIG','DATA','STATE','CACHE'):os.environ['XDG_'+kind+'_HOME']=str(out/kind.lower())
+c=Comms(out/'wire');root_id=c.messaging.initialize_private_initial_protocol()
+route=ActiveRoute(c.root,root_id,Path(saved['package']))
+path=active_route_path();path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+path.write_text(json.dumps(FieldCodec.encode(route)));path.chmod(0o600)
+os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
+    AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=saved['package'],AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
+c=wire(route)
+parent=c.registry.declare(Thread('build-parent',frozenset(),str(out),session_file=str(source),
+    backend=FieldCodec.decode(type[AgentBackend],saved['backend']),model=saved['model']),StoppedThreadStatus())
+async def fork():return await parent.backend.fork(parent,str(runtime/'bin/pi-comms-native'),LaunchRuntime.running())
+forked=asyncio.run(fork())
+child=c.registry.declare(Thread('build-wake',frozenset(),str(out),parent=parent.name,
+    session_file=forked.path,backend=parent.backend,model=parent.model),StoppedThreadStatus())
+c.registry.declare(Thread('build-sender',frozenset(),str(out)),StoppedThreadStatus())
+os.environ['PI_CODING_AGENT_DIR']='/home/ts/.pi/agent'
+c.owners.start(child.name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
+try:
+    sent=c.messaging.send_message('build-sender',child.name,'Reply exactly BUILD_WAKE_OK. Do not use tools.')
+    deadline=time.monotonic()+120
+    while True:
+        failures=list((c.root/'diagnostics').glob('drain-*.json'))
+        if failures:raise RuntimeError(f'Private wake produced a drain diagnostic: {failures}')
+        messages=[m for line in c.bus.log.path.read_text().splitlines()
+                  for m in WireRecord.public_from_wire(json.loads(line)).messages()]
+        replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and 'BUILD_WAKE_OK' in m.body]
+        current=c.registry.require(child.name)
+        if replies and current.active_turn is None:break
+        if time.monotonic()>deadline:raise TimeoutError('Private message did not complete its wake')
+        time.sleep(.25)
+    assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
+    (out/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[-1].body,
+        session=forked.path,original_unchanged=True,drain_diagnostics=0)))
+finally:
+    c.owners.stop(child.name)
+''', str(output), str(startup), str(runtime)], env=environment, stdout=log, stderr=log, check=True)
+    return json.loads((output / 'result.json').read_text())
 
 
 def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
@@ -476,16 +591,21 @@ class RuntimeBuild:
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
                 export.verify_wheel(wheel, installed)
-            startup = check_startup(destination, self.scratch / f'startup-{destination.name}')
+            # Keep an installed but unqualified candidate available for diagnosis.
+            # Only build.json below certifies readiness; never rebuild to inspect it.
+            cleanup.pop_all()
+            startup = check_startup(destination, self.scratch / f'startup-{destination.name}', self.baseline, self.thread)
+            wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
+                                      self.scratch / f'startup-{destination.name}')
             record = {
                 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
                 'native_manifest_sha256': native_pin,
                 'packages': installed, 'runtime': str(destination),
                 'startup': startup,
+                'message_wake': wake,
             }
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
-            cleanup.pop_all()  # The completed immutable runtime leaves build custody.
         return destination
 
     def accept(self, runtime: Path, display: XvfbDisplay) -> None:
