@@ -735,10 +735,10 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             self.apply_search()
 
     def apply_search(self) -> None:
+        value = self.search_input.value
         for panel in self.panels:
-            for tree in panel.widget.walk_children(with_self=True):
-                if isinstance(tree, TargetTree):
-                    tree.search = self.search_input.value
+            if isinstance(panel.widget, TargetTree):
+                panel.widget.search = value
 
     def on_key(self, event: events.Key) -> None:
         if event.character == "/" and self.app.focused is not self.search_input:

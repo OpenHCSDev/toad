@@ -76,7 +76,7 @@ class RowReconciliation:
     """One sync's model membership and transferable native rows, never a retained cache."""
 
     def __init__(self, tree):
-        demand = Counter(tree.member_keys)
+        demand = Counter(key for key in tree.member_keys if tree.matches(key))
         self.listed = frozenset(demand)
         self.sources = {}
         requests = {}
@@ -318,7 +318,7 @@ class TargetTree(Vertical):
 
     @property
     def member_keys(self):
-        return (key for group in self.navigation_groups for key in group.matching_keys)
+        return (key for group in self.navigation_groups for key in group.member_keys)
 
     @property
     def row_reconciliation(self):
