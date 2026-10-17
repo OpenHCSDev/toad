@@ -59,7 +59,7 @@ class ObservedThreadActivity(Widget):
 
     @property
     def working(self) -> bool:
-        return self.row.status.busy
+        return self.row.status.working
 
 
 class ThreadStatusOwner:
