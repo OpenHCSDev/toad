@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from textual import events
-from textual.color import Color
+from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
 from textual.geometry import Spacing
