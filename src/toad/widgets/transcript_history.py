@@ -1137,7 +1137,7 @@ class TranscriptHistory(CommittedHistory, LineHistory):
                          source_state=LiveTranscript() if committed else ProvisionalTranscript())
 
 class ProjectedTranscriptHistory(TranscriptHistory):
-    """A source projection with the ordinary pager's admission and eviction policy."""
+    """A filtered source view with the ordinary pager's loading and eviction policy."""
 
     def notification_read(self, references) -> ReadNotifications:
         return self._projection_owner().notification_read(references)

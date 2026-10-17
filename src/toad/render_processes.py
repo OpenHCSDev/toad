@@ -44,7 +44,7 @@ class RenderProcessPool(Renderer):
     callers have been canceled. Cancellation discards delivery to that caller;
     it does not stop CPU work or free its slot early. Every accepted task executes in its worker. The application must await ``aclose()`` before closing its loop.
 
-    Shutdown rejects new work, wakes admission waiters, cancels jobs which have
+    Shutdown rejects new work, wakes callers waiting for a slot, cancels jobs which have
     not started, and joins running jobs off-loop. Running functions must finish:
     shutdown is graceful, not a hard timeout or forced process termination.
     Canceling an aclose waiter leaves the owned shutdown task running; another
@@ -107,7 +107,7 @@ class RenderProcessPool(Renderer):
         if self._closed:
             raise RuntimeError("RenderProcessPool is closed")
         self.start()
-        # No await between admission and registration: admission is atomic on
+        # No await between accepting and registering work: both happen together on
         # the owning loop. Waiting never propagates caller cancellation to the
         # underlying future (or logs an abandoned exception via shield).
         future = asyncio.wrap_future(self._executor.submit(function, *args), loop=loop)

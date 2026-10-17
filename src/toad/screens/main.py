@@ -108,7 +108,7 @@ class MCPInventoryProvider(Provider):
 
 
 class ScreenContent(DeclaredFamily, affix="Content"):
-    """Content state owns its label, preparation admission and completion."""
+    """Content state owns its label, preparation slot and completion."""
 
     @abstractmethod
     def line(self) -> str:
@@ -169,7 +169,7 @@ class OpeningContent(ScreenContent):
 
 class NavigatedOpeningContent(OpeningContent):
     async def prepare(self, screen: "MainScreen") -> None:
-        """Navigation runs _prepare_content after admission; selecting the shell does no I/O."""
+        """Navigation runs _prepare_content after mounting; selecting the shell does no I/O."""
 
 
 class ReadyContent(ScreenContent):

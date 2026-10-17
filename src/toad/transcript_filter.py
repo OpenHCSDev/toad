@@ -107,7 +107,7 @@ class SeekingFilter(NoFilter):
         return owner.has_older
 
     def scan_needed(self, owner):
-        # Once mounted, the projection's ordinary pager owns edge admission.
+        # Once mounted, the filtered view's pager decides when to load its edges.
         return owner.window.scroll_y <= owner.window.lookahead.ahead_rows(owner.window.outer_size.height)
 
     async def advance(self, filtering, snapshot):
@@ -264,7 +264,7 @@ class TranscriptFilter:
     @property
     def scanning(self):
         # Cancellation before _run enters sets the framework cancellation flag
-        # without transitioning its PENDING enum. It has no admission authority.
+        # without changing its PENDING enum. A cancelled worker isn't scanning.
         return (self.worker is not None and not self.worker.is_cancelled
                 and not self.worker.is_finished)
 

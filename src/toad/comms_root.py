@@ -97,7 +97,7 @@ class ObservedCommsService:
 
 
 class CoordinationAccess(MroDispatch):
-    """A validated core route owns cached access, its observation and guarded UI write admission."""
+    """A validated Core route owns cached access, observations and UI write checks."""
 
     def __init__(self, app: ToadApp) -> None:
         self.app = app

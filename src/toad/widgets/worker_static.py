@@ -126,8 +126,8 @@ class WorkerStatic(PreparedPaintSource, Static):
     def _request_preparation(self, *, capture: bool = False) -> None:
         if self._closed or self.is_leaving or not self.is_attached:
             return
-        # Parent width is an auto-width constraint, not this source's layout
-        # admission. Mount/style callbacks may run before an offscreen child
+        # Parent width is an auto-width constraint, not this source's assigned
+        # layout width. Mount/style callbacks may run before an offscreen child
         # has any assigned box. Native Resize supplies that original fact.
         if self.outer_size.width <= 0:
             return
@@ -153,7 +153,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         wanted = self._wanted
         if not capture and wanted is not None and wanted.generation == self._generation:
             # Layout borrows the original acquired source/style/selection. Only
-            # geometry and the screen's live link-selection admission change
+            # geometry and whether the screen allows link selection change
             # here. Their own callbacks capture independently changed answers.
             presentation = wanted.task.presentation
             if (presentation.options == options and presentation.auto_width == auto_width

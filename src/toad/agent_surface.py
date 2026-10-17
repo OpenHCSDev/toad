@@ -175,7 +175,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def post(self, message):
         target = self.target
-        # The original MessagePump owns admission while closing/closed.
+        # MessagePump decides whether to accept messages while closing/closed.
         return target.post_message(message) if target is not None else False
 
     def publish_terminal(self, controller, terminal_id, execution):
