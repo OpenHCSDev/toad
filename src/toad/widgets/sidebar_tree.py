@@ -25,6 +25,20 @@ from toad.core.events import SessionSelected
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 
+class TargetTreeMember:
+    """A navigation control belongs to one required native tree."""
+
+    @property
+    def navigation_tree(self) -> TargetTree:
+        return self.query_ancestor(TargetTree)
+
+    def action_cursor_up(self) -> None:
+        self.navigation_tree.action_cursor_up()
+
+    def action_cursor_down(self) -> None:
+        self.navigation_tree.action_cursor_down()
+
+
 class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
     BINDINGS = [Binding("enter,space", "toggle", "Expand group", show=False)]
     DEFAULT_CSS = "SidebarDisclosure { width: 2; height: 1; pointer: pointer; }"
