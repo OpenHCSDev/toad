@@ -200,9 +200,12 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
     def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
         changes = tuple((change, change.layout_requests) for window in self.history_windows
                         if (change := window.history_change) is not None)
-        # A window may capture its reader while arranging a new width. Keep
-        # that layout and its reader placement in the same unpublished frame.
+        # Capture the old rows before any descendant measures its new width;
+        # that layout and reader placement belong to one unpublished frame.
         with self.app.batch_update():
+            for window in self.history_windows:
+                if window.shown:
+                    window.keep_reader()
             yield from super()._layout_steps(size, scroll, deadline)
             if any([window.place_reader() for window in self.history_windows
                     if window.reader_for_layout() is not None]):
