@@ -140,7 +140,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""
-        return self.is_attached and not self._closing and not self._pruning
+        return self.is_attached and self.display
 
     def rows_changed(self) -> None:
         """Specializations invalidate navigation after native membership changes."""

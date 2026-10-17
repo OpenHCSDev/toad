@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
-from math import prod
 
 from textual.content import Content
 from textual.geometry import Offset
 from textual.layout import WidgetPlacement
+from textual.reactive import var
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -24,6 +24,7 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
 
     alternate_tone = AlternateRowToneColour
+    leaving = var(False)
 
     DEFAULT_CSS = """
     ThreadStatusRow.-wire-thread {
@@ -52,15 +53,18 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     def on_mount(self) -> None:
         self.run_effect(SIDEBAR_ENTER)
 
+    def compute_disabled(self) -> bool:
+        return self.leaving
+
     def retire(self) -> None:
-        self.disabled = True
+        self.leaving = True
         self.run_effect(SIDEBAR_EXIT)
         self.repaint()
 
     @property
     def paint_opacity(self) -> float:
-        return prod(self.effect_frame(effect).value for effect in (SIDEBAR_ENTER, SIDEBAR_EXIT)
-                    if effect in self.effects)
+        return self.effect_frame(SIDEBAR_ENTER).value * (
+            self.effect_frame(SIDEBAR_EXIT).value if self.leaving else 1.0)
 
     def pending_move(self, placement: WidgetPlacement) -> bool:
         return placement.region.offset != self._motion_target
@@ -74,7 +78,7 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         return placement._replace(offset=placement.offset + offset)
 
     def repaint(self) -> None:
-        if SIDEBAR_EXIT in self.effects and (not self.app.colours.clock.enabled
+        if self.leaving and (not self.app.colours.clock.enabled
                 or not self.animation_visible or SIDEBAR_EXIT.finished(self.effects[SIDEBAR_EXIT].elapsed)):
             self.remove()
             return
@@ -84,12 +88,8 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         self.refresh(layout=moving)
 
     def on_hide(self) -> None:
-        if SIDEBAR_EXIT in self.effects:
+        if self.leaving:
             self.remove()
-
-    @property
-    def busy(self) -> bool:
-        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model's row as this app shows it: an open session's state, pin and pending action."""
@@ -100,12 +100,13 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
             return
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
-        self.update_classes({"-wire-thread": True, "-busy": self.busy, "-asking": False})
+        busy = action_status is not None or row.status.working
+        self.update_classes({"-wire-thread": True, "-busy": busy, "-asking": False})
         self.tooltip = Content("\n".join(str(value) for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
         badge = f"{row.unread.label} " if row.unread.label else ""
-        title = self.activity_content(row.title, Content(row.label), self.busy,
+        title = self.activity_content(row.title, Content(row.label), busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         content = Content.assemble(title, f"\n  {summary}")
         self.update(content, layout=False)

@@ -53,10 +53,10 @@ class SidebarNavigation:
             try:
                 if (await self.sidebar.app.coordination_access.route_changed()
                         and self.revision == revision and self.sidebar.model is model):
-                    self.sidebar.display = False
+                    self.sidebar.visible = False
             except (OSError, ValueError):
                 if self.revision == revision and self.sidebar.model is model:
-                    self.sidebar.display = False
+                    self.sidebar.visible = False
 
     def start(self) -> None:
         """Rebuild native rows only after the selected shell has been painted."""
@@ -78,7 +78,7 @@ class SidebarNavigation:
     def finish(self, revision: int) -> None:
         if revision != self.revision or not self.sidebar.accepts_publication():
             return
-        if (self.sidebar.display and self.sidebar.shows_model
+        if (self.sidebar.visible and self.sidebar.shows_model
                 and not self.ready.is_set()):
             # The native sender barrier owns committed row geometry. Restore
             # this reader through its original scroll owner; a changed position

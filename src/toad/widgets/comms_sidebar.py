@@ -227,7 +227,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
         self.target = target
 
     def is_navigation_row(self) -> bool:
-        return self.is_attached and not self.is_disabled and not self._pruning and not self._closing
+        return self.is_attached and not self.leaving
 
     @property
     def selected(self) -> bool:
@@ -236,7 +236,6 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
-        self.remove_class("-wire-thread")
         self.update(Content(label))
 
     def sidebar_owner(self):
@@ -541,7 +540,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
-        return (self.is_attached and not self._closing and not self._pruning
+        return (self.is_attached and self.display
                 and self.app.is_running and self.screen.is_current)
 
     def accepts_observation(self) -> bool:
@@ -556,11 +555,11 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         try:
             service = await app.preparation.run_thread(lambda: app.coordination_access.service)
         except (OSError, ValueError, RuntimeError):
-            self.display = False
+            self.visible = False
             return
         screen = self.screen
         if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(service.root):
-            self.display = False
+            self.visible = False
             return
         self.subscribe_core(app.session_tracker.events)
         self.observe_core(app.events)
@@ -574,7 +573,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.stop_showing()
 
     def model_replaced(self) -> None:
-        self.display = False
+        self.visible = False
         self.navigation.reset()
         if self.groups:
             self.remove_children(list(self.groups.values()))
@@ -622,7 +621,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        self.display = True
+        self.visible = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
 
@@ -652,7 +651,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
-        live = tuple(child for child in self.children if not child._pruning)
+        live = tuple(child for child in self.children if child in ordered)
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
