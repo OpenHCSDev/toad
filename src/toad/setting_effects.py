@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 from toad.forms.declared_views import DeclaredField
 from toad.setting_widget import SettingVisibility
+from toad.widgets.history_anchor import HistoryWindow
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -29,7 +30,6 @@ def visibility(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
-    from toad.widgets.history_anchor import HistoryWindow
     for view in app.workspace_sessions.views.values():
         for window in view.query(HistoryWindow):
             window.presentation_budget = replace(window.presentation_budget, buffer_viewports=field.value)

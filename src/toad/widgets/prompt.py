@@ -138,7 +138,7 @@ class InfoBar(SettingVisibility, WidgetView, containers.HorizontalGroup, setting
     @property
     def margin(self):
         ui = self.app.settings.ui
-        space = 0 if ui.compact_input or not ui.footer else 1
+        space = 0 if ui.compact_input else int(ui.footer)
         return Spacing(0, space, 0, space)
 
 
@@ -155,9 +155,10 @@ class PromptContainer(WidgetView, containers.HorizontalGroup):
     def border(self):
         prompt = self.query_ancestor(Prompt)
         if self.app.settings.ui.compact_input:
-            if prompt._ask is None:
+            if prompt._ask:
+                colour = PrimaryColour
+            else:
                 return super().border
-            colour = PrimaryColour
         else:
             colour = PrimaryColour if prompt.shell_mode else SecondaryColour
         paint = self.app.colours.colour(colour) if self.has_focus_within else TRANSPARENT
