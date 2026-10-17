@@ -56,8 +56,6 @@ def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
         for link in (process / 'cwd', process / 'exe'):
             try:
                 contents.append(os.fsencode(link.readlink()))
-            except FileNotFoundError:
-                pass  # Kernel threads and zombies have no executable or cwd.
             except OSError as error:
                 errors.append(error)
         try:
@@ -69,7 +67,10 @@ def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
         except OSError as error:
             errors.append(error)
         try:
-            after = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()[19]
+            state = (process / 'stat').read_bytes().rsplit(b')', 1)[1].split()
+            after = state[19]
+            if state[0] == b'Z':
+                continue
         except FileNotFoundError:
             continue
         if identity != after:
