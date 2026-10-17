@@ -1,4 +1,4 @@
-"""One live status row expands the session's provenance and delivery details."""
+"""One live status row expands the session's source and delivery details."""
 
 from __future__ import annotations
 

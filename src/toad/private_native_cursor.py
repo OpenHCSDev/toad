@@ -1,4 +1,4 @@
-"""Bounded, read-only native-history provenance. Never input disposition.
+"""Size-limited, read-only native-history source. Never decides what happens to input.
 
 Only validated scope/status/revision and a payload digest survive parsing; raw
 proof identifiers/content are not passed to the presentation layer.
@@ -67,7 +67,7 @@ TOOLTIP = (
     "Current bus-history verification for this agent session. Pending means the "
     "attachment is still waiting for its original observation; it is not a failure. "
     "A verified input can be a short relevance check, not a full reply. This does "
-    "not confirm receipt or completion of your latest message. Saved transcript "
+    "not confirm that your latest message was received or completed. Saved transcript "
     "availability is reported separately. If verification is unavailable, check "
     "the ACP log; do not resend input solely because proof is missing."
 )
