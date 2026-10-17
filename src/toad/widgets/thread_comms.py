@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
-from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
@@ -25,7 +24,7 @@ from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
-from toad.widgets.thread_comms_source import RelationshipSource
+from toad.widgets.thread_comms_source import GroupView, RelationshipSource, ThreadRowView
 
 def entry_target(entry: RelationshipEntry) -> NavigationTarget:
     person = entry.person
@@ -107,10 +106,14 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
     RelationshipRows > .group-header > SidebarDisclosure { width: 1; }
     """
 
-    def __init__(self, model: RelationshipGroup, expanded: bool):
-        self.model = model
-        super().__init__(Static(model.title), expanded=expanded, scrollable=False,
-                         id=f"relationships-{type(model).declared_name}")
+    def __init__(self, view: GroupView, expanded: bool):
+        self.view = view
+        super().__init__(Static(self.model.title), expanded=expanded, scrollable=False,
+                         id=f"relationships-{type(self.model).declared_name}")
+
+    @property
+    def model(self):
+        return self.view.model
 
     def toggle_members(self) -> None:
         super().toggle_members()
@@ -124,8 +127,8 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             self.member_container.scroll_to(
                 y=state.scroll.get(type(self.model), 0), animate=False)
 
-    def present(self, model: RelationshipGroup) -> None:
-        self.model = model
+    def present(self, view: GroupView) -> None:
+        self.view = view
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
@@ -165,7 +168,7 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             elif entry.person is not None:
                 name = entry.person.thread.name
                 if changed is None or name in changed or row.thread_row is None:
-                    row.show(rows[name])
+                    row.show(rows[name].model)
             else:
                 row.set_label(entry.target)
                 row.tooltip = entry.target
@@ -212,17 +215,19 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
         self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
         # Thread rows for this snapshot's people, keyed by thread name.
-        self.thread_rows: dict[str, ThreadRowModel] = {}
+        self.thread_rows: dict[str, ThreadRowView] = {}
 
     @property
     def view_state(self):
         return self._states.setdefault((self.wire_root, self.owner), RelationshipTreeState())
 
     @property
+    def panel_state(self):
+        return RelationshipSource.for_panel(self.owner, self.wire_root, self._source)
+
+    @property
     def service(self):
-        if self._source is None:
-            raise ValueError("Relationship source is not connected")
-        return self._source
+        return self.panel_state.require_service()
 
     def compose(self):
         yield Static("Connecting…", classes="relationship-context", markup=False)
@@ -350,24 +355,22 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             self._revision = None
         if not self.is_mounted or not self._visible():
             return
-        context = self.query_one(".relationship-context", Static)
-        if not self.owner or not self.wire_root:
-            _update_content(context, Content("Waiting for thread identity"))
-            return
-        if self._source is None:
-            _update_content(context, Content("Relationship source not connected"))
-            return
-        if self._refresh_task is not None and not self._refresh_task.done():
-            return
+        if self._refresh_task is None or self._refresh_task.done():
+            self.panel_state.refresh(self)
+
+    def present_context(self, message):
+        _update_content(self.query_one(".relationship-context", Static), Content(message))
+
+    def start_refresh(self):
         self._refresh_task = asyncio.create_task(self._refresh(self._generation))
 
     async def _refresh(self, generation):
         try:
             service, owner = self.service, self.owner
-            revision = await asyncio.to_thread(service.revision)
+            revision = await self.app.preparation.run_thread(service.revision)
             if revision == self._revision:
                 return
-            snapshot = await asyncio.to_thread(service.snapshot, owner)
+            snapshot = await self.app.preparation.run_thread(service.snapshot, owner)
             # Visibility admits new reads; parking does not revoke work already
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
@@ -395,21 +398,18 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             people = {entry.person.thread.name: entry.person for model in snapshot.groups
                       for entry in model.entries if entry.person is not None}
 
-            def derive() -> tuple[dict[str, ThreadRowModel], int]:
-                # ThreadView presentation may inspect process identity: off the UI thread.
-                rows = {name: ThreadRowModel.of(person, unread) for name, person in people.items()}
-                widest = Content(f"For @{snapshot.owner} · recent window").cell_length + 4
-                for model in snapshot.groups:
-                    for entry in model.entries:
-                        widest = max(widest, Content(entry.target).cell_length + 8)
-                        if entry.detail:
-                            widest = max(widest, Content(entry.detail).cell_length + 8)
-                for row in rows.values():
-                    widest = max(widest, Content(row.label).cell_length + 8,
-                                 Content(row.summary).cell_length + 8)
-                return rows, min(widest, 512)
+            previous_rows = self.thread_rows if self._snapshot is not None else {}
+            previous_groups = {key: group.view for key, group in self.groups.items()} if self._snapshot is not None else {}
 
-            thread_rows, width = await self.app.preparation.run_thread(derive)
+            def derive():
+                rows = {name: ThreadRowView.of(person, unread, previous_rows.get(name)) for name, person in people.items()}
+                groups = {type(model): GroupView.of(model, previous_groups.get(type(model))) for model in snapshot.groups}
+                widest = max(Content(f"For @{snapshot.owner} · recent window").cell_length + 4,
+                             max((group.width + 8 for group in groups.values()), default=0),
+                             max((row.width + 8 for row in rows.values()), default=0))
+                return rows, groups, min(widest, 512)
+
+            thread_rows, models, width = await self.app.preparation.run_thread(derive)
             if generation != self._generation or not self.is_attached:
                 return
             # Each group owns its prepared rows and native member fence.
@@ -479,7 +479,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
             return
         owner, service = self.owner, self.service
         try:
-            snapshot = await asyncio.to_thread(service.snapshot, owner)
+            snapshot = await self.app.preparation.run_thread(service.snapshot, owner)
             if (generation != self._generation or not self.is_attached
                     or not self.screen.is_current):
                 return
