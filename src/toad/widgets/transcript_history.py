@@ -877,7 +877,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     def _update_edges(self) -> None:
         shown = bool(self.selected_categories)
-        older, newer = shown and self.filter.state.older_visible(self), shown and self.has_newer
+        older, newer = shown and self.filter.older_visible, shown and self.has_newer
         if (older, newer) != (self.older.display, self.newer.display):
             # The edge rows are above and below the reader's.
             self.window.keep_reader()
@@ -933,7 +933,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     def on_earlier_history(self, event: HistoryEdge.Requested) -> None:
         event.stop()
         self.window.lookahead.request_older()
-        if self.filter.state.active:
+        if self.filter.active:
             self.filter.request_older()
 
     async def show_newest(self, through, initial: PreparedTranscriptPage) -> None:
@@ -1045,7 +1045,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
-            overlay_visible = self.filter.state.visible(self)
+            overlay_visible = self.filter.projection_visible()
             protected_pages: set[TranscriptPageView] = set()
             if not prepared.fragments:
                 # A nonmatching interval advances the original source span,
@@ -1112,7 +1112,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                         break
                     evicted.prepared.trim(evicted, min(remove_count, count), older=side)
                     excess -= remove_count
-            self.filter.state.canonical_moved(self.filter, previous_start, overlay_visible)
+            self.filter.canonical_moved(previous_start, overlay_visible)
             self._update_edges()
 
 class TranscriptHistory(CommittedHistory, LineHistory):
@@ -1196,7 +1196,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
-        if owner is not None and owner.filter.state.owns_projection(self):
+        if owner is not None and owner.filter.owns_projection(self):
             await owner._page_added(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

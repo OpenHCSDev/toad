@@ -348,7 +348,7 @@ class DirectionalPreparation:
             return
         if history.follows_source_tail and history.has_newer:
             window.jump_to_latest()
-        elif history.filter.state.active:
+        elif history.filter.active:
             # Projection scans share the original source's decoded boundary.
             history.filter.check_edges()
         else:
