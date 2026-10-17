@@ -175,7 +175,8 @@ class OperationalSessionSources:
         assert conversation._agent_data is not None
         agent = Agent(conversation.project_path, conversation._agent_data,
                       conversation._agent_session_id, conversation._session_pk,
-                      app_events=conversation.app.events)
+                      app_events=conversation.app.events,
+                      transcripts=conversation.app.coordination_access.transcripts)
         agent.session.load_plan = self.load_plan
         conversation.agent = agent
         conversation._native_agent_started_here = True

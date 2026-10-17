@@ -8,6 +8,7 @@ from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
+from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
@@ -82,6 +83,7 @@ class Agent(AgentBase):
         session_pk: int | None = None,
         *,
         app_events: core_events.CoreEventStream,
+        transcripts: CoordinationTranscriptReader,
     ) -> None:
         """
 
@@ -93,7 +95,7 @@ class Agent(AgentBase):
         self.process = AgentProcess(self)
         self.presentation = ACPAgentPresentation(self)
         self.permissions = PermissionController(self)
-        self.controller = AgentController(self)
+        self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
         self.definition = agent
         self.session_id = session_id

@@ -101,9 +101,9 @@ class CoordinationAccess(MroDispatch):
 
     def __init__(self, app: ToadApp) -> None:
         self.app = app
-        from toad.acp.transcript_reader import ObservedTranscriptReader
+        from toad.acp.transcript_reader import CoordinationTranscriptReader
 
-        self.transcripts = ObservedTranscriptReader(self)
+        self.transcripts = CoordinationTranscriptReader(self)
         self.observation: ObservedCommsService | None = None
         self.events = CoreEventStream(self)
         self.revision: WireRevision | None = None

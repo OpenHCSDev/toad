@@ -13,7 +13,6 @@ presentation that settles turns, owner actions and input capture.
 from __future__ import annotations
 
 import asyncio
-from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager
 
 from agent_comms.route_selection import RouteSelection
@@ -24,14 +23,18 @@ from agent_comms.ui_model.observation import (
 )
 
 
-class CoordinationTranscriptReader(ABC):
-    """One agent's observed reads, and the read-side Comms service its other work binds."""
+class CoordinationTranscriptReader:
+    """The application's route-owned reads, shared by agents from construction."""
 
-    @abstractmethod
-    async def read(self, request: AwaitedRead): ...
+    def __init__(self, access):
+        self.access = access
 
-    @abstractmethod
-    async def service(self, root): ...
+    async def read(self, request: AwaitedRead):
+        return await self.access.read(request)
+
+    async def service(self, root):
+        return await self.access.preparation.run_thread(
+            lambda: self.access.require(RouteSelection.capture(root)))
 
     async def thread_presentation(self, root: str, thread: str):
         """Read one thread presentation through this reader's bound service."""
@@ -73,27 +76,3 @@ class CoordinationTranscriptReader(ABC):
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
         return await self.read(ReadTranscriptUpdate(
             root, thread, after=after, previous=previous, read_identity=read_identity))
-
-
-class DetachedTranscriptReader(CoordinationTranscriptReader):
-    """An operational Agent no view has attached: nothing presents a transcript."""
-
-    async def read(self, request):
-        raise RuntimeError("Observed reads serve a view; no view is attached to this agent")
-
-    async def service(self, root):
-        raise RuntimeError("A coordination service requires an attached route")
-
-
-class ObservedTranscriptReader(CoordinationTranscriptReader):
-    """Reads answered by the application's observation service."""
-
-    def __init__(self, access):
-        self.access = access
-
-    async def read(self, request):
-        return await self.access.read(request)
-
-    async def service(self, root):
-        return await self.access.preparation.run_thread(
-            lambda: self.access.require(RouteSelection.capture(root)))
