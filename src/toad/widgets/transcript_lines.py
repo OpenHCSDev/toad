@@ -37,7 +37,7 @@ from agent_comms.mro_dispatch import MroDispatch, handles
 from ui_theme.scheme import MutedColour, ThemeColour
 from toad.line_blocks import (
     Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, Span, Spans, SpanColumns,
-    Summary, MutedRole,
+    Summary, MutedRole, TextRole,
 )
 from toad.core.input_events import SelectHistoricalIdentity, SelectTarget
 from toad.menus import MenuItem
@@ -446,8 +446,6 @@ class RichLineRenderer(MroDispatch):
     @handles(Patch)
     def patch(self, patch: Patch) -> None:
         """One numbered patch layout for live and saved tool output."""
-        from toad.line_blocks import TextRole
-
         settings = self.theme.diff
         layout = PatchLayout(patch, self.width, settings)
         number_width, split = layout.number_width, layout.split
@@ -545,15 +543,9 @@ class RichLineRenderer(MroDispatch):
 
     @handles(Spans)
     def spans(self, block: Spans) -> None:
-        if self.plain:
-            self.output.extend((Segment(line[start:start + self.width]),)
-                               for line in _plain_lines(block.text)
-                               for start in _plain_spans(line, self.width))
-            return
-        console = self.console
-        text = Text.assemble(*((span.text, self.theme.style(span.role) + link_style(span.link))
-                               for span in block.spans), tab_size=4)
-        self.output.extend(tuple(line.render(console)) for line in text.wrap(console, self.width))
+        self.output.extend((Segment(line[start:start + self.width]),)
+                           for line in _plain_lines(block.text)
+                           for start in _plain_spans(line, self.width))
 
     @handles(PreparedLines)
     def prepared(self, block: PreparedLines) -> None:
@@ -746,6 +738,12 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
     @handles(WireBody)
     def wire_body(self, block):
         return self.dispatch_sync(block.prepare(self.context.for_source(block.row.source)))
+
+    @handles(Spans)
+    def spans(self, block):
+        text = Text.assemble(*((span.text, self.preparation.theme.style(span.role) + link_style(span.link))
+                               for span in block.spans), tab_size=4)
+        return RichTextBody(text, role=TextRole, bar=None)
 
     @handles(Patch)
     def patch(self, block):
