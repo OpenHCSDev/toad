@@ -262,22 +262,20 @@ class Animated[FrameT: Frame](Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.effects: dict[Effect, Animation] = {}
-        self.hidden_effects: set[Effect] | None = None
+        self.wanted: set[Effect] = set()
 
     def run_effect(self, effect: Effect) -> None:
         self.stop_effect(effect)
-        if self.hidden_effects is not None:
-            if not effect.finite:
-                self.hidden_effects.add(effect)
-            return
-        self.effects[effect] = self.app.colours.clock.start(effect, self)
+        if not effect.finite:
+            self.wanted.add(effect)
+        if self.is_on_screen:
+            self.effects[effect] = self.app.colours.clock.start(effect, self)
 
     def stop_effect(self, *effects: Effect) -> None:
-        if self.hidden_effects is not None:
-            if effects:
-                self.hidden_effects.difference_update(effects)
-            else:
-                self.hidden_effects.clear()
+        if effects:
+            self.wanted.difference_update(effects)
+        else:
+            self.wanted.clear()
         for effect in effects or tuple(self.effects):
             if animation := self.effects.pop(effect, None):
                 animation.stop()
@@ -290,15 +288,14 @@ class Animated[FrameT: Frame](Widget):
         self.stop_effect()
 
     def on_hide(self) -> None:
-        hidden = {effect for effect in self.effects if not effect.finite}
-        self.stop_effect()
-        self.hidden_effects = hidden
+        for effect in tuple(self.effects):
+            self.effects.pop(effect).stop()
         self.refresh()
 
     def on_show(self) -> None:
-        hidden, self.hidden_effects = self.hidden_effects or set(), None
-        for effect in hidden:
-            self.run_effect(effect)
+        for effect in self.wanted:
+            if effect not in self.effects:
+                self.effects[effect] = self.app.colours.clock.start(effect, self)
         self.refresh()
 
     def paint_effects(self, strip: Strip) -> Strip:

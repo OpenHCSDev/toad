@@ -189,6 +189,9 @@ class Question(DeclaredWidgetActions, containers.VerticalGroup, can_focus=True):
 
     def watch_has_focus(self, has_focus: bool) -> None:
         super().watch_has_focus(has_focus)
+        self.presentation.mount.focus(has_focus)
+        if not has_focus:
+            self.blink = False
         for marker in self.query(OptionMarker):
             marker.refresh_paint()
 
