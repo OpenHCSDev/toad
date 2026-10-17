@@ -210,11 +210,6 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
             self.run_effect(NEW_TEXT)
 
     def invalidate_lines(self, change=None) -> None:
-        from toad.widgets.history_anchor import HistoryWindow
-
-        # Lines hold resolved theme colours; a new theme draws new lines,
-        # plain ones first, which wrap to other rows than the styled ones.
-        self.query_ancestor(HistoryWindow).keep_reader()
         for fragment in self.fragments:
             fragment.invalidate_lines()
         self.range_changed()
@@ -242,6 +237,8 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         return lines
 
     def _measure(self, width: int) -> None:
+        if self.is_mounted:
+            self.history.window.keep_reader()
         self._width, self._measured = width, True
         self._pending.clear()
         previous = {id(fragment): lines for fragment, _first, lines in self._layout}
