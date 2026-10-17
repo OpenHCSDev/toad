@@ -100,10 +100,6 @@ class RelationshipRow(ThreadStatusRow):
         if self.entry == entry:
             self._show_person(entry, model)
 
-    @property
-    def thread_incarnation(self):
-        return self.entry.person.thread.incarnation if self.entry is not None and self.entry.person is not None else None
-
     def action_copy_identity(self) -> None:
         self.app.copy_to_clipboard(self.target_name)
 
@@ -136,6 +132,12 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         state = self.query_ancestor(ThreadCommsSidebar).view_state
         state.expanded[type(self.model)] = expanded
 
+    @property
+    def member_keys(self):
+        snapshot = self.query_ancestor(ThreadCommsSidebar)._snapshot
+        model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
+        return (entry.target for entry in model.entries) if model is not None else ()
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
         if not self.member_container.is_attached or not self.accepts_members():
@@ -157,11 +159,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
             entry = entries[key]
             row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
 
-        wanted = tuple(key for key in entries if self.expanded or key in self.rows)
-        self.reconcile_rows(
-            wanted, create, update,
-            replace=lambda key, row: row.thread_incarnation != (
-                entries[key].person.thread.incarnation if entries[key].person is not None else None))
+        self.reconcile_rows(create, update)
         tree.apply_selection()
 
 
@@ -362,10 +360,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     return
             models = snapshot.groups_by_type
             absent = self.groups.keys() - models.keys()
-            if absent:
-                await self.remove_children([self.groups.pop(key) for key in absent])
-                if generation != self._generation or not self.is_attached:
-                    return
+            self._snapshot, self._revision = snapshot, revision
             context = self.query_one(".relationship-context", Static)
             context.update(Content.assemble((f"For @{snapshot.owner}", "bold"),
                 " · recent window" if snapshot.history_limited else ""), layout=False)
@@ -379,12 +374,15 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     # A new group reconciles its members once composed (on_mount).
                     group = self.groups[identity] = RelationshipRows(
                         model, self.view_state.expanded.get(identity, True))
-                    self.mount(group)
+                    await self.mount(group)
+                    if generation != self._generation or not self.is_attached:
+                        return
                 group.display = True
                 group.expanded = self.view_state.expanded.get(identity, True)
                 group.model = model
                 group.sync_members()
-            self._snapshot, self._revision = snapshot, revision
+            if absent:
+                await self.remove_children([self.groups.pop(key) for key in absent])
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError) as error:
@@ -392,6 +390,14 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context = self.query_one(".relationship-context", Static)
                 context.update(Content("Comms unavailable"), layout=False)
                 context.tooltip = str(error)
+
+    def needs_row(self, key, origin):
+        for identity, model in self._snapshot.groups_by_type.items():
+            group = self.groups.get(identity)
+            if group is not origin and (group is None or key not in group.rows):
+                if any(entry.target == key for entry in model.entries):
+                    return True
+        return False
 
     @property
     def navigation_groups(self):

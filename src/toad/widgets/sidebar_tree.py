@@ -18,7 +18,6 @@ from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
-from textual.geometry import Offset
 from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
@@ -60,14 +59,14 @@ class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
             self.action_toggle()
 
 
-class SidebarRowLayout(VerticalLayout):
-    """Native flow owns destinations; rows add time-derived paint displacement."""
+class SidebarReaderLayout(VerticalLayout):
+    """Native flow, preserving the viewport's reader before placements change."""
 
     @height_dependency(FLOW_HEIGHT)
     def arrange(self, parent, children, size, greedy=True):
         placements = super().arrange(parent, children, size, greedy)
-        shift = parent.query_ancestor(TargetTree).reader_shift(placements)
-        return [placement.widget.place(placement, shift) for placement in placements]
+        parent.query_ancestor(TargetTree).preserve_reader(placements)
+        return placements
 
 
 class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
@@ -100,7 +99,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         self.disclosure = disclosure_type()
         self.controls = controls
         self.member_container = VerticalGroup(classes="group-members channel-members")
-        self.member_container.styles.layout = SidebarRowLayout()
+        self.member_container.styles.layout = SidebarReaderLayout()
         self.expanded = expanded
 
     def compose(self) -> ComposeResult:
@@ -160,7 +159,15 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     def rows_changed(self) -> None:
         """Specializations invalidate navigation after native membership changes."""
 
-    def reconcile_rows(self, keys, create, update, *, replace=None):
+    @property
+    def member_keys(self):
+        """Keys listed by this group's current model, including hidden rows."""
+        raise NotImplementedError
+
+    def has_member(self, key):
+        return key in self.member_keys
+
+    def reconcile_rows(self, create, update, *, changed=None):
         """Retain rows by identity; mount, remove and reorder only what differs.
 
         Neither a title/status change nor a selection repaint remounts the list.
@@ -171,10 +178,10 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         if not self.accepts_members():
             return ()
         rows = self.rows
-        keys = tuple(keys)
+        keys = tuple(self.member_keys)
         wanted = set(keys)
-        retired = [key for key, row in rows.items()
-                   if key not in wanted or (replace is not None and replace(key, row))]
+        tree = self.query_ancestor(TargetTree)
+        retired = [key for key in rows if key not in wanted and not tree.needs_row(key, self)]
         for key in retired:
             rows.pop(key).retire()
         mounted = []
@@ -182,17 +189,22 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         for key in keys:
             current = rows.get(key)
             if current is None:
-                if perf_counter_ns() >= deadline:
-                    self._rows_pending = True
-                    continue
-                current = rows[key] = create(key)
+                current = tree.take_row(key, self)
+                if current is None:
+                    if not self.expanded:
+                        continue
+                    if perf_counter_ns() >= deadline:
+                        self._rows_pending = True
+                        continue
+                    current = create(key)
+                rows[key] = current
                 update(key, current)
-                # Mounted one at a time: styling each is most of its cost,
-                # and the deadline must see it.
-                self.member_container.mount(current)
+                if not current.is_attached:
+                    self.member_container.mount(current)
                 mounted.append(current)
                 continue
-            update(key, current)
+            if changed is None or key in changed or not current.is_attached:
+                update(key, current)
         if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
             self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
         ordered = tuple(rows[key] for key in keys if key in rows)
@@ -207,7 +219,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
 
     async def _mount_pending_rows(self) -> None:
         """Mount the rows reconciliation left, a step's worth after each frame."""
-        while self._rows_pending and self.accepts_members():
+        while self._rows_pending and self.accepts_members() and self.expanded:
             self._rows_pending = False
             refreshed = asyncio.Event()
             self.call_after_refresh(refreshed.set)
@@ -221,8 +233,23 @@ class TargetTree(Vertical):
 
     navigation_groups: Iterable[SidebarGroup]
 
-    def reader_shift(self, placements) -> Offset:
-        return Offset()
+    def preserve_reader(self, placements) -> None:
+        """A sidebar viewport may retain its reader across a native relayout."""
+
+    def needs_row(self, key, origin):
+        return any(group is not origin and key not in group.rows and group.has_member(key)
+                   for group in self.navigation_groups)
+
+    def take_row(self, key, destination):
+        """Move an existing native row only after its old model stops listing it."""
+        for group in self.navigation_groups:
+            row = group.rows.get(key)
+            if row is not None and group is not destination and not group.has_member(key):
+                del group.rows[key]
+                row.reparent(destination.member_container)
+                group.rows_changed()
+                return row
+        return None
 
     @property
     def selection_state(self):

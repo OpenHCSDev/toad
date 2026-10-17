@@ -88,18 +88,21 @@ class WelcomeSection(SidebarGroup[CommsRow]):
     def update(self, model: SidebarModel, key: str, row: CommsRow) -> None:
         raise NotImplementedError
 
+    @property
+    def member_keys(self):
+        model = self.query_ancestor(WelcomeEntries).model
+        return self.keys(model)[:self.LIMIT] if model is not None and model.snapshot is not None else ()
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         model = self.query_ancestor(WelcomeEntries).model
         if model is None or model.snapshot is None or not self.member_container.is_attached:
             return
-        keys = self.keys(model)[:self.LIMIT]
-        self.display = bool(keys)
+        self.display = bool(self.member_keys)
 
         def update(key: str, row: CommsRow) -> None:
-            if changed is None or key in changed or not row.is_attached:
-                self.update(model, key, row)
+            self.update(model, key, row)
 
-        self.reconcile_rows(keys, lambda key: self.create(model, key), update)
+        self.reconcile_rows(lambda key: self.create(model, key), update, changed=changed)
 
 
 class WelcomeChannels(WelcomeSection):

@@ -21,15 +21,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel, ThreadRowModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
 from textual.dom import DOMNode
 from textual.reactive import reactive, var
-from textual.geometry import Offset
-from textual.layout import WidgetPlacement
-from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
+from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
 from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
@@ -135,22 +133,19 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         view.target = ThreadTarget(name)
         view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members)
 
+    @property
+    def member_keys(self):
+        channel = self.sidebar.model.channels.rows.get(self.row.target_name)
+        return channel.members if channel is not None else ()
+
+    def has_member(self, key):
+        return self.sidebar.has_member(self.row.target_name, key)
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
-        """Mount, remove and order member rows; repaint those in ``changed`` (all if None)."""
-        channel = self.channel
-        if channel is None or not self.member_container.is_attached:
-            return  # A new group syncs its members once composed (on_mount).
-        threads = self.sidebar.model.threads.rows
-        wanted = tuple(name for name in channel.members
-                       if name in threads and (self.expanded or name in self.rows))
-
-        def update(name: str, view: ThreadRow) -> None:
-            if changed is None or name in changed or view.thread_row is None:
-                self.show_member(name, view)
-
+        if self.channel is None or not self.member_container.is_attached:
+            return  # A new group syncs once composed (on_mount).
         self.reconcile_rows(
-            wanted, lambda name: ThreadRow(ThreadTarget(name), name), update,
-            replace=lambda name, view: view.shows_other_incarnation(threads[name]))
+            lambda name: ThreadRow(ThreadTarget(name), name), self.show_member, changed=changed)
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint this group's shown rows among the changed threads ``names``.
@@ -163,9 +158,6 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         threads = self.sidebar.model.threads.rows
         shown = [(name, view) for name in names
                  if (view := self.rows.get(name)) is not None and name in threads]
-        if any(view.shows_other_incarnation(threads[name]) for name, view in shown):
-            self.sync_members(names)  # A new incarnation replaces its row.
-            return
         for name, view in shown:
             self.show_member(name, view)
 
@@ -209,8 +201,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, Alternati
     def __init__(self, target: NavigationTarget, label: str) -> None:
         super().__init__(Content(label))
         self.target = target
-        self._motion_origin = Offset()
-        self._motion_target = Offset()
 
     def on_mount(self) -> None:
         self.run_effect(SIDEBAR_ENTER)
@@ -228,26 +218,12 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, Alternati
         return self.effect_frame(SIDEBAR_ENTER).value * (
             self.effect_frame(SIDEBAR_EXIT).value if self.leaving else 1.0)
 
-    def pending_move(self, placement: WidgetPlacement) -> bool:
-        return placement.region.offset != self._motion_target
-
-    def place(self, placement: WidgetPlacement, shift: Offset) -> WidgetPlacement:
-        if self.size and (self.pending_move(placement) or shift.y):
-            self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset + shift
-            self.run_effect(SIDEBAR_MOVE)
-        self._motion_target = placement.region.offset
-        offset = self._motion_origin.blend(self._motion_target, self.effect_frame(SIDEBAR_MOVE).value) - self._motion_target
-        return placement._replace(offset=placement.offset + offset)
-
     def repaint(self) -> None:
         if self.leaving and (not self.animation_visible
                 or self.effect_frame(SIDEBAR_EXIT) == SIDEBAR_EXIT.final):
             self.remove()
             return
-        moving = SIDEBAR_MOVE in self.effects
-        if moving and SIDEBAR_MOVE.finished(self.effects[SIDEBAR_MOVE].elapsed):
-            self.stop_effect(SIDEBAR_MOVE)
-        self.refresh(layout=moving)
+        self.refresh(layout=False)
 
     def on_hide(self) -> None:
         if self.leaving:
@@ -353,10 +329,6 @@ class ThreadRow(ThreadStatusRow):
     @property
     def mode_name(self) -> str | None:
         return self.navigation_tree.open_views.get(self.target_name)
-
-    def shows_other_incarnation(self, row: ThreadRowModel) -> bool:
-        """Whether this row shows an earlier incarnation of ``row``'s thread; it is replaced, not repainted."""
-        return self.thread_row is not None and self.thread_row.incarnation != row.incarnation
 
     def action_open_selected(self) -> None:
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
@@ -621,8 +593,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             self.new_session = NewSessionButton()
             self.mount(self.new_session)
         removed = [key for key in self.groups if key not in rows]
-        if removed:
-            self.remove_children([self.groups.pop(key) for key in removed])
         added = False
         for key, channel in rows.items():
             group = self.groups.get(key)
@@ -673,8 +643,24 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             if self.is_attached and self.model is not None:
                 self._order_groups()
 
+    def has_member(self, channel, key):
+        snapshot = self.model.snapshot
+        person = snapshot.threads.get(key)
+        view = snapshot.channels.get(channel)
+        return person is not None and view is not None and view.channel.matches(person.thread.tags)
+
+    def needs_row(self, key, origin):
+        for name in self.model.channels.rows:
+            group = self.groups.get(name)
+            if group is not origin and (group is None or key not in group.rows) and self.has_member(name, key):
+                return True
+        return False
+
     def _order_groups(self) -> None:
-        """Place the mounted groups in the model's order."""
+        """Order current groups, retiring old groups after their rows can move."""
+        removed = [key for key in self.groups if key not in self.model.channels.rows]
+        if removed:
+            self.remove_children([self.groups.pop(key) for key in removed])
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
         live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
