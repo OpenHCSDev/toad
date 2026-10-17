@@ -1,22 +1,44 @@
 """Process-safe conversation parsing and code-fence highlighting data."""
 
-from contextlib import ExitStack
-import asyncio
 from copy import deepcopy
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
-from functools import cached_property
-from hashlib import sha256
-import pickle
-from sys import getsizeof
 
 from markdown_it.token import Token
-from textual.content import Content
-from textual.widgets._markdown import MarkdownBlock, MarkdownFence
+from rich.console import Console
+from rich.markdown import CodeBlock, Markdown
+from rich.padding import Padding
+from rich.syntax import Syntax
+from toad.markdown_links import MessageMarkdownParser, parse_markdown_syntax
 
 
+class StyledCodeBlock(CodeBlock):
+    def on_leave(self, context):
+        super().on_leave(context)
+        syntax = Syntax(str(self.text).rstrip().expandtabs(4), self.lexer_name, theme=self.theme)
+        self.text = syntax.highlight(syntax.code)
+        self.text.rstrip()
+        self.text.overflow = "fold"
 
-FenceKey = tuple[str, str, bool, bool]
+    def __rich_console__(self, console, options):
+        yield Padding(self.text, 1, style=self.text.style)
+
+
+class MarkdownStyleConsole(Console):
+    """Rich builds its styled element tree; width-dependent rendering runs later."""
+
+    def render(self, renderable, options=None):
+        self.parts.append(renderable)
+        return iter(())
+
+    def prepare(self, text, context):
+        self.parts = []
+        markdown = Markdown("")
+        markdown.elements = {**markdown.elements, "fence": StyledCodeBlock, "code_block": StyledCodeBlock}
+        markdown.parsed = MessageMarkdownParser(context).parse(text)
+        for segment in markdown.__rich_console__(self, self.options):
+            self.parts.append(segment)
+        return tuple(self.parts)
 
 
 @dataclass(frozen=True)
@@ -30,33 +52,9 @@ class PreparedMarkdownPart:
 
     text: str = field(compare=False)
     tokens: tuple[Token, ...] = field(compare=False, repr=False)
-    revision: bytes = field(init=False)
-
-    def __post_init__(self) -> None:
-        # Source acquisition/partitioning runs in preparation. Native refresh
-        # compares this revision without walking an arbitrarily nested tree.
-        object.__setattr__(self, "revision", sha256(pickle.dumps((self.text, self.tokens), protocol=5)).digest())
-
     @classmethod
     def capture(cls, text: str) -> "PreparedMarkdownPart":
-        from toad.markdown_links import parse_markdown_syntax
-
         return cls(text, tuple(parse_markdown_syntax(text)))
-
-    @property
-    def syntax(self):
-        return self
-
-    def body(self, declaration, **kwargs):
-        return declaration(self.text, markdown_part=self, **kwargs)
-
-    async def prepare(self, renderer, ansi, dark):
-        from toad.render_tasks import MarkdownRenderTask
-
-        await renderer.prepare(MarkdownRenderTask(self, ansi, dark))
-
-    def independent(self):
-        return self
 
     def select_blocks(self, text: str, first: int, tokens: slice) -> "PreparedMarkdownPart":
         """Select complete top-level blocks, retaining their closing tokens."""
@@ -109,12 +107,6 @@ class PreparedMarkdownPart:
             yield token
             if token.children is not None:
                 yield from PreparedMarkdownPart._descendants(token.children)
-
-    @cached_property
-    def retained_bytes(self) -> int:
-        from toad.work_preparation import retained_bytes
-
-        return retained_bytes(self)
 
 
 

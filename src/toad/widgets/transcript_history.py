@@ -399,13 +399,13 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
                 return
             for fragment in batch:
                 del self._pending[id(fragment)]
-            width, theme = self._width, self.app.colours.line_theme
+            theme = self.app.colours.line_theme
             ready = await TranscriptLinesBatchRenderTask.render_for(self,
-                (fragment.plain_lines(width, theme).preparation for fragment in batch))
+                (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
             await self._publish([(fragment, task, lines)
                                  for fragment, (task, lines) in zip(batch, ready)])
 
-    async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, PreparedLines]]) -> None:
+    async def _publish(self, ready: list[tuple[TranscriptFragment, TranscriptLinesRenderTask, LinePreparation]]) -> None:
         from toad.widgets.history_anchor import HistoryWindow
 
         # Native frame completion owns when new row geometry may replace the
@@ -563,7 +563,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 return
             batch = todo[:self.budget.batch_items]
             ready = await TranscriptLinesBatchRenderTask.render_for(target,
-                (fragment.plain_lines(width, theme).preparation for fragment in batch))
+                (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
             if not current():
                 return
             for fragment, (task, lines) in zip(batch, ready):
@@ -632,7 +632,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
         rendered = await TranscriptLinesBatchRenderTask.render_for(self,
-            (LinePreparation(fragment.blocks(shown), width, theme) for fragment, shown in drawn))
+            (LinePreparation(fragment.blocks(shown), theme) for fragment, shown in drawn))
         if not self.state.can_draw:
             return
         ready = {id(fragment): result for (fragment, _shown), result in zip(drawn, rendered)}

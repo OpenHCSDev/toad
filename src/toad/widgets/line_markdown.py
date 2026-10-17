@@ -22,7 +22,7 @@ from toad.block_content import BlockContent
 from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.line_blocks import Body, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    LinkedRows, LinePreparation, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
+    BlockLines, Lines, LinkedRows, LinePreparation, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
 )
 
 
@@ -42,7 +42,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         super().__init__(id=id, classes=classes)
         self.text = text
         self.role, self.bar, self.markdown = role, bar, markdown
-        self._styled: PreparedLines | None = None
+        self._styled: BlockLines | None = None
         self._plain: PreparedLines | None = None
         self._width = 0
         self._link_place = link_place()
@@ -102,17 +102,19 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
             self.line_blocks(text, complete=complete)
         )
 
-    def _lines(self, width: int) -> PreparedLines:
+    def _lines(self, width: int) -> Lines:
         """Styled rows for the text they cover, then plain rows for anything newer.
 
         While a response streams, earlier text keeps its styled rows and only
         the appended tail draws plain until the next render replaces both.
         """
         styled, covered = self._styled, self._styled_text
+        if styled is not None:
+            self._styled = styled = styled.rewrap(width)
         tail = self.text[len(covered):] if self.text.startswith(covered) else None
         # A styled prefix is drawn only whole or ending at a paragraph
         # boundary; anything else would split the paragraph it ends in.
-        if styled is not None and styled.width == width and tail is not None and (
+        if styled is not None and tail is not None and (
                 not tail or tail.startswith("\n\n")):
             if not tail:
                 return styled
@@ -148,31 +150,31 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         renderer = self.app.render_processes
         seen = None
         while self.is_attached:
-            text, width, theme = self.text, self._width, self.app.colours.line_theme
+            text, theme = self.text, self.app.colours.line_theme
             # While text keeps arriving, style only complete paragraphs, so
             # the plain tail never splits one. Unchanged for an interval (or a
             # one-shot update), style all of it.
             target = text if seen is None or seen == text else self._complete_paragraphs(text)
             seen = text
             styled = self._styled
-            if target and (target != self._styled_text or styled is None or styled.width != width):
+            if target and (target != self._styled_text or styled is None):
                 complete = target == self.text
                 blocks = self.line_blocks(target, complete=complete)
                 context = await LinkContext.acquire(self)
-                lines = await renderer.submit(TranscriptLinesRenderTask(LinePreparation(blocks, width, theme), context))
+                source = await renderer.submit(TranscriptLinesRenderTask(LinePreparation(blocks, theme), context))
                 if not context.current_for(self):
                     continue
                 if not self.is_attached:
                     return
-                source_current = width == self._width and theme is self.app.colours.line_theme
+                source_current = theme is self.app.colours.line_theme
                 if source_current and self.text.startswith(target):
                     # A completed render includes final spacing; unlike a
                     # prefix render, it belongs only to that exact text.
                     if not complete or self.text == target:
                         rows = self._row_count()
-                        self._styled, self._styled_text = lines, target
+                        self._styled, self._styled_text = source.wrap(self._width), target
                         self._redraw(rows)
-            if (target, width) == (self.text, self._width):
+            if target == self.text:
                 return
             # Text is still arriving. The plain tail already shows it, so
             # restyle at a bounded rate instead of re-rendering the whole
@@ -184,9 +186,8 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         # The text wrapped at this width; the container's height is never read.
         if width != self._width:
             self._width = width
-            # Restyle in its own loop turn, not inside the measurement (the
-            # worker's task would start eagerly here).
-            self.call_later(self._request_render)
+            if self._styled is None:
+                self.call_later(self._request_render)
         return len(self._lines(width).rows)
 
     def render_line(self, y: int) -> Strip:

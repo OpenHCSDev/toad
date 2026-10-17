@@ -195,7 +195,7 @@ class WireFragment(TranscriptFragment):
         from toad.widgets.transcript_lines import PlainRowCount
 
         # Captions, summaries and unformatted text take the same rows styled or plain.
-        prepared = self.plain_lines(lines.width, theme).preparation.prepared_blocks
+        prepared = self.plain_lines(lines.width, theme).prepared_blocks
         trailing = len(self.trailing(self.shown))
         count = PlainRowCount(lines.width, theme)
         return range(count.height(prepared[:len(self.leading)]),

@@ -304,7 +304,11 @@ class TranscriptFragment:
     def lines_for(self, width: int, theme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
         held = self.__dict__.get("_lines")
-        return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
+        if held is not None and held[0].preparation.theme == theme:
+            lines = held[1].rewrap(width)
+            self._lines = held[0], lines
+            return lines
+        return None
 
     def retains_lines(self, lines, theme) -> bool:
         """Whether measured rows still belong to this source and palette.
@@ -312,9 +316,11 @@ class TranscriptFragment:
         Their width belongs to the rows themselves. Offscreen geometry may
         retain that measured width until the viewport asks for another one.
         """
+        held = self.__dict__.get("_lines")
         plain = self.__dict__.get("_plain")
-        return (self.lines_for(lines.width, theme) is lines
-                or (plain is not None and plain[0] == theme and plain[1] is lines))
+        return (held is not None and held[0].preparation.theme == theme
+                and held[1].preparation is lines.preparation
+                or plain is not None and plain[0] == theme and plain[1] is lines)
 
     def invalidate_lines(self):
         self.__dict__.pop("_lines", None)
