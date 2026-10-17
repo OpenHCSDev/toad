@@ -15,7 +15,7 @@ from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
-from ui_theme.clock import Animation, AnimationTarget
+from ui_theme.clock import Animation
 from ui_theme.effects import Effect, Fade, Frame
 
 if TYPE_CHECKING:
@@ -274,9 +274,9 @@ class Animated[FrameT: Frame](Widget):
         super().__init__(*args, **kwargs)
         self.effects: dict[Effect, Animation] = {}
 
-    def run_effect(self, effect: Effect, *, target: AnimationTarget | None = None) -> None:
+    def run_effect(self, effect: Effect) -> None:
         self.stop_effect(effect)
-        self.effects[effect] = self.app.colours.clock.start(effect, self if target is None else target)
+        self.effects[effect] = self.app.colours.clock.start(effect, self)
 
     def stop_effect(self, *effects: Effect) -> None:
         for effect in effects or tuple(self.effects):

@@ -24,6 +24,7 @@ from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
+from toad.widgets.session_sidebar import ThreadStatusRow
 from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
 from toad.widgets.thread_comms_source import RelationshipSource
 
@@ -158,14 +159,7 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
         if entries and empty is not None:
             empty.remove()
         if self.expanded and not entries and empty is None:
-            container.mount(Static(self.model.empty_text, classes="relationship-empty"))
-        # Keep the top visible row stable when newer entries reorder a
-        # scrolled list. Identity, rather than list index, owns selection.
-        old_scroll = container.scroll_y
-        anchor = (next((row for row in container.children
-                        if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
-                  if old_scroll > 0 else None)
-        previous_order = tuple(container.children)
+            container.mount(ThreadStatusRow(self.model.empty_text, classes="relationship-empty"))
 
         def create(key):
             entry = entries[key]
@@ -176,16 +170,11 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
 
         wanted = tuple(key for key in entries if self.expanded or key in self.rows)
-        ordered = self.reconcile_rows(
+        self.reconcile_rows(
             wanted, create, update,
             replace=lambda key, row: row.thread_incarnation != (
                 entries[key].person.thread.incarnation if entries[key].person is not None else None))
         tree.apply_selection()
-        if ordered != previous_order:
-            if old_scroll > 0 and anchor in ordered:
-                new_y = sum(2 if row.has_class("-wire-thread") else 1
-                            for row in ordered[:ordered.index(anchor)])
-                container.scroll_to(y=new_y, animate=False, immediate=True)
 
 
 class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):

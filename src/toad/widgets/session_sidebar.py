@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from textual.content import Content
-from textual.geometry import Offset
-from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE, Transition
+from textual.geometry import Offset, Region, NULL_SPACING
+from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from ui_theme.scheme import AlternateRowToneColour
@@ -39,26 +39,6 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     }
     """
 
-    _row_width = 0
-
-    def get_content_width(self, container, viewport) -> int:
-        return self._row_width
-
-    def on_mount(self) -> None:
-        self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
-
-    def update(self, content="", *, layout=None) -> None:
-        previous = self.content
-        super().update(content, layout=layout)
-        if self.is_mounted and previous.plain != self.content.plain:
-            self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
-
-    async def _measure_width(self, content: Content) -> None:
-        width = await self.app.preparation.run_thread(content.get_optimal_width, {}, 0)
-        if self.content.plain == content.plain:
-            self._row_width = width
-            self.refresh(layout=True)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._motion_origin = Offset()
@@ -66,19 +46,23 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         self.pinned = False
         self.action_status: str | None = None
 
-    def painted_position(self) -> Offset:
-        return (self.region.offset - self.parent.content_region.offset
-                + self.parent.scroll_offset)
+    def on_mount(self) -> None:
+        self.run_effect(SIDEBAR_ENTER)
 
-    def slide(self, owner, origin: Offset) -> None:
-        self._motion_origin = origin
-        self.run_effect(SIDEBAR_MOVE, target=owner)
+    def slide(self) -> None:
+        if self.animation_visible:
+            self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset
+            self.run_effect(SIDEBAR_MOVE)
 
-    def disappear(self, owner) -> None:
-        self._motion_origin = self.painted_position()
+    def retire(self) -> None:
+        self.slide()
         self.disabled = True
-        self.styles.position = "absolute"
-        self.run_effect(SIDEBAR_EXIT, target=owner)
+        self.run_effect(SIDEBAR_EXIT)
+        self.repaint()
+
+    def _get_box_model(self, *args, **kwargs):
+        box = super()._get_box_model(*args, **kwargs)
+        return box._replace(height=0, margin=NULL_SPACING) if SIDEBAR_EXIT in self.effects else box
 
     @property
     def paint_opacity(self) -> float:
@@ -88,7 +72,7 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
 
     def place(self, placement):
         if SIDEBAR_EXIT in self.effects:
-            return placement._replace(region=placement.region.at_offset(self._motion_origin))
+            return placement._replace(region=Region.from_offset(self._motion_origin, self.size), absolute=True)
         if SIDEBAR_MOVE not in self.effects:
             return placement
         frame = self.effect_frame(SIDEBAR_MOVE)
@@ -97,16 +81,16 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
                         round(frame.displacement(self._motion_origin.y, destination.y)))
         return placement._replace(offset=placement.offset + offset)
 
-    def refresh_motion(self) -> None:
-        if not any(isinstance(effect, Transition) for effect in self.effects):
-            return
-        if SIDEBAR_EXIT in self.effects and SIDEBAR_EXIT.finished(self.effects[SIDEBAR_EXIT].elapsed):
+    def repaint(self) -> None:
+        if SIDEBAR_EXIT in self.effects and (not self.app.colours.clock.enabled
+                or not self.animation_visible or SIDEBAR_EXIT.finished(self.effects[SIDEBAR_EXIT].elapsed)):
             self.remove()
             return
-        for effect in (SIDEBAR_ENTER, SIDEBAR_MOVE):
-            if effect in self.effects and effect.finished(self.effects[effect].elapsed):
-                self.stop_effect(effect)
         self.refresh()
+        if SIDEBAR_MOVE in self.effects:
+            if SIDEBAR_MOVE.finished(self.effects[SIDEBAR_MOVE].elapsed):
+                self.stop_effect(SIDEBAR_MOVE)
+            self.parent.refresh(layout=True)
 
     def on_hide(self) -> None:
         if SIDEBAR_EXIT in self.effects:
