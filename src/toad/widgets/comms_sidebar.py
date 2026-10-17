@@ -43,7 +43,7 @@ from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, SearchFollower, TargetTree, TargetTreeMember
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -511,7 +511,7 @@ class SidebarModelView(CoreEventReceiver):
             self.present()
 
 
-class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
+class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, TargetTree):
     """The view of the observed service's sidebar model: channel groups and their threads.
 
     It mounts or removes groups and rows only for added and removed keys,
@@ -704,7 +704,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         group = self.groups.get(selection.channel)
         if group is None or not group.accepts_navigation():
             return None
-        return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.expanded else None
+        return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.members_visible else None
 
     def on_click(self, event) -> None:
         """Right click anywhere -> menu on the row under the mouse."""

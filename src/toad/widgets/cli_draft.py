@@ -95,7 +95,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         return self.on_background(lines.strips_at(id(self))[y], paint)
 
     def get_selection(self, selection):
-        paint = self._resolved_paint_state()
+        paint = self._paint_state
         text = "\n".join(self.render_line(y, paint).text.rstrip()
                          for y in range(self._lines.height if self._lines is not None else 0))
         return selection.extract(text), "\n"

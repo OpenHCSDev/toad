@@ -551,6 +551,13 @@ class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
         self._dragging = False
 
 
+class SidebarSearch(widgets.Input):
+    BINDINGS = [Binding("escape", "clear", "Clear search", show=False)]
+
+    def action_clear(self) -> None:
+        self.value = ""
+
+
 class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
@@ -596,6 +603,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     """
 
     collapsed = reactive(False)
+    search = reactive("")
     PANEL_WORKER_GROUP = "panels"
 
     class Dismiss(Message):
@@ -624,6 +632,8 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
         self.panels: list[SideBar.Panel] = [*panels]
+        self.search_input = SidebarSearch(placeholder="Search", compact=True)
+        self.search_input.styles.layer = "sidebar-content"
         self.panels_viewport: SidebarViewport = SidebarViewport()
         self.hide = hide
         self.right = right
@@ -710,12 +720,25 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     def compose(self) -> ComposeResult:
         yield SideBarToggle(self.collapsed, right=self.right)
         yield SidebarResizeHandle()
+        yield self.search_input
         with self.panels_viewport:
             if self._panels_loaded:
                 yield from self._compose_panels()
         with containers.Vertical(id="sidebar-controls"):
             if self._panels_loaded:
                 yield from self._compose_controls()
+
+    @on(widgets.Input.Changed)
+    def search_changed(self, event: widgets.Input.Changed) -> None:
+        if event.input is self.search_input:
+            event.stop()
+            self.search = event.value
+
+    def on_key(self, event: events.Key) -> None:
+        if event.character == "/" and self.app.focused is not self.search_input:
+            event.stop()
+            event.prevent_default()
+            self.search_input.focus()
 
     def _compose_panels(self) -> ComposeResult:
         navigation = self.navigation
@@ -765,6 +788,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         if previous is None or previous.presentation != current.presentation:
             self.right = placement.side == "right"
             self.set_class(self.right, "-right")
+            self.search_input.styles.margin = (0, 0, 0, 4) if self.right else (0, 4, 0, 0)
             if toggle := self.query_one_optional(SideBarToggle):
                 toggle.right = self.right
                 toggle.set_collapsed(self.collapsed)
@@ -845,6 +869,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         self._presented_collapsed = collapsed
         # Panel visibility is independent of its native placement.
         self.panels_viewport.display = not collapsed
+        self.search_input.display = not collapsed
         if controls := self.query_one_optional("#sidebar-controls"):
             controls.display = not collapsed
         self.tooltip = "Expand sidebar" if collapsed else None

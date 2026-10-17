@@ -26,6 +26,7 @@ from textual._measurement import FLOW_HEIGHT, height_dependency
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
 from toad.widgets.sidebar_viewport import SidebarHeader
+from toad.widgets.side_bar import SideBar
 
 
 class TargetTreeMember:
@@ -76,12 +77,12 @@ class RowReconciliation:
     """One sync's model membership and transferable native rows, never a retained cache."""
 
     def __init__(self, tree):
-        demand = Counter(tree.member_keys)
+        demand = Counter(key for key in tree.member_keys if tree.matches(key))
         self.listed = frozenset(demand)
         self.sources = {}
         requests = {}
         for group in tree.navigation_groups:
-            wanted = frozenset(group.member_keys)
+            wanted = frozenset(group.matching_keys)
             for key in wanted - group.rows.keys():
                 requests.setdefault(group, set()).add(key)
             for key in group.rows:
@@ -131,11 +132,10 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     SidebarGroup { height: auto; }
     SidebarGroup > .group-header { height: 1; }
     SidebarGroup > .group-header > .group-title { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; }
-    SidebarGroup > .group-members { display: none; height: auto; margin-left: 2; }
-    SidebarGroup.-expanded > .group-members { display: block; }
+    SidebarGroup > .group-members { height: auto; margin-left: 2; }
     """
 
-    expanded = reactive(False, init=False, toggle_class="-expanded")
+    expanded = reactive(False, init=False)
 
     _rows_pending = False
     """A reconciliation ran out of its step and left rows unmounted."""
@@ -175,6 +175,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     def watch_expanded(self, previous: bool, expanded: bool) -> None:
         self.disclosure.refresh(layout=False)
         if self.is_mounted:
+            self.member_container.set_display_constraint("members", self.members_visible)
             self.members_visibility_changed(previous, expanded)
             self.rows_changed()
 
@@ -187,7 +188,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         if not self.accepts_navigation():
             return ()
         header = (self.row,) if self.navigation_header else ()
-        members = tuple(self.member_container.children) if self.expanded else ()
+        members = tuple(self.member_container.children) if self.members_visible else ()
         return (*header, *members)
 
     @property
@@ -221,6 +222,15 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     def reconciliation_tree(self):
         return self.query_ancestor(TargetTree)
 
+    @property
+    def matching_keys(self):
+        tree = self.reconciliation_tree
+        return tuple(key for key in self.member_keys if tree.matches(key))
+
+    @property
+    def members_visible(self):
+        return self.expanded or bool(self.reconciliation_tree.search)
+
     @RowReconciliation.sync
     def reconcile_rows(self, create, update, *, changed=None):
         """Retain rows by identity; mount, remove and reorder only what differs.
@@ -233,9 +243,12 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         if not self.accepts_members():
             return ()
         rows = self.rows
-        keys = tuple(self.member_keys)
+        keys = self.matching_keys
         wanted = set(keys)
-        tree = self.query_ancestor(TargetTree)
+        tree = self.reconciliation_tree
+        self.set_display_constraint("sidebar-search", bool(keys) or not tree.search)
+        self.member_container.set_display_constraint("members", self.members_visible)
+        self._rows_pending = False
         members = tree.row_reconciliation
         retired = [key for key in rows if key not in wanted and not members.retains(key, self)]
         for key in retired:
@@ -247,7 +260,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
             if current is None:
                 current = members.take(key, self)
                 if current is None:
-                    if not self.expanded:
+                    if not self.members_visible:
                         continue
                     if perf_counter_ns() >= deadline:
                         self._rows_pending = True
@@ -275,7 +288,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
 
     async def _mount_pending_rows(self) -> None:
         """Mount the rows reconciliation left, a step's worth after each frame."""
-        while self._rows_pending and self.accepts_members() and self.expanded:
+        while self._rows_pending and self.accepts_members() and self.members_visible:
             self._rows_pending = False
             refreshed = asyncio.Event()
             self.call_after_refresh(refreshed.set)
@@ -284,10 +297,25 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
             self.sync_members(frozenset())
 
 
+class SearchFollower:
+    def on_mount(self) -> None:
+        self.watch(self.query_ancestor(SideBar), "search", self._apply_search, init=True)
+
+    def _apply_search(self, value: str) -> None:
+        self.search = value.casefold()
+        with self.reconcile_members():
+            for group in self.navigation_groups:
+                group.sync_members()
+
+
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
+    search = ""
+
+    def matches(self, key: str) -> bool:
+        return self.search in key.casefold()
 
     def preserve_reader(self, placements) -> None:
         """A sidebar viewport may retain its reader across a native relayout."""
@@ -404,7 +432,7 @@ class TargetTree(Vertical):
     def current_rows(self):
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
         return tuple(row for group in self.navigation_groups if group.accepts_navigation()
-                     for row in group.rows_for_target(target) if row is group.row or group.expanded)
+                     for row in group.rows_for_target(target) if row is group.row or group.members_visible)
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:

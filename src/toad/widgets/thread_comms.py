@@ -24,7 +24,7 @@ from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
-from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
+from toad.widgets.sidebar_tree import SidebarGroup, SearchFollower, TargetTree
 from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
 from toad.widgets.thread_comms_source import RelationshipSource
 
@@ -164,7 +164,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         tree.apply_selection()
 
 
-class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
+class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFollower, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -413,7 +413,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     def row_for(self, selection):
         group = self.groups.get(selection[0])
-        row = group.rows.get(selection[1][1]) if group is not None and group.expanded and group.accepts_navigation() else None
+        row = group.rows.get(selection[1][1]) if group is not None and group.members_visible and group.accepts_navigation() else None
         return row if row is not None and row.entry.identity == selection[1] else None
 
     @property
