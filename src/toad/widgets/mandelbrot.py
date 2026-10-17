@@ -9,6 +9,7 @@ from textual.color import Color
 from textual.content import Content
 from textual.geometry import NULL_SIZE, Offset
 from textual.reactive import reactive, var
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.app import App, ComposeResult
 from textual.widget import Widget
@@ -200,7 +201,7 @@ class Mandelbrot(Widget):
         self._strip_cache.clear()
         self.refresh()
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         if (cached_line := self._strip_cache.get(y)) is not None:
             return cached_line
 
@@ -223,7 +224,7 @@ class Mandelbrot(Widget):
         colors: list[tuple[int, int, int]] = []
 
         segments: list[Segment] = []
-        base_style = self.rich_style
+        base_style = paint.rich_style
 
         for column in range(0, width * 2, 2):
             braille_key = 0

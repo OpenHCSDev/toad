@@ -2,6 +2,8 @@
 
 from agent_comms.external_transcript import ExternalDraftRow
 from toad.markdown_links import LinkContext, ReferenceRendering
+from textual._paint_state import PaintState
+from textual.strip import Strip
 from textual.widget import Widget
 from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
@@ -86,14 +88,15 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
                 self.call_later(self._request_render)
         return self._lines.height if self._lines is not None else 0
 
-    def render_line(self, y):
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         lines = self._lines
         if lines is None or y >= lines.height:
-            return self.blank_row(self._width)
-        return self.on_background(lines.strips_at(id(self))[y])
+            return self.blank_row(self._width, paint)
+        return self.on_background(lines.strips_at(id(self))[y], paint)
 
     def get_selection(self, selection):
-        text = "\n".join(self.render_line(y).text.rstrip()
+        paint = self._resolved_paint_state()
+        text = "\n".join(self.render_line(y, paint).text.rstrip()
                          for y in range(self._lines.height if self._lines is not None else 0))
         return selection.extract(text), "\n"
 

@@ -8,9 +8,8 @@ from weakref import ref
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
-from rich.style import NULL_STYLE
-from textual._paint_state import PaintLayer
-from textual.color import Color, TRANSPARENT
+from textual._paint_state import PaintLayer, PaintState
+from textual.color import Color
 from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
@@ -22,20 +21,6 @@ if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
 
 
-class WidgetPaint(PaintLayer):
-    """Native paint shared independently of a widget's geometry or behaviour."""
-
-    paint_foreground = paint_background = None
-    background_tint = TRANSPARENT
-    text_style = NULL_STYLE
-    text_opacity = layer_opacity = 1.0
-    auto_color = False
-
-    @property
-    def paint_layer(self) -> PaintLayer:
-        return self
-
-
 class ToneLayer(PaintLayer):
     """A widget's own CSS paint laid over its area tone.
 
@@ -43,12 +28,11 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "paint_key", "paint_cacheable", "layer_opacity")
+    __slots__ = ("styles", "paint_background", "paint_foreground", "auto_color", "layer_opacity")
 
-    def __init__(self, styles, tone: Color | None, cacheable: bool, opacity: float, paint) -> None:
+    def __init__(self, styles, tone: Color | None, opacity: float, paint) -> None:
         self.styles = styles
         self.layer_opacity = styles.layer_opacity * opacity
-        self.paint_cacheable = cacheable
         stated = paint.paint_background
         if stated is None:
             stated = styles.paint_background
@@ -56,7 +40,6 @@ class ToneLayer(PaintLayer):
         self.paint_foreground = styles.paint_foreground if foreground is None else foreground
         self.auto_color = styles.auto_color if foreground is None else False
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
-        self.paint_key = hash((styles.paint_key, self.paint_background, self.paint_foreground, self.auto_color, opacity))
     background_tint = property(lambda self: self.styles.background_tint)
     text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
@@ -67,22 +50,19 @@ class TonePaint:
 
     tone: ClassVar[type[ThemeColour] | None]
     paint_background = paint_foreground = None
-    # A tone read from layout changes without a style or tree revision.
-    tone_cacheable: ClassVar[bool] = True
     paint_opacity = 1.0
 
     @property
     def paint_layer(self) -> PaintLayer:
         tone = self.tone
         return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
-                         self.tone_cacheable, self.paint_opacity, self)
+                         self.paint_opacity, self)
 
 
 class AlternatingTonePaint(TonePaint):
     """A row of a list: every other row, by its laid-out position, steps onto ``alternate_tone``."""
 
     alternate_tone: ClassVar[type[ThemeColour]]
-    tone_cacheable = False
 
     @property
     def tone(self) -> type[ThemeColour] | None:
@@ -301,8 +281,8 @@ class Animated[FrameT: Frame](Widget):
             strip = self.app.colours.paint_rising(self.effect_frame(effect), strip)
         return strip
 
-    def render_line(self, y: int) -> Strip:
-        return self.paint_effects(super().render_line(y))
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        return self.paint_effects(super().render_line(y, paint))
 
     @property
     def animation_visible(self) -> bool:

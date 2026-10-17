@@ -32,6 +32,7 @@ from textual.selection import Selection
 from textual._activation import PrimaryActivation
 from textual.widget import Widget
 from textual.walk import walk_depth_first
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widgets import Static
 
@@ -283,21 +284,21 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
             self._measure(width)
         return self._height
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         # Layout supplies the width through get_content_height; reading size
         # here would look this widget up in the compositor for every row.
         width = self._width
         slot = bisect_right(self._starts, y) - 1
         if slot < 0:
-            return selection_painted(self, self.blank_row(width), y)
+            return selection_painted(self, self.blank_row(width, paint), y)
         fragment, first, lines = self._layout[slot]
         row = y - first
         if row >= lines.height:
-            return selection_painted(self, self.blank_row(width), y)
+            return selection_painted(self, self.blank_row(width, paint), y)
         # Prepared rows span exactly this width (Lines.strips_at).
         strip = lines.strips_at(fragment.link_place)[row]
         strip = self.paint_effects(strip)
-        return selection_painted(self, self.on_background(strip), y)
+        return selection_painted(self, self.on_background(strip, paint), y)
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, int, bool] | None:
         """A fragment's first measured row, height and whether the page draws it.

@@ -7,6 +7,7 @@ Hover is an input to those owners, never another independently rendered state.
 from textual import events, on
 from rich.segment import Segment
 from textual.content import Content
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from textual.visual import VisualType
@@ -42,8 +43,8 @@ class ViewLabel(ChangingText[TextFrame]):
             self.run_effect(SPINNER)
         return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
 
-    def render_line(self, y: int) -> Strip:
-        line = super().render_line(y)
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        line = super().render_line(y, paint)
         if SPINNER not in self.effects or y != 0:
             return line
         glyph = self.effect_frame(SPINNER).paint(self.app.colours, None)

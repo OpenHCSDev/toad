@@ -21,6 +21,7 @@ from textual.actions import SkipAction
 
 from textual.reactive import var
 from textual.content import Content, Span
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.style import Style
 from textual.widget import Widget
@@ -107,15 +108,15 @@ Type a few characters from the file you are searching for.
 The search is *fuzzy*, and will match characters that aren't neccesarily next to each other—only the order matters.
 """
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         if y == 0 and not self.value:
             placeholder = Content.from_markup(self.placeholder).expand_tabs()
-            placeholder = placeholder.stylize(self.visual_style)
+            placeholder = placeholder.stylize(paint.visual_style)
             placeholder = placeholder.stylize(
-                self.get_visual_style("input--placeholder")
+                paint.component_style(self, "input--placeholder")
             )
             if self.has_focus:
-                cursor_style = self.get_visual_style("input--cursor")
+                cursor_style = paint.component_style(self, "input--cursor")
                 if self._cursor_visible:
                     # If the placeholder is empty, there's no characters to stylise
                     # to make the cursor flash, so use a single space character
@@ -126,7 +127,7 @@ The search is *fuzzy*, and will match characters that aren't neccesarily next to
             strip = Strip(placeholder.render_segments())
             return strip
 
-        return super().render_line(y)
+        return super().render_line(y, paint)
 
 
 class PathSearch(CompletionPopup):
