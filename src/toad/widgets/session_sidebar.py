@@ -47,8 +47,7 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
             self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
 
     async def _measure_width(self, content: Content) -> None:
-        width = await self.app.preparation.run_thread(
-            lambda: max((Content(line).cell_length for line in content.plain.splitlines()), default=0))
+        width = await self.app.preparation.run_thread(content.get_optimal_width, {}, 0)
         if self.content.plain == content.plain:
             self._row_width = width
             self.refresh(layout=True)

@@ -83,20 +83,24 @@ class RelationshipRow(CommsRow):
             self.update(Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"), layout=False)
         elif entry.person is not None:
             if model is not None and model.incarnation == entry.person.thread.incarnation:
-                self.show(model)
+                self.workers.cancel_group(self, "relationship-row")
+                self._show_person(entry, model)
             elif previous != entry:
                 self.run_worker(self._present_person(entry), group="relationship-row", exclusive=True)
         elif previous != entry:
             self.set_label(entry.target)
+        if entry.person is None:
+            self.tooltip = Content(f"{entry.target}\n{entry.detail}") if entry.detail else entry.target
+
+    def _show_person(self, entry, model):
+        self.show(model)
         if entry.detail:
             self.tooltip = Content(f"{entry.target}\n{entry.detail}")
-        elif entry.person is None:
-            self.tooltip = entry.target
 
     async def _present_person(self, entry):
         model = await self.app.preparation.run_thread(ThreadRowModel.of, entry.person, None)
         if self.entry == entry:
-            self.present(entry, model)
+            self._show_person(entry, model)
 
     @property
     def thread_incarnation(self):
@@ -141,9 +145,6 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
         if expanded:
             self.member_container.scroll_to(
                 y=state.scroll.get(type(self.model), 0), animate=False)
-
-    def present(self, model: RelationshipGroup) -> None:
-        self.model = model
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
@@ -413,7 +414,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                     self.mount(group)
                 group.display = True
                 group.expanded = self.view_state.expanded.get(identity, True)
-                group.present(model)
+                group.model = model
                 group.sync_members()
             self._snapshot, self._revision = snapshot, revision
         except asyncio.CancelledError:
