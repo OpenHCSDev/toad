@@ -47,7 +47,7 @@ class WorkspaceChrome(VerticalLayout):
         self.channels.schedule_hydration()
         roster = self.channels.roster
         await roster.navigation.prepare()
-        screen.frame_presentation.defer(roster, roster.navigation.start)
+        screen.start_sidebar_navigation(roster)
         return changed
 
     def refresh_layout(self) -> None:

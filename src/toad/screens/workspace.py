@@ -107,6 +107,13 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
             yield Container(id="workspace-session-host")
         yield chrome.footer
 
+    def belongs_to_wire(self, root) -> bool:
+        """Shared workspace chrome follows the observed wire, not a retained tab."""
+        return True
+
+    def start_sidebar_navigation(self, sidebar) -> None:
+        self.frame_presentation.defer(sidebar, sidebar.navigation.start)
+
     def sidebar_focus_target(self):
         return self.app.workspace_sessions.source.sidebar_focus_target()
 
