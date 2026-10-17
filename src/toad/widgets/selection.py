@@ -64,25 +64,6 @@ class ViewLabel(ChangingText[TextFrame]):
         self.refresh(layout=False)
 
 
-class FocusSelection(Static, can_focus=True):
-    _pointer_focus = False
-
-    def on_mouse_move(self, event: events.MouseMove) -> None:
-        # Enter can be synthesized when layout changes beneath a stationary
-        # pointer. Only actual pointer input may take focus from the composer.
-        self._pointer_focus = True
-        if not self.has_focus:
-            self.focus(scroll_visible=False)
-
-    def on_leave(self, event: events.Leave) -> None:
-        if self._pointer_focus and self.has_focus:
-            self.blur()
-        self._pointer_focus = False
-
-    def on_key(self, event: events.Key) -> None:
-        self._pointer_focus = False
-
-
 class HoverSelection(UntintedTonePaint):
     """Paint a control from native pointer/focus state, without CSS transitions."""
 
