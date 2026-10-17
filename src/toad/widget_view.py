@@ -49,11 +49,6 @@ class WidgetView(BoxGeometry, PaintLayer, FramePaint):
     border_title_align = "left"
     border_subtitle_align = "right"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.listen(events.DescendantFocus, self.focus_changed)
-        self.listen(events.DescendantBlur, self.focus_changed)
-
     @property
     def geometry(self) -> BoxGeometry:
         return self
@@ -70,5 +65,9 @@ class WidgetView(BoxGeometry, PaintLayer, FramePaint):
         self.placement_offset = offset
         self.refresh(layout=True)
 
-    def focus_changed(self, event) -> None:
-        self.refresh_paint()
+
+class FocusWithinView(WidgetView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.listen(events.DescendantFocus, self.refresh_paint)
+        self.listen(events.DescendantBlur, self.refresh_paint)
