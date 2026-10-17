@@ -39,7 +39,7 @@ class SessionBinding:
     def bound(self):
         return self.session_id is not None
 
-    def admits_notification(self, session_id):
+    def accepts_notification(self, session_id):
         return self.session_id is None or self.session_id == session_id
 
 
@@ -227,7 +227,7 @@ class AgentController(OperationalTerminalOwner):
             # The original coordination observer resumes reads on publication.
             self.agent.log(f"[status] Turn reconciliation unavailable: {error}")
 
-    def admits_turn_snapshot(self, sequence):
+    def accepts_turn_snapshot(self, sequence):
         """A remote busy turn does not imply an ordered response on this client."""
         return (self.prompt_in_flight == 0
                 and sequence == self.agent.presentation.turns.sequence)
@@ -334,7 +334,7 @@ class AgentController(OperationalTerminalOwner):
             raise ValueError('Compaction returned no result')
         consumer = agent.comms_consumer_class(agent, authority.session_id)
         await consumer.consume_metadata(response.field_meta)
-        return consumer.require_compaction_receipt()
+        return consumer.require_compaction_update()
 
     async def cancel_prompt(self):
         return await self.operate(self._cancel_prompt(

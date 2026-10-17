@@ -46,7 +46,7 @@ class CommsUpdateConsumer(MroDispatch):
         self.agent = agent
         self.session_id = session_id
         self.route = None
-        self.compaction_receipt = None
+        self.compaction_update = None
         self.cursor_token = cursor_token
         self.queue_token = queue_token
 
@@ -62,10 +62,10 @@ class CommsUpdateConsumer(MroDispatch):
     def accepts_turn(self):
         return self.agent.session.accepts_session(self.session_id)
 
-    def require_compaction_receipt(self):
-        if self.compaction_receipt is None:
+    def require_compaction_update(self):
+        if self.compaction_update is None:
             raise ValueError('Compaction result was missing')
-        return self.compaction_receipt
+        return self.compaction_update
 
     @handles(TextRouteUpdate)
     def text_route(self, update: TextRouteUpdate) -> None:
@@ -151,7 +151,7 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(CompactionCommittedUpdate)
     def compaction_committed(self, update: CompactionCommittedUpdate) -> None:
-        self.compaction_receipt = update
+        self.compaction_update = update
 
     @handles(TranscriptSnapshotUpdate)
     def transcript_snapshot(self, update: TranscriptSnapshotUpdate) -> None:
@@ -202,7 +202,7 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
 
     def accepts_turn(self):
         return (super().accepts_turn()
-                and self.agent.controller.admits_turn_snapshot(self.turn_token))
+                and self.agent.controller.accepts_turn_snapshot(self.turn_token))
 
     @handles(ThreadPresentation)
     def thread_presentation(self, presentation):

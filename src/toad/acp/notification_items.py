@@ -12,8 +12,8 @@ class NotificationItems(MroDispatch):
         self.require_plan_items(notification.entries, **self.raw)
 
     @staticmethod
-    def require_plan_items(admitted, entries, **_extensions):
+    def require_plan_items(parsed, entries, **_extensions):
         # The official SDK deliberately drops invalid items. A complete plan
         # replacement may never silently turn invalid required fields into a clear.
-        if len(admitted) != len(entries):
+        if len(parsed) != len(entries):
             raise ValueError('ACP plan contains invalid entries; the saved plan was not replaced')

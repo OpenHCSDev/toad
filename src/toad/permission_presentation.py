@@ -18,13 +18,13 @@ class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
         content = tool_call.content or []
         title = tool_call.title or ""
         for member in sorted(cls.members_with(cls), key=lambda member: member.priority, reverse=True):
-            if (presentation := member.admit(tool_call.kind, title, content)) is not None:
+            if (presentation := member.for_request(tool_call.kind, title, content)) is not None:
                 return presentation
-        raise ValueError("No permission presentation admitted the ACP request")
+        raise ValueError("No permission presentation matches the ACP request")
 
     @classmethod
     @abstractmethod
-    def admit(cls, kind, title, content): ...
+    def for_request(cls, kind, title, content): ...
 
 class DiffPermissionPresentation(PermissionPresentation):
     def __init__(self, title, diffs):
@@ -32,7 +32,7 @@ class DiffPermissionPresentation(PermissionPresentation):
         self.diffs = diffs
 
     @classmethod
-    def admit(cls, kind, title, content):
+    def for_request(cls, kind, title, content):
         if kind != "edit" and not all(isinstance(item, FileEditToolCallContent) for item in content):
             return None
         records = [item for item in content if isinstance(item, FileEditToolCallContent)]
@@ -45,5 +45,5 @@ class InlinePermissionPresentation(PermissionPresentation):
     parts: tuple[ContentToolCallContent | FileEditToolCallContent | TerminalToolCallContent, ...]
 
     @classmethod
-    def admit(cls, kind, title, content):
+    def for_request(cls, kind, title, content):
         return cls(title, tuple(content))
