@@ -42,7 +42,7 @@ class ThreadSessionPanel(SessionPanel[CoordinationStatus]):
     panel_id = "coordination-panel"
 
     def make_widget(self, screen: "MainScreen") -> CoordinationStatus:
-        return CoordinationStatus(screen._comms_thread)
+        return CoordinationStatus(screen.app.coordination_access.service, screen._comms_thread)
 
 
 class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):

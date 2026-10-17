@@ -15,7 +15,6 @@ from __future__ import annotations
 from toad.core.input_events import SelectTarget
 from toad.core_event_carrier import CoreEventMessage
 
-import os
 import shlex
 from agent_comms.native_arguments import NativeArguments
 from functools import partial
@@ -41,6 +40,7 @@ from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.selection import ChangingText
+from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -173,12 +173,6 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
                 repainted.append(view)
         if repainted:
             self.sidebar.sync_current(repainted)
-
-
-def _comms_root() -> Path:
-    from agent_comms.route_selection import current_root
-
-    return current_root()
 
 
 def _display_path(path: Path) -> str:
@@ -343,35 +337,12 @@ class NewSessionButton(Static):
     def __init__(self) -> None:
         super().__init__("+ New Session")
 
-    def action_create(self) -> None:
-        from agent_comms.cli_commands import NewThreadCliCommand
-        from agent_comms.channel_targets import ProjectTarget
-        from toad.target_commands import TargetContext
-        from toad.thread_actions import ThreadAction
+    async def action_create(self) -> None:
+        await NewThreadAction().apply(self.app)
 
-        app = cast("ToadApp", self.app)
-        mode = app.selected_mode
-        source = app.workspace_sessions.origin(mode)
-        project = source.project_path if source is not None else app.project_dir
-
-        async def collect():
-            try:
-                def prepare():
-                    ctx = TargetContext(app, app.coordination_access.service,
-                                        ProjectTarget(str(project)), '', project, mode)
-                    return ctx, next(action for action in ctx.available_actions()
-                                     if action.declaration is NewThreadCliCommand)
-                ctx, definition = await app.preparation.run_thread(prepare)
-                if app.selected_mode == mode and self.is_attached:
-                    ThreadAction.collect(ctx, definition)
-            except (OSError, ValueError, RuntimeError) as error:
-                app.notify(str(error), title="New session", severity="error")
-
-        self.run_worker(collect(), group="new-session", exclusive=True)
-
-    def on_mouse_up(self, event) -> None:
+    async def on_mouse_up(self, event) -> None:
         if event.button == 1:
-            self.action_create()
+            await self.action_create()
 
     def _sidebar(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
@@ -403,8 +374,9 @@ class CoordinationStatus(Static):
     }
     """
 
-    def __init__(self, thread: str = "") -> None:
+    def __init__(self, service: Comms, thread: str = "") -> None:
         super().__init__()
+        self.service = service
         self.thread = thread
         self.refresh_status()
 
@@ -413,12 +385,8 @@ class CoordinationStatus(Static):
         self.refresh_status()
 
     def refresh_status(self) -> None:
-        try:
-            root = _comms_root()
-        except (OSError, ValueError, RuntimeError) as error:
-            self.update(f"Wire unavailable: {error}")
-            self.tooltip = "Invalid Comms route"
-            return
+        root = self.service.root
+        timing = self.service.configuration.reply_timing
         backend = NativeArguments.configured_binary()
         thread = self.thread or "connecting..."
         self.update(
@@ -437,9 +405,9 @@ class CoordinationStatus(Static):
             f"AGENT_COMMS_ROOT={root.resolve()}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
             f"AGENT_COMMS_AGENT_ARGS={args}\n"
-            f"AGENT_COMMS_REPLY_WINDOW={os.environ.get('AGENT_COMMS_REPLY_WINDOW', '8.0')}\n"
-            f"AGENT_COMMS_NO_REPLY_WINDOW={os.environ.get('AGENT_COMMS_NO_REPLY_WINDOW', '2.5')}\n"
-            f"AGENT_COMMS_REPLY_QUIET={os.environ.get('AGENT_COMMS_REPLY_QUIET', '1.5')}"
+            f"Reply window={timing.reply_window}\n"
+            f"No-reply window={timing.no_reply_window}\n"
+            f"Reply quiet={timing.reply_quiet}"
         )
 
 

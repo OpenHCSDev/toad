@@ -11,6 +11,10 @@ from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from toad.preferences import SETTINGS
+from agent_comms.cli_commands import NewThreadCliCommand
+from agent_comms.channel_targets import ProjectTarget
+from toad.target_commands import TargetContext
+from toad.thread_actions import ThreadAction
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -43,6 +47,15 @@ class PaletteAction:
 
     @abstractmethod
     def label(self, app: ToadApp) -> str: ...
+
+
+class MenuAction:
+    menu_order: ClassVar[int]
+    menu_label: str
+
+    @classmethod
+    def menu_items(cls):
+        yield cls()
 
 
 Context = TypeVar("Context")
@@ -79,15 +92,47 @@ class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
 
     binding_prefix = "app."
 
+    @classmethod
+    def menu(cls):
+        return tuple((action, action.menu_label)
+                     for kind in sorted(cls.members_with(MenuAction), key=lambda kind: kind.menu_order)
+                     for action in kind.menu_items())
 
-class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction):
+
+class NewThreadAction(ApplicationAction, MenuAction):
+    menu_order = 0
+    menu_label = "New thread"
+
+    async def apply(self, app: ToadApp) -> None:
+        mode = app.selected_mode
+        source = app.workspace_sessions.origin(mode)
+        project = source.project_path if source is not None else app.project_dir
+        app.run_worker(partial(self.collect, app, mode, project), group="new-session", exclusive=True)
+
+    async def collect(self, app, mode, project):
+        try:
+            def prepare():
+                ctx = TargetContext(app, app.coordination_access.service,
+                                    ProjectTarget(str(project)), '', project, mode)
+                return ctx, next(action for action in ctx.available_actions()
+                                 if action.declaration is NewThreadCliCommand)
+            ctx, definition = await app.preparation.run_thread(prepare)
+            if app.selected_mode == mode:
+                ThreadAction.collect(ctx, definition)
+        except (OSError, ValueError, RuntimeError) as error:
+            app.notify(str(error), title="New session", severity="error")
+
+
+class SettingsAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):
+    menu_order = 10
+    menu_label = "Settings"
     key = "f2,ctrl+comma"
     description = "Settings"
     tooltip = "Settings screen"
     help = "Edit persistent application preferences"
 
     def label(self, app: ToadApp) -> str:
-        return "Settings"
+        return self.menu_label
 
     async def apply(self, app: ToadApp) -> None:
         app.run_worker(partial(self.edit, app))
@@ -126,7 +171,9 @@ class ToggleFooterAction(ApplicationAction, PaletteAction):
         await SetFooterAction(not app.settings.ui.footer).apply(app)
 
 
-class QuitAction(KeyboundAction, ApplicationAction, PaletteAction):
+class QuitAction(KeyboundAction, ApplicationAction, PaletteAction, MenuAction):
+    menu_order = 100
+    menu_label = "Exit"
     key = "ctrl+q"
     description = "Quit"
     tooltip = "Quit the app and return to the command prompt."

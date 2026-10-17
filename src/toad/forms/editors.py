@@ -25,7 +25,8 @@ from textual.widgets._input import InputType
 
 from toad.forms.declared_views import DeclaredField, DeclaredViews, declarations
 from toad.forms.kinds import Multiline
-from toad.forms.presentation import FormCheckbox, FormInput, FormPart, FormSelectCurrent, FramedControl
+from toad.forms.presentation import FormCheckbox, FormInput, FormSelectCurrent, FramedControl
+from toad.widget_view import WidgetView
 
 if TYPE_CHECKING:
     EditorWidget = Widget
@@ -189,7 +190,7 @@ class MultilineEditor(ValueEditor, FramedControl, TextArea):
                 self.load_text(value)
 
 
-class SelectEditor(ValueEditor, FormPart, Select[object]):
+class SelectEditor(ValueEditor, WidgetView, Select[object]):
     """One of a list of values. A value that is not on the list shows as its own text."""
 
     CURRENT = FormSelectCurrent
@@ -259,7 +260,7 @@ class EnumEditor(SelectEditor):
         return ((format_enum_display(member), member) for member in members)
 
 
-class OptionalEditor(ValueEditor, FormPart, containers.VerticalGroup):
+class OptionalEditor(ValueEditor, WidgetView, containers.VerticalGroup):
     """A field that may hold nothing: a box says whether it holds a value, and the
     editor of that value is shown while it does."""
 
