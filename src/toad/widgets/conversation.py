@@ -1320,21 +1320,12 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         from toad.screens.session_view import SessionView
 
         event.stop()
-        event.menu.display = False
         cursor = self.navigation.cursor
         if (self.query_ancestor(SessionView).is_current and event.action is not None
                 and cursor is not None and cursor.accepts(event.owner)):
             await self.run_action(event.action, {"block": event.owner})
         if (cursor_block := self.cursor_block_child) is not None:
             self.call_after_refresh(self.cursor.refresh)
-        self.call_after_refresh(event.menu.remove)
-
-    @on(Menu.Dismissed)
-    async def on_menu_dismissed(self, event: Menu.Dismissed) -> None:
-        event.stop()
-        if event.menu.has_focus:
-            self.window.focus(scroll_visible=False)
-        await event.menu.remove()
 
     @handles(CurrentWorkingDirectoryChanged)
     def on_current_working_directory_changed(
@@ -2078,7 +2069,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             menu_options.append(MenuItem("[u]M[/u]aximize", "maximize_block", "m"))
 
         menu_options.extend(cursor.get_block_menu())
-        menu = Menu(block, menu_options)
+        menu = Menu(block, menu_options, focus_owner=self.window)
 
         region = cursor.region
         menu.offset = Offset(1, region.y if region is not None else self.window.region.y)
