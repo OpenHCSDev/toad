@@ -162,7 +162,7 @@ class OperationalSessionSources:
         elif agent is not None and agent.configuration.model.requires_selection:
             line = "Choose a model or connect a provider (click here). Your draft is kept."
         else:
-            line = self.activity_row(conversation).summary[0]
+            line = self.activity_row(conversation).presentation.summary
         return SessionDisposition.of(agent).present(line, lambda status: status.notice)
 
     def start_agent(self, conversation: Conversation) -> None:

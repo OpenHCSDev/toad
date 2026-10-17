@@ -37,7 +37,7 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     @staticmethod
     def of(agent) -> "SessionDisposition":
         """A view that has not started an agent holds no session."""
-        return ClosedSessionDisposition() if agent is None else agent.session.disposition
+        return UnopenedSessionDisposition() if agent is None else agent.session.disposition
 
     def close(self, agent):
         return self
@@ -48,6 +48,10 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
 
     async def present_failure(self, failure: AgentFail, view) -> None:
         await failure.present(view)
+
+
+class UnopenedSessionDisposition(SessionDisposition):
+    held_by_agent = False
 
 
 class UnavailableSessionDisposition(SessionDisposition):
