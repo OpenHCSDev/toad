@@ -62,7 +62,7 @@ from toad.widgets.transcript_lines import (
     HorizontalRows, Lines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
-from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
+from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
