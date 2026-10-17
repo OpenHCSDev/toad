@@ -120,7 +120,7 @@ class NativeSessionEntry(SessionEntry):
         source = self.source(sessions)
         if source is None or all(identity != row.incarnation for _, identity in self.original_threads(sessions)):
             return row
-        return source.session_disposition.shown_row(row)
+        return source.session_disposition.present(row, row.disconnected)
 
     async def reconnect(self, sessions, selected, snapshot, targets):
         if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
@@ -169,7 +169,7 @@ class NativeSessionEntry(SessionEntry):
                 for root, identity in originals):
             return NamedTab(self.mode, self.details.name.display or "New Session")
         if row is not None:
-            return ThreadTab(self.mode, source.session_disposition.shown_row(row))
+            return ThreadTab(self.mode, source.session_disposition.present(row, row.disconnected))
         return NamedTab(self.mode, self.details.name.display or "New Session")
 
     async def return_to(self, sessions: SessionNavigation) -> None:
