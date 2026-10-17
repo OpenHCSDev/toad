@@ -67,8 +67,6 @@ class WidgetView(BoxGeometry, PaintLayer, FramePaint):
 
 
 class FocusWithinView(WidgetView):
-    """A view whose declared paint depends on focus within its descendants."""
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.listen(events.DescendantFocus, self.refresh_paint)
