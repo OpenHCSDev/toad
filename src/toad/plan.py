@@ -1,4 +1,4 @@
-"""Admitted ACP plan items and toolkit-independent status facts."""
+"""Accepted ACP plan items and toolkit-independent status facts."""
 
 from __future__ import annotations
 

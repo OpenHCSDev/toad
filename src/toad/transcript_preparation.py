@@ -157,7 +157,7 @@ class PreparedTranscriptPage:
         if fragment_range.page() is not self:
             return
         if len(fragment_range.members) != fragment_range.stop - fragment_range.start:
-            raise RuntimeError("Original transcript suppliers do not cover their admission")
+            raise RuntimeError("Original transcript suppliers do not cover their range")
         self.set_fragment_range(slice(fragment_range.start, fragment_range.stop))
 
     @property
@@ -167,7 +167,7 @@ class PreparedTranscriptPage:
     # A page draws its selected fragments as lines: drawing moves a range,
     # it never mounts or removes native members.
     async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
-        """Admit the staged rows; the range owner alone combines its membership."""
+        """Accept the staged rows; the range owner alone combines its membership."""
         if not current():
             return False
         if prepared.fragments is not self.fragments:
@@ -286,7 +286,7 @@ class PreparedPageSource(ABC):
 
     def __init__(self) -> None:
         # This source holds the resources after their widgets detach. These are the
-        # original admitted resources, not another cache of transport pages.
+        # original accepted resources, not another cache of transport pages.
         self.held_pages: tuple[PreparedTranscriptPage, ...] = ()
         self.projection_source: ProjectedTranscriptSource | None = None
 
@@ -467,7 +467,7 @@ class TranscriptPageBuffer(PreparedPageSource):
 class ProjectedTranscriptSource(PreparedPageSource):
     """A projected prefix with a fixed boundary and ordinary bidirectional reads.
 
-    The boundary is the unadmitted prefix of one canonical page. Earlier reads
+    The boundary is the unread prefix of one canonical page. Earlier reads
     stop at its native before cursor; reaching that cursor forwards returns the
     retained boundary rather than overlapping the canonical mounted tail.
     Only the boundary and the caller's bounded pages remain strongly retained.

@@ -23,7 +23,7 @@ class MessageHandlingRequested(CoreEvent):
 
 @dataclass(frozen=True)
 class TranscriptSourceWorkFinished(CoreEvent):
-    """The original source released its admitted mutation resource."""
+    """The original source released its accepted mutation resource."""
 
 
 @dataclass(frozen=True)

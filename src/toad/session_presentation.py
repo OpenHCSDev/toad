@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 
 class SessionSurfaceSlot(Widget):
-    """The session's stable placement for its admitted native presentation."""
+    """The session's stable placement for its accepted native presentation."""
 
     DEFAULT_CSS = "SessionSurfaceSlot { display: none; }"
 
@@ -327,7 +327,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     async def apply_coordination(self, screen: "MainScreen", event: CoordinationChangedUpdate) -> None:
         """Apply a coordination update's view work to this session's conversation.
 
-        The workspace admits one session's native tree at a time, so the
+        The workspace accepts one session's native tree at a time, so the
         widget may be parked or not yet built. Its work waits for mounting,
         which applies the screen's retained fact.
         """
@@ -342,7 +342,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     async def acquire(self, screen: "MainScreen"):
         """Mount owned resources before the workspace opens the view, then restore them.
 
-        The workspace admits the yielded native tree before operational
+        The workspace accepts the yielded native tree before operational
         attachment can await or publish its restored presentation.
         """
         returning = self.widget is not None
@@ -410,7 +410,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
 
 class NativeSessionSurface:
-    """Admit session-owned trees without moving their ancestry or copying their state."""
+    """Accept session-owned trees without moving their ancestry or copying their state."""
 
     def __init__(self, app: "ToadApp") -> None:
         self._app = ref(app)
@@ -442,7 +442,7 @@ class NativeSessionSurface:
         async with self._lock:
             if self.view is screen:
                 return
-            assert self.view is None, "Departing source must retire before admitting the next source"
+            assert self.view is None, "Departing source must retire before accepting the next source"
             async with screen.presentation.acquire(screen) as conversation:
                 self.view = screen
             await self._trim_retained(conversation)
@@ -472,11 +472,11 @@ class NativeSessionSurface:
         ordered = dict.fromkeys((*required, *(
             owner for identity in app.tab_order.recent
             for owner in candidates.get(identity, ()))))
-        admitted = budget.admit(
+        kept = budget.fit(
             ordered, required, app.size.height, app.preparation.max_bytes,
         )
         for owner in ordered:
-            if owner not in admitted:
+            if owner not in kept:
                 await owner.evict()
 
     async def dispose(self, screen: "MainScreen") -> None:

@@ -38,6 +38,8 @@ Search for slash commands by typing a few characters from the command.
 class SlashComplete(CompletionPopup):
     """A widget to auto-complete slash commands."""
 
+    requires_completion = True
+
     CURSOR_BINDING_GROUP = Binding.Group(description="Select")
     BINDINGS = [
         Binding(
@@ -91,9 +93,6 @@ class SlashComplete(CompletionPopup):
     def for_prompt(cls, prompt: Prompt) -> Self | None:
         from toad.widgets.prompt import Prompt
         return cls().data_bind(slash_commands=Prompt.slash_commands)
-
-    def admitted(self) -> bool:
-        return self.prompt.supports_completion
 
     def cursor_changed(self, movement) -> None:
         if movement.entered_slash:
