@@ -92,11 +92,9 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         lines = self._lines
         if lines is None or y >= lines.height:
             return self.blank_row(self._width, paint)
-        return self.on_background(lines.strips_at(id(self))[y], paint)
+        return self.on_background(lines.strips_at(id(self))[y], paint, y)
 
-    def get_selection(self, selection):
-        paint = self._paint_state
-        text = "\n".join(self.render_line(y, paint).text.rstrip()
-                         for y in range(self._lines.height if self._lines is not None else 0))
-        return selection.extract(text), "\n"
+    @property
+    def line_sets(self) -> tuple[BlockLines, ...]:
+        return (self._lines,) if self._lines is not None else ()
 

@@ -10,7 +10,6 @@ from bisect import bisect_right
 
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.geometry import Size
-from textual.selection import Selection
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
@@ -25,9 +24,7 @@ from toad.widgets.transcript_lines import (
 
 
 class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
-    """Draw the declared body; the parent owns headers, identity and selection.
-    Copying yields the original source, not its wrapped presentation.
-    """
+    """Draw the declared body; full-source Copy remains separate from selection."""
 
     DEFAULT_CSS = "LineMarkdown { height: auto; }"
     RESTYLE_INTERVAL = 0.25
@@ -192,8 +189,8 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         if y >= len(strips):
             return self.blank_row(width, paint)
         # Prepared rows span exactly this width (Lines.strips_at).
-        return self.on_background(strips[y], paint)
+        return self.on_background(strips[y], paint, y)
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        """Selected text comes from the source text, not from drawn cells."""
-        return selection.extract(self.text), "\n"
+    @property
+    def line_sets(self) -> tuple[Lines, ...]:
+        return (self._lines(self._width),) if self._width else ()
