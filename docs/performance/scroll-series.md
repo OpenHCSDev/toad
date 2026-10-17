@@ -173,3 +173,10 @@ Two runtimes built by `build_runtime.py` that differ only in Toad: main 3114f9e1
 | #709 f31e221ac, run 1 (first run after build) / run 2 | 12.0 / 45.5 · 9.3 / 29.8 | 12.1 / 51.9 · 10.0 / 34.4 | 397/532 frames, 151/157 inputs, all painted. The second run matches main. No regression and no improvement shown. py-spy (read-only, 200 Hz) during the hold: 43% of busy main-thread samples in `Screen._layout_step`/`_finish_stepped_layout`, 8% in Toad `_prepare_edge`. |
 
 P60/P57 on the same pair, opening sessionless thread `p60-cli` and channel `#p60` with 120 seeded messages and one message arriving from another thread. Main, DM view: 2 drawn pages unmounted and 2 rebuilt pages mounted, with no fade. #709, DM view: 1 new page mounted with its fade and 0 unmounted. Channel view on both: 1 mount with its fade and 0 unmounted. A message that arrives while the tab is hidden fades once when the reader returns; paging older pages and End do not replay it. Raw data: `~/.cache/agent-scratch/claude-p60/runs/`, removed after the PR record.
+
+## 2026-10-16: P21 installed sidebar drag (not the fixed scrolling scenario)
+
+| Change | Drag frame median/p95 ms | Input-to-paint median/p95 ms | Result |
+|---|---:|---:|---|
+| Installed Toad6fe55cee0/Textuald290813a2, P32 clock build | 66.4 / 154.4 | Not isolated to drag | 17 affected frames; native layout starts/frame maximum2. Separate read-only 1000Hz/2s profile around one 1s drag: render_regions24, _get_dispatch_methods14, queue dumps13 self samples, not milliseconds. Raw `~/.cache/agent-scratch/toad-sidebar-frame-owner/{p32-installed,p21-installed-profile}/`. Fails16ms. |
+| Private styled-source Toad a9b584e4e/Textual4a9d7f780, real saved-session startup | Unmeasured | Unmeasured | Opening #comms crashed before any drag/meter: source factories incorrectly used event-preserving dispatch_sync. No after counts or improvement established. Both frontend/st exited; raw failure and exact log retained under `toad-sidebar-frame-owner/p21-after/`. Source repaired in861d72cd5 using declared factory handlers; corrected private build/drag still required. No provider input, replay, overlay or default promotion. |
