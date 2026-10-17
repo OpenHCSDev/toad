@@ -91,6 +91,8 @@ class GoalBar(VerticalGroup):
         self._source = ref(source)
         self._throbber = throbber
         self._prompt = prompt
+        self._horizontal_layout = HorizontalLayout()
+        self._grid_layout = GridLayout()
 
     @property
     def goal_display(self):
@@ -265,14 +267,14 @@ class GoalBar(VerticalGroup):
         controls.styles.dock = "left" if inline else "top" if self.collapsed else "none"
         controls.styles.width = "auto" if inline else "1fr"
         if sum(widths) <= width:
-            controls.styles.layout = HorizontalLayout()
+            controls.styles.layout = self._horizontal_layout
             controls.styles.height = 1
         else:
             # Keep every action reachable in narrow conversation panes.
             columns = len(widths)
             while columns > 1 and sum(max(widths[i::columns]) for i in range(columns)) > width:
                 columns -= 1
-            controls.styles.layout = GridLayout()
+            controls.styles.layout = self._grid_layout
             controls.styles.grid_size_columns = columns
             controls.styles.grid_columns = " ".join(
                 str(max(widths[i::columns])) for i in range(columns)
