@@ -13,6 +13,9 @@ class SurfaceBinding(DeclaredFamily, affix="SurfaceBinding"):
     def prepare(self, controller) -> None:
         """No frontend means no additional application resources to acquire."""
 
+    def sync_queue(self) -> None:
+        """A detached source has no queue summary to refresh."""
+
     def prepare_terminal(self, state) -> None:
         """A detached terminal keeps its original model's configured geometry."""
 

@@ -76,6 +76,10 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
             if self.owns_publication(message, target):
                 retirement.pop_all()
 
+    def sync_queue(self) -> None:
+        if (target := self.target) is not None:
+            target.submissions.publish_pending()
+
     def prepare_terminal(self, state) -> None:
         target = self.target
         if target is not None:
