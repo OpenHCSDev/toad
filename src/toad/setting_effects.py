@@ -19,13 +19,6 @@ class Effect:
         roots = (*app.workspace_sessions.views.values(), *app.screen_stack)
         return {widget for root in roots for widget in root.query(widget_type)}
 
-    @classmethod
-    def widgets(cls, widget_type, update):
-        def apply(app, field):
-            for widget in cls.open_widgets(app, widget_type):
-                update(widget, field.value)
-        return cls(apply)
-
 
 @Effect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
@@ -74,8 +67,17 @@ def vim_keys(app: ToadApp, field: DeclaredField) -> None:
     app.refresh_bindings()
 
 
-from toad.widgets.prompt import Prompt
-compact_input = Effect.widgets(Prompt, Prompt.apply_compact_input)
+@Effect
+def prompt_layout(app: ToadApp, field: DeclaredField) -> None:
+    from toad.widgets.prompt import Prompt
+    for prompt in Effect.open_widgets(app, Prompt):
+        prompt.refresh(layout=True)
+
+
+@Effect
+def footer(app: ToadApp, field: DeclaredField) -> None:
+    visibility.apply(app, field)
+    prompt_layout.apply(app, field)
 
 
 @Effect

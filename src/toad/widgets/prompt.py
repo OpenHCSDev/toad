@@ -26,7 +26,9 @@ from textual.widgets.text_area import Selection
 from textual import events
 
 from textual.geometry import Spacing
-from toad.widget_view import WidgetView
+from textual.color import TRANSPARENT
+from textual.css._style_properties import Edges
+from toad.widget_view import AUTO, WidgetView
 from toad.setting_widget import SettingVisibility
 from textual.css.scalar import Scalar
 from toad import messages
@@ -45,7 +47,7 @@ from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor,
 from toad.widgets.selection import ChangingText, SelectionOptionList
 from toad.widget_actions import DeclaredWidgetActions
 from toad.frame_presentation import TonePaint
-from ui_theme.scheme import PromptToneColour
+from ui_theme.scheme import PrimaryColour, SecondaryColour, PromptToneColour
 from toad.prompt_actions import PromptAction, SubmitNowAction
 
 if TYPE_CHECKING:
@@ -66,7 +68,15 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
         self.blur()
 
 
-class AgentInfo(SettingVisibility, PrimaryActivation, Label, setting="ui.agent_title"):
+class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting="ui.agent_title"):
+    width = AUTO
+    margin = Spacing(0, 1, 0, 0)
+
+    @property
+    def padding(self):
+        space = 0 if self.app.settings.ui.compact_input else 1
+        return Spacing(0, space, 0, space)
+
     @property
     def primary_activation(self):
         return self.query_ancestor(Prompt).on_agent_info_click
@@ -132,7 +142,27 @@ class InfoBar(SettingVisibility, WidgetView, containers.HorizontalGroup, setting
         return Spacing(0, space, 0, space)
 
 
-class PromptContainer(containers.HorizontalGroup):
+class PromptLabel(WidgetView, Label):
+    width = AUTO
+
+    @property
+    def padding(self):
+        return Spacing(0, 1, 0, 0 if self.app.settings.ui.compact_input else 1)
+
+
+class PromptContainer(WidgetView, containers.HorizontalGroup):
+    @property
+    def border(self):
+        prompt = self.query_ancestor(Prompt)
+        if self.app.settings.ui.compact_input:
+            if prompt._ask is None:
+                return super().border
+            colour = PrimaryColour
+        else:
+            colour = PrimaryColour if prompt.shell_mode else SecondaryColour
+        paint = self.app.colours.colour(colour) if self.has_focus_within else TRANSPARENT
+        return Edges(*(("tall", paint),) * 4)
+
     def on_mouse_down(self, event: events.MouseUp) -> None:
         for child in self.query("*"):
             if child.has_focus:
@@ -498,9 +528,9 @@ class Prompt(TonePaint, containers.VerticalGroup):
     PROMPT_MULTILINE = Content.styled("☰", "$text-secondary")
     TEXT_AREA_CLASS = PromptTextArea
 
-    prompt_container = getters.query_one("#prompt-container", Widget)
+    prompt_container = getters.query_one(PromptContainer)
     prompt_text_area = getters.query_one(PromptTextArea)
-    prompt_label = getters.query_one("#prompt", Label)
+    prompt_label = getters.query_one(PromptLabel)
     current_directory = getters.query_one(CondensedPath)
     path_search = getters.query_one(PathSearch)
     slash_complete = getters.query_one(SlashComplete)
@@ -521,14 +551,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
     status: var[str | Content | RichText] = var("")
 
     app: ToadApp
-
-    def apply_compact_input(self, compact: bool) -> None:
-        """Only the prompt's native boxes change; no app selector is invalidated."""
-        self.prompt_container.styles.border = ("tall", "transparent") if compact and self._ask is not None else "none" if compact else None
-        self.prompt_label.styles.padding = (0, 1, 0, 0) if compact else (0, 1)
-        for info in self.query(AgentInfo):
-            info.styles.padding = 0 if compact else (0, 1)
-        self.refresh(layout=True)
 
     def __init__(
         self,
@@ -594,7 +616,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     def sync_configuration(self) -> None:
         """Render the original operational owners; no accepted selection lives here."""
-        self.apply_compact_input(self.app.settings.ui.compact_input)
         if self.simple_input:
             return
         agent = self.agent
@@ -740,6 +761,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()
+        self.prompt_container.refresh_paint()
         self.watch_working_directory(self.working_directory)
 
     def compute_display_directory(self) -> str:
@@ -767,6 +789,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     def watch__ask(self, ask: Ask | None) -> None:
         self.set_class(ask is not None, "-mode-ask")
+        self.refresh(layout=True)
         if ask is None:
             self.app.terminal_attention.release(self)
             self.prompt_text_area.focus()
@@ -859,7 +882,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
         with PromptContainer(id="prompt-container"):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
-                yield Label(self.PROMPT_AI, id="prompt", markup=False)
+                yield PromptLabel(self.PROMPT_AI, id="prompt", markup=False)
                 yield self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind(
                     multi_line=Prompt.multi_line,
                     shell_mode=Prompt.shell_mode,
