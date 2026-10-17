@@ -184,7 +184,7 @@ class RendererWork(PreparationWork[ResultT]):
     @property
     @abstractmethod
     def render_task(self) -> RenderTask[ResultT]:
-        """A task admitted by the existing local/persistent renderer."""
+        """A task accepted by the existing local/persistent renderer."""
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
@@ -258,7 +258,7 @@ class PreparationRuntime:
 
     Model and render work use separate slots, so a backlog of CPU rendering
     cannot consume all model slots. A waiter cancellation leaves actual work
-    admitted until completion. Cached results are materialized on worker delivery:
+    held until completion. Cached results are materialized on worker delivery:
     native consumers may mutate tokens without corrupting another view's result.
     """
 
