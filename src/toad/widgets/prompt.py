@@ -74,8 +74,7 @@ class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting
 
     @property
     def padding(self):
-        space = 0 if self.app.settings.ui.compact_input else 1
-        return Spacing(0, space, 0, space)
+        return super().padding if self.app.settings.ui.compact_input else Spacing(0, 1, 0, 1)
 
     @property
     def primary_activation(self):
@@ -144,10 +143,21 @@ class InfoBar(SettingVisibility, WidgetView, containers.HorizontalGroup, setting
 
 class PromptLabel(WidgetView, Label):
     width = AUTO
+    AI = Content.styled("❯", "$text-secondary")
+    SHELL = Content.styled("$", "$text-primary")
+    MULTILINE = Content.styled("☰", "$text-secondary")
 
     @property
     def padding(self):
         return Spacing(0, 1, 0, 0 if self.app.settings.ui.compact_input else 1)
+
+    def render(self):
+        prompt = self.query_ancestor(Prompt)
+        if prompt.simple_input:
+            return self.AI
+        if prompt.shell_mode:
+            return self.SHELL
+        return self.MULTILINE if "\n" in prompt.text or "```" in prompt.text else self.AI
 
 
 class PromptContainer(WidgetView, containers.HorizontalGroup):
@@ -165,12 +175,7 @@ class PromptContainer(WidgetView, containers.HorizontalGroup):
         return Edges(*(("tall", paint),) * 4)
 
     def on_mouse_down(self, event: events.MouseUp) -> None:
-        for child in self.query("*"):
-            if child.has_focus:
-                return
-        prompt_text_area = self.query_one(PromptTextArea)
-        if not prompt_text_area.has_focus:
-            prompt_text_area.focus()
+        self.query_ancestor(Prompt).focus()
 
 
 class PromptSubmission:
@@ -206,7 +211,7 @@ See on-screen instructions for details.
         Binding("pageup", "history_page_up", "Previous messages", priority=True, show=False),
         Binding("pagedown", "history_page_down", "Next messages", priority=True, show=False),
         Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
-        Binding("ctrl+j", "line_feed", "New line", priority=True, show=False),
+        Binding("ctrl+j", "newline", "New line", priority=True, show=False),
         Binding(
             "shift+enter",
             "newline",
@@ -227,7 +232,6 @@ See on-screen instructions for details.
     app: ToadApp
 
     auto_completes: var[list[Option]] = var(list)
-    multi_line = var(False, bindings=True)
     shell_mode = var(False, bindings=True)
     path_complete: var[PathComplete] = var(Initialize(lambda obj: PathComplete()))
     suggestions: var[list[str] | None] = var(None)
@@ -322,9 +326,6 @@ See on-screen instructions for details.
 
     def action_newline(self) -> None:
         self._replace_via_keyboard("\n", *self.selection)
-
-    def action_line_feed(self) -> None:
-        self.action_newline()
 
     def action_history_page_up(self) -> None:
         from toad.widgets.conversation import Conversation
@@ -523,10 +524,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
         Binding("escape", "dismiss", "Dismiss", show=False),
     ]
 
-    PROMPT_NULL = " "
-    PROMPT_SHELL = Content.styled("$", "$text-primary")
-    PROMPT_AI = Content.styled("❯", "$text-secondary")
-    PROMPT_MULTILINE = Content.styled("☰", "$text-secondary")
     TEXT_AREA_CLASS = PromptTextArea
 
     prompt_container = getters.query_one(PromptContainer)
@@ -541,7 +538,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     slash_commands: var[list[SlashCommand]] = var(list)
     shell_mode = var(False)
-    multi_line = var(False)
     project_path = var(Path, init=False)
     working_directory = var("")
     display_directory = var("")
@@ -715,21 +711,11 @@ class Prompt(TonePaint, containers.VerticalGroup):
         parts: list[str] = []
         if feedback:
             parts.append(feedback)
-        if delivering:
-            parts.append(
-                f"Submitting ({len(delivering)}): "
-                + " · ".join(" ".join(text.split())[:100] for text in delivering[:3])
-            )
-        if queued:
-            parts.append(
-                f"Queued ({len(queued)}): "
-                + " · ".join(" ".join(text.split())[:100] for text in queued[:3])
-            )
-        if restored:
-            parts.append(
-                f"Restored ({len(restored)}, read-only): "
-                + " · ".join(" ".join(text.split())[:100] for text in restored[:3])
-            )
+        for label, texts, detail in (("Submitting", delivering, ""), ("Queued", queued, ""),
+                                     ("Restored", restored, ", read-only")):
+            if texts:
+                parts.append(f"{label} ({len(texts)}{detail}): "
+                             + " · ".join(" ".join(text.split())[:100] for text in texts[:3]))
         summary = self.query_one(".queue-summary", Label)
         summary.tooltip = "Submitting is an outstanding local request, not acceptance. Queued is the producer's accepted input, not consumption or completion. Restored rows are not local drafts."
         summary.update(Content(" | ".join(parts)))
@@ -756,9 +742,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.query_one(AgentInfo).update(agent_info)
         else:
             self.query_one(AgentInfo).update(self.operational_submissions.unavailable_reason)
-
-    def watch_multiline(self) -> None:
-        self.update_prompt()
 
     def watch_shell_mode(self) -> None:
         self.update_prompt()
@@ -800,31 +783,12 @@ class Prompt(TonePaint, containers.VerticalGroup):
             self.question.focus()
 
     def update_prompt(self):
-        """Update the prompt according to the current mode."""
-        if self.simple_input:
-            self.prompt_label.update(self.PROMPT_AI, layout=False)
-            self.remove_class("-shell-mode")
-            self.prompt_text_area.placeholder = (
-                self.simple_placeholder or "Message thread"
-            )
-            self.prompt_text_area.highlight_language = "markdown"
-            return
-        if self.shell_mode:
-            self.prompt_label.update(self.PROMPT_SHELL, layout=False)
-            self.add_class("-shell-mode")
-            self.prompt_text_area.placeholder = Content.from_markup(
-                "Enter shell command\t[r]▌esc▐[/r] prompt mode"
-            ).expand_tabs(8)
-            self.prompt_text_area.highlight_language = "shell"
-        else:
-            self.prompt_label.update(
-                self.PROMPT_MULTILINE if self.multi_line else self.PROMPT_AI,
-                layout=False,
-            )
-            self.remove_class("-shell-mode")
-
-            self.prompt_text_area.placeholder = ""
-            self.prompt_text_area.highlight_language = "markdown"
+        editor = self.prompt_text_area
+        shell = self.shell_mode and not self.simple_input
+        editor.placeholder = (self.simple_placeholder or "Message thread") if self.simple_input else (
+            Content.from_markup("Enter shell command\t[r]▌esc▐[/r] prompt mode").expand_tabs(8) if shell else "")
+        editor.highlight_language = "shell" if shell else "markdown"
+        self.prompt_label.refresh()
 
     def focus(self, scroll_visible: bool = True) -> Self:
         if self._ask is not None:
@@ -847,10 +811,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     @on(TextArea.Changed)
     def on_text_area_changed(self, event: TextArea.Changed) -> None:
-        text = event.text_area.text
-
-        self.multi_line = "\n" in text or "```" in text
-
         if self.simple_input:
             self.shell_mode = False
 
@@ -883,9 +843,8 @@ class Prompt(TonePaint, containers.VerticalGroup):
         with PromptContainer(id="prompt-container"):
             yield Question()
             with containers.HorizontalGroup(id="text-prompt"):
-                yield PromptLabel(self.PROMPT_AI, id="prompt", markup=False)
+                yield PromptLabel(id="prompt", markup=False)
                 yield self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind(
-                    multi_line=Prompt.multi_line,
                     shell_mode=Prompt.shell_mode,
                     project_path=Prompt.project_path,
                     working_directory=Prompt.working_directory,

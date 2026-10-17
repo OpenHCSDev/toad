@@ -23,9 +23,12 @@ class Effect:
 
 @Effect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
+    from toad.widgets.prompt import Prompt
     for widget in Effect.open_widgets(app, SettingVisibility):
         if widget.visibility_setting == field.path.value:
             widget.display = field.value
+    for prompt in Effect.open_widgets(app, Prompt):
+        prompt.refresh(layout=True)
 
 
 @Effect
@@ -65,19 +68,6 @@ def vim_keys(app: ToadApp, field: DeclaredField) -> None:
     for editor in Effect.open_widgets(app, PromptTextArea):
         editor.apply_keyboard_profile()
     app.refresh_bindings()
-
-
-@Effect
-def prompt_layout(app: ToadApp, field: DeclaredField) -> None:
-    from toad.widgets.prompt import Prompt
-    for prompt in Effect.open_widgets(app, Prompt):
-        prompt.refresh(layout=True)
-
-
-@Effect
-def footer(app: ToadApp, field: DeclaredField) -> None:
-    visibility.apply(app, field)
-    prompt_layout.apply(app, field)
 
 
 @Effect

@@ -80,7 +80,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     """Text shown as placeholder in prompt text area"""
 
     compact_input: Annotated[
-        bool, FieldLabel("Compact text input?"), effects.prompt_layout
+        bool, FieldLabel("Compact text input?"), effects.visibility
     ] = field(default=False, metadata=saved_as("compact-input"))
     """Remove border and margin around the text area for additional space"""
 
@@ -92,7 +92,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     ] = field(default=AlwaysSessionBar, metadata=saved_as("sessions-bar"))
     """When to show the sessions bar (tabs at top of screen)."""
 
-    footer: Annotated[bool, FieldLabel("Enable footer?"), effects.footer] = True
+    footer: Annotated[bool, FieldLabel("Enable footer?"), effects.visibility] = True
     """Disable the footer if you want additional room."""
 
     info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility] = field(
