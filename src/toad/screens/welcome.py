@@ -63,7 +63,7 @@ class WelcomeTitle(SplashText):
             self.refresh()
 
 
-class WelcomeSection(SidebarGroup[str, CommsRow]):
+class WelcomeSection(SidebarGroup[CommsRow]):
     """Some of the sidebar model's rows under a title."""
 
     TITLE = ""
