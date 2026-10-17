@@ -100,7 +100,7 @@ class MessageRow:
 
 @dataclass(frozen=True)
 class WireBody(LineBlock):
-    """Message provenance stays with the message, not with a theme or paragraph."""
+    """Where a message came from stays with the message, not with a theme or paragraph."""
 
     row: MessageRow
     text: str

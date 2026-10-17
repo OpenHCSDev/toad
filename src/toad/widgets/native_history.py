@@ -1,4 +1,4 @@
-"""Session provenance only: no controls or input-disposition semantics."""
+"""Session source only: no controls and no decisions about input."""
 
 from textual.reactive import var
 from textual.widgets import Static
