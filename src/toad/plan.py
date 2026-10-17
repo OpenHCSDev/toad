@@ -11,7 +11,7 @@ from acp.schema import PlanEntry
 
 
 class PlanStatus(DeclaredFamily, affix="PlanStatus"):
-    """ACP status names select their behavior once, at plan admission."""
+    """ACP status names select their behavior once, when accepting a plan."""
 
     complete: ClassVar[bool] = False
 

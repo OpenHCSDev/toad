@@ -164,7 +164,7 @@ class PreparedTranscriptPage:
     def retained_source_bytes(self):
         return self.retained_bytes
 
-    # A page draws its admitted fragments as lines: admission moves a range,
+    # A page draws its selected fragments as lines: drawing moves a range,
     # it never mounts or removes native members.
     async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
         """Admit the staged rows; the range owner alone combines its membership."""
@@ -199,7 +199,7 @@ class PreparedTranscriptPage:
         view.range_changed()
 
     def for_view(self) -> PreparedTranscriptPage:
-        """An independent view owns admission and resolved source acquisitions.
+        """An independent view owns its drawing range and loaded source data.
 
         The worker's immutable source/syntax remains reusable. Its stored page
         never acquires a frontend document or another projection's lifetime.
@@ -212,7 +212,7 @@ class PageFragmentRange:
     """Reading demand holds this actual page's bounded source acquisitions.
 
     Reader intent retains its bounded original members, never the whole page.
-    Native admission can move independently of these original source slots.
+    The drawn range can move independently of these source slots.
     Another page or projection never owns them merely because its backend
     interval happens to be equal.
     """
@@ -364,8 +364,8 @@ class CategoryProjection(TranscriptPageProjection):
         return page.fragments
 
     async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:
-        # Project one source page on the model lane. Widget admission is owned
-        # separately by the same bounded pager used for unfiltered history.
+        # Filter one source page on the model lane. The same bounded pager
+        # used for unfiltered history decides which widgets to show.
         fragments = self.fragments_for(page)
         matches = await runtime.submit(TranscriptFilterWork(
             page, fragments, self.selected, len(fragments), len(fragments),
@@ -434,7 +434,7 @@ class TranscriptPageBuffer(PreparedPageSource):
     The loader retains ownership of transcript/routing semantics and off-loop
     I/O. CPU preparation uses the application's existing renderer. Foreground
     consumers share in-flight requests; cancelling one waiter cannot release a
-    still-running read's admission or publish it into a closed view.
+    still-running read's slot or publish it into a closed view.
     """
 
     # The work that reads and prepares one page of this kind of source.

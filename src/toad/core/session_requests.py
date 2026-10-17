@@ -13,7 +13,7 @@ from toad.core.events import CoreEvent
 
 
 class WorkspaceSessionRequest(Command, CoreEvent):
-    """The original session admission owner applies each declared request."""
+    """The workspace session manager applies each declared request."""
 
     @abstractmethod
     async def apply(self, admission) -> None: ...

@@ -95,7 +95,7 @@ class TranscriptPublication(ABC):
                 return await self.publish_applied()
         except CoordinationReadUnavailable:
             # No source snapshot was acquired. Keep the original operation,
-            # mounted history and admission unchanged until a new observation
+            # mounted history and work slot unchanged until a new observation
             # or the existing preparation completion resumes source work.
             if self.current():
                 self.owner.source_requests.defer(self)

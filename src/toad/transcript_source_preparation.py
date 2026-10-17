@@ -29,7 +29,7 @@ class _DrawingStopped(Exception):
 
 @dataclass(frozen=True)
 class HistorySourceSnapshot:
-    """One original source/view identity for page and filter publication."""
+    """One source/view identity for page and filter publication."""
 
     generation: int
     window: HistoryWindow
@@ -94,7 +94,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     async def on_unmount(self) -> None:
         # Parked preparation belongs to the logical document. Unmount revokes
-        # this publisher, not the original source scope transferred with it.
+        # this publisher, not the source scope transferred with it.
         self._source_state.retire_preparation(self._page_buffer)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
@@ -105,7 +105,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Close independent source subscriptions, separately from page custody."""
 
     def request_preparation(self) -> None:
-        """Borrow the original frame's admission for this independent source.
+        """Use the frame's preparation slot for this independent source.
 
         The window supplies scroll/layout demand. A pager keeps its own native
         callback scope so a held sibling cannot block its source publication.
@@ -125,7 +125,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.schedule_source_work(partial(self._prepare_edge, older))
 
     async def _prepare_edge(self, older: bool) -> None:
-        """Keep one admission while its committed publications request more rows."""
+        """Keep one preparation slot while committed publications request more rows."""
         snapshot = self.source_snapshot()
         while snapshot.current(self) and await self._load_page(older):
             pass
@@ -142,12 +142,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     async def _jump_latest(self, request: LatestViewportRequest,
                            publication_current: Callable[[], bool] = lambda: True) -> bool:
-        """Publish one destination under its original source and reader intent.
+        """Publish one destination using its captured source and reader position.
 
         A preceding page's restoration may have left the window off its tail.
         Apply the still-current destination before its source read, then finish
         native geometry after publication. Neither restoration is another user
-        scroll; movement during I/O revokes this request at its original revision.
+        scroll; movement during I/O invalidates the captured request revision.
         """
         if not self.can_draw_on_screen or not request.current(self.window):
             return False
@@ -155,7 +155,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         snapshot = self.source_snapshot()
         current = lambda: snapshot.current(self) and request.current(snapshot.window) and publication_current()
         if await self._publish_latest(current):
-            # Wire acceptance advances the original reader source. Capture the
+            # Accepting a wire page advances the reader source. Capture the
             # published source, rather than the request that acceptance replaced.
             self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
             return True
@@ -219,7 +219,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                                 ))
                             views.appendleft(view)
                             before = view
-                        # Keep original fragments, prepared lines and documents.
+                        # Keep existing fragments, prepared lines and documents.
                         for prepared, view in destination:
                             if view is not None and not await view.prepared.replace_range(
                                 view, slice(prepared.start, prepared.stop), current,
@@ -292,10 +292,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
-        """Keep the original read until the shared observer supplies relief.
+        """Keep the pending read until the shared observer signals a change.
 
-        This signal subscription is an operation resource. Its original source
-        snapshot rejects a replaced, parked or retired pager before admission.
+        This signal subscription belongs to the operation. Its captured source
+        snapshot rejects a replaced, parked or retired pager before work starts.
         """
         snapshot = self.source_snapshot()
 
@@ -322,7 +322,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         request.apply(self)
 
     def finish_source_work(self, operation: WorkingTranscript) -> None:
-        # Retirement or replacement revokes this exact admission. A cancelled
+        # Only the current operation may publish. A cancelled
         # old operation cannot publish again or settle a newer source's work.
         if self._source_state is operation:
             self._source_state = operation.source

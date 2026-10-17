@@ -206,7 +206,7 @@ class ThreadOpening:
 class NavigationReader:
     """Latest intent wins; at most two real metadata reads run concurrently.
 
-    A cancelled UI waiter cannot free the admission slot of a thread still
+    A cancelled UI waiter cannot free the work slot of a thread still
     waiting on a filesystem/core lock. Superseded queued requests never read.
     """
 
