@@ -17,9 +17,6 @@ from toad.core_event_carrier import CoreEventMessage
 
 import os
 import shlex
-from collections import Counter
-from collections.abc import Hashable
-
 from agent_comms.native_arguments import NativeArguments
 from functools import partial
 from pathlib import Path
@@ -175,44 +172,6 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
                 repainted.append(view)
         if repainted:
             self.sidebar.sync_current(repainted)
-
-
-class RowWidths:
-    """The widest model row in cells, measuring only the rows that changed.
-
-    Widths are capped, so the widest is found among a bounded set of distinct
-    widths rather than among every row.
-    """
-
-    cap = 512
-
-    def __init__(self) -> None:
-        self.widths: dict[Hashable, int] = {}
-        self.counts: Counter[int] = Counter()
-
-    def measure(self, key: Hashable, width: int) -> None:
-        width = min(width, self.cap)
-        previous = self.widths.get(key)
-        if previous == width:
-            return
-        if previous is not None:
-            self.forget(key)
-        self.widths[key] = width
-        self.counts[width] += 1
-
-    def forget(self, key: Hashable) -> None:
-        if (width := self.widths.pop(key, None)) is not None:
-            self.counts[width] -= 1
-            if not self.counts[width]:
-                del self.counts[width]
-
-    def clear(self) -> None:
-        self.widths.clear()
-        self.counts.clear()
-
-    @property
-    def widest(self) -> int:
-        return max(self.counts, default=0)
 
 
 def _comms_root() -> Path:
@@ -610,9 +569,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.new_session: NewSessionButton | None = None
         # Thread name -> the mode of the tab that has it open.
         self.open_views: dict[str, str] = {}
-        # Full row text is retained; the panel grows to the widest row.
-        self.channel_widths = RowWidths()
-        self.thread_widths = RowWidths()
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
@@ -651,8 +607,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def model_replaced(self) -> None:
         self.display = False
         self.navigation.reset()
-        self.channel_widths.clear()
-        self.thread_widths.clear()
         if self.groups:
             self.remove_children(list(self.groups.values()))
             self.groups.clear()
@@ -668,7 +622,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         model = self.model
         assert model is not None
         rows = model.channels.rows
-        self.measure(channels, threads)
         if threads is None or threads:
             self.open_views = self.find_open_views()
         if self.new_session is None:
@@ -690,16 +643,16 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                 group.sync_members()
             elif threads:
                 group.repaint_members(threads)
-        if added and (self._group_mounting is None or self._group_mounting.is_finished):
-            self._group_mounting = self.run_worker(self._mount_groups(), group="sidebar-groups")
-        if removed or added or reorder:
-            self._order_groups()
+        if self._group_mounting is None or self._group_mounting.is_finished:
+            if added:
+                self._group_mounting = self.run_worker(self._mount_groups(), group="sidebar-groups")
+            elif removed or reorder:
+                self._order_groups()
         panel = self.query_ancestor(SideBarCollapsible)
         control = panel.header_control
         assert isinstance(control, ChannelListSort)
         control.update_order(model.channel_order)
         self.navigation.apply()
-        panel.styles.min_width = max(self.channel_widths.widest, self.thread_widths.widest)
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
@@ -729,30 +682,12 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
-        positions = {widget: index for index, widget in enumerate(
-            (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups)))}
-        live = [child for child in self.children if not child._pruning]
-        if live != sorted(live, key=lambda child: positions.get(child, len(positions))):
+        ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
+        live = tuple(child for child in self.children if not child._pruning)
+        if live != ordered:
+            positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
         self.navigation.rows_changed()
-
-    def measure(self, channels: frozenset[str] | None, threads: frozenset[str] | None) -> None:
-        """Measure the changed rows' text; ``None`` measures every channel or thread."""
-        model = self.model
-        if channels is None:
-            self.channel_widths.clear()
-        # Channel changes name added and changed rows; removed ones are absent.
-        for name in [name for name in self.channel_widths.widths if name not in model.channels.rows]:
-            self.channel_widths.forget(name)
-        for name in model.channels.rows if channels is None else channels:
-            self.channel_widths.measure(name, cell_len(name) + 12)
-        if threads is None:
-            self.thread_widths.clear()
-        for name in model.threads.rows if threads is None else threads:
-            if (row := model.threads.rows.get(name)) is not None:
-                self.thread_widths.measure(name, max(cell_len(row.label), cell_len(row.summary)) + 8)
-            else:
-                self.thread_widths.forget(name)
 
     def find_open_views(self) -> dict[str, str]:
         """Which open tab shows each thread of this service; the first tab claims it."""

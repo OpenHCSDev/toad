@@ -117,6 +117,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
+            for page in self.pages:
+                page.prepare_viewport(self.window)
             self.state.check_edges(self)
 
     def request_page(self, older: bool) -> None:

@@ -242,22 +242,39 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
     def _measure(self, width: int) -> None:
         self._width, self._measured = width, True
         self._pending.clear()
+        previous = {id(fragment): lines for fragment, _first, lines in self._layout}
+        visible = {id(fragment) for fragment in self.visible_fragments(self.history.window)} if previous else set()
+        theme = self.app.colours.line_theme
         layout, starts, y = [], [], 0
         if width > 0:
             for fragment in self.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
                     continue
-                # Layout needs only the row count; rows and strips are
-                # built when a row is drawn, so a width change draws no text.
-                lines = self._lines(fragment, width)
+                # Offscreen rows retain their existing measured geometry.
+                # A different Lines.width already expresses pending wrapping;
+                # there is no second stale flag or resize cache.
+                lines = previous.get(id(fragment))
+                if (lines is None or id(fragment) in visible
+                        or not fragment.retains_lines(lines, theme)):
+                    lines = self._lines(fragment, width)
                 layout.append((fragment, y, lines))
                 starts.append(y)
                 y += lines.height
         self._layout, self._starts, self._height = layout, starts, y
         self._first_row = {id(fragment): first for fragment, first, _lines in layout}
-        if self._pending and self.is_attached and (self._render_task is None or self._render_task.done()):
-            # Layout calls this to measure: start the renderer in its own loop
-            # turn, not inside the measurement (the task factory is eager).
+        if self.is_mounted:
+            self.history.request_preparation()
+
+    def prepare_viewport(self, window) -> None:
+        """Prepare only the measured rows the window currently exposes."""
+        theme = self.app.colours.line_theme
+        visible = tuple(self.visible_rows(window))
+        if any(lines.width != self._width or not fragment.retains_lines(lines, theme)
+               for fragment, _rows, lines in visible):
+            self.range_changed()
+            return
+        if (visible and self._pending
+                and (self._render_task is None or self._render_task.done())):
             self._render_task = asyncio.create_task(self._render_pending(), eager_start=False)
 
     @height_dependency(INDEPENDENT_HEIGHT)
@@ -350,8 +367,12 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
             return
         top = int(window.scroll_y - offset)
         bottom = top + window.outer_size.height
-        for fragment, first, lines in self._layout:
-            if first < bottom and first + lines.height > top:
+        slot = max(0, bisect_right(self._starts, top) - 1)
+        for index in range(slot, len(self._layout)):
+            fragment, first, lines = self._layout[index]
+            if first >= bottom:
+                break
+            if first + lines.height > top:
                 yield fragment, range(max(0, top - first), min(lines.height, bottom - first)), lines
 
     def visible_fragments(self, window) -> tuple[TranscriptFragment, ...]:
@@ -363,9 +384,9 @@ class TranscriptPageView(ReferenceRendering, Animated, HorizontalRows, Widget):
 
         window = self.query_ancestor(HistoryWindow)
         rows = self._first_row
-        pending = list(self._pending.values())
-        # On screen, style the rows nearest the reader first. An off-screen
-        # page (prepared ahead) has no reader row; its order does not matter.
+        pending = [fragment for fragment in self.visible_fragments(window)
+                   if id(fragment) in self._pending]
+        # Render only visible viewport rows, nearest the reader first.
         if (offset := window.placed_row(self)) is not None:
             reader = window.scroll_y - offset
             pending.sort(key=lambda fragment: abs(rows[id(fragment)] - reader))
@@ -550,8 +571,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     @property
     def line_width(self) -> int:
-        """The width pages draw at, as laid out; 0 before the first layout."""
-        return next((page.line_width for page in self.pages if page.line_width), 0)
+        """Native content width; offscreen pages may retain older row widths."""
+        return max(0, self.size.width - self.scrollbar_gutter.width)
 
     async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
                            target: Contents, selected: frozenset[type[MessageCategory]],
