@@ -8,7 +8,7 @@ from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.transcript_lines import LinkedRows, LinePreparation, TranscriptLinesRenderTask, PreparedLines
-from toad.widgets.transcript_fragments import FragmentLineConsumer
+from toad.widgets.transcript_fragments import transcript_fragments
 
 
 class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
@@ -53,12 +53,12 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
             if width <= 0:
                 return
             theme = self.app.colours.line_theme
-            consumer = FragmentLineConsumer(show_divider=True)
-            for event in draft.events:
-                consumer.dispatch_sync(event)
+            # The committed history's fragments draw it, so a running tool shows as one.
+            blocks = tuple(block for fragment in transcript_fragments(draft.events)
+                           for block in fragment.line_blocks)
             context = await LinkContext.acquire(self)
             lines = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), width, theme), context))
+                TranscriptLinesRenderTask(LinePreparation(blocks, width, theme), context))
             if not context.current_for(self):
                 continue
             if not self.is_attached or self.draft is None:
