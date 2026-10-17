@@ -38,15 +38,7 @@ class ReaderPosition(ABC):
         if window.follows_tail:
             return TailPosition()
         y = window.scroll_y
-        # The reader's row is on screen: a page layout did not place cannot hold it.
-        pages = [(first, page) for history in window.line_histories() for page in history.pages
-                 if page.line_count and (first := window.placed_row(page)) is not None]
-        # The page drawn at the window's top; above every page (on the
-        # earlier-history edge) the reader is on the first message below, at a
-        # distance above it.
-        reading = (next(((first, page) for first, page in pages if first <= y < first + page.line_count), None)
-                   or min(((first, page) for first, page in pages if first > y),
-                          key=lambda placed: placed[0], default=None))
+        reading = window.page_at(y)
         if reading is not None:
             first, page = reading
             row = max(0, int(y - first))
@@ -161,8 +153,8 @@ class FragmentPosition(OffsetPosition):
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that has this message admitted."""
-        return next((page for history in window.line_histories() for page in history.pages
-                     if page.fragment_row(self.fragment) is not None and window.displays(page)), None)
+        return next((page for page in window.drawn_pages()
+                     if page.fragment_row(self.fragment) is not None), None)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         page = self.page(window)
@@ -495,6 +487,27 @@ class HistoryWindow(VerticalScroll):
             raise LookupError(f"{widget!r} is not placed in {self!r}'s layout; "
                               "a reader position's widgets must be visible or declared geometry targets")
         return row
+
+    def drawn_pages(self):
+        """Pages in this window's published viewport, not all loaded history."""
+        from toad.widgets.transcript_history import TranscriptPageView
+
+        pages = (widget for widget in self.screen._compositor.published_widgets
+                 if isinstance(widget, TranscriptPageView) and self.displays(widget))
+        yield from self.visible_history_items(pages)
+
+    def page_at(self, y: float):
+        """The page drawn at a row, or the nearest drawn page below the earlier-history edge."""
+        reading = None
+        for page in self.drawn_pages():
+            first = self.placed_row(page)
+            if first is None or not page.line_count:
+                continue
+            if first <= y < first + page.line_count:
+                return first, page
+            if first > y and (reading is None or first < reading[0]):
+                reading = first, page
+        return reading
 
     def top_block(self) -> Widget | None:
         """The topmost live block on screen (not a saved history, whose pages are read by message).
