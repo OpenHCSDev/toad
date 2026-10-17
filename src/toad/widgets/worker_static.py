@@ -123,7 +123,7 @@ class WorkerStatic(PreparedPaintSource, Static):
         self.set_source(cast(RenderableType | RichSource, content))
 
     def _request_preparation(self, *, capture: bool = False) -> None:
-        if self._closed or self._pruning or not self.is_attached:
+        if self._closed or self.is_leaving or not self.is_attached:
             return
         # Parent width is an auto-width constraint, not this source's layout
         # admission. Mount/style callbacks may run before an offscreen child
@@ -196,7 +196,7 @@ class WorkerStatic(PreparedPaintSource, Static):
                 if request is None or request == self._ready_request:
                     return
                 prepared = await app.render_processes.submit(request.task)
-                if self._closed or self._pruning or not self.is_attached:
+                if self._closed or self.is_leaving or not self.is_attached:
                     return
                 if request != self._wanted:
                     continue

@@ -71,10 +71,8 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         # an ancestor is removed. Decode at this framework boundary so an
         # async page cannot publish during that interval. They are framework
         # facts, never independent fields maintained by TranscriptHistory.
-        if widget._closing:
+        if widget.is_leaving:
             return ClosingTranscript(self)
-        if widget._pruning:
-            return PruningTranscript(self)
         if not widget.is_attached:
             return DetachedTranscript(self)
         return self
@@ -92,7 +90,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 class ProvisionalTranscript(TranscriptState):
     @classmethod
     def successors(cls):
-        return (LiveTranscript, DetachedTranscript, PruningTranscript, ClosingTranscript)
+        return (LiveTranscript, DetachedTranscript, ClosingTranscript)
 
     def publish(self) -> TranscriptState:
         return LiveTranscript()
@@ -119,7 +117,7 @@ class LiveTranscript(TranscriptState):
     @classmethod
     def successors(cls):
         return (LiveTranscript, ParkedSourceTranscript, DetachedTranscript,
-                PruningTranscript, ClosingTranscript)
+                ClosingTranscript)
 
     def publish(self) -> TranscriptState:
         return self
@@ -218,7 +216,7 @@ class WorkingTranscript(SuspendedTranscript):
     @classmethod
     def successors(cls):
         return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript,
-                PruningTranscript, ClosingTranscript, DetachedTranscript)
+                ClosingTranscript, DetachedTranscript)
 
     async def execute(self, owner, work):
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
@@ -256,12 +254,6 @@ class DetachedTranscript(SuspendedTranscript):
     @classmethod
     def successors(cls):
         return (LiveTranscript, ProvisionalTranscript)
-
-
-class PruningTranscript(SuspendedTranscript):
-    @classmethod
-    def successors(cls):
-        return (ClosingTranscript, DetachedTranscript)
 
 
 class ClosingTranscript(SuspendedTranscript):

@@ -227,7 +227,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
         self.target = target
 
     def is_navigation_row(self) -> bool:
-        return self.is_attached and not self._pruning and not self._closing
+        return self.is_attached and not self.leaving
 
     @property
     def selected(self) -> bool:
@@ -236,7 +236,6 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
-        self.remove_class("-wire-thread")
         self.update(Content(label))
 
     def sidebar_owner(self):
@@ -537,7 +536,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
-        return (self.is_attached and not self._closing and not self._pruning
+        return (self.is_attached and not self.is_leaving
                 and self.app.is_running and self.screen.is_current)
 
     def accepts_observation(self) -> bool:
@@ -648,7 +647,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
-        live = tuple(child for child in self.children if not child._pruning)
+        live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
