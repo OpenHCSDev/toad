@@ -21,7 +21,7 @@ from rich.text import Text
 from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
-from rich.terminal_theme import DEFAULT_TERMINAL_THEME, TerminalTheme
+from rich.terminal_theme import TerminalTheme
 from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
@@ -61,7 +61,6 @@ class LineTheme:
     color_system: str
     diff: DiffSettings = field(default_factory=DiffSettings)
     syntax: SyntaxPalette = SyntaxPalette(False, True)
-    terminal_theme: TerminalTheme = DEFAULT_TERMINAL_THEME
 
     def style(self, role: type[LineRole]) -> Style:
         return self.styles[role]
@@ -77,14 +76,14 @@ class LineTheme:
         return style + Style(italic=role.italic or None, bold=role.bold or None,
                              underline=role.underline or None)
 
-    def with_colour(self, colour: type[ThemeColour], style: Style) -> LineTheme:
+    def with_colour(self, colour: type[ThemeColour], style: Style, terminal_theme: TerminalTheme) -> LineTheme:
         """This theme with one colour drawn another way, as a fade draws it part of the way through."""
-        return replace(self, styles={role: self._style(role, style, self.terminal_theme)
+        return replace(self, styles={role: self._style(role, style, terminal_theme)
                                      if role.colour is colour else held for role, held in self.styles.items()})
 
     @classmethod
     def of(cls, variables: Mapping[str, str], color_system: str,
-           terminal_theme: TerminalTheme = DEFAULT_TERMINAL_THEME) -> LineTheme:
+           terminal_theme: TerminalTheme) -> LineTheme:
         from textual.color import Color
 
         def colour(name: str) -> Style:
@@ -94,7 +93,7 @@ class LineTheme:
         muted = Style(dim=True) if Color.parse(variables["foreground"]).ansi is not None else colour(MutedColour.name)
         return cls({role: cls._style(role, muted if role.colour is MutedColour else colour(role.colour.name),
                                     terminal_theme) for role in LineRole.members_with(LineRole)},
-                   color_system, terminal_theme=terminal_theme)
+                   color_system)
 
 
 def link_style(link: LineLink | None) -> Style:
