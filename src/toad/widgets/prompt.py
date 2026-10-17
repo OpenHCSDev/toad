@@ -25,7 +25,10 @@ from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 from textual import events
 
-from toad.app import ToadApp
+from textual.geometry import Spacing
+from toad.widget_view import WidgetView
+from toad.setting_widget import SettingVisibility
+from textual.css.scalar import Scalar
 from toad import messages
 from toad.widgets.highlighted_textarea import HighlightedTextArea
 from toad.widgets.condensed_path import CondensedPath
@@ -46,6 +49,7 @@ from ui_theme.scheme import PromptToneColour
 from toad.prompt_actions import PromptAction, SubmitNowAction
 
 if TYPE_CHECKING:
+    from toad.app import ToadApp
     from toad.agent import AgentBase
 
 
@@ -62,7 +66,7 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
         self.blur()
 
 
-class AgentInfo(PrimaryActivation, Label):
+class AgentInfo(SettingVisibility, PrimaryActivation, Label, setting="ui.agent_title"):
     @property
     def primary_activation(self):
         return self.query_ancestor(Prompt).on_agent_info_click
@@ -89,7 +93,7 @@ class ModeInfo(PrimaryActivation, Label):
         return self.query_ancestor(Prompt).on_mode_info_click
 
 
-class StatusLine(ChangingText, Label):
+class StatusLine(SettingVisibility, ChangingText, Label, setting="ui.status_line"):
     status: var[str | Content | RichText] = var("")
 
     def watch_status(self, status: str | Content | RichText) -> None:
@@ -116,6 +120,16 @@ class QueueSummary(PrimaryActivation, ChangingText, Label, can_focus=True):
         if event.button == 1:
             event.stop()
             self.action_edit_queue()
+
+
+class InfoBar(SettingVisibility, WidgetView, containers.HorizontalGroup, setting="ui.info_bar"):
+    height = Scalar.parse("1")
+
+    @property
+    def margin(self):
+        ui = self.app.settings.ui
+        space = 0 if ui.compact_input or not ui.footer else 1
+        return Spacing(0, space, 0, space)
 
 
 class PromptContainer(containers.HorizontalGroup):
@@ -179,7 +193,7 @@ See on-screen instructions for details.
         ),
     ]
 
-    app = getters.app(ToadApp)
+    app: ToadApp = getters.app()
 
     auto_completes: var[list[Option]] = var(list)
     multi_line = var(False, bindings=True)
@@ -506,7 +520,15 @@ class Prompt(TonePaint, containers.VerticalGroup):
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
 
-    app = getters.app(ToadApp)
+    app: ToadApp = getters.app()
+
+    def apply_compact_input(self, compact: bool) -> None:
+        """Only the prompt's native boxes change; no app selector is invalidated."""
+        self.prompt_container.styles.border = ("tall", "transparent") if compact and self._ask is not None else "none" if compact else None
+        self.prompt_label.styles.padding = (0, 1, 0, 0) if compact else (0, 1)
+        for info in self.query(AgentInfo):
+            info.styles.padding = 0 if compact else (0, 1)
+        self.refresh(layout=True)
 
     def __init__(
         self,
@@ -572,6 +594,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     def sync_configuration(self) -> None:
         """Render the original operational owners; no accepted selection lives here."""
+        self.apply_compact_input(self.app.settings.ui.compact_input)
         if self.simple_input:
             return
         agent = self.agent
@@ -848,7 +871,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
             for kind in InfoPopup.members_with(InfoPopup):
                 if (popup := kind.for_prompt(self)) is not None:
                     yield popup
-        with containers.HorizontalGroup(id="info-container"):
+        with InfoBar(id="info-container"):
             if not self.simple_input:
                 yield AgentInfo()
                 yield CondensedPath().data_bind(path=Prompt.display_directory)

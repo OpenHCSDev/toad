@@ -1,4 +1,5 @@
 from toad.block_navigation import ConversationBlock
+from toad.setting_widget import SettingVisibility
 
 from toad.widgets.message_filter import ThinkingCategory
 from typing import Iterable
@@ -12,11 +13,13 @@ from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 
 
 class AgentThought(
+    SettingVisibility,
     ConversationBlock,
     SnapshotPresentation,
     CategorizedBlock,
     LineMarkdown,
     can_focus=True,
+    setting="agent.thoughts",
 ):
     """A live thought drawn from the same semantic rows as saved thinking."""
 

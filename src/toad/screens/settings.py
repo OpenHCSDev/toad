@@ -7,7 +7,8 @@ from collections.abc import Iterable
 from textual import containers, events, getters
 from textual.app import ComposeResult
 from textual.binding import CallBinding
-from textual.widgets import Footer, Input
+from textual.widgets import Input
+from toad.widgets.footer import ToadFooter
 from textual.geometry import Spacing
 from textual.color import Color
 
@@ -66,7 +67,7 @@ class SettingsScreen(FormModal[None]):
             with SettingsSearch():
                 yield self.search
             yield self.form
-        yield Footer()
+        yield ToadFooter()
 
     def opened(self, event: events.Mount) -> None:
         self.app.saved_settings.open_edits.append(self.form.finish)

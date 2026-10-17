@@ -7,7 +7,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from toad.screens.session_view import SessionView
-from textual.widgets import Footer
 from textual.widget import Widget
 from toad.widgets.session_tabs import SessionsTabs
 from toad.widgets.side_bar import TabHistoryControls

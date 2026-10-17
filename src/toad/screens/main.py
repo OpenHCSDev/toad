@@ -22,7 +22,6 @@ from textual.reactive import var
 from textual.widget import Widget
 from textual.widgets import (
     DirectoryTree,
-    Footer,
     OptionList,
     Static,
     Tree,
