@@ -85,7 +85,7 @@ class FailedSessionDisposition(SessionDisposition):
 
     @property
     def status(self) -> SessionDisconnected:
-        return SessionDisconnected(f"{self.failure.message}: {self.failure.details}")
+        return SessionDisconnected(self.failure.message)
 
     def explain(self, line: str) -> str:
         return self.status.notice
