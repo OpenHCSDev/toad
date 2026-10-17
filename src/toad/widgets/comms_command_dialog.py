@@ -119,7 +119,7 @@ class CatalogChoiceDialog(ModalScreen[str]):
         yield CatalogFieldSelection(self.editor)
 
 
-class CommandDialog(ModalScreen[dict[str, str]]):
+class CommandDialog(ModalScreen[dict[str, str | None]]):
     DEFAULT_CSS = """
     CommandDialog { align: center middle; background: $background 40%; }
     CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
