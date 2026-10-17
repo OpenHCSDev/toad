@@ -719,7 +719,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
         return self
 
     def prepare_native(self, consumer) -> None:
-        """An owner without an inspection cannot admit native context work."""
+        """An owner without an inspection cannot accept native context work."""
 
     def presentation_current(self, captured) -> bool:
         return False

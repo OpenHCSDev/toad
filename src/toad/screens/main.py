@@ -180,7 +180,7 @@ class ReadyContent(ScreenContent):
         return ""
 
     async def wait(self, screen: "MainScreen") -> None:
-        """The content has already been admitted."""
+        """The content has already been accepted."""
 
 
 class FailedContent(ScreenContent):
@@ -408,7 +408,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             self.presentation.external_transcript_changed()
 
     def bind_project(self, project: Path) -> None:
-        """The admitted source and later coordination updates use one project owner."""
+        """The accepted source and later coordination updates use one project owner."""
         if project != self.project_path:
             self.project_path = project
             if self._project_panel is not None:

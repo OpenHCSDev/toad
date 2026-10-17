@@ -106,7 +106,7 @@ class SessionNavigation:
 
     def bind_opened(self, view: MainScreen, *, original: tuple[str, ThreadIncarnation],
                     name: str, project: Path) -> None:
-        """Bind the admitted source facts before preparing its native resources."""
+        """Bind the accepted source facts before preparing its native resources."""
         entry = cast(NativeSessionEntry, self.app.workspace_sessions.factories[view.id])
         view.bind_project(project)
         entry.original = original

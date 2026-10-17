@@ -72,21 +72,21 @@ class PresentationBudget:
     def runway_rows(self, viewport_rows: int) -> int:
         return max(1, viewport_rows) * self.buffer_viewports
 
-    def admit(self, candidates, required, viewport_rows: int, max_bytes: int):
+    def fit(self, candidates, required, viewport_rows: int, max_bytes: int):
         """Visible/protected native bodies first, then ordered bounded resources."""
-        admitted = set(required)
+        kept = set(required)
         widgets = source_bytes = 0
         for owner in candidates:
             count = owner.retained_widget_count
             size = owner.retained_source_bytes + owner.retained_paint_bytes
-            if owner not in admitted:
+            if owner not in kept:
                 if (widgets + count > self.widget_limit(viewport_rows)
                         or source_bytes + size > max_bytes):
                     continue
-                admitted.add(owner)
+                kept.add(owner)
             widgets += count
             source_bytes += size
-        return admitted
+        return kept
 
     def runway(self, sequence, first: int, last: int, viewport_rows: int):
         """Native measured bodies on both sides, including stationary reversal."""
@@ -216,7 +216,7 @@ class DirectionalPreparation:
     """Measured travel during preparation, owned by the existing viewport.
 
     Idle expiry measures input cadence, not a renderer's frame rate. Measured
-    admitted source and foreground body delivery supply the prediction horizon,
+    accepted source and foreground body delivery supply the prediction horizon,
     including source reads, worker waits and native widget construction.
     The presentation budget bounds how much of that prediction can be retained.
     """

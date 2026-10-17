@@ -47,7 +47,7 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
         return True
 
     def permission_preview(self) -> ToolOutputPart | None:
-        """Permission previews admit only text and file diffs."""
+        """Permission previews accept only text and file diffs."""
         return None
 
     @property
