@@ -254,6 +254,7 @@ with Coordination(str(c.root/'coordination.sqlite3')) as store: store.install_pr
                                '--session', 'startup-saved'], 'saved'),
                 ):
                     observation = output / f'{name}.json'
+                    completed = output / 'any.json' if name == 'saved' else observation
                     exit_status = output / f'{name}-exit-code'
                     with (output / f'{name}.log').open('w') as terminal_log:
                         terminal = subprocess.Popen(
@@ -280,12 +281,19 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
     if app.current_mode != 'store': return
    elif {selected!r} == 'saved':
     from toad.screens.main import MainScreen
+    from toad.screens.comms import CommsScreen
     from toad.widgets.conversation import Conversation
     screen=app.selected_session
-    if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
-    conversation=screen.query_one(Conversation)
-    if conversation.transcript.displayed_cursor is None: return
-    if not screen.presentation.transcript.reports_coverage: return
+    if Path({str(observation)!r}).exists():
+     if not isinstance(screen, CommsScreen) or screen.target != '#any': return
+     from toad.widgets.comms_chat import CommsChatView
+     chat=screen.query_one_optional(CommsChatView)
+     if chat is None or not chat.prompt.prompt_text_area.disabled: return
+    else:
+     if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
+     conversation=screen.query_one(Conversation)
+     if conversation.transcript.displayed_cursor is None: return
+     if not screen.presentation.transcript.reports_coverage: return
    else:
     from toad.screens.welcome import WelcomeScreen, WelcomeThreads
     from toad.navigation_target import ThreadTarget
@@ -297,11 +305,13 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
    text=[strip.text for strip in app.screen._compositor.render_strips()]
    if not any(line.strip() for line in text): return
    if {selected!r} == 'welcome' and not any('startup-saved' in line for line in text): return
-   Path({str(observation)!r}).write_text(json.dumps(dict(mode=app.current_mode, text=text)))
+   destination=Path({str(completed)!r}) if {name!r} == 'saved' and Path({str(observation)!r}).exists() else Path({str(observation)!r})
+   destination.write_text(json.dumps(dict(mode=app.current_mode, text=text)))
   app.schedule_from_thread(observe)
 ''')
                             child = None
-                            while not observation.exists():
+                            channel_opened = False
+                            while not completed.exists():
                                 crashes = list(home.rglob('Terminal_crash_*.txt'))
                                 if crashes:
                                     raise RuntimeError(f'{name} crashed: {crashes}')
@@ -320,8 +330,22 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
                                     subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
                                                     f'import sys; sys.remote_exec({child.pid}, {str(remote)!r})'],
                                                    check=True, timeout=5)
+                                    if name == 'saved' and observation.exists() and not channel_opened:
+                                        run('import', '-display', display.name, '-window', 'root', output / 'saved.png')
+                                        navigation = output / 'open-any.py'
+                                        navigation.write_text('''from textual.app import App
+from toad.navigation_target import ChannelTarget
+app=App.running_app()
+def open_channel():
+ app.run_worker(app.selected_session.open_sidebar_target(ChannelTarget('#any')))
+app.schedule_from_thread(open_channel)
+''')
+                                        channel_opened = True
+                                        subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
+                                                        f'import sys; sys.remote_exec({child.pid}, {str(navigation)!r})'],
+                                                       check=True, timeout=5)
                                 time.sleep(.5)
-                            run('import', '-display', display.name, '-window', 'root', output / f'{name}.png')
+                            run('import', '-display', display.name, '-window', 'root', output / f'{completed.stem}.png')
                             window = subprocess.check_output(
                                 ['xdotool', 'search', '--onlyvisible', '--pid', str(terminal.pid)],
                                 env=environment, text=True).strip()
@@ -341,7 +365,7 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
         finally:
             server.terminate()
             server.wait(timeout=5)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', evidence=str(output))
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', channel='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
 
