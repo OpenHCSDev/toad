@@ -28,28 +28,8 @@ from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPres
 from toad.widgets.message_filter import MessageCategory, event_category
 
 if TYPE_CHECKING:
-    from toad.render_backend import Renderer
     from toad.tool_output import ToolOutputPart
     from toad.widgets.transcript_lines import PlainLines
-
-async def prepare_transcript_fragments(
-    events: tuple[TranscriptEvent, ...], pool: "Renderer | None" = None,
-    *, continuation: bool = False,
-) -> tuple["TranscriptFragment", ...]:
-    """Prepare plain model data; never send widgets or application state to workers.
-
-    Standalone Textual apps may not own a pool. Their large requests own and close
-    a temporary pool, including on cancellation; there is no hidden global pool.
-    """
-    if pool is not None:
-        return await pool.submit(TranscriptRenderTask(events, continuation=continuation))
-    from toad.render_processes import RenderProcessPool
-
-    owned_pool = RenderProcessPool()
-    try:
-        return await owned_pool.submit(TranscriptRenderTask(events, continuation=continuation))
-    finally:
-        await owned_pool.aclose()
 
 
 @dataclass(frozen=True)

@@ -122,8 +122,9 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     Run with the qualified target Python inside the reviewed publication window.
     Native stopping/restarting remains with Core's existing cutover owner.
     """
-    sys.path.insert(0, str(publication_tools.resolve(strict=True)))
-    from publish_runtime import RuntimePublication
+    publisher = (publication_tools / 'publish_runtime.py').resolve(strict=True)
+    sys.path.insert(0, str(publisher.parents[1]))
+    from tools.publish_runtime import RuntimePublication
 
     publication = RuntimePublication.installed()
     record = json.loads((publication.runtime / 'build.json').read_text())
@@ -147,7 +148,7 @@ def installation_main() -> None:
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
-    parser.add_argument('--publication-tools', type=Path)
+    parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
     if args.prune_runtimes:
@@ -824,6 +825,14 @@ class RuntimeBuild:
             resources = Path(run(python, '-c', 'from agent_comms.native_package import MANIFEST; print(MANIFEST.parent)'))
             if (resources / 'pi-native.sha256').read_bytes() != manifest:
                 raise RuntimeError('Installed Core native pin differs from the clean export')
+            native_relative = Path(f'.pi-native-{native_pin[:16]}/node_modules/@earendil-works/pi-coding-agent')
+            native_source = self.core.repository / 'stack' / native_relative
+            run(python, '-I', '-B', '-c',
+                'import sys; from pathlib import Path; from agent_comms.native_package import verify_native_package; '
+                'verify_native_package(Path(sys.argv[1]))', native_source)
+            if any(path.stat().st_mode & 0o222 for path in native_source.rglob('*') if path.is_file()):
+                raise ValueError('Shared native package files must be immutable')
+            shutil.copytree(native_source, resources / native_relative, copy_function=os.link)
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             # Keep an installed but unqualified candidate available for diagnosis.
@@ -846,6 +855,9 @@ class RuntimeBuild:
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'])
         if (resources / 'pi-native.sha256').read_bytes() != manifest:
             raise RuntimeError('Installed Core native pin differs from the clean export')
+        run(destination / 'bin/python', '-I', '-B', '-c',
+            'from agent_comms.native_package import pinned_native_package, verify_native_package; '
+            'verify_native_package(pinned_native_package())')
         native_pin = hashlib.sha256(manifest).hexdigest()
         startup = check_startup(destination, self.scratch / f'startup-{destination.name}', self.baseline, self.thread)
         wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',

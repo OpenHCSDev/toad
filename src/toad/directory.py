@@ -4,7 +4,6 @@ import asyncio
 from itertools import filterfalse
 from typing import Callable
 from time import time
-from os import PathLike
 from pathlib import Path
 
 from textual._partition import partition
@@ -173,39 +172,6 @@ class Scan:
         assert self._scan_result is not None
         self._scan_task = None
         return self._scan_result
-
-
-class DirectoryScanner:
-    """Object to recursively scan a directory."""
-
-    def __init__(self, root: PathLike) -> None:
-        self.root = Path(root)
-        self.directories: dict[Path, Scan] = {}
-
-    async def scan(
-        self, relative_directory_path: str, on_complete: Callable[[Scan]]
-    ) -> Scan:
-        """Get a scan.
-
-        Scans are created on demand, or returned previously scanned.
-
-        Args:
-            relative_directory_path: A path relative to the root.
-            on_complete: Callback when scan is complete, will be invoked with Scan instance.
-
-        Returns:
-            A scan instance.
-        """
-        scan_path = self.root / relative_directory_path
-        if scan := self.directories.get(scan_path):
-            if scan.is_complete:
-                on_complete(scan)
-        else:
-            self.directories[scan_path] = scan = Scan(
-                scan_path, on_complete=on_complete
-            )
-            scan.start()
-        return scan
 
 
 if __name__ == "__main__":
