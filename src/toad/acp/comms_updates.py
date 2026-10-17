@@ -16,7 +16,7 @@ from agent_comms.acp_extension import (
     InputFailedUpdate,
     InputStartedUpdate,
     PromptCancelledUpdate,
-    McpClientReceiptUpdate,
+    McpClientAcknowledgementUpdate,
     QueueChangedUpdate,
     RequestFailedUpdate,
     SelectedWriteAcceptedUpdate,
@@ -164,8 +164,8 @@ class CommsUpdateConsumer(MroDispatch):
         from toad.core.events import InputDispositionsChanged
         self.agent.events.publish(InputDispositionsChanged())
 
-    @handles(McpClientReceiptUpdate)
-    def mcp_receipt(self, update: McpClientReceiptUpdate) -> None:
+    @handles(McpClientAcknowledgementUpdate)
+    def mcp_status(self, update: McpClientAcknowledgementUpdate) -> None:
         if (
             self.session_id != self.agent.session_id
             or update.turn_id != self.agent.current_turn.managed_id

@@ -29,7 +29,7 @@ from agent_comms.acp_extension import (
     InputFailedUpdate,
     InputStartedUpdate,
     PromptCancelledUpdate,
-    McpClientReceiptUpdate,
+    McpClientAcknowledgementUpdate,
     TranscriptChangedUpdate,
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
@@ -1413,7 +1413,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             return
         if self._mcp_live_note is not None:
             return  # The package emits at most one server summary per turn.
-        rows = message.event.update.receipt.servers
+        rows = message.event.update.acknowledgement.servers
         summary = (
             "; ".join(
                 f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
@@ -2219,8 +2219,8 @@ class ConversationCommsConsumer(MroDispatch):
     async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
         await self.conversation.transcript.snapshot(update.page)
 
-    @handles(McpClientReceiptUpdate)
-    async def mcp_receipt(self, update: McpClientReceiptUpdate):
+    @handles(McpClientAcknowledgementUpdate)
+    async def mcp_status(self, update: McpClientAcknowledgementUpdate):
         await self.conversation.on_mcp_client_status(self.message)
 
 
