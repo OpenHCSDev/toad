@@ -560,8 +560,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                     key, row.target.expanded_by_default))
                 group.present(rows[key])  # Its members sync once it is mounted.
                 await self.mount(group)
-            if self.is_attached and self.model is not None:
-                self._order_groups()
 
     @property
     def member_keys(self):
