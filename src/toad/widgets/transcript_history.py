@@ -113,7 +113,7 @@ class JumpToLatest(HoverSelection, PrimaryActivation, Static, can_focus=True):
         self.action_jump()
 
 class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widget):
-    """One transcript page, drawn as its admitted fragments' prepared lines.
+    """One transcript page, drawn as its kept fragments' prepared lines.
 
     Fragments never become widgets. Styled rows come from the render worker
     processes; until they arrive a fragment draws its plain wrapped text.
@@ -281,7 +281,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container, viewport, width: int) -> int:
-        # The admitted fragments wrapped at this width: the container's height
+        # The kept fragments wrapped at this width: the container's height
         # is never read, so an arrangement measured at height 0 is reused.
         if width != self._width or not self._measured:
             self._measure(width)
@@ -309,13 +309,13 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         A fragment without rows of its own (the filter hides it, or layout
         has not measured it yet) is where the next drawn fragment starts, or
         at the page's end when none follows. None when the fragment is not
-        admitted here.
+        in range here.
         """
-        admitted = self.fragments_in_range
-        at = next((index for index, candidate in enumerate(admitted) if candidate is fragment), None)
+        in_range = self.fragments_in_range
+        at = next((index for index, candidate in enumerate(in_range) if candidate is fragment), None)
         if at is None:
             return None
-        for candidate in admitted[at:]:
+        for candidate in in_range[at:]:
             if (rows := self._fragment_rows.get(id(candidate))) is not None:
                 return rows.start, len(rows), candidate is fragment
         return self._height, 0, False
@@ -349,7 +349,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
 
     def fragment_at(self, row: int) -> tuple[TranscriptFragment, int] | None:
-        """The admitted fragment drawn at a row of this page, and the row within it."""
+        """The kept fragment drawn at a row of this page, and the row within it."""
         slot = bisect_right(self._starts, row) - 1
         if slot < 0:
             return None
@@ -357,7 +357,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         return fragment, row - first
 
     def visible_rows(self, window) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
-        """Each admitted fragment in the window's viewport, with its rows that are in view."""
+        """Each kept fragment in the window's viewport, with its rows that are in view."""
         # A page the viewport layout did not place is off screen; computing
         # its offset would rebuild the compositor's whole map.
         offset = window.placed_row(self)
@@ -520,7 +520,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """Rebuild a parked history from its pages; it covers no live blocks until it resumes."""
         pages = source.held_pages
         if not pages or source.closed:
-            raise ValueError("No retained transcript admission")
+            raise ValueError("No kept transcript view")
         history = cls(pages[0], source.loader, **source_fields)
         history.through = source.through
         history._page_buffer = source
@@ -762,7 +762,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             projection.set_reader_ranges(ranges)
 
     async def restore_reader_ranges(self, ranges, current: Callable[[], bool]) -> bool:
-        """A retained native view admits the same source suppliers before paint.
+        """A kept native view prepares the same source suppliers before paint.
 
         Parked reconstruction sets source demand before composition. A live
         page still has its preceding children, so it uses the original range
@@ -832,7 +832,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     def fragment_limit(self) -> int:
         # Screen rows are not fragment counts: one prepared fragment may contain
         # a dozen lines or a whole indivisible Markdown block. Grow with the
-        # number actually visible, keeping two admitted batches in reserve.
+        # number actually visible, keeping two kept batches in reserve.
         return max(self._fragment_budget, self._visible_fragment_budget())
 
     def _visible_fragment_budget(self) -> int:
@@ -1033,10 +1033,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         protected: set[int], prepared: PreparedTranscriptPage, *,
         current: Callable[[], bool], fresh: bool = False,
     ) -> None:
-        """Admit the next range and trim fragments the reader is not seeing.
+        """Load the next range and trim fragments the reader is not seeing.
 
-        protected holds ids of fragments that must stay admitted: the visible
-        ones and those just admitted for the reader's direction of travel.
+        protected holds ids of fragments that must stay in range: the visible
+        ones and those just kept for the reader's direction of travel.
         """
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
@@ -1076,7 +1076,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 selected = None
                 for side in (trim_older, not trim_older):
                     # A visible older projection protects the range between it
-                    # and the canonical pages, just like a visible page.
+                    # and the saved pages, just like a visible page.
                     if side and overlay_visible:
                         continue
                     candidate = self.pages[0] if side else self.pages[-1]
@@ -1147,7 +1147,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     @classmethod
     def from_source(cls, source: ProjectedTranscriptSource, *, owner: TranscriptHistory):
         if not source.held_pages or source.closed:
-            raise ValueError("No retained projected admission")
+            raise ValueError("No kept projected view")
         history = cls(owner, source, source.held_pages[0])
         history.pages.extend(TranscriptPageView(
             page, batch_size=owner.budget.batch_items,
@@ -1178,7 +1178,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     @property
     def follows_source_tail(self) -> bool:
-        # This window is a historical prefix, not the live canonical tail.
+        # This window is a historical prefix, not the live saved tail.
         return False
 
     def _reader(self) -> PreparedPageSource:
