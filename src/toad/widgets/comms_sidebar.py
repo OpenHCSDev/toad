@@ -277,6 +277,7 @@ class ThreadStatusRow(CommsRow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.styles.height = 2
+        self.styles.padding = 0
         self.styles.text_wrap = "nowrap"
         self.styles.text_overflow = "ellipsis"
         self.styles.pointer = "pointer"
