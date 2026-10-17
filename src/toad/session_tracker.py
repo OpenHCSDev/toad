@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
 from operator import attrgetter
-from typing import Iterable, Literal, Sequence
+from typing import Iterable, Sequence
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
@@ -58,7 +58,7 @@ class ThreadTab(OpenTab):
 
     @property
     def busy(self) -> bool:
-        return self.row.status.busy
+        return self.row.status.working
 
 
 @dataclass(frozen=True)
