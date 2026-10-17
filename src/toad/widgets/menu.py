@@ -96,12 +96,6 @@ class Menu(ListView, can_focus=True):
         owner: Widget
         action: str | None
 
-    @dataclass
-    class Dismissed(Message):
-        """Menu was dismissed."""
-
-        menu: Menu
-
     def __init__(self, owner: Widget, options: list[MenuItem], *args, focus_owner: Widget, **kwargs) -> None:
         self._owner = owner
         self._focus_owner = focus_owner
@@ -125,7 +119,6 @@ class Menu(ListView, can_focus=True):
     def action_dismiss(self) -> None:
         if self.is_leaving:
             return
-        self.post_message(self.Dismissed(self))
         if self.has_focus:
             self.screen.set_focus(self._focus_owner, scroll_visible=False)
         self.display = False
