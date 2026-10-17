@@ -20,6 +20,7 @@ from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, ToolText
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_receipts import AssignedTranscriptSource
+from toad.message_rows import MessageRow
 from textual.await_complete import AwaitComplete
 from rich.text import Text
 
@@ -27,7 +28,6 @@ from acp import schema
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.line_blocks import Body, MarkdownBody, LineBlock, MutedRole, ToolOutputRole
 from toad.patch import parse_patch, parse_numbered_patch
-from toad.message_rows import MessageRow
 from toad.rich_preparation import RichTextBody
 
 
@@ -55,13 +55,10 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
         return ()
 
     @property
-    def standalone_messages(self) -> tuple[PublishedSentMessage, ...]:
+    def standalone_messages(self) -> tuple[PublishedSentMessageToolOutputPart, ...]:
         return ()
 
     def project_messages(self, resolved) -> ToolOutputPart:
-        return self
-
-    def for_body_sources(self, supplied) -> ToolOutputPart:
         return self
 
     @property
@@ -218,38 +215,15 @@ class PublishedSentMessageToolOutputPart(ToolOutputPart):
 
     message: PublishedSentMessage
     literal: str
+    row: MessageRow
 
-    def for_body_sources(self, supplied):
-        return (self.with_body() if self.message.reference in supplied
-                else self.without_body())
-
-    def with_body(self):
-        return SuppliedSentMessageToolOutputPart(self.message, self.literal)
-
-    def without_body(self):
-        return self
+    @property
+    def standalone_messages(self):
+        return (self,)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return PlainTextToolOutputPart(self.literal).line_blocks
-
-
-class SuppliedSentMessageToolOutputPart(PublishedSentMessageToolOutputPart):
-    """Only a supplied normal body permits compact tool details."""
-
-    @property
-    def standalone_messages(self):
-        return (self.message,)
-
-    def with_body(self):
-        return self
-
-    def without_body(self):
-        return PublishedSentMessageToolOutputPart(self.message, self.literal)
-
-    @cached_property
-    def line_blocks(self) -> tuple[LineBlock, ...]:
-        return (MessageRow.sent(self.message.message).header,)
 
 
 @dataclass(frozen=True)
@@ -338,7 +312,9 @@ class ToolContentDecoder(MroDispatch):
     @handles(PublishedSentMessage)
     def published_message(self, message):
         assert self.report is not None
-        self.part = SuppliedSentMessageToolOutputPart(message, self.report.literal)
+        original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
+        self.part = PublishedSentMessageToolOutputPart(
+            message, self.report.literal, MessageRow(original, message.scope.recipient.name))
 
     @handles(schema.FileEditToolCallContent)
     def diff(self, item):

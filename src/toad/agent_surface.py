@@ -56,18 +56,9 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         async with AsyncExitStack() as retirement:
             for part in parts:
                 for sent in part.standalone_messages:
-                    if target.transcript.covers_outgoing(sent):
-                        continue
-                    bodies = [body for body in target.contents.query_children(OutgoingMessage)
-                              if body.publication.reference == sent.reference]
-                    if any(body.binding is self and body.request is request for body in bodies):
-                        continue
-                    await target.transcript.retire_presentations(target.contents, target.output, bodies)
-                    body = OutgoingMessage(sent, binding=self, request=request)
+                    body = OutgoingMessage(sent.message, row=sent.row, binding=self, request=request)
                     if not await self._post_native(message, target, body, retirement):
                         return
-                    if target.transcript.covers_outgoing(sent):
-                        await target.transcript.retire_presentations(target.contents, target.output, [body])
             if not self.owns_publication(message, target):
                 return
             tool = target.contents.query_one_optional(f"#{event.tool_id}", ToolCall)
