@@ -16,7 +16,8 @@ def fragment(target, style=IrcMessageStyle()):
 
 
 def theme():
-    return LineTheme.of(App().get_css_variables(), "truecolor")
+    app = App()
+    return LineTheme.of(app.get_css_variables(), "truecolor", app.ansi_theme)
 
 
 def clicks(rows):

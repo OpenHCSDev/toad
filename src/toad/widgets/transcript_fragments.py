@@ -307,7 +307,7 @@ class TranscriptFragment:
     def lines_for(self, width: int, theme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
         held = self._lines
-        if held is not None and held[0].preparation.theme == theme:
+        if held is not None and held[0].preparation.theme is theme:
             lines = held[1].rewrap(width)
             self._lines = held[0], lines
             return lines
@@ -320,9 +320,9 @@ class TranscriptFragment:
         retain that measured width until the viewport asks for another one.
         """
         held, plain = self._lines, self._plain
-        return (held is not None and held[0].preparation.theme == theme
+        return (held is not None and held[0].preparation.theme is theme
                 and held[1].preparation is lines.preparation
-                or plain is not None and plain.preparation.theme == theme
+                or plain is not None and plain.preparation.theme is theme
                 and plain.preparation.blocks is lines.preparation.blocks)
 
     def invalidate_lines(self):
@@ -340,7 +340,7 @@ class TranscriptFragment:
         from toad.widgets.transcript_lines import PlainLines
 
         held = self._plain
-        if held is None or held.preparation.theme != renderer.theme:
+        if held is None or held.preparation.theme is not renderer.theme:
             held = PlainLines(width, renderer, self.line_blocks)
         self._plain = held.rewrap(width)
         return self._plain

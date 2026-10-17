@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 from toad.session_tracker import SidebarSelection, SidebarState
 from toad.constants import ALL_COMMS_TARGET
-from toad.widgets.sidebar_viewport import SidebarViewport
 from toad.widgets.comms_sidebar import CommsRow
 
 class SidebarNavigation:
@@ -25,13 +24,6 @@ class SidebarNavigation:
     def restoring(self) -> bool:
         return not self.ready.is_set()
 
-    @property
-    def scroll_container(self) -> SidebarViewport:
-        from toad.widgets.side_bar import SideBar, SideBarCollapsible
-        panel = self.sidebar.query_ancestor(SideBarCollapsible)
-        panels = panel.query_ancestor(SideBar).query_one("#sidebar-panels", SidebarViewport)
-        return panels
-
     def reset(self) -> None:
         self.ready.clear()
         self.selected_row = None
@@ -39,7 +31,7 @@ class SidebarNavigation:
 
     def capture(self) -> None:
         if not self.restoring:
-            self.state.panel_scroll_y = self.scroll_container.scroll_y
+            self.state.panel_scroll_y = self.sidebar.scroll_container.scroll_y
 
     async def prepare(self) -> None:
         self.revision += 1
@@ -142,7 +134,7 @@ class SidebarNavigation:
         if not self.sidebar.shows_model:
             return False
         if self.restoring and self.sidebar.is_attached and self.sidebar.screen is self.sidebar.app.screen:
-            viewport = self.scroll_container
+            viewport = self.sidebar.scroll_container
             before = viewport.scroll_y
             viewport.scroll_to(y=self.state.panel_scroll_y, animate=False, immediate=True)
             return before != viewport.scroll_y
