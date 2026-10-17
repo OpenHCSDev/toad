@@ -1,9 +1,6 @@
-"""Markdown text drawn as prepared lines, for live and committed messages alike.
+"""Live and committed bodies retain worker-styled source and wrap it locally.
 
-The text is a `Body` line block. Plain rows draw immediately; styled rows come
-from the render worker processes and replace them when ready. Appends while a
-render is in flight are coalesced: one render runs at a time and the latest
-text is rendered next.
+Source appends coalesce while styling; resizing never requests source styling.
 """
 
 from __future__ import annotations
@@ -20,28 +17,26 @@ from textual.worker import Worker
 
 from toad.block_content import BlockContent
 from toad.markdown_links import LinkContext, ReferenceRendering
-from toad.line_blocks import Body, LineBlock, LineRole, TextRole
+from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
     BlockLines, Lines, LinkedRows, LinePreparation, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
 )
 
 
 class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
-    """A leaf that draws one Markdown body; its owner holds headers and identity.
-
-    It is block content: the cursor of the message that holds it can select it,
-    and copying it gives its Markdown source.
+    """Draw the declared body; the parent owns headers, identity and selection.
+    Copying yields the original source, not its wrapped presentation.
     """
 
     DEFAULT_CSS = "LineMarkdown { height: auto; }"
     RESTYLE_INTERVAL = 0.25
 
     def __init__(self, text: str = "", *, role: type[LineRole] = TextRole,
-                 bar: type[LineRole] | None = None, markdown: bool = True,
+                 bar: type[LineRole] | None = None, body: type[Body] = MarkdownBody,
                  id: str | None = None, classes: str | None = None) -> None:
         super().__init__(id=id, classes=classes)
         self.text = text
-        self.role, self.bar, self.markdown = role, bar, markdown
+        self.role, self.bar, self.body_type = role, bar, body
         self._styled: BlockLines | None = None
         self._plain: PreparedLines | None = None
         self._width = 0
@@ -50,7 +45,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
 
     def line_blocks(self, text: str, *, complete: bool = True) -> tuple[LineBlock, ...]:
         """Semantic rows for this text; streaming subclasses may add a final row."""
-        return (Body(text, role=self.role, bar=self.bar, markdown=self.markdown),)
+        return (self.body_type(text, role=self.role, bar=self.bar),)
 
     @property
     def block(self) -> LineBlock:

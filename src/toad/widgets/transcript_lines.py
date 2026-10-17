@@ -557,7 +557,7 @@ class RichLineRenderer(MroDispatch):
 
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> None:
-        self.body(Body(block.text, bar=block.bar, markdown=False))
+        self.body(Body(block.text, bar=block.bar))
 
     @handles(StyledBody)
     def styled_body(self, block: StyledBody) -> None:

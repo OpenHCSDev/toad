@@ -351,19 +351,23 @@ class Gap(LineBlock):
 
 @dataclass(frozen=True)
 class Body(LineBlock):
-    """Message text, optionally marked by a bar in another role; Markdown or plain."""
+    """Plain text, optionally marked by a bar in another role."""
 
     text: str
     role: type[LineRole] = TextRole
     bar: type[LineRole] | None = None
-    markdown: bool = True
 
     @property
     def selection_text(self) -> str:
         return self.text
 
     def prepare(self, markdown: Callable[[Body], Body]) -> Body:
-        return markdown(self) if self.markdown else self
+        return self
+
+
+class MarkdownBody(Body):
+    def prepare(self, markdown: Callable[[Body], Body]) -> Body:
+        return markdown(self)
 
     @classmethod
     def code(cls, text: str, language: str = "", **shown) -> Body:

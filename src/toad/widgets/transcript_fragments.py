@@ -16,7 +16,7 @@ from agent_comms.transcript_events import (
 )
 
 from toad.line_blocks import (
-    AgentRole, Body, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ToggleDetails, UserRole,
+    AgentRole, Body, MarkdownBody, Divider, Gap, LineBlock, LineRole, MutedRole, Summary, ToggleDetails, UserRole,
 )
 from toad.message_rows import MarkdownMessageStyle, MessageRow, WireMessageStyle
 from toad.notification_status import NotificationStatus, UncheckedNotifications
@@ -174,12 +174,12 @@ class FragmentLineConsumer(MroProjection):
     @handles(UserTranscript)
     def user(self, event: UserTranscript) -> None:
         self.divider("User", event.timestamp, UserRole)
-        self.blocks += [Body(event.text, bar=UserRole, markdown=False), Gap()]
+        self.blocks += [Body(event.text, bar=UserRole), Gap()]
 
     @handles(AgentTextTranscript)
     def agent(self, event: AgentTextTranscript) -> None:
         self.divider("Agent", event.timestamp, AgentRole)
-        self.blocks += [Body(event.text), Gap()]
+        self.blocks += [MarkdownBody(event.text), Gap()]
 
     @handles(SentTranscript)
     def sent_report(self, event: SentTranscript) -> None:
@@ -455,7 +455,7 @@ class ContextTranscriptFragment(TranscriptFragment):
         summary = shown.summary("Agent coordination context")
         if not shown.details_open:
             return (summary,)
-        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole, markdown=False)
+        return (summary, *(Body(event.text, role=MutedRole, bar=MutedRole)
                            for event in self.events))
 
 

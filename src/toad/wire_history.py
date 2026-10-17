@@ -206,7 +206,7 @@ class MembershipFragment(WireFragment):
     """Someone joined or left: one muted line."""
 
     def text(self, shown):
-        return (Body("— " + self.message.body, role=MutedRole, markdown=False),)
+        return (Body("— " + self.message.body, role=MutedRole),)
 
 
 @dataclass(kw_only=True)

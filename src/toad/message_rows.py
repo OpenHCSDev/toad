@@ -22,7 +22,7 @@ from agent_comms.transcript_events import IncomingTranscript, SentTranscript
 from toad.inline_spans import inline_spans
 from toad.menus import MenuItem
 from toad.line_blocks import (
-    Body, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole, OpenHistoricalTarget,
+    MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole, OpenHistoricalTarget,
     OpenTarget, OutgoingRole, Span, Spans,
 )
 
@@ -134,7 +134,7 @@ class MarkdownWireBody(WireBody):
         return self.row.role
 
     def prepare(self, context):
-        return Body(self.text, bar=self.bar)
+        return MarkdownBody(self.text, bar=self.bar)
 
 
 class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
