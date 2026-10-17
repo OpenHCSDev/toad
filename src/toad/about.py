@@ -87,7 +87,7 @@ def render(app: ToadApp) -> str:
     """
 
     try:
-        config: str | None = app.settings.file_path().read_text()
+        config: str | None = app.saved_settings.file_path().read_text()
     except FileNotFoundError:
         # Settings are written on first change; until then there is no file.
         config = None
@@ -109,7 +109,7 @@ def render(app: ToadApp) -> str:
         "PLATFORM": platform.platform(),
         "PYTHON": f"{platform.python_implementation()} {platform.python_version()}",
         "RICH_VERSION": version("rich"),
-        "SETTINGS_PATH": str(app.settings.file_path()),
+        "SETTINGS_PATH": str(app.saved_settings.file_path()),
         "SHELL": os.environ.get("SHELL", ""),
         "TERM_PROGRAM_VERSION": os.environ.get("TERM_PROGRAM_VERSION", ""),
         "TERM_PROGRAM": os.environ.get("TERM_PROGRAM", ""),
