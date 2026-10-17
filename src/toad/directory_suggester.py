@@ -46,7 +46,7 @@ class DirectorySuggester(Suggester):
         return await self.preparation.run_thread(self.suggest, value)
 
     def suggest(self, value: str) -> str | None:
-        """Resolve the complete suggestion inside the admitted preparation work."""
+        """Resolve the complete suggestion inside the accepted preparation work."""
         try:
             path = Path(value)
             name = path.name

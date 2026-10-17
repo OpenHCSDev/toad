@@ -51,7 +51,7 @@ class CommsUpdated(CoreEvent):
 
 @dataclass(frozen=True)
 class Plan(CoreEvent):
-    """An ordered snapshot of the original admitted plan items."""
+    """An ordered snapshot of the original accepted plan items."""
 
     entries: list[PlanItem]
 
@@ -147,7 +147,7 @@ class Thinking(CoreEvent):
 
 @dataclass(frozen=True)
 class UserMessage(CoreEvent):
-    """An admitted external user chunk; history keeps its original authority."""
+    """An accepted external user chunk; history keeps its original authority."""
 
     type: str
     text: str
