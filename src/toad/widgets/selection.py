@@ -8,7 +8,8 @@ from textual import events, on
 from rich.segment import Segment
 from textual.content import Content
 from textual.strip import Strip
-from ui_theme.effects import SPINNER, TextFrame
+from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
+from textual.visual import VisualType
 
 from toad.frame_presentation import Animated
 from textual.style import Style
@@ -16,26 +17,38 @@ from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
 
-class ViewLabel(Animated[TextFrame]):
+class ChangingText[FrameT: Frame](Animated[FrameT], Static):
+    """Changed content fades into its own colours through the shared app clock."""
+
+    text_fades = (NEW_TEXT,)
+
+    def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
+        if self.content == content:
+            return
+        super().update(content, layout=layout)
+        if self.is_mounted:
+            self.run_effect(NEW_TEXT)
+
+
+class ViewLabel(ChangingText[TextFrame]):
     """Native label paint: workspace emphasis and clock-driven activity ink."""
 
     def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
         """One activity slot, before decorations; idle keeps its declared marker."""
         if not busy:
-            self.stop_effect()
+            self.stop_effect(SPINNER)
             return Content.assemble(prefix, label)
-        if self.animation is None:
+        if SPINNER not in self.effects:
             self.run_effect(SPINNER)
         return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
 
     def render_line(self, y: int) -> Strip:
         line = super().render_line(y)
-        animation = self.animation
-        if animation is None or y != 0:
+        if SPINNER not in self.effects or y != 0:
             return line
-        glyph = animation.frame().paint(self.app.colours, None)
+        glyph = self.effect_frame(SPINNER).paint(self.app.colours, None)
         style = next((segment.style for segment in line), None)
-        # Native clipping owns admission, including empty or partial lines.
+        # Native clipping owns empty or partial lines.
         return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
                            line.crop(glyph.cell_length))).crop(0, line.cell_length)
 
@@ -47,8 +60,7 @@ class ViewLabel(Animated[TextFrame]):
         painted = Content.assemble(*(
             (text, style + emphasis) for text, style in content.render(end="")
         ))
-        if not content.is_same(painted):
-            self.update(painted, layout=False)
+        self.update(painted, layout=False)
 
 
 class FocusSelection(Static, can_focus=True):

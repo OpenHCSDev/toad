@@ -38,8 +38,10 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
-from toad.widgets.selection import SelectionOptionList
+from toad.widgets.selection import ChangingText, SelectionOptionList
 from toad.widget_actions import DeclaredWidgetActions
+from toad.frame_presentation import TonePaint
+from ui_theme.scheme import PromptToneColour
 from toad.prompt_actions import PromptAction, SubmitNowAction
 
 if TYPE_CHECKING:
@@ -86,7 +88,7 @@ class ModeInfo(PrimaryActivation, Label):
         return self.query_ancestor(Prompt).on_mode_info_click
 
 
-class StatusLine(Label):
+class StatusLine(ChangingText, Label):
     status: var[str | Content | RichText] = var("")
 
     def watch_status(self, status: str | Content | RichText) -> None:
@@ -95,7 +97,7 @@ class StatusLine(Label):
         self.tooltip = status
 
 
-class QueueSummary(PrimaryActivation, Label, can_focus=True):
+class QueueSummary(PrimaryActivation, ChangingText, Label, can_focus=True):
     """Shows the remote queue; activation reports available control support."""
 
     BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
@@ -459,7 +461,8 @@ See on-screen instructions for details.
             self.input_cursor.changed(previous_selection, selection)
 
 
-class Prompt(containers.VerticalGroup):
+class Prompt(TonePaint, containers.VerticalGroup):
+    tone = PromptToneColour
 
     DEFAULT_CSS = """
     Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }

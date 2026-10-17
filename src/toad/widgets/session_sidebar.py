@@ -7,14 +7,19 @@ from typing import TYPE_CHECKING, cast
 from textual.content import Content
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
+from ui_theme.scheme import AlternateRowToneColour
+
+from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import HoverSelection, ViewLabel
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ThreadStatusRow(ViewLabel, HoverSelection):
+class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
+
+    alternate_tone = AlternateRowToneColour
 
     DEFAULT_CSS = """
     ThreadStatusRow.-wire-thread {
@@ -59,13 +64,7 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
         title = self.activity_content(row.title, Content(row.label), self.busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         content = Content.assemble(title, f"\n  {summary}")
-        self.show_content(content)
-
-    def show_content(self, content: Content, *, layout: bool = False) -> None:
-        """Repaint changed native content; visibility owns label emphasis."""
-        current = self.content
-        if not current.is_same(content):
-            self.update(content, layout=layout and current.plain != content.plain)
+        self.update(content, layout=False)
 
     def retire_thread_row(self) -> None:
         """This row no longer shows a thread."""

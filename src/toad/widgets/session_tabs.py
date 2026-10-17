@@ -13,7 +13,6 @@ from textual.content import Content
 from textual.geometry import Offset, Region
 from textual.message import Message
 from textual.renderables.bar import Bar
-from textual.strip import Strip
 from textual.style import Style
 from ui_theme.scheme import AccentColour
 from textual.widget import PrimaryActivation, Widget
@@ -25,7 +24,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab
 from toad.frame_presentation import Animated
-from ui_theme.effects import TAB_WIPE, Band
+from ui_theme.effects import NEW_TEXT, Mix
 from toad.widgets.selection import ViewLabel
 
 
@@ -44,8 +43,7 @@ class SessionLabel(PrimaryActivation, ViewLabel, widgets.Label):
                      if tab.unread.highlighted else Style())
             content = Content.assemble(content, (f" {tab.unread.label}", badge))
         width_changed = content.cell_length != self.content.cell_length
-        if not content.is_same(self.content):
-            self.update(content, layout=width_changed)
+        self.update(content, layout=width_changed)
         self.paint_current(self.id == self.app.selected_mode)
         return width_changed
 
@@ -112,9 +110,10 @@ class SessionTabClose(PrimaryActivation, widgets.Static, can_focus=True):
             self.action_close_tab()
 
 
-class Underline(Animated[Band]):
-    """The underline beneath tabs; a wipe crosses the current tab's highlight when it is chosen."""
+class Underline(Animated[Mix]):
+    """The chosen tab's underline uses the shared content-change fade."""
 
+    text_fades = (NEW_TEXT,)
     COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
     """
     | Class | Description |
@@ -145,17 +144,6 @@ class Underline(Animated[Band]):
             highlight_style=RichStyle.from_color(bar_style.color),
             background_style=RichStyle.from_color(bar_style.bgcolor),
         )
-
-    def render_line(self, y: int) -> Strip:
-        strip = super().render_line(y)
-        animation = self.animation
-        width = strip.cell_length
-        # The highlighted tab can lie partly or wholly beyond the visible strip.
-        start, end = (min(cell, width) for cell in self._highlight_range)
-        if animation is None or start >= end:
-            return strip
-        tab = self.app.colours.paint_band(animation.frame(), strip.crop(start, end))
-        return Strip.join((strip.crop(0, start), tab, strip.crop(end, width)))
 
     def _on_click(self, event: events.Click):
         """Catch clicks, so that the underline can activate the tabs."""
@@ -203,7 +191,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
             self.sync_current()
             self.call_later(self._sync_tabs)
             self.call_after_refresh(self.show_selected_tab)
-            self.query_one(Underline).run_effect(TAB_WIPE)
+            self.query_one(Underline).run_effect(NEW_TEXT)
 
     def sync_current(self) -> None:
         selected = self.app.selected_mode

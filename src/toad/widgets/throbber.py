@@ -14,8 +14,9 @@ from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
+from ui_theme.scheme import TurnBandColour
 
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, TonePaint
 from toad.textual_colours import BlockInk, BottomInk, TopInk
 
 
@@ -34,8 +35,7 @@ class ThrobberVisual(Visual):
     ) -> list[Strip]:
         throbber = self.throbber
         base = Strip([Segment("█" * width, style.rich_style)], cell_length=width)
-        animation = throbber.animation
-        frame = animation.frame() if animation is not None else throbber.effect.final
+        frame = throbber.effect_frame(throbber.effect)
         return [throbber.app.colours.paint_gradient(frame, base, edge=throbber.ink_edge)]
 
     def get_optimal_width(self, rules: RulesMap, container_width: int) -> int:
@@ -45,7 +45,8 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(Animated[Ribbon]):
+class Throbber(TonePaint, Animated[Ribbon]):
+    tone = TurnBandColour
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
     effect = ACTIVITY_SWEEP
@@ -63,10 +64,10 @@ class Throbber(Animated[Ribbon]):
     def watch_busy(self, busy: bool) -> None:
         # The activity owner's sync changes animation ownership and retires its paint.
         if busy and self.is_mounted:
-            if self.animation is None:
+            if self.effect not in self.effects:
                 self.run_effect(self.effect)
         else:
-            self.stop_effect()
+            self.stop_effect(self.effect)
         self.refresh()
 
     def render(self) -> ThrobberVisual | str:

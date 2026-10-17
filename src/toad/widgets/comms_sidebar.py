@@ -40,6 +40,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
+from toad.widgets.selection import ChangingText
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -56,7 +57,7 @@ class ChannelDisclosure(SidebarDisclosure):
     pass
 
 
-class ChannelUnread(PrimaryActivation, Static):
+class ChannelUnread(PrimaryActivation, ChangingText):
     DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
@@ -242,7 +243,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
-        self.show_content(Content(label), layout=True)
+        self.update(Content(label))
 
     def sidebar_owner(self):
         return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)

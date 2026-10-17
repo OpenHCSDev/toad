@@ -5,16 +5,87 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 from weakref import ref
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.declared_family import DeclaredFamily
+from rich.style import NULL_STYLE
+from textual._paint_state import PaintLayer
+from textual.color import Color, TRANSPARENT
+from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
+from textual.strip import Strip
 from ui_theme.clock import Animation
-from ui_theme.effects import Effect, Frame
+from ui_theme.effects import Effect, Fade, Frame
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
+
+
+class WidgetPaint(PaintLayer):
+    """Native paint shared independently of a widget's geometry or behaviour."""
+
+    paint_foreground = paint_background = None
+    background_tint = TRANSPARENT
+    text_style = NULL_STYLE
+    text_opacity = layer_opacity = 1.0
+    auto_color = False
+    paint_key = None
+    paint_cacheable = False
+
+    @property
+    def paint_layer(self) -> PaintLayer:
+        return self
+
+
+class ToneLayer(PaintLayer):
+    """A widget's own CSS paint laid over its area tone.
+
+    CSS backgrounds (hover, selection, transparency) compose over the tone by
+    alpha; with no tone the CSS paint is unchanged.
+    """
+
+    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable")
+
+    def __init__(self, styles, tone: Color | None, cacheable: bool) -> None:
+        self.styles = styles
+        self.paint_cacheable = cacheable
+        stated = styles.paint_background
+        self.paint_background = stated if tone is None else tone if stated is None else tone + stated
+        self.paint_key = hash((styles.paint_key, self.paint_background))
+
+    paint_foreground = property(lambda self: self.styles.paint_foreground)
+    background_tint = property(lambda self: self.styles.background_tint)
+    text_style = property(lambda self: self.styles.text_style)
+    text_opacity = property(lambda self: self.styles.text_opacity)
+    layer_opacity = property(lambda self: self.styles.layer_opacity)
+    auto_color = property(lambda self: self.styles.auto_color)
+
+
+class TonePaint:
+    """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
+
+    tone: ClassVar[type[ThemeColour] | None]
+    # A tone read from layout changes without a style or tree revision.
+    tone_cacheable: ClassVar[bool] = True
+
+    @property
+    def paint_layer(self) -> PaintLayer:
+        tone = self.tone
+        return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
+                         self.tone_cacheable)
+
+
+class AlternatingTonePaint(TonePaint):
+    """A row of a list: every other row, by its laid-out position, steps onto ``alternate_tone``."""
+
+    alternate_tone: ClassVar[type[ThemeColour]]
+    tone_cacheable = False
+
+    @property
+    def tone(self) -> type[ThemeColour] | None:
+        region = self.virtual_region
+        return self.alternate_tone if region.height and region.y // region.height % 2 else None
 
 
 class FrameState(DeclaredFamily, affix="Frame"):
@@ -195,23 +266,41 @@ class FramePresentation:
 class Animated[FrameT: Frame](Widget):
     """A native widget whose effect uses the app clock and published visibility."""
 
-    animation: Animation[FrameT] | None = None
+    text_fades: ClassVar[tuple[Fade, ...]] = ()
 
-    def run_effect(self, effect: Effect[FrameT]) -> None:
-        self.animation = self.app.colours.clock.start(effect, self)  # type: ignore[attr-defined]
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.effects: dict[Effect, Animation] = {}
 
-    def stop_effect(self) -> None:
-        if self.animation is not None:
-            self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
-            self.animation = None
+    def run_effect(self, effect: Effect) -> None:
+        self.stop_effect(effect)
+        self.effects[effect] = self.app.colours.clock.start(effect, self)
+
+    def stop_effect(self, *effects: Effect) -> None:
+        for effect in effects or tuple(self.effects):
+            if animation := self.effects.pop(effect, None):
+                animation.stop()
+
+    def effect_frame(self, effect: Effect[FrameT]) -> FrameT:
+        animation = self.effects.get(effect)
+        return effect.final if animation is None else animation.frame()
 
     def on_unmount(self) -> None:
         self.stop_effect()
 
     def on_hide(self) -> None:
-        if self.animation is not None and self.animation.effect.finite:
-            self.stop_effect()
-            self.refresh()
+        for effect in tuple(self.effects):
+            if effect.finite:
+                self.stop_effect(effect)
+        self.refresh()
+
+    def paint_effects(self, strip: Strip) -> Strip:
+        for effect in self.text_fades:
+            strip = self.app.colours.paint_rising(self.effect_frame(effect), strip)
+        return strip
+
+    def render_line(self, y: int) -> Strip:
+        return self.paint_effects(super().render_line(y))
 
     @property
     def animation_visible(self) -> bool:
