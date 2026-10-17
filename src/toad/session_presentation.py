@@ -235,8 +235,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row
 
     def agent_info(self, conversation: Conversation) -> str:
-        scope = conversation.transcript.thread_scope
-        return f"@{scope[1]} · CLI inbox" if scope is not None else "CLI inbox"
+        return conversation.thread_activity.row.title
 
     def prompt(self, conversation: Conversation):
         from toad.conversation_kind import DmConversation
