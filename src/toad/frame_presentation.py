@@ -38,7 +38,7 @@ class ToneLayer(PaintLayer):
             stated = styles.paint_background
         foreground = paint.paint_foreground
         self.paint_foreground = styles.paint_foreground if foreground is None else foreground
-        self.auto_color = styles.auto_color if foreground is None else False
+        self.auto_color = styles.auto_color if foreground is None else foreground.auto
         text_style = paint.text_style
         self.text_style = styles.text_style if text_style is None else text_style
         tint = paint.background_tint

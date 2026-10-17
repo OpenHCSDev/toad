@@ -14,7 +14,6 @@ from ui_theme.scheme import BlockCursorForegroundColour, BlockCursorBackgroundCo
 from textual.visual import VisualType
 
 from toad.frame_presentation import Animated, TonePaint
-from textual.color import Color
 from rich.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
@@ -96,16 +95,16 @@ class HoverSelection(TonePaint):
 
     @property
     def highlighted_text_style(self):
-        return Style.parse(self.app.colours.variables["block-cursor-text-style"])
+        return self.app.stylesheet.parse_style("$block-cursor-text-style").rich_style
 
     @property
     def paint_foreground(self):
-        return (Color.parse(self.app.colours.variables[self.highlight_foreground])
+        return (self.app.stylesheet.parse_style(f"${self.highlight_foreground}").foreground
                 if self.paint_highlighted and self.highlight_foreground else None)
 
     @property
     def paint_background(self):
-        return (Color.parse(self.app.colours.variables[self.highlight_background])
+        return (self.app.stylesheet.parse_style(f"on ${self.highlight_background}").background
                 if self.paint_highlighted and self.highlight_background else None)
 
     @property
