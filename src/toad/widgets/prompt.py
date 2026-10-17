@@ -28,7 +28,7 @@ from textual import events
 from textual.geometry import Spacing
 from textual.color import TRANSPARENT
 from textual.css._style_properties import Edges
-from toad.widget_view import AUTO, WidgetView
+from toad.widget_view import AUTO, FocusWithinView, WidgetView
 from toad.setting_widget import SettingVisibility
 from textual.css.scalar import Scalar
 from toad import messages
@@ -160,7 +160,7 @@ class PromptLabel(WidgetView, Label):
         return self.MULTILINE if "\n" in prompt.text or "```" in prompt.text else self.AI
 
 
-class PromptContainer(WidgetView, containers.HorizontalGroup):
+class PromptContainer(FocusWithinView, containers.HorizontalGroup):
     @property
     def border(self):
         prompt = self.query_ancestor(Prompt)
