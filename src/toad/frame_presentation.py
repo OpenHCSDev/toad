@@ -202,7 +202,7 @@ class FramePresentation:
             self.state.defer(self, owner, callback)
 
     def flush_owner(self, owner: Widget, callback: Callable[[], object]) -> None:
-        """Native sender admission precedes the original terminal writer join."""
+        """Wait for the sender's frame before waiting for the terminal writer."""
         if self.awaits_publication(owner, callback):
             self.screen.app._driver.call_after_flush(
                 partial(self.release, owner, callback, self.state.scene))

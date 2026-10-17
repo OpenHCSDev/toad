@@ -88,7 +88,7 @@ class BoundWorkspaceSource(WorkspaceSource):
 
     async def retire(self):
         # Source retirement captures the departing reader from its committed
-        # scene. Blurring or hiding first changes the actual CSS admission and
+        # scene. Blurring or hiding first changes the widget's CSS state and
         # discards the document's source placement before its owner can take it.
         await self.view.retire_presentation()
         self.view.display = False

@@ -1,4 +1,4 @@
-"""Authenticated loopback admission for the installed textual-serve routes."""
+"""Authenticated loopback access for the installed textual-serve routes."""
 
 from __future__ import annotations
 
@@ -136,7 +136,7 @@ class LocalBrowserAuthentication:
 
 
 class ToadWebServer(Server):
-    """Keep the vendor server/child path; put local admission before every route."""
+    """Keep the vendor server/child path; check local access before every route."""
 
     def __init__(
         self,

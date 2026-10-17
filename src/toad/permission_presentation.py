@@ -14,7 +14,7 @@ class PermissionPresentation(DeclaredFamily, affix="PermissionPresentation"):
 
     @classmethod
     def from_acp(cls, tool_call):
-        """Decode the external ACP choice once, at request admission."""
+        """Decode the external ACP choice once, when accepting the request."""
         content = tool_call.content or []
         title = tool_call.title or ""
         for member in sorted(cls.members_with(cls), key=lambda member: member.priority, reverse=True):

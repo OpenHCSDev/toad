@@ -175,7 +175,7 @@ class CommsChatView(Conversation):
 
     @handles(core_events.SessionSelected)
     async def _selected_source_changed(self, event) -> None:
-        """A retained view reads current source after its original tab admission."""
+        """A retained view reads current source after its tab opens."""
         await super()._selected_commands_changed(event)
         await self._refresh()
 

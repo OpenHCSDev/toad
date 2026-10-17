@@ -35,7 +35,7 @@ class PresentationBudget:
     """Tunable working-set policy, not transport-page or source-size limits.
 
     Visible and explicitly protected items may exceed the nominal item budget.
-    Admission remains bounded independently; source data is never discarded to
+    Loading stays bounded by separate limits; source data is never discarded to
     satisfy a widget budget.
     """
 

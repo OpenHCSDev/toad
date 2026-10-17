@@ -104,10 +104,10 @@ class AgentProcess:
 
     @asynccontextmanager
     async def admitted_prompt(self, agent):
-        """Core ingress admission held through the prompt's stdin write.
+        """Keep Core's input lock until the prompt is written to stdin.
 
-        Admission is acquired off this loop; the write stays on it. Without a
-        process there is nothing to admit, and send() reports that.
+        Acquire the lock off this loop; keep the write on it. Without a
+        process there is nothing to send, and send() reports that.
         """
         if self.process is None:
             yield

@@ -23,7 +23,7 @@ class HistoryMove(CoreEvent):
 
 @dataclass(frozen=True)
 class UserInputSubmitted(CoreEvent):
-    """Editor submission options, before producer admission or native delivery."""
+    """Editor submission options, before accepting input or sending it to the agent."""
 
     body: str
     shell: bool = False

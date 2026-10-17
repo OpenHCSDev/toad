@@ -1,4 +1,4 @@
-"""Thread opening owns intent, deduplication and native-view admission."""
+"""Thread opening tracks requests, avoids duplicates and opens native views."""
 from __future__ import annotations
 
 import asyncio

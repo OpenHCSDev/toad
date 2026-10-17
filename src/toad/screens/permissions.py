@@ -208,7 +208,7 @@ class PermissionsScreen(Screen[Answer]):
 
 
 class PermissionReview(PermissionsScreen):
-    """Admission at mount uses the same pending request and source binding."""
+    """Mounting checks the same pending request and source binding."""
     def __init__(self, request, view, diffs, binding):
         super().__init__(request.options, diffs, agent_name=view.agent_title or "The Agent")
         self.request = request

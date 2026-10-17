@@ -327,7 +327,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         """Apply a coordination update's view work to this session's conversation.
 
         The workspace admits one session's native tree at a time, so the
-        widget may be parked or not yet built. Its work waits for admission,
+        widget may be parked or not yet built. Its work waits for mounting,
         which applies the screen's retained fact.
         """
         conversation = self.widget
@@ -339,7 +339,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
 
     @asynccontextmanager
     async def acquire(self, screen: "MainScreen"):
-        """Mount owned resources before workspace admission, then restore them.
+        """Mount owned resources before the workspace opens the view, then restore them.
 
         The workspace admits the yielded native tree before operational
         attachment can await or publish its restored presentation.
@@ -456,7 +456,7 @@ class NativeSessionSurface:
         """Bound inactive native trees using the existing viewport resource policy.
 
         The selected presentation is required; its costs participate in the
-        same admission as inactive trees. Tab order owns recency and the logical
+        same resource limits as inactive trees. Tab order owns recency and the logical
         session registry owns native membership. Eviction preserves source and
         editor/reader state through the presentation's existing lifetime.
         """
