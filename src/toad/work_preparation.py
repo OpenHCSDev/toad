@@ -118,7 +118,7 @@ class PreparationWork(ABC, Generic[ResultT]):
     @property
     @abstractmethod
     def lane(self) -> WorkLane:
-        """Independent admission for models and potentially slow rendering."""
+        """Separate work slots for models and potentially slow rendering."""
 
     @abstractmethod
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
@@ -256,7 +256,7 @@ def retained_bytes(value: object, *, seen: set[int] | None = None) -> int:
 class PreparationRuntime:
     """Application-owned cache and in-flight work shared across every consumer.
 
-    Model and render admission are separate, so a backlog of CPU rendering
+    Model and render work use separate slots, so a backlog of CPU rendering
     cannot consume all model slots. A waiter cancellation leaves actual work
     admitted until completion. Cached results are materialized on worker delivery:
     native consumers may mutate tokens without corrupting another view's result.
