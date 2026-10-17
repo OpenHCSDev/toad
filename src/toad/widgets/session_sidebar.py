@@ -7,14 +7,19 @@ from typing import TYPE_CHECKING, cast
 from textual.content import Content
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
+from ui_theme.scheme import AlternateRowToneColour
+
+from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import HoverSelection, ViewLabel
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ThreadStatusRow(ViewLabel, HoverSelection):
+class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
+
+    alternate_tone = AlternateRowToneColour
 
     DEFAULT_CSS = """
     ThreadStatusRow.-wire-thread {
@@ -31,6 +36,26 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
         color: $block-cursor-foreground !important;
     }
     """
+
+    _row_width = 0
+
+    def get_content_width(self, container, viewport) -> int:
+        return self._row_width
+
+    def on_mount(self) -> None:
+        self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
+
+    def update(self, content="", *, layout=None) -> None:
+        previous = self.content
+        super().update(content, layout=layout)
+        if self.is_mounted and previous.plain != self.content.plain:
+            self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
+
+    async def _measure_width(self, content: Content) -> None:
+        width = await self.app.preparation.run_thread(content.get_optimal_width, {}, 0)
+        if self.content.plain == content.plain:
+            self._row_width = width
+            self.refresh(layout=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

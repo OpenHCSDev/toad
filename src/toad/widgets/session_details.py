@@ -12,7 +12,8 @@ from agent_comms.thread_presentation import (
 )
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.core.projection import MroProjection
-from toad.frame_presentation import TurnBandPaint
+from toad.frame_presentation import TonePaint
+from ui_theme.scheme import TurnBandColour
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
@@ -28,7 +29,7 @@ if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(TurnBandPaint, Collapsible, ObservedThreadActivity, MroProjection):
+class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjection):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
@@ -36,13 +37,14 @@ class SessionDetails(TurnBandPaint, Collapsible, ObservedThreadActivity, MroProj
     settlement remain independent of this observed-thread presentation.
     """
 
+    tone = TurnBandColour
     DETAIL_ROWS = 8
     overview_text: var[str] = var("")
 
     DEFAULT_CSS = """
     SessionDetails, SessionDetails:ansi {
         height: auto; padding: 0; margin: 0; border: none;
-        background: transparent; color: $text-muted;
+        color: $text-muted;
     }
     SessionDetails > CollapsibleTitle {
         width: 1fr; height: 1; padding: 0 1; text-wrap: nowrap; text-overflow: ellipsis;

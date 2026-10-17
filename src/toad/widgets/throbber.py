@@ -14,8 +14,9 @@ from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
 from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
+from ui_theme.scheme import TurnBandColour
 
-from toad.frame_presentation import Animated, TurnBandPaint
+from toad.frame_presentation import Animated, TonePaint
 from toad.textual_colours import BlockInk, BottomInk, TopInk
 
 
@@ -44,7 +45,8 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(TurnBandPaint, Animated[Ribbon]):
+class Throbber(TonePaint, Animated[Ribbon]):
+    tone = TurnBandColour
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
     effect = ACTIVITY_SWEEP
