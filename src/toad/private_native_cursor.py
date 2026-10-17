@@ -60,7 +60,7 @@ class UnavailableCursorStatus(CursorStatus):
 
     @classmethod
     def present_status(cls, status: ThreadPresentationStatus) -> ThreadPresentationStatus:
-        return status.with_attention()
+        return status.with_attention(cls.summary)
 
 
 TOOLTIP = (

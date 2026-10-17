@@ -7,8 +7,8 @@ from collections.abc import Callable
 
 from agent_comms.mro_dispatch import handles
 from agent_comms.thread_presentation import (
-    AttentionThreadPresentationStatus, IdleThreadPresentationStatus, SessionDisconnected,
-    WorkingThreadPresentationStatus, StatusPending, ThreadRetired,
+    ThreadPresentationStatus, SessionDisconnected,
+    WorkingThreadPresentationStatus, ThreadRetired,
 )
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.core.projection import MroProjection
@@ -69,21 +69,13 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
             title="", collapsed=True, id="session-details",
         )
 
-    @handles(IdleThreadPresentationStatus)
+    @handles(ThreadPresentationStatus)
     def idle_role(self, status) -> type[LineRole]:
-        return MutedRole
+        return NoticeRole if status.details else MutedRole
 
     @handles(WorkingThreadPresentationStatus)
     def working_role(self, status) -> type[LineRole]:
         return WorkingRole
-
-    @handles(AttentionThreadPresentationStatus)
-    def attention_role(self, status) -> type[LineRole]:
-        return NoticeRole
-
-    @handles(StatusPending)
-    def pending_role(self, status) -> type[LineRole]:
-        return MutedRole
 
     @handles(ThreadRetired)
     def retired_role(self, status) -> type[LineRole]:
