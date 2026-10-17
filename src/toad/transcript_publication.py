@@ -49,7 +49,7 @@ class TranscriptPublication(ABC):
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
-        """The mounted canonical history retains the native prefix the wire cursor lacks."""
+        """The mounted main history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
         return cursor.over_native(tuple(history.committed_cursor for history in self.owner.histories
@@ -102,7 +102,7 @@ class TranscriptPublication(ABC):
                 return False
         except (StaleRevision, UnregisteredThreadError):
             # The original backend read lost its source. Every publication
-            # declines it here; only a new observation can admit another read.
+            # declines it here; only a new observation can accept another read.
             return True
         except (OSError, ValueError) as error:
             self.report_failure(error)
@@ -283,7 +283,7 @@ class SourcePublicationRequests:
                                        CoordinationObserved, self.resume))
 
     def resume(self, _event=None) -> bool:
-        """Resume retained work only at an existing source/preparation signal."""
+        """Resume kept work only at an existing source/preparation signal."""
         if self.pending.empty():
             return False
         if self.worker is None or self.worker.is_finished:
@@ -466,7 +466,7 @@ class TranscriptPresentation:
 
     @property
     def thread_scope(self) -> tuple[str, str] | None:
-        """The view declares the thread whose canonical history it presents."""
+        """The view declares the thread whose main history it presents."""
         view = self.view
         return view.transcript_scope() if view is not None and view.is_attached else None
 
@@ -545,11 +545,11 @@ class TranscriptPresentation:
 
     @property
     def histories(self) -> tuple[TranscriptHistory, ...]:
-        """Canonical saved sources are direct children of this transcript.
+        """Main saved sources are direct children of this transcript.
 
         A body may own pagers for its Markdown or filtered projection. Those
         rendering resources cannot certify this conversation's saved source.
-        The parent-child widget tree, rather than a retained pointer, owns this
+        The parent-child widget tree, rather than a kept pointer, owns this
         relation through provisional mount, replacement, park and disposal.
         """
         from toad.widgets.transcript_history import TranscriptHistory
@@ -603,7 +603,7 @@ class TranscriptPresentation:
         if not self.readable:
             return
         await self.restore_documents()
-        history = next(iter(self.histories), None)
+        first_history = next(iter(self.histories), None)
         source = view.query_ancestor(SessionView)
         generation, window, contents = self.generation, view.window, view.contents
         # The place the reader left with the tab; reaching it is not the reader moving.
@@ -620,13 +620,13 @@ class TranscriptPresentation:
                     and view.app.workspace_sessions.owns(source))
 
         if position is not None:
-            for retained in self.histories:
-                if not await retained.restore_reader_ranges(position.ranges, current):
+            for history in self.histories:
+                if not await history.restore_reader_ranges(position.ranges, current):
                     return
         if not current():
             return
-        if history is not None:
-            await self.reveal_retained(history)
+        if first_history is not None:
+            await self.reveal_retained(first_history)
         view.refresh_native_projection()
         publication = self.capture(CanonicalSourcePublication)
 
@@ -655,7 +655,7 @@ class TranscriptPresentation:
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:
-        """Admit an operation bound to its original attachment and acquired resources."""
+        """Accept an operation bound to its original attachment and acquired resources."""
         from toad.widgets.conversation import Window, Contents
         view = self.view
         if view is None or not view.is_attached:
@@ -819,8 +819,8 @@ class TranscriptPresentation:
             async def complete() -> None:
                 await retirement
                 # The accepted frontier also invalidates its existing status view.
-                # A retained resume can reject an identical snapshot without any
-                # widget replacement; it still publishes canonical coverage here.
+                # A kept resume can reject an identical snapshot without any
+                # widget replacement; it still publishes main coverage here.
                 view.query_one(SessionDetails)._refresh_summary()
                 if view.thread_presentation is not None:
                     view.run_worker(partial(self.publish, HandlingPublication),

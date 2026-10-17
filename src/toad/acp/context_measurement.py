@@ -1,4 +1,4 @@
-"""Context measurement owns availability, provenance and shared status text."""
+"""Context measurement owns availability, sources and shared status text."""
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
