@@ -11,6 +11,9 @@ from agent_comms.field_codec import FieldCodec
 from textual.binding import Binding
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from toad.preferences import SETTINGS
+from toad.screens.modal import ModalScreen
+from toad.target_commands import TargetContext
+from toad.thread_actions import ThreadAction
 from agent_comms.cli_commands import NewThreadCliCommand
 from agent_comms.channel_targets import ProjectTarget
 
@@ -110,8 +113,6 @@ class NewThreadAction(ApplicationAction, MenuAction):
     async def collect(self, app, mode, project):
         try:
             def prepare():
-                from toad.target_commands import TargetContext
-                from toad.thread_actions import ThreadAction
                 ctx = TargetContext(app, app.coordination_access.service,
                                     ProjectTarget(str(project)), '', project, mode)
                 definition = next(action for action in ctx.available_actions()
@@ -322,6 +323,9 @@ class VimHintsAction(VimApplicationAction):
 
     async def apply(self, app):
         await app.screen.action_show_hints()
+
+
+ModalScreen.BINDINGS = list(VimHintsAction.bindings())
 
 
 class VimNextTabAction(VimNavigationAction):
