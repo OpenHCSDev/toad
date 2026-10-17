@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import zipfile
 
 from performance.capture_live import XvfbDisplay
@@ -42,6 +43,109 @@ def inventory() -> dict:
 
 def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
+
+
+def check_startup(runtime: Path, output: Path) -> dict:
+    """Import the installed family and paint both no-session CLI entrypoints."""
+    import psutil
+
+    output.mkdir()
+    python = runtime / 'bin/python'
+    modules = json.loads(run(python, '-I', '-B', '-c', '''
+import importlib,json,toad
+from pathlib import Path
+root=Path(toad.__file__).parent
+names=[]
+for path in sorted(root.rglob('*.py')):
+    parts=path.relative_to(root).with_suffix('').parts
+    if parts[-1]=='__init__': parts=parts[:-1]
+    name='.'.join(('toad',*parts))
+    importlib.import_module(name)
+    names.append(name)
+print(json.dumps(names))
+'''))
+    (output / 'imports.json').write_text(json.dumps(modules, indent=2))
+    home = output / 'home'
+    home.mkdir(mode=0o700)
+    environment = {k: v for k, v in os.environ.items()
+                   if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
+                   and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
+    private = dict(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
+                   XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
+                   AGENT_COMMS_ROOT=str(output / 'wire'))
+    environment.update(private)
+    subprocess.run([str(python), '-I', '-B', '-c',
+                    'from agent_comms.comms import wire; wire().messaging.initialize_private_initial_protocol()'],
+                   env=environment, check=True)
+    with (output / 'xvfb.log').open('w') as log:
+        server = subprocess.Popen(['Xvfb', '-displayfd', '1', '-screen', '0',
+                                   '1440x960x24', '-nolisten', 'tcp'],
+                                  stdout=subprocess.PIPE, stderr=log)
+        try:
+            display_name = ':' + server.stdout.readline().decode().strip()
+            with XvfbDisplay(display_name) as display:
+                environment['DISPLAY'] = display.name
+                for name, arguments, selected in (
+                    ('plain', [], 'store'),
+                    ('welcome', ['acp', f'{python} -I -B -m agent_comms.acp', str(home)], 'welcome'),
+                ):
+                    observation = output / f'{name}.json'
+                    with (output / f'{name}.log').open('w') as terminal_log:
+                        terminal = subprocess.Popen(
+                            ['st', '-g', '140x34', '-e', 'env',
+                             *(f'{k}={v}' for k, v in private.items()), str(runtime / 'bin/toad'), *arguments],
+                            cwd=home, env=environment, stdout=terminal_log, stderr=terminal_log)
+                        try:
+                            deadline = time.monotonic() + 30
+                            remote = output / f'{name}-observe.py'
+                            remote.write_text(f'''import sys,json
+from pathlib import Path
+if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
+ from textual.app import App
+ from textual._context import NoActiveAppError
+ try: app=App.running_app()
+ except NoActiveAppError: pass
+ else:
+  def observe():
+   if app._exception is not None: raise app._exception
+   if {selected!r} == 'store':
+    if app.current_mode != 'store': return
+   else:
+    from toad.screens.welcome import WelcomeScreen
+    if not isinstance(app.selected_session, WelcomeScreen): return
+   text=[strip.text for strip in app.screen._compositor.render_strips()]
+   if not any(line.strip() for line in text): return
+   Path({str(observation)!r}).write_text(json.dumps(dict(mode=app.current_mode, text=text)))
+  app.schedule_from_thread(lambda: app.call_after_refresh(observe))
+''')
+                            while not observation.exists():
+                                if terminal.poll() is not None or time.monotonic() >= deadline:
+                                    raise RuntimeError(f'{name} launch did not paint; see {output}')
+                                children = psutil.Process(terminal.pid).children()
+                                if children:
+                                    child, = children
+                                    subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
+                                                    f'import sys; sys.remote_exec({child.pid}, {str(remote)!r})'],
+                                                   check=True, timeout=5)
+                                time.sleep(.5)
+                            run('import', '-display', display.name, '-window', 'root', output / f'{name}.png')
+                            window = subprocess.check_output(
+                                ['xdotool', 'search', '--onlyvisible', '--pid', str(terminal.pid)],
+                                env=environment, text=True).strip()
+                            XvfbDisplay.input(psutil.Process(terminal.pid),
+                                              psutil.Process(terminal.pid).create_time(), int(window), 'key', 'ctrl+q')
+                            if terminal.wait(timeout=10) != 0:
+                                raise RuntimeError(f'{name} exited unsuccessfully; see {output}')
+                        finally:
+                            if terminal.poll() is None:
+                                terminal.terminate()
+                                terminal.wait(timeout=5)
+        finally:
+            server.terminate()
+            server.wait(timeout=5)
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', evidence=str(output))
+    (output / 'result.json').write_text(json.dumps(result, indent=2))
+    return result
 
 
 def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
@@ -364,11 +468,13 @@ class RuntimeBuild:
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             for export, wheel in ((self.toad, toad_wheel), (self.core, core_wheel)):
                 export.verify_wheel(wheel, installed)
+            startup = check_startup(destination, self.scratch / f'startup-{destination.name}')
             record = {
                 'baseline': str(self.baseline),
                 'toad_commit': toad_commit, 'core_commit': core_commit,
                 'native_manifest_sha256': native_pin,
                 'packages': installed, 'runtime': str(destination),
+                'startup': startup,
             }
             (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
             cleanup.pop_all()  # The completed immutable runtime leaves build custody.

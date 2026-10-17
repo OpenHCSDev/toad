@@ -95,8 +95,8 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
     def on_select_changed(self, event: widgets.Select.Changed) -> None:
         self.query_one("#run-action", widgets.Button).disabled = event.value is widgets.Select.NULL
 
-    @work
     @on(widgets.Button.Pressed, "#run-action")
+    @work
     async def on_run_action(self) -> None:
         action = self.action_select.value
         if action is not widgets.Select.NULL and action.available(self):
