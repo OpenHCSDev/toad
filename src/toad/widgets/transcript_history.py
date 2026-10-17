@@ -898,10 +898,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
-    @property
-    def source_checkpoint_available(self) -> bool:
-        return self.filter.checkpoint_available
-
     def _reader(self) -> PreparedPageSource:
         # The source only grows under one reader; replacing the source clears it (_clear).
         if self._page_buffer is None:
@@ -1161,7 +1157,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     @property
     def older_page_available(self) -> bool:
-        return self.checkpoint_available and self.has_older
+        return self.source_ready and self.has_older
 
     def request_older(self) -> None:
         if self.older_page_available:

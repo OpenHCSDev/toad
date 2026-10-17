@@ -213,7 +213,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         the live copies of the same turn, in the change that draws them.
         """
         async with self.window.history_lock:
-            if not self.checkpoint_available or not is_current():
+            if not self.source_ready or not is_current():
                 return False
             if not self.accepts_commit(through):
                 raise ValueError("Commit replaces or rewinds the saved source")
@@ -268,7 +268,7 @@ class CommitPlan(ABC):
         return not protected_blocks(view, candidates)
 
     def ready(self, history: CommittedHistory | None) -> bool:
-        return history is None or history.checkpoint_available
+        return history is None or history.source_ready
 
     async def prepare(self, view: Conversation, history: CommittedHistory | None,
                       page: TranscriptPage, captured: frozenset[Widget],
