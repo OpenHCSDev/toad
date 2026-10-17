@@ -10,7 +10,6 @@ from typing import ClassVar
 
 from rich.style import Style
 from textual.geometry import Size
-from textual.selection import Selection
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
@@ -101,10 +100,11 @@ class SingleLineBlock(LinkedRows, BlockContent, Widget):
         theme = self.line_theme
         if self._lines is None or self._lines[0] != theme or self._lines[1].width != width:
             self._lines = theme, self._drawn(theme, width)
-        return self.on_background(self._lines[1].strips_at(self._link_place)[0], paint)
+        return self.on_background(self._lines[1].strips_at(self._link_place)[0], paint, y)
 
-    def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        return selection.extract(self.block.selection_text), "\n"
+    @property
+    def line_sets(self) -> tuple[PreparedLines, ...]:
+        return (self._lines[1],) if self._lines is not None else ()
 
     @height_dependency(INDEPENDENT_HEIGHT)
     def get_content_height(self, container: Size, viewport: Size, width: int) -> int:
