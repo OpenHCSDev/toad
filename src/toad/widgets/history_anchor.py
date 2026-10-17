@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.widgets.conversation import Contents
 
 
 class ReaderPosition(ABC):
@@ -518,12 +519,12 @@ class HistoryWindow(VerticalScroll):
             self.reader_position = ReaderPosition.of(self)
             self.screen.reader_kept()
 
-    def park_reader(self) -> ParkedPosition:
+    def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
         if not isinstance(parked := self.reader_position, ParkedPosition):
             # Parked pagers stop reading and leave window.histories while their
             # pages stay in the tree: record those page ranges with the place.
-            ranges = tuple(page_range for history in self.line_histories()
+            ranges = tuple(page_range for history in contents.line_histories()
                            for page_range in history.capture_reader_ranges())
             parked = self.reader_position = ParkedPosition(self.reader_position or ReaderPosition.of(self), ranges)
         return parked
@@ -792,20 +793,6 @@ class HistoryWindow(VerticalScroll):
         """This window's actual displayed content, independent of pending layout."""
         placement = self.screen._compositor._published_map.get(self)
         return None if placement is None else placement.content_region.intersection(placement.clip)
-
-    def line_histories(self):
-        """Every line history in this window, without walking the descendants of rich blocks."""
-        from toad.widgets.transcript_history import LineHistory
-
-        pending = list(reversed(self.children))
-        while pending:
-            node = pending.pop()
-            if isinstance(node, LineHistory):
-                yield node
-                if (projection := node.filter.state.overlay) is not None:
-                    pending.append(projection)
-            else:
-                pending.extend(reversed(node.children))
 
     @asynccontextmanager
     async def preserve_history(self, *, root: Widget | None = None):
