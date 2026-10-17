@@ -282,9 +282,8 @@ class MainMenuButton(HeaderButton):
         return self.open_menu
 
     def open_menu(self) -> None:
-        self.app.push_screen(ContextMenu(
-            Offset(self.region.x, self.region.bottom), "Toad", ApplicationAction.menu()),
-            callback=self.chosen)
+        ContextMenu.show(self.screen, Offset(self.region.x, self.region.bottom),
+                         "Toad", ApplicationAction.menu(), callback=self.chosen)
 
     async def chosen(self, action: ApplicationAction | None) -> None:
         if action is not None:
