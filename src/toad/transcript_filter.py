@@ -191,12 +191,12 @@ class SeekingFilter(NoFilter):
                     return False
                 async with snapshot.window.preserve_history(root=owner):
                     with ExitStack() as acquisition:
-                        admitted_state = Filtered(owner, projection)
-                        self.transfer_scan(admitted_state)
-                        owner.filter = admitted_state
-                        acquisition.callback(admitted_state.remove)
+                        filtered = Filtered(owner, projection)
+                        self.transfer_scan(filtered)
+                        owner.filter = filtered
+                        acquisition.callback(filtered.remove)
                         await owner.mount(projection, before=owner.pages[0])
-                        admitted_state.require_projection(snapshot, projection)
+                        filtered.require_projection(snapshot, projection)
                         acquisition.pop_all()
                 drew = bool(projection.fragments_in_range)
                 owner._update_edges()

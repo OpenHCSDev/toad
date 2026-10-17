@@ -796,10 +796,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         self.window.prepare_history(self)
         self.request_preparation()
 
-    def _require_can_draw(self) -> None:
-        if not self.state.can_draw:
-            raise _DrawingStopped
-
     def invalidate_projection(self) -> None:
         self._generation += 1
 

@@ -62,6 +62,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return False
         return self.screen.is_current
 
+    def _require_can_draw(self) -> None:
+        if not self.state.can_draw:
+            raise _DrawingStopped
+
     def source_snapshot(self) -> HistorySourceSnapshot:
         return HistorySourceSnapshot(self._generation, self.window, self.screen,
                                      self.source_identity)
