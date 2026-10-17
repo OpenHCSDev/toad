@@ -21,8 +21,11 @@ class SidebarViewport(VerticalScroll):
 
     CACHE_SUBTREE_GEOMETRY = True
 
-    def preserve_reader(self, placement) -> Offset:
-        if not placement.widget.pending_move(placement):
+    def preserve_reader(self, placements) -> Offset:
+        placement = next((p for p in placements if self.scroll_y
+                          and p.widget.region.y <= self.content_region.y < p.widget.region.bottom
+                          and p.widget.is_navigation_row()), None)
+        if placement is None or not placement.widget.pending_move(placement):
             return Offset()
         before = self.scroll_y
         self.scroll_y += placement.region.y - placement.widget.virtual_region.y

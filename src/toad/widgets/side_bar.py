@@ -58,7 +58,14 @@ class PresentedBar:
 
 
 class SidebarVisibilityObserver:
-    """A panel whose active presentation depends on its enclosing sidebar."""
+    """A panel whose viewport and active presentation belong to its enclosing sidebar."""
+
+    @property
+    def scroll_container(self) -> SidebarViewport:
+        return self.query_ancestor(SideBar).query_one("#sidebar-panels", SidebarViewport)
+
+    def reader_shift(self, placements) -> Offset:
+        return self.scroll_container.preserve_reader(placements)
 
     def sidebar_visibility_changed(self) -> None:
         raise NotImplementedError

@@ -22,7 +22,7 @@ from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
-from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
+from toad.widgets.sidebar_viewport import SidebarHeader
 
 
 class TargetTreeMember:
@@ -65,13 +65,7 @@ class SidebarRowLayout(VerticalLayout):
     @height_dependency(FLOW_HEIGHT)
     def arrange(self, parent, children, size, greedy=True):
         placements = super().arrange(parent, children, size, greedy)
-        if not placements:
-            return placements
-        viewport = placements[0].widget.query_ancestor(SidebarViewport)
-        reader = next((p for p in placements if viewport.scroll_y
-                       and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
-                       and p.widget.is_navigation_row()), None)
-        shift = Offset() if reader is None else viewport.preserve_reader(reader)
+        shift = parent.query_ancestor(TargetTree).reader_shift(placements)
         return [placement.widget.place(placement, shift) for placement in placements]
 
 
@@ -228,6 +222,9 @@ class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
+
+    def reader_shift(self, placements) -> Offset:
+        return Offset()
 
     @property
     def selection_state(self):
