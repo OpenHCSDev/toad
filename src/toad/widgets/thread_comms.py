@@ -137,7 +137,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
     def member_keys(self):
         snapshot = self.query_ancestor(ThreadCommsSidebar)._snapshot
         model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
-        return tuple(entry.target for entry in model.entries) if model is not None else ()
+        return (entry.target for entry in model.entries) if model is not None else ()
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
@@ -392,10 +392,13 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context.update(Content("Comms unavailable"), layout=False)
                 context.tooltip = str(error)
 
-    @property
-    def member_keys(self):
-        return tuple(entry.target for group in self._snapshot.groups_by_type.values()
-                     for entry in group.entries) if self._snapshot is not None else ()
+    def needs_row(self, key, origin):
+        for identity, model in self._snapshot.groups_by_type.items():
+            group = self.groups.get(identity)
+            if group is not origin and (group is None or key not in group.rows):
+                if any(entry.target == key for entry in model.entries):
+                    return True
+        return False
 
     @property
     def navigation_groups(self):

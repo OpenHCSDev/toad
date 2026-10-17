@@ -164,6 +164,9 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         """Keys listed by this group's current model, including hidden rows."""
         raise NotImplementedError
 
+    def has_member(self, key):
+        return key in self.member_keys
+
     def reconcile_rows(self, create, update, *, changed=None):
         """Retain rows by identity; mount, remove and reorder only what differs.
 
@@ -178,9 +181,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         keys = tuple(self.member_keys)
         wanted = set(keys)
         tree = self.query_ancestor(TargetTree)
-        listed = tree.member_keys
-        retired = [key for key in rows if key not in wanted
-                   and sum(key in group.rows for group in tree.navigation_groups) > listed.count(key)]
+        retired = [key for key in rows if key not in wanted and not tree.needs_row(key, self)]
         for key in retired:
             rows.pop(key).retire()
         mounted = []
@@ -235,19 +236,19 @@ class TargetTree(Vertical):
     def preserve_reader(self, placements) -> None:
         """A sidebar viewport may retain its reader across a native relayout."""
 
-    @property
-    def member_keys(self):
-        return tuple(key for group in self.navigation_groups for key in group.member_keys)
+    def needs_row(self, key, origin):
+        return any(group is not origin and key not in group.rows and group.has_member(key)
+                   for group in self.navigation_groups)
 
     def take_row(self, key, destination):
         """Move an existing native row only after its old model stops listing it."""
         for group in self.navigation_groups:
-            if group is not destination and key not in group.member_keys:
-                row = group.rows.pop(key, None)
-                if row is not None:
-                    row.reparent(destination.member_container)
-                    group.rows_changed()
-                    return row
+            row = group.rows.get(key)
+            if row is not None and group is not destination and not group.has_member(key):
+                del group.rows[key]
+                row.reparent(destination.member_container)
+                group.rows_changed()
+                return row
         return None
 
     @property

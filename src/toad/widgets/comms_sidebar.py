@@ -135,7 +135,10 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     @property
     def member_keys(self):
         channel = self.sidebar.model.channels.rows.get(self.row.target_name)
-        return tuple(name for name in channel.members if name in self.sidebar.model.threads.rows) if channel is not None else ()
+        return channel.members if channel is not None else ()
+
+    def has_member(self, key):
+        return self.sidebar.has_member(self.row.target_name, key)
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         if self.channel is None or not self.member_container.is_attached:
@@ -567,9 +570,18 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             if self.is_attached and self.model is not None:
                 self._order_groups()
 
-    @property
-    def member_keys(self):
-        return tuple(name for channel in self.model.channels.rows.values() for name in channel.members)
+    def has_member(self, channel, key):
+        snapshot = self.model.snapshot
+        person = snapshot.threads.get(key)
+        view = snapshot.channels.get(channel)
+        return person is not None and view is not None and view.channel.matches(person.thread.tags)
+
+    def needs_row(self, key, origin):
+        for name in self.model.channels.rows:
+            group = self.groups.get(name)
+            if group is not origin and (group is None or key not in group.rows) and self.has_member(name, key):
+                return True
+        return False
 
     def _order_groups(self) -> None:
         """Order current groups, retiring old groups after their rows can move."""
