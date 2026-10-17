@@ -193,7 +193,7 @@ See on-screen instructions for details.
         ),
     ]
 
-    app: ToadApp = getters.app()
+    app: ToadApp
 
     auto_completes: var[list[Option]] = var(list)
     multi_line = var(False, bindings=True)
@@ -520,7 +520,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
 
-    app: ToadApp = getters.app()
+    app: ToadApp
 
     def apply_compact_input(self, compact: bool) -> None:
         """Only the prompt's native boxes change; no app selector is invalidated."""
