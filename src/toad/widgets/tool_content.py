@@ -1,6 +1,7 @@
 """The shared line-block view for live tool details and permission previews."""
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.geometry import Size
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.worker import Worker
@@ -95,12 +96,12 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
                 self.call_later(self._request_render)
         return self._lines(width).height
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self._width
         strips = self._lines(width).strips_at(self._link_place) if width else ()
         if y >= len(strips):
-            return self.blank_row(width)
-        return selection_painted(self, self.on_background(strips[y]), y)
+            return self.blank_row(width, paint)
+        return selection_painted(self, self.on_background(strips[y], paint), y)
 
     def get_clipboard_text(self) -> str:
         return "\n".join(block.selection_text for block in self.blocks)

@@ -15,6 +15,7 @@ from textual.content import Content
 from textual.geometry import Region, Size
 from textual.screen import Screen
 from textual.selection import Selection
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
@@ -290,16 +291,16 @@ class WorkerStatic(PreparedPaintSource, Static):
         super().selection_updated(selection)
         self._request_preparation(capture=True)
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         prepared = self._prepared
         if prepared is None:
-            return super().render_line(y)
+            return super().render_line(y, paint)
         width, height = self.size
         horizontal, vertical = self.styles.content_align
         extra = max(0, height - len(prepared.lines))
         y -= extra if vertical == "bottom" else extra // 2 if vertical == "middle" else 0
         if not 0 <= y < len(prepared.lines):
-            return Strip.blank(width, self.visual_style.rich_style)
+            return Strip.blank(width, paint.rich_style)
         selection = self.text_selection
         selection_style = (Visual.selection_style(self).rich_style
                            if selection is not None else None)
@@ -308,5 +309,5 @@ class WorkerStatic(PreparedPaintSource, Static):
         space = max(0, width - strip.cell_length)
         left = space if horizontal == "right" else space // 2 if horizontal == "center" else 0
         if left:
-            strip = Strip.join((Strip.blank(left, self.visual_style.rich_style), strip))
+            strip = Strip.join((Strip.blank(left, paint.rich_style), strip))
         return strip

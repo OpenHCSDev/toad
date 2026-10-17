@@ -11,6 +11,7 @@ from typing import ClassVar
 from rich.style import Style
 from textual.geometry import Size
 from textual.selection import Selection
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.widget import Widget
@@ -93,14 +94,14 @@ class SingleLineBlock(LinkedRows, BlockContent, Widget):
     def _drawn(self, theme: LineTheme, width: int) -> PreparedLines:
         return PreparedLines(width, RichLineRenderer(theme, width).rows((self.block,)))
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self.size.width
         if y or not width:
-            return self.blank_row(width)
+            return self.blank_row(width, paint)
         theme = self.line_theme
         if self._lines is None or self._lines[0] != theme or self._lines[1].width != width:
             self._lines = theme, self._drawn(theme, width)
-        return self.on_background(self._lines[1].strips_at(self._link_place)[0])
+        return self.on_background(self._lines[1].strips_at(self._link_place)[0], paint)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         return selection.extract(self.block.selection_text), "\n"

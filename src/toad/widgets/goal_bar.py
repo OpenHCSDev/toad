@@ -11,6 +11,7 @@ from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
 from textual.layouts.horizontal import HorizontalLayout
 from textual.layouts.grid import GridLayout
 from textual.reactive import var
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from ui_theme.effects import STANDBY_PULSE, Mix
 from textual.widgets import Static
@@ -61,8 +62,8 @@ class StandbyPulse(Animated[Mix], Static):
             self.stop_effect(STANDBY_PULSE)
         self.update("◌" if self.active else "")
 
-    def render_line(self, y: int) -> Strip:
-        strip = super().render_line(y)
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        strip = super().render_line(y, paint)
         if self.active:
             frame = self.effect_frame(STANDBY_PULSE)
             return frame.paint(self.app.colours, strip)
