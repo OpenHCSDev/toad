@@ -91,6 +91,7 @@ class SessionSelected(CoreEvent):
     """The original application completed this mode transition."""
 
     mode_name: str
+    previous_mode: str
 
 
 @dataclass(frozen=True)

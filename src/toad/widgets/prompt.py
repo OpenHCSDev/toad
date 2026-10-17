@@ -3,6 +3,10 @@ from toad.core import input_events
 from toad.conversation_turn import ConversationTurn
 
 from pathlib import Path
+from dataclasses import replace
+from textual._paint_state import PaintState
+from textual.style import Style
+from textual.strip import Strip
 from rich.text import Text as RichText
 import shlex
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
@@ -57,6 +61,13 @@ if TYPE_CHECKING:
 
 
 class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
+    def _get_option_render(self, option: Option, style: Style, paint: PaintState) -> list[Strip]:
+        if self.has_focus and self.highlighted is not None and option is self.options[self.highlighted]:
+            background = paint.background + self.app.colours.colour(PrimaryColour).with_alpha(0.3).multiply_alpha(paint.opacity)
+            base = paint.component_style(self, "option-list--option")
+            style = replace(base, foreground=style.foreground, background=background, bold=False)
+        return super()._get_option_render(option, style, paint)
+
     BINDING_GROUP_TITLE = "Mode switcher"
     BINDINGS = [Binding("escape", "dismiss", "Dismiss mode switcher")]
 

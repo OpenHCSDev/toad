@@ -70,7 +70,7 @@ class SidebarRowLayout(VerticalLayout):
         return [placement.widget.place(placement, shift) for placement in placements]
 
 
-class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
+class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
@@ -95,7 +95,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
         self.row = row
-        self.rows: dict[KeyT, RowT] = {}
+        self.rows: dict[str, RowT] = {}
         self.row.add_class("group-title")
         self.disclosure = disclosure_type()
         self.controls = controls
@@ -125,11 +125,6 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         if self.is_mounted:
             self.members_visibility_changed(previous, expanded)
             self.rows_changed()
-            if expanded:
-                # Cached captions hidden during a workspace change need their
-                # current paint when disclosed. New mounts paint in reconciliation.
-                self.query_ancestor(TargetTree).sync_current(
-                    row for row in self.navigation_rows if row is not self.row)
 
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         """Specializations preserve existing reader intent across disclosure."""
@@ -147,6 +142,13 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     def navigation_rows(self):
         """Native-order destinations, excluding explanatory placeholder widgets."""
         return tuple(row for row in self.visible_rows if row.is_navigation_row())
+
+    def rows_for_target(self, target):
+        if not self.accepts_members():
+            return ()
+        header = (self.row,) if self.navigation_header and self.row.target_name == target else ()
+        member = self.rows.get(target)
+        return (*header, *((member,) if member is not None and member.is_navigation_row() else ()))
 
     def accepts_navigation(self) -> bool:
         return self.display and self.accepts_members()
@@ -169,7 +171,6 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         if not self.accepts_members():
             return ()
         rows = self.rows
-        changed = [self.row] if self.navigation_header else []
         keys = tuple(keys)
         wanted = set(keys)
         retired = [key for key, row in rows.items()
@@ -190,13 +191,8 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
                 # and the deadline must see it.
                 self.member_container.mount(current)
                 mounted.append(current)
-                if self.expanded:
-                    changed.append(current)
                 continue
-            previous = current.content
             update(key, current)
-            if self.expanded and current.content is not previous:
-                changed.append(current)
         if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
             self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
         ordered = tuple(rows[key] for key in keys if key in rows)
@@ -207,8 +203,6 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
             self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
         if retired or mounted or reordered:
             self.rows_changed()
-        if changed:
-            self.query_ancestor(TargetTree).sync_current(changed)
         return ordered
 
     async def _mount_pending_rows(self) -> None:
@@ -303,21 +297,25 @@ class TargetTree(Vertical):
     def navigation_root(self):
         raise NotImplementedError
 
+    def row_current(self, row) -> bool:
+        return row.target_name == self.app.workspace_sessions.visible_target(self.navigation_root)
+
+    def rows_for_target(self, target):
+        return tuple(row for group in self.navigation_groups for row in group.rows_for_target(target)) if target is not None else ()
+
     @property
     def current_rows(self):
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
-        return tuple(row for row in self.rows if row.target_name == target)
+        return tuple(row for group in self.navigation_groups if group.accepts_navigation()
+                     for row in group.rows_for_target(target) if row is group.row or group.expanded)
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:
-        self.sync_current()
-
-    def sync_current(self, rows=None) -> None:
-        """One workspace answer paints the supplied resources, or a selection change."""
-        rows = self.rows if rows is None else rows
-        target = self.app.workspace_sessions.visible_target(self.navigation_root)
-        for row in rows:
-            row.paint_current(row.is_navigation_row() and row.target_name == target)
+        workspace = self.app.workspace_sessions
+        previous = workspace.target_for_mode(event.event.previous_mode, self.navigation_root)
+        current = workspace.visible_target(self.navigation_root)
+        for row in set(self.rows_for_target(previous)).symmetric_difference(self.rows_for_target(current)):
+            row.paint_current()
 
     @property
     def rows(self) -> list[CommsRow]:

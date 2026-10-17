@@ -193,12 +193,13 @@ class WorkspaceSessions:
 
     def visible_target(self, root):
         """The selected logical destination, including while a modal covers its frame."""
-        if root is None:
-            return None
         view = self.source.view
-        if view is not None and self.owns(view) and view.belongs_to_wire(root):
-            return view.navigation_target_name
-        return None
+        return self.target_for_mode(view.id, root) if view is not None and self.owns(view) else None
+
+    def target_for_mode(self, identity, root):
+        """Resolve a transition's destination from its original workspace view."""
+        view = self.views.get(identity)
+        return view.navigation_target_name if root is not None and view is not None and view.belongs_to_wire(root) else None
 
     def release_frame_callback(self, owner, callback) -> bool:
         """Admit mounted work through its original logical source binding.

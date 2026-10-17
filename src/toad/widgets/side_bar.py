@@ -24,6 +24,7 @@ from ui_theme.scheme import SidebarToneColour
 
 from toad.frame_presentation import TonePaint
 from toad.widgets.selection import HoverSelection
+from textual.color import Color
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
     Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
@@ -481,8 +482,17 @@ class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus
             self.action_activate()
 
 
-class SidebarResizeHandle(widgets.Static, can_focus=True):
+class SidebarResizeHandle(HoverSelection, widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
+
+    highlight_foreground = "foreground"
+    highlight_background = highlighted_text_style = None
+
+    @property
+    def paint_foreground(self):
+        if self.paint_highlighted and self.app.native_ansi_color:
+            return Color.parse("ansi_white")
+        return super().paint_foreground
 
     # The screen starts text selection before forwarding MouseDown to us.
     # Capturing/stopping that event alone cannot prevent a competing selection
@@ -494,9 +504,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         dock: right; width: 1; height: 1fr; padding: 0;
         color: $success; pointer: ew-resize;
     }
-    SidebarResizeHandle:hover, SidebarResizeHandle:focus { color: $foreground; }
     SidebarResizeHandle:ansi { color: ansi_green; }
-    SidebarResizeHandle:ansi:hover, SidebarResizeHandle:ansi:focus { color: ansi_white; }
     """
     BINDINGS = [Binding("left", "resize(-1)", "Resize left", show=False),
                 Binding("right", "resize(1)", "Resize right", show=False)]

@@ -256,9 +256,6 @@ Prompt {
         DirectoryTree {
             margin: 0 1;
             padding: 0 0 0 1;
-            &:focus {
-                background-tint:transparent;
-            }
         }
         .message {
             background: $foreground 8%;
@@ -333,14 +330,6 @@ Prompt {
         border-subtitle-align: left;
         border-subtitle-style: reverse;
         
-        &:focus-within {
-            #prompt {
-                color: $text;
-            }
-        }
-        #prompt {
-            color: $text-muted;
-        }
         
         PromptTextArea {
             padding: 0 1 0 0;
@@ -453,10 +442,6 @@ ModeSwitcher {
         display: none;
     }
 
-    &:focus > .option-list--option-highlighted {
-        background: $primary 30%;
-        text-style: not bold;
-    }
 }
 
 MainScreen {    
@@ -484,9 +469,7 @@ MainScreen {
         DirectoryTree {  
             height: 1fr;                                  
             background: transparent;
-            &:focus {
-                background-tint: transparent;
-            }                                        
+                                        
         }
 
 

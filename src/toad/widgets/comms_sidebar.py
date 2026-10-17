@@ -73,7 +73,7 @@ class ChannelUnread(PrimaryActivation, ChangingText):
         self.query_ancestor(ChannelGroup).row.action_open_selected()
 
 
-class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
+class ChannelGroup(SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
     DEFAULT_CSS = """
@@ -163,14 +163,8 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         if any(view.shows_other_incarnation(threads[name]) for name, view in shown):
             self.sync_members(names)  # A new incarnation replaces its row.
             return
-        repainted = []
         for name, view in shown:
-            previous = view.content
             self.show_member(name, view)
-            if self.expanded and view.content is not previous:
-                repainted.append(view)
-        if repainted:
-            self.sidebar.sync_current(repainted)
 
 
 def _display_path(path: Path) -> str:
@@ -212,6 +206,10 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
     def is_navigation_row(self) -> bool:
         return self.is_attached and not self.leaving
+
+    @property
+    def current(self) -> bool:
+        return self.is_navigation_row() and self.navigation_tree.row_current(self)
 
     @property
     def selected(self) -> bool:

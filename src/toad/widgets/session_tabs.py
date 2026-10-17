@@ -40,6 +40,10 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, widgets.Label):
     padding = Spacing(0, 1, 0, 1)
 
     @property
+    def current(self) -> bool:
+        return self.id == self.app.selected_mode
+
+    @property
     def text_style(self):
         return RichStyle(dim=not self.mouse_hover)
 
@@ -61,7 +65,6 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, widgets.Label):
             content = Content.assemble(content, (f" {tab.unread.label}", badge))
         width_changed = content.cell_length != self.content.cell_length
         self.update(content, layout=width_changed)
-        self.paint_current(self.id == self.app.selected_mode)
         return width_changed
 
     def on_resize(self) -> None:
@@ -221,15 +224,12 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
     @handles(core_events.SessionSelected)
     async def handle_mode_change(self, event: CoreEventMessage) -> None:
         if self.screen.is_active:
-            self.sync_current()
+            for mode in (event.event.previous_mode, event.event.mode_name):
+                if mode and (label := self.query_one_optional(f"#{mode}", SessionLabel)) is not None:
+                    label.paint_current()
             self.call_later(self._sync_tabs)
             self.call_after_refresh(self.show_selected_tab)
             self.query_one(Underline).run_effect(NEW_TEXT)
-
-    def sync_current(self) -> None:
-        selected = self.app.selected_mode
-        for label in self.query(SessionLabel):
-            label.paint_current(label.id == selected)
 
     @property
     def selected_span(self) -> tuple[int, int]:
