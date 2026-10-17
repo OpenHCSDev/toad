@@ -581,7 +581,7 @@ class RichLineRenderer(MroDispatch):
         if self.plain:
             self.body(Body(block.text, bar=block.bar, markdown=False))
             return
-        context = self.context.for_source(block.row.message.source)
+        context = self.context.for_source(block.row.message.history_source)
         self.output.extend(RichLineRenderer(self.theme, self.width, context=context).rows((block.prepare(context),)))
 
     @handles(Body)
