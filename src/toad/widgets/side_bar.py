@@ -29,7 +29,6 @@ from toad.sidebar_layout import (
     Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
 )
 from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
-from toad.widgets.sidebar_tree import TargetTree
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -604,6 +603,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     """
 
     collapsed = reactive(False)
+    search = reactive("")
     PANEL_WORKER_GROUP = "panels"
 
     class Dismiss(Message):
@@ -732,13 +732,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     def search_changed(self, event: widgets.Input.Changed) -> None:
         if event.input is self.search_input:
             event.stop()
-            self.apply_search()
-
-    def apply_search(self) -> None:
-        value = self.search_input.value
-        for panel in self.panels:
-            if isinstance(panel.widget, TargetTree):
-                panel.widget.search = value
+            self.search = event.value
 
     def on_key(self, event: events.Key) -> None:
         if event.character == "/" and self.app.focused is not self.search_input:
@@ -747,7 +741,6 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             self.search_input.focus()
 
     def _compose_panels(self) -> ComposeResult:
-        self.apply_search()
         navigation = self.navigation
         for panel in self.panels:
             yield SideBarCollapsible(

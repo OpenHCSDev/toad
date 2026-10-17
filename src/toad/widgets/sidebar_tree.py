@@ -26,6 +26,7 @@ from textual._measurement import FLOW_HEIGHT, height_dependency
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
 from toad.widgets.sidebar_viewport import SidebarHeader
+from toad.widgets.side_bar import SideBar
 
 
 class TargetTreeMember:
@@ -296,20 +297,25 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
             self.sync_members(frozenset())
 
 
+class SearchFollower:
+    def on_mount(self) -> None:
+        self.watch(self.query_ancestor(SideBar), "search", self._apply_search, init=True)
+
+    def _apply_search(self, value: str) -> None:
+        self.search = value.casefold()
+        with self.reconcile_members():
+            for group in self.navigation_groups:
+                group.sync_members()
+
+
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
     navigation_groups: Iterable[SidebarGroup]
-    search = reactive("", init=False)
+    search = ""
 
     def matches(self, key: str) -> bool:
-        return self.search.casefold() in key.casefold()
-
-    def watch_search(self) -> None:
-        if self.is_mounted:
-            with self.reconcile_members():
-                for group in self.navigation_groups:
-                    group.sync_members()
+        return self.search in key.casefold()
 
     def preserve_reader(self, placements) -> None:
         """A sidebar viewport may retain its reader across a native relayout."""
