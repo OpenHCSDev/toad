@@ -11,11 +11,13 @@ from typing import TYPE_CHECKING
 from weakref import WeakSet
 
 from textual.widget import Widget
+from textual.geometry import Size
 from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 
 if TYPE_CHECKING:
+    from textual._arrange import DockArrangeResult
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
@@ -742,6 +744,12 @@ class HistoryWindow(VerticalScroll):
             # rejoins it once the current source has no unpublished newer rows.
             super()._check_anchor()
         self.tail_follow_changed()
+
+    def arrange(self, size: Size, optimal: bool = False) -> DockArrangeResult:
+        # Capture from the old rows before descendants measure the new width.
+        if size.width != self.scrollable_size.width:
+            self.keep_reader()
+        return super().arrange(size, optimal)
 
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement
