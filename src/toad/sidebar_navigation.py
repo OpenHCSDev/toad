@@ -106,7 +106,6 @@ class SidebarNavigation:
         rows = self.sidebar.rows
         if not rows:
             return
-        self.sidebar.sync_current()
         current = self.sidebar.current_rows
         if not current:
             group = self.sidebar.groups.get(ALL_COMMS_TARGET)

@@ -13,7 +13,7 @@ from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from textual.visual import VisualType
 
 from toad.frame_presentation import Animated
-from textual.style import Style
+from rich.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
@@ -43,25 +43,23 @@ class ViewLabel(ChangingText[TextFrame]):
             self.run_effect(SPINNER)
         return Content.assemble(SPINNER.final.paint(self.app.colours, None), " ", prefix, title)
 
+    @property
+    def current(self) -> bool:
+        return False
+
     def render_line(self, y: int, paint: PaintState) -> Strip:
         line = super().render_line(y, paint)
-        if SPINNER not in self.effects or y != 0:
-            return line
-        glyph = self.effect_frame(SPINNER).paint(self.app.colours, None)
-        style = next((segment.style for segment in line), None)
-        # Native clipping owns empty or partial lines.
-        return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
-                           line.crop(glyph.cell_length))).crop(0, line.cell_length)
+        if SPINNER in self.effects and y == 0:
+            glyph = self.effect_frame(SPINNER).paint(self.app.colours, None)
+            style = next((segment.style for segment in line), None)
+            # Native clipping owns empty or partial lines.
+            line = Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
+                               line.crop(glyph.cell_length))).crop(0, line.cell_length)
+        current = self.current
+        return line.apply_style(Style(bold=current, underline=current))
 
-    def paint_current(self, current: bool) -> None:
-        content: Content = self.content
-        emphasis = Style(bold=current, underline=current)
-        # Native rendering merges existing spans first. Reassemble those runs so
-        # repeated selection changes replace paint instead of accumulating spans.
-        painted = Content.assemble(*(
-            (text, style + emphasis) for text, style in content.render(end="")
-        ))
-        self.update(painted, layout=False)
+    def paint_current(self) -> None:
+        self.refresh(layout=False)
 
 
 class FocusSelection(Static, can_focus=True):
