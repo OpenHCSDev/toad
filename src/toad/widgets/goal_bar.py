@@ -19,7 +19,7 @@ from textual.widget import PrimaryActivation
 from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
-from toad.widgets.goal_text import GoalText
+from toad.widgets.goal_text import GoalText, GoalProgressText
 from toad.frame_presentation import Animated
 from toad.widgets.selection import ChangingText
 
@@ -145,7 +145,7 @@ class GoalBar(VerticalGroup):
             yield GoalText(classes="goal-execution")
         with VerticalScroll(classes="goal-document"):
             yield GoalText(classes="goal-summary")
-            yield GoalText(classes="goal-progress")
+            yield GoalProgressText(prefix="Progress: ", classes="goal-progress")
         with HorizontalGroup(classes="goal-controls"):
             for action in GoalInteraction.members_with(GoalInteraction):
                 yield GoalControl(action.label, id=action.control_id())
@@ -164,12 +164,7 @@ class GoalBar(VerticalGroup):
         self.display = self.goal_display.visible
         self._update_goal_text()
         if goal is not None and self.is_attached:
-            progress = self.query_one(".goal-progress", GoalText)
-            progress.update_goal_text("")
-            progress.display = False
-            for text in goal.progress.texts():
-                progress.update_goal_text(f"Progress: {text}")
-                progress.display = True
+            self.query_one(".goal-progress", GoalProgressText).update_progress(goal.progress)
             self._update_control_layout()
 
     def watch_execution(self) -> None:

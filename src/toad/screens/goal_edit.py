@@ -14,6 +14,7 @@ from toad.core.input_events import UserInputSubmitted
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.mro_dispatch import handles
 from toad.widgets.channel_prompt import ChannelPrompt
+from toad.widgets.goal_text import GoalProgressText
 
 
 class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
@@ -50,12 +51,9 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
                 markup=False,
             )
             yield self.editor
-            for text in self.goal.progress.texts():
-                yield Static(
-                    f"Progress (read-only): {text}",
-                    markup=False,
-                    classes="goal-edit-progress",
-                )
+            yield GoalProgressText(
+                self.goal.progress, prefix="Progress (read-only): ", classes="goal-edit-progress"
+            )
             yield Static("", markup=False, id="goal-edit-error")
             with HorizontalGroup():
                 yield Button("Save", id="goal-save", variant="primary")

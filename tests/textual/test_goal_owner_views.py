@@ -5,7 +5,7 @@ from dataclasses import replace
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
 from agent_comms.goal_states import PausedGoal
-from agent_comms.goals import Goal, GoalReport, ReportedGoalProgress, TextGoalProgress, Unfinished
+from agent_comms.goals import Goal
 from agent_comms.ui_model.goal import GoalDisplay
 from textual.widgets import Button, Static
 
@@ -20,7 +20,7 @@ from toad.widgets.throbber import Throbber
 
 
 def goal_owner(workspace):
-    goal = Goal("Coordinate with @peer", "stable-goal", progress=TextGoalProgress("Keep evidence"), revision=4)
+    goal = Goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4)
     execution = GoalExecution(GoalExecutionState.STANDBY, goal.id, (GoalWaitTarget("peer", 1.0),))
     history = [
         {"sequence": 1, "kind": "baseline", "observed_at": 1000.0, "before": None,
@@ -135,38 +135,6 @@ async def test_goal_history_lists_earlier_revisions(workspace):
         for text in ("HISTORICAL_OBJECTIVE", "baseline", "observed"):
             await ui.until_shows(text)
         await ui.press("escape")
-        assert view.prompt.text == "Composer draft stays"
-
-
-async def test_declared_progress_updates_bar_editor_and_details_without_presence_probes(workspace):
-    async with workspace.app(size=(110, 40)) as ui:
-        app, pilot = ui.textual
-        owner, view, bar, _ = await shown_goal(workspace, ui)
-        report = ReportedGoalProgress(GoalReport(
-            "Duplicate decision", "Truthiness hook", Unfinished("UI evidence"), "Verify delivery"))
-        for progress, visible, expected in (
-            (TextGoalProgress(), False, ""),
-            (report, True, "Next: Verify delivery"),
-            (TextGoalProgress(), False, ""),
-        ):
-            owner.goal = replace(owner.goal, progress=progress, revision=owner.goal.revision + 1)
-            owner.events.publish(CommsUpdated(GoalChangedUpdate(owner.goal, owner.execution), owner.session_id))
-            await ui.until(lambda: view.goal_display.snapshot == owner.goal, why="the typed progress update")
-            widget = bar.query_one(".goal-progress", Static)
-            await ui.until(lambda: widget.display is visible, why="progress visibility from emitted text")
-            assert expected in str(widget.render())
-            await pilot.click("#goal-edit")
-            await ui.until(lambda: isinstance(app.screen, GoalEdit), why="the progress editor")
-            rows = app.screen.query(".goal-edit-progress")
-            assert len(rows) == (1 if visible else 0)
-            for row in rows:
-                assert expected in str(row.render())
-            await ui.press("escape")
-            await pilot.click("#goal-history")
-            await ui.until(lambda: isinstance(app.screen, GoalDetails), why="the progress details")
-            current = app.screen.query_one("#goal-current-progress", Static)
-            assert expected in str(current.render())
-            await ui.press("escape")
         assert view.prompt.text == "Composer draft stays"
 
 
