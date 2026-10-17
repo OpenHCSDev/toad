@@ -1,9 +1,8 @@
 """Visibility belongs to its widget declaration, including the first mount."""
-from textual.widget import Widget
 from toad.forms.declared_views import DeclaredField
 
 
-class SettingVisibility(Widget):
+class SettingVisibility:
     def __init_subclass__(cls, *, setting: str, **kwargs):
         super().__init_subclass__(**kwargs)
         cls.visibility_setting = setting

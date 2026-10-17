@@ -18,7 +18,7 @@ class Effect:
     @staticmethod
     def open_widgets(app, widget_type):
         roots = (*app.workspace_sessions.views.values(), *app.screen_stack)
-        return {widget for root in roots for widget in root.query(widget_type)}
+        return {widget for root in roots for widget in root.walk_children(widget_type)}
 
 
 @Effect
