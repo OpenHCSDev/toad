@@ -646,7 +646,7 @@ class HistoryWindow(VerticalScroll):
 
     def request_preparation(self) -> None:
         """Histories prepare around the reader after the next published frame."""
-        if not self.is_attached or self._closing:
+        if not self.is_attached or self.is_leaving:
             return
         for history in tuple(self.histories):
             history.request_preparation()

@@ -5,6 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from textual.content import Content
+from textual.geometry import Offset
+from textual.layout import WidgetPlacement
+from textual.reactive import var
+from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from ui_theme.scheme import AlternateRowToneColour
@@ -20,6 +24,7 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
 
     alternate_tone = AlternateRowToneColour
+    leaving = var(False)
 
     DEFAULT_CSS = """
     ThreadStatusRow.-wire-thread {
@@ -37,35 +42,54 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     }
     """
 
-    _row_width = 0
-
-    def get_content_width(self, container, viewport) -> int:
-        return self._row_width
-
-    def on_mount(self) -> None:
-        self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
-
-    def update(self, content="", *, layout=None) -> None:
-        previous = self.content
-        super().update(content, layout=layout)
-        if self.is_mounted and previous.plain != self.content.plain:
-            self.run_worker(self._measure_width(self.content), group="row-width", exclusive=True)
-
-    async def _measure_width(self, content: Content) -> None:
-        width = await self.app.preparation.run_thread(content.get_optimal_width, {}, 0)
-        if self.content.plain == content.plain:
-            self._row_width = width
-            self.refresh(layout=True)
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._motion_origin = Offset()
+        self._motion_target = Offset()
         self.thread_row: ThreadRowModel | None = None
         self.pinned = False
         self.action_status: str | None = None
 
+    def on_mount(self) -> None:
+        self.run_effect(SIDEBAR_ENTER)
+
+    def compute_disabled(self) -> bool:
+        return self.leaving
+
+    def retire(self) -> None:
+        self.leaving = True
+        self.run_effect(SIDEBAR_EXIT)
+        self.repaint()
+
     @property
-    def busy(self) -> bool:
-        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
+    def paint_opacity(self) -> float:
+        return self.effect_frame(SIDEBAR_ENTER).value * (
+            self.effect_frame(SIDEBAR_EXIT).value if self.leaving else 1.0)
+
+    def pending_move(self, placement: WidgetPlacement) -> bool:
+        return placement.region.offset != self._motion_target
+
+    def place(self, placement: WidgetPlacement, shift: Offset) -> WidgetPlacement:
+        if self.size and (self.pending_move(placement) or shift.y):
+            self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset + shift
+            self.run_effect(SIDEBAR_MOVE)
+        self._motion_target = placement.region.offset
+        offset = self._motion_origin.blend(self._motion_target, self.effect_frame(SIDEBAR_MOVE).value) - self._motion_target
+        return placement._replace(offset=placement.offset + offset)
+
+    def repaint(self) -> None:
+        if self.leaving and (not self.animation_visible
+                or self.effect_frame(SIDEBAR_EXIT) == SIDEBAR_EXIT.final):
+            self.remove()
+            return
+        moving = SIDEBAR_MOVE in self.effects
+        if moving and SIDEBAR_MOVE.finished(self.effects[SIDEBAR_MOVE].elapsed):
+            self.stop_effect(SIDEBAR_MOVE)
+        self.refresh(layout=moving)
+
+    def on_hide(self) -> None:
+        if self.leaving:
+            self.remove()
 
     def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
         """Render the model's row as this app shows it: an open session's state, pin and pending action."""
@@ -76,12 +100,13 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
             return
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status
         summary = action_status if action_status is not None else row.summary
-        self.update_classes({"-wire-thread": True, "-busy": self.busy, "-asking": False})
+        busy = action_status is not None or row.status.working
+        self.update_classes({"-wire-thread": True, "-busy": busy, "-asking": False})
         self.tooltip = Content("\n".join(str(value) for value in (
             row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
         ) if value))
         badge = f"{row.unread.label} " if row.unread.label else ""
-        title = self.activity_content(row.title, Content(row.label), self.busy,
+        title = self.activity_content(row.title, Content(row.label), busy,
                                       prefix=Content.assemble(badge, "* " if self.pinned else ""))
         content = Content.assemble(title, f"\n  {summary}")
         self.update(content, layout=False)

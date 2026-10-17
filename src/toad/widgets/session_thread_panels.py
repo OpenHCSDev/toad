@@ -59,8 +59,6 @@ class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):
     def make_header(self) -> RelationshipSort:
         return RelationshipSort()
 
-    capture = staticmethod(ThreadCommsSidebar.capture_state)
-
 
 class PlanSessionPanel(SessionPanel[Plan]):
     collapsed = True
