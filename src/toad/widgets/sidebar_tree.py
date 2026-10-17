@@ -137,7 +137,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     @property
     def visible_rows(self):
         """Header and disclosed members in their native order."""
-        if not self.display or not self.accepts_members():
+        if not self.accepts_navigation():
             return ()
         header = (self.row,) if self.navigation_header else ()
         members = tuple(self.member_container.children) if self.expanded else ()
@@ -147,6 +147,9 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     def navigation_rows(self):
         """Native-order destinations, excluding explanatory placeholder widgets."""
         return tuple(row for row in self.visible_rows if row.is_navigation_row())
+
+    def accepts_navigation(self) -> bool:
+        return self.display and self.accepts_members()
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""

@@ -635,7 +635,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
     def row_for(self, selection):
         group = self.groups.get(selection.channel)
-        if group is None or not group.display or not group.accepts_members():
+        if group is None or not group.accepts_navigation():
             return None
         return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.expanded else None
 
