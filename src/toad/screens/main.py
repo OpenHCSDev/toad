@@ -239,10 +239,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
     conversation = getters.query_one(Conversation)
-
-    @property
-    def thread_sidebar(self) -> SessionThreadSidebar | None:
-        return self.query_one_optional(SessionThreadSidebar)
+    thread_sidebar = getters.query_one(SessionThreadSidebar)
     @property
     def side_bar(self):
         return self.screen.query_one(ChannelsSidebar)
@@ -299,8 +296,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         try:
             await self.presentation.prepare(self)
             await super().prepare_presentation()
-            if sidebar := self.thread_sidebar:
-                await sidebar.prepare_presentation()
+            await self.thread_sidebar.prepare_presentation()
         except asyncio.CancelledError as error:
             self.opening_failed(error)
             raise
@@ -317,14 +313,13 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         # retirement can publish a new layout which no longer contains it.
         self.presentation.capture_reader()
         await super().retire_presentation()
-        if sidebar := self.thread_sidebar:
-            await sidebar.retire_presentation()
+        await self.thread_sidebar.retire_presentation()
         await self.presentation.retire(self)
 
     def retained_native_presentations(self):
         resources = [(self, self.presentation)] if self.presentation.widget is not None else []
         sidebar = self.thread_sidebar
-        if sidebar is not None and sidebar.panels_loaded:
+        if sidebar.panels_loaded:
             resources.append((self, sidebar))
         return tuple(resources)
 
@@ -353,8 +348,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def sidebars(self):
-        sidebar = self.thread_sidebar
-        return (sidebar,) if sidebar is not None else ()
+        return (self.thread_sidebar,)
 
     def compose(self) -> ComposeResult:
         with containers.Center().set_styles(layout=self.app.workspace_chrome):
@@ -374,8 +368,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         await self.content.wait(self)
 
     async def close_presentation(self) -> None:
-        if sidebar := self.thread_sidebar:
-            await sidebar.evict()
+        await self.thread_sidebar.evict()
         self.content.close(self)
         await self.presentation.close(self)
 
@@ -531,8 +524,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, message: CoreEventMessage):
-        if sidebar := self.thread_sidebar:
-            sidebar.update_plan(message.event.entries)
+        self.thread_sidebar.update_plan(message.event.entries)
 
     @handles(core_events.SessionTitleChanged)
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
