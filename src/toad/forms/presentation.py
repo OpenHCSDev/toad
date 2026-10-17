@@ -1,9 +1,7 @@
 """Native form geometry and paint, supplied directly to Textual's owners."""
 from __future__ import annotations
 
-from rich.style import NULL_STYLE
 from textual import events
-from textual._paint_state import PaintLayer
 from textual._styles_cache import FramePaint
 from textual.box_model import DEFAULT_LAYER, BoxGeometry
 from textual.color import Color, TRANSPARENT
@@ -14,12 +12,13 @@ from textual.layouts.horizontal import HorizontalLayout
 from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
+from toad.frame_presentation import WidgetPaint
 
 
 AUTO = Scalar(1.0, Unit.AUTO, Unit.AUTO)
 
 
-class FormPart(BoxGeometry, PaintLayer, FramePaint):
+class FormPart(BoxGeometry, WidgetPaint, FramePaint):
     """The widget itself supplies native inputs; there is no styles mirror.
 
     Mutable state remains on the native control. Non-versioned paint inputs
@@ -54,13 +53,7 @@ class FormPart(BoxGeometry, PaintLayer, FramePaint):
     layer_name = DEFAULT_LAYER
     layer_order = None
 
-    paint_foreground = paint_background = None
-    background_tint = tint = TRANSPARENT
-    text_style = NULL_STYLE
-    text_opacity = layer_opacity = 1.0
-    auto_color = False
-    paint_key = None
-    paint_cacheable = False
+    tint = TRANSPARENT
     hatch = None
     border_title_align = "left"
     border_subtitle_align = "right"
@@ -72,10 +65,6 @@ class FormPart(BoxGeometry, PaintLayer, FramePaint):
 
     @property
     def geometry(self) -> BoxGeometry:
-        return self
-
-    @property
-    def paint_layer(self) -> PaintLayer:
         return self
 
     @property

@@ -12,6 +12,7 @@ from agent_comms.thread_presentation import (
 )
 from agent_comms.ui_model.status import ThreadStatusModel
 from toad.core.projection import MroProjection
+from toad.frame_presentation import TurnBandPaint
 from textual.content import Content
 from textual.reactive import var
 from textual.widgets import Collapsible, Static
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from toad.transcript_publication import TranscriptPresentation
 
 
-class SessionDetails(Collapsible, ObservedThreadActivity, MroProjection):
+class SessionDetails(TurnBandPaint, Collapsible, ObservedThreadActivity, MroProjection):
     """The observed-thread capability and disclosure share one status view.
 
     Core owns status for an observed thread, native or CLI. A standalone ACP
