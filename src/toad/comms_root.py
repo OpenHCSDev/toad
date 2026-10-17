@@ -111,7 +111,7 @@ class CoordinationAccess(MroDispatch):
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
         self.loop: asyncio.AbstractEventLoop | None = None
-        self.custody = ExitStack()
+        self.cleanup = ExitStack()
         self.opening = threading.Lock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
@@ -169,7 +169,7 @@ class CoordinationAccess(MroDispatch):
                 service = wire(selected.route)
                 if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
                     raise RouteChanged("Comms route changed while opening the service")
-                self.custody.enter_context(acquisition.pop_all())
+                self.cleanup.enter_context(acquisition.pop_all())
             # Textual runs the models' flushes after the current message,
             # before the next frame is composed.
             self.observation = ObservedCommsService(
@@ -428,7 +428,7 @@ class CoordinationAccess(MroDispatch):
             self.retire(self.observation)
             self.observation = None
         await asyncio.gather(*self.retiring, return_exceptions=True)
-        self.custody.close()
+        self.cleanup.close()
 
     def current_route_stamp(self) -> tuple[FileRevision | None, ...]:
         from agent_comms.active_route import active_route_path

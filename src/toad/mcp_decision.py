@@ -34,18 +34,18 @@ class LocalDecisionPTY:
 
     def __init__(self, controller_visible: Callable[[], bool]) -> None:
         self._controller_visible = controller_visible
-        self._custody: asyncio.Future[PtyProcess] = asyncio.get_running_loop().create_future()
+        self._process: asyncio.Future[PtyProcess] = asyncio.get_running_loop().create_future()
 
     async def write_user_input(self, text: str) -> None:
         """Only Textual's focused terminal key/paste events may call this."""
-        if (not self._controller_visible() or not self._custody.done()
-                or self._custody.cancelled() or len(text) > 8_192):
+        if (not self._controller_visible() or not self._process.done()
+                or self._process.cancelled() or len(text) > 8_192):
             return
-        await self._custody.result().write(text.encode("utf-8"))
+        await self._process.result().write(text.encode("utf-8"))
 
-    async def custody(self) -> PtyProcess:
+    async def process(self) -> PtyProcess:
         """Borrow the original acquisition, including its retired handles."""
-        return await asyncio.shield(self._custody)
+        return await asyncio.shield(self._process)
 
     async def run(
         self,
@@ -80,13 +80,13 @@ class LocalDecisionPTY:
             env.pop("NODE_OPTIONS", None)
             env.pop("NODE_PATH", None)
             try:
-                async with AsyncExitStack() as custody:
+                async with AsyncExitStack() as cleanup:
                     acquired = await PtyProcess.acquire(
                         (str(node), str(cli), *command.apply(selection)),
                         env=env, cwd=str(Path(cli).parent), width=state.width, height=state.height,
-                        custody=custody,
+                        cleanup=cleanup,
                     )
-                    self._custody.set_result(acquired)
+                    self._process.set_result(acquired)
                     if not self._controller_visible():
                         return ControllerLostOutcome()
                     decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
@@ -118,13 +118,13 @@ class LocalDecisionPTY:
                     return ExitedZeroOutcome() if original.successful else ExitedErrorOutcome()
 
             except OSError, TimeoutError:
-                return (UnknownOutcome() if self._custody.done() and not self._custody.cancelled()
+                return (UnknownOutcome() if self._process.done() and not self._process.cancelled()
                         else UnavailableOutcome())
         finally:
-            if not self._custody.done():
-                self._custody.cancel()
+            if not self._process.done():
+                self._process.cancel()
 
     def stop(self) -> None:
         """Revoke this SAME identity-bound child; its original scope reaps it."""
-        if self._custody.done() and not self._custody.cancelled():
-            self._custody.result().kill()
+        if self._process.done() and not self._process.cancelled():
+            self._process.result().kill()

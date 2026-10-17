@@ -189,10 +189,10 @@ class PtyProcess:
 
     @classmethod
     async def acquire(cls, command: tuple[str, ...], *, env, cwd, width, height,
-                      custody: AsyncExitStack, buffer_size=128 * 1024):
+                      cleanup: AsyncExitStack, buffer_size=128 * 1024):
         master, slave = pty.openpty()
-        master_file = custody.enter_context(os.fdopen(master, "rb", 0))
-        slave_file = custody.enter_context(os.fdopen(slave, "wb", 0))
+        master_file = cleanup.enter_context(os.fdopen(master, "rb", 0))
+        slave_file = cleanup.enter_context(os.fdopen(slave, "wb", 0))
         os.set_blocking(master, False)
         # The child can query its geometry immediately after exec.
         cls.resize_fd(master, width, height)
@@ -202,13 +202,13 @@ class PtyProcess:
         transport, _ = await asyncio.get_running_loop().connect_read_pipe(
             lambda: protocol, master_file,
         )
-        custody.callback(transport.close)
+        cleanup.callback(transport.close)
 
         async def acquire_child():
             child = await AttachedChild.start(
                 command, stdio=TerminalChildStdio(slave_file), env=env, cwd=cwd,
             )
-            custody.push_async_callback(child.stop)
+            cleanup.push_async_callback(child.stop)
             return child
 
         spawn = asyncio.create_task(acquire_child())
@@ -267,7 +267,7 @@ class TerminalOperation(DeclaredFamily, affix="TerminalOperation"):
     async def wait(self) -> TerminalCompletion:
         raise RuntimeError("Terminal execution has not started")
 
-    async def custody(self) -> PtyProcess:
+    async def process(self) -> PtyProcess:
         raise RuntimeError("Terminal execution has no acquired PTY")
 
     @abstractmethod
@@ -342,7 +342,7 @@ class ActiveTerminalOperation(TerminalOperation):
         # Cancellation of an ACP waiter is not command cancellation.
         return await asyncio.shield(self.task)
 
-    async def custody(self):
+    async def process(self):
         return await asyncio.shield(self.ready)
 
     async def close(self):
@@ -422,9 +422,9 @@ class TerminalExecution:
     async def wait_for_exit(self):
         return await self._operation.wait()
 
-    async def custody(self) -> PtyProcess:
+    async def process(self) -> PtyProcess:
         """Observe the SAME original acquired resource, never a copied PID/status."""
-        return await self._operation.custody()
+        return await self._operation.process()
 
     async def start(self):
         operation = self._operation.start(self)
@@ -435,11 +435,11 @@ class TerminalExecution:
 
     async def run(self, ready):
         try:
-            async with AsyncExitStack() as custody:
+            async with AsyncExitStack() as cleanup:
                 command = self.command
                 acquired = await PtyProcess.acquire(
                     command.shell_command, env=os.environ | command.env, cwd=command.cwd,
-                    width=self.state.width, height=self.state.height, custody=custody,
+                    width=self.state.width, height=self.state.height, cleanup=cleanup,
                 )
                 ready.set_result(acquired)
                 decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
