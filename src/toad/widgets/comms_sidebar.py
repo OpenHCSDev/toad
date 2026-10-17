@@ -215,8 +215,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
     @property
     def selected(self) -> bool:
-        sidebar = self.navigation_tree
-        return sidebar.row_selected(self)
+        return self.is_navigation_row() and self.navigation_tree.row_selected(self)
 
     @property
     def highlighted(self) -> bool:
@@ -224,7 +223,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
     @property
     def paint_foreground(self):
-        if not self.highlighted and self.navigation_tree.channel_active(self):
+        if self.is_navigation_row() and not self.highlighted and self.navigation_tree.channel_active(self):
             return self.app.colours.colour(WarningColour)
         return super().paint_foreground
 
