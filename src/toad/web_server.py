@@ -41,7 +41,7 @@ class LocalBrowserEndpoint:
         return f"toad_web_session_{self.port}"
 
 
-class BrowserAdmission(ABC):
+class BrowserAccess(ABC):
     async def dispatch(
         self, request: web.Request, handler: Handler
     ) -> web.StreamResponse:
@@ -65,14 +65,14 @@ class BrowserAdmission(ABC):
         return response
 
 
-class RejectedBrowserAdmission(BrowserAdmission):
+class RejectedBrowserAccess(BrowserAccess):
     async def respond(
         self, request: web.Request, handler: Handler
     ) -> web.StreamResponse:
         return web.Response(status=403)
 
 
-class AuthenticatedBrowserAdmission(BrowserAdmission):
+class AuthenticatedBrowserAccess(BrowserAccess):
     async def respond(
         self, request: web.Request, handler: Handler
     ) -> web.StreamResponse:
@@ -80,7 +80,7 @@ class AuthenticatedBrowserAdmission(BrowserAdmission):
 
 
 @dataclass(frozen=True)
-class BootstrapBrowserAdmission(BrowserAdmission):
+class BootstrapBrowserAccess(BrowserAccess):
     authentication: LocalBrowserAuthentication
 
     async def respond(
@@ -115,24 +115,24 @@ class LocalBrowserAuthentication:
             self.capability.encode("ascii"),
         )
 
-    def decode(self, request: web.Request) -> BrowserAdmission:
+    def decode(self, request: web.Request) -> BrowserAccess:
         """Decode external Host, Origin and credentials before any route handler."""
         hosts = request.headers.getall("Host", [])
         origins = request.headers.getall("Origin", [])
         if hosts != [self.endpoint.authority]:
-            return RejectedBrowserAdmission()
+            return RejectedBrowserAccess()
         if request.path == "/ws" and origins != [self.endpoint.url]:
-            return RejectedBrowserAdmission()
+            return RejectedBrowserAccess()
         if origins and origins != [self.endpoint.url]:
-            return RejectedBrowserAdmission()
+            return RejectedBrowserAccess()
         token = request.query.get("token")
         if request.path == "/" and token is not None:
             if request.method == "GET" and self.accepts(token):
-                return BootstrapBrowserAdmission(self)
-            return RejectedBrowserAdmission()
+                return BootstrapBrowserAccess(self)
+            return RejectedBrowserAccess()
         if self.accepts(request.cookies.get(self.endpoint.cookie_name, "")):
-            return AuthenticatedBrowserAdmission()
-        return RejectedBrowserAdmission()
+            return AuthenticatedBrowserAccess()
+        return RejectedBrowserAccess()
 
 
 class ToadWebServer(Server):
@@ -176,7 +176,7 @@ class ToadWebServer(Server):
             request: web.Request, response: web.StreamResponse
         ) -> None:
             # Streaming download/WS handlers prepare before middleware returns.
-            BrowserAdmission.secure(response)
+            BrowserAccess.secure(response)
 
         app.middlewares.append(local_capability)
         app.on_response_prepare.append(on_response_prepare)

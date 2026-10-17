@@ -16,7 +16,7 @@ class WorkspaceSessionRequest(Command, CoreEvent):
     """The workspace session manager applies each declared request."""
 
     @abstractmethod
-    async def apply(self, admission) -> None: ...
+    async def apply(self, navigation) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -24,11 +24,11 @@ class SessionNavigate(WorkspaceSessionRequest):
     mode_name: str
     direction: Literal[-1, +1]
 
-    async def apply(self, admission) -> None:
-        modes = [tab.mode_name for tab in admission.tabs]
-        if admission.app.selected_mode in modes:
-            await admission.app.select_session(
-                modes[(modes.index(admission.app.selected_mode) + self.direction) % len(modes)]
+    async def apply(self, navigation) -> None:
+        modes = [tab.mode_name for tab in navigation.tabs]
+        if navigation.app.selected_mode in modes:
+            await navigation.app.select_session(
+                modes[(modes.index(navigation.app.selected_mode) + self.direction) % len(modes)]
             )
 
 
@@ -36,8 +36,8 @@ class SessionNavigate(WorkspaceSessionRequest):
 class SessionSwitch(WorkspaceSessionRequest):
     mode_name: str
 
-    async def apply(self, admission) -> None:
-        await admission.app.select_session(self.mode_name)
+    async def apply(self, navigation) -> None:
+        await navigation.app.select_session(self.mode_name)
 
 
 @dataclass(frozen=True)
@@ -46,8 +46,8 @@ class SessionNew(WorkspaceSessionRequest):
     agent: str
     prompt: str
 
-    async def apply(self, admission) -> None:
-        admission.app.run_worker(partial(admission.launch, self.agent,
+    async def apply(self, navigation) -> None:
+        navigation.app.run_worker(partial(navigation.launch, self.agent,
             project_path=Path(self.path), initial_prompt=self.prompt))
 
 
@@ -56,9 +56,9 @@ class SessionRename(WorkspaceSessionRequest):
     mode_name: str
     name: str
 
-    async def apply(self, admission) -> None:
+    async def apply(self, navigation) -> None:
         name = self.name.strip()
-        source = admission.source(self.mode_name)
+        source = navigation.source(self.mode_name)
         if name and source is not None:
             await source.conversation.rename_session(name)
 
@@ -67,16 +67,16 @@ class SessionRename(WorkspaceSessionRequest):
 class SessionArchive(WorkspaceSessionRequest):
     mode_name: str
 
-    async def apply(self, admission) -> None:
-        await admission.close(self.mode_name)
+    async def apply(self, navigation) -> None:
+        await navigation.close(self.mode_name)
 
 
 @dataclass(frozen=True)
 class SessionClose(WorkspaceSessionRequest):
     name: str
 
-    async def apply(self, admission) -> None:
-        await admission.close(self.name)
+    async def apply(self, navigation) -> None:
+        await navigation.close(self.name)
 
 
 @dataclass(frozen=True)
@@ -86,6 +86,6 @@ class LaunchAgent(WorkspaceSessionRequest):
     pk: int | None = None
     prompt: str | None = None
 
-    async def apply(self, admission) -> None:
-        admission.app.run_worker(partial(admission.launch, self.identity,
+    async def apply(self, navigation) -> None:
+        navigation.app.run_worker(partial(navigation.launch, self.identity,
             agent_session_id=self.session_id, session_pk=self.pk, initial_prompt=self.prompt))
