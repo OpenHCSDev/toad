@@ -5,6 +5,8 @@ from collections.abc import Iterator
 from itertools import zip_longest
 import re
 
+from rich.text import Text
+
 from toad.line_blocks import LineBlock, LineRole, TextRole, AddedCodeRole, RemovedCodeRole
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
@@ -24,6 +26,14 @@ class Patch(LineBlock):
     before: dict[int, str]
     after: dict[int, str]
     groups: list[list[tuple[str, int, int, int, int]]]
+
+    @property
+    def before_text(self) -> dict[int, Text]:
+        return {number: Text(text.expandtabs(4)) for number, text in self.before.items()}
+
+    @property
+    def after_text(self) -> dict[int, Text]:
+        return {number: Text(text.expandtabs(4)) for number, text in self.after.items()}
 
     @property
     def selection_text(self) -> str:

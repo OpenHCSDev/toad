@@ -46,7 +46,7 @@ from agent_comms.display_references import ChannelDisplayReference, HistoricalDi
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import linked_target
 from toad.render_backend import ReusableRenderTask
-from toad.patch import Patch, PatchCell
+from toad.patch import Patch
 from toad.preferences import DiffSettings
 from toad.rich_preparation import SyntaxPalette
 
@@ -325,7 +325,7 @@ def _plain_spans(line: str, width: int) -> range:
 
 
 class PatchLayout:
-    """The chosen diff geometry, used by both measurement and painting."""
+    """Diff geometry used by the native row painter."""
 
     def __init__(self, patch: Patch, width: int, settings: DiffSettings):
         self.patch, self.settings = patch, settings
@@ -337,22 +337,8 @@ class PatchLayout:
         self.pane_width = settings.wrap.fitted_width(self.pane_width, longest + self.prefix_width)
         self.code_width = max(1, self.pane_width - self.prefix_width)
 
-    @property
-    def content_width(self) -> int:
-        return self.pane_width * 2 + 3 if self.split else self.pane_width
-
     def breaks(self, text: str) -> list[int]:
         return divide_line(text, self.code_width, fold=True) if self.settings.wrap.enabled else []
-
-    def cell_height(self, cell: PatchCell | None) -> int:
-        return len(self.breaks(cell.text.expandtabs(4))) + 1 if cell is not None else 1
-
-    @property
-    def height(self) -> int:
-        return len(self.patch.groups) + sum(
-            max(self.cell_height(old), self.cell_height(new))
-            for old, new in self.patch.rows(self.split)
-        )
 
 
 class Lines:
@@ -434,10 +420,10 @@ class StyledBody(PreparedBlock):
         return self.source.selection_text
 
 
-@dataclass
+@dataclass(slots=True)
 class StyledPatch(Patch, PreparedBlock):
-    before_text: dict[int, Text]
-    after_text: dict[int, Text]
+    before_text: dict[int, Text] = field()
+    after_text: dict[int, Text] = field()
 
 
 class RichLineRenderer(MroDispatch):
@@ -466,15 +452,8 @@ class RichLineRenderer(MroDispatch):
         return tuple(self.output)
 
     @handles(Patch)
-    def plain_patch(self, patch: Patch) -> None:
-        self.patch(patch, {n: Text(text.expandtabs(4)) for n, text in patch.before.items()},
-                   {n: Text(text.expandtabs(4)) for n, text in patch.after.items()})
-
-    @handles(StyledPatch)
-    def styled_patch(self, patch: StyledPatch) -> None:
-        self.patch(patch, patch.before_text, patch.after_text)
-
-    def patch(self, patch: Patch, before, after) -> None:
+    def patch(self, patch: Patch) -> None:
+        before, after = patch.before_text, patch.after_text
         settings = self.theme.diff
         layout = PatchLayout(patch, self.width, settings)
         number_width, split = layout.number_width, layout.split
@@ -638,6 +617,10 @@ class BlockLines(Lines):
     def prepared_blocks(self) -> tuple[PreparedLines, ...]:
         draw = self.renderer.at_width(self.width)
         return tuple(block.prepared_rows(self.width, draw) for block in self.preparation.blocks)
+
+    @property
+    def height(self) -> int:
+        return sum(block.height for block in self.prepared_blocks)
 
     @property
     def rows(self) -> tuple[Row, ...]:
