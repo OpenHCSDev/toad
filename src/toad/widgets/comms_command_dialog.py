@@ -28,7 +28,7 @@ class PreparedChoices(AnnotationChoices):
     parameter: ChoiceTargetField
 
     def choices(self):
-        return ('', *(value for _, value in self.parameter.choices))
+        return tuple(value for _, value in self.parameter.choices)
 
     def label(self, choice):
         return next((label for label, value in self.parameter.choices if value == choice), 'Choose…')
@@ -144,7 +144,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
                 hints.append(Multiline())
-            declarations.append((parameter.name, Annotated[str, *hints],
+            declarations.append((parameter.name, Annotated[parameter.editor_annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
         self.form = InlineFormView(self.state)
@@ -227,7 +227,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
         async def prepare():
             def read():
                 for name, choices in self.choices.items():
-                    if not arguments[name] or arguments[name] not in choices.choices():
+                    if arguments[name] not in choices.choices():
                         return f'Choose {name.replace("_", " ")}', False
                 try:
                     return self.definition.edited(arguments).confirmation, True
