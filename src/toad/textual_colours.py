@@ -176,7 +176,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         if cursor.auto_color:
             variables[BlockCursorForegroundColour.name] = cursor.background.get_contrast_text(cursor.color.a).hex
 
-        self._colours = {member: Color.parse(value) for member in ThemeColour.members()
+        self._colours = {member: Color.parse(value) for member in (*CoreColour.members(), *LayerColour.members())
                          if (value := variables.get(member.name)) is not None}
 
         def read(member: type[ThemeColour]) -> Rgb:
