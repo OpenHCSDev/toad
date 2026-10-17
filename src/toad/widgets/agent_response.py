@@ -7,10 +7,9 @@ from toad.core.projection import MroProjection
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
 from toad.line_blocks import AgentRole, Divider
-from toad.message_rows import MessageRow
 from toad.widgets.committed_presentation import SnapshotPresentation
 from toad.widgets.line_markdown import LineMarkdown
-from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider, MessageRowDivider
+from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
 from toad import response_delivery
 from toad.widgets.message_filter import (
     CategorizedBlock,
@@ -58,19 +57,9 @@ class AgentResponse(MroProjection, ConversationBlock, SnapshotPresentation, Cate
     async def finish_stream(self) -> None:
         """Appends draw as they arrive; there is no stream to flush."""
 
-    @handles(response_delivery.UnroutedResponse)
+    @handles(response_delivery.ResponseDelivery)
     def ordinary_prefix(self, delivery, clock, show_divider):
         return {"prefix": (MessageDivider(Divider.titled("Agent", AgentRole), clock=clock),) if show_divider else ()}
-
-    @handles(response_delivery.RoutedResponse)
-    def routed_prefix(self, delivery, clock, show_divider):
-        return {
-            "prefix": (
-                (MessageRowDivider(MessageRow(delivery.route, "", None, outgoing=True), clock=clock),)
-                if show_divider else ()
-            ),
-            "classes": f"{self.DEFAULT_CLASSES} -routed",
-        }
 
     @cached_property
     def block_cursor(self):

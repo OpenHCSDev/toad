@@ -10,7 +10,7 @@ from toad.block_navigation import ConversationBlock
 from toad.message_rows import MessageRow
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.message_divider import LiveMessageClock
+from toad.widgets.message_divider import LiveMessageClock, MessageRowDivider
 from toad.widgets.message_filter import CategorizedBlock, OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
 from toad.widgets.transcript_lines import MessageRowBlock
@@ -34,11 +34,11 @@ class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, C
 
     @cached_property
     def message_row(self) -> MessageRow:
-        return MessageRow.sent(self.publication.message)
+        return MessageRow(self.publication.message, self.publication.scope.recipient.name)
 
     @property
     def message_reference(self):
-        return self.publication.message.source
+        return self.publication.message.reference
 
     @property
     def message_category(self):
@@ -46,9 +46,11 @@ class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, C
 
     def compose(self) -> ComposeResult:
         message = self.publication.message
-        yield AgentResponse(message.text,
-                            delivery=ResponseDelivery.from_route(message.require_reply_route()),
-                            show_divider=self.show_header,
+        if self.show_header:
+            yield MessageRowDivider(self.message_row, clock=LiveMessageClock())
+        yield AgentResponse(message.body,
+                            delivery=ResponseDelivery.from_route(self.message_row.route),
+                            show_divider=False,
                             clock=LiveMessageClock())
         if self.handling_references:
             yield MessageNotifications()

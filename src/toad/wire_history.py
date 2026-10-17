@@ -13,7 +13,6 @@ from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from agent_comms import HistoricalMessage
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message
@@ -146,12 +145,15 @@ class WireFragment(TranscriptFragment):
     """
 
     shown: MessageShown
+    reader: str
     evidence: MessagePage | None
     checks_notifications: ClassVar[bool] = False
 
     @classmethod
     def of(cls, message: Message, **fields) -> WireFragment:
         kind = MembershipFragment if message.membership is not None else MessageFragment
+        if message.membership is None:
+            fields["text_part"] = message.body
         return kind((message,), **fields)
 
     @property
@@ -213,23 +215,22 @@ class MembershipFragment(WireFragment):
 class MessageFragment(BusMessageFragment, WireFragment):
     """A sent message: its header, text and the state of its notifications."""
 
-    outgoing: bool
-
     @property
     def notification_references(self):
         return self.message.notification_references()
 
     @cached_property
     def row(self) -> MessageRow:
-        return MessageRow.of(self.message, outgoing=self.outgoing)
+        return MessageRow(self.message, self.reader)
 
     @property
     def leading(self):
         message = self.message
-        if not isinstance(message, HistoricalMessage):
+        source = message.history_source
+        if source is None:
             return super().leading
-        return (Gap(), Summary.titled(f"History · {message.source.original_root} · @{message.sender} "
-                               f"created {message.sender_created_at}"), self.row.header)
+        return (Gap(), Summary.titled(f"History · {source.original_root} · @{message.sender} "
+                               f"created {message.display_metadata['history']['sender_created_at']}"), self.row.header)
 
 @dataclass(frozen=True, eq=False)
 class WireSource:
@@ -281,9 +282,7 @@ class WireSource:
         evidence = page if self.kind.history_view.has_display_evidence(page) else None
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=evidence,
-                            **({} if message.membership is not None
-                               else {"outgoing": message.sender == self.me}))
+            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
             for message in page.messages)
         wire = WirePage(
             page.messages,

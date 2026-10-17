@@ -12,12 +12,9 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 
-from agent_comms import HistoricalMessage
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.historical_views import HistorySource
 from agent_comms.messages import Message
 from agent_comms.routing import MessageRoute
-from agent_comms.transcript_events import IncomingTranscript, SentTranscript
 
 from toad.inline_spans import inline_spans
 from toad.menus import MenuItem
@@ -31,30 +28,29 @@ from toad.line_blocks import (
 class MessageRow:
     """One message: who sent it to whom, when, its text, and whether the reader's thread sent it."""
 
-    route: MessageRoute
-    text: str
-    timestamp: float | None
-    outgoing: bool
-    # The attached history source the message was read from: its threads open as that source recorded them.
-    source: HistorySource | None = None
+    message: Message
+    reader: str
+
+    @property
+    def route(self) -> MessageRoute:
+        return MessageRoute(self.message.sender, (self.message.target,))
+
+    @property
+    def text(self) -> str:
+        return self.message.body
+
+    @property
+    def timestamp(self) -> float:
+        return self.message.timestamp
+
+    @property
+    def outgoing(self) -> bool:
+        return self.message.sender == self.reader
 
     @property
     def history(self) -> str | None:
-        return self.source.key if self.source is not None else None
-
-    @classmethod
-    def of(cls, message: Message, *, outgoing: bool) -> MessageRow:
-        return cls(MessageRoute(message.sender, (message.target,)), message.body, message.timestamp,
-                   outgoing,
-                   message.source if isinstance(message, HistoricalMessage) else None)
-
-    @classmethod
-    def incoming(cls, event: IncomingTranscript) -> MessageRow:
-        return cls(event.route, event.text, event.timestamp, outgoing=False)
-
-    @classmethod
-    def sent(cls, event: SentTranscript) -> MessageRow:
-        return cls(event.require_reply_route(), event.text, event.timestamp, outgoing=True)
+        source = self.message.history_source
+        return source.key if source is not None else None
 
     @property
     def role(self) -> type[LineRole]:
@@ -109,11 +105,8 @@ class WireBody(LineBlock):
     """Message provenance stays with the message, not with a theme or paragraph."""
 
     row: MessageRow
+    text: str
     bar = None
-
-    @property
-    def text(self):
-        return self.row.text
 
     @property
     def selection_text(self):
@@ -140,8 +133,8 @@ class MarkdownWireBody(WireBody):
 class WireMessageStyle(DeclaredFamily, affix="MessageStyle"):
     """How a message's own text is laid out under its header."""
 
-    def body(self, row: MessageRow) -> tuple[LineBlock, ...]:
-        return (self.body_type(row),)
+    def body(self, row: MessageRow, text: str) -> tuple[LineBlock, ...]:
+        return (self.body_type(row, text),)
 
     @abstractmethod
     def next(self) -> WireMessageStyle: ...
