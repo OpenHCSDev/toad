@@ -5,7 +5,7 @@ from textual.app import ComposeResult
 from textual import containers
 from toad.widgets.line_markdown import LineMarkdown
 
-from toad.line_blocks import Divider, UserRole
+from toad.line_blocks import Body, Divider, UserRole
 from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
 from toad.widgets.message_filter import CategorizedBlock, MessageCategory
 from toad.widgets.committed_presentation import CAPTURED_CLAIM, CommitClaim, SnapshotPresentation
@@ -41,7 +41,7 @@ class UserInput(ConversationBlock, SnapshotPresentation, CategorizedBlock, conta
         if self.show_divider:
             yield MessageDivider(Divider.titled("User", UserRole), clock=self.clock)
         # The same Body block committed history draws for this message.
-        yield LineMarkdown(self.content, bar=UserRole, markdown=False, id="content")
+        yield LineMarkdown(self.content, bar=UserRole, body=Body, id="content")
 
     def get_clipboard_text(self) -> str | None:
         return self.content

@@ -7,6 +7,7 @@ imports a terminal or rendering library.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 import json
 import re
@@ -244,6 +245,9 @@ class Span:
 class LineBlock:
     """One visual part of a fragment."""
 
+    def prepared_rows[RowsT](self, width: int, draw: Callable[[LineBlock], RowsT]) -> RowsT:
+        return draw(self)
+
     @property
     def selection_text(self) -> str:
         return ""
@@ -350,16 +354,23 @@ class Gap(LineBlock):
 
 @dataclass(frozen=True)
 class Body(LineBlock):
-    """Message text, optionally marked by a bar in another role; Markdown or plain."""
+    """Plain text, optionally marked by a bar in another role."""
 
     text: str
     role: type[LineRole] = TextRole
     bar: type[LineRole] | None = None
-    markdown: bool = True
 
     @property
     def selection_text(self) -> str:
         return self.text
+
+    def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
+        return self
+
+
+class MarkdownBody(Body):
+    def prepare(self, markdown: Callable[[Body], LineBlock]) -> LineBlock:
+        return markdown(self)
 
     @classmethod
     def code(cls, text: str, language: str = "", **shown) -> Body:

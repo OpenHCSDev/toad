@@ -15,7 +15,7 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
 from textual.geometry import Offset
 from textual._measurement import FLOW_HEIGHT, height_dependency

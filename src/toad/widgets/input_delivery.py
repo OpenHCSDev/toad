@@ -11,7 +11,7 @@ from textual.message import Message
 from textual.reactive import var
 from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink

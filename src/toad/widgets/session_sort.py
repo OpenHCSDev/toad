@@ -16,7 +16,7 @@ from python_introspect import FieldLabel
 from textual import events
 from textual.containers import VerticalScroll
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 from textual.css.scalar import Scalar, Unit
 from textual.geometry import Spacing
 

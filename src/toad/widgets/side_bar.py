@@ -17,7 +17,8 @@ from textual.events import Click
 from textual.geometry import Offset
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 
 from ui_theme.scheme import SidebarToneColour
 

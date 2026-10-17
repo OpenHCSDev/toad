@@ -19,7 +19,8 @@ from textual.message import Message
 from textual.renderables.bar import Bar
 from textual.style import Style
 from ui_theme.scheme import AccentColour, ErrorColour, ForegroundColour, HeaderToneColour, MutedColour
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 
 from toad import messages
 from agent_comms.mro_dispatch import handles
