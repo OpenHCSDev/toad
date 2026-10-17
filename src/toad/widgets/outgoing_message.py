@@ -1,7 +1,5 @@
 """A message this thread just sent on the bus, drawn live."""
 
-from functools import cached_property
-
 from agent_comms.sent_message import PublishedSentMessage
 from textual.app import ComposeResult
 from textual.containers import VerticalGroup
@@ -21,9 +19,10 @@ from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessa
 class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, ConversationBlock, CategorizedBlock, VerticalGroup):
     DEFAULT_CLASSES = "block"
 
-    def __init__(self, publication: PublishedSentMessage, *, binding, request, show_header: bool = True):
+    def __init__(self, publication: PublishedSentMessage, *, row: MessageRow, binding, request, show_header: bool = True):
         super().__init__()
         self.publication = publication
+        self.message_row = row
         self.binding = binding
         self.request = request
         self.show_header = show_header
@@ -32,13 +31,9 @@ class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, C
     def commit_claim(self):
         return OutgoingMessageClaim(self.publication)
 
-    @cached_property
-    def message_row(self) -> MessageRow:
-        return MessageRow(self.publication.message, self.publication.scope.recipient.name)
-
     @property
     def message_reference(self):
-        return self.publication.message.reference
+        return self.publication.message.source
 
     @property
     def message_category(self):
@@ -48,7 +43,7 @@ class OutgoingMessage(MessageRowBlock, WireMessageHandling, CommitParticipant, C
         message = self.publication.message
         if self.show_header:
             yield MessageRowDivider(self.message_row, clock=LiveMessageClock())
-        yield AgentResponse(message.body,
+        yield AgentResponse(message.text,
                             delivery=ResponseDelivery.from_route(self.message_row.route),
                             show_divider=False,
                             clock=LiveMessageClock())

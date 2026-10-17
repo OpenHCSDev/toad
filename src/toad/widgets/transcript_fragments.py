@@ -10,6 +10,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.message_reference import MessageReference
 from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.transcript_receipts import AssignedTranscriptSource
 from agent_comms.transcript_events import (
     AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
     TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
@@ -374,6 +375,7 @@ class BusMessageFragment(TranscriptFragment):
 
     shown: MessageShown = field(default_factory=MessageShown)
     text_part: str
+    row: MessageRow
 
     @classmethod
     def capture_part(cls, event, text, **kwargs):
@@ -383,10 +385,6 @@ class BusMessageFragment(TranscriptFragment):
     def text_parts(cls, source, budget):
         # Even an empty bus message owns its header and notification footer.
         return super().text_parts(source, budget) or (source,)
-
-    @cached_property
-    def row(self) -> MessageRow:
-        raise NotImplementedError
 
     @property
     def checks_notifications(self) -> bool:
@@ -427,13 +425,6 @@ class BusMessageFragment(TranscriptFragment):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
 
 
-class IncomingMessageFragment(BusMessageFragment):
-    @cached_property
-    def row(self) -> MessageRow:
-        event = self.events[0]
-        return MessageRow(event.message, event.reader)
-
-
 @dataclass(kw_only=True)
 class SentMessageFragment(BusMessageFragment):
     publication: PublishedSentMessage
@@ -441,11 +432,6 @@ class SentMessageFragment(BusMessageFragment):
     @property
     def outgoing_sources(self):
         return () if self.continues else (self.publication.reference,)
-
-    @cached_property
-    def row(self) -> MessageRow:
-        return MessageRow(self.publication.message, self.publication.scope.recipient.name)
-
 
 class ContextTranscriptFragment(TranscriptFragment):
     """The coordination context an agent was given: one line, and its text when opened."""
@@ -477,7 +463,7 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript):
-        self.text(event, IncomingMessageFragment)
+        self.text(event, BusMessageFragment, row=MessageRow(event.message, event.reader))
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
@@ -486,7 +472,9 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage):
-        self.text(message.transcript, SentMessageFragment, publication=message)
+        original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
+        self.text(message.message, SentMessageFragment, publication=message,
+                  row=MessageRow(original, message.scope.recipient.name))
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):

@@ -56,7 +56,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
         async with AsyncExitStack() as retirement:
             for part in parts:
                 for sent in part.standalone_messages:
-                    body = OutgoingMessage(sent, binding=self, request=request)
+                    body = OutgoingMessage(sent.message, row=sent.row, binding=self, request=request)
                     if not await self._post_native(message, target, body, retirement):
                         return
             if not self.owns_publication(message, target):

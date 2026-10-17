@@ -145,15 +145,14 @@ class WireFragment(TranscriptFragment):
     """
 
     shown: MessageShown
-    reader: str
     evidence: MessagePage | None
     checks_notifications: ClassVar[bool] = False
 
     @classmethod
-    def of(cls, message: Message, **fields) -> WireFragment:
+    def of(cls, message: Message, *, reader: str, **fields) -> WireFragment:
         kind = MembershipFragment if message.membership is not None else MessageFragment
         if message.membership is None:
-            fields["text_part"] = message.body
+            fields.update(text_part=message.body, row=MessageRow(message, reader))
         return kind((message,), **fields)
 
     @property
@@ -218,10 +217,6 @@ class MessageFragment(BusMessageFragment, WireFragment):
     @property
     def notification_references(self):
         return self.message.notification_references()
-
-    @cached_property
-    def row(self) -> MessageRow:
-        return MessageRow(self.message, self.reader)
 
     @property
     def leading(self):

@@ -20,6 +20,7 @@ from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, ToolText
 from agent_comms.sent_message import PublishedSentMessage
 from agent_comms.transcript_receipts import AssignedTranscriptSource
+from toad.message_rows import MessageRow
 from textual.await_complete import AwaitComplete
 from rich.text import Text
 
@@ -54,7 +55,7 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
         return ()
 
     @property
-    def standalone_messages(self) -> tuple[PublishedSentMessage, ...]:
+    def standalone_messages(self) -> tuple[PublishedSentMessageToolOutputPart, ...]:
         return ()
 
     def project_messages(self, resolved) -> ToolOutputPart:
@@ -214,10 +215,11 @@ class PublishedSentMessageToolOutputPart(ToolOutputPart):
 
     message: PublishedSentMessage
     literal: str
+    row: MessageRow
 
     @property
     def standalone_messages(self):
-        return (self.message,)
+        return (self,)
 
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
@@ -310,7 +312,9 @@ class ToolContentDecoder(MroDispatch):
     @handles(PublishedSentMessage)
     def published_message(self, message):
         assert self.report is not None
-        self.part = PublishedSentMessageToolOutputPart(message, self.report.literal)
+        original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
+        self.part = PublishedSentMessageToolOutputPart(
+            message, self.report.literal, MessageRow(original, message.scope.recipient.name))
 
     @handles(schema.FileEditToolCallContent)
     def diff(self, item):
