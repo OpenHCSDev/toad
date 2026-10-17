@@ -8,6 +8,8 @@ from textual import events
 from textual.app import ComposeResult
 from textual.binding import BindingType
 from textual.containers import HorizontalGroup, VerticalGroup, VerticalScroll
+from textual.layouts.horizontal import HorizontalLayout
+from textual.layouts.grid import GridLayout
 from textual.reactive import var
 from textual.strip import Strip
 from ui_theme.effects import STANDBY_PULSE
@@ -263,14 +265,14 @@ class GoalBar(VerticalGroup):
         controls.styles.dock = "left" if inline else "top" if self.collapsed else "none"
         controls.styles.width = "auto" if inline else "1fr"
         if sum(widths) <= width:
-            controls.styles.layout = "horizontal"
+            controls.styles.layout = HorizontalLayout()
             controls.styles.height = 1
         else:
             # Keep every action reachable in narrow conversation panes.
             columns = len(widths)
             while columns > 1 and sum(max(widths[i::columns]) for i in range(columns)) > width:
                 columns -= 1
-            controls.styles.layout = "grid"
+            controls.styles.layout = GridLayout()
             controls.styles.grid_size_columns = columns
             controls.styles.grid_columns = " ".join(
                 str(max(widths[i::columns])) for i in range(columns)

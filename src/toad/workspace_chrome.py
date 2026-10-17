@@ -24,8 +24,6 @@ class WorkspaceHeader(Horizontal):
 
 
 class WorkspaceChrome(VerticalLayout):
-    name = "workspace"
-
     def __init__(self, app: "ToadApp") -> None:
         self.navigation = WorkspaceHeader(id="tab-navigation-header")
         self.channels = ChannelsSidebar()
