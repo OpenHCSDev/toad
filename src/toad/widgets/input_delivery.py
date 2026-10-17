@@ -15,14 +15,13 @@ from textual._activation import PrimaryActivation
 
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
-from toad.widgets.selection import ChangingText, HoverSelection
+from toad.widgets.selection import ChangingText, InlineSelection
 from rich.style import Style as RichStyle
 
 
-class DetailAction(HoverSelection, PrimaryActivation, Static, can_focus=True):
+class DetailAction(InlineSelection, PrimaryActivation, Static, can_focus=True):
     """An inline detail action owns keyboard, pointer and activation behavior."""
 
-    highlight_foreground = highlight_background = None
     highlighted_text_style = RichStyle(bold=True, reverse=True)
 
     class Activated(Message):

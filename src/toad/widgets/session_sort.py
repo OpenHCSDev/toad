@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from toad.widgets.selection import HoverSelection
-from rich.style import Style as RichStyle
+from toad.widgets.selection import InlineSelection
 
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
@@ -91,10 +90,8 @@ class SortDialog(FormModal[type[DisplayOrder] | None]):
             self.app.run_worker(self.app.saved_settings.save(), group="channel-visibility")
 
 
-class SortControl[Order: DisplayOrder](HoverSelection, PrimaryActivation, Static, can_focus=True):
+class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Static, can_focus=True):
     highlight_foreground = "text"
-    highlight_background = None
-    highlighted_text_style = RichStyle(underline=True)
 
     BINDINGS = [("enter,space", "choose_sort", "Sort")]
     DEFAULT_CSS = """

@@ -13,7 +13,7 @@ from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
 from ui_theme.scheme import BlockCursorForegroundColour, BlockCursorBackgroundColour
 from textual.visual import VisualType
 
-from toad.frame_presentation import Animated, TonePaint
+from toad.frame_presentation import Animated, UntintedTonePaint
 from rich.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
@@ -82,10 +82,9 @@ class FocusSelection(Static, can_focus=True):
         self._pointer_focus = False
 
 
-class HoverSelection(TonePaint):
+class HoverSelection(UntintedTonePaint):
     """Paint a control from native pointer/focus state, without CSS transitions."""
 
-    tone = None
     highlight_foreground = BlockCursorForegroundColour.name
     highlight_background = BlockCursorBackgroundColour.name
 
@@ -113,6 +112,19 @@ class HoverSelection(TonePaint):
 
     def watch_mouse_hover(self):
         self.refresh_paint()
+
+
+class InlineSelection(HoverSelection):
+    """An inline action adds emphasis without replacing its colours."""
+
+    highlight_foreground = highlight_background = None
+    highlighted_text_style = Style(underline=True)
+
+
+class ColourSelection(HoverSelection):
+    """A handle changes only its ink, keeping its declared surface and text."""
+
+    highlight_background = highlighted_text_style = None
 
 
 class SelectionOptionList(OptionList):

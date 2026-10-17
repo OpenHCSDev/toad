@@ -20,18 +20,14 @@ from textual.widgets.option_list import Option
 
 from toad import messages
 from toad.db import DB
-from toad.widgets.selection import SelectionOptionList, HoverSelection
-from rich.style import Style as RichStyle
+from toad.widgets.selection import SelectionOptionList, InlineSelection
 from toad.widgets.prompt_popup import InfoPopup
 
 if TYPE_CHECKING:
     from toad.widgets.prompt import Prompt
 
 
-class ConnectProvider(HoverSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
-    highlight_foreground = highlight_background = None
-    highlighted_text_style = RichStyle(underline=True)
-
+class ConnectProvider(InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
     BINDINGS = [("enter,space", "connect", "Connect provider")]
 
     def __init__(self):

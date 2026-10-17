@@ -19,7 +19,7 @@ from toad.answer import Answer
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import DeclaredWidgetActions
 from toad.question_actions import QuestionAction, SelectKindAction
-from toad.frame_presentation import TonePaint
+from toad.frame_presentation import UntintedTonePaint
 
 type Options = list[Answer]
 
@@ -38,9 +38,7 @@ class NonSelectableLabel(widgets.Label):
     ALLOW_SELECT = False
 
 
-class OptionMarker(TonePaint, NonSelectableLabel):
-    tone = None
-
+class OptionMarker(UntintedTonePaint, NonSelectableLabel):
     @property
     def paint_opacity(self):
         return 1.0 if self.query_ancestor(Question).has_focus else 0.3

@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection, can_focus=True):
+class ThreadStatusRow(AlternatingTonePaint, HoverSelection, ViewLabel, can_focus=True):
     """Compact wire status presentation shared by open and unopened threads."""
 
     alternate_tone = AlternateRowToneColour

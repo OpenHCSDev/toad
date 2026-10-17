@@ -23,7 +23,7 @@ from textual.widget import Widget
 from ui_theme.scheme import SidebarToneColour
 
 from toad.frame_presentation import TonePaint
-from toad.widgets.selection import HoverSelection
+from toad.widgets.selection import HoverSelection, ColourSelection
 from textual.color import Color
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
@@ -337,9 +337,8 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
             )
 
 
-class SidebarSlider(HoverSelection, widgets.Static, can_focus=True):
+class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
     highlight_foreground = "accent"
-    highlight_background = highlighted_text_style = None
 
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
@@ -482,11 +481,10 @@ class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus
             self.action_activate()
 
 
-class SidebarResizeHandle(HoverSelection, widgets.Static, can_focus=True):
+class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
     highlight_foreground = "foreground"
-    highlight_background = highlighted_text_style = None
 
     @property
     def paint_foreground(self):
