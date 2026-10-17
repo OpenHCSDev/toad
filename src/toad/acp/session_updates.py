@@ -125,7 +125,7 @@ class SessionNotificationOwner(ClientRequestOwner):
     async def receive(self, sessionId: str, update: object, _meta: dict | None = None):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         async with self.lock:
-            if authority.retired or not authority.binding.admits_notification(sessionId):
+            if authority.retired or not authority.binding.accepts_notification(sessionId):
                 return
             validation = await self.agent.controller.validate(sessionId, update, _meta)
             if authority.retired:
@@ -135,7 +135,7 @@ class SessionNotificationOwner(ClientRequestOwner):
     def accept(self, session_id, update, metadata=None):
         """Official SDK boundary for synchronous in-process protocol consumers."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        if authority.retired or not authority.binding.admits_notification(session_id):
+        if authority.retired or not authority.binding.accepts_notification(session_id):
             return
         ValidateSessionUpdateTask(session_id, update, metadata).execute().publish(
             self, session_id, update, metadata)
