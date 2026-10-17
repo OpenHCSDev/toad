@@ -64,8 +64,8 @@ class SidebarVisibilityObserver:
     def scroll_container(self) -> SidebarViewport:
         return self.query_ancestor(SideBar).panels_viewport
 
-    def reader_shift(self, placements) -> Offset:
-        return self.scroll_container.preserve_reader(placements)
+    def preserve_reader(self, placements) -> None:
+        self.scroll_container.preserve_reader(placements)
 
     def sidebar_visibility_changed(self) -> None:
         raise NotImplementedError
