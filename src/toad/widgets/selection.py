@@ -10,7 +10,8 @@ from textual.content import Content
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
-from ui_theme.scheme import BlockCursorForegroundColour, BlockCursorBackgroundColour
+from ui_theme.scheme import ThemeColour, BlockCursorForegroundColour, BlockCursorBackgroundColour
+from typing import ClassVar
 from textual.visual import VisualType
 
 from toad.frame_presentation import Animated, UntintedTonePaint
@@ -85,25 +86,22 @@ class FocusSelection(Static, can_focus=True):
 class HoverSelection(UntintedTonePaint):
     """Paint a control from native pointer/focus state, without CSS transitions."""
 
-    highlight_foreground = BlockCursorForegroundColour.name
-    highlight_background = BlockCursorBackgroundColour.name
+    highlight_foreground: ClassVar[type[ThemeColour] | None] = BlockCursorForegroundColour
+    highlight_background: ClassVar[type[ThemeColour] | None] = BlockCursorBackgroundColour
+    highlighted_text_style = Style()
 
     @property
     def paint_highlighted(self):
-        return self.has_focus or self.mouse_hover
-
-    @property
-    def highlighted_text_style(self):
-        return self.app.stylesheet.parse_style("$block-cursor-text-style").rich_style
+        return not self.disabled and (self.has_focus or self.mouse_hover)
 
     @property
     def paint_foreground(self):
-        return (self.app.stylesheet.parse_style(f"${self.highlight_foreground}").foreground
+        return (self.app.colours.colour(self.highlight_foreground)
                 if self.paint_highlighted and self.highlight_foreground else None)
 
     @property
     def paint_background(self):
-        return (self.app.stylesheet.parse_style(f"on ${self.highlight_background}").background
+        return (self.app.colours.colour(self.highlight_background)
                 if self.paint_highlighted and self.highlight_background else None)
 
     @property
@@ -124,7 +122,7 @@ class InlineSelection(HoverSelection):
 class ColourSelection(HoverSelection):
     """A handle changes only its ink, keeping its declared surface and text."""
 
-    highlight_background = highlighted_text_style = None
+    highlight_background = None
 
 
 class SelectionOptionList(OptionList):

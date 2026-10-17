@@ -20,11 +20,10 @@ from textual.reactive import reactive
 from textual._activation import PrimaryActivation
 from textual.widget import Widget
 
-from ui_theme.scheme import SidebarToneColour
+from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour
 
 from toad.frame_presentation import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
-from textual.color import Color
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
     Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
@@ -154,12 +153,12 @@ The Sidebar contains additonal information associated with the conversation.
 
 
 class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
+    """Full-height collapse target beside the conversation-facing resize edge."""
+
     @property
     def paint_highlighted(self):
         bar = self.query_ancestor(SideBar)
         return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
-
-    """Full-height collapse target beside the conversation-facing resize edge."""
 
     ALLOW_SELECT = False
 
@@ -223,10 +222,6 @@ class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
 
 
 class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
-    @property
-    def highlight_foreground(self):
-        return "text-disabled" if self.has_class("-unavailable") else super().highlight_foreground
-
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -241,7 +236,7 @@ class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=
         text-style: bold;
         pointer: pointer;
     }
-    HeaderButton.-unavailable {
+    HeaderButton:disabled {
         color: $text-disabled;
         pointer: default;
     }
@@ -328,7 +323,6 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
         for button in self.query(TabHistoryButton):
             unavailable = app.tab_order.history_target(button.direction) is None
             button.disabled = unavailable
-            button.set_class(unavailable, "-unavailable")
             button.tooltip = (
                 "No earlier visited tab" if button.direction == -1 else "No later visited tab"
             ) if unavailable else (
@@ -338,9 +332,9 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
 
 
 class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
-    highlight_foreground = "accent"
-
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
+
+    highlight_foreground = AccentColour
 
     ALLOW_SELECT = False
 
@@ -484,13 +478,7 @@ class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus
 class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
-    highlight_foreground = "foreground"
-
-    @property
-    def paint_foreground(self):
-        if self.paint_highlighted and self.app.native_ansi_color:
-            return Color.parse("ansi_white")
-        return super().paint_foreground
+    highlight_foreground = ForegroundColour
 
     # The screen starts text selection before forwarding MouseDown to us.
     # Capturing/stopping that event alone cannot prevent a competing selection

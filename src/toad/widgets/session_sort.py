@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from toad.widgets.selection import InlineSelection
+from ui_theme.scheme import ForegroundColour
 
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
@@ -91,7 +92,7 @@ class SortDialog(FormModal[type[DisplayOrder] | None]):
 
 
 class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Static, can_focus=True):
-    highlight_foreground = "text"
+    highlight_foreground = ForegroundColour
 
     BINDINGS = [("enter,space", "choose_sort", "Sort")]
     DEFAULT_CSS = """

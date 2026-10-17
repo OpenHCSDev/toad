@@ -17,11 +17,12 @@ from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.worker_static import WorkerStatic
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
+from ui_theme.scheme import ForegroundColour, SurfaceHoverColour
 
 
 class ProjectSearchButton(HoverSelection, PrimaryActivation, Static, can_focus=True):
-    highlight_foreground = "text"
-    highlight_background = "surface-lighten-2"
+    highlight_foreground = ForegroundColour
+    highlight_background = SurfaceHoverColour
     highlighted_text_style = RichStyle(bold=True)
 
     DEFAULT_CSS = """
