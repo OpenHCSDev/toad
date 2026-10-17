@@ -1,6 +1,5 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
-import asyncio
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from collections.abc import Iterator
