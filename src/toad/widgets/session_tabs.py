@@ -10,15 +10,11 @@ from textual import containers, events, getters, widgets
 from textual.app import ComposeResult, RenderResult
 from textual.binding import BindingType
 from textual.content import Content
-from textual.geometry import Offset, Region, Spacing
-from textual.css.scalar import Scalar, ScalarOffset
-from textual.color import TRANSPARENT
-from textual.layouts.vertical import VerticalLayout
-from toad.widget_view import AUTO, FILL, WidgetView
+from textual.geometry import Offset, Region
 from textual.message import Message
 from textual.renderables.bar import Bar
 from textual.style import Style
-from ui_theme.scheme import AccentColour, ErrorColour, ForegroundColour, HeaderToneColour, MutedColour
+from ui_theme.scheme import AccentColour
 from textual.widget import PrimaryActivation, Widget
 
 from toad import messages
@@ -32,20 +28,8 @@ from ui_theme.effects import NEW_TEXT, Mix
 from toad.widgets.selection import ViewLabel
 
 
-class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, widgets.Label):
+class SessionLabel(PrimaryActivation, ViewLabel, widgets.Label):
     ALLOW_SELECT = False
-    width = AUTO
-    height = Scalar.from_number(1)
-    padding = Spacing(0, 1, 0, 1)
-
-    @property
-    def text_style(self):
-        return RichStyle(dim=not self.mouse_hover)
-
-    @property
-    def background_tint(self):
-        return (self.app.colours.colour(ForegroundColour).multiply_alpha(0.1)
-                if self.mouse_hover else TRANSPARENT)
 
     def __init__(self, tab: OpenTab, **kwargs):
         super().__init__(Content(), **kwargs)
@@ -89,22 +73,24 @@ class SessionLabel(WidgetView, PrimaryActivation, ViewLabel, widgets.Label):
                 self.action_select_session()
 
 
-class SessionTabClose(WidgetView, PrimaryActivation, widgets.Static, can_focus=True):
+class SessionTabClose(PrimaryActivation, widgets.Static, can_focus=True):
     """Close a tab without selecting it or deleting its saved thread."""
 
     ALLOW_SELECT = False
     FOCUS_ON_CLICK = False
     BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "close_tab", "Close tab")]
-    width = Scalar.from_number(2)
-    height = Scalar.from_number(1)
-
-    @property
-    def paint_foreground(self):
-        return self.app.colours.colour(ErrorColour if self.mouse_hover or self.has_focus else MutedColour)
-
-    @property
-    def text_style(self):
-        return RichStyle(bold=self.mouse_hover or self.has_focus, reverse=self.mouse_hover or self.has_focus)
+    DEFAULT_CSS = """
+    SessionTabClose {
+        width: 2;
+        height: 1;
+        color: $text-muted;
+        pointer: pointer;
+    }
+    SessionTabClose:hover, SessionTabClose:focus {
+        color: $error;
+        text-style: bold reverse;
+    }
+    """
 
     def __init__(self, mode_name: str) -> None:
         super().__init__("×", id=f"close-{mode_name}")
@@ -124,13 +110,16 @@ class SessionTabClose(WidgetView, PrimaryActivation, widgets.Static, can_focus=T
             self.action_close_tab()
 
 
-class Underline(WidgetView, Animated[Mix]):
+class Underline(Animated[Mix]):
     """The chosen tab's underline uses the shared content-change fade."""
 
     text_fades = (NEW_TEXT,)
-    width = FILL
-    height = Scalar.from_number(1)
-    placement_offset = ScalarOffset.from_offset((0, 1))
+    COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
+    """
+    | Class | Description |
+    | :- | :- |
+    | `underline--bar` | Style of the bar (may be used to change the color). |
+    """
 
     class Clicked(Message):
         """Inform ancestors the underline was clicked."""
@@ -149,12 +138,11 @@ class Underline(WidgetView, Animated[Mix]):
 
     def render(self) -> RenderResult:
         """Render the bar."""
-        colours = self.app.colours
-        background = colours.colour(HeaderToneColour) + colours.colour(ForegroundColour).multiply_alpha(0.1)
+        bar_style = self.get_component_rich_style("underline--bar")
         return Bar(
             highlight_range=self._highlight_range,
-            highlight_style=RichStyle.from_color(colours.colour(AccentColour).rich_color),
-            background_style=RichStyle.from_color(background.rich_color),
+            highlight_style=RichStyle.from_color(bar_style.color),
+            background_style=RichStyle.from_color(bar_style.bgcolor),
         )
 
     def _on_click(self, event: events.Click):
@@ -163,19 +151,7 @@ class Underline(WidgetView, Animated[Mix]):
         self.post_message(self.Clicked(event.screen_offset))
 
 
-class SessionTitles(WidgetView, containers.HorizontalGroup):
-    width = AUTO
-    height = Scalar.from_number(1)
-    placement_offset = ScalarOffset.from_offset((0, 1))
-
-
-class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
-    DEFAULT_LAYOUT = VerticalLayout
-    width = FILL
-    height = Scalar.from_number(3)
-    box_sizing = "content-box"
-    overflow_x = "auto"
-    vertical_scrollbar_size = 0
+class SessionsTabs(CoreEventReceiver, Widget):
 
     ALLOW_SELECT = False
     app: getters.app[ToadApp] = getters.app(ToadApp)
@@ -201,15 +177,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
                 scrollbar_region = scrollbar_region.translate((0, region.y - scrollbar_region.y))
             yield scrollbar, scrollbar_region
 
-    @property
-    def display(self) -> bool:
-        return self.app.show_sessions
-
-    def _visibility_changed(self, shown: bool) -> None:
-        self.refresh(layout=True)
-
     def on_mount(self) -> None:
-        self.watch(self.app, "show_sessions", self._visibility_changed)
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.observe_core(self.app.events)
@@ -254,7 +222,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
     def compose(self) -> ComposeResult:
         tabs = self.app.open_tabs
         self._last_tabs = tabs
-        with SessionTitles(id="title-container"):
+        with containers.HorizontalGroup(id="title-container"):
             for session in tabs:
                 yield SessionLabel(session, id=session.mode_name)
                 yield SessionTabClose(session.mode_name)

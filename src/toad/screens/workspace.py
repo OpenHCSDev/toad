@@ -13,8 +13,6 @@ from textual.events import ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
-from textual.box_model import DEFAULT_LAYER
-from toad.widget_view import WidgetView
 
 from toad.widgets.side_bar import SidebarFocusOwner
 from agent_comms.declared_family import DeclaredFamily
@@ -80,9 +78,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         return WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll) == requested
 
 
-class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
-    layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
-
+class WorkspaceScreen(SidebarFocusOwner, Screen):
     BINDINGS = [
         Binding("ctrl+b,f20", "show_sidebar", "Sidebar"),
         Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
@@ -115,8 +111,7 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
             sidebar = self.app.workspace_chrome.channels
             return sidebar.display and not sidebar.has_focus_within
         if action == "back_to_bottom":
-            return (not (self.focused is not None and self.focused.uses_screen_coordinates)
-                    and self.back_to_bottom_window is not None)
+            return self.back_to_bottom_window is not None
         return super().check_action(action, parameters)
 
     @property

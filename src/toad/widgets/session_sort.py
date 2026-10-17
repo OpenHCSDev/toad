@@ -23,8 +23,7 @@ from textual.geometry import Spacing
 
 from toad.forms.field_path import FieldPath
 from toad.forms.form_view import InlineFormView
-from toad.forms.presentation import FormModal
-from toad.widget_view import WidgetView
+from toad.forms.presentation import FormModal, FormPart
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
 from toad.setting_choices import FamilyChoices
@@ -46,7 +45,7 @@ class ChannelSortForm:
     ]
 
 
-class SortPanel(WidgetView, VerticalScroll):
+class SortPanel(FormPart, VerticalScroll):
     width = Scalar.from_number(52)
     max_width = Scalar(90, Unit.PERCENT, Unit.WIDTH)
     max_height = Scalar(90, Unit.VIEW_HEIGHT, Unit.VIEW_HEIGHT)

@@ -100,6 +100,11 @@ App.-compact-input {
     
 }
 
+App.-show-sessions-bar {
+    SessionsTabs {
+        display: block;
+    }
+}
 
 Checkbox {
     # TODO: Bug in Textual?
@@ -238,4 +243,58 @@ Toast {
 
 Loading {
     color: $text-primary;        
+}
+
+SessionsTabs {
+    layout: grid;
+    grid-columns: auto auto;
+    grid-rows: 1 1;
+    grid-size: 1 ;
+    overflow: auto hidden;
+    scrollbar-size-horizontal: 1;
+    scrollbar-size-vertical: 0;
+    width: 1fr;
+    display: none;
+        
+    height: 3;
+    box-sizing: content-box;
+    & > #title-container, & > Underline {
+        offset: 0 1;
+    }
+    Underline {
+        width: 1fr;
+        height: 1;
+        & > .underline--bar {
+            color: $block-cursor-background;
+            background: $foreground 10%;
+        }        
+    }
+    #title-container {
+        width: auto;
+        height: 1;
+        Label {
+            height: 1;
+            text-style: dim;
+            pointer: pointer;
+            padding: 0 1;
+
+            &:hover {
+                background: $foreground 10%;
+                text-style: not dim;
+            }
+
+            &:ansi:hover {
+                color: ansi_default;
+                background: ansi_default;
+                text-style: reverse;
+            }
+
+        }
+    }
+}
+
+#tab-navigation-header {
+    width: 1fr;
+    height: auto;
+    padding: 0;
 }

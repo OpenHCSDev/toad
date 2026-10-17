@@ -10,7 +10,6 @@ from toad.widgets.channels_sidebar import ChannelsSidebar
 from textual.widgets import Footer
 from ui_theme.scheme import FooterToneColour, HeaderToneColour
 from toad.frame_presentation import TonePaint
-from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
 
 if TYPE_CHECKING:
@@ -18,10 +17,8 @@ if TYPE_CHECKING:
     from toad.screens.session_view import SessionView
 
 
-class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
+class WorkspaceHeader(TonePaint, Horizontal):
     tone = HeaderToneColour
-    width = FILL
-    height = AUTO
 
     def compose(self) -> ComposeResult:
         from toad.widgets.session_tabs import SessionsTabs
