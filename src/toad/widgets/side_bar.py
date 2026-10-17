@@ -2,7 +2,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
 from textual.content import Content
-from toad.application_actions import ApplicationAction
+from toad.widget_actions import ApplicationAction
 from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
@@ -640,6 +640,10 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             self.collapsed = hide
 
     @property
+    def panels_loaded(self) -> bool:
+        return self._panels_loaded
+
+    @property
     def navigation(self) -> SidebarState:
         return (self._navigation if self._navigation is not None
                 else cast("ToadApp", self.app).sidebar_state)
@@ -675,7 +679,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
 
     def _start_hydration(self) -> None:
         if (self._panels_loaded or self._panels_loading or not self.is_attached
-                or not self.presentation_visible or self._closing):
+                or not self.presentation_visible or self.is_leaving):
             return
         self._panels_loading = True
         self.run_worker(self._hydrate_panels(), group="sidebar-panels")
@@ -683,12 +687,12 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     async def _hydrate_panels(self) -> None:
         try:
             await self.query_one("#sidebar-panels").mount_all(self._compose_panels())
-            if not self.is_attached or self._closing or not self.presentation_visible:
+            if not self.is_attached or self.is_leaving or not self.presentation_visible:
                 return
             controls = self.query_one_optional("#sidebar-controls")
             if controls is not None:
                 await controls.mount_all(self._compose_controls())
-            if self.is_attached and not self._closing and self.presentation_visible:
+            if self.is_attached and not self.is_leaving and self.presentation_visible:
                 self._panels_loaded = True
                 self._presented_layout = None
                 await self.panels_hydrated()

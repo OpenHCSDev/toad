@@ -3,43 +3,17 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import partial
-from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar
-
-from agent_comms.command import Command
-from agent_comms.declared_family import DeclaredFamily
-from agent_comms.field_codec import FieldCodec
-from textual.binding import Binding
+from typing import TYPE_CHECKING, ClassVar
 from textual.command import DiscoveryHit, Hit, Hits, Provider
 from toad.preferences import SETTINGS
-from agent_comms.cli_commands import NewThreadCliCommand
-from agent_comms.channel_targets import ProjectTarget
+from toad.widget_actions import ApplicationAction, KeyboundAction, MenuAction, VimApplicationAction
 from toad.target_commands import TargetContext
 from toad.thread_actions import ThreadAction
+from agent_comms.cli_commands import NewThreadCliCommand
+from agent_comms.channel_targets import ProjectTarget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-
-
-class KeyboundAction:
-    key: ClassVar[str]
-    description: ClassVar[str] = ""
-    tooltip: ClassVar[str] = ""
-    show: ClassVar[bool] = False
-    priority: ClassVar[bool] = False
-    system: ClassVar[bool] = False
-    group: ClassVar[Binding.Group | None] = None
-    key_display: ClassVar[str | None] = None
-
-    @classmethod
-    def binding(cls) -> Binding:
-        return Binding(cls.key, cls.binding_name(), cls.description, tooltip=cls.tooltip,
-                       show=cls.show, priority=cls.priority, system=cls.system,
-                       group=cls.group, key_display=cls.key_display)
-
-
-    @classmethod
-    def bindings(cls):
-        return (cls.binding(),)
 
 
 class PaletteAction:
@@ -47,56 +21,6 @@ class PaletteAction:
 
     @abstractmethod
     def label(self, app: ToadApp) -> str: ...
-
-
-class MenuAction:
-    menu_order: ClassVar[int]
-    menu_label: str
-
-    @classmethod
-    def menu_items(cls):
-        yield cls()
-
-
-Context = TypeVar("Context")
-
-
-class NativeAction(Command, Generic[Context]):
-    """Only the Textual boundary decodes an external action name."""
-
-    binding_prefix: ClassVar[str] = ""
-
-    @classmethod
-    def binding_name(cls) -> str:
-        return cls.binding_prefix + FieldCodec.encode(cls)
-
-    @classmethod
-    def parse(cls, parameters: tuple[object, ...]):
-        if parameters:
-            raise ValueError(f"{cls.declared_name} takes no parameters")
-        return cls()
-
-    @classmethod
-    def bindings(cls):
-        return ()
-
-    def available(self, context: Context) -> bool | None:
-        return True
-
-    @abstractmethod
-    async def apply(self, context: Context) -> None: ...
-
-
-class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
-    """Application action membership and native namespace belong here."""
-
-    binding_prefix = "app."
-
-    @classmethod
-    def menu(cls):
-        return tuple((action, action.menu_label)
-                     for kind in sorted(cls.members_with(MenuAction), key=lambda kind: kind.menu_order)
-                     for action in kind.menu_items())
 
 
 class NewThreadAction(ApplicationAction, MenuAction):
@@ -114,11 +38,12 @@ class NewThreadAction(ApplicationAction, MenuAction):
             def prepare():
                 ctx = TargetContext(app, app.coordination_access.service,
                                     ProjectTarget(str(project)), '', project, mode)
-                return ctx, next(action for action in ctx.available_actions()
-                                 if action.declaration is NewThreadCliCommand)
-            ctx, definition = await app.preparation.run_thread(prepare)
+                definition = next(action for action in ctx.available_actions()
+                                  if action.declaration is NewThreadCliCommand)
+                return partial(ThreadAction.collect, ctx, definition)
+            open_form = await app.preparation.run_thread(prepare)
             if app.selected_mode == mode:
-                ThreadAction.collect(ctx, definition)
+                open_form()
         except (OSError, ValueError, RuntimeError) as error:
             app.notify(str(error), title="New session", severity="error")
 
@@ -239,11 +164,6 @@ class DirectMessagesAction(KeyboundAction, ApplicationAction, PaletteAction):
         app.session_navigation.direct_messages()
 
 
-class VimApplicationAction(KeyboundAction, ApplicationAction):
-    def available(self, app):
-        return app.settings.ui.vim_keys and app.current_mode == "workspace"
-
-
 class VimNavigationAction(VimApplicationAction):
     """Aliases act on the selected view; focus and native input retain custody."""
 
@@ -314,13 +234,6 @@ class VimFocusPromptAction(VimNavigationAction):
         conversation = self.conversation(app)
         conversation.prompt.prompt_text_area.editing_mode = VimInsert()
         conversation.focus_prompt(reset_cursor=False, scroll_end=False)
-
-
-class VimHintsAction(VimApplicationAction):
-    key = "f"
-
-    async def apply(self, app):
-        await app.screen.action_show_hints()
 
 
 class VimNextTabAction(VimNavigationAction):

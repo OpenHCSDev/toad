@@ -1,8 +1,6 @@
-"""Toad modal screens share opt-in hints without bypassing native input custody."""
-
+"""Toad modal screens declare their hints key before native binding collection."""
 from textual.screen import ModalScreen as NativeModalScreen
-
-from toad.application_actions import VimHintsAction
+from toad.widget_actions import VimHintsAction
 
 
 class ModalScreen[Result](NativeModalScreen[Result]):

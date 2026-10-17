@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.application_actions import NativeAction, KeyboundAction
+from toad.widget_actions import NativeAction, KeyboundAction
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

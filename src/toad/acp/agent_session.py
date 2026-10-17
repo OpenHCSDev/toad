@@ -6,12 +6,11 @@ import asyncio
 import os
 from pathlib import Path
 from dataclasses import dataclass, replace
+from collections.abc import Callable
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteChanged, RouteSelection
 from agent_comms.thread_presentation import SessionDisconnected
-from agent_comms.ui_model.sidebar import ThreadRowModel
-from agent_comms.ui_model.status import ThreadStatusModel
 import toad
 from toad import constants, jsonrpc
 from toad.core import events as core_events
@@ -38,47 +37,60 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     @staticmethod
     def of(agent) -> "SessionDisposition":
         """A view that has not started an agent holds no session."""
-        return ClosedSessionDisposition() if agent is None else agent.session.disposition
+        return UnopenedSessionDisposition() if agent is None else agent.session.disposition
 
     def close(self, agent):
         return self
 
-    def explain(self, line: str) -> str:
-        """The line a view of this session shows; only a failed session replaces it."""
-        return line
-
-    def shown_row[Row: (ThreadRowModel, ThreadStatusModel)](self, row: Row) -> Row:
-        """A sidebar, tab or status row of this session's thread, as this session shows it."""
-        return row
+    def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
+        """One session presentation, projected into a row or an input notice."""
+        return ordinary
 
     async def present_failure(self, failure: AgentFail, view) -> None:
         await failure.present(view)
 
 
+class UnopenedSessionDisposition(SessionDisposition):
+    held_by_agent = False
+
+
+class UnavailableSessionDisposition(SessionDisposition):
+    status: SessionDisconnected
+
+    def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
+        return show(self.status)
+
+
+@dataclass(frozen=True)
 class ActiveSessionDisposition(SessionDisposition):
+    session: AgentSession
     accepts_updates = True
+
+    def present[T](self, ordinary: T, show: Callable[[SessionDisconnected], T]) -> T:
+        return ordinary if self.session.ready else show(SessionDisconnected("Connecting to agent…"))
 
     def close(self, agent):
         agent.controller.connection_closed()
         return ClosedSessionDisposition()
 
 
-class ClosedSessionDisposition(SessionDisposition):
-    pass
+class ClosedSessionDisposition(UnavailableSessionDisposition):
+    status = SessionDisconnected("Session closed. Your draft is kept.")
 
 
 @dataclass(frozen=True)
-class HistoryOnlySessionDisposition(ActiveSessionDisposition):
+class HistoryOnlySessionDisposition(UnavailableSessionDisposition, ActiveSessionDisposition):
     """The thread's owner runs another Core: its history is open, its input refused."""
 
     owner: IncompatibleOwner
 
-    def explain(self, line: str) -> str:
-        return self.owner.line()
+    @property
+    def status(self) -> SessionDisconnected:
+        return SessionDisconnected(self.owner.line())
 
 
 @dataclass(frozen=True)
-class FailedSessionDisposition(SessionDisposition):
+class FailedSessionDisposition(UnavailableSessionDisposition):
     """The session's current terminal failure, retained by its lifecycle owner."""
 
     failure: AgentFail
@@ -86,12 +98,6 @@ class FailedSessionDisposition(SessionDisposition):
     @property
     def status(self) -> SessionDisconnected:
         return SessionDisconnected(self.failure.message)
-
-    def explain(self, line: str) -> str:
-        return self.status.notice
-
-    def shown_row[Row: (ThreadRowModel, ThreadStatusModel)](self, row: Row) -> Row:
-        return row.disconnected(self.status)
 
     async def present_failure(self, failure: AgentFail, view) -> None:
         if failure is self.failure:
@@ -122,7 +128,7 @@ class AgentSession:
         self.task = None
         self.responses = set()
         self.retirement = None
-        self._disposition: SessionDisposition = ActiveSessionDisposition()
+        self._disposition: SessionDisposition = ActiveSessionDisposition(self)
         self.pk = pk
         self.chosen_name = None
         self.connected = False
@@ -166,7 +172,7 @@ class AgentSession:
         self.disposition = self.disposition.close(self.agent)
 
     def reopen(self):
-        self.disposition = ActiveSessionDisposition()
+        self.disposition = ActiveSessionDisposition(self)
         self.retirement = None
 
     def start(self):
@@ -215,7 +221,7 @@ class AgentSession:
     ) -> None:
         """Retain and publish every terminal failure through the session owner."""
         self.close()
-        self.failed()
+        self.settled.set()
         self.disposition = state(event)
         self.agent.events.publish(event)
         self.begin_retirement()
@@ -254,10 +260,6 @@ class AgentSession:
 
     def closed(self):
         self.connected = False
-
-    def failed(self):
-        self.closed()
-        self.settled.set()
 
     async def touch(self):
         if self.pk is not None:
@@ -312,6 +314,7 @@ class AgentSession:
                 self.session_failed(failure)
                 return
         self.settled.set()
+        self.app_events.publish(core_events.ThreadRowStateChanged())
         self.agent.events.publish(AgentReady(reconnected=self.reconnecting))
 
 
@@ -368,7 +371,7 @@ class AgentSession:
         """Only a session that is ready after its restart counts as a finished login."""
         await self.reconnect()
         if not self.ready:
-            raise LoginNotReady(self.disposition.explain("Session did not become ready after login"))
+            raise LoginNotReady(self.disposition.present("Session did not become ready after login", lambda status: status.notice))
 
     async def authenticate(self, method_id: str) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
@@ -504,7 +507,7 @@ class AgentSession:
             cursor_token=cursor_token, queue_token=queue_token,
         ).consume_metadata(response.field_meta)
         if owner is not None:
-            self.disposition = HistoryOnlySessionDisposition(owner)
+            self.disposition = HistoryOnlySessionDisposition(self, owner)
 
         self.publish_configuration(response)
 

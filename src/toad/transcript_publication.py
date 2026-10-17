@@ -61,7 +61,7 @@ class TranscriptPublication(ABC):
     def current(self) -> bool:
         from toad.widgets.conversation import Window, Contents
         view = self.owner.view
-        if view is None or not view.is_attached or view._closing:
+        if view is None or not view.is_attached or view.is_leaving:
             return False
         if (self.generation != self.owner.generation
                 or self.thread_scope != self.owner.thread_scope):
@@ -325,7 +325,7 @@ class CheckpointPublication(CanonicalSourcePublication):
 
     def current(self) -> bool:
         view = self.owner.view
-        return (super().current() and not view._pruning
+        return (super().current() and not view.is_leaving
                 and self.plan.current(self.window))
 
     def admitted(self) -> bool:
@@ -519,7 +519,7 @@ class TranscriptPresentation:
         generation, window, contents, screen = self.generation, view.window, view.contents, view.screen
         source_view = view.query_ancestor(SessionView)
         def current():
-            return (self.view is view and view.is_attached and not view._closing
+            return (self.view is view and view.is_attached and not view.is_leaving
                     and self.generation == generation
                     and view.window is window and view.contents is contents
                     and view.screen is screen and screen.is_current
@@ -613,7 +613,7 @@ class TranscriptPresentation:
         position, revision, screen = window.reader_position, window.scroll_revision, view.screen
 
         def current():
-            return (self.view is view and view.is_attached and not view._closing and not self.closed
+            return (self.view is view and view.is_attached and not view.is_leaving and not self.closed
                     and self.generation == generation
                     and view.window is window and view.contents is contents
                     and window.is_attached and contents.is_attached

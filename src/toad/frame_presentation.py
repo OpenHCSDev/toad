@@ -43,20 +43,20 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable")
+    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable", "layer_opacity")
 
-    def __init__(self, styles, tone: Color | None, cacheable: bool) -> None:
+    def __init__(self, styles, tone: Color | None, cacheable: bool, opacity: float) -> None:
         self.styles = styles
+        self.layer_opacity = styles.layer_opacity * opacity
         self.paint_cacheable = cacheable
         stated = styles.paint_background
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
-        self.paint_key = hash((styles.paint_key, self.paint_background))
+        self.paint_key = hash((styles.paint_key, self.paint_background, opacity))
 
     paint_foreground = property(lambda self: self.styles.paint_foreground)
     background_tint = property(lambda self: self.styles.background_tint)
     text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
-    layer_opacity = property(lambda self: self.styles.layer_opacity)
     auto_color = property(lambda self: self.styles.auto_color)
 
 
@@ -66,12 +66,13 @@ class TonePaint:
     tone: ClassVar[type[ThemeColour] | None]
     # A tone read from layout changes without a style or tree revision.
     tone_cacheable: ClassVar[bool] = True
+    paint_opacity = 1.0
 
     @property
     def paint_layer(self) -> PaintLayer:
         tone = self.tone
         return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
-                         self.tone_cacheable)
+                         self.tone_cacheable, self.paint_opacity)
 
 
 class AlternatingTonePaint(TonePaint):

@@ -2156,7 +2156,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
         # A later prompt, tab or source event may already have moved the cursor
         # off this block.
-        if (self.is_attached and not self._closing
+        if (self.is_attached and not self.is_leaving
                 and self.query_ancestor(SessionView).is_current
                 and self.navigation.cursor is cursor):
             show(cursor)

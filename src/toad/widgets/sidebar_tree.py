@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Iterable
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
@@ -12,13 +13,16 @@ if TYPE_CHECKING:
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
-from textual.containers import Vertical, VerticalGroup, VerticalScroll
+from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
+from textual.layouts.vertical import VerticalLayout
+from textual.geometry import Offset
+from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
-from toad.widgets.sidebar_viewport import SidebarHeader
+from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 
 class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
@@ -41,6 +45,22 @@ class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
             self.action_toggle()
 
 
+class SidebarRowLayout(VerticalLayout):
+    """Native flow owns destinations; rows add time-derived paint displacement."""
+
+    @height_dependency(FLOW_HEIGHT)
+    def arrange(self, parent, children, size, greedy=True):
+        placements = super().arrange(parent, children, size, greedy)
+        if not placements:
+            return placements
+        viewport = placements[0].widget.query_ancestor(SidebarViewport)
+        reader = next((p for p in placements if viewport.scroll_y
+                       and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
+                       and p.widget.is_navigation_row()), None)
+        shift = Offset() if reader is None else viewport.preserve_reader(reader)
+        return [placement.widget.place(placement, shift) for placement in placements]
+
+
 class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
@@ -52,7 +72,6 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     SidebarGroup > .group-header > .group-title { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; }
     SidebarGroup > .group-members { display: none; height: auto; margin-left: 2; }
     SidebarGroup.-expanded > .group-members { display: block; }
-    SidebarGroup > VerticalScroll.group-members { max-height: 12; overflow-x: hidden; }
     """
 
     expanded = reactive(False, init=False, toggle_class="-expanded")
@@ -63,7 +82,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     _row_mounting = None
     """The worker mounting pending rows after the following frames."""
 
-    def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
+    def __init__(self, row, *, expanded: bool, controls=(),
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
         self.row = row
@@ -71,8 +90,8 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         self.row.add_class("group-title")
         self.disclosure = disclosure_type()
         self.controls = controls
-        container = VerticalScroll if scrollable else VerticalGroup
-        self.member_container = container(classes="group-members channel-members")
+        self.member_container = VerticalGroup(classes="group-members channel-members")
+        self.member_container.styles.layout = SidebarRowLayout()
         self.expanded = expanded
 
     def compose(self) -> ComposeResult:
@@ -118,13 +137,11 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     @property
     def navigation_rows(self):
         """Native-order destinations, excluding explanatory placeholder widgets."""
-        labels = set(self.rows.values())
-        return tuple(row for row in self.visible_rows
-                     if (row is self.row or row in labels) and row.is_navigation_row())
+        return tuple(row for row in self.visible_rows if row.is_navigation_row())
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""
-        return self.is_attached and not self._closing and not self._pruning
+        return self.is_attached and not self.is_leaving
 
     def rows_changed(self) -> None:
         """Specializations invalidate navigation after native membership changes."""
@@ -145,9 +162,8 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         wanted = set(keys)
         retired = [key for key, row in rows.items()
                    if key not in wanted or (replace is not None and replace(key, row))]
-        if retired:
-            # Retire the exact set in one DOM operation.
-            self.member_container.remove_children([rows.pop(key) for key in retired])
+        for key in retired:
+            rows.pop(key).retire()
         mounted = []
         deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
         for key in keys:
@@ -172,10 +188,10 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
             self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
         ordered = tuple(rows[key] for key in keys if key in rows)
-        live = tuple(child for child in self.member_container.children if not child._pruning)
+        positions = {row: index for index, row in enumerate(ordered)}
+        live = tuple(child for child in self.member_container.children if child in positions)
         reordered = bool(ordered) and live != ordered
         if reordered:
-            positions = {row: index for index, row in enumerate(ordered)}
             self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
         if retired or mounted or reordered:
             self.rows_changed()
@@ -197,6 +213,8 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
 class TargetTree(Vertical):
     """Common row keyboard mechanics; specialized trees own data and state."""
 
+    navigation_groups: Iterable[SidebarGroup]
+
     @property
     def selection_state(self):
         raise NotImplementedError
@@ -209,7 +227,7 @@ class TargetTree(Vertical):
 
     def remember_row(self, row) -> None:
         """Navigation establishes a range anchor; it is not bulk selection."""
-        rows = self._ordered_rows()
+        rows = self.rows
         if self.accepts_selection() and row in rows:
             self._cursor = rows.index(row)
             state = self.selection_state
@@ -220,7 +238,7 @@ class TargetTree(Vertical):
     def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
         if not self.accepts_selection():
             return
-        rows = self._ordered_rows()
+        rows = self.rows
         if row not in rows:
             return
         selected = self.selection_for(row)
@@ -243,7 +261,7 @@ class TargetTree(Vertical):
         self.apply_selection()
 
     def apply_selection(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         state = self.selection_state
         identities = {self.selection_for(row) for row in rows}
         state.selected_targets = tuple(target for target in state.selected_targets if target in identities)
@@ -257,7 +275,7 @@ class TargetTree(Vertical):
     @property
     def current_rows(self):
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
-        return tuple(row for row in self._ordered_rows() if row.target_name == target)
+        return tuple(row for row in self.rows if row.target_name == target)
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:
@@ -265,28 +283,29 @@ class TargetTree(Vertical):
 
     def sync_current(self, rows=None) -> None:
         """One workspace answer paints the supplied resources, or a selection change."""
-        rows = self._ordered_rows() if rows is None else rows
+        rows = self.rows if rows is None else rows
         target = self.app.workspace_sessions.visible_target(self.navigation_root)
         for row in rows:
             row.paint_current(row.is_navigation_row() and row.target_name == target)
 
-    def _ordered_rows(self):
-        raise NotImplementedError
+    @property
+    def rows(self) -> list[CommsRow]:
+        return [row for group in self.navigation_groups for row in group.navigation_rows]
 
     def focus_row(self, row) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         if row in rows:
             self._cursor = rows.index(row)
 
     def action_cursor_up(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         if rows:
             self._cursor = max(0, min(len(rows) - 1, self._cursor - 1))
             self._apply_cursor(rows)
             rows[self._cursor].focus()
 
     def action_cursor_down(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         if rows:
             self._cursor = min(len(rows) - 1, self._cursor + 1)
             self._apply_cursor(rows)
@@ -296,7 +315,7 @@ class TargetTree(Vertical):
         rows[self._cursor].scroll_visible(animate=False)
 
     def action_open_selected(self) -> None:
-        rows = self._ordered_rows()
+        rows = self.rows
         focused = self.app.focused
         row = focused if focused in rows else rows[self._cursor] if rows else None
         if row is not None:

@@ -201,14 +201,14 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
             self.query_one(FormSelectCurrent).refresh_paint()
 
     def control_arguments(self) -> dict[str, object]:
-        self.offered = tuple(self.options())
+        options = tuple(self.options())
         value = self.field.value
-        listed = self.lists(value)
+        listed = any(value == choice for _, choice in options)
         return {
-            "options": self.offered,
+            "options": options,
             "value": value if listed else Select.NULL,
             "allow_blank": not listed,
-            "prompt": self.value_text(value),
+            "prompt": self.field.placeholder if value is None else str(value),
         }
 
     def bind_control(self) -> None:
@@ -219,10 +219,10 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
         raise NotImplementedError
 
     def lists(self, value: object) -> bool:
-        return any(value == choice for _, choice in self.offered)
+        return value in self._legal_values
 
     def value_text(self, value: object) -> str:
-        for label, choice in self.offered:
+        for label, choice in self._options:
             if value == choice:
                 return label
         return super().value_text(value)
@@ -241,6 +241,11 @@ class SelectEditor(ValueEditor, WidgetView, Select[object]):
 
 class ChoicesEditor(SelectEditor):
     shows = (AnnotationChoices,)
+
+    def paint(self) -> None:
+        with self.prevent(Select.Changed):
+            self.set_options(self.options())
+            super().paint()
 
     @property
     def choices(self) -> AnnotationChoices:

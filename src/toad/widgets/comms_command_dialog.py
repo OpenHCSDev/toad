@@ -1,56 +1,55 @@
-"""Native parameter editing for one backend-declared operation."""
+"""The shared form edits one backend-declared operation and its catalogs."""
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass, field, make_dataclass
+from typing import Annotated
 
-from agent_comms.cli_commands import CatalogTargetField, TargetAction, TargetField
+from agent_comms.cli_commands import ChoiceTargetField, TargetAction, TargetField
+from agent_comms.config_options import ModelConfigOption
+from agent_comms.field_codec import compile_decoder
 from agent_comms.login import run_login
 from agent_comms.native_pi import NativePiUnavailable
-
-from textual import on, work
+from objectstate import ObjectState
+from python_introspect import AnnotationChoices, FieldLabel
+from textual import work
 from textual.app import ComposeResult
-from textual.message import Message
-from textual.reactive import var
 from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.widgets import Button, Checkbox, Static
+from toad.forms.editors import ValueEditor
+from toad.forms.form_view import InlineFormView
+from toad.forms.kinds import Multiline
 from toad.screens.modal import ModalScreen
-from textual.widgets import Button, Checkbox, Input, Select, Static, TextArea
 from toad.widgets.model_switcher import ModelSelection
 
 
-class CatalogField(Button):
-    """One draft selection; the shared searchable picker presents its catalog."""
-    value = var("")
+@dataclass(eq=False)
+class PreparedChoices(AnnotationChoices):
+    """The catalog last prepared for a draft, not another copy of its value."""
+    parameter: ChoiceTargetField
 
-    class Changed(Message):
-        def __init__(self, editor: CatalogField):
-            super().__init__()
-            self.editor = editor
+    def choices(self):
+        return tuple(value for _, value in self.parameter.choices)
 
-    def __init__(self, parameter: CatalogTargetField):
-        self.parameter = parameter
-        super().__init__(name=parameter.name,
-                         id='command-field-' + parameter.name.replace('_', '-'))
-        self.configure(parameter)
+    def label(self, choice):
+        return next((label for label, value in self.parameter.choices if value == choice), 'Choose…')
 
-    def configure(self, parameter: CatalogTargetField):
-        self.parameter = parameter
-        self.value = (parameter.editor_default
-                      if parameter.editor_default in {choice.value for choice in parameter.options}
-                      else '')
-        self.update_label()
 
-    @property
-    def prepared(self) -> bool:
-        """The catalogs were prepared for this field's current value."""
-        return self.value == self.parameter.editor_default
+ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
+    (*field.metadata(PreparedChoices).parameter.editor_declarations, AnnotationChoices)
+)(field)
 
-    def update_label(self):
-        self.label = next((choice.name for choice in self.parameter.options
-                           if choice.value == self.value), 'Choose / connect a provider…')
 
-    def watch_value(self):
-        self.update_label()
-        self.post_message(self.Changed(self))
+class CatalogField(ValueEditor, Button):
+    """The shared model selector edits the form's canonical draft value."""
+    shows = (ModelConfigOption,)
+
+    def bind_control(self):
+        self.paint()
+
+    def paint(self):
+        self.label = next((choice.name for choice in self.field.metadata(PreparedChoices).parameter.options
+                           if choice.value == self.field.value), 'Choose / connect a provider…')
 
     def on_button_pressed(self, event: Button.Pressed):
         event.stop()
@@ -60,23 +59,21 @@ class CatalogField(Button):
     async def choose(self):
         value = await self.app.push_screen_wait(CatalogChoiceDialog(self))
         if value is not None and self.is_attached:
-            self.value = value
+            self.send(value)
 
 
 class CatalogFieldSelection(ModelSelection):
-    choice_name = "choices"
-
     def __init__(self, editor: CatalogField):
         self.editor = editor
         super().__init__()
 
     @property
     def choices(self):
-        return self.editor.parameter.options
+        return self.editor.field.metadata(PreparedChoices).parameter.options
 
     @property
     def current(self):
-        return self.editor.value
+        return self.editor.field.value
 
     @property
     def selection_active(self):
@@ -122,7 +119,8 @@ class CatalogChoiceDialog(ModalScreen[str]):
     def compose(self):
         yield CatalogFieldSelection(self.editor)
 
-class CommandDialog(ModalScreen[dict[str, str]]):
+
+class CommandDialog(ModalScreen[dict[str, str | None]]):
     DEFAULT_CSS = """
     CommandDialog { align: center middle; background: $background 40%; }
     CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
@@ -138,43 +136,44 @@ class CommandDialog(ModalScreen[dict[str, str]]):
 
     def __init__(self, definition: TargetAction, target: str, fields: tuple[TargetField, ...]):
         super().__init__()
-        self.definition, self.target, self.fields = definition, target, fields
+        self.definition, self.target = definition, target
+        self.choices = {}
+        declarations = []
+        for parameter in fields:
+            hints = [FieldLabel(parameter.description)]
+            hints.extend(parameter.editor_hints(
+                lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
+            if parameter.multiline:
+                hints.append(Multiline())
+            declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
+                                 field(default=parameter.editor_default)))
+        self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
+        self.form = InlineFormView(self.state)
+        self.form.id = 'command-fields'
 
     def compose(self) -> ComposeResult:
         with Vertical(id='command-box'):
             yield Static(f"{self.definition.label} — {self.target}", markup=False, id='command-title')
             with VerticalScroll(id='command-body'):
                 yield Static('', markup=False, id='command-confirmation')
-                with Vertical(id='command-fields'):
-                    for parameter in self.fields:
-                        key = parameter.name
-                        yield Static(parameter.description, markup=False)
-                        if isinstance(parameter, CatalogTargetField):
-                            yield CatalogField(parameter)
-                        elif (choices := parameter.choices) is not None:
-                            value = parameter.editor_default
-                            yield Select(choices,
-                                         value=value if value in {item[1] for item in choices} else Select.BLANK,
-                                         allow_blank=True, name=key,
-                                         disabled=not choices,
-                                         id='command-field-' + key.replace('_', '-'))
-                        else:
-                            widget = TextArea if parameter.multiline else Input
-                            yield widget(parameter.editor_default, name=key,
-                                         id='command-field-' + key.replace('_', '-'))
+                yield self.form
             yield Checkbox('I confirm this operation', id='command-confirmed')
             with Horizontal(id='command-buttons'):
                 yield Button('Apply', id='command-apply', variant='primary')
                 yield Button('Cancel', id='command-cancel')
 
     def on_mount(self):
+        self.state.on_resolved_changed(self.draft_changed)
         self.update_confirmation()
-        fields = list(self.query('Input, TextArea, Select, CatalogField'))
-        (fields[0] if fields else self.query_one('#command-cancel', Button)).focus()
 
-    async def on_input_submitted(self, event: Input.Submitted):
-        event.stop()
-        await self.action_submit()
+    def on_unmount(self):
+        self.state.off_resolved_changed(self.draft_changed)
+
+    def draft_changed(self, paths):
+        self.update_confirmation()
+        if paths & self.choices.keys():
+            self.run_worker(self.refresh_catalogs(self.arguments()),
+                            group='command-catalogs', exclusive=True)
 
     async def on_button_pressed(self, event: Button.Pressed):
         event.stop()
@@ -184,6 +183,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
             self.action_cancel()
 
     async def action_submit(self):
+        self.form.finish()
         if self.query_one('#command-apply', Button).disabled:
             return
         arguments = self.arguments()
@@ -196,44 +196,28 @@ class CommandDialog(ModalScreen[dict[str, str]]):
             self.notify(str(error), severity='error')
             self.query_one('#command-apply', Button).disabled = False
             return
-        if not self.is_attached:
-            return
-        if arguments != self.arguments():
-            self.update_confirmation()
-            return
-        self.dismiss(arguments)
+        if self.is_attached and arguments == self.arguments():
+            self.dismiss(arguments)
 
     def arguments(self):
-        return {**{editor.name: editor.value for editor in self.query(Input)},
-                **{editor.name: editor.text for editor in self.query(TextArea)},
-                **{editor.name: '' if editor.value is Select.BLANK else str(editor.value)
-                   for editor in self.query(Select)},
-                **{editor.name: editor.value for editor in self.query(CatalogField)}}
+        return {name: self.state.get_resolved_value(name) for name in self.form.values}
 
     async def refresh_catalogs(self, arguments):
-        requested = {editor.name: arguments[editor.name] for editor in self.query(CatalogField)}
-        def unchanged():
-            current = self.arguments()
-            return all(current[name] == value for name, value in requested.items())
-        try:
-            edited = self.definition.edited(arguments)
-        except ValueError:
-            # Invalid form input; the confirmation line already reports it.
-            return
         self.query_one('#command-apply', Button).disabled = True
         try:
+            edited = self.definition.edited(arguments)
             fields = await self.app.preparation.run_thread(
                 lambda: asyncio.run(edited.prepare_fields()))
-        except NativePiUnavailable as error:
-            if self.is_attached and unchanged():
+        except (KeyError, ValueError, TypeError, NativePiUnavailable) as error:
+            if self.is_attached and arguments == self.arguments():
                 self.notify(str(error), title='Configuration choices', severity='error')
             return
-        if not self.is_attached or not unchanged():
+        if not self.is_attached or arguments != self.arguments():
             return
-        prepared = {parameter.name: parameter for parameter in fields}
-        with self.prevent(CatalogField.Changed):
-            for editor in self.query(CatalogField):
-                editor.configure(prepared[editor.name])
+        for parameter in fields:
+            if parameter.name in self.choices:
+                self.choices[parameter.name].parameter = parameter
+                self.form.values[parameter.name].editor.paint()
         self.update_confirmation()
 
     def update_confirmation(self):
@@ -241,15 +225,11 @@ class CommandDialog(ModalScreen[dict[str, str]]):
         confirmed.value = False
         self.query_one('#command-apply', Button).disabled = True
         arguments = self.arguments()
-        missing_choice = next((editor.name for editor in self.query(Select)
-                               if editor.value is Select.BLANK), None)
-        if missing_choice is None:
-            missing_choice = next((editor.name for editor in self.query(CatalogField)
-                                   if not editor.value), None)
         async def prepare():
             def read():
-                if missing_choice is not None:
-                    return f'Choose {missing_choice.replace("_", " ")}', False
+                for name, choices in self.choices.items():
+                    if arguments[name] not in choices.choices():
+                        return f'Choose {name.replace("_", " ")}', False
                 try:
                     return self.definition.edited(arguments).confirmation, True
                 except (KeyError, ValueError, TypeError) as error:
@@ -259,26 +239,10 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                 return
             self.query_one('#command-confirmation', Static).update(confirmation)
             confirmed.display = valid and bool(confirmation)
-            self.query_one('#command-apply', Button).disabled = not valid or not all(
-                editor.prepared for editor in self.query(CatalogField))
+            self.query_one('#command-apply', Button).disabled = not valid or any(
+                arguments[name] != choices.parameter.editor_default
+                for name, choices in self.choices.items())
         self.run_worker(prepare, group='command-confirmation', exclusive=True)
-
-    def on_select_changed(self, event: Select.Changed):
-        self.update_confirmation()
-
-    @on(CatalogField.Changed)
-    def on_catalog_changed(self, event: CatalogField.Changed):
-        event.stop()
-        self.update_confirmation()
-        if event.editor.value and not event.editor.prepared:
-            self.run_worker(self.refresh_catalogs(self.arguments()),
-                            group='command-catalogs', exclusive=True)
-
-    def on_input_changed(self, event: Input.Changed):
-        self.update_confirmation()
-
-    def on_text_area_changed(self, event: TextArea.Changed):
-        self.update_confirmation()
 
     def action_cancel(self):
         self.dismiss(None)

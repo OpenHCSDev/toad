@@ -45,9 +45,6 @@ uses its own stdio ACP process and reconnects to its saved wire thread.
 | Wire root (`AGENT_COMMS_ROOT`) | `$COMMS_ROOT` |
 | Backend (`AGENT_COMMS_AGENT_BIN`) | `$COMMS_AGENT_BIN` |
 | Backend args (`AGENT_COMMS_AGENT_ARGS`) | `$COMMS_AGENT_ARGS` |
-| Reply window | `$REPLY_WINDOW_SECONDS` |
-| No-reply window | `$REPLY_SILENCE_SECONDS` |
-| Reply quiet period | `$REPLY_QUIET_SECONDS` |
 
                           
 ## System
@@ -93,14 +90,10 @@ def render(app: ToadApp) -> str:
         config = None
 
     service = app.coordination_access.service
-    timing = service.configuration.reply_timing
     template_data = {
         "COLORTERM": os.environ.get("COLORTERM", ""),
         "COMMS_AGENT_ARGS": shlex.join(NativeArguments.configured().argv),
         "COMMS_AGENT_BIN": NativeArguments.configured_binary(),
-        "REPLY_SILENCE_SECONDS": timing.no_reply_window,
-        "REPLY_QUIET_SECONDS": timing.reply_quiet,
-        "REPLY_WINDOW_SECONDS": timing.reply_window,
         "COMMS_ROOT": str(service.root),
         "CONFIG": config,
         "DATA_PATH": paths.get_data(),

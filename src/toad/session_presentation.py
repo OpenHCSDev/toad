@@ -109,7 +109,7 @@ class OperationalSessionSources:
 
     def status_row(self, conversation: Conversation):
         row = self.activity_row(conversation).with_delivery(conversation.input_delivery)
-        return SessionDisposition.of(conversation.agent).shown_row(row)
+        return SessionDisposition.of(conversation.agent).present(row, row.disconnected)
 
     def activity_row(self, conversation: Conversation):
         # A Core history source owns status even when its ACP load fails.
@@ -154,17 +154,16 @@ class OperationalSessionSources:
         return True
 
     def unavailable_reason(self, conversation: Conversation) -> str:
-        return SessionDisposition.of(conversation.agent).explain(self.ordinary_unavailable_reason(conversation))
-
-    def ordinary_unavailable_reason(self, conversation: Conversation) -> str:
         presentation = conversation.thread_presentation
+        agent = conversation.agent
         if (conversation.transcript.readable and presentation is not None
                 and ExistingOwnerPlan.from_binding(presentation.binding) is None):
-            return "Thread is stopped. Choose Start thread from its menu; your draft is kept."
-        agent = conversation.agent
-        if agent is not None and agent.configuration.model.requires_selection:
-            return "Choose a model or connect a provider (click here). Your draft is kept."
-        return "Agent is not ready. Please wait while the agent connects…"
+            line = "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+        elif agent is not None and agent.configuration.model.requires_selection:
+            line = "Choose a model or connect a provider (click here). Your draft is kept."
+        else:
+            line = self.activity_row(conversation).presentation.summary
+        return SessionDisposition.of(agent).present(line, lambda status: status.notice)
 
     def start_agent(self, conversation: Conversation) -> None:
         """The operational source owns connection creation and the load plan."""

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from textual.containers import HorizontalGroup, VerticalScroll
+from textual.geometry import Offset
 
 
 class SidebarHeader(HorizontalGroup):
@@ -19,6 +20,16 @@ class SidebarViewport(VerticalScroll):
     """Own scrollbar geometry and the horizontal position of sidebar headers."""
 
     CACHE_SUBTREE_GEOMETRY = True
+
+    def preserve_reader(self, placement) -> Offset:
+        if not placement.widget.pending_move(placement):
+            return Offset()
+        before = self.scroll_y
+        self.scroll_y += placement.region.y - placement.widget.virtual_region.y
+        shift = self.scroll_y - before
+        self.app.animator.transform_running_animation(self, "scroll_y", lambda value: value + shift)
+        self.scroll_target_y += shift
+        return Offset(0, round(shift))
 
     def on_mount(self) -> None:
         self.watch(self, "scroll_x", self._align_headers, init=False)

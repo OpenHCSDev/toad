@@ -227,7 +227,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
         self.target = target
 
     def is_navigation_row(self) -> bool:
-        return self.is_attached and not self._pruning and not self._closing
+        return self.is_attached and not self.leaving
 
     @property
     def selected(self) -> bool:
@@ -236,7 +236,6 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
-        self.remove_class("-wire-thread")
         self.update(Content(label))
 
     def sidebar_owner(self):
@@ -277,7 +276,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
         """Keep the sidebar cursor in sync with keyboard focus."""
         sidebar = self.sidebar_owner()
         if sidebar is not None:
-            rows = sidebar._ordered_rows()
+            rows = sidebar.rows
             if self in rows:
                 sidebar.focus_row(self)
 
@@ -357,7 +356,7 @@ class NewSessionButton(Static):
 
     def action_cursor_up(self) -> None:
         if (sidebar := self._sidebar()) is not None:
-            rows = sidebar._ordered_rows()
+            rows = sidebar.rows
             if rows:
                 sidebar._cursor = len(rows)
                 sidebar.action_cursor_up()
@@ -386,7 +385,6 @@ class CoordinationStatus(Static):
 
     def refresh_status(self) -> None:
         root = self.service.root
-        timing = self.service.configuration.reply_timing
         backend = NativeArguments.configured_binary()
         thread = self.thread or "connecting..."
         self.update(
@@ -404,10 +402,7 @@ class CoordinationStatus(Static):
             "is scoped to this Toad session.\n\n"
             f"AGENT_COMMS_ROOT={root.resolve()}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
-            f"AGENT_COMMS_AGENT_ARGS={args}\n"
-            f"Reply window={timing.reply_window}\n"
-            f"No-reply window={timing.no_reply_window}\n"
-            f"Reply quiet={timing.reply_quiet}"
+            f"AGENT_COMMS_AGENT_ARGS={args}"
         )
 
 
@@ -541,7 +536,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
 
     def accepts_publication(self) -> bool:
         """The mounted widget owns the legality of writing its presentation."""
-        return (self.is_attached and not self._closing and not self._pruning
+        return (self.is_attached and not self.is_leaving
                 and self.app.is_running and self.screen.is_current)
 
     def accepts_observation(self) -> bool:
@@ -652,7 +647,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def _order_groups(self) -> None:
         """Place the mounted groups in the model's order."""
         ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
-        live = tuple(child for child in self.children if not child._pruning)
+        live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
             self.sort_children(key=lambda child: positions.get(child, len(positions)))
@@ -686,13 +681,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def sidebar_visibility_changed(self) -> None:
         self.present()
 
-    def _ordered_rows(self):
-        return self.rows
-
     @property
-    def rows(self) -> list[CommsRow]:
-        return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in group.navigation_rows]
+    def navigation_groups(self):
+        return (group for group in self.children if isinstance(group, ChannelGroup))
 
     @property
     def selection_state(self):

@@ -56,8 +56,8 @@ from toad.thread_navigation import ThreadNavigator
 from toad.session_navigation import SessionNavigation
 from toad.terminal_attention import TerminalAttention
 from toad.textual_colours import ThemedApp
-from toad.application_actions import ApplicationAction, ApplicationCommands
-from toad.widget_actions import DeclaredWidgetActions
+from toad.application_actions import ApplicationCommands
+from toad.widget_actions import ApplicationAction, DeclaredWidgetActions
 from toad.application_lifetime import ApplicationLifetime
 from toad.resource_release import AsyncResourceRelease
 

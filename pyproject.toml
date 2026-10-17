@@ -38,11 +38,11 @@ dependencies = [
 members = ["toad"]
 
 [tool.uv.sources]
-ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "2cdf36304c000dd605c12e0b128c305a580ec183" }
-agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "fcb9e4c302ebc379ea38db7b4b1f9445e254e4c7" }
-textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "ee5897ac65223a33f9c280f56ed70a0d5cd82c8f" }
+ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "c2b0bebf045e6fb2a4873405acd1877cb8971d53" }
+agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "3f42dcc5d6e1c0214e5851e9a08a2bc490de19eb" }
+textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "52ade0bfae8c8135bd831c7fd23446c7c08b64ac" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
-objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "ad8727278d9e83f9c0d4bfa94334177d5ea8fdf3" }
+objectstate = { git = "https://github.com/OpenHCSDev/objectstate.git", rev = "b5dd9f78b9293df145d7629f21deb89b042b9400" }
 textual-image = { git = "https://github.com/OpenHCSDev/textual-image.git", rev = "1f1d8b8ea3c30b39da3b14ea0ac0786ce9c49a80" }
 textual-diff-view = { git = "https://github.com/OpenHCSDev/textual-diff-view.git", rev = "8fa7d4d0db993ea3b761c2760ca9b6a56a6251e9" }
 

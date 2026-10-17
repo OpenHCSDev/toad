@@ -600,7 +600,7 @@ class ContextInspection:
     async def native(self):
         payload = await self._request("context")
         context = await Coordination.run_worker(partial(FieldCodec.decode, NativeContextData, payload))
-        return context.require_session_file(self.owner.require_saved_session())
+        return context.require_session_file(self.owner.runtime.path)
 
     async def acquire_core(self):
         payload = await self._request("context_core")

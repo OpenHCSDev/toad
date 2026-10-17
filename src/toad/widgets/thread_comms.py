@@ -37,7 +37,6 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
 @dataclass
 class RelationshipTreeState:
     expanded: dict[type[RelationshipGroup], bool] = field(default_factory=dict)
-    scroll: dict[type[RelationshipGroup], float] = field(default_factory=dict)
     selected: tuple[type[RelationshipGroup], str] | None = None
     selected_targets: tuple[tuple[type[RelationshipGroup], str], ...] = ()
 
@@ -131,20 +130,12 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
 
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
-        super().__init__(Static(model.title), expanded=expanded, scrollable=False,
+        super().__init__(Static(model.title), expanded=expanded,
                          id=f"relationships-{type(model).declared_name}")
-
-    def toggle_members(self) -> None:
-        super().toggle_members()
-        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[type(self.model)] = self.expanded
 
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         state = self.query_ancestor(ThreadCommsSidebar).view_state
-        if previous:
-            state.scroll[type(self.model)] = self.member_container.scroll_y
-        if expanded:
-            self.member_container.scroll_to(
-                y=state.scroll.get(type(self.model), 0), animate=False)
+        state.expanded[type(self.model)] = expanded
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
@@ -152,20 +143,12 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
         rows = tree.thread_rows
-        container = self.member_container
         entries = {entry.identity: entry for entry in self.model.entries}
-        empty = container.query_one_optional(".relationship-empty")
-        if entries and empty is not None:
+        empty = self.query_one_optional(".relationship-empty")
+        if (entries or not self.expanded) and empty is not None:
             empty.remove()
         if self.expanded and not entries and empty is None:
-            container.mount(Static(self.model.empty_text, classes="relationship-empty"))
-        # Keep the top visible row stable when newer entries reorder a
-        # scrolled list. Identity, rather than list index, owns selection.
-        old_scroll = container.scroll_y
-        anchor = (next((row for row in container.children
-                        if isinstance(row, RelationshipRow) and row.region.bottom > container.content_region.y), None)
-                  if old_scroll > 0 else None)
-        previous_order = tuple(container.children)
+            self.mount(Static(self.model.empty_text, classes="relationship-empty"))
 
         def create(key):
             entry = entries[key]
@@ -176,16 +159,11 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
 
         wanted = tuple(key for key in entries if self.expanded or key in self.rows)
-        ordered = self.reconcile_rows(
+        self.reconcile_rows(
             wanted, create, update,
             replace=lambda key, row: row.thread_incarnation != (
                 entries[key].person.thread.incarnation if entries[key].person is not None else None))
         tree.apply_selection()
-        if ordered != previous_order:
-            if old_scroll > 0 and anchor in ordered:
-                new_y = sum(2 if row.has_class("-wire-thread") else 1
-                            for row in ordered[:ordered.index(anchor)])
-                container.scroll_to(y=new_y, animate=False, immediate=True)
 
 
 class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTree):
@@ -264,12 +242,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
-    def capture_state(self) -> None:
-        state = self.view_state
-        for group in self.groups.values():
-            state.expanded[type(group.model)] = group.expanded
-            state.scroll[type(group.model)] = group.member_container.scroll_y
-
     def set_identity(self, owner: str, wire_root: str | None, *,
                      source: RelationshipSource | None = None):
         if self._live and source is None:
@@ -281,7 +253,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
-        self.capture_state()
         self._generation += 1
         self.owner, self.wire_root = owner, wire_root
         self._revision = None
@@ -425,8 +396,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context.update(Content("Comms unavailable"), layout=False)
                 context.tooltip = str(error)
 
-    def _ordered_rows(self):
-        return [row for group in self.groups.values() for row in group.navigation_rows]
+    @property
+    def navigation_groups(self):
+        return self.groups.values()
 
     @property
     def selection_state(self):
