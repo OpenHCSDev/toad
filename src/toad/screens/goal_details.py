@@ -79,8 +79,8 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                             markup=False,
                         )
                         yield GoalText(revision_goal.summary, classes="goal-text")
-                        if revision_goal.progress:
-                            yield GoalText(revision_goal.progress, classes="goal-text")
+                        for text in revision_goal.progress.texts():
+                            yield GoalText(text, classes="goal-text")
             yield Button("Close (Esc)", id="goal-details-close")
 
     def on_mount(self) -> None:
@@ -99,9 +99,11 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         self.query_one("#goal-current-objective", GoalText).update_goal_text(
             f"Objective: {goal.text}" if goal else ""
         )
-        self.query_one("#goal-current-progress", GoalText).update_goal_text(
-            f"Progress: {goal.progress}" if goal and goal.progress else ""
-        )
+        progress = self.query_one("#goal-current-progress", GoalText)
+        progress.update_goal_text("")
+        if goal is not None:
+            for text in goal.progress.texts():
+                progress.update_goal_text(f"Progress: {text}")
 
     @on(Button.Pressed, "#goal-details-close")
     def action_close(self) -> None:

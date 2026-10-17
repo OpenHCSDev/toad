@@ -3,14 +3,14 @@
 from dataclasses import replace
 
 from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
-from agent_comms.goals import Goal
+from agent_comms.goals import Goal, TextGoalProgress
 from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
 from textual.widgets import Static
 
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
 
-GOAL = Goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
+GOAL = Goal("OBJECTIVE " * 150, "goal", progress=TextGoalProgress("PROGRESS"), revision=29)
 
 
 async def shown_bar(ui):
@@ -48,7 +48,7 @@ async def test_collapsed_header_follows_owner_updates_and_stays_usable_when_narr
         view, bar, history, toggle, header, controls = await shown_bar(ui)
         assert await pilot.click(toggle)
         await ui.step()
-        view.goal_display = GoalDisplay.current(replace(GOAL, revision=30, progress="UPDATED_PROGRESS"))
+        view.goal_display = GoalDisplay.current(replace(GOAL, revision=30, progress=TextGoalProgress("UPDATED_PROGRESS")))
         await ui.until(lambda: "rev 30" in str(header.render()), why="the revision in the collapsed header")
         assert bar.collapsed
         for width in (65, 58, 100):
@@ -78,7 +78,7 @@ async def test_expanding_shows_standby_and_the_latest_progress(workspace):
         view, bar, history, toggle, header, controls = await shown_bar(ui)
         assert await pilot.click(toggle)
         await ui.step()
-        view.goal_display = GoalDisplay.current(replace(GOAL, revision=30, progress="UPDATED_PROGRESS"))
+        view.goal_display = GoalDisplay.current(replace(GOAL, revision=30, progress=TextGoalProgress("UPDATED_PROGRESS")))
         view.goal_execution = GoalExecution(GoalExecutionState.STANDBY, GOAL.id, (GoalWaitTarget("peer", 1.0),))
         await ui.until(lambda: "Standby" in str(header.render()), why="Standby in the collapsed header")
         assert not bar.query_one(StandbyPulse).active
@@ -89,7 +89,7 @@ async def test_expanding_shows_standby_and_the_latest_progress(workspace):
         assert bar.query_one(".goal-document").display
         assert bar.query_one(".goal-execution-row").display
         assert bar.query_one(StandbyPulse).active
-        assert view.goal_display.snapshot.progress == "UPDATED_PROGRESS"
+        assert view.goal_display.snapshot.progress == TextGoalProgress("UPDATED_PROGRESS")
 
 
 async def test_owner_outage_disables_history_but_not_collapse(workspace):

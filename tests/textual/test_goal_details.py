@@ -1,6 +1,6 @@
 """Textual-facing: the goal details screen's scroll container and the frame it paints at narrow sizes."""
 
-from agent_comms.goals import Goal
+from agent_comms.goals import Goal, TextGoalProgress
 from agent_comms.ui_model.goal import GoalDisplay
 from textual.containers import VerticalScroll
 
@@ -12,7 +12,7 @@ async def test_long_objective_and_progress_scroll_fully_at_narrow_sizes(workspac
         app, pilot = ui.textual
         conversation = ui.conversation
         goal = Goal("GOAL_BEGIN\n" + "Long objective with important details.\n" * 100,
-                    "goal", progress="Progress details.\n" * 80 + "PROGRESS_END")
+                    "goal", progress=TextGoalProgress("Progress details.\n" * 80 + "PROGRESS_END"))
         conversation.goal_display = GoalDisplay.current(goal)
         conversation.prompt.text = "Keep this draft"
         await ui.until_shows("History")

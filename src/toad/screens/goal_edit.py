@@ -50,9 +50,9 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
                 markup=False,
             )
             yield self.editor
-            if self.goal.progress:
+            for text in self.goal.progress.texts():
                 yield Static(
-                    f"Progress (read-only): {self.goal.progress}",
+                    f"Progress (read-only): {text}",
                     markup=False,
                     classes="goal-edit-progress",
                 )

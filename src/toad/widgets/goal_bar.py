@@ -165,8 +165,11 @@ class GoalBar(VerticalGroup):
         self._update_goal_text()
         if goal is not None and self.is_attached:
             progress = self.query_one(".goal-progress", GoalText)
-            progress.update_goal_text(f"Progress: {goal.progress}" if goal.progress else "")
-            progress.display = bool(goal.progress)
+            progress.update_goal_text("")
+            progress.display = False
+            for text in goal.progress.texts():
+                progress.update_goal_text(f"Progress: {text}")
+                progress.display = True
             self._update_control_layout()
 
     def watch_execution(self) -> None:
