@@ -104,8 +104,7 @@ class ChannelGroup(SidebarGroup[str, "ThreadRow"]):
         if previous is None or previous.label != channel.label:
             row.set_label(channel.label)
         row.tooltip = channel.tooltip
-        if previous is None or previous.active != channel.active:
-            row.refresh_paint()
+        row.refresh_paint()
         if previous is None or previous.unread != channel.unread:
             label = channel.unread.label
             # Equal-width badges need paint only; visibility owns its layout.
