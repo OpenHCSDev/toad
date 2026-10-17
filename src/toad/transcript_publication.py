@@ -10,6 +10,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
@@ -48,22 +49,11 @@ class TranscriptPublication(ABC):
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
-        """Wire assignment can advance without transferring anonymous native output.
-
-        The mounted canonical history retains the native/outcome prefix. The
-        current certified source supplies its original assigned-wire frontier.
-        This is a bounded read of that source, not another presentation store.
-        """
+        """The mounted canonical history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
-        prefixes = tuple(bound for history in self.owner.histories
-                         if history in self.captured and history.state.reports_coverage
-                         for bound in (history.committed_cursor,)
-                         if bound.receipts_within(cursor))
-        prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
-                     key=lambda bound: bound.offset,
-                     default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
-        return TranscriptCursor(prefix.session_file, prefix.offset, cursor.receipts)
+        return cursor.over_native(tuple(history.committed_cursor for history in self.owner.histories
+                                        if history in self.captured and history.state.reports_coverage))
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
@@ -384,7 +374,7 @@ class CheckpointPublication(CanonicalSourcePublication):
             return True
         evidence = CommitEvidence(
             self.captured, prepared.sequences, prepared.history,
-            frozenset(native_id for event in page.events for native_id in event.native_inputs),
+            TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
         )
         replacement = None
