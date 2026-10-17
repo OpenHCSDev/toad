@@ -24,9 +24,7 @@ class WireMessageHandling(CoreEventReceiver):
     @classmethod
     def within(cls, contents):
         """Refresh line-history pages and collect handling bodies at their mount level."""
-        from toad.widgets.transcript_history import LineHistory
-
-        histories = tuple(LineHistory.mounted_in(contents))
+        histories = tuple(contents.line_histories())
         for history in histories:
             history.check_notifications()
         return tuple(body for parent in (contents, *histories) for body in parent.children

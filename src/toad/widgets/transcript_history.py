@@ -473,14 +473,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     MAX_FRAGMENTS = 240
     page_buffer = TranscriptPageBuffer
 
-    @classmethod
-    def mounted_in(cls, contents):
-        """Visit mounted history containers without entering their rich bodies."""
-        for child in contents.children:
-            if isinstance(child, cls):
-                yield child
-                yield from cls.mounted_in(child)
-
     @property
     def message_category(self) -> None:
         return None

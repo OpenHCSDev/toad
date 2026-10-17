@@ -205,6 +205,17 @@ class Contents(containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
 
+    def line_histories(self):
+        """Visit history containers without entering their rich bodies."""
+        from toad.widgets.transcript_history import LineHistory
+
+        pending = list(reversed(self.children))
+        while pending:
+            child = pending.pop()
+            if isinstance(child, LineHistory):
+                yield child
+                pending.extend(reversed(child.children))
+
     @property
     def line_width(self) -> int:
         """The native width of full-width history rows prepared before mounting."""
@@ -623,9 +634,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
 
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
-        from toad.widgets.transcript_history import LineHistory
-
-        for history in LineHistory.mounted_in(self.contents):
+        for history in self.contents.line_histories():
             history.state.resume_if_parked(history)
 
     def refresh_native_projection(self) -> None:

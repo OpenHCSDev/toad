@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.widgets.conversation import Contents
 
 
 class ReaderPosition(ABC):
@@ -518,14 +519,12 @@ class HistoryWindow(VerticalScroll):
             self.reader_position = ReaderPosition.of(self)
             self.screen.reader_kept()
 
-    def park_reader(self, contents: Widget) -> ParkedPosition:
+    def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
-        from toad.widgets.transcript_history import LineHistory
-
         if not isinstance(parked := self.reader_position, ParkedPosition):
             # Parked pagers stop reading and leave window.histories while their
             # pages stay in the tree: record those page ranges with the place.
-            ranges = tuple(page_range for history in LineHistory.mounted_in(contents)
+            ranges = tuple(page_range for history in contents.line_histories()
                            for page_range in history.capture_reader_ranges())
             parked = self.reader_position = ParkedPosition(self.reader_position or ReaderPosition.of(self), ranges)
         return parked
