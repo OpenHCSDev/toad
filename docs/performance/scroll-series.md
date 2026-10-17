@@ -238,3 +238,9 @@ Same authentic P108 saved root and T110733 dependency runtime; all source overla
 
 Inspected frames show matching complete rows/focus/caret and unchanged message area. The saved history's pre-existing disconnected ACP/remote-queue state remains on both sides; no connected-native claim. No tests, provider input, native start or replay. Evidence `/home/ts/.cache/agent-scratch/core-p164-edge-geometry/{before,after,after-corrected}/`, `corrected-result.json`; owner/scripts/source census in Textual `.artifacts/p164/`. Shared saved sessions/auth/UNKNOWN retained. Source against d16605301: one file +63/-17, net+46. Import/construction, diff and declaration checks pass; no introduced ratchet violations, but its existing Compositor class-size metric grows12 lines. No exemption or claim of ratchet0. Toad only updates its dependency pin/lock and this series entry.
 
+### 2026-10-17 P163 explicit renderer paint — private P157 comparison
+
+| Change | Action→compositor median/p95 ms, before→after | Resolver calls/press, before→after | Qualification |
+|---|---|---|---|
+| PaintState through all23 line-render declarations; old paint/visual memo fields and duplicate WidgetPaint deleted | 12.185/14.516 → 8.807/15.519 | median66→2; first33→75, remaining66→2 | 20 real Down focus transitions each, unprofiled Up returns, same P157 saved root and fe69 geometry. Median improves; p95 regresses. Not input-to-paint, fixed full-scroll scenario or7ms acceptance. Source overlays native6a0ad7f64/Toad87c9d5123; later upstream P164/P168 integration is not this measurement. Both source ratchets0. History/focus/settings numeric/Select inspected; no provider input/start/replay. Raw profiles retained under core-goal-retry-p163-attribution/{paint-before20,paint-flat20}; no samples discarded. |
+
