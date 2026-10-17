@@ -2,6 +2,7 @@ from textual import on, work
 from textual.app import ComposeResult
 from toad.screens.modal import ModalScreen
 from textual import widgets
+from toad.widgets.footer import ToadFooter
 from textual import containers
 from textual import getters
 
@@ -47,7 +48,7 @@ class CommandEditModal(ModalScreen[str | None]):
                 yield widgets.Button(
                     "Cancel", id="cancel", action="screen.dismiss(None)"
                 )
-        yield widgets.Footer()
+        yield ToadFooter()
 
     @on(widgets.Button.Pressed, "#ok")
     def on_ok_pressed(self, event: widgets.Button.Pressed) -> None:

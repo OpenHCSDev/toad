@@ -80,7 +80,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     """Text shown as placeholder in prompt text area"""
 
     compact_input: Annotated[
-        bool, FieldLabel("Compact text input?"), effects.compact_input
+        bool, FieldLabel("Compact text input?"), effects.visibility
     ] = field(default=False, metadata=saved_as("compact-input"))
     """Remove border and margin around the text area for additional space"""
 
@@ -92,21 +92,21 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     ] = field(default=AlwaysSessionBar, metadata=saved_as("sessions-bar"))
     """When to show the sessions bar (tabs at top of screen)."""
 
-    footer: Annotated[bool, FieldLabel("Enable footer?"), effects.footer] = True
+    footer: Annotated[bool, FieldLabel("Enable footer?"), effects.visibility] = True
     """Disable the footer if you want additional room."""
 
-    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.info_bar] = field(
+    info_bar: Annotated[bool, FieldLabel("Enable info bar?"), effects.visibility] = field(
         default=True, metadata=saved_as("info-bar")
     )
     """The info bar is the text below the prompt text area. Disable for more space."""
 
     status_line: Annotated[
-        bool, FieldLabel("Show status line in the info bar?"), effects.status_line
+        bool, FieldLabel("Show status line in the info bar?"), effects.visibility
     ] = field(default=True, metadata=saved_as("status-line"))
     """The status line shows tokens and cost (not available in all agents)."""
 
     agent_title: Annotated[
-        bool, FieldLabel("Show agent title the info bar?"), effects.agent_title
+        bool, FieldLabel("Show agent title the info bar?"), effects.visibility
     ] = field(default=True, metadata=saved_as("agent-title"))
     """Disable for a little extras space."""
 
@@ -180,7 +180,7 @@ class SidebarSettings(AnnotatedDataclassValidationMixin):
 
 @dataclass(frozen=True)
 class AgentSettings(AnnotatedDataclassValidationMixin):
-    thoughts: Annotated[bool, FieldLabel("Agent thoughts"), effects.thoughts] = True
+    thoughts: Annotated[bool, FieldLabel("Agent thoughts"), effects.visibility] = True
     """Show agent's 'thoughts' in the conversation?"""
 
 
@@ -470,7 +470,7 @@ class SavedSettings:
 
         def applied(field: DeclaredField) -> None:
             if (effect := field.metadata(effects.Effect)) is not None:
-                effect.apply(app, field.value)
+                effect.apply(app, field)
 
         def report(error: atomic.AtomicWriteError) -> None:
             app.notify(str(error), title="Settings", severity="error")

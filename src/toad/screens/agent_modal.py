@@ -9,6 +9,7 @@ from textual.content import Content
 from toad.screens.modal import ModalScreen
 from textual import containers
 from textual import widgets
+from toad.widgets.footer import ToadFooter
 
 import toad
 from textual.binding import Binding
@@ -75,10 +76,10 @@ class AgentModal(ModalScreen[LaunchAgent | None]):
                     yield widgets.Button(
                         "Go", variant="primary", id="run-action", disabled=True
                     )
-        yield widgets.Footer()
+        yield ToadFooter()
 
     def on_mount(self) -> None:
-        self.query_one("Footer").styles.animate("opacity", 1.0, duration=500 / 1000)
+        self.query_one(ToadFooter).styles.animate("opacity", 1.0, duration=500 / 1000)
 
     @on(widgets.Checkbox.Changed)
     def on_checkbox_changed(self, event: widgets.Checkbox.Changed) -> None:

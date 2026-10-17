@@ -1,104 +1,80 @@
-"""What the app does when a setting takes a value, declared on the setting."""
-
+"""What the app does when a declared setting changes."""
 from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
+from toad.forms.declared_views import DeclaredField
+from toad.setting_widget import SettingVisibility
+from toad.widgets.history_anchor import HistoryWindow
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
-    from toad.setting_choices import SessionBar
 
 
 @dataclass(frozen=True)
 class Effect:
-    """`Annotated` metadata on a setting: called with the app and the new value."""
+    apply: Callable[[ToadApp, DeclaredField], None]
 
-    apply: Callable[[ToadApp, Any], None]
+    @staticmethod
+    def open_widgets(app, widget_type):
+        roots = (*app.workspace_sessions.views.values(), *app.screen_stack)
+        return {widget for root in roots for widget in root.walk_children(widget_type)}
 
 
 @Effect
-def history_buffer_viewports(app: ToadApp, value: int) -> None:
-    from toad.widgets.history_anchor import HistoryWindow
+def visibility(app: ToadApp, field: DeclaredField) -> None:
+    from toad.widgets.prompt import Prompt
+    for widget in Effect.open_widgets(app, SettingVisibility):
+        if widget.visibility_setting == field.path.value:
+            widget.display = field.value
+    for prompt in Effect.open_widgets(app, Prompt):
+        prompt.refresh(layout=True)
 
+
+@Effect
+def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
     for view in app.workspace_sessions.views.values():
         for window in view.query(HistoryWindow):
-            window.presentation_budget = replace(window.presentation_budget, buffer_viewports=value)
+            window.presentation_budget = replace(window.presentation_budget, buffer_viewports=field.value)
             window.request_preparation()
 
 
 @Effect
-def conversation_layout(app: ToadApp, value: object) -> None:
-    """Lay the conversation out again; it reads the settings itself."""
+def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.conversation import Conversation
-
-    for view in app.workspace_sessions.views.values():
-        for conversation in view.query(Conversation):
-            conversation.apply_layout_preferences()
+    for conversation in Effect.open_widgets(app, Conversation):
+        conversation.apply_layout_preferences()
 
 
 @Effect
-def diff_style(app: ToadApp, value: object) -> None:
-    """Existing line renderers prepare again with the new diff preference."""
+def diff_style(app: ToadApp, field: DeclaredField) -> None:
     app.colours.variables_changed(app.colours.variables)
     app.theme_changed_signal.publish(app.current_theme)
 
 
 @Effect
-def sidebar_filters(app: ToadApp, value: bool) -> None:
+def sidebar_filters(app: ToadApp, field: DeclaredField) -> None:
     app.coordination_access.update_sidebar_interest()
 
 
 @Effect
-def theme(app: ToadApp, value: str) -> None:
-    app.colours.choose(value)
+def theme(app: ToadApp, field: DeclaredField) -> None:
+    app.colours.choose(field.value)
 
 
 @Effect
-def vim_keys(app: ToadApp, value: bool) -> None:
+def vim_keys(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.prompt import PromptTextArea
-    for view in app.workspace_sessions.views.values():
-        for editor in view.query(PromptTextArea):
-            editor.apply_keyboard_profile()
+    for editor in Effect.open_widgets(app, PromptTextArea):
+        editor.apply_keyboard_profile()
     app.refresh_bindings()
 
 
 @Effect
-def compact_input(app: ToadApp, value: bool) -> None:
-    app.set_class(value, "-compact-input")
-
-
-@Effect
-def footer(app: ToadApp, value: bool) -> None:
-    app.set_class(not value, "-hide-footer")
-
-
-@Effect
-def status_line(app: ToadApp, value: bool) -> None:
-    app.set_class(not value, "-hide-status-line")
-
-
-@Effect
-def agent_title(app: ToadApp, value: bool) -> None:
-    app.set_class(not value, "-hide-agent-title")
-
-
-@Effect
-def info_bar(app: ToadApp, value: bool) -> None:
-    app.set_class(not value, "-hide-info-bar")
-
-
-@Effect
-def thoughts(app: ToadApp, value: bool) -> None:
-    app.set_class(not value, "-hide-thoughts")
-
-
-@Effect
-def sessions_bar(app: ToadApp, value: type[SessionBar]) -> None:
+def sessions_bar(app: ToadApp, field: DeclaredField) -> None:
     app.update_show_sessions()
 
 
 @Effect
-def blink_title(app: ToadApp, value: bool) -> None:
+def blink_title(app: ToadApp, field: DeclaredField) -> None:
     app.terminal_attention.update()

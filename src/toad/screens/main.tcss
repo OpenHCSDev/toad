@@ -116,9 +116,6 @@ Conversation {
         max-width: 100;             
         background: $surface;
         
-        #info-container {            
-            margin: 0 1;
-        }                  
     }
     
     Contents {
@@ -234,11 +231,6 @@ Prompt {
     height: auto;  
     dock: bottom;  
    
-    &.-shell-mode {
-        #prompt-container:focus-within {
-            border: tall $primary;
-        }
-    }    
 
     PathSearch, SlashComplete {
         display: none;
@@ -338,20 +330,15 @@ Prompt {
         &:light {
             background: $surface;
         }
-        height: auto;
-        margin: 0;
-        border: tall transparent;
         border-subtitle-align: left;
         border-subtitle-style: reverse;
         
         &:focus-within {
-            border: tall $secondary;            
             #prompt {
                 color: $text;
             }
         }
         #prompt {
-            padding: 0 1;
             color: $text-muted;
         }
         
@@ -374,16 +361,9 @@ Prompt {
     
     #info-container {                
         
-        height: 1;
-        margin: 0 1;
-        # padding: 1 0;
-        
         AgentInfo {
-            padding: 0 1;
-            margin: 0 1 0 0;
             color: $text-primary;
             background: $primary 10%;
-            width: auto;           
             &:ansi {
                 background: ansi_default;
                 color: ansi_default;

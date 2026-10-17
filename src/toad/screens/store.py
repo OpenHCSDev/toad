@@ -22,6 +22,7 @@ from textual.css.query import NoMatches
 from textual.reactive import reactive
 from textual import containers
 from textual import widgets
+from toad.widgets.footer import ToadFooter
 
 import toad
 from toad.app import ToadApp
@@ -385,7 +386,7 @@ class StoreScreen(CoreEventReceiver, Screen):
             project_dir=StoreScreen.project_dir
         )
         yield Container(id="container", can_focus=False)
-        yield widgets.Footer()
+        yield ToadFooter()
 
     def get_info(self) -> Content:
         toad_version = toad.get_version()

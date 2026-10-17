@@ -7,8 +7,8 @@ from textual.layout import ArrangeResult, WidgetPlacement
 from textual.layouts.vertical import VerticalLayout
 from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
-from textual.widgets import Footer
-from ui_theme.scheme import FooterToneColour, HeaderToneColour
+from toad.widgets.footer import ToadFooter
+from ui_theme.scheme import HeaderToneColour
 from toad.frame_presentation import TonePaint
 from toad.widget_view import AUTO, FILL, WidgetView
 from toad.session_presentation import NativeSessionSurface
@@ -30,15 +30,11 @@ class WorkspaceHeader(TonePaint, WidgetView, Horizontal):
         yield SessionsTabs()
 
 
-class WorkspaceFooter(TonePaint, Footer):
-    tone = FooterToneColour
-
-
 class WorkspaceChrome(VerticalLayout):
     def __init__(self, app: "ToadApp") -> None:
         self.navigation = WorkspaceHeader(id="tab-navigation-header")
         self.channels = ChannelsSidebar()
-        self.footer = WorkspaceFooter(id="workspace-footer")
+        self.footer = ToadFooter(id="workspace-footer")
         self.native = NativeSessionSurface(app)
 
     async def prepare_navigation(self, screen) -> bool:

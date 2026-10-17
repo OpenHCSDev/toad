@@ -11,7 +11,8 @@ from textual.content import Content
 from textual.screen import Screen
 from textual.reactive import var, Initialize
 
-from textual.widgets import OptionList, Footer, Static, Select
+from textual.widgets import OptionList, Static, Select
+from toad.widgets.footer import ToadFooter
 from textual.widgets.option_list import Option
 
 from toad.answer import Answer
@@ -122,7 +123,7 @@ class PermissionsScreen(Screen[Answer]):
                 yield ChangesOptionList(id="navigator")
             yield ToolScroll(id="tool-container")
 
-        yield Footer()
+        yield ToadFooter()
 
     async def action_select_kind(self, kind: str | tuple[str, ...]) -> None:
         command = SelectKindAction.parse((kind,))
