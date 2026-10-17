@@ -677,7 +677,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
 
     @handles(WireBody)
     def wire_body(self, block: WireBody) -> LineBlock:
-        prepared = block.prepare(self.context.for_source(block.row.source))
+        prepared = block.prepare(self.context.for_source(block.row.message.history_source))
         return next(self.handlers_for(prepared))(prepared)
 
     @handles(RichTextBody)

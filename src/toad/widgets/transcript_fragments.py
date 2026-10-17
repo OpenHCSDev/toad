@@ -9,6 +9,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.message_reference import MessageReference
 from agent_comms.sent_message import PublishedSentMessage
+from agent_comms.transcript_receipts import AssignedTranscriptSource
 from agent_comms.transcript_events import (
     AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
     TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
@@ -241,8 +242,9 @@ class TranscriptFragment:
     def outgoing_sources(self):
         return ()
 
-    def for_body_sources(self, supplied):
-        return self
+    @classmethod
+    def capture_part(cls, event, text, **kwargs):
+        return cls((replace(event, text=text),), **kwargs)
 
     def text_rows(self, lines) -> range:
         """The fragment's content occupies its drawn rows unless it owns a header."""
@@ -361,10 +363,6 @@ class ToolTranscriptFragment(TranscriptFragment):
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
 
-    def for_body_sources(self, supplied):
-        parts = tuple(part.for_body_sources(supplied) for part in self.output_parts)
-        return self if all(part is original for part, original in zip(parts, self.output_parts)) else replace(self, output_parts=parts)
-
     @property
     def has_details(self) -> bool:
         # A multiline title needs disclosure even before output arrives.
@@ -386,15 +384,17 @@ class BusMessageFragment(TranscriptFragment):
     """One bus-message builder: header, styled body and Core notification feedback."""
 
     shown: MessageShown = field(default_factory=MessageShown)
+    text_part: str
+    row: MessageRow
+
+    @classmethod
+    def capture_part(cls, event, text, **kwargs):
+        return cls((event,), text_part=text, **kwargs)
 
     @classmethod
     def text_parts(cls, source, budget):
         # Even an empty bus message owns its header and notification footer.
         return super().text_parts(source, budget) or (source,)
-
-    @cached_property
-    def row(self) -> MessageRow:
-        raise NotImplementedError
 
     @property
     def checks_notifications(self) -> bool:
@@ -421,20 +421,18 @@ class BusMessageFragment(TranscriptFragment):
     def leading(self):
         return () if self.continuation else (Gap(), self.row.header)
 
+    @property
+    def body_text(self):
+        return self.text_part
+
     def text(self, shown):
-        return shown.style.body(self.row)
+        return shown.style.body(self.row, self.body_text)
 
     def trailing(self, shown):
         return () if self.continues else shown.status.blocks(shown)
 
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
-
-
-class IncomingMessageFragment(BusMessageFragment):
-    @cached_property
-    def row(self) -> MessageRow:
-        return MessageRow.incoming(self.events[0])
 
 
 @dataclass(kw_only=True)
@@ -444,11 +442,6 @@ class SentMessageFragment(BusMessageFragment):
     @property
     def outgoing_sources(self):
         return () if self.continues else (self.publication.reference,)
-
-    @cached_property
-    def row(self) -> MessageRow:
-        return MessageRow.sent(self.events[0])
-
 
 class ContextTranscriptFragment(TranscriptFragment):
     """The coordination context an agent was given: one line, and its text when opened."""
@@ -480,7 +473,7 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(IncomingTranscript)
     def incoming(self, event: IncomingTranscript):
-        self.text(event, IncomingMessageFragment)
+        self.text(event, BusMessageFragment, row=MessageRow(event.message, event.reader))
 
     @handles(SentTranscript)
     def sent(self, event: SentTranscript):
@@ -489,7 +482,9 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(PublishedSentMessage)
     def published(self, message: PublishedSentMessage):
-        self.text(message.message, SentMessageFragment, publication=message)
+        original = message.message.core_message(AssignedTranscriptSource.open(message.scope))
+        self.text(message.message, SentMessageFragment, publication=message,
+                  row=MessageRow(original, message.scope.recipient.name))
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):
@@ -497,7 +492,7 @@ class TranscriptFragmentConsumer(MroProjection):
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
-            kind((replace(event, text=part.text),), continuation=self.continuation or index > 0,
+            kind.capture_part(event, part.text, continuation=self.continuation or index > 0,
                  continues=index < len(parts) - 1,
                  starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
@@ -544,8 +539,6 @@ def transcript_fragments(
         start = len(builder.fragments)
         builder.dispatch_sync(resolved[id(report)])
         canonical[index] = tuple(builder.fragments[start:])
-    supplied = {reference for fragments in canonical.values() for fragment in fragments
-                for reference in fragment.outgoing_sources}
     fragments = []
     for index, source in enumerate(consumer.fragments):
         if index in canonical:
@@ -555,13 +548,6 @@ def transcript_fragments(
                 source.output_parts, partial(ToolOutput.apply_sent, resolved=resolved),
             )
             fragments.append(replace(source, output_parts=parts))
-            for part in parts:
-                for message in part.standalone_messages:
-                    if message.reference not in supplied:
-                        start = len(builder.fragments)
-                        builder.dispatch_sync(message)
-                        fragments.extend(builder.fragments[start:])
-                        supplied.add(message.reference)
         else:
             fragments.append(source)
     for fragment in fragments:
