@@ -43,8 +43,7 @@ class SessionLabel(PrimaryActivation, ViewLabel, widgets.Label):
                      if tab.unread.highlighted else Style())
             content = Content.assemble(content, (f" {tab.unread.label}", badge))
         width_changed = content.cell_length != self.content.cell_length
-        if not content.is_same(self.content):
-            self.update(content, layout=width_changed)
+        self.update(content, layout=width_changed)
         self.paint_current(self.id == self.app.selected_mode)
         return width_changed
 

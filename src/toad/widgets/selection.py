@@ -60,8 +60,7 @@ class ViewLabel(ChangingText[TextFrame]):
         painted = Content.assemble(*(
             (text, style + emphasis) for text, style in content.render(end="")
         ))
-        if not content.is_same(painted):
-            self.update(painted, layout=False)
+        self.update(painted, layout=False)
 
 
 class FocusSelection(Static, can_focus=True):
