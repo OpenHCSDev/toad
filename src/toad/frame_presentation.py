@@ -30,8 +30,6 @@ class WidgetPaint(PaintLayer):
     text_style = NULL_STYLE
     text_opacity = layer_opacity = 1.0
     auto_color = False
-    paint_key = None
-    paint_cacheable = False
 
     @property
     def paint_layer(self) -> PaintLayer:
