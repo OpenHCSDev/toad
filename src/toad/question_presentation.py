@@ -20,6 +20,9 @@ class QuestionMount(DeclaredFamily, affix="QuestionMount"):
     def blink(self, value: bool) -> None: ...
 
     @abstractmethod
+    def focus(self, focused: bool) -> None: ...
+
+    @abstractmethod
     def reset(self) -> None: ...
 
     @abstractmethod
@@ -31,6 +34,9 @@ class DetachedQuestionMount(QuestionMount):
         pass
 
     def blink(self, value):
+        pass
+
+    def focus(self, focused: bool) -> None:
         pass
 
     def reset(self):
@@ -52,6 +58,13 @@ class ActiveQuestionMount(QuestionMount):
 
     def blink(self, value):
         self.container.set_class(value, "-blink")
+
+    def focus(self, focused: bool) -> None:
+        if focused:
+            self.timer.resume()
+        else:
+            self.timer.pause()
+            self.blink(False)
 
     def reset(self):
         self.timer.reset()
@@ -88,9 +101,10 @@ class QuestionPresentation:
 
     def start(self, question, container):
         def toggle_blink():
-            question.blink = not question.blink if question.has_focus else False
+            question.blink = not question.blink
 
-        self.attach(container, question.set_interval(0.5, toggle_blink))
+        self.attach(container, question.set_interval(0.5, toggle_blink, pause=True))
+        self.mount.focus(question.has_focus)
 
     async def recompose(self, question, compose):
         self.detach()
