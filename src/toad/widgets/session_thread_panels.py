@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class SessionPanel[W: Widget](DeclaredFamily, affix="SessionPanel"):
-    """Only small reader intent survives; the panel is an admitted projection."""
+    """Only small reader intent survives; the panel is a view of Core state."""
     collapsed: ClassVar[bool] = False
     flex: ClassVar[bool] = False
     panel_id: ClassVar[str | None] = None

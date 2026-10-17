@@ -709,7 +709,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             self._panels_ready.set()
 
     async def panels_hydrated(self) -> None:
-        """The sidebar declaration completes its admitted panel preparation."""
+        """The sidebar declaration completes its panel preparation."""
 
     async def wait_content_ready(self) -> None:
         await self._panels_ready.wait()
