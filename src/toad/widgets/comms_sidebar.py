@@ -12,7 +12,6 @@ View, not authority: renders Core's sidebar presentation model
 """
 
 from __future__ import annotations
-from toad.core.input_events import SelectTarget
 from toad.core_event_carrier import CoreEventMessage
 
 import shlex
@@ -36,13 +35,13 @@ from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import NavigationOwner, channel_target, ThreadTarget
+from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.selection import ChangingText
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree
+from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -182,7 +181,7 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
+class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
     """One interactive row: a channel or a thread."""
 
     mode_name: str | None = None
@@ -231,64 +230,32 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
 
     @property
     def selected(self) -> bool:
-        sidebar = self.sidebar_owner()
-        return sidebar is not None and sidebar.selection_for(self) in sidebar.selection_state.selected_targets
+        sidebar = self.tree
+        return sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
     def set_label(self, label: str) -> None:
         self.retire_thread_row()
         self.remove_class("-wire-thread")
         self.update(Content(label))
 
-    def sidebar_owner(self):
-        return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
-
-    # Row-level actions delegate to the sidebar so keys work even when
-    # scrollable ancestors would otherwise consume them.
-    def action_cursor_down(self) -> None:
-        sidebar = self.sidebar_owner()
-        if sidebar is not None:
-            sidebar.action_cursor_down()
-
-    def action_cursor_up(self) -> None:
-        sidebar = self.sidebar_owner()
-        if sidebar is not None:
-            sidebar.action_cursor_up()
-
     @property
     def primary_activation(self):
         return self.action_open_selected
 
     def action_open_selected(self) -> None:
-        if sidebar := self.sidebar_owner():
-            sidebar.remember_row(self)
-        screen = self.app.selected_session
-        if isinstance(screen, NavigationOwner):
-            # The route outlives this row (inactive rosters are retired after
-            # presentation). Dispatch through its declared view owner without
-            # another message bubbling through each sidebar container.
-            self.app.run_worker(
-                partial(screen.open_sidebar_target, self.target),
-                group="sidebar-open",
-            )
-        else:
-            self.publish_core(SelectTarget(self.target))
-
-    def on_focus(self) -> None:
-        """Keep the sidebar cursor in sync with keyboard focus."""
-        sidebar = self.sidebar_owner()
-        if sidebar is not None:
-            rows = sidebar.rows
-            if self in rows:
-                sidebar.focus_row(self)
+        self.tree.remember_row(self)
+        self.app.run_worker(
+            partial(self.app.selected_session.open_sidebar_target, self.target),
+            group="sidebar-open",
+        )
 
     def on_click(self, event) -> None:
         if event.button == 3:
             return  # right click handled by context menu in CommsSidebar
-        if sidebar := self.sidebar_owner():
-            if event.ctrl or event.shift:
-                event.stop()
-                sidebar.pointer_select(self, control=event.ctrl, shift=event.shift)
-                return
+        if event.ctrl or event.shift:
+            event.stop()
+            self.tree.pointer_select(self, control=event.ctrl, shift=event.shift)
+            return
         self.action_open_selected()
 
 
@@ -303,12 +270,11 @@ class ThreadRow(CommsRow):
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
             super().action_open_selected()
         else:
-            if sidebar := self.sidebar_owner():
-                sidebar.remember_row(self)
+            self.tree.remember_row(self)
             self.app.select_session(self.mode_name)
 
 
-class NewSessionButton(Static):
+class NewSessionButton(TargetTreeMember, Static):
     """Create another agent session for the current project."""
 
     DEFAULT_CSS = """
@@ -344,23 +310,15 @@ class NewSessionButton(Static):
         if event.button == 1:
             await self.action_create()
 
-    def _sidebar(self):
-        return next((node for node in self.walk_ancestors() if isinstance(node, TargetTree)), None)
-
     def on_focus(self) -> None:
-        if (sidebar := self._sidebar()) is not None:
-            sidebar._cursor = -1
-
-    def action_cursor_down(self) -> None:
-        if (sidebar := self._sidebar()) is not None:
-            sidebar.action_cursor_down()
+        self.tree._cursor = -1
 
     def action_cursor_up(self) -> None:
-        if (sidebar := self._sidebar()) is not None:
-            rows = sidebar.rows
-            if rows:
-                sidebar._cursor = len(rows)
-                sidebar.action_cursor_up()
+        sidebar = self.tree
+        rows = sidebar.rows
+        if rows:
+            sidebar._cursor = len(rows)
+            sidebar.action_cursor_up()
 
 
 class CoordinationStatus(Static):
@@ -545,25 +503,17 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
                 and not self.query_ancestor(SideBar).collapsed)
 
     async def on_mount(self) -> None:
-        from toad.screens.comms import CommsScreen
-        from toad.screens.workspace import WorkspaceScreen
-
         app = self.app
-        try:
-            service = await app.preparation.run_thread(lambda: app.coordination_access.service)
-        except (OSError, ValueError, RuntimeError):
-            self.display = False
-            return
+        service = await app.preparation.run_thread(lambda: app.coordination_access.service)
         screen = self.screen
-        if isinstance(screen, CommsScreen) and not screen.belongs_to_wire(service.root):
+        if not screen.belongs_to_wire(service.root):
             self.display = False
             return
         self.subscribe_core(app.session_tracker.events)
         self.observe_core(app.events)
         self.observe_core(app.coordination_access.events)
         await self.navigation.prepare()
-        if isinstance(screen, WorkspaceScreen):
-            screen.frame_presentation.defer(self, self.navigation.start)
+        screen.start_sidebar_navigation(self)
         self.attach(service)
 
     def on_unmount(self) -> None:
