@@ -11,6 +11,7 @@ from bisect import bisect_right
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.geometry import Size
 from textual.selection import Selection
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widget import Widget
 from textual.worker import Worker
@@ -185,13 +186,13 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
                 self.call_later(self._request_render)
         return len(self._lines(width).rows)
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self._width
         strips = self._lines(width).strips_at(self._link_place) if width else ()
         if y >= len(strips):
-            return self.blank_row(width)
+            return self.blank_row(width, paint)
         # Prepared rows span exactly this width (Lines.strips_at).
-        return self.on_background(strips[y])
+        return self.on_background(strips[y], paint)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         """Selected text comes from the source text, not from drawn cells."""

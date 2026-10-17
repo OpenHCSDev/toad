@@ -18,6 +18,7 @@ from textual.style import Style
 from textual.visual import Visual
 from textual.geometry import Size
 from textual.scroll_view import ScrollView
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.timer import Timer
 
@@ -269,9 +270,9 @@ Tap escape *twice* to exit.
         event.stop()
 
 
-    def render_line(self, y: int) -> Strip:
+    def render_line(self, y: int, paint: PaintState) -> Strip:
         scroll_x, scroll_y = self.scroll_offset
-        strip = self._render_line(scroll_x, scroll_y + y, self.state.width)
+        strip = self._render_line(scroll_x, scroll_y + y, self.state.width, paint)
         return strip
 
     def on_focus(self) -> None:
@@ -280,9 +281,9 @@ Tap escape *twice* to exit.
     def on_blur(self) -> None:
         self.border_subtitle = "Click to focus"
 
-    def _render_line(self, x: int, y: int, width: int) -> Strip:
+    def _render_line(self, x: int, y: int, width: int, paint: PaintState) -> Strip:
         selection = self.text_selection
-        visual_style = self.visual_style
+        visual_style = paint.visual_style
         rich_style = visual_style.rich_style
 
         state = self.state

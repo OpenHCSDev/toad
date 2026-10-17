@@ -22,6 +22,7 @@ from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
 from rich.terminal_theme import TerminalTheme
+from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.visual import Visual
 from textual.widget import Widget
@@ -270,7 +271,7 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
 class LinkedRows(OpensLinks):
     """A widget that draws rendered rows: on its own background, opening the links clicked in them."""
 
-    def on_background(self, strip: Strip) -> Strip:
+    def on_background(self, strip: Strip, paint: PaintState) -> Strip:
         """A row as this widget draws it.
 
         Rendered rows carry text colours only. Textual fills a widget's
@@ -278,10 +279,10 @@ class LinkedRows(OpensLinks):
         each row takes the widget's style here. A strip remembers the styles
         applied to it, so a repaint reuses the same drawn row.
         """
-        return strip.apply_style(self.rich_style)
+        return strip.apply_style(paint.rich_style)
 
-    def blank_row(self, width: int) -> Strip:
-        return Strip.blank(width, self.rich_style)
+    def blank_row(self, width: int, paint: PaintState) -> Strip:
+        return Strip.blank(width, paint.rich_style)
 
 
 class HorizontalRows(LinkedRows, ScrollView):
@@ -302,9 +303,9 @@ class HorizontalRows(LinkedRows, ScrollView):
         ))
         return super()._size_updated(size, virtual_size, container_size, layout)
 
-    def on_background(self, strip: Strip) -> Strip:
+    def on_background(self, strip: Strip, paint: PaintState) -> Strip:
         x = self.scroll_offset.x
-        return super().on_background(strip.crop(x, x + self.scrollable_content_region.width))
+        return super().on_background(strip.crop(x, x + self.scrollable_content_region.width), paint)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         rows = "\n".join("".join(segment.text for segment in row).rstrip()
