@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
+from math import prod
 
 from textual.content import Content
-from textual.geometry import Offset, Region, NULL_SPACING
+from textual.geometry import Offset
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -49,34 +50,22 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     def on_mount(self) -> None:
         self.run_effect(SIDEBAR_ENTER)
 
-    def slide(self) -> None:
-        if self.animation_visible:
-            self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset
-            self.run_effect(SIDEBAR_MOVE)
-
     def retire(self) -> None:
-        self.slide()
         self.disabled = True
         self.run_effect(SIDEBAR_EXIT)
         self.repaint()
 
-    def _get_box_model(self, *args, **kwargs):
-        box = super()._get_box_model(*args, **kwargs)
-        return box._replace(height=0, margin=NULL_SPACING) if SIDEBAR_EXIT in self.effects else box
-
     @property
     def paint_opacity(self) -> float:
-        return (self.effect_frame(SIDEBAR_ENTER).value
-                if SIDEBAR_ENTER in self.effects else 1.0) * (
-                    self.effect_frame(SIDEBAR_EXIT).value if SIDEBAR_EXIT in self.effects else 1.0)
+        return prod(self.effect_frame(effect).value for effect in (SIDEBAR_ENTER, SIDEBAR_EXIT)
+                    if effect in self.effects)
 
-    def place(self, placement):
-        if SIDEBAR_EXIT in self.effects:
-            return placement._replace(region=Region.from_offset(self._motion_origin, self.size), absolute=True)
-        if SIDEBAR_MOVE not in self.effects:
-            return placement
-        frame = self.effect_frame(SIDEBAR_MOVE)
+    def place(self, placement, shift):
         destination = placement.region.offset
+        if self.size and destination != self.virtual_region.offset:
+            self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset + shift
+            self.run_effect(SIDEBAR_MOVE)
+        frame = self.effect_frame(SIDEBAR_MOVE)
         offset = Offset(round(frame.displacement(self._motion_origin.x, destination.x)),
                         round(frame.displacement(self._motion_origin.y, destination.y)))
         return placement._replace(offset=placement.offset + offset)

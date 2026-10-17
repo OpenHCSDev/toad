@@ -45,11 +45,11 @@ class ToneLayer(PaintLayer):
     alpha; with no tone the CSS paint is unchanged.
     """
 
-    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable", "opacity")
+    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable", "layer_opacity")
 
     def __init__(self, styles, tone: Color | None, cacheable: bool, opacity: float) -> None:
         self.styles = styles
-        self.opacity = opacity
+        self.layer_opacity = styles.layer_opacity * opacity
         self.paint_cacheable = cacheable
         stated = styles.paint_background
         self.paint_background = stated if tone is None else tone if stated is None else tone + stated
@@ -59,7 +59,6 @@ class ToneLayer(PaintLayer):
     background_tint = property(lambda self: self.styles.background_tint)
     text_style = property(lambda self: self.styles.text_style)
     text_opacity = property(lambda self: self.styles.text_opacity)
-    layer_opacity = property(lambda self: self.styles.layer_opacity * self.opacity)
     auto_color = property(lambda self: self.styles.auto_color)
 
 

@@ -24,7 +24,6 @@ from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
-from toad.widgets.session_sidebar import ThreadStatusRow
 from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
 from toad.widgets.thread_comms_source import RelationshipSource
 
@@ -135,12 +134,9 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
         super().__init__(Static(model.title), expanded=expanded, scrollable=False,
                          id=f"relationships-{type(model).declared_name}")
 
-    def toggle_members(self) -> None:
-        super().toggle_members()
-        self.query_ancestor(ThreadCommsSidebar).view_state.expanded[type(self.model)] = self.expanded
-
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         state = self.query_ancestor(ThreadCommsSidebar).view_state
+        state.expanded[type(self.model)] = expanded
         if previous:
             state.scroll[type(self.model)] = self.member_container.scroll_y
         if expanded:
@@ -153,13 +149,12 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
         rows = tree.thread_rows
-        container = self.member_container
         entries = {entry.identity: entry for entry in self.model.entries}
-        empty = container.query_one_optional(".relationship-empty")
-        if entries and empty is not None:
+        empty = self.query_one_optional(".relationship-empty")
+        if (entries or not self.expanded) and empty is not None:
             empty.remove()
         if self.expanded and not entries and empty is None:
-            container.mount(ThreadStatusRow(self.model.empty_text, classes="relationship-empty"))
+            self.mount(Static(self.model.empty_text, classes="relationship-empty"))
 
         def create(key):
             entry = entries[key]
@@ -256,7 +251,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
     def capture_state(self) -> None:
         state = self.view_state
         for group in self.groups.values():
-            state.expanded[type(group.model)] = group.expanded
             state.scroll[type(group.model)] = group.member_container.scroll_y
 
     def set_identity(self, owner: str, wire_root: str | None, *,

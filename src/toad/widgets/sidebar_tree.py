@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
@@ -14,8 +15,10 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual.widget import PrimaryActivation, Widget
 from textual.layouts.vertical import VerticalLayout
+from textual.geometry import Offset
+from textual.layout import WidgetPlacement
 from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
@@ -43,13 +46,33 @@ class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
             self.action_toggle()
 
 
+@dataclass(frozen=True)
+class SidebarReaderAnchor:
+    placement: WidgetPlacement
+    viewport: Widget
+
+    def restore(self):
+        viewport, placement = self.viewport, self.placement
+        before = viewport.scroll_y
+        viewport.scroll_y += placement.region.y - placement.widget.virtual_region.y
+        shift = viewport.scroll_y - before
+        viewport.app.animator.transform_running_animation(viewport, "scroll_y", lambda value: value + shift)
+        viewport.scroll_target_y += shift
+        return Offset(0, round(shift))
+
+
 class SidebarRowLayout(VerticalLayout):
     """Native flow owns destinations; rows add time-derived paint displacement."""
 
     @height_dependency(FLOW_HEIGHT)
     def arrange(self, parent, children, size, greedy=True):
-        return [placement.widget.place(placement)
-                for placement in super().arrange(parent, children, size, greedy)]
+        placements = super().arrange(parent, children, size, greedy)
+        viewport = next((node for node in parent.ancestors_with_self if node.is_scrollable), parent)
+        anchor = next((SidebarReaderAnchor(p, viewport) for p in placements
+                       if viewport.scroll_y and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
+                       and p.widget in parent.parent.rows.values()), None)
+        shift = Offset() if anchor is None else anchor.restore()
+        return [placement.widget.place(placement, shift) for placement in placements]
 
 
 class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
@@ -183,15 +206,12 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
             self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
         ordered = tuple(rows[key] for key in keys if key in rows)
-        live = tuple(child for child in self.member_container.children if not child._pruning)
+        positions = {row: index for index, row in enumerate(ordered)}
+        live = tuple(child for child in self.member_container.children if child in positions)
         reordered = bool(ordered) and live != ordered
         if reordered:
-            positions = {row: index for index, row in enumerate(ordered)}
             self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
         if retired or mounted or reordered:
-            for row in ordered:
-                if row not in mounted:
-                    row.slide()
             self.rows_changed()
         if changed:
             self.query_ancestor(TargetTree).sync_current(changed)
