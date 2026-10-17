@@ -186,7 +186,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
             return True
         if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
-        return self.filter.covers_incoming(sequence)
+        return self.filter.state.covers_incoming(sequence)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""

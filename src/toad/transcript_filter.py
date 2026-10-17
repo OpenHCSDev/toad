@@ -21,7 +21,6 @@ if TYPE_CHECKING:
 class FilterState(DeclaredFamily, affix="Filter"):
     active = False
     overlay = None
-    before = None
     checkpoint_available = True
 
     @classmethod
@@ -159,10 +158,6 @@ class Filtered(FilterState):
         return self.view
 
     @property
-    def before(self):
-        return self.view.pages[0].page.before
-
-    @property
     def checkpoint_available(self):
         return self.view.checkpoint_available
 
@@ -222,7 +217,7 @@ class ScanDemand(DeclaredFamily, affix="ScanDemand"):
 
     def resume(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot, drew: bool) -> None:
         owner = filtering.owner
-        if snapshot.current(owner) and drew and filtering.has_older:
+        if snapshot.current(owner) and drew and filtering.state.has_older(owner):
             # Committed painted height decides whether this batch fills the view.
             owner.call_after_refresh(owner.request_preparation)
         else:
@@ -253,15 +248,6 @@ class TranscriptFilter:
         self.worker: Worker | None = None
 
     @property
-    def overlay(self): return self.state.overlay
-
-    @property
-    def before(self): return self.state.before
-
-    @property
-    def has_older(self): return self.state.has_older(self.owner)
-
-    @property
     def scanning(self):
         # Cancellation before _run enters sets the framework cancellation flag
         # without changing its PENDING enum. A cancelled worker isn't scanning.
@@ -269,21 +255,9 @@ class TranscriptFilter:
                 and not self.worker.is_finished)
 
     @property
-    def active(self): return self.state.active
-
-    @property
     def checkpoint_available(self):
         return not self.scanning and self.state.checkpoint_available
 
-    def owns_projection(self, projection): return self.state.owns_projection(projection)
-    @property
-    def older_visible(self): return self.state.older_visible(self.owner)
-
-    def canonical_moved(self, previous, visible):
-        self.state.canonical_moved(self, previous, visible)
-
-    def covers_incoming(self, sequence): return self.state.covers_incoming(sequence)
-    def projection_visible(self): return self.state.visible(self.owner)
     def request_force(self): self.demand = RequestedScanDemand()
     def clear(self): self.state = FilterState.for_selection(self.owner.selected_categories)
 
@@ -313,7 +287,10 @@ class TranscriptFilter:
         owner.request_preparation()
 
     def scan_needed(self) -> bool:
-        return self.has_older and self.state.scan_needed(self.owner)
+        return (
+            self.state.has_older(self.owner)
+            and self.state.scan_needed(self.owner)
+        )
 
     def check_edges(self) -> None:
         if self.scan_needed() or self.demand.forced:
@@ -333,7 +310,7 @@ class TranscriptFilter:
 
     def require_projection(self, snapshot, projection) -> None:
         from toad.widgets.transcript_history import _DrawingStopped
-        if not snapshot.current(self.owner) or not self.owns_projection(projection):
+        if not snapshot.current(self.owner) or not self.state.owns_projection(projection):
             raise _DrawingStopped
 
     async def scan_older(self) -> None:
@@ -347,6 +324,6 @@ class TranscriptFilter:
                 self.owner.notify(str(error), title="Filtered history", severity="error")
         finally:
             if snapshot.current(self.owner):
-                if drew or not self.has_older:
+                if drew or not self.state.has_older(self.owner):
                     self.demand = AutomaticScanDemand()
             self.demand.resume(self, snapshot, drew)

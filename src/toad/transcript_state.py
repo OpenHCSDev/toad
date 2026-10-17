@@ -79,7 +79,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 
     def for_projection(self, projection, owner) -> "TranscriptState":
         """A view may publish only while its source still owns that projection."""
-        if owner is None or not owner.state.can_draw or not owner.filter.owns_projection(projection):
+        if owner is None or not owner.state.can_draw or not owner.filter.state.owns_projection(projection):
             return RetiredProjectionTranscript(self)
         return self
 
