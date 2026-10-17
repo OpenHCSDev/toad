@@ -24,7 +24,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     accepts_source_work: ClassVar[bool] = False
 
     def checkpoint_available(self, owner) -> bool:
-        """The source accepts work and its resource still holds the checkpoint."""
+        """The source accepts work and its resource still holds the saved rows."""
         return self.accepts_source_work and owner.source_checkpoint_available
 
     def blocks_visible_read(self, owner) -> bool:
@@ -47,7 +47,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
         """Only a running source operation measures time to publication."""
 
     def rows_published(self, owner) -> None:
-        """Only a checkpoint's advance has live blocks that its saved rows replace."""
+        """Only a commit's advance has live blocks that its saved rows replace."""
 
     def retirement_source(self) -> "TranscriptState":
         return self
@@ -227,7 +227,7 @@ class WorkingTranscript(SuspendedTranscript):
                 result = await work()
                 if owner._source_state is self:
                     # Generic publications and incremental edge delivery share
-                    # this operation's checkpoint; completion cannot count an
+                    # this operation's commit; completion cannot count an
                     # already-delivered page again as a new latency sample.
                     self.delivered(owner)
                 return result
@@ -320,7 +320,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
 
 
 class CommitTranscript(WorkingTranscript):
-    """A checkpoint's advance: its saved rows replace the live blocks captured with its page.
+    """A commit's advance: its saved rows replace the live blocks captured with its page.
 
     The live blocks leave in the same tree change that draws the last saved
     row, so no frame shows both copies of the turn, or neither.
