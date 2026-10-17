@@ -142,7 +142,7 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
                 right=True, hide=True, navigation=self._thread_sidebar_state,
             ),
             containers.Vertical(*content, id="comms-content"),
-        )
+        ).set_styles(layout=self.app.workspace_chrome)
 
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""
@@ -185,7 +185,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             self.run_worker(self._load_content, group="comms-content")
 
     def _prepare_content(self) -> None:
-        self.app.workspace_chrome.layout_sidebars(self.screen)
         self.observe_core(self.app.events)
         chat = self.query_one(CommsChatView)
         chat._me = self.me

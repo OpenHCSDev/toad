@@ -9,7 +9,7 @@ from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
 from textual.binding import Binding
 from textual.dom import DOMNode
-from textual.events import Resize, ScreenResume
+from textual.events import ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
@@ -98,7 +98,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         from textual.containers import Horizontal, Container
         chrome = self.app.workspace_chrome
         yield chrome.navigation
-        with Horizontal(id="workspace-body"):
+        with Horizontal(id="workspace-body").set_styles(layout=chrome):
             yield chrome.channels
             yield Container(id="workspace-session-host")
         yield chrome.footer
@@ -164,9 +164,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         self.frame_presentation.close()
         await super()._message_loop_exit()
 
-    def on_resize(self, _event: Resize) -> None:
-        self.app.workspace_chrome.layout_sidebars(self)
-
     def _style_revision(self) -> ViewStyleRevision:
         return ViewStyleRevision(
             self.app.theme, self.app.classes, self.classes, self.app.size,
@@ -193,13 +190,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
 
     def _use_viewport_layout(self) -> bool:
         return self.is_current
-
-    def _start_stepped_layout(self, size=None, scroll=False, step_ns=None):
-        # Pointer events change only the placement owner and request a frame.
-        # Acquire its latest target before native layout takes the frame's
-        # invalidations, never from a Resize callback between layout steps.
-        self.app.workspace_chrome.layout_sidebars(self)
-        return super()._start_stepped_layout(size, scroll, step_ns)
 
     def _layout_steps(self, size: Size | None = None, scroll: bool = False, deadline=None):
         changes = tuple((change, change.layout_requests) for window in self.history_windows
