@@ -1,4 +1,4 @@
-"""Source-fenced saved transcript publication; checkpoint policy stays declared."""
+"""Source-fenced saved transcript publication; commit policy stays declared."""
 from __future__ import annotations
 
 import weakref
@@ -44,7 +44,7 @@ class TranscriptPublication(ABC):
         from toad.widgets.committed_presentation import CommitParticipant
 
         return self.current() and all(
-            widget.commit_claim.admits_native(widget, self.captured)
+            widget.commit_claim.accepts_native(widget, self.captured)
             for widget in self.contents.children if isinstance(widget, CommitParticipant)
         )
 
@@ -209,7 +209,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             return True
         bound = self.source_bound(page.after)
         if bound != page.after:
-            self.owner.dirty = self.owner.checkpoint_required = True
+            self.owner.dirty = self.owner.commit_required = True
             page = await self.owner.get_transcript_page(after=snapshot.identity.after, through=bound)
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
@@ -310,11 +310,11 @@ class SourcePublicationRequests:
         return worker
 
 
-class CheckpointPublication(CanonicalSourcePublication):
+class CommitPublication(CanonicalSourcePublication):
     def __init__(self, owner, view, window, contents):
-        from toad.widgets.committed_presentation import checkpoint_plan
+        from toad.widgets.committed_presentation import commit_plan
         super().__init__(owner, view, window, contents)
-        self.plan = checkpoint_plan(window)
+        self.plan = commit_plan(window)
 
     async def read_snapshot(self):
         # Mounted history grows by what follows its end; without one the window needs a whole page.
@@ -325,24 +325,24 @@ class CheckpointPublication(CanonicalSourcePublication):
         return (super().current() and not view.is_leaving
                 and self.plan.current(self.window))
 
-    def admitted(self) -> bool:
-        from toad.widgets.committed_presentation import CheckpointBarrier, CommitParticipant
+    def ready_to_commit(self) -> bool:
+        from toad.widgets.committed_presentation import CommitBarrier, CommitParticipant
 
         view = self.owner.view
         if not self.current() or not self.owner.dirty:
             return False
         if not self.owner.readable:
             return False
-        if not self.owner.checkpoint_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
+        if not self.owner.commit_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
             return False
-        if any(isinstance(child, CheckpointBarrier) for child in self.contents.children):
+        if any(isinstance(child, CommitBarrier) for child in self.contents.children):
             return False
         potential = tuple(child for child in self.contents.children
                           if child is not self.history and isinstance(child, CommitParticipant))
         return self.plan.ready(self.history) and self.plan.permits(view, potential)
 
     async def publish_applied(self) -> bool:
-        if self.admitted():
+        if self.ready_to_commit():
             return await super().publish_applied()
         return True
 
@@ -358,7 +358,7 @@ class CheckpointPublication(CanonicalSourcePublication):
         if view is None:
             return True
         window, contents = self.window, self.contents
-        if not self.admitted():
+        if not self.ready_to_commit():
             return True
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
@@ -426,10 +426,10 @@ class CheckpointPublication(CanonicalSourcePublication):
             return True
         if self.native_current():
             self.owner.dirty = False
-            self.owner.checkpoint_required = False
+            self.owner.commit_required = False
         plan.finish(view, page.after)
         if page.has_newer:
-            self.owner.require_checkpoint()
+            self.owner.require_commit()
         return True
 
 
@@ -443,7 +443,7 @@ class TranscriptPresentation:
         self.closed = False
         self.generation = 0
         self.dirty = False
-        self.checkpoint_required = False
+        self.commit_required = False
         self.displayed_cursor: TranscriptCursor | None = None
         self.current_read: TranscriptReadIdentity | None = None
         self.worker: Worker[None] | None = None
@@ -565,12 +565,12 @@ class TranscriptPresentation:
         return tuple(contents.query_children(TranscriptHistory)) if contents is not None else ()
 
     def received(self, page: TranscriptPage) -> None:
-        """A read page resumes parked history; a checkpoint adds what the history lacks."""
+        """A read page resumes parked history; a commit adds what the history lacks."""
         for history in self.histories:
             history.state.validate_snapshot(history, page)
         history = next(iter(self.histories), None)
         if history is None or not history.committed_cursor.contains(page.after):
-            self.require_checkpoint()
+            self.require_commit()
 
     @property
     def reports_coverage(self) -> bool:
@@ -698,20 +698,20 @@ class TranscriptPresentation:
         self.invalidate_publications()
         self.dirty = True
         if cursor is None:
-            self.checkpoint_required = True
+            self.commit_required = True
         else:
             self.painted(cursor)
         self.request()
 
-    def require_checkpoint(self) -> None:
+    def require_commit(self) -> None:
         self.invalidate_publications()
-        self.checkpoint_required = self.dirty = True
+        self.commit_required = self.dirty = True
         self.request()
 
     def request(self) -> Worker[None] | None:
         if (view := self.view) is None or not view.is_attached:
             return None
-        self.worker = view.run_worker(partial(self.publish, CheckpointPublication),
+        self.worker = view.run_worker(partial(self.publish, CommitPublication),
                                       group="transcript-window", exclusive=True)
         return self.worker
 
@@ -726,8 +726,8 @@ class TranscriptPresentation:
             return
         if not self.dirty or self.worker is not None and not self.worker.is_finished:
             return
-        publication = self.capture(CheckpointPublication)
-        if publication is not None and publication.native_current() and publication.admitted():
+        publication = self.capture(CommitPublication)
+        if publication is not None and publication.native_current() and publication.ready_to_commit():
             self.request()
 
     def source_work_finished(self, history) -> None:
@@ -891,7 +891,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 self.invalidate_publications()
                 self.current_read = None
                 self._close_documents()
-                self.dirty = self.checkpoint_required = False
+                self.dirty = self.commit_required = False
                 self.displayed_cursor = None
                 worker, self.worker = self.worker, None
                 if worker is not None:

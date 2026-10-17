@@ -45,7 +45,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
                 and not self.worker.is_finished)
 
     @property
-    def checkpoint_available(self):
+    def commit_available(self):
         return not self.scanning
 
     def owns_projection(self, projection) -> bool:
@@ -98,7 +98,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
         self.start_scan()
 
     def start_scan(self) -> Worker | None:
-        if self.scanning or not self.owner.checkpoint_available:
+        if self.scanning or not self.owner.commit_available:
             return None
         if not self.scan_available:
             return None
@@ -217,8 +217,8 @@ class Filtered(FilterState):
         self.overlay = projection
 
     @property
-    def checkpoint_available(self):
-        return super().checkpoint_available and self.overlay.checkpoint_available
+    def commit_available(self):
+        return super().commit_available and self.overlay.commit_available
 
     def owns_projection(self, projection):
         return self.overlay is projection
