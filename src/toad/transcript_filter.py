@@ -253,12 +253,6 @@ class TranscriptFilter:
         self.worker: Worker | None = None
 
     @property
-    def overlay(self): return self.state.overlay
-
-    @property
-    def before(self): return self.state.before
-
-    @property
     def has_older(self): return self.state.has_older(self.owner)
 
     @property
