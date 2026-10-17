@@ -19,7 +19,8 @@ from textual.content import Content, Span
 from textual import getters
 from textual.widgets import OptionList, TextArea, Label
 from textual import containers
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 from textual import events

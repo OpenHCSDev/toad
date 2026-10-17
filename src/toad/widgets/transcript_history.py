@@ -29,7 +29,8 @@ from textual.containers import VerticalGroup
 from textual.geometry import Region
 from textual.message import Message
 from textual.selection import Selection
-from textual.widget import PrimaryActivation, Widget
+from textual._activation import PrimaryActivation
+from textual.widget import Widget
 from textual.walk import walk_depth_first
 from textual.strip import Strip
 from textual.widgets import Static

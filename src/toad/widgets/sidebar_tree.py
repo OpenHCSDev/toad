@@ -14,7 +14,7 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected

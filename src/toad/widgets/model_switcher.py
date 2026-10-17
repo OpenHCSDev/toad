@@ -15,7 +15,7 @@ from textual.content import Content
 from textual.containers import VerticalGroup
 from textual.reactive import var
 from textual.widgets import Input, OptionList, Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 from textual.widgets.option_list import Option
 
 from toad import messages

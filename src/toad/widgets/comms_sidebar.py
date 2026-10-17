@@ -29,7 +29,7 @@ from textual.content import Content
 from textual.dom import DOMNode
 from textual.reactive import reactive
 from textual.widgets import Static
-from textual.widget import PrimaryActivation
+from textual._activation import PrimaryActivation
 
 
 from agent_comms.mro_dispatch import handles
