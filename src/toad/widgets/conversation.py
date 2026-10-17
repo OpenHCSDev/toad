@@ -247,7 +247,7 @@ class ContentsGrid(containers.Grid):
         layout.stretch_height = True
 
 
-class CursorContainer(Animated[Mix], containers.Vertical):
+class CursorContainer(Animated[Mix], Static):
     """Paint navigation over content geometry without authoring document extent."""
 
     COMPONENT_CLASSES = {"cursor--selected"}
