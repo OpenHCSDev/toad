@@ -241,6 +241,11 @@ class SelectEditor(ValueEditor, FormPart, Select[object]):
 class ChoicesEditor(SelectEditor):
     shows = (AnnotationChoices,)
 
+    def paint(self) -> None:
+        with self.prevent(Select.Changed):
+            self.set_options(self.options())
+            super().paint()
+
     @property
     def choices(self) -> AnnotationChoices:
         choices = declared_annotation_choices(self.field.annotation)

@@ -65,7 +65,7 @@ def declarations(annotation: object) -> Iterator[object]:
     if get_origin(annotation) is Annotated:
         base, *metadata = get_args(annotation)
         for item in metadata:
-            yield from type(item).__mro__[:-1]
+            yield from (item if isinstance(item, type) else type(item)).__mro__[:-1]
         yield from declarations(base)
     elif optional_member_type(annotation) is not None:
         yield Optional
