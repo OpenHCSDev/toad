@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 from dataclasses import replace
 from abc import abstractmethod
+from typing import ClassVar
+from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
@@ -14,6 +16,8 @@ from toad.widgets.session_details import SessionDetails
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
+    history_view: ClassVar[type[ConversationHistoryView]]
+
     @classmethod
     def threads_needed(cls, snapshot, me, target):
         return ()
@@ -33,22 +37,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     @abstractmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]: ...
-
-    @classmethod
-    def display_identity(cls, page: MessagePage) -> tuple | None:
-        if page.historical_display is not None:
-            displayed = page.historical_display.displayed
-            return (
-                "historical",
-                displayed.viewer,
-                displayed.viewer_created_at,
-                page.history_revision,
-            )
-        return cls.current_identity(page)
-
-    @classmethod
-    @abstractmethod
-    def current_identity(cls, page: MessagePage) -> tuple | None: ...
 
     @classmethod
     def label(cls, target: str) -> str:
@@ -118,6 +106,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 
 class ChannelConversation(ConversationKind):
+    history_view = ChannelDisplayHistory
+
     @classmethod
     def channels_needed(cls, root, target):
         return ((root, target),)
@@ -136,23 +126,6 @@ class ChannelConversation(ConversationKind):
         if me in comms.registry:
             me = comms.registry.require(me).name
         return me, comms.channels.catalog.read().resolve(target).name
-
-    @classmethod
-    def current_identity(cls, page: MessagePage) -> tuple | None:
-        scope = page.display_scope
-        if scope is None or scope.displayed is None:
-            return None
-        displayed = scope.displayed
-        return (
-            displayed.viewer,
-            displayed.viewer_created_at,
-            displayed.bus_identity,
-            scope.channel,
-            scope.targets,
-            scope.any_mode,
-            scope.participant_names if scope.any_mode else frozenset(),
-            page.history_revision,
-        )
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
@@ -224,6 +197,8 @@ class ChannelConversation(ConversationKind):
 
 
 class DmConversation(ConversationKind):
+    history_view = DMDisplayHistory
+
     @classmethod
     def historical_thread(cls, target: str) -> str:
         return target
@@ -248,25 +223,6 @@ class DmConversation(ConversationKind):
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
         return comms.registry.require(me).name, comms.registry.require(target).name
-
-    @classmethod
-    def current_identity(cls, page: MessagePage) -> tuple | None:
-        basis = page.display_basis
-        if basis is None:
-            return None
-        return (
-            basis.root_identity,
-            basis.bus_identity,
-            basis.worktree,
-            basis.requested_peer,
-            basis.viewer,
-            basis.viewer_created_at,
-            basis.viewer_names,
-            basis.peer,
-            basis.peer_created_at,
-            basis.peer_names,
-            page.history_revision,
-        )
 
     @classmethod
     def label(cls, target: str) -> str:

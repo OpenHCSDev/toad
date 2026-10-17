@@ -2,27 +2,20 @@
 from typing import TYPE_CHECKING
 from textual.app import ComposeResult
 from textual.containers import Horizontal
-from textual.geometry import Spacing
+from textual.geometry import Offset, Region, Size, Spacing
+from textual.layout import ArrangeResult, WidgetPlacement
+from textual.layouts.vertical import VerticalLayout
+from textual.widget import Widget
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from textual.widgets import Footer
 from toad.session_presentation import NativeSessionSurface
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from toad.core.events import SidebarLayoutChanged
-from agent_comms.mro_dispatch import handles
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
     from toad.screens.session_view import SessionView
 
 
-class WorkspaceHeader(CoreEventReceiver, Horizontal):
-    def on_mount(self) -> None:
-        self.observe_core(self.app.events)
-
-    @handles(SidebarLayoutChanged)
-    async def sidebar_layout_changed(self, event: CoreEventMessage) -> None:
-        self.app.workspace_chrome.layout_sidebars(self.screen)
-
+class WorkspaceHeader(Horizontal):
     def compose(self) -> ComposeResult:
         from toad.widgets.session_tabs import SessionsTabs
         from toad.widgets.side_bar import TabHistoryControls
@@ -30,7 +23,7 @@ class WorkspaceHeader(CoreEventReceiver, Horizontal):
         yield SessionsTabs()
 
 
-class WorkspaceChrome:
+class WorkspaceChrome(VerticalLayout):
     def __init__(self, app: "ToadApp") -> None:
         self.navigation = WorkspaceHeader(id="tab-navigation-header")
         self.channels = ChannelsSidebar()
@@ -46,39 +39,42 @@ class WorkspaceChrome:
         screen.frame_presentation.defer(roster, roster.navigation.start)
         return changed
 
-    def layout_sidebars(self, screen) -> bool:
-        """Resolve and publish one mounted sidebar cohort in native frame order."""
-        source = screen.app.workspace_sessions.source
-        bars = tuple(bar for bar in (self.channels, *source.sidebars())
-                     if bar.is_mounted and bar.id in screen.app.sidebar_layout.placements)
-        visible = tuple(bar for bar in bars if bar.presentation_visible)
-        resolved = screen.app.sidebar_layout.resolve(
-            screen.size.width, {bar.id: bar.collapsed for bar in visible})
-        changed = False
-        with screen.app.batch_update():
-            for bar in bars:
-                changed |= bar._apply_layout(resolved)
-            if (view := source.view) is not None:
-                # A view's own bar keeps the view's content clear of every bar.
-                # A view with no bar of its own is kept clear of the shared one here.
-                own = any(bar is not self.channels for bar in visible)
-                margin = Spacing(0, 0 if own else resolved.right_gutter,
-                                 0, 0 if own else resolved.left_gutter)
-                if view.styles.margin != margin:
-                    view.styles.margin = margin
-                    changed = True
-            # Sibling order belongs to their shared placement, not to each bar.
-            order = {identity: index for index, identity in
-                     enumerate(screen.app.sidebar_layout.ordered())}
-            for parent in dict.fromkeys(bar.parent for bar in visible):
-                if parent is None:
-                    continue
-                before = tuple(parent.children)
-                after = tuple(sorted(before, key=lambda child: order.get(child.id, len(order))))
-                if before != after:
-                    parent.sort_children(key=lambda child: order.get(child.id, len(order)))
-                    changed = True
-        return changed
+    def refresh_layout(self) -> None:
+        """Placement changes retire both native parent arrangements."""
+        source = self.channels.app.workspace_sessions.source
+        for parent in {bar.parent for bar in (self.channels, *source.sidebars()) if bar.is_mounted}:
+            parent.refresh(repaint=False, layout=True)
+
+    def arrange(self, parent: Widget, children: list[Widget], size: Size,
+                greedy: bool = True) -> ArrangeResult:
+        """Place chrome and conversation directly in the native layout pass."""
+        source = parent.app.workspace_sessions.source
+        layout = parent.app.sidebar_layout
+        own = tuple(source.sidebars())
+        bars = tuple(bar for bar in (self.channels, *own)
+                     if bar.presentation_visible and bar.id in layout.placements)
+        resolved = layout.resolve(size.width, {bar.id: bar.collapsed for bar in bars})
+        # The outer host stays full width. Its session's own native layout
+        # clears both gutters, including the shared channel surface.
+        nested = parent is self.channels.parent and any(
+            bar.parent.layout is self for bar in own)
+        left = 0 if nested else resolved.left_gutter
+        right = 0 if nested else resolved.right_gutter
+        placements = [placement._replace(
+            region=placement.region + Offset(left, 0),
+            margin=placement.margin + Spacing(0, right, 0, left),
+        ) for placement in super().arrange(
+            parent, [child for child in children if child not in bars],
+            Size(max(0, size.width - left - right), size.height), greedy)]
+        order = {identity: index for index, identity in enumerate(layout.ordered())}
+        for bar in bars:
+            if bar in children:
+                geometry = resolved.bars[bar.id]
+                placements.append(WidgetPlacement(
+                    Region(0, 0, geometry.width, size.height), Offset(geometry.x, 0),
+                    Spacing(), bar, order[bar.id], overlay=True, absolute=True,
+                ))
+        return placements
 
     async def select(self, view: "SessionView") -> None:
         roster = self.channels.roster
@@ -94,3 +90,4 @@ class WorkspaceChrome:
         self.channels.display = view.shows_channels
         self.footer.compact = view.footer_compact
         self.footer.call_later(self.footer.bindings_changed, view.screen)
+        self.refresh_layout()

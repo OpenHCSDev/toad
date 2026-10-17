@@ -30,6 +30,7 @@ from textual.widgets import (
 
 from toad import messages
 
+from toad.acp.agent_session import SessionDisposition
 from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
@@ -40,14 +41,9 @@ from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
 from toad.widgets.conversation import Conversation
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
-from toad.widgets.recovery_view import RecoveryView
 from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import session_thread_name
-from toad.core.input_events import SelectTarget
-from toad.widgets.comms_sidebar import CoordinationStatus, CommsSidebar
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.navigation_target import NavigationContext, NavigationOwner
-from toad.session_tracker import SidebarState
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.navigation_target import FeedTarget, DirectTarget
 
@@ -116,11 +112,8 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         """The opening line this content state shows; empty hides it."""
 
     def render(self, screen: "MainScreen") -> Static:
-        """The one decision of the opening line: a session failure outranks the state's line."""
-        agent = screen.presentation.operational_agent
-        if agent is not None and (failure := agent.session.disposition.current_failure()) is not None:
-            return self.label(screen, f"Thread disconnected: {failure.message}: {failure.details}", visible=True)
-        line = self.line()
+        """The opening line: the session's disposition decides whether a failure replaces it."""
+        line = screen.session_disposition.explain(self.line())
         return self.label(screen, line, visible=bool(line))
 
     @abstractmethod
@@ -337,6 +330,10 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         return tuple(resources)
 
     @property
+    def session_disposition(self) -> SessionDisposition:
+        return SessionDisposition.of(self.presentation.operational_agent)
+
+    @property
     def agent_session_id(self) -> str | None:
         """The saved ACP session this screen owns."""
         return self._agent_session_id
@@ -369,7 +366,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
         from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
-        with containers.Center():
+        with containers.Center().set_styles(layout=self.app.workspace_chrome):
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
                 yield self.content.render(self)
@@ -404,14 +401,12 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             self.app.session_tracker.bind_identity(self.id, previous, thread_name)
         self._sync_thread_sidebar()
         if self.id is not None:
-            self.app.session_navigation.sync_recovery(self.id, self.coordination_root)
+            self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
 
     def _sync_thread_sidebar(self) -> None:
         """Bind a newly mounted right panel to the current session identity."""
         if status := self.query_one_optional(CoordinationStatus):
             status.set_thread(self._comms_thread)
-        if recovery := self.query_one_optional(RecoveryView):
-            recovery.set_identity(self._comms_thread, self.coordination_root)
         if comms_tree := self.query_one_optional(ThreadCommsSidebar):
             comms_tree.set_identity(self._comms_thread, self.coordination_root)
         from toad.widgets.context_explorer import ContextExplorer
@@ -461,11 +456,9 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
     @handles(core_events.AgentFail)
     def on_session_failure(self, message: CoreEventMessage) -> None:
-        agent = self.presentation.operational_agent
-        if agent is not None and agent.session.disposition.current_failure() is not None:
-            # A disconnected session is not a failed history-opening operation.
-            # Keep its reason on the session; every content view reads it there.
-            self.content.render(self)
+        # A disconnected session is not a failed history-opening operation.
+        # Its reason stays on the session; the opening line reads it there.
+        self.content.render(self)
 
     _last_dm_target: str | None = None
 

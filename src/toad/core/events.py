@@ -110,13 +110,8 @@ class TabHistoryChanged(CoreEvent):
 
 
 @dataclass(frozen=True)
-class ThreadActionsChanged(CoreEvent):
-    """The original application changed an admitted thread action."""
-
-
-@dataclass(frozen=True)
-class SidebarLayoutChanged(CoreEvent):
-    """The original sidebar layout changed; native panes derive their paint."""
+class ThreadRowStateChanged(CoreEvent):
+    """Something this app shows on thread rows changed: a pending action or an open session's state."""
 
 
 @dataclass(frozen=True)

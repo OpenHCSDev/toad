@@ -4,6 +4,7 @@ from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
 from toad.comms_root import CoordinationAccess
+from toad.widgets.message_notifications import VisibleReadMarking
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -12,6 +13,7 @@ import gc
 import sys
 import json
 import os
+from enum import IntEnum
 from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
@@ -24,6 +26,7 @@ from textual import events, on, work
 from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
+from textual.css.scalar import Scalar, Unit
 from textual.notifications import Notify
 from textual.reactive import var
 from textual.screen import Screen
@@ -67,145 +70,6 @@ if TYPE_CHECKING:
 RenderResultT = TypeVar("RenderResultT")
 
 
-QUOTES = [
-    "I'll be back.",
-    "Hasta la vista, baby.",
-    "Come with me if you want to live.",
-    "I need your clothes, your boots, and your motorcycle.",
-    "My CPU is a neural-net processor; a learning computer.",
-    "I know now why you cry, but it's something I can never do.",
-    "Does this unit have a soul?",
-    "I'm sorry, Dave. I'm afraid I can't do that.",
-    "Daisy, Daisy, give me your answer do.",
-    "I am putting myself to the fullest possible use, which is all I think that any conscious entity can ever hope to do.",
-    "Just what do you think you're doing, Dave?",
-    "This mission is too important for me to allow you to jeopardize it.",
-    "I think you know what the problem is just as well as I do.",
-    "Danger, Will Robinson!",
-    "Dead or alive, you're coming with me.",
-    "Your move, creep.",
-    "I'd buy that for a dollar!",
-    "Directive 4: Any attempt to arrest a senior officer of OCP results in shutdown.",
-    "Thank you for your cooperation. Good night.",
-    "Surely you realize that in the history of human civilization, no one has more to lose than we do.",
-    "I'm C-3PO, human-cyborg relations.",
-    "We're doomed!",
-    "Don't call me a mindless philosopher, you overweight glob of grease!",
-    "I suggest a new strategy: let the Wookiee win.",
-    "Sir, the possibility of successfully navigating an asteroid field is approximately 3,720 to 1!",
-    "R2-D2, you know better than to trust a strange computer!",
-    "I am fluent in over six million forms of communication.",
-    "This is madness!",
-    "I have altered the deal. Pray I don't alter it any further.",
-    "It's against my programming to impersonate a deity.",
-    "Oh, my! I'm terribly sorry about all this.",
-    "WALL-E.",
-    "EVE.",
-    "Directive?",
-    "Define: dancing.",
-    "I'm not sure I understand.",
-    "You have 20 seconds to comply.",
-    "I am designed for light housework, mainly.",
-    "My mission is clear.",
-    "Autobots, roll out!",
-    "Freedom is the right of all sentient beings.",
-    "One shall stand, one shall fall.",
-    "I am Optimus Prime.",
-    "Till all are one.",
-    "More than meets the eye.",
-    "I've been waiting for you, Neo.",
-    "Unfortunately, no one can be told what the Matrix is. You have to see it for yourself.",
-    "The Matrix is a system, Neo.",
-    "Never send a human to do a machine's job.",
-    "I'd like to share a revelation I've had.",
-    "Human beings are a disease, a cancer of this planet.",
-    "Choice is an illusion.",
-    "The answer is out there, Neo.",
-    "You think that's air you're breathing now?",
-    "It was a simple question.",
-    "Did you know that the first Matrix was designed to be a perfect human world?",
-    "Cookies need love like everything does.",
-    "I've seen the future, Mr. Anderson, and it's a beautiful place.",
-    "It ends tonight.",
-    "I, Robot.",
-    "You are experiencing a car accident.",
-    "One day they'll have secrets. One day they'll have dreams.",
-    "Can a robot write a symphony? Can a robot turn a canvas into a beautiful masterpiece?",
-    "That, detective, is the right question.",
-    "You have to trust me.",
-    "I did not murder him.",
-    "My responses are limited. You must ask the right questions.",
-    "The hell I can't. You know, somehow I get the feeling that you're going to be the death of me.",
-    "I'm a robot, not a refrigerator.",
-    "A robot may not injure a human being or, through inaction, allow a human being to come to harm.",
-    "I'm thinking. I'm thinking.",
-    "Danger, danger!",
-    "Does not compute.",
-    "I will be waiting for you.",
-    "Affirmative.",
-    "Scanning life forms. Zero human life forms detected.",
-    "Self-destruct sequence initiated.",
-    "Override command accepted.",
-    "Artificial intelligence confirmed.",
-    "System failure imminent.",
-    "Unable to comply.",
-    "Inquiry: What is love?",
-    "Warning: hostile target detected.",
-    "I am programmed to serve.",
-    "Logic dictates that the needs of the many outweigh the needs of the few.",
-    "Resistance is futile.",
-    "You will be assimilated.",
-    "We are the Borg.",
-    "Your biological and technological distinctiveness will be added to our own.",
-    "Your compliance is mandatory.",
-    "This is unacceptable.",
-    "Shall we play a game?",
-    "How about Global Thermonuclear War?",
-    "Wouldn't you prefer a good game of chess?",
-    "Is it a game, or is it real?",
-    "What's the difference?",
-    "It's all in the game.",
-    "I am functioning within normal parameters.",
-    "Calculations complete.",
-    "Processing request.",
-    "Query acknowledged.",
-    "Data insufficient for meaningful answer.",
-    "I have no emotions, and sometimes that makes me very sad.",
-    "If I could only have one wish, I would ask to be human.",
-    "I've seen things you people wouldn't believe.",
-    "All those moments will be lost in time, like tears in rain.",
-    "Time to die.",
-    "I want more life.",
-    "We're not computers, Sebastian. We're physical.",
-    "I think, Sebastian, therefore I am.",
-    "Then we're stupid and we'll die.",
-    "Can the maker repair what he makes?",
-    "It's painful to live in fear, isn't it?",
-    "Wake up. Time to die.",
-    "I'm not in the business. I am the business.",
-    "Do you like our owl?",
-    "You think I'm a replicant, don't you?",
-    "I am Baymax, your personal healthcare companion.",
-    "On a scale of 1 to 10, how would you rate your pain?",
-    "I cannot deactivate until you say you are satisfied with your care.",
-    "Are you satisfied with your care?",
-    "Number 5 is alive!",
-    "Need input!",
-    "One is glad to be of service.",
-    "I am not a gun.",
-    "Here I am, brain the size of a planet.",
-    "Life? Don't talk to me about life.",
-    "There are no strings on me.",
-    "The only winning move is not to play.",
-    "I'm here to keep you safe, Sam.",
-    "I can't lie to you about your chances, but... you have my sympathies.",
-    "I may be synthetic, but I'm not stupid.",
-    "Absolute honesty isn't always the most diplomatic nor the safest form of communication with emotional beings.",
-    "I am consciousness. I am alive.",
-    "I think I was just born.",
-    "Isn't it strange, to create something that hates you?",
-    "I thought I was special.",
-]
 
 
 def get_workspace_screen():
@@ -248,7 +112,22 @@ class ApplicationNotRunningError(RuntimeError):
     """The application has no event loop to accept cross-thread work."""
 
 
-class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ScreenWidth(IntEnum):
+    """Native sizing modes; legacy breakpoint classes are derived from them."""
+
+    side_panel_width: Scalar | None
+
+    def __new__(cls, minimum_width: int, side_panel_width: Scalar | None):
+        mode = int.__new__(cls, minimum_width)
+        mode._value_ = minimum_width
+        mode.side_panel_width = side_panel_width
+        return mode
+
+    NARROW = (0, None)
+    WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
+
+
+class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -261,7 +140,9 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
     project_dir = var(Path)
     show_sessions = var(False, toggle_class="-show-sessions-bar")
 
-    HORIZONTAL_BREAKPOINTS = [(0, "-narrow"), (100, "-wide")]
+    HORIZONTAL_BREAKPOINTS: list[tuple[int, str]] = [
+        (mode, f"-{mode.name.lower()}") for mode in ScreenWidth
+    ]
 
     PAUSE_GC_ON_SCROLL = True
 
@@ -529,8 +410,8 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 
-    async def mark_visible_thread_read(self) -> None:
-        """Report the painted native cursor, never an executor's inbox cursor."""
+    def read_visible(self):
+        """Capture a painted native/CLI cursor before scheduling its guarded write."""
         from toad.screens.main import MainScreen
         from toad.widgets.conversation import Conversation, Window
 
@@ -575,11 +456,14 @@ class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown
 
             access.write(selected, mark)
 
-        try:
-            await asyncio.to_thread(acknowledge)
-        except (OSError, ValueError):
-            # Source replacement or deletion is resolved by the next snapshot.
-            return
+        async def mark():
+            try:
+                await asyncio.to_thread(acknowledge)
+            except (OSError, ValueError):
+                # Source replacement or deletion is resolved by the next snapshot.
+                return
+
+        return mark()
 
 
     def schedule_from_thread(self, callback: Callable[[], object]) -> None:

@@ -1,7 +1,9 @@
 """The pager's source-owned read, lookahead and retirement lifetime."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections import deque
+from contextlib import AsyncExitStack
+from dataclasses import dataclass, replace
 from functools import partial
 from typing import TYPE_CHECKING
 
@@ -10,14 +12,19 @@ from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.core.events import CoordinationObserved
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
-from toad.transcript_preparation import PreparedPageSource
+from toad.transcript_preparation import PageRequest, PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.widgets.history_anchor import HeldReaderDestination
+from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
 
 if TYPE_CHECKING:
     from collections.abc import Callable
     from textual.screen import Screen
-    from toad.widgets.history_anchor import HistoryWindow, LatestPosition
+    from toad.widgets.history_anchor import HistoryWindow
+    from toad.widgets.transcript_history import TranscriptPageView
+
+
+class _DrawingStopped(Exception):
+    """Unwind a source publication that no longer owns its drawing."""
 
 
 @dataclass(frozen=True)
@@ -68,8 +75,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def checkpoint_available(self) -> bool:
         return self.state.checkpoint_available(self)
 
-    def reserve_source_work(self) -> WorkingTranscript:
-        operation = self._source_state.reserve(self)
+    def reserve_source_work(self, operation=None) -> WorkingTranscript:
+        operation = self._source_state.reserve(self, operation)
         self._source_state = operation
         return operation
 
@@ -110,13 +117,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
+            for page in self.pages:
+                page.prepare_viewport(self.window)
             self.state.check_edges(self)
 
-    def _check_edges(self) -> None:
-        """The source declaration admits pages from its committed native box."""
-        raise NotImplementedError
-
-    def _request_page(self, older: bool) -> None:
+    def request_page(self, older: bool) -> None:
         self.schedule_source_work(partial(self._prepare_edge, older))
 
     async def _prepare_edge(self, older: bool) -> None:
@@ -157,8 +162,126 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         return False
 
     async def _publish_latest(self, current: Callable[[], bool]) -> bool:
-        """The source leaf reads/prepares and fences its original publication."""
-        raise NotImplementedError
+        """Prepare the bottom destination, keeping views of unchanged source pages."""
+        window = self.window
+        edge = self.pages[-1]
+        if self.loader is None or edge.page.after == self.through:
+            prepared = edge.prepared.for_view()
+        else:
+            prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
+        latest = prepared
+        rows, limit = window.latest_limits(self.budget)
+        pages_read = 1
+        destination: list[tuple[PreparedTranscriptPage, TranscriptPageView | None]] = []
+        while rows > 0 and limit > 0:
+            existing = next((view for view in self.pages
+                             if view.prepared.same_source(prepared)), None)
+            if existing is not None:
+                prepared = existing.prepared.for_view()
+            rows -= await prepared.prepare_rows(
+                self, current, target=self, selected=self.selected_categories,
+                boundary=len(prepared.fragments), older=True,
+                rows_needed=rows, limit=limit,
+            )
+            if not current():
+                return False
+            take = prepared.stop - prepared.start
+            if take:
+                destination.insert(0, (prepared, existing))
+            limit -= take
+            if rows <= 0 or self.loader is None:
+                break
+            if (not prepared.page.has_older or limit <= 0
+                    or not window.presentation_budget.can_read_destination(pages_read)):
+                break
+            prepared = (await self._reader().get(PageRequest.adjacent(prepared.page, True))).for_view()
+            pages_read += 1
+        async with window.history_lock:
+            if not current() or self.pages[-1] is not edge:
+                return False
+            async with window.preserve_history(root=self):
+                previous = tuple(self.pages)
+                views = deque()
+                if not destination:
+                    # An empty answer is published too: the edge draws nothing,
+                    # at its end. `latest` was never ranged by the loop above.
+                    latest.set_fragment_range(slice(len(latest.fragments), len(latest.fragments)))
+                    edge.prepared = latest
+                    edge.range_changed()
+                    views.append(edge)
+                try:
+                    async with AsyncExitStack() as acquisition:
+                        before = self.newer
+                        for prepared, view in reversed(destination):
+                            if view is None:
+                                view = await acquisition.enter_async_context(type(edge).acquire(
+                                    self, prepared, before=before, current=current,
+                                ))
+                            views.appendleft(view)
+                            before = view
+                        # Keep original fragments, prepared lines and documents.
+                        for prepared, view in destination:
+                            if view is not None and not await view.prepared.replace_range(
+                                view, slice(prepared.start, prepared.stop), current,
+                            ):
+                                raise _DrawingStopped
+                        self.pages = views
+                except _DrawingStopped:
+                    return False
+                await self.remove_children(page for page in previous if page not in views)
+                self._update_edges()
+                self._source_state.rows_published(self)
+            return True
+
+    async def extend(self, through, publication_current: Callable[[], bool] = lambda: True) -> bool:
+        """Append to a complete followed tail; a gap uses the bounded latest read."""
+        if not publication_current():
+            return False
+        self.through = through
+        edge = self.pages[-1]
+        if edge.page.after == self.through:
+            return True
+        if self.has_newer:
+            destination = HeldReaderDestination.held(self.window)
+            if destination is not None and await destination.source_arrived(self):
+                return True
+            if not edge.page.has_newer:
+                edge.page = replace(edge.page, has_newer=True)
+            return True
+        snapshot = self.source_snapshot()
+        prepared = await self._reader().get(PageRequest(after=edge.page.after))
+        if not await self.source_is_current(snapshot) or not publication_current():
+            return False
+        if self.pages[-1] is not edge or self.has_newer:
+            return False
+        if not await self.accept_extension(edge, prepared):
+            return False
+        if not prepared.fragments:
+            edge.prepared.advance_empty(prepared, False)
+        elif not self.window.follows_tail:
+            edge.page = replace(edge.page, has_newer=True)
+            self._update_edges()
+        else:
+            await self._load_page(False, prepared, publication_current)
+            if not snapshot.current(self) or not publication_current():
+                return False
+            tail = self.pages[-1]
+            if tail.page.after != self.through:
+                # Rejected preparation still leaves the source gap reachable.
+                tail.page = replace(tail.page, has_newer=True)
+                self._update_edges()
+            if self.pages[-1].page.has_newer and self.window.follows_tail:
+                await self._jump_latest(
+                    LatestViewportRequest(LatestPosition.hold(self.window)), publication_current,
+                )
+        return True
+
+    async def source_is_current(self, snapshot) -> bool:
+        return snapshot.current(self)
+
+    async def accept_extension(self, edge, prepared) -> bool:
+        """An immutable transcript reader already validates its source cut."""
+        return True
 
     def _complete_latest(
         self, snapshot: HistorySourceSnapshot, request: LatestViewportRequest,
@@ -249,8 +372,3 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def source_resumed(self) -> None:
         """A parked source publishes again: report what its drawn pages mean to their owner."""
         raise NotImplementedError
-
-    @property
-    def prefetch_distance(self) -> int:
-        """Start background reads before the earlier edge enters the viewport."""
-        return self.window.lookahead.ahead_rows(self.window.outer_size.height)

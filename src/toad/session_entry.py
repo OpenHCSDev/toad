@@ -17,6 +17,7 @@ from agent_comms.route_selection import RouteSelection
 from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
 
+from agent_comms.ui_model.sidebar import ThreadRowModel
 from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
@@ -52,6 +53,10 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return None
 
+    def thread_row(self, sessions: SessionNavigation, row: ThreadRowModel) -> ThreadRowModel:
+        """How this entry's own session changes a thread's row; most entries hold none."""
+        return row
+
     def accepts_launch(self, sessions: SessionNavigation, agent_identity: str, session_id: str) -> bool:
         return False
 
@@ -76,7 +81,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
     def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         pass
 
-    def sync_recovery(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
+    def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
         pass
 
     def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
@@ -109,6 +114,13 @@ class NativeSessionEntry(SessionEntry):
 
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return sessions.app.workspace_sessions.views.get(self.mode)
+
+    def thread_row(self, sessions, row):
+        """The session this tab opened shows its state on that thread's row."""
+        source = self.source(sessions)
+        if source is None or all(identity != row.incarnation for _, identity in self.original_threads(sessions)):
+            return row
+        return source.session_disposition.shown_row(row)
 
     async def reconnect(self, sessions, selected, snapshot, targets):
         if sessions.get(self.mode) is not self or RouteSelection.capture() != selected:
@@ -157,7 +169,7 @@ class NativeSessionEntry(SessionEntry):
                 for root, identity in originals):
             return NamedTab(self.mode, self.details.name.display or "New Session")
         if row is not None:
-            return ThreadTab(self.mode, row)
+            return ThreadTab(self.mode, source.session_disposition.shown_row(row))
         return NamedTab(self.mode, self.details.name.display or "New Session")
 
     async def return_to(self, sessions: SessionNavigation) -> None:
@@ -173,9 +185,9 @@ class NativeSessionEntry(SessionEntry):
 
 class HistorySessionEntry(SessionEntry):
     def __init__(self, mode: str, key: CommsViewKey, kind: type[ConversationKind], project: Path,
-                 recovery_root: str | None, participants: tuple[ThreadIncarnation, ...]) -> None:
+                 owner_root: str | None, participants: tuple[ThreadIncarnation, ...]) -> None:
         super().__init__(mode)
-        self.key, self.kind, self.project, self.recovery_root = key, kind, project, recovery_root
+        self.key, self.kind, self.project, self.owner_root = key, kind, project, owner_root
         self.participants = participants
 
     def original_threads(self, sessions):
@@ -189,7 +201,7 @@ class HistorySessionEntry(SessionEntry):
         key = self.key
         return CommsScreen(project_path=self.project, owner_mode=key.owner_mode, me=key.me,
                            target=key.target, kind=self.kind,
-                           recovery_root=self.recovery_root, wire_root=key.root)
+                           owner_root=self.owner_root, wire_root=key.root)
 
     @property
     def address(self) -> object:
@@ -226,12 +238,12 @@ class HistorySessionEntry(SessionEntry):
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_identity(current)
 
-    def sync_recovery(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
+    def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
         if self.key.owner_mode != owner:
             return
-        self.recovery_root = root if root is not None and Path(root).expanduser().resolve() == Path(self.key.root) else None
+        self.owner_root = root if root is not None and Path(root).expanduser().resolve() == Path(self.key.root) else None
         if view := sessions.app.workspace_sessions.views.get(self.mode):
-            view.rebind_recovery(self.recovery_root)
+            view.rebind_owner_root(self.owner_root)
 
     def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
         if self.key.owner_mode != owner:

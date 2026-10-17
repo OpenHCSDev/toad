@@ -1,11 +1,11 @@
 """Optional sidebar content uses the workspace's existing admission lifetime."""
 from textual.worker import WorkerCancelled
-from toad.widgets.side_bar import CommsSideBar
+from toad.widgets.side_bar import SideBar
 from toad.widgets.side_bar import SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_viewport import SidebarViewport
 
 
-class RetiringSidebar(CommsSideBar):
+class RetiringSidebar(SideBar):
     """Park admitted panel resources; eviction retains only reader intent."""
 
     @property

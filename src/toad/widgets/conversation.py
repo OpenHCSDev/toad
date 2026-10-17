@@ -59,6 +59,7 @@ from toad.widgets.splash_text import SplashText
 from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventReceiver
 from acp import schema as acp_protocol
+from toad.acp.agent_session import SessionDisposition
 from toad.acp.status import StopReason
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.core.events import AgentFail, AgentReady
@@ -75,6 +76,8 @@ from toad.widgets.note import Note
 from toad.widgets.prompt import Prompt
 from toad.widgets.terminal import Terminal
 from toad.widgets.throbber import AboveThrobber, BelowThrobber
+from toad.frame_presentation import Animated
+from ui_theme.effects import CURSOR_BLINK, Mix
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
@@ -244,22 +247,18 @@ class ContentsGrid(containers.Grid):
         layout.stretch_height = True
 
 
-class CursorContainer(containers.Vertical):
+class CursorContainer(Animated[Mix], containers.Vertical):
     """Paint navigation over content geometry without authoring document extent."""
 
-    COMPONENT_CLASSES = {"cursor--selected", "cursor--selected-blink"}
-    blink = var(False)
+    COMPONENT_CLASSES = {"cursor--selected"}
 
     def on_mount(self) -> None:
-        self.set_interval(0.5, self._update_blink)
+        self.watch(self.query_ancestor(Window), "has_focus", self.app.colours.clock.refresh)
+        self.run_effect(CURSOR_BLINK)
 
-    def _update_blink(self) -> None:
-        blink = (not self.blink
-                 if self.query_ancestor(Window).has_focus and self.screen.is_active
-                 else False)
-        if blink != self.blink:
-            self.blink = blink
-            self.refresh()
+    @property
+    def animation_visible(self) -> bool:
+        return super().animation_visible and self.query_ancestor(Window).has_focus
 
     def render_lines(self, crop: Region) -> list[Strip]:
         rich_style = self.visual_style.rich_style
@@ -272,10 +271,10 @@ class CursorContainer(containers.Vertical):
         cursor = self.query_ancestor(Conversation).navigation.cursor
         if cursor is not None and (region := cursor.visible_region) is not None:
             origin = visible[self][0].y + crop.y
-            style = self.get_component_rich_style(
-                "cursor--selected-blink" if self.blink else "cursor--selected"
-            )
+            style = self.get_component_rich_style("cursor--selected")
             selected_strip = Strip([Segment("▌", style)], cell_length=1)
+            if self.animation is not None and self.animation_visible:
+                selected_strip = self.app.colours.paint_mix(self.animation.frame(), selected_strip)
             for row in range(max(0, region.y - origin), min(crop.height, region.bottom - origin)):
                 strips[row] = selected_strip
         return strips
@@ -1121,6 +1120,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()
+        if (details := self.query_one_optional(SessionDetails)) is not None:
+            details.sync_turn()
         self.notify(message.event.message, title="Agent failure", severity="error", timeout=5)
 
         if self._agent_data is not None:
@@ -1131,10 +1132,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 details=message.event.details,
             )
 
-        if self.agent is not None:
-            await self.agent.session.disposition.present_failure(message.event, self)
-        else:
-            await message.event.present(self)
+        await SessionDisposition.of(self.agent).present_failure(message.event, self)
 
     def on_work_started(self) -> None:
         self.busy_count += 1
@@ -1812,7 +1810,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @handles(PreferenceChanged)
     async def _settings_changed(self, message: CoreEventMessage) -> None:
-        if message.event.path == SETTINGS.shell.allow_commands:
+        if SETTINGS.shell.allow_commands.matches(message.event.field):
             self.input_histories.shell.complete.add_words(
                 self.app.settings.shell.allow_commands.split()
             )

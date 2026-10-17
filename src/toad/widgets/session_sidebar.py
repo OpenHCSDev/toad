@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, cast
+
 from textual.content import Content
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
 from toad.widgets.selection import HoverSelection, ViewLabel
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
 
 
 class ThreadStatusRow(ViewLabel, HoverSelection):
@@ -35,10 +40,13 @@ class ThreadStatusRow(ViewLabel, HoverSelection):
 
     @property
     def busy(self) -> bool:
-        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.busy)
+        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
 
-    def show(self, row: ThreadRowModel, *, pinned: bool = False, action_status: str | None = None) -> None:
-        """Render the model's row with this view's own decoration: pin and pending action."""
+    def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
+        """Render the model's row as this app shows it: an open session's state, pin and pending action."""
+        app = cast("ToadApp", self.app)
+        row = app.session_navigation.thread_row(row)
+        action_status = app.thread_actions.pending.get(row.name)
         if (row, pinned, action_status) == (self.thread_row, self.pinned, self.action_status):
             return
         self.thread_row, self.pinned, self.action_status = row, pinned, action_status

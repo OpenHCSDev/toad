@@ -32,7 +32,6 @@ from agent_comms.ui_model.observation import (
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged
-from toad.forms.declared_views import DeclaredField
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 
@@ -116,7 +115,6 @@ class CoordinationAccess(MroDispatch):
         self.opening = threading.Lock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
-        self.marking: asyncio.Task[None] | None = None
         # One status row per open thread, whichever service it was read from.
         self.thread_status = OpenThreadStatus(app.call_next)
         # Views showing the sidebar model now, and consumers waiting for current rows.
@@ -240,10 +238,9 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(CoordinationObserved(result.revision))
         if previous is None or result.revision.external_transcripts_changed_since(previous):
             self.events.publish(ExternalTranscriptChanged())
-        if self.sidebar_views and (self.marking is None or self.marking.done()):
-            # A shown sidebar acknowledges the painted native cursor, as each
-            # sidebar read did before; the next observation includes it.
-            self.marking = asyncio.ensure_future(self.app.mark_visible_thread_read())
+        if self.sidebar_views:
+            # The painted view owns read work, not this source observer.
+            self.app.mark_visible()
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: ObservedCommsService) -> None:
@@ -332,8 +329,8 @@ class CoordinationAccess(MroDispatch):
         state = self.app.saved_settings.state
         return ObserveSidebar(
             str(self.app.project_dir),
-            DeclaredField.at(state, SETTINGS.sidebar.show_stopped).value,
-            DeclaredField.at(state, SETTINGS.sidebar.show_archived).value,
+            SETTINGS.sidebar.show_stopped.bind(state).value,
+            SETTINGS.sidebar.show_archived.bind(state).value,
         )
 
     def update_sidebar_interest(self) -> None:

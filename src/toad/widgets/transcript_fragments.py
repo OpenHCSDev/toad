@@ -242,6 +242,10 @@ class TranscriptFragment:
     def for_body_sources(self, supplied):
         return self
 
+    def text_rows(self, lines, theme) -> range:
+        """The fragment's content occupies its drawn rows unless it owns a header."""
+        return range(lines.height)
+
     def blocks(self, shown: Shown) -> tuple[LineBlock, ...]:
         """What this fragment draws in committed history when shown so, one block per visual part.
 
@@ -302,13 +306,25 @@ class TranscriptFragment:
         held = self.__dict__.get("_lines")
         return held[1] if held is not None and held[0].preparation.matches(width, theme) else None
 
+    def retains_lines(self, lines, theme) -> bool:
+        """Whether measured rows still belong to this source and palette.
+
+        Their width belongs to the rows themselves. Offscreen geometry may
+        retain that measured width until the viewport asks for another one.
+        """
+        plain = self.__dict__.get("_plain")
+        return (self.lines_for(lines.width, theme) is lines
+                or (plain is not None and plain[0] == theme and plain[1] is lines))
+
     def invalidate_lines(self):
         self.__dict__.pop("_lines", None)
 
-    def hold_lines(self, request, lines) -> None:
-        """Retain the owning request, unless the fragment changed its source blocks."""
+    def hold_lines(self, request, lines) -> bool:
+        """Report whether these rows were retained for the fragment's source."""
         if request.blocks is self.line_blocks:
             self._lines = request, lines
+            return True
+        return False
 
     def plain_lines(self, width: int, theme):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""

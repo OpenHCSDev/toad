@@ -10,8 +10,10 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
@@ -34,6 +36,7 @@ class TranscriptPublication(ABC):
         self.thread_scope = owner.thread_scope
         self.window, self.contents = window, contents
         self.destination = HeldReaderDestination.held(window)
+        self.history = next(iter(owner.histories), None)
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def native_current(self) -> bool:
@@ -46,22 +49,11 @@ class TranscriptPublication(ABC):
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
-        """Wire assignment can advance without transferring anonymous native output.
-
-        The mounted canonical history retains the native/outcome prefix. The
-        current certified source supplies its original assigned-wire frontier.
-        This is a bounded read of that source, not another presentation store.
-        """
+        """The mounted canonical history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
-        prefixes = tuple(bound for history in self.owner.histories
-                         if history in self.captured and history.state.reports_coverage
-                         for bound in (history.committed_cursor,)
-                         if bound.receipts_within(cursor))
-        prefix = max((bound for bound in prefixes if bound.session_file == cursor.session_file),
-                     key=lambda bound: bound.offset,
-                     default=next(iter(prefixes), TranscriptCursor(cursor.session_file, 0)))
-        return TranscriptCursor(prefix.session_file, prefix.offset, cursor.receipts)
+        return cursor.over_native(tuple(history.committed_cursor for history in self.owner.histories
+                                        if history in self.captured and history.state.reports_coverage))
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
         return self.current() and self.source_bound(cursor) == cursor
@@ -96,7 +88,6 @@ class TranscriptPublication(ABC):
             # messages whose resource custody the source needs to capture.
             self.owner.source_requests.submit(self)
             return True
-        from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
         from agent_comms.errors import UnregisteredThreadError
 
         try:
@@ -152,101 +143,6 @@ class TranscriptPublication(ABC):
     async def publish_applied(self) -> bool: ...
 
 
-class SnapshotPublication(TranscriptPublication):
-    def __init__(self, owner, view, window, contents, page: TranscriptPage):
-        super().__init__(owner, view, window, contents)
-        self.page = page
-
-    def admitted(self) -> bool:
-        """The mounted source frontier owns admission, under its window lock."""
-        frontiers = (history.committed_cursor for history in self.owner.histories
-                     if history.is_attached and history.state.reports_coverage)
-        frontier = max((cursor for cursor in frontiers
-                        if cursor.session_file == self.page.after.session_file),
-                       key=lambda cursor: (cursor.offset, cursor.wire_seq), default=None)
-        if frontier is None:
-            return True
-        if not frontier.contains(self.page.after):
-            self.owner.require_checkpoint()
-        return False
-
-    async def publish_applied(self) -> bool:
-        # The original supplied page is already known at the inherited join.
-        await self.publish_page()
-        return True
-
-    async def publish_page(self) -> None:
-        """Admit this operation's known cut and original applied resource cohort."""
-        from toad.transcript_preparation import TranscriptPageRenderTask
-        from toad.work_preparation import RenderPreparation
-        from toad.widgets.transcript_history import TranscriptHistory
-        from toad.widgets.committed_presentation import (
-            CommitEvidence, retirement_candidates,
-        )
-        async with self.window.history_lock:
-            if not self.current():
-                return
-            if not self.source_current(self.page.after):
-                self.owner.require_checkpoint()
-                return
-            for history in self.owner.histories:
-                history.state.validate_snapshot(history, self.page)
-            if not self.admitted():
-                return
-        prepared = await self.owner.view.app.preparation.submit(
-            RenderPreparation(TranscriptPageRenderTask(self.page))
-        )
-        if not self.current():
-            return
-        view = self.owner.view
-        history = TranscriptHistory(prepared, self.owner.get_transcript_page, committed=False)
-        await self.contents.prepare_history(
-            history, partial(self.source_current, self.page.after), window=self.window,
-        )
-        async with AsyncExitStack() as retirement:
-            async with self.window.history_lock:
-                # Preparation may yield to another accepted source publication.
-                # Recheck the original operation against those actual resources;
-                # a pre-render absence check cannot authorize a second full page.
-                if not self.current() or not self.admitted():
-                    return
-                if not self.source_current(self.page.after):
-                    self.owner.require_checkpoint()
-                    return
-                async with self.window.preserve_history(root=self.contents):
-                    accepted = False
-                    try:
-                        await self.contents.mount(history)
-                        if not self.source_current(self.page.after):
-                            if self.current():
-                                self.owner.require_checkpoint()
-                            return
-                        # This accepted full source replaces exactly the old
-                        # history resources captured before its mount. Original
-                        # live inputs still need native identity evidence.
-                        evidence = CommitEvidence(
-                            self.captured, retained_history=history,
-                            native_inputs=frozenset(native_id for event in self.page.events
-                                                    for native_id in event.native_inputs),
-                            outgoing=prepared.outgoing_coverage,
-                        )
-                        history.publish_committed()
-                        accepted = True
-                        retired = retirement_candidates(self.contents.children, evidence)
-                        retirement.push_async_callback(
-                            self.owner.retire_presentations(self.contents, view.output, retired)
-                        )
-                    finally:
-                        # A provisional mount owns no source coverage. Its cleanup
-                        # must finish before native frame admission is released.
-                        # Accepted source survives cancellation while old rows retire.
-                        if not accepted and history.is_attached:
-                            retirement.push_async_callback(
-                                self.owner.retire_presentations(self.contents, view.output, [history])
-                            )
-        self.owner.painted(self.page.after)
-
-
 class HandlingPublication(TranscriptPublication):
     """Render original recipient outcomes on existing original source bodies."""
 
@@ -274,7 +170,17 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_snapshot(self):
-        return await self.owner.reader.updates(*self.thread_scope, self.owner.current_read)
+        return await self.read_past_history(
+            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read))
+
+    async def read_past_history(self, read, **whole):
+        """What follows the mounted history's end while its source only grew, else the whole latest page."""
+        if self.history is not None:
+            try:
+                return await read(after=self.history.committed_cursor)
+            except TranscriptChanged:
+                pass  # Another source file replaced the history's.
+        return await read(**whole)
 
     async def publish_applied(self) -> bool:
         if not self.owner.readable:
@@ -307,7 +213,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         bound = self.source_bound(page.after)
         if bound != page.after:
             self.owner.dirty = self.owner.checkpoint_required = True
-            page = await self.owner.get_transcript_page(through=bound)
+            page = await self.owner.get_transcript_page(after=snapshot.identity.after, through=bound)
             # Preserve this cut's original cohort across the bounded read.
             if not await self.application_current():
                 return True
@@ -321,12 +227,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
-        # Supplied snapshots capture their own application boundary. This
-        # original read already joined and retains that exact resource cohort.
-        snapshot = SnapshotPublication(self.owner, self.owner.view,
-                                       self.window, self.contents, page)
-        snapshot.captured = self.captured
-        await snapshot.publish_page()
+        self.owner.received(page)
         return await self.owner.publish(HandlingPublication)
 
 
@@ -337,9 +238,9 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         self.agent = view.agent
 
     async def read_snapshot(self):
-        identity = self.presentation.read_identity
-        return await self.owner.reader.updates(
-            *self.thread_scope, self.owner.current_read, read_identity=identity)
+        return await self.read_past_history(
+            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read),
+            read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
         view = self.owner.view
@@ -419,8 +320,8 @@ class CheckpointPublication(CanonicalSourcePublication):
         self.plan = checkpoint_plan(window)
 
     async def read_snapshot(self):
-        # Replacing the visible window needs its page even when source text is unchanged.
-        return await self.owner.reader.snapshot(*self.thread_scope)
+        # Mounted history grows by what follows its end; without one the window needs a whole page.
+        return await self.read_past_history(partial(self.owner.reader.snapshot, *self.thread_scope))
 
     def current(self) -> bool:
         view = self.owner.view
@@ -428,9 +329,7 @@ class CheckpointPublication(CanonicalSourcePublication):
                 and self.plan.current(self.window))
 
     def admitted(self) -> bool:
-        from toad.widgets.committed_presentation import (
-            CheckpointBarrier, CommitParticipant, CommittedHistory,
-        )
+        from toad.widgets.committed_presentation import CheckpointBarrier, CommitParticipant
 
         view = self.owner.view
         if not self.current() or not self.owner.dirty:
@@ -441,11 +340,9 @@ class CheckpointPublication(CanonicalSourcePublication):
             return False
         if not self.owner.checkpoint_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
             return False
-        history = next((child for child in self.contents.children
-                        if isinstance(child, CommittedHistory)), None)
         potential = tuple(child for child in self.contents.children
-                          if child is not history and isinstance(child, CommitParticipant))
-        return self.plan.ready(history) and self.plan.permits(view, potential)
+                          if child is not self.history and isinstance(child, CommitParticipant))
+        return self.plan.ready(self.history) and self.plan.permits(view, potential)
 
     async def publish_applied(self) -> bool:
         if self.admitted():
@@ -457,11 +354,7 @@ class CheckpointPublication(CanonicalSourcePublication):
             self.owner.view.notify(str(error), title="Committed history", severity="error")
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
-        from toad.widgets.committed_presentation import (
-            CommitEvidence,
-            CommittedHistory,
-            retirement_candidates,
-        )
+        from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         from toad.widgets.transcript_history import TranscriptHistory
 
         view = self.owner.view
@@ -470,23 +363,18 @@ class CheckpointPublication(CanonicalSourcePublication):
         window, contents = self.window, self.contents
         if not self.admitted():
             return True
-        plan = self.plan
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
-        original_children = tuple(contents.children)
-        history = next(
-            (child for child in original_children if isinstance(child, CommittedHistory)),
-            None,
-        )
+        plan, history = self.plan, self.history
         is_current = partial(self.source_current, page.after)
-        if not page.events or not is_current():
+        if history is None and not page.events or not is_current():
             return True
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
             return True
         evidence = CommitEvidence(
             self.captured, prepared.sequences, prepared.history,
-            frozenset(native_id for event in page.events for native_id in event.native_inputs),
+            TranscriptCoverage(page.events).native_inputs,
             prepared.outgoing,
         )
         replacement = None
@@ -543,6 +431,8 @@ class CheckpointPublication(CanonicalSourcePublication):
             self.owner.dirty = False
             self.owner.checkpoint_required = False
         plan.finish(view, page.after)
+        if page.has_newer:
+            self.owner.require_checkpoint()
         return True
 
 
@@ -677,6 +567,14 @@ class TranscriptPresentation:
         contents = view.query_one_optional(Contents)
         return tuple(contents.query_children(TranscriptHistory)) if contents is not None else ()
 
+    def received(self, page: TranscriptPage) -> None:
+        """A read page resumes parked history; a checkpoint adds what the history lacks."""
+        for history in self.histories:
+            history.state.validate_snapshot(history, page)
+        history = next(iter(self.histories), None)
+        if history is None or not history.committed_cursor.contains(page.after):
+            self.require_checkpoint()
+
     @property
     def reports_coverage(self) -> bool:
         return any(history.state.reports_coverage for history in self.histories)
@@ -777,7 +675,7 @@ class TranscriptPresentation:
         return True
 
     async def snapshot(self, page: TranscriptPage) -> None:
-        await self.publish(SnapshotPublication, page)
+        self.received(page)
 
     def painted(self, cursor: TranscriptCursor) -> None:
         from toad.widgets.conversation import Window, Contents

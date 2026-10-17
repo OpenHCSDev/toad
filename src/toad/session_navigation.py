@@ -18,6 +18,7 @@ from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
 from toad.session_tracker import OpenTab, SessionDetails
 
 if TYPE_CHECKING:
+    from agent_comms.ui_model.sidebar import ThreadRowModel
     from toad.app import ToadApp
     from toad.conversation_kind import ConversationKind
     from toad.screens.main import MainScreen
@@ -87,6 +88,12 @@ class SessionNavigation:
     def source(self, mode: str) -> MainScreen | None:
         entry = self.get(mode)
         return entry.source(self) if entry else None
+
+    def thread_row(self, row: ThreadRowModel) -> ThreadRowModel:
+        """A thread's row as this app shows it, with the state of each open session of it."""
+        for entry in self.members:
+            row = entry.thread_row(self, row)
+        return row
 
     async def reconnect(self, selected, targets: tuple[str, ...]) -> None:
         if not targets:
@@ -212,7 +219,7 @@ class SessionNavigation:
         entry = self.find(kind.view_identity(prepared.key))
         if entry is None:
             entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key, kind,
-                                                project_path, prepared.recovery_root, prepared.participants)
+                                                project_path, prepared.owner_root, prepared.participants)
             await self.open(entry)
         else:
             await app.select_session(entry.mode)
@@ -250,9 +257,9 @@ class SessionNavigation:
         for entry in self.members:
             entry.sync_identity(self, owner, previous, current)
 
-    def sync_recovery(self, owner: str, root: str | None) -> None:
+    def sync_owner_root(self, owner: str, root: str | None) -> None:
         for entry in self.members:
-            entry.sync_recovery(self, owner, root)
+            entry.sync_owner_root(self, owner, root)
 
     def sync_project(self, owner: str, project: Path) -> None:
         for entry in self.members:

@@ -9,7 +9,7 @@ from textual.css.model import RuleSet
 from textual.css.stylesheet import CssSource
 from textual.binding import Binding
 from textual.dom import DOMNode
-from textual.events import Resize, ScreenResume
+from textual.events import ScreenResume
 from textual.geometry import Size
 from textual.screen import Screen
 from textual.widget import Widget
@@ -98,7 +98,7 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
         from textual.containers import Horizontal, Container
         chrome = self.app.workspace_chrome
         yield chrome.navigation
-        with Horizontal(id="workspace-body"):
+        with Horizontal(id="workspace-body").set_styles(layout=chrome):
             yield chrome.channels
             yield Container(id="workspace-session-host")
         yield chrome.footer
@@ -163,9 +163,6 @@ class WorkspaceScreen(SidebarFocusOwner, Screen):
     async def _message_loop_exit(self) -> None:
         self.frame_presentation.close()
         await super()._message_loop_exit()
-
-    def on_resize(self, _event: Resize) -> None:
-        self.app.workspace_chrome.layout_sidebars(self)
 
     def _style_revision(self) -> ViewStyleRevision:
         return ViewStyleRevision(

@@ -24,8 +24,8 @@ from toad.core.events import SessionChangedEvent
 from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab
-from toad.textual_colours import Animated
-from ui_theme.effects import TAB_WIPE
+from toad.frame_presentation import Animated
+from ui_theme.effects import TAB_WIPE, Band
 from toad.widgets.selection import ViewLabel
 
 
@@ -112,7 +112,7 @@ class SessionTabClose(PrimaryActivation, widgets.Static, can_focus=True):
             self.action_close_tab()
 
 
-class Underline(Animated, Widget):
+class Underline(Animated[Band]):
     """The underline beneath tabs; a wipe crosses the current tab's highlight when it is chosen."""
 
     COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
@@ -245,8 +245,9 @@ class SessionsTabs(CoreEventReceiver, Widget):
         if self.screen.is_active:
             await self._sync_tabs()
 
-    @handles(core_events.OpenTabsChanged)
+    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged)
     async def _tabs_changed(self, event: CoreEventMessage) -> None:
+        """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:
             await self._sync_tabs()
 

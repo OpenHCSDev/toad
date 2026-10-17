@@ -2,11 +2,11 @@
 
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.session_sort import ChannelListSort
-from toad.widgets.side_bar import SideBar, CommsSideBar
+from toad.widgets.side_bar import SideBar
 from textual.widget import Widget
 
 
-class ChannelsSidebar(CommsSideBar):
+class ChannelsSidebar(SideBar):
     def __init__(self, session_thread: str = "", *,
                  observe: bool = True, defer_mount: bool = False) -> None:
         self.roster = CommsSidebar(

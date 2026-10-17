@@ -8,7 +8,7 @@ import sys
 from unittest.mock import patch
 
 import psutil
-from agent_comms import cohort_foreground
+from agent_comms import private_nk_entrypoint
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.route_selection import RouteSelection, current_root
@@ -62,7 +62,7 @@ async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_
         assert process.returncode is not None
         assert not live_members(group), "old ACP descendant survived stop"
         assert agent.process.process is None
-        with patch.object(cohort_foreground, "_trusted_package", lambda _: None):
+        with patch.object(private_nk_entrypoint, "_trusted_package", lambda _: None):
             publish_active_route(route)
         assert current_root() == new_root
     finally:
