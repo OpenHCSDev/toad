@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Iterable
+from contextlib import contextmanager
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
@@ -236,15 +237,34 @@ class TargetTree(Vertical):
     def accepts_selection(self) -> bool:
         return True
 
+    def row_for(self, selection):
+        raise NotImplementedError
+
+    def row_selected(self, row) -> bool:
+        return self.selection_for(row) in self.selection_state.selected_targets
+
+    def channel_active(self, row) -> bool:
+        return False
+
+    @contextmanager
+    def selection_change(self):
+        previous = set(self.selection_state.selected_targets)
+        try:
+            yield
+        finally:
+            for identity in previous.symmetric_difference(self.selection_state.selected_targets):
+                if (row := self.row_for(identity)) is not None:
+                    row.refresh_paint()
+
     def remember_row(self, row) -> None:
         """Navigation establishes a range anchor; it is not bulk selection."""
         rows = self.rows
         if self.accepts_selection() and row in rows:
             self._cursor = rows.index(row)
-            state = self.selection_state
-            state.selected = self.selection_for(row)
-            state.selected_targets = ()
-            self.apply_selection()
+            with self.selection_change():
+                state = self.selection_state
+                state.selected = self.selection_for(row)
+                state.selected_targets = ()
 
     def pointer_select(self, row, *, control=False, shift=False, menu=False) -> None:
         if not self.accepts_selection():
@@ -258,26 +278,26 @@ class TargetTree(Vertical):
         if menu and selected in current:
             return
         identities = tuple(self.selection_for(item) for item in rows)
-        if shift and state.selected in identities:
-            start, end = sorted((identities.index(state.selected), identities.index(selected)))
-            span = identities[start:end + 1]
-            state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
-        elif control:
-            state.selected_targets = (tuple(item for item in current if item != selected)
-                                      if selected in current else (*current, selected))
-            state.selected = selected
-        else:
-            state.selected = selected
-            state.selected_targets = (selected,)
-        self.apply_selection()
+        with self.selection_change():
+            if shift and state.selected in identities:
+                start, end = sorted((identities.index(state.selected), identities.index(selected)))
+                span = identities[start:end + 1]
+                state.selected_targets = tuple(dict.fromkeys((*current, *span))) if control else span
+            elif control:
+                state.selected_targets = (tuple(item for item in current if item != selected)
+                                          if selected in current else (*current, selected))
+                state.selected = selected
+            else:
+                state.selected = selected
+                state.selected_targets = (selected,)
+        if state.selected == selected:
+            self._cursor = rows.index(row)
 
     def apply_selection(self) -> None:
-        rows = self.rows
-        state = self.selection_state
-        identities = {self.selection_for(row) for row in rows}
-        state.selected_targets = tuple(target for target in state.selected_targets if target in identities)
-        for row in rows:
-            row.set_class(self.selection_for(row) in state.selected_targets, "-selected")
+        with self.selection_change():
+            state = self.selection_state
+            state.selected_targets = tuple(identity for identity in state.selected_targets
+                                           if self.row_for(identity) is not None)
 
     @property
     def navigation_root(self):

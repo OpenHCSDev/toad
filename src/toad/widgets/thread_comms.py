@@ -37,8 +37,8 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
 @dataclass
 class RelationshipTreeState:
     expanded: dict[type[RelationshipGroup], bool] = field(default_factory=dict)
-    selected: tuple[type[RelationshipGroup], str] | None = None
-    selected_targets: tuple[tuple[type[RelationshipGroup], str], ...] = ()
+    selected: tuple[type[RelationshipGroup], tuple[str, str]] | None = None
+    selected_targets: tuple[tuple[type[RelationshipGroup], tuple[str, str]], ...] = ()
 
 
 class RelationshipSort(SortControl[ThreadSort]):
@@ -405,7 +405,11 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         return self.view_state
 
     def selection_for(self, row):
-        return type(row.query_ancestor(RelationshipRows).model), row.target_name
+        return type(row.query_ancestor(RelationshipRows).model), row.entry.identity
+
+    def row_for(self, selection):
+        group = self.groups.get(selection[0])
+        return group.rows.get(selection[1]) if group is not None and group.expanded and group.accepts_members() else None
 
     @property
     def navigation_root(self):

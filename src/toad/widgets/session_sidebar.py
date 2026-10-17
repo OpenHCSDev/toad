@@ -5,13 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from textual.content import Content
+from textual import events, on
 from textual.geometry import Offset
 from textual.layout import WidgetPlacement
 from textual.reactive import var
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
-from ui_theme.scheme import AlternateRowToneColour
+from ui_theme.scheme import AlternateRowToneColour, BlockCursorBackgroundColour, BlockCursorForegroundColour
 
 from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import HoverSelection, ViewLabel
@@ -36,10 +37,6 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         pointer: pointer;
     }
     ThreadStatusRow.-wire-thread.-busy { color: $warning; }
-    ThreadStatusRow:hover, ThreadStatusRow:focus {
-        background: $block-cursor-background;
-        color: $block-cursor-foreground !important;
-    }
     """
 
     def __init__(self, *args, **kwargs):
@@ -49,6 +46,24 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         self.thread_row: ThreadRowModel | None = None
         self.pinned = False
         self.action_status: str | None = None
+
+    @property
+    def highlighted(self) -> bool:
+        return self.has_focus or self.mouse_hover
+
+    @property
+    def paint_background(self):
+        return self.app.colours.colour(BlockCursorBackgroundColour) if self.highlighted else None
+
+    @property
+    def paint_foreground(self):
+        return self.app.colours.colour(BlockCursorForegroundColour) if self.highlighted else None
+
+    @on(events.Enter)
+    @on(events.Leave)
+    def hover_changed(self, event) -> None:
+        if event.node is self:
+            self.refresh_paint()
 
     def on_mount(self) -> None:
         self.run_effect(SIDEBAR_ENTER)
