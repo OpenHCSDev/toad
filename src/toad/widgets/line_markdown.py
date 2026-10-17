@@ -193,5 +193,4 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         return self.on_background(strips[y], paint, y)
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
-        """Selected text comes from the source text, not from drawn cells."""
         return selection.extract(self.text), "\n"
