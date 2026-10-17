@@ -21,7 +21,7 @@ wheels = [
 [[package]]
 name = "agent-comms"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=318516673228fa4368a76c46d3a8e544d68a3d24#318516673228fa4368a76c46d3a8e544d68a3d24" }
+source = { git = "https://github.com/OpenHCSDev/agent-comms.git?rev=00be560e89a3d68e4a0a6f5d002bbf1aa80ea960#00be560e89a3d68e4a0a6f5d002bbf1aa80ea960" }
 dependencies = [
     { name = "aiohttp" },
     { name = "metaclass-registry" },
@@ -306,7 +306,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "agent-client-protocol", specifier = "==0.12.1" },
-    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=318516673228fa4368a76c46d3a8e544d68a3d24" },
+    { name = "agent-comms", extras = ["acp"], git = "https://github.com/OpenHCSDev/agent-comms.git?rev=00be560e89a3d68e4a0a6f5d002bbf1aa80ea960" },
     { name = "aiosqlite", specifier = "==0.22.1" },
     { name = "bashlex", specifier = "==0.18" },
     { name = "click", specifier = "==8.4.0" },
@@ -329,7 +329,7 @@ requires-dist = [
     { name = "textual-speedups", specifier = "==0.2.1" },
     { name = "typeguard", specifier = "==4.5.2" },
     { name = "typing-extensions", specifier = "==4.15.0" },
-    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=2a94e95e5e9e50dc666a669268cb8b1f23623ea8" },
+    { name = "ui-theme", git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c5e9ed70063c111965fcff0caf8eb8747649cbc7" },
     { name = "watchdog", specifier = "==6.0.0" },
     { name = "xdg-base-dirs", specifier = ">=6.0.2" },
 ]
@@ -2013,7 +2013,7 @@ wheels = [
 [[package]]
 name = "ui-theme"
 version = "0.1.0"
-source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=2a94e95e5e9e50dc666a669268cb8b1f23623ea8#2a94e95e5e9e50dc666a669268cb8b1f23623ea8" }
+source = { git = "https://github.com/OpenHCSDev/ui-theme.git?rev=c5e9ed70063c111965fcff0caf8eb8747649cbc7#c5e9ed70063c111965fcff0caf8eb8747649cbc7" }
 dependencies = [
     { name = "metaclass-registry" },
     { name = "terminaltexteffects" },
