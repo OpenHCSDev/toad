@@ -14,6 +14,7 @@ from textual.widget import Widget
 from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
+from toad.transcript_state import LatestViewportRequest
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
@@ -38,23 +39,17 @@ class ReaderPosition(ABC):
         if window.follows_tail:
             return TailPosition()
         y = window.scroll_y
-        # The reader's row is on screen: a page layout did not place cannot hold it.
-        pages = [(first, page) for history in window.line_histories() for page in history.pages
-                 if page.line_count and (first := window.placed_row(page)) is not None]
-        # The page drawn at the window's top; above every page (on the
-        # earlier-history edge) the reader is on the first message below, at a
-        # distance above it.
-        reading = (next(((first, page) for first, page in pages if first <= y < first + page.line_count), None)
-                   or min(((first, page) for first, page in pages if first > y),
-                          key=lambda placed: placed[0], default=None))
+        reading = min(((first, page) for page in window.drawn_pages()
+                       if page.line_count and (first := window.placed_row(page)) is not None
+                       and first + page.line_count > y),
+                      key=lambda placed: max(y, placed[0]), default=None)
         if reading is not None:
             first, page = reading
-            row = max(0, int(y - first))
-            fragment, _ = page.fragment_at(row)
+            fragment, _ = page.fragment_at(max(0, int(y - first)))
             start, height, _ = page.fragment_row(fragment)
             return FragmentPosition(fragment, (y - first - start) / height, height)
-        if (block := window.top_block()) is not None:
-            return BlockPosition(block, window.row_of(block), y)
+        if (position := BlockPosition.of(window)) is not None:
+            return position
         return RowPosition(y)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
@@ -161,8 +156,8 @@ class FragmentPosition(OffsetPosition):
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that has this message admitted."""
-        return next((page for history in window.line_histories() for page in history.pages
-                     if page.fragment_row(self.fragment) is not None and window.displays(page)), None)
+        return next((page for page in window.drawn_pages()
+                     if page.fragment_row(self.fragment) is not None), None)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         page = self.page(window)
@@ -190,6 +185,21 @@ class BlockPosition(OffsetPosition):
     block: Widget
     row: int
     y: float
+
+    @classmethod
+    def of(cls, window: "HistoryWindow") -> "BlockPosition | None":
+        """The topmost drawn live block; containers of other blocks do not hold the reader."""
+        from toad.block_navigation import ConversationBlock
+        from toad.widgets.transcript_history import LineHistory
+
+        visible = window.screen._compositor.published_widgets
+        blocks = [widget for widget in visible
+                  if isinstance(widget, ConversationBlock) and not isinstance(widget, LineHistory)
+                  and window in widget.ancestors]
+        holders = {ancestor for block in blocks for ancestor in block.ancestors}
+        block = min(window.visible_history_items(block for block in blocks if block not in holders),
+                    key=lambda node: visible[node][0].y, default=None)
+        return None if block is None else cls(block, window.row_of(block), window.scroll_y)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return (self.block,) if self.block.is_attached and window.displays(self.block) else None
@@ -336,8 +346,6 @@ class LatestPosition(HeldReaderDestination, TailPosition):
         super().source_settled(window)
 
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
-        from toad.transcript_state import LatestViewportRequest
-
         return await history._jump_latest(LatestViewportRequest(self))
 
     def left_tail(self, window: "HistoryWindow") -> None:
@@ -496,22 +504,13 @@ class HistoryWindow(VerticalScroll):
                               "a reader position's widgets must be visible or declared geometry targets")
         return row
 
-    def top_block(self) -> Widget | None:
-        """The topmost live block on screen (not a saved history, whose pages are read by message).
+    def drawn_pages(self):
+        """Pages in this window's published viewport, not all loaded history."""
+        from toad.widgets.transcript_history import TranscriptPageView
 
-        A block that holds other blocks is not one the reader is on: rows
-        added inside it move theirs.
-        """
-        from toad.block_navigation import ConversationBlock
-        from toad.widgets.transcript_history import LineHistory
-
-        visible = self.screen._compositor.published_widgets
-        blocks = [widget for widget in visible
-                  if isinstance(widget, ConversationBlock) and not isinstance(widget, LineHistory)
-                  and self in widget.ancestors]
-        holders = {ancestor for block in blocks for ancestor in block.ancestors}
-        return min(self.visible_history_items(block for block in blocks if block not in holders),
-                   key=lambda node: visible[node][0].y, default=None)
+        pages = (widget for widget in self.screen._compositor.published_widgets
+                 if isinstance(widget, TranscriptPageView))
+        return (page for page in self.visible_history_items(pages) if self.displays(page))
 
     def keep_reader(self) -> None:
         """What this window draws is about to change: layout keeps the reader where they are now."""

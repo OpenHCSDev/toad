@@ -7,7 +7,6 @@ from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.message import Message
 from textual.widgets import ListView, Label
-from textual._partition import partition
 from textual import events
 from textual.widget import Widget
 from textual.layouts.horizontal import HorizontalLayout
@@ -97,28 +96,16 @@ class Menu(ListView, can_focus=True):
         owner: Widget
         action: str | None
 
-    @dataclass
-    class Dismissed(Message):
-        """Menu was dismissed."""
-
-        menu: Menu
-
-    def __init__(self, owner: Widget, options: list[MenuItem], *args, **kwargs) -> None:
+    def __init__(self, owner: Widget, options: list[MenuItem], *args, focus_owner: Widget, **kwargs) -> None:
         self._owner = owner
-        self._options = options
+        self._focus_owner = focus_owner
+        self._options = sorted(options, key=lambda option: option.key is None)
         super().__init__(*args, **kwargs)
 
     def _insert_options(self) -> None:
-        with_keys, without_keys = partition(
-            lambda option: option.key is None, self._options
-        )
         self.extend(
             MenuOption(menu_item.action, menu_item.description, menu_item.key)
-            for menu_item in with_keys
-        )
-        self.extend(
-            MenuOption(menu_item.action, menu_item.description, menu_item.key)
-            for menu_item in without_keys
+            for menu_item in self._options
         )
 
     def on_mount(self) -> None:
@@ -127,12 +114,18 @@ class Menu(ListView, can_focus=True):
     async def activate_index(self, index: int) -> None:
         action = self._options[index].action
         self.post_message(self.OptionSelected(self, self._owner, action))
+        self.action_dismiss()
 
-    async def action_dismiss(self) -> None:
-        self.post_message(self.Dismissed(self))
+    def action_dismiss(self) -> None:
+        if self.is_leaving:
+            return
+        if self.has_focus:
+            self.screen.set_focus(self._focus_owner, scroll_visible=False)
+        self.display = False
+        self.remove()
 
-    async def on_blur(self) -> None:
-        self.post_message(self.Dismissed(self))
+    def on_blur(self) -> None:
+        self.action_dismiss()
 
     @on(events.Key)
     async def on_key(self, event: events.Key) -> None:
