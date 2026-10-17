@@ -38,7 +38,7 @@ dependencies = [
 members = ["toad"]
 
 [tool.uv.sources]
-ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "e3fc484b3268a64f9d743a7ed5011928554422d9" }
+ui-theme = { git = "https://github.com/OpenHCSDev/ui-theme.git", rev = "39e54ca18bc85461995cddce5d22e5457637dd79" }
 agent-comms = { git = "https://github.com/OpenHCSDev/agent-comms.git", rev = "49f187fcbe2ae732e182273d7acacd02ee2d6f80" }
 textual = { git = "https://github.com/OpenHCSDev/textual.git", rev = "6399cf35116620460987fd535d2413fc4a564609" }
 formbridge = { git = "https://github.com/OpenHCSDev/formbridge.git", rev = "ebe2fa9173428e2bd7154a0de23698757677c3c2" }
