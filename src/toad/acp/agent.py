@@ -300,15 +300,14 @@ class Agent(AgentBase):
             self.coordination.thread.name if self.coordination else None
         ) is None:
             raise ValueError("Project changes require an agent-comms thread.")
-        from agent_comms.comms import wire
-
-        result = await asyncio.to_thread(
-            wire(
-                (self.coordination.wire_root if self.coordination else None)
-            ).threads.set_project,
-            (self.coordination.thread.name if self.coordination else None),
-            path,
-        )
+        authority = ClientSessionRequest(self, self.session_id)
+        coordination = self.coordination
+        async with self.controller.transcripts.bind(coordination.wire_root) as comms:
+            authority.require()
+            result = await asyncio.to_thread(
+                comms.threads.set_project, coordination.thread.name, path,
+            )
+        authority.require()
         self.coordination = replace(self.coordination, worktree=result.current)
         self.project_root_path = Path(result.current)
         self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
