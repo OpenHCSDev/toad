@@ -152,11 +152,11 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     def __init__(self) -> None:
         super().__init__()
         self._cursor = -1
-        self.sections = (WelcomeChannels(), WelcomeThreads())
+        self.navigation_groups = (WelcomeChannels(), WelcomeThreads())
 
     def compose(self) -> ComposeResult:
         yield NewSessionButton()
-        yield from self.sections
+        yield from self.navigation_groups
 
     async def on_mount(self) -> None:
         app = self.app
@@ -181,16 +181,13 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         # A channel change can change which threads are listed and their order.
-        channel_list, thread_list = self.sections
+        channel_list, thread_list = self.navigation_groups
         channel_list.sync_members(channels)
         thread_list.sync_members(threads)
 
     @handles(SessionSelected)
     async def present_selected(self, event: CoreEventMessage) -> None:
         self.present()
-
-    def _ordered_rows(self):
-        return [row for section in self.sections for row in section.navigation_rows]
 
 
 class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):

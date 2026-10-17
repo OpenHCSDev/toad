@@ -277,7 +277,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
         """Keep the sidebar cursor in sync with keyboard focus."""
         sidebar = self.sidebar_owner()
         if sidebar is not None:
-            rows = sidebar._ordered_rows()
+            rows = sidebar.rows
             if self in rows:
                 sidebar.focus_row(self)
 
@@ -357,7 +357,7 @@ class NewSessionButton(Static):
 
     def action_cursor_up(self) -> None:
         if (sidebar := self._sidebar()) is not None:
-            rows = sidebar._ordered_rows()
+            rows = sidebar.rows
             if rows:
                 sidebar._cursor = len(rows)
                 sidebar.action_cursor_up()
@@ -682,13 +682,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
     def sidebar_visibility_changed(self) -> None:
         self.present()
 
-    def _ordered_rows(self):
-        return self.rows
-
     @property
-    def rows(self) -> list[CommsRow]:
-        return [row for group in self.children if isinstance(group, ChannelGroup)
-                for row in group.navigation_rows]
+    def navigation_groups(self):
+        return (group for group in self.children if isinstance(group, ChannelGroup))
 
     @property
     def selection_state(self):

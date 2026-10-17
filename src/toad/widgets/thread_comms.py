@@ -425,8 +425,9 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 context.update(Content("Comms unavailable"), layout=False)
                 context.tooltip = str(error)
 
-    def _ordered_rows(self):
-        return [row for group in self.groups.values() for row in group.navigation_rows]
+    @property
+    def navigation_groups(self):
+        return self.groups.values()
 
     @property
     def selection_state(self):
