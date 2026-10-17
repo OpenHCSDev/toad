@@ -54,7 +54,7 @@ class TerminalTool(Terminal, MroDispatch):
         self, scrollback: set[int] | None, alternate: set[int] | None
     ) -> None:
         self.project_state(scrollback, alternate)
-        self.dispatch_sync(self.execution.outcome)
+        self.dispatch_sync(self.execution.operation.outcome())
 
     @handles(RunningTerminalOutcome, UnstartedTerminalOutcome, RetiredTerminalOutcome)
     def present_pending(self, outcome) -> None:

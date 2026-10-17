@@ -383,13 +383,9 @@ class TerminalExecution:
         return self._command
 
     @property
-    def outcome(self):
-        return self.operation.outcome()
-
-    @property
     def tool_state(self):
         output, truncated = self.get_output()
-        return ToolState(output, truncated, self.outcome)
+        return ToolState(output, truncated, self.operation.outcome())
 
     def attach(self, terminal):
         self._view = ref(terminal)

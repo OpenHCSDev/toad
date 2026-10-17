@@ -22,7 +22,7 @@ class CommandPane(CoreEventReceiver, Terminal):
 
     @property
     def return_code(self) -> int | None:
-        return self.execution.outcome.return_code
+        return self.execution.operation.outcome().return_code
 
     def resize_process(self, width: int, height: int) -> None:
         self.execution.update_size(width, height)
