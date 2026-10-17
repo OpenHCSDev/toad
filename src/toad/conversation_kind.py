@@ -143,7 +143,7 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def read_only(cls, catalog, target):
-        return catalog.resolve(target).view is not None
+        return catalog.resolve(target).read_only
 
     @classmethod
     async def update_mentions(cls, view, comms):
