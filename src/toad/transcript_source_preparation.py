@@ -102,7 +102,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         await self.close_source_reader()
 
     async def close_source_reader(self) -> None:
-        """Close independent source subscriptions, separately from page custody."""
+        """Close source subscriptions without releasing the separately held pages."""
 
     def request_preparation(self) -> None:
         """Use the frame's preparation slot for this independent source.

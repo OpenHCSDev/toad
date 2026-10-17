@@ -1,4 +1,4 @@
-"""One frame lifetime owns writer receipts, readiness and deferred source work."""
+"""Each frame tracks terminal flush completion, readiness and deferred source work."""
 from __future__ import annotations
 
 import asyncio
@@ -194,7 +194,7 @@ class FramePresentation:
         self.state.begin(self)
 
     def awaits_publication(self, owner: Widget, callback: Callable[[], object]) -> bool:
-        """Whether this owner's work already waits for its native receipt."""
+        """Whether this owner's callback already waits for its frame to be written."""
         return (owner, callback) in self.callbacks
 
     def defer(self, owner: Widget, callback: Callable[[], object]) -> None:

@@ -735,7 +735,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
 
     def watch_agent(self, agent: AgentBase | None) -> None:
         # A presentation remount is not a fresh attachment. Start at the
-        # Agent's current projection/floor so previously queued receipts cannot
+        # Agent's current projection/floor so previously queued updates cannot
         # revive proof after its reducer entered quarantine or evidence loss.
         if agent is not None:
             self.bind_agent(agent)
@@ -1387,7 +1387,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         await self._clear_mcp_live()
 
     async def on_mcp_client_status(self, message: CoreEventMessage) -> None:
-        """Render the turn-bound receipt only inside an active server-owned turn."""
+        """Show the MCP server summary only within the active turn it describes."""
         # The message carries the validated turn identity; a delayed or queued
         # message from an older agent cannot attach to a successor turn here.
         agent_session = self.agent.session_id if self.agent else None
@@ -1403,7 +1403,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             # shown outside the active-turn lifetime.
             return
         if self._mcp_live_note is not None:
-            return  # The package emits at most one receipt per turn.
+            return  # The package emits at most one server summary per turn.
         rows = message.event.update.receipt.servers
         summary = (
             "; ".join(

@@ -1,4 +1,4 @@
-"""Shared operational shell custody, independent of command/start behavior."""
+"""Shared shell process ownership, independent of how commands start."""
 from abc import ABC, abstractmethod
 import asyncio
 from toad.surface_binding import SurfaceBinding, DetachedSurfaceBinding

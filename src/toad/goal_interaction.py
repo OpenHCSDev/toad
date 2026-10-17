@@ -1,4 +1,4 @@
-"""Declared goal controls and source-bound modal/write custody."""
+"""Goal controls, dialogs and writes stay bound to their source."""
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -122,7 +122,7 @@ class ClearInteraction(GoalInteraction):
 
 
 class GoalSession:
-    """One optional modal and control custody for the actual source binding."""
+    """Owns the optional dialog and goal controls for this source binding."""
 
     def __init__(self, view: Conversation):
         self._view = ref(view)

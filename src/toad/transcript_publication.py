@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 class TranscriptPublication(ABC):
-    """A single read/publication's source, resource and generation custody."""
+    """Holds the source, resources and generation for one read and publication."""
 
     def __init__(self, owner: TranscriptPresentation, view: Conversation,
                  window: Window, contents: Contents) -> None:
@@ -40,7 +40,7 @@ class TranscriptPublication(ABC):
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
 
     def native_current(self) -> bool:
-        """Only anonymous native output requires settled resource custody."""
+        """Anonymous native output must have settled before the source captured it."""
         from toad.widgets.committed_presentation import CommitParticipant
 
         return self.current() and all(
@@ -71,7 +71,7 @@ class TranscriptPublication(ABC):
                 and view.query_one_optional(Contents) is self.contents)
 
     async def publish(self) -> bool:
-        """Join original UI application before capturing source-transfer custody.
+        """Wait for the UI to apply queued messages before acquiring their resources.
 
         Ordered ACP ingress can already report a settled source while its
         original body messages are still queued on the Conversation. Only that
@@ -85,7 +85,7 @@ class TranscriptPublication(ABC):
         if asyncio.current_task() is pump:
             # A snapshot notification itself runs on this pump. Its existing
             # source worker must perform the join; waiting here blocks the very
-            # messages whose resource custody the source needs to capture.
+            # messages whose resources the source needs to acquire.
             self.owner.source_requests.submit(self)
             return True
         from agent_comms.errors import UnregisteredThreadError
@@ -148,13 +148,10 @@ class HandlingPublication(TranscriptPublication):
 
     async def publish_applied(self) -> bool:
         from toad.widgets.wire_message_handling import WireMessageHandling
-        from toad.widgets.transcript_history import LineHistory
 
-        for history in self.contents.query(LineHistory):
-            history.check_notifications()
+        bodies = WireMessageHandling.within(self.contents)
         if not self.owner.readable:
             return True
-        bodies = WireMessageHandling.within(self.contents)
         references = WireMessageHandling.references_in(bodies)
         if not references:
             return True
@@ -336,9 +333,9 @@ class CheckpointPublication(CanonicalSourcePublication):
             return False
         if not self.owner.readable:
             return False
-        if any(isinstance(node, CheckpointBarrier) for node in self.contents.walk_children()):
-            return False
         if not self.owner.checkpoint_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
+            return False
+        if any(isinstance(child, CheckpointBarrier) for child in self.contents.children):
             return False
         potential = tuple(child for child in self.contents.children
                           if child is not self.history and isinstance(child, CommitParticipant))
@@ -438,7 +435,7 @@ class CheckpointPublication(CanonicalSourcePublication):
 
 
 class TranscriptPresentation:
-    """Logical document custody; each attached native publisher is disposable."""
+    """Owns the transcript document; attached native publishers can be replaced."""
 
     def __init__(self, view: Conversation | None = None) -> None:
         self._view = weakref.ref(view) if view is not None else lambda: None
@@ -552,7 +549,7 @@ class TranscriptPresentation:
 
         A body may own pagers for its Markdown or filtered projection. Those
         rendering resources cannot certify this conversation's saved source.
-        Native child custody, rather than another retained pointer, owns this
+        The parent-child widget tree, rather than a retained pointer, owns this
         relation through provisional mount, replacement, park and disposal.
         """
         from toad.widgets.transcript_history import TranscriptHistory
@@ -658,7 +655,7 @@ class TranscriptPresentation:
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, kind: type[TranscriptPublication], *args) -> TranscriptPublication | None:
-        """Admit an operation with its original attachment and resource custody."""
+        """Admit an operation bound to its original attachment and acquired resources."""
         from toad.widgets.conversation import Window, Contents
         view = self.view
         if view is None or not view.is_attached:
@@ -838,8 +835,8 @@ class TranscriptPresentation:
         CommitEvidence has already selected these exact resources. Their native
         display lifetime ends synchronously, so accepted saved rows cannot paint
         alongside them while an original stream finishes its paged publication.
-        The independent teardown owns cancellation custody; source transactions
-        register this receipt outside their mutation locks.
+        The separate teardown task handles cancellation; source transactions
+        register its completion outside their mutation locks.
         """
         if not candidates:
             return AwaitComplete.nothing()
