@@ -356,7 +356,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
                         await self.workspace_screen.layout_navigation()
                 if mode != previous:
                     self.tab_order.record_visit(mode, history_index)
-                    self.events.publish(core_events.SessionSelected(mode))
+                    self.events.publish(core_events.SessionSelected(mode, previous))
             finally:
                 self.screen.refresh()
 

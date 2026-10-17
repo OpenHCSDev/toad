@@ -123,7 +123,7 @@ class RelationshipRow(CommsRow):
             self.query_ancestor(ThreadCommsSidebar).show_row_menu(self, event.screen_offset)
 
 
-class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
+class RelationshipRows(SidebarGroup[RelationshipRow]):
     DEFAULT_CSS = """
     RelationshipRows > .group-header > SidebarDisclosure { width: 1; }
     """
@@ -143,7 +143,7 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
         rows = tree.thread_rows
-        entries = {entry.identity: entry for entry in self.model.entries}
+        entries = {entry.target: entry for entry in self.model.entries}
         empty = self.query_one_optional(".relationship-empty")
         if (entries or not self.expanded) and empty is not None:
             empty.remove()
@@ -232,7 +232,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         # seven checkbox queries on every global update in every hidden tab.
         if self._live:
             self._bind_screen_identity()
-        self.sync_current()
         self._sync_filter_control()
         self.refresh_relationships()
 
@@ -408,7 +407,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     def row_for(self, selection):
         group = self.groups.get(selection[0])
-        return group.rows.get(selection[1]) if group is not None and group.expanded and group.accepts_navigation() else None
+        return group.rows.get(selection[1][1]) if group is not None and group.expanded and group.accepts_navigation() else None
 
     @property
     def navigation_root(self):
