@@ -87,9 +87,9 @@ class FrameState(DeclaredFamily, affix="Frame"):
         return self
 
     def displayed(self, frame):
-        receipt = WritingFrame(self.scene)
-        frame.state = receipt
-        frame.screen.app._driver.call_after_flush(partial(frame.written, receipt))
+        writing = WritingFrame(self.scene)
+        frame.state = writing
+        frame.screen.app._driver.call_after_flush(partial(frame.written, writing))
 
     def defer(self, frame, owner, callback):
         frame.callbacks[owner, callback] = None
@@ -223,8 +223,8 @@ class FramePresentation:
     def displayed(self):
         self.state.displayed(self)
 
-    def written(self, receipt: WritingFrame) -> None:
-        if receipt is not self.state:
+    def written(self, writing: WritingFrame) -> None:
+        if writing is not self.state:
             return
         self.present()
 

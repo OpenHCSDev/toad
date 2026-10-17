@@ -97,7 +97,7 @@ class ThoughtStream(OutputStream):
 
 
 class LiveOutput:
-    """Owns admitted streams, serialized posting and rich-view retirement."""
+    """Owns accepted streams, serialized posting and rich-view retirement."""
 
     def __init__(self, view: Conversation) -> None:
         self._view = weakref.ref(view)

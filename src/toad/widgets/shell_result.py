@@ -8,11 +8,11 @@ from textual.widgets import Static
 
 
 from toad.widgets.non_selectable_label import NonSelectableLabel
-from toad.widgets.committed_presentation import CheckpointBarrier
+from toad.widgets.committed_presentation import CommitBarrier
 from toad.shell_output import ShellCommandOutput
 
 
-class ShellResult(ConversationBlock, CheckpointBarrier, containers.HorizontalGroup):
+class ShellResult(ConversationBlock, CommitBarrier, containers.HorizontalGroup):
     def __init__(
         self,
         source: ShellCommandOutput,

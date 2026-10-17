@@ -342,7 +342,7 @@ class ContentNavigation:
                 return
             destination += direction.step
         if destination < 0 and current is not None:
-            # At the oldest admitted block, Up clamps to its first source
+            # At the oldest accepted block, Up clamps to its first source
             # root. Entering from Up would wrap back to its last root.
             current.block_cursor.enter(DownCursor())
         else:

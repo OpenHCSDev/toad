@@ -156,7 +156,7 @@ class FragmentPosition(OffsetPosition):
     height: int
 
     def page(self, window: "HistoryWindow"):
-        """The displayed page that has this message admitted."""
+        """The displayed page that holds this message."""
         return next((page for page in window.drawn_pages()
                      if page.fragment_row(self.fragment) is not None), None)
 
@@ -638,7 +638,7 @@ class HistoryWindow(VerticalScroll):
 
     @property
     def rows_per_fragment(self) -> float:
-        """Average drawn rows per admitted fragment, for converting rows to fragments."""
+        """Average drawn rows per loaded fragment, for converting rows to fragments."""
         rows = items = 0
         for history in self.histories:
             drawn_rows, drawn_items = history.drawn_extent

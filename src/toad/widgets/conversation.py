@@ -1771,7 +1771,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.flash("Context compacted", style="success")
         except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
             self.notify(str(error), title="Compaction request", severity="error")
-            self.transcript.require_checkpoint()
+            self.transcript.require_commit()
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""
@@ -1786,13 +1786,13 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def _on_queue_choice(self, action: str | None) -> None:
         # A stale menu callback must not edit the draft or mutate the remote
-        # queue. Text/index matching cannot identify an admitted input safely.
+        # queue. Text/index matching cannot identify a sent input safely.
         if action:
             self._queue_edit_unavailable()
 
     @work
     async def replace_queued(self, prompts: list[str]) -> None:
-        """Never clear-and-resend admitted inputs when editing the queue.
+        """Never clear-and-resend sent inputs when editing the queue.
 
         An empty snapshot or control ACK does not prove consumption, and a
         surviving row may be UNKNOWN. Reissuing its text could execute it twice.
@@ -1899,7 +1899,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 # pager or an uncovered wire claim lets a later observation
                 # recreate the same record as a new tail arrival.
                 if self.contents.virtual_size.height > high_mark:
-                    self.transcript.require_checkpoint()
+                    self.transcript.require_commit()
             else:
                 await self.prune_window(low_mark, high_mark)
 
@@ -2237,4 +2237,4 @@ class CompactionRenderer(MroDispatch):
     @handles(comms_events.CompactionEnd)
     async def end(self, event):
         # Pi's saved compaction entry owns the notice; re-read the transcript.
-        self.conversation.transcript.require_checkpoint()
+        self.conversation.transcript.require_commit()

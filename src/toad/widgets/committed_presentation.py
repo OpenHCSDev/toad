@@ -39,7 +39,7 @@ class CommitClaim(ABC):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return True
 
     @property
@@ -56,7 +56,7 @@ class CapturedClaim(CommitClaim):
     def capture(self, settled: bool) -> bool:
         return settled
 
-    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return widget in captured
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
@@ -77,7 +77,7 @@ class RetainedSourceClaim(CapturedClaim):
     def capture(self, settled: bool) -> bool:
         return True
 
-    def admits_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
+    def accepts_native(self, widget: Widget, captured: frozenset[Widget]) -> bool:
         return True
 
 @dataclass(frozen=True)
@@ -121,7 +121,7 @@ class SnapshotPresentation(CommitParticipant):
     def commit_claim(self) -> CommitClaim:
         return CAPTURED_CLAIM
 
-class CheckpointBarrier:
+class CommitBarrier:
     """A local interactive session whose ordering cannot be replaced by a snapshot."""
 
 CAPTURED_CLAIM = CapturedClaim()
@@ -257,7 +257,7 @@ class PreparedCommit:
             return self.page.outgoing_coverage
         return self.history.outgoing_coverage
 
-class CheckpointPlan(ABC):
+class CommitPlan(ABC):
     """A viewport-owned policy; the coordinator does not branch on block types."""
 
     @abstractmethod
@@ -298,7 +298,7 @@ class CheckpointPlan(ABC):
     def finish(self, view: Conversation, cursor: TranscriptCursor) -> None:
         """A retained viewport does not claim that newer records were painted."""
 
-class FollowTailCheckpoint(CheckpointPlan):
+class FollowTailCommit(CommitPlan):
     def __init__(self, window: HistoryWindow) -> None:
         self.revision = window.scroll_revision
 
@@ -326,7 +326,7 @@ class FollowTailCheckpoint(CheckpointPlan):
         if self.current(window):
             window.anchor()
 
-class RetainViewportCheckpoint(CheckpointPlan):
+class RetainViewportCommit(CommitPlan):
     def current(self, window: HistoryWindow) -> bool:
         # Extending the source leaves the loaded rows and reader position intact.
         # Retirement checks the current viewport again when applying the change.
@@ -358,5 +358,5 @@ class RetainViewportCheckpoint(CheckpointPlan):
         if prepared.history is not None:  # A replacement history already owns its source.
             prepared.history.retain_committed(cursor)
 
-def checkpoint_plan(window: HistoryWindow) -> CheckpointPlan:
-    return FollowTailCheckpoint(window) if window.follows_tail else RetainViewportCheckpoint()
+def commit_plan(window: HistoryWindow) -> CommitPlan:
+    return FollowTailCommit(window) if window.follows_tail else RetainViewportCommit()

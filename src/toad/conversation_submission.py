@@ -163,7 +163,7 @@ class SubmissionExecution:
         self.authority = ClientSessionRequest(agent, agent.session_id)
         self.scope = agent.queue_attachment.scope
         self.request = submission.request
-        self.started_receipt: InputStartedUpdate | None = None
+        self.started_update: InputStartedUpdate | None = None
 
     @property
     def current(self):
@@ -261,13 +261,13 @@ class ConversationSubmissions:
         return tuple(item.submission.text for item in self.active
                      if item.current and item.agent.presentation.uses_managed_turns
                      and item.request.input_id not in accepted
-                     and item.started_receipt is None)
+                     and item.started_update is None)
 
-    def native_input_presented(self, receipt: InputStartedUpdate):
+    def native_input_presented(self, started: InputStartedUpdate):
         """Retain this request's actual response while its RPC is outstanding."""
         for execution in self.active:
-            if execution.current and execution.request.input_id == receipt.input_id:
-                execution.started_receipt = receipt
+            if execution.current and execution.request.input_id == started.input_id:
+                execution.started_update = started
 
     def publish_pending(self):
         if (prompt := self.view.query_one_optional(Prompt)) is not None:
