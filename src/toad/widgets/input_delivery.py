@@ -15,11 +15,14 @@ from textual._activation import PrimaryActivation
 
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
-from toad.widgets.selection import ChangingText
+from toad.widgets.selection import ChangingText, InlineSelection
+from rich.style import Style as RichStyle
 
 
-class DetailAction(PrimaryActivation, Static, can_focus=True):
+class DetailAction(InlineSelection, PrimaryActivation, Static, can_focus=True):
     """An inline detail action owns keyboard, pointer and activation behavior."""
+
+    highlighted_text_style = RichStyle(bold=True, reverse=True)
 
     class Activated(Message):
         def __init__(self, control: DetailAction):
@@ -38,7 +41,6 @@ class DetailAction(PrimaryActivation, Static, can_focus=True):
         width: auto; height: 1; margin-left: 1;
         color: $text-accent; text-style: underline; pointer: pointer;
     }
-    DetailAction:hover, DetailAction:focus { text-style: bold reverse; }
     """
 
     @property

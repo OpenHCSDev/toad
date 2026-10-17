@@ -22,14 +22,13 @@ from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
 from toad.frame_presentation import Animated
-from toad.widgets.selection import ChangingText
+from toad.widgets.selection import ChangingText, InlineSelection
 
 
-class GoalControl(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
+class GoalControl(InlineSelection, PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
     BINDINGS: ClassVar[list[BindingType]] = [("enter,space", "activate", "Select")]
     DEFAULT_CSS = """
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
-    GoalControl:hover, GoalControl:focus { text-style: underline; }
     """
 
     @property

@@ -39,7 +39,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
 from toad.session_tracker import SidebarSelection
 from toad.widgets.session_sidebar import ThreadStatusRow
-from toad.widgets.selection import ChangingText
+from toad.widgets.selection import ChangingText, HoverSelection
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
@@ -216,12 +216,12 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
         return self.is_navigation_row() and self.navigation_tree.row_selected(self)
 
     @property
-    def highlighted(self) -> bool:
-        return self.selected or super().highlighted
+    def paint_highlighted(self) -> bool:
+        return self.selected or super().paint_highlighted
 
     @property
     def paint_foreground(self):
-        if self.is_navigation_row() and not self.highlighted and self.navigation_tree.channel_active(self):
+        if self.is_navigation_row() and not self.paint_highlighted and self.navigation_tree.channel_active(self):
             return self.app.colours.colour(WarningColour)
         return super().paint_foreground
 
@@ -269,7 +269,7 @@ class ThreadRow(CommsRow):
             self.app.select_session(self.mode_name)
 
 
-class NewSessionButton(TargetTreeMember, Static):
+class NewSessionButton(HoverSelection, TargetTreeMember, Static):
     """Create another agent session for the current project."""
 
     DEFAULT_CSS = """
@@ -279,12 +279,6 @@ class NewSessionButton(TargetTreeMember, Static):
         padding: 0;
         color: $text-muted;
         pointer: pointer;
-    }
-    NewSessionButton:hover,
-    NewSessionButton:focus {
-        background: $block-cursor-background;
-        color: $block-cursor-foreground;
-        text-style: $block-cursor-text-style;
     }
     """
 

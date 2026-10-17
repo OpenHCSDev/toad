@@ -3,6 +3,10 @@ from toad.core import input_events
 from toad.conversation_turn import ConversationTurn
 
 from pathlib import Path
+from dataclasses import replace
+from textual._paint_state import PaintState
+from textual.style import Style
+from textual.strip import Strip
 from rich.text import Text as RichText
 import shlex
 from typing import TYPE_CHECKING, ClassVar, Literal, Self
@@ -44,7 +48,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.slash_command import SlashCommand
 from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
-from toad.widgets.selection import ChangingText, SelectionOptionList
+from toad.widgets.selection import ChangingText, SelectionOptionList, InlineSelection
 from toad.widget_actions import DeclaredWidgetActions
 from toad.frame_presentation import TonePaint
 from ui_theme.scheme import PrimaryColour, SecondaryColour, PromptToneColour
@@ -56,6 +60,13 @@ if TYPE_CHECKING:
 
 
 class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
+    def _get_option_render(self, option: Option, style: Style, paint: PaintState) -> list[Strip]:
+        if self.has_focus and self.highlighted is not None and option is self.options[self.highlighted]:
+            background = paint.background + self.app.colours.colour(PrimaryColour).with_alpha(0.3).multiply_alpha(paint.opacity)
+            base = paint.component_style(self, "option-list--option")
+            style = replace(base, foreground=style.foreground, background=background, bold=False)
+        return super()._get_option_render(option, style, paint)
+
     BINDING_GROUP_TITLE = "Mode switcher"
     BINDINGS = [Binding("escape", "dismiss", "Dismiss mode switcher")]
 
@@ -81,7 +92,7 @@ class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting
         return self.query_ancestor(Prompt).on_agent_info_click
 
 
-class SendNow(PrimaryActivation, Label, can_focus=True):
+class SendNow(InlineSelection, PrimaryActivation, Label, can_focus=True):
     BINDINGS = [("enter,space", "send_now", "Send now")]
 
     @property
@@ -517,7 +528,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
     Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
     Prompt.-queue-mode .delivery-controls { display: block; }
     Prompt SendNow { color: $text-secondary; pointer: pointer; }
-    Prompt SendNow:hover, Prompt SendNow:focus { text-style: underline; }
     """
 
     BINDINGS = [

@@ -19,6 +19,7 @@ from toad.answer import Answer
 from toad.question_presentation import QuestionPresentation
 from toad.widget_actions import DeclaredWidgetActions
 from toad.question_actions import QuestionAction, SelectKindAction
+from toad.frame_presentation import UntintedTonePaint
 
 type Options = list[Answer]
 
@@ -35,6 +36,12 @@ class Ask:
 
 class NonSelectableLabel(widgets.Label):
     ALLOW_SELECT = False
+
+
+class OptionMarker(UntintedTonePaint, NonSelectableLabel):
+    @property
+    def paint_opacity(self):
+        return 1.0 if self.query_ancestor(Question).has_focus else 0.3
 
 
 class Option(PrimaryActivation, containers.HorizontalGroup):
@@ -97,11 +104,11 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         key = self.key
-        yield NonSelectableLabel("❯", id="caret")
+        yield OptionMarker("❯", id="caret")
         if key:
-            yield NonSelectableLabel(Content.styled(f"{key}", "b"), id="index")
+            yield OptionMarker(Content.styled(f"{key}", "b"), id="index")
         else:
-            yield NonSelectableLabel(Content(" "), id="index")
+            yield OptionMarker(Content(" "), id="index")
 
         yield NonSelectableLabel(self.content, id="label")
 
@@ -143,14 +150,6 @@ class Question(DeclaredWidgetActions, containers.VerticalGroup, can_focus=True):
             opacity: 0.2;
         }
 
-        &:blur {
-            #index {
-                opacity: 0.3;
-            }
-            #caret {
-                opacity: 0.3;
-            }
-        }
     }
     """
 
@@ -187,6 +186,11 @@ class Question(DeclaredWidgetActions, containers.VerticalGroup, can_focus=True):
         self._ask: Ask | None = None
         self._get_content = get_content
         self.set_reactive(Question.options, options or [])
+
+    def watch_has_focus(self, has_focus: bool) -> None:
+        super().watch_has_focus(has_focus)
+        for marker in self.query(OptionMarker):
+            marker.refresh_paint()
 
     def on_mount(self) -> None:
         self.presentation.reopen()
