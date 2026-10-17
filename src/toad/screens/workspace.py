@@ -298,7 +298,6 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
         await self.layout_in_steps(self.app.size)
         if roster.navigation.restore_scroll():
             self._refresh_layout(self.app.size, scroll=True)
-        self._dirty_widgets.clear()
         self._navigation_layout = MeasuredWorkspaceLayout(WorkspaceLayoutSnapshot.ready(self, self.app.size))
 
     def _on_screen_resume(self, event: ScreenResume) -> None:
