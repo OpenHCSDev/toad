@@ -8,7 +8,9 @@ from textual import events, on
 from rich.segment import Segment
 from textual.content import Content
 from textual.strip import Strip
-from ui_theme.effects import SPINNER, TextFrame
+from ui_theme.clock import Animation
+from ui_theme.effects import NEW_TEXT, SPINNER, Frame, Mix, TextFrame
+from textual.visual import VisualType
 
 from toad.frame_presentation import Animated
 from textual.style import Style
@@ -16,7 +18,39 @@ from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
 
 
-class ViewLabel(Animated[TextFrame]):
+class ChangingText[FrameT: Frame](Animated[FrameT], Static):
+    """Changed content fades into its own colours through the shared app clock."""
+
+    transition_effect = NEW_TEXT
+    transition: Animation[Mix] | None = None
+
+    def update(self, content: VisualType = "", *, layout: bool | None = None) -> None:
+        previous = self.visual
+        super().update(content, layout=layout)
+        if self.is_mounted and previous != self.visual:
+            self.change()
+
+    def change(self) -> None:
+        self.stop_transition()
+        self.transition = self.app.colours.clock.start(self.transition_effect, self)
+        self.refresh()
+
+    def on_hide(self) -> None:
+        self.stop_transition()
+
+    def stop_transition(self) -> None:
+        if self.transition is not None:
+            self.transition.stop()
+            self.transition = None
+
+    def render_line(self, y: int) -> Strip:
+        line = super().render_line(y)
+        if self.transition is not None:
+            return self.app.colours.paint_rising(self.transition.frame(), line)
+        return line
+
+
+class ViewLabel(ChangingText[TextFrame]):
     """Native label paint: workspace emphasis and clock-driven activity ink."""
 
     def activity_content(self, title: str, label: Content, busy: bool, *, prefix: Content) -> Content:
@@ -35,7 +69,7 @@ class ViewLabel(Animated[TextFrame]):
             return line
         glyph = animation.frame().paint(self.app.colours, None)
         style = next((segment.style for segment in line), None)
-        # Native clipping owns admission, including empty or partial lines.
+        # Native clipping owns empty or partial lines.
         return Strip.join((Strip([Segment(glyph.plain, style)], glyph.cell_length),
                            line.crop(glyph.cell_length))).crop(0, line.cell_length)
 

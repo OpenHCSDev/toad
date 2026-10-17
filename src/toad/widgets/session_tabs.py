@@ -25,7 +25,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from toad.app import ToadApp
 from toad.session_tracker import OpenTab
 from toad.frame_presentation import Animated
-from ui_theme.effects import TAB_WIPE, Band
+from ui_theme.effects import NEW_TEXT, Mix
 from toad.widgets.selection import ViewLabel
 
 
@@ -112,8 +112,8 @@ class SessionTabClose(PrimaryActivation, widgets.Static, can_focus=True):
             self.action_close_tab()
 
 
-class Underline(Animated[Band]):
-    """The underline beneath tabs; a wipe crosses the current tab's highlight when it is chosen."""
+class Underline(Animated[Mix]):
+    """The chosen tab's underline uses the shared content-change fade."""
 
     COMPONENT_CLASSES: ClassVar[set[str]] = {"underline--bar"}
     """
@@ -154,7 +154,7 @@ class Underline(Animated[Band]):
         start, end = (min(cell, width) for cell in self._highlight_range)
         if animation is None or start >= end:
             return strip
-        tab = self.app.colours.paint_band(animation.frame(), strip.crop(start, end))
+        tab = self.app.colours.paint_rising(animation.frame(), strip.crop(start, end))
         return Strip.join((strip.crop(0, start), tab, strip.crop(end, width)))
 
     def _on_click(self, event: events.Click):
@@ -203,7 +203,7 @@ class SessionsTabs(CoreEventReceiver, Widget):
             self.sync_current()
             self.call_later(self._sync_tabs)
             self.call_after_refresh(self.show_selected_tab)
-            self.query_one(Underline).run_effect(TAB_WIPE)
+            self.query_one(Underline).run_effect(NEW_TEXT)
 
     def sync_current(self) -> None:
         selected = self.app.selected_mode

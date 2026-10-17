@@ -21,6 +21,7 @@ from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
 from toad.frame_presentation import Animated
+from toad.widgets.selection import ChangingText
 
 
 class GoalControl(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
@@ -138,7 +139,7 @@ class GoalBar(VerticalGroup):
         self._update_goal_text()
 
     def compose(self) -> ComposeResult:
-        yield Static("", markup=False, classes="goal-header")
+        yield ChangingText("", markup=False, classes="goal-header")
         with HorizontalGroup(classes="goal-execution-row"):
             yield StandbyPulse()
             yield GoalText(classes="goal-execution")

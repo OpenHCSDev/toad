@@ -198,15 +198,17 @@ class Animated[FrameT: Frame](Widget):
     animation: Animation[FrameT] | None = None
 
     def run_effect(self, effect: Effect[FrameT]) -> None:
+        self.stop_effect()
         self.animation = self.app.colours.clock.start(effect, self)  # type: ignore[attr-defined]
 
     def stop_effect(self) -> None:
         if self.animation is not None:
-            self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
+            self.animation.stop()
             self.animation = None
 
     def on_unmount(self) -> None:
-        self.stop_effect()
+        self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
+        self.animation = None
 
     def on_hide(self) -> None:
         if self.animation is not None and self.animation.effect.finite:

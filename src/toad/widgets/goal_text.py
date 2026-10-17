@@ -1,7 +1,7 @@
 """Goal text uses the same mention syntax and navigation as wire messages."""
 from agent_comms.mentions import MentionCandidate
 from toad.markdown_links import LinkContext, ReferenceRendering
-from textual.widgets import Static
+from toad.widgets.selection import ChangingText
 
 from toad.widgets.inline_message import inline_message
 from toad.widgets.transcript_lines import OpensLinks
@@ -14,7 +14,7 @@ def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
     return tuple(MentionCandidate(row.name, row.title) for row in sidebar.threads.rows.values())
 
 
-class GoalText(ReferenceRendering, OpensLinks, Static):
+class GoalText(ReferenceRendering, OpensLinks, ChangingText):
     def __init__(self, text: str = "", **kwargs):
         self.goal_text = text
         super().__init__(text, markup=False, **kwargs)

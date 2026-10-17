@@ -15,6 +15,7 @@ from textual.widget import PrimaryActivation
 
 from agent_comms.ui_model.delivery import InputDelivery
 from toad.project_link import AcpLogLink
+from toad.widgets.selection import ChangingText
 
 
 class DetailAction(PrimaryActivation, Static, can_focus=True):
@@ -63,9 +64,9 @@ class InputDeliveryBar(HorizontalGroup):
     delivery: var[InputDelivery] = var(InputDelivery())
 
     def compose(self) -> ComposeResult:
-        yield Static(markup=False, id="delivery-summary")
-        yield Static(markup=False, id="delivery-history-summary")
-        yield Static(markup=False, id="delivery-error")
+        yield ChangingText(markup=False, id="delivery-summary")
+        yield ChangingText(markup=False, id="delivery-history-summary")
+        yield ChangingText(markup=False, id="delivery-error")
 
     def watch_delivery(self) -> None:
         self._refresh_summary()
