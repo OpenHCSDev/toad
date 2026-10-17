@@ -122,8 +122,9 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     Run with the qualified target Python inside the reviewed publication window.
     Native stopping/restarting remains with Core's existing cutover owner.
     """
-    sys.path.insert(0, str(publication_tools.resolve(strict=True)))
-    from publish_runtime import RuntimePublication
+    publisher = (publication_tools / 'publish_runtime.py').resolve(strict=True)
+    sys.path.insert(0, str(publisher.parents[1]))
+    from tools.publish_runtime import RuntimePublication
 
     publication = RuntimePublication.installed()
     record = json.loads((publication.runtime / 'build.json').read_text())
@@ -147,7 +148,7 @@ def installation_main() -> None:
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
-    parser.add_argument('--publication-tools', type=Path)
+    parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
     if args.prune_runtimes:
