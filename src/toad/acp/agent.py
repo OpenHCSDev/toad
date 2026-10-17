@@ -179,7 +179,7 @@ class Agent(AgentBase):
 
 
     async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
-        """AgentBase submission contract, executed by operational custody."""
+        """Submit through AgentBase's contract; the controller runs the request."""
         return await self.controller.submit(prompt, request=request)
 
 

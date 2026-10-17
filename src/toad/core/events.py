@@ -127,7 +127,7 @@ class CoordinationObserved(CoreEvent):
 
     def can_replace(self, event: CoreEvent) -> bool:
         # A newer observation supersedes a pending older one. The native
-        # carrier still never replaces an intervening input or Comms receipt.
+        # carrier still never replaces an intervening input or Comms update.
         return isinstance(event, CoordinationObserved)
 
 

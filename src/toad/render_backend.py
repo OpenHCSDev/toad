@@ -37,7 +37,7 @@ class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
     def preparation_inputs(self) -> object:
         """The task's captured inputs, independent of transport and storage.
 
-        A task with separately owned publication custody supplies its actual
+        A task whose published resources have another owner supplies its actual
         preparation inputs here. The existing preparation runtime retains and
         hashes that supply; it never infers it from a task's concrete type.
         """
@@ -130,7 +130,7 @@ class Renderer(RendererSpawn):
         """Detached work borrows ambient facts, never its waiter's native owner.
 
         Preparation can outlive an evicted widget. App/backend context remains
-        available, but native pump and Worker custody belongs to the consumer,
+        available, but the consumer owns the native message pump and Worker,
         not to shared data preparation or its completion callbacks.
         """
         from textual._context import active_message_pump

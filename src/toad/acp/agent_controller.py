@@ -1,4 +1,4 @@
-"""Operational ACP custody survives the retirement of a rich surface."""
+"""ACP operations remain owned by the controller after their view retires."""
 from __future__ import annotations
 from toad.acp.status import StopReason
 from acp.schema import SessionModeState
@@ -204,7 +204,7 @@ class AgentController(OperationalTerminalOwner):
             agent.project_root_path), authority))
 
     async def _prompt_operation(self, operation, authority):
-        """Keep ordered request custody until the owned operation itself ends."""
+        """Keep the request in flight until its operation ends."""
         coordination = self.coordination
         self.prompt_in_flight += 1
         try:

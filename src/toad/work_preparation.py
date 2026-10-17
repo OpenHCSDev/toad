@@ -218,7 +218,7 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
 
 
 def retained_bytes(value: object, *, seen: set[int] | None = None) -> int:
-    """Measure retained graphs off-loop, sharing custody within one traversal.
+    """Measure retained graphs off-loop, counting shared resources once per traversal.
 
     Related resource owners can partition their original graphs with the same
     local visited set. Shared source data is then charged once, without keeping

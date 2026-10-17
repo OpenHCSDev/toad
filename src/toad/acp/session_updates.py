@@ -1,4 +1,4 @@
-"""Ordered ACP notification custody and declaration-owned external update effects."""
+"""Process ACP notifications in order; update declarations own their effects."""
 from __future__ import annotations
 
 import asyncio

@@ -20,7 +20,7 @@ def welcome_view() -> "SessionView":
 
 
 class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
-    """Selected presentation custody, including retirement outside the workspace."""
+    """Owns the selected view, including closing it outside the workspace."""
 
     @abstractmethod
     def matches(self, view: "SessionView") -> bool: ...
@@ -205,8 +205,8 @@ class WorkspaceSessions:
         """Admit mounted work through its original logical source binding.
 
         Hidden session mounts retain their same frame callback; workspace
-        chrome has no session binding. Native attachment and writer custody
-        remain with the frame, and the owner's pump executes source I/O.
+        chrome has no session binding. The frame still owns widget attachment
+        and terminal writes; the owner's message pump executes source I/O.
         """
         from toad.screens.session_view import SessionView
 
@@ -235,7 +235,7 @@ class WorkspaceSessions:
 
 
 class WorkspaceSessionShutdown:
-    """Finalize domain custody before Textual prunes its native message pumps."""
+    """Close session resources before Textual removes their message pumps."""
 
     async def _close_all(self) -> None:
         await self.workspace_sessions.aclose()

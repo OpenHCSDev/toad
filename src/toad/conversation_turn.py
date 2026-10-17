@@ -84,7 +84,7 @@ class ActivityTurn(TurnOwner):
 
 @dataclass(frozen=True)
 class AgentTurn(TurnOwner):
-    """A generic ACP peer has local request custody, without Comms authority."""
+    """A generic ACP peer owns its local request, but cannot control Comms turns."""
     managed_id: str | None = None
     activity: str = "Thinking…"
     started_at: float | None = None
@@ -178,7 +178,7 @@ class TurnBinding(DeclaredFamily, affix="TurnBinding"):
     def reset(self) -> None: ...
 
     async def present_input(self, view, text) -> None:
-        """Managed originals are displayed only from native start receipts."""
+        """Display managed inputs only when the native process reports they started."""
 
     def start_client(self) -> None:
         """A managed request waits for its authoritative owner publication."""

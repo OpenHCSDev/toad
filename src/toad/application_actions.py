@@ -165,7 +165,7 @@ class DirectMessagesAction(KeyboundAction, ApplicationAction, PaletteAction):
 
 
 class VimNavigationAction(VimApplicationAction):
-    """Aliases act on the selected view; focus and native input retain custody."""
+    """Aliases scroll the selected view without moving focus or redirecting input."""
 
     @staticmethod
     def conversation(app):
