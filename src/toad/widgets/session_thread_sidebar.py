@@ -6,7 +6,6 @@ from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
-from toad.widgets.sidebar_viewport import SidebarViewport
 
 if TYPE_CHECKING:
     from toad.screens.main import MainScreen
@@ -49,7 +48,7 @@ class SessionThreadSidebar(SideBar):
         self.schedule_hydration()
 
     async def _cancel_panel_workers(self) -> None:
-        for worker in self.workers.cancel_group(self, "sidebar-panels"):
+        for worker in self.workers.cancel_group(self, self.PANEL_WORKER_GROUP):
             try:
                 await worker.wait()
             except WorkerCancelled:
@@ -68,12 +67,11 @@ class SessionThreadSidebar(SideBar):
     async def evict(self) -> None:
         """Release panels on eviction or close, preserving their reader position."""
         await self._cancel_panel_workers()
-        viewport = self.query_one("#sidebar-panels", SidebarViewport)
-        self.navigation.panel_scroll_y = viewport.scroll_y
+        self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
         for panel in self.query(SideBarCollapsible):
             self.navigation.panels_collapsed[str(panel.title)] = panel.collapsed
         self.capture_panels()
-        await viewport.remove_children()
+        await self.panels_viewport.remove_children()
         if controls := self.query_one_optional("#sidebar-controls"):
             await controls.remove_children()
         self.panels.clear()
@@ -86,8 +84,7 @@ class SessionThreadSidebar(SideBar):
         if screen is not None:
             screen._sync_thread_sidebar()
         self.plan.update(self, self.plan.entries)
-        viewport = self.query_one("#sidebar-panels", SidebarViewport)
-        self.call_after_refresh(viewport.scroll_to, y=self.navigation.panel_scroll_y,
+        self.call_after_refresh(self.panels_viewport.scroll_to, y=self.navigation.panel_scroll_y,
                                 animate=False, immediate=True)
         if screen is not None:
             await screen.app.workspace_chrome.native.reconcile(screen)
