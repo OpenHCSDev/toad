@@ -260,7 +260,7 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
     limit: int
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
-        # This is a cursor operation, not a retained copy of the source history.
+        # This is a cursor operation, not a kept copy of the source history.
         return WorkKey(type(self), object())
 
     def prepare(self) -> FilteredTranscriptBatch:
@@ -300,12 +300,12 @@ class PreparedPageSource(ABC):
                           projection: ProjectedTranscriptSource | None = None,
                           ranges: tuple[PageFragmentRange, ...] = (),
                           *, seen: set[int] | None = None) -> None:
-        """Measure retained resources by owner in the existing preparation worker.
+        """Measure kept resources by owner in the existing preparation worker.
 
         A tool's mutable acquisition need not be a field of its immutable
         dataclass input. Include each owner's declared suppliers, rather than
         assuming a graph walk of transport fields reaches every document.
-        Canonical and projected pages share immutable inputs; their independent
+        Main and projected pages share immutable inputs; their independent
         acquisitions remain distinct while this one traversal counts sharing.
         """
         if seen is None:
@@ -467,10 +467,10 @@ class TranscriptPageBuffer(PreparedPageSource):
 class ProjectedTranscriptSource(PreparedPageSource):
     """A projected prefix with a fixed boundary and ordinary bidirectional reads.
 
-    The boundary is the unread prefix of one canonical page. Earlier reads
+    The boundary is the unread prefix of one main page. Earlier reads
     stop at its native before cursor; reaching that cursor forwards returns the
-    retained boundary rather than overlapping the canonical mounted tail.
-    Only the boundary and the caller's bounded pages remain strongly retained.
+    kept boundary rather than overlapping the main mounted tail.
+    Only the boundary and the caller's bounded pages remain strongly kept.
     """
 
     def __init__(
@@ -509,7 +509,7 @@ class ProjectedTranscriptSource(PreparedPageSource):
         return self._projected_boundary
 
     def _reader_for(self, request: PageRequest) -> PreparedPageSource | None:
-        """The reader that serves a request; None when the retained boundary answers it."""
+        """The reader that serves a request; None when the kept boundary answers it."""
         if (request.before == self.through
                 or request.after == self._boundary.page.before or self._raw is None):
             return None
