@@ -230,7 +230,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
     @property
     def selected(self) -> bool:
-        sidebar = self.tree
+        sidebar = self.navigation_tree
         return sidebar.selection_for(self) in sidebar.selection_state.selected_targets
 
     def set_label(self, label: str) -> None:
@@ -243,7 +243,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
         return self.action_open_selected
 
     def action_open_selected(self) -> None:
-        self.tree.remember_row(self)
+        self.navigation_tree.remember_row(self)
         self.app.run_worker(
             partial(self.app.selected_session.open_sidebar_target, self.target),
             group="sidebar-open",
@@ -254,7 +254,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
             return  # right click handled by context menu in CommsSidebar
         if event.ctrl or event.shift:
             event.stop()
-            self.tree.pointer_select(self, control=event.ctrl, shift=event.shift)
+            self.navigation_tree.pointer_select(self, control=event.ctrl, shift=event.shift)
             return
         self.action_open_selected()
 
@@ -270,7 +270,7 @@ class ThreadRow(CommsRow):
         if self.mode_name is None or cast("ToadApp", self.app).session_tracker.get_session(self.mode_name) is None:
             super().action_open_selected()
         else:
-            self.tree.remember_row(self)
+            self.navigation_tree.remember_row(self)
             self.app.select_session(self.mode_name)
 
 
@@ -311,10 +311,10 @@ class NewSessionButton(TargetTreeMember, Static):
             await self.action_create()
 
     def on_focus(self) -> None:
-        self.tree._cursor = -1
+        self.navigation_tree._cursor = -1
 
     def action_cursor_up(self) -> None:
-        sidebar = self.tree
+        sidebar = self.navigation_tree
         rows = sidebar.rows
         if rows:
             sidebar._cursor = len(rows)

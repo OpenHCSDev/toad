@@ -26,17 +26,17 @@ class TargetTreeMember:
     """A navigation control belongs to one required native tree."""
 
     @property
-    def tree(self) -> TargetTree:
+    def navigation_tree(self) -> TargetTree:
         return self.query_ancestor(TargetTree)
 
     def on_focus(self) -> None:
-        self.tree.focus_row(self)
+        self.navigation_tree.focus_row(self)
 
     def action_cursor_up(self) -> None:
-        self.tree.action_cursor_up()
+        self.navigation_tree.action_cursor_up()
 
     def action_cursor_down(self) -> None:
-        self.tree.action_cursor_down()
+        self.navigation_tree.action_cursor_down()
 
 
 class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
