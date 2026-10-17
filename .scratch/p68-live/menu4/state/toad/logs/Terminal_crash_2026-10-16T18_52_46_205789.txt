@@ -1,0 +1,580 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1035, in results
+    raise self.died
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/toad/comms_root.py", line 221, in receive
+    for result in observed.process.results():
+                  ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 1042, in results
+    result.received(self, observed)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 764, in received
+    raise process.ended(self.error)
+agent_comms.ui_model.observation.ObserverDied: The comms observer (pid 1158198) exited with status 1:
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/registry_document.py", line 162, in from_wire
+    changed = FieldCodec.decode(cls, {**raw, **{
+        section: {name: row for name, row in raw[section].items()
+                  if name not in kept[section]}
+        for section in cls.THREAD_ROWS
+    }})
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/field_codec.py", line 340, in decode
+    return cast(T, compile_decoder(target).decode(data))
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/field_codec.py", line 747, in decode
+    values[entry.name] = entry.value.decode(value)
+                         ~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/field_codec.py", line 688, in decode
+    FieldCodec._decode_scalar(str, key): self.value.decode(value)
+                                         ~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/field_codec.py", line 705, in decode
+    member = self.family.decode(name)
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/declared_family.py", line 107, in decode
+    raise ValueError(f"Unknown {cls.__name__} name: {name!r}") from None
+ValueError: Unknown ThreadStatus name: 'connected'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 924, in serve
+    asyncio.run(ObservationService(wire(route), connection).run())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 907, in run
+    await self.observe(attempted)
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 876, in observe
+    for result in observation.read(self.comms, revision):
+                  ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/ui_model/observation.py", line 607, in read
+    retired = comms.views.retired_views(self.request.threads, self.request.channels)
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/history_views.py", line 346, in retired_views
+    snapshot = self.registry.snapshot()
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/registration.py", line 365, in snapshot
+    with self.store.reading() as document:
+         ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 141, in __enter__
+    return next(self.gen)
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/locked_store.py", line 163, in reading
+    yield self._read_unlocked()
+          ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/registry_store.py", line 111, in _read_unlocked
+    document = RegistryDocument.from_wire(raw, (entry.raw, entry.document))
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-6be909dab-core-584972fc8-native-6468a1979d983e9d-20261016T220452Z/lib/python3.14/site-packages/agent_comms/registry_document.py", line 190, in from_wire
+    raise RelationViolationError(f"Invalid registry document: {error}") from error
+agent_comms.errors.RelationViolationError: Invalid registry document: Unknown ThreadStatus name: 'connected'
+

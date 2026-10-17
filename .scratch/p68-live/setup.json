@@ -1,0 +1,28 @@
+{
+  "owner": "forms-migration",
+  "purpose": "P68 two-thread reconnect and exit check",
+  "root": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/root",
+  "root_id": "b7f605b55898456dab39387562e403f3",
+  "source": "/var/tmp/agent-comms-live-20260927-wzjtqhza/sessions/enrolled-b65ef689415b47238cfcc924c43df3e9.jsonl",
+  "source_sha256": "e12a5ed06b8558fa3402b582908311bcda175ecc35c8f99db170ad8603004fab",
+  "model": "openai-codex/gpt-6.1-sol",
+  "threads": [
+    {
+      "name": "p68-failed",
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/sessions/p68-failed.jsonl",
+      "pid": 581368,
+      "project": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "old_owned_copy": "/var/tmp/agent-comms-live-20260927-wzjtqhza/native-sessions/4d9ea32e906922a83bfdd0e3799a2fcf/.native-pi-agent/sessions/--home-ts-wt-toad-forms-migration-.scratch-p68-live-project-a--/2026-10-16T21-38-31-034Z_01a146a6-fbfb-7683-934a-d63a0dcbc41a.jsonl",
+      "stopped_pid": 571753
+    },
+    {
+      "name": "p68-healthy",
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/sessions/p68-healthy.jsonl",
+      "pid": 581490,
+      "project": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-b",
+      "old_owned_copy": "/var/tmp/agent-comms-live-20260927-wzjtqhza/native-sessions/4d9ea32e906922a83bfdd0e3799a2fcf/.native-pi-agent/sessions/--home-ts-wt-toad-forms-migration-.scratch-p68-live-project-a--/2026-10-16T21-38-32-756Z_01a146a7-02b5-7117-97ea-5240b0678540.jsonl",
+      "stopped_pid": 571853
+    }
+  ],
+  "native_package": "/home/ts/.local/share/agent-comms/native-current-6468a1979d983e9d/node_modules/@earendil-works/pi-coding-agent"
+}

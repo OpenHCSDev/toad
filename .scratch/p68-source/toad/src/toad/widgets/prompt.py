@@ -1,0 +1,868 @@
+from __future__ import annotations
+from toad.core import input_events
+from toad.conversation_turn import ConversationTurn
+
+from pathlib import Path
+from rich.text import Text as RichText
+import shlex
+from typing import TYPE_CHECKING, Literal, Self
+
+from textual import on, work
+import asyncio
+from textual.reactive import var, Initialize
+from textual.app import ComposeResult
+
+from textual.actions import SkipAction
+from textual.binding import Binding
+
+from textual.content import Content, Span
+from textual import getters
+from textual.widgets import OptionList, TextArea, Label
+from textual import containers
+from textual.widget import PrimaryActivation, Widget
+from textual.widgets.option_list import Option
+from textual.widgets.text_area import Selection
+from textual import events
+
+from toad.app import ToadApp
+from toad import messages
+from toad.widgets.highlighted_textarea import HighlightedTextArea
+from toad.widgets.condensed_path import CondensedPath
+from toad.widgets.path_search import PathSearch
+from toad.widgets.question import Ask, Question
+from toad.widgets.slash_complete import SlashComplete
+from toad.widgets.model_switcher import ModelSwitcher
+from toad.widgets.prompt_popup import PromptPopup, CompletionPopup, InfoPopup
+from toad.core.input_events import UserInputSubmitted
+from toad.core_event_carrier import CoreEventReceiver
+from toad.slash_command import SlashCommand
+from toad.path_complete import PathComplete
+from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
+from toad.widgets.selection import SelectionOptionList
+from toad.widget_actions import DeclaredWidgetActions
+from toad.prompt_actions import PromptAction, SubmitNowAction
+
+if TYPE_CHECKING:
+    from toad.agent import AgentBase
+
+
+class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
+    BINDING_GROUP_TITLE = "Mode switcher"
+    BINDINGS = [Binding("escape", "dismiss", "Dismiss mode switcher")]
+
+    @on(OptionList.OptionSelected)
+    def on_option_selected(self, event: OptionList.OptionSelected):
+        self.publish_core(input_events.ChangeMode(event.option_id))
+        self.blur()
+
+    def action_dismiss(self):
+        self.blur()
+
+
+class AgentInfo(PrimaryActivation, Label):
+    @property
+    def primary_activation(self):
+        return self.query_ancestor(Prompt).on_agent_info_click
+
+
+class SendNow(PrimaryActivation, Label, can_focus=True):
+    BINDINGS = [("enter,space", "send_now", "Send now")]
+
+    @property
+    def primary_activation(self):
+        return self.action_send_now
+
+    def action_send_now(self):
+        self.post_message(messages.SendPromptNow())
+
+    def on_click(self, event: events.Click):
+        event.stop()
+        self.action_send_now()
+
+
+class ModeInfo(PrimaryActivation, Label):
+    @property
+    def primary_activation(self):
+        return self.query_ancestor(Prompt).on_mode_info_click
+
+
+class StatusLine(Label):
+    status: var[str | Content | RichText] = var("")
+
+    def watch_status(self, status: str | Content | RichText) -> None:
+        self.set_class(not bool(status), "-hidden")
+        self.update(status)
+        self.tooltip = status
+
+
+class QueueSummary(PrimaryActivation, Label, can_focus=True):
+    """Shows the remote queue; activation reports available control support."""
+
+    BINDINGS = [("enter,space", "edit_queue", "Queue controls")]
+
+    @property
+    def primary_activation(self):
+        return self.action_edit_queue
+
+    def action_edit_queue(self) -> None:
+        from toad.widgets.conversation import Conversation
+
+        self.query_ancestor(Conversation).open_queue_menu()
+
+    def on_click(self, event: events.Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.action_edit_queue()
+
+
+class PromptContainer(containers.HorizontalGroup):
+    def on_mouse_down(self, event: events.MouseUp) -> None:
+        for child in self.query("*"):
+            if child.has_focus:
+                return
+        prompt_text_area = self.query_one(PromptTextArea)
+        if not prompt_text_area.has_focus:
+            prompt_text_area.focus()
+
+
+class PromptSubmission:
+    """Admit model and local command submission through the current prompt."""
+
+    def schedule_submission(self, *, immediate: bool = False) -> None:
+        self._submit_immediate |= immediate
+        # The callback is queued behind this widget's input events. Unlike a
+        # timer, it preserves paste/typing order without adding a fixed latency.
+        if not self._submit_pending:
+            self._submit_pending = True
+            self.call_later(self._submit)
+
+
+class PromptTextArea(CoreEventReceiver, DeclaredWidgetActions, PromptSubmission, HighlightedTextArea):
+    ACTIONS = PromptAction
+    HELP = """\
+## Prompt
+
+Talk to your agent in natural language.
+See on-screen instructions for details.
+
+- Be simple
+- Be direct
+- Nothing fancy
+"""
+
+    BINDING_GROUP_TITLE = "Prompt"
+
+    BINDINGS = [
+        Binding("pageup", "history_page_up", "Previous messages", priority=True, show=False),
+        Binding("pagedown", "history_page_down", "Next messages", priority=True, show=False),
+        Binding("ctrl+v", "paste_clipboard", "Paste", priority=True, show=False),
+        Binding("ctrl+j", "line_feed", "New line", priority=True, show=False),
+        Binding(
+            "shift+enter",
+            "newline",
+            "Line",
+            key_display="⇧+⏎",
+            tooltip="Insert a new line character",
+        ),
+        Binding(
+            "tab",
+            "tab_complete",
+            "Complete",
+            tooltip="Complete path (if possible)",
+            priority=True,
+            show=False,
+        ),
+    ]
+
+    app = getters.app(ToadApp)
+
+    auto_completes: var[list[Option]] = var(list)
+    multi_line = var(False, bindings=True)
+    shell_mode = var(False, bindings=True)
+    path_complete: var[PathComplete] = var(Initialize(lambda obj: PathComplete()))
+    suggestions: var[list[str] | None] = var(None)
+    suggestions_index: var[int] = var(0)
+
+    project_path = var(Path())
+    working_directory = var("")
+
+    slash_commands: var[list[SlashCommand]] = var([])
+
+    def __init__(self, *, simple_input: bool = False, turns: ConversationTurn | None = None) -> None:
+        self.input_cursor = PromptCursor(self)
+        super().__init__()
+        self.simple_input = simple_input
+        self.turns = turns
+        self._submit_pending = False
+        self._submit_immediate = False
+
+    @property
+    def agent_busy(self) -> bool:
+        return self.turns.owner.busy if self.turns is not None else False
+
+    @property
+    def agent_ready(self) -> bool:
+        return self.simple_input or self.shell_mode or self.query_ancestor(Prompt).agent_ready
+
+    @property
+    def queue_supported(self) -> bool:
+        return not self.simple_input and self.query_ancestor(Prompt).queue_supported
+
+    @property
+    def can_enter_shell(self) -> bool:
+        return self.submission_allowed and not self.text and not self.simple_input and not self.shell_mode
+
+    def watch_slash_commands(self, slash_commands: list[SlashCommand]) -> None:
+        self.notify_style_update()
+        self.refresh()
+
+    def highlight_slash_command(self, text: str) -> Content:
+        return CommandText.decode_input(text, self.slash_commands).highlight()
+
+    def highlight_shell(self, text: str) -> Content:
+        """Override shell highlighting with additional danger detection."""
+        content = super().highlight_shell(text)
+
+        if not self.app.settings.shell.warn_dangerous:
+            return content
+
+        from toad import danger
+
+        styles = danger.DangerStyles("", "$text-error on $error-muted 70%")
+        spans = tuple(
+            Span(*atom.span, style)
+            for atom in danger.analyze(
+                str(self.project_path), self.working_directory, content.plain
+            )
+            if (style := atom.level.highlight(styles))
+        )
+        content = content.add_spans(spans)
+        return content
+
+    def on_mount(self) -> None:
+        self.highlight_cursor_line = False
+        self.hide_suggestion_on_blur = False
+        self.apply_keyboard_profile()
+        self.call_after_refresh(lambda: self.show_editing_mode(self.editing_mode))
+
+    def show_editing_mode(self, mode) -> None:
+        if self.is_mounted:
+            self.query_ancestor(PromptContainer).border_subtitle = mode.label
+
+    def apply_keyboard_profile(self) -> None:
+        from textual.widgets.text_area import EditingMode, VimInsert
+        enabled = self.app.settings.ui.vim_keys
+        if self.editing_mode.modal != enabled:
+            self.editing_mode = VimInsert() if enabled else EditingMode()
+
+    @property
+    def submission_allowed(self) -> bool:
+        return self.editing_mode.accepts_text and not self.query_ancestor(Prompt).active_popup
+
+    def leave_modal_editor(self) -> None:
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).window.focus(scroll_visible=False)
+
+    def on_key(self, event: events.Key) -> None:
+        if self.shell_mode and event.key == "tab":
+            event.prevent_default()
+        elif event.key != "escape":
+            self.suggestions = None
+            self.suggestion = ""
+
+    def action_newline(self) -> None:
+        self._replace_via_keyboard("\n", *self.selection)
+
+    def action_line_feed(self) -> None:
+        self.action_newline()
+
+    def action_history_page_up(self) -> None:
+        from toad.widgets.conversation import Conversation
+
+        self.query_ancestor(Conversation).window.action_page_up()
+
+    def action_history_page_down(self) -> None:
+        from toad.widgets.conversation import Conversation
+
+        self.query_ancestor(Conversation).window.action_page_down()
+
+    def _paste_clipboard_text(self, text: str) -> None:
+        # A fresh Paste event posted directly here would bubble to App and be
+        # forwarded back to the focused TextArea, inserting it a second time.
+        self.editing_mode = self.editing_mode.pasted()
+        if result := self._replace_via_keyboard(text, *self.selection):
+            self.move_cursor(result.end_location)
+
+    @work(group="clipboard-paste", exclusive=True)
+    async def action_paste_clipboard(self) -> None:
+        from toad.clipboard_image import read_clipboard_png, save_clipboard_png
+
+        if self.read_only:
+            return
+        try:
+            image = await read_clipboard_png()
+            if not self.is_attached:
+                return
+            if image is not None:
+                if self.simple_input or self.shell_mode:
+                    self.notify("Paste images into an agent thread, not the IRC or shell composer.",
+                                title="Image attachment", severity="warning")
+                    return
+                path = await asyncio.to_thread(save_clipboard_png, image)
+                reference = f'@"{path}"' if any(char.isspace() for char in str(path)) else f"@{path}"
+                self._paste_clipboard_text(" " + reference + " ")
+                self.notify(f"PNG attached ({len(image):,} bytes). Enter sends it with your prompt.",
+                            title="Image attachment")
+                return
+            text = (await self.app.clipboard_transport.paste(self.app)).text
+            if text:
+                self._paste_clipboard_text(text)
+            else:
+                self.notify("No text or supported image in the clipboard", title="Paste")
+        except (OSError, ValueError, TimeoutError) as error:
+            self.notify(str(error), title="Paste failed", severity="error")
+
+
+    def _submit(self) -> None:
+        self._submit_pending = False
+        immediate, self._submit_immediate = self._submit_immediate, False
+        if not self.has_focus or not self.submission_allowed:
+            return
+        input_text = CommandText.decode_input(self.text, self.slash_commands)
+        local_command = not input_text.requires_agent
+        if not self.agent_ready and not self.shell_mode and not local_command:
+            self.app.bell()
+            self.post_message(
+                messages.Flash(
+                    self.query_ancestor(Prompt).operational_submissions.unavailable_reason,
+                    "error",
+                )
+            )
+            return
+        if self.suggestion:
+            if " " not in self.text:
+                self.insert(self.suggestion + " ")
+            else:
+                prompt = self.query_ancestor(Prompt)
+                last_token = shlex.split(self.text + self.suggestion)[-1]
+                last_token_path = Path(prompt.working_directory) / last_token
+                if last_token_path.is_dir():
+                    self.insert(self.suggestion)
+                else:
+                    self.insert(self.suggestion + " ")
+                self.suggestion = ""
+            return
+        shell = self.shell_mode
+        self.publish_core(UserInputSubmitted(self.text, shell, immediate=immediate))
+        self.clear()
+        if shell:
+            self.query_ancestor(Prompt).shell_mode = False
+
+    def action_cursor_up(self, select: bool = False):
+        PreviousHistoryCursor.move(self, select, super().action_cursor_up)
+
+    def action_cursor_down(self, select: bool = False):
+        NextHistoryCursor.move(self, select, super().action_cursor_down)
+
+    def action_delete_left(self) -> None:
+        if not self.editing_mode.accepts_text:
+            return super().action_delete_left()
+        selection = self.selection
+        if selection.start == selection.end and self.selection.end == (0, 0):
+            self.query_ancestor(Prompt).shell_mode = False
+            return
+        return super().action_delete_left()
+
+    def action_cursor_line_end(self, select: bool = False) -> None:
+        """Move the cursor to the end of the line."""
+        if not self.editing_mode.accepts_text:
+            return super().action_cursor_line_end(select)
+        if not self._has_cursor:
+            self.scroll_end()
+            return
+        location = self.get_cursor_line_end_location()
+        if location == self.cursor_location:
+            # If the cursor is already at the end, then we assume the user wants to
+            # scroll the conversation to the end
+            from toad.widgets.conversation import Conversation
+
+            self.query_ancestor(Conversation).jump_to_latest()
+        else:
+            self.move_cursor(location, select=select)
+
+    async def action_tab_complete(self) -> None:
+        if not self.editing_mode.accepts_text or not self.shell_mode:
+            return
+
+        import shlex
+
+        prompt = self.query_ancestor(Prompt)
+
+        if not self.cursor_at_end_of_text:
+            return
+
+        _cursor_row, cursor_column = prompt.prompt_text_area.selection.end
+        pre_complete = self.text[:cursor_column]
+        post_complete = self.text[cursor_column:]
+        shlex_tokens = shlex.split(pre_complete)
+        if not shlex_tokens:
+            return
+
+        command = shlex_tokens[0]
+
+        exclude_node_type: Literal["file"] | Literal["dir"] | None = None
+        if (
+            command
+            in self.app.settings.shell.directory_commands.splitlines()
+        ):
+            exclude_node_type = "file"
+        elif command in self.app.settings.shell.file_commands.splitlines():
+            exclude_node_type = "dir"
+
+        tab_complete, suggestions = await self.path_complete(
+            Path(prompt.working_directory),
+            shlex_tokens[-1],
+            exclude_type=exclude_node_type,
+        )
+
+        if tab_complete is not None:
+            shlex_tokens = shlex_tokens[:-1] + [shlex_tokens[-1] + tab_complete]
+            path_component = Path(prompt.working_directory) / shlex_tokens[-1]
+            if path_component.is_file():
+                spaces = " "
+            else:
+                spaces = ""
+
+            self.clear()
+            self.insert(
+                " ".join(token.replace(" ", "\\ ") for token in shlex_tokens)
+                + post_complete
+                + spaces
+            )
+            self.suggestions = None
+        else:
+            if suggestions != self.suggestions:
+                self.suggestions = suggestions or None
+                self.suggestions_index = 0
+                if suggestions:
+                    self.suggestion = suggestions[0]
+            elif self.suggestions:
+                self.suggestions_index = (self.suggestions_index + 1) % len(
+                    self.suggestions
+                )
+                self.suggestion = self.suggestions[self.suggestions_index]
+
+    def watch_selection(self, previous_selection: Selection, selection: Selection) -> None:
+        if self.is_mounted:
+            self.input_cursor.changed(previous_selection, selection)
+
+
+class Prompt(containers.VerticalGroup):
+
+    DEFAULT_CSS = """
+    Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }
+    Prompt.-has-queue .queue-summary { display: block; }
+    Prompt .delivery-controls { display: none; height: 1; padding-left: 1; }
+    Prompt.-queue-mode .delivery-controls { display: block; }
+    Prompt SendNow { color: $text-secondary; pointer: pointer; }
+    Prompt SendNow:hover, Prompt SendNow:focus { text-style: underline; }
+    """
+
+    BINDINGS = [
+        Binding("escape", "dismiss", "Dismiss", show=False),
+    ]
+
+    PROMPT_NULL = " "
+    PROMPT_SHELL = Content.styled("$", "$text-primary")
+    PROMPT_AI = Content.styled("❯", "$text-secondary")
+    PROMPT_MULTILINE = Content.styled("☰", "$text-secondary")
+    TEXT_AREA_CLASS = PromptTextArea
+
+    prompt_container = getters.query_one("#prompt-container", Widget)
+    prompt_text_area = getters.query_one(PromptTextArea)
+    prompt_label = getters.query_one("#prompt", Label)
+    current_directory = getters.query_one(CondensedPath)
+    path_search = getters.query_one(PathSearch)
+    slash_complete = getters.query_one(SlashComplete)
+    question = getters.query_one(Question)
+    mode_switcher = getters.query_one(ModeSwitcher)
+    model_switcher = getters.query_one(ModelSwitcher)
+
+    slash_commands: var[list[SlashCommand]] = var(list)
+    shell_mode = var(False)
+    multi_line = var(False)
+    project_path = var(Path, init=False)
+    working_directory = var("")
+    display_directory = var("")
+    agent_info = var(Content(""))
+    _ask: var[Ask | None] = var(None)
+    agent: var[AgentBase | None] = var(None)
+    model_history_scope = var("")
+    status: var[str | Content | RichText] = var("")
+
+    app = getters.app(ToadApp)
+
+    def __init__(
+        self,
+        *,
+        name: str | None = None,
+        id: str | None = None,
+        classes: str | None = None,
+        disabled: bool = False,
+        simple_input: bool = False,
+        placeholder: str | None = None,
+        turns: ConversationTurn | None = None,
+        submissions=None,
+    ):
+        super().__init__(name=name, id=id, classes=classes, disabled=disabled)
+        self.ask_queue: list[Ask] = []
+        self.simple_input = simple_input
+        self.simple_placeholder = placeholder
+        self.turns = turns
+        self.submissions = submissions
+
+    @property
+    def agent_busy(self) -> bool:
+        return self.turns.owner.busy if self.turns is not None else False
+
+    @property
+    def operational_submissions(self):
+        if self.submissions is None:
+            raise RuntimeError("Operational prompt requires its submission owner")
+        return self.submissions
+
+    @property
+    def agent_ready(self) -> bool:
+        return self.simple_input or self.shell_mode or self.operational_submissions.ready
+
+    @property
+    def queue_supported(self) -> bool:
+        return self.agent is not None and self.agent.presentation.queue_supported
+
+    @property
+    def text(self) -> str:
+        return self.prompt_text_area.text
+
+    @property
+    def supports_completion(self) -> bool:
+        """This composer owns whether its current input mode admits completion."""
+        return not self.simple_input and not self.shell_mode and self.prompt_text_area.editing_mode.accepts_text
+
+    @property
+    def active_popup(self) -> PromptPopup | None:
+        return next((popup for popup in self.query(PromptPopup) if popup.is_open), None)
+
+    @text.setter
+    def text(self, text: str) -> None:
+        self.prompt_text_area.text = text
+        self.prompt_text_area.selection = Selection.cursor(
+            self.prompt_text_area.get_cursor_line_end_location()
+        )
+
+    def watch_agent(self) -> None:
+        if self.is_mounted:
+            self.sync_configuration()
+            self.sync_session()
+
+    def sync_configuration(self) -> None:
+        """Render the original operational owners; no accepted selection lives here."""
+        if self.simple_input:
+            return
+        agent = self.agent
+        mode = agent.current_mode if agent is not None else None
+        self.set_class(mode is not None, "-has-mode")
+        info = self.query_one(ModeInfo)
+        info.update(mode.name if mode is not None else "")
+        info.tooltip = (Content.from_markup(
+            "[b]$description[/]\n\n[dim](click to open mode switcher)",
+            description=mode.description or mode.name,
+        ) if mode is not None else None)
+        model = agent.configuration.model.selected if agent is not None else None
+        self.set_class(model is not None, "-has-model")
+        self.query_one(AgentInfo).tooltip = (Content.from_markup(
+            "[b]$description[/]\n\n[dim](click to search models)",
+            description=model.description or model.value,
+        ) if model is not None else None)
+        self.update_modes()
+        self.model_switcher.configuration_changed()
+
+    def ask(self, ask: Ask) -> None:
+        """Replace the textarea prompt with a menu of options.
+
+        Args:
+            ask: An `Ask` instance which contains a question and responses.
+        """
+        self.ask_queue.append(ask)
+        if self._ask is None:
+            self._ask = self.ask_queue.pop(0)
+
+    def remove_ask(self, ask: Ask) -> None:
+        """Retire one exact request after its controller has stopped waiting."""
+        if self._ask is ask:
+            self._ask = self.ask_queue.pop(0) if self.ask_queue else None
+        else:
+            self.ask_queue = [pending for pending in self.ask_queue if pending is not ask]
+
+    @on(events.Click, "ModeInfo")
+    def on_mode_info_click(self):
+        self.mode_switcher.focus()
+
+    @on(events.Click, "AgentInfo")
+    def on_agent_info_click(self):
+        if self.agent is not None and self.agent.configuration.model.available:
+            self.model_switcher.focus()
+
+    def update_modes(self) -> None:
+        from toad.visuals.columns import Columns
+
+        agent = self.agent
+        mode_list = sorted(agent.available_modes, key=lambda mode: mode.name.lower()) if agent is not None else []
+        current = agent.current_mode if agent is not None else None
+        columns = Columns("auto", "auto", "flex")
+        for mode in mode_list:
+            columns.add_row(
+                Content.styled("✔", "$text-success") if mode is current else "",
+                Content.from_markup("[bold]$mode[/]", mode=mode.name),
+                Content.styled(mode.description or "", "dim"),
+            )
+        self.mode_switcher.set_options(
+            [Option(row, id=mode.id) for row, mode in zip(columns, mode_list)]
+        )
+        if current is not None:
+            self.mode_switcher.highlighted = self.mode_switcher.get_option_index(current.id)
+
+    def sync_turn(self) -> None:
+        if not self.is_mounted:
+            return
+        if (editor := self.query_one_optional(PromptTextArea)) is not None:
+            self.set_class(SubmitNowAction().available(editor), "-queue-mode")
+            editor.refresh_bindings()
+        from toad.widgets.goal_bar import GoalBar
+        for goal_bar in self.parent.query(GoalBar):
+            goal_bar._queue_separator_update()
+
+    def sync_queue(self) -> None:
+        if self.is_mounted:
+            self.sync_session()
+            self._update_queue_summary()
+
+    def on_mount(self) -> None:
+        self.sync_configuration()
+        self.sync_session()
+        self.call_after_refresh(self.sync_queue)
+
+    def _update_queue_summary(self) -> None:
+        if self.simple_input:
+            return
+        submissions = self.operational_submissions
+        projection = submissions.queue_projection
+        queued = [row.text for row in submissions.queued_inputs]
+        restored = [row.text for row in projection.restored]
+        feedback = projection.feedback(self.queue_supported)
+        delivering = submissions.delivering
+        self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
+        parts: list[str] = []
+        if feedback:
+            parts.append(feedback)
+        if delivering:
+            parts.append(
+                f"Submitting ({len(delivering)}): "
+                + " · ".join(" ".join(text.split())[:100] for text in delivering[:3])
+            )
+        if queued:
+            parts.append(
+                f"Queued ({len(queued)}): "
+                + " · ".join(" ".join(text.split())[:100] for text in queued[:3])
+            )
+        if restored:
+            parts.append(
+                f"Restored ({len(restored)}, read-only): "
+                + " · ".join(" ".join(text.split())[:100] for text in restored[:3])
+            )
+        summary = self.query_one(".queue-summary", Label)
+        summary.tooltip = "Submitting is an outstanding local request, not acceptance. Queued is the producer's accepted input, not consumption or completion. Restored rows are not local drafts."
+        summary.update(Content(" | ".join(parts)))
+
+    @on(messages.SendPromptNow)
+    async def on_send_prompt_now(self, event):
+        event.stop()
+        # Widget.focus() defers its focus change to the screen queue. Submission
+        # can overtake it and fail the TextArea's has_focus guard after a click.
+        self.screen.set_focus(self.prompt_text_area)
+        await self.prompt_text_area.run_action("submit_now")
+
+    def sync_session(self) -> None:
+        if not self.is_mounted:
+            return
+        self.set_class(not self.agent_ready, "-not-ready")
+        self.watch_agent_info(self.agent_info)
+        self.sync_turn()
+
+    def watch_agent_info(self, agent_info: Content) -> None:
+        if self.simple_input or not self.is_mounted:
+            return
+        if self.agent_ready:
+            self.query_one(AgentInfo).update(agent_info)
+        else:
+            self.query_one(AgentInfo).update(self.operational_submissions.unavailable_reason)
+
+    def watch_multiline(self) -> None:
+        self.update_prompt()
+
+    def watch_shell_mode(self) -> None:
+        self.update_prompt()
+        self.watch_working_directory(self.working_directory)
+
+    def compute_display_directory(self) -> str:
+        return self.working_directory if self.shell_mode else str(self.project_path)
+
+    def watch_working_directory(self, working_directory: str) -> None:
+        if not working_directory:
+            return
+        out_of_bounds = self.shell_mode and not Path(working_directory).is_relative_to(self.project_path)
+        if out_of_bounds and not self.has_class("-working-directory-out-of-bounds"):
+            self.post_message(
+                messages.Flash(
+                    "You have navigated away from the project directory",
+                    style="error",
+                    duration=5,
+                )
+            )
+        self.set_class(
+            out_of_bounds,
+            "-working-directory-out-of-bounds",
+        )
+
+    def on_unmount(self) -> None:
+        self.app.terminal_attention.release(self)
+
+    def watch__ask(self, ask: Ask | None) -> None:
+        self.set_class(ask is not None, "-mode-ask")
+        if ask is None:
+            self.app.terminal_attention.release(self)
+            self.prompt_text_area.focus()
+        else:
+            self.app.terminal_attention.require(self)
+            self.question.update(ask)
+            self.question.focus()
+
+    def update_prompt(self):
+        """Update the prompt according to the current mode."""
+        if self.simple_input:
+            self.prompt_label.update(self.PROMPT_AI, layout=False)
+            self.remove_class("-shell-mode")
+            self.prompt_text_area.placeholder = (
+                self.simple_placeholder or "Message thread"
+            )
+            self.prompt_text_area.highlight_language = "markdown"
+            return
+        if self.shell_mode:
+            self.prompt_label.update(self.PROMPT_SHELL, layout=False)
+            self.add_class("-shell-mode")
+            self.prompt_text_area.placeholder = Content.from_markup(
+                "Enter shell command\t[r]▌esc▐[/r] prompt mode"
+            ).expand_tabs(8)
+            self.prompt_text_area.highlight_language = "shell"
+        else:
+            self.prompt_label.update(
+                self.PROMPT_MULTILINE if self.multi_line else self.PROMPT_AI,
+                layout=False,
+            )
+            self.remove_class("-shell-mode")
+
+            self.prompt_text_area.placeholder = ""
+            self.prompt_text_area.highlight_language = "markdown"
+
+    def focus(self, scroll_visible: bool = True) -> Self:
+        if self._ask is not None:
+            self.question.focus(scroll_visible=scroll_visible)
+        else:
+            self.prompt_text_area.focus(scroll_visible=scroll_visible)
+        return self
+
+    def append(self, text: str) -> None:
+        self.query_one(HighlightedTextArea).insert(
+            text, maintain_selection_offset=False
+        )
+
+
+
+    def project_directory_updated(self) -> None:
+        """Called when there is may be new files"""
+        if not self.simple_input:
+            self.path_search.invalidate_paths()
+
+    @on(TextArea.Changed)
+    def on_text_area_changed(self, event: TextArea.Changed) -> None:
+        text = event.text_area.text
+
+        self.multi_line = "\n" in text or "```" in text
+
+        if self.simple_input:
+            self.shell_mode = False
+
+        self.update_prompt()
+
+    @on(Question.Answer)
+    def on_question_answer(self, event: Question.Answer) -> None:
+        """An old prompt must not select an option on a successor request."""
+        event.stop()
+        ask = self._ask
+        if ask is None or event.ask is not ask:
+            return
+        if (callback := ask.callback) is not None:
+            callback(event.answer)
+        self.set_timer(0.3, lambda: self.remove_ask(ask))
+
+    def suggest(self, suggestion: str) -> None:
+        if suggestion.startswith(self.text) and self.text != suggestion:
+            self.prompt_text_area.suggestion = suggestion[len(self.text) :]
+
+    def compose(self) -> ComposeResult:
+        for kind in CompletionPopup.members_with(CompletionPopup):
+            if (popup := kind.for_prompt(self)) is not None:
+                yield popup
+        if not self.simple_input:
+            yield QueueSummary("", classes="queue-summary", markup=False)
+            with containers.HorizontalGroup(classes="delivery-controls"):
+                yield Label("Enter queues · ")
+                yield SendNow("Send now (Ctrl+Enter / Ctrl+Y)")
+        with PromptContainer(id="prompt-container"):
+            yield Question()
+            with containers.HorizontalGroup(id="text-prompt"):
+                yield Label(self.PROMPT_AI, id="prompt", markup=False)
+                yield self.TEXT_AREA_CLASS(simple_input=self.simple_input, turns=self.turns).data_bind(
+                    multi_line=Prompt.multi_line,
+                    shell_mode=Prompt.shell_mode,
+                    project_path=Prompt.project_path,
+                    working_directory=Prompt.working_directory,
+                    slash_commands=Prompt.slash_commands,
+                )
+        if not self.simple_input:
+            for kind in InfoPopup.members_with(InfoPopup):
+                if (popup := kind.for_prompt(self)) is not None:
+                    yield popup
+        with containers.HorizontalGroup(id="info-container"):
+            if not self.simple_input:
+                yield AgentInfo()
+                yield CondensedPath().data_bind(path=Prompt.display_directory)
+            yield StatusLine(markup=False).data_bind(status=Prompt.status)
+            if not self.simple_input:
+                yield ModeSwitcher()
+                yield ModeInfo("mode")
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        return True
+
+    def action_dismiss(self) -> None:
+        if self.prompt_text_area.suggestion:
+            self.prompt_text_area.suggestion = ""
+            return
+        if self.shell_mode:
+            self.shell_mode = False
+            return
+        for popup in self.query(PromptPopup):
+            if popup.is_open:
+                popup.action_dismiss()
+                return
+        raise SkipAction()

@@ -1,0 +1,83 @@
+{
+  "toad_file": "/home/ts/wt/toad-forms-migration/src/toad/__init__.py",
+  "agent_comms_file": "/home/ts/wt/core-p55-new-session/src/agent_comms/__init__.py",
+  "sys_path": [
+    "/home/ts/wt/toad-forms-migration/.scratch",
+    "/home/ts/wt/toad-forms-migration/src",
+    "/home/ts/wt/core-p55-new-session/src",
+    "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python314.zip",
+    "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14",
+    "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/lib-dynload",
+    "/home/ts/.local/share/agent-comms/runtimes/toad-331540219-core-1076a32b3-native-6468a1979d983e9d-20261016T221633Z/lib/python3.14/site-packages"
+  ],
+  "app_pid": 993201,
+  "failed_mode": "session-1",
+  "healthy_mode": "session-2",
+  "failed_acp_pid": 993717,
+  "healthy_acp_pid": 993936,
+  "failed_ready": true,
+  "healthy_ready": true,
+  "after_kill": "Thread disconnected: Agent returned a failure code: [b]-9: /home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-39198495', '/mp-sz7743ki', '/mp-t8kavnwg', '/mp-9am3b25p', '/mp-f66tdb4n'}\n  warnings.warn(\n",
+  "after_reconnect": "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'",
+  "escaped_from_reconnect": null,
+  "label_text": "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'",
+  "label_display": true,
+  "failed_connected": false,
+  "healthy_reason": "",
+  "healthy_acp_alive": true,
+  "failed_shows": {
+    "sidebar_rows": [
+      "\u2717 p68-failed\n  Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'"
+    ],
+    "tab": [
+      "\u2717 p68-failed"
+    ],
+    "status_line": [
+      "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'"
+    ],
+    "footer": [
+      "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'"
+    ],
+    "navigation_row": "\u2717 p68-failed | Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'",
+    "screen_current": true,
+    "screen": "WorkspaceScreen"
+  },
+  "sidebars": [
+    {
+      "type": "CommsSidebar",
+      "accepts": true,
+      "stale": false,
+      "shows_model": true,
+      "enabled": true,
+      "screen": "WorkspaceScreen"
+    }
+  ],
+  "row_state_published": 5,
+  "conversation_ancestors": [
+    "Vertical",
+    "Center",
+    "MainScreen",
+    "Container",
+    "Horizontal",
+    "WorkspaceScreen",
+    "ToadApp"
+  ],
+  "failed_view_type": "MainScreen",
+  "healthy_shows_from_failed_tab": {
+    "sidebar_rows": [
+      "\u2713 p68-healthy\n  Ready"
+    ],
+    "tab": [
+      "\u2717 p68-failed"
+    ],
+    "status_line": [
+      "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'"
+    ],
+    "footer": [
+      "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'"
+    ],
+    "navigation_row": "\u2713 p68-healthy | Ready",
+    "screen_current": true,
+    "screen": "WorkspaceScreen"
+  }
+}

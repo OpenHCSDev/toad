@@ -1,0 +1,20 @@
+{"t": 1792191089.81481, "step": "show_menu", "subject": "core-native-runtime", "comms": 139845449429888, "sidebar_service": 139845449429888, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191089.8149924, "step": "choices-start"}
+{"t": 1792191089.8249485, "step": "choices-done", "n": 8}
+{"t": 1792191089.825099, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191105.054038, "step": "show_menu", "subject": "core-native-runtime", "comms": 139845449429888, "sidebar_service": 139845449429888, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191105.0541856, "step": "choices-start"}
+{"t": 1792191105.0577638, "step": "choices-done", "n": 8}
+{"t": 1792191105.0578144, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191120.2986102, "step": "show_menu", "subject": "core-native-runtime", "comms": 139845449429888, "sidebar_service": 139845449429888, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191120.2987475, "step": "choices-start"}
+{"t": 1792191120.3015795, "step": "choices-done", "n": 8}
+{"t": 1792191120.3016694, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191135.546718, "step": "show_menu", "subject": "core-native-runtime", "comms": 139845449429888, "sidebar_service": 139845449429888, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191135.5468557, "step": "choices-start"}
+{"t": 1792191135.5513296, "step": "choices-done", "n": 8}
+{"t": 1792191135.5513794, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191150.7824976, "step": "show_menu", "subject": "core-native-runtime", "comms": 139845449429888, "sidebar_service": 139845449429888, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191150.7826376, "step": "choices-start"}
+{"t": 1792191150.785402, "step": "choices-done", "n": 8}
+{"t": 1792191150.7854612, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}

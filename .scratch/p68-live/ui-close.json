@@ -1,0 +1,11 @@
+{
+  "closed_with": "physical Ctrl+Q",
+  "frontend_gone": true,
+  "app_gone": true,
+  "remaining_frontend_children": [],
+  "exit_status": "unavailable: original st parent exited",
+  "new_default_crash_files": [],
+  "isolated_crash_files": [],
+  "original_session_unchanged": true,
+  "failed_check": "No acceptance result. The owned failed-thread process still lived after the trigger; reconnect acceptance is not claimed."
+}

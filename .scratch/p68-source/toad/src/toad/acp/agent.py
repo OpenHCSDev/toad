@@ -1,0 +1,334 @@
+from toad.acp.agent_session import AgentSession
+from toad.acp.session_updates import SessionNotificationOwner
+from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
+from toad.acp.client_files import FileClientRequestOwner
+from toad.acp.tool_calls import SessionToolCalls
+from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
+from toad.acp.context_measurement import ContextMeasurement
+from toad.acp.agent_log import AgentLog
+from toad.acp.agent_process import AgentProcess
+from toad.acp.agent_controller import AgentController
+from toad.acp.permission_controller import PermissionController
+from toad.agent_presentation import ACPAgentPresentation
+import asyncio
+from contextlib import asynccontextmanager, suppress
+from dataclasses import replace
+from datetime import datetime
+from pathlib import Path
+
+import rich.repr
+from agent_comms.acp_extension import (
+    CoordinationChangedUpdate,
+    PromptRequest,
+    InputStartedUpdate,
+)
+from agent_comms.acp_failure import ACPFailure
+from agent_comms.field_codec import FieldCodec
+from agent_comms.context_reading import UnmeasuredContext
+from agent_comms.goal_actions import GoalAction
+from agent_comms.goal_presentation import GoalSnapshot
+from agent_comms.goals import Goal
+from agent_comms.ui_model.observation import ReadOwnerGoal
+
+import toad
+from toad import jsonrpc, paths
+from toad.core import events as core_events
+from toad.acp.api import API
+from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+from toad.acp.comms_updates import CommsUpdateConsumer, ThreadRead
+from toad.acp.projection_attachment import CursorAttachment
+from toad.acp.queue_attachment import QueueAttachment
+from toad.core.events import UnsupportedResumeAgentFail, AgentReady
+from toad.agent import AgentBase
+from toad.agent_schema import AgentDefinition
+
+
+def generate_datetime_filename(
+    prefix: str, suffix: str, datetime_format: str | None = None
+) -> str:
+    """Generate a filename which includes the current date and time.
+
+    Useful for ensuring a degree of uniqueness when saving files.
+
+    Args:
+        prefix: Prefix to attach to the start of the filename, before the timestamp string.
+        suffix: Suffix to attach to the end of the filename, after the timestamp string.
+            This should include the file extension.
+        datetime_format: The format of the datetime to include in the filename.
+            If None, the ISO format will be used.
+    """
+    if datetime_format is None:
+        dt = datetime.now().isoformat()
+    else:
+        dt = datetime.now().strftime(datetime_format)
+
+    file_name_stem = f"{prefix} {dt}"
+    for reserved in ' <>:"/\\|?*.':
+        file_name_stem = file_name_stem.replace(reserved, "_")
+    return file_name_stem + suffix
+
+
+@rich.repr.auto
+class Agent(AgentBase):
+    comms_consumer_class = CommsUpdateConsumer
+
+    """An agent that speaks the APC (https://agentclientprotocol.com/overview/introduction) protocol."""
+
+    def __init__(
+        self,
+        project_root: Path,
+        agent: AgentDefinition,
+        session_id: str | None,
+        session_pk: int | None = None,
+    ) -> None:
+        """
+
+        Args:
+            project_root: Project root path.
+            command: Command to launch agent.
+        """
+        super().__init__(project_root)
+        self.process = AgentProcess(self)
+        self.presentation = ACPAgentPresentation(self)
+        self.permissions = PermissionController(self)
+        self.controller = AgentController(self)
+        self.tools = SessionToolCalls(self)
+        self.definition = agent
+        self.session_id = session_id
+        self.server = jsonrpc.Server()
+        self.updates = SessionNotificationOwner(self)
+        self.server.expose_instance(self)
+        for owner in ClientRequestOwner.members_with(ClientRequestOwner):
+            self.server.expose_instance(owner.resolve(self))
+        self.session = AgentSession(self, session_pk)
+        self.done_event = asyncio.Event()
+        self._private_cursor = CursorAttachment()
+        self._private_cursor_sequence = 0
+        self.queue_attachment = QueueAttachment()
+        log_filename: str = generate_datetime_filename(f"{agent.name}", ".txt")
+        if (log_path := AgentLog.selected()) is not None:
+            self.presentation.log_path = log_path
+            with suppress(OSError):
+                self.presentation.log_path.unlink(missing_ok=True)
+        else:
+            self.presentation.log_path = paths.get_log() / log_filename
+        self.context_measurement = ContextMeasurement.saved(UnmeasuredContext())
+
+    @property
+    def command(self) -> str | None:
+        """The command used to launch the agent, or `None` if there isn't one."""
+        acp_command = toad.get_os_matrix(self.definition.run_command)
+        return acp_command
+
+    @property
+    def supports_load_session(self) -> bool:
+        """Does the agent support loading sessions?"""
+        return self.session.supports_load
+
+    def __rich_repr__(self) -> rich.repr.Result:
+        yield self.project_root_path
+        yield self.command
+
+    def log(self, line: str) -> None:
+        """Append a line to this agent's log file (written off the UI thread)."""
+        AgentLog.shared().append(self.presentation.log_path, line)
+
+    def get_info(self) -> str:
+        return self.definition.name
+
+    async def start(self, processes=()) -> None:
+        """Start the operational agent; attachment resources are acquired separately."""
+        await self.process.start(self, processes)
+
+    def send(self, request: jsonrpc.Request) -> None:
+        """Send a request to the agent.
+
+        This is called automatically, if you go through `self.request`.
+
+        Args:
+            request: JSONRPC request object.
+
+        """
+        self.process.send(request, self)
+
+    def request(self) -> jsonrpc.Request:
+        """Create a request object."""
+        return API.request(self.send)
+
+    @asynccontextmanager
+    async def prompt_request(self, require):
+        """A session/prompt request, written under Core ingress admission.
+
+        Acquiring admission awaits, so ``require`` re-decides the caller's
+        authority once admission is held, before any request is opened.
+        """
+        async with self.process.admitted_prompt(self):
+            require()
+            with self.request() as request:
+                yield request
+
+    def update_status_line(self) -> None:
+        """The measurement owns availability and source-specific presentation."""
+        from toad.core.events import UpdateStatusLine
+        self.events.publish(UpdateStatusLine())
+
+    async def stop(self) -> None:
+        """Gracefully stop the process."""
+        self.session.close()
+        await self.controller.terminals.close()
+        await self.session.touch()
+
+        await self.process.stop(self)
+
+
+    async def send_prompt(self, prompt: str, *, request: PromptRequest | None = None):
+        """AgentBase submission contract, executed by operational custody."""
+        return await self.controller.submit(prompt, request=request)
+
+
+    @property
+    def session_id(self):
+        return self.controller.session.session_id
+
+    @session_id.setter
+    def session_id(self, value):
+        self.controller.bind_session(value)
+
+    @property
+    def ready(self):
+        return self.session.ready
+
+    @property
+    def current_turn(self):
+        return self.presentation.turns.owner
+
+    async def retire_surface(self, surface):
+        if self.controller.surface.owns(surface):
+            self.detach_surface(surface)
+            await self.stop()
+
+    def attach_surface(self, surface) -> None:
+        self.controller.attach(surface)
+
+    def detach_surface(self, surface) -> None:
+        self.controller.detach(surface)
+
+    @property
+    def coordination(self) -> CoordinationChangedUpdate | None:
+        return self.controller.coordination
+
+    @coordination.setter
+    def coordination(self, value: CoordinationChangedUpdate | None) -> None:
+        self.controller.coordination = value
+
+    def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
+        self.events.publish(core_events.CommsUpdated(QueuePresentation(starts), self.session_id))
+
+    def _post_private_cursor(self) -> None:
+        self._private_cursor_sequence += 1
+        self.events.publish(core_events.CommsUpdated(CursorPresentation(self._private_cursor.status), self.session_id, self._private_cursor_sequence))
+
+    def _invalidate_attachment_views(self) -> None:
+        self._private_cursor.invalidate()
+        self._post_private_cursor()
+        self.queue_attachment.invalidate()
+        self._post_queue_view()
+
+
+    @property
+    def available_modes(self):
+        return self.controller.available_modes
+
+    @property
+    def current_mode(self):
+        return self.controller.current_mode
+
+    async def set_mode(self, mode_id: str) -> str | None:
+        return await self.session.set_mode(mode_id)
+
+    async def set_model(self, model_id: str) -> str | None:
+        return await self.configuration.setting(ModelConfigurationSetting).select(self, model_id)
+
+    async def set_thinking_level(self, level: str) -> str | None:
+        return await self.configuration.setting(ThinkingConfigurationSetting).select(self, level)
+
+    async def get_goal_snapshot(self) -> GoalSnapshot:
+        """The owner's goal snapshot, read by the observation service; its turn settles here."""
+        from .comms_updates import OwnerSnapshotConsumer
+        coordination = self.coordination
+        if coordination is None:
+            return GoalSnapshot(None, None)
+        authority = ClientSessionRequest(self, self.session_id)
+        consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
+        snapshot = await self.controller.transcripts.read(
+            ReadOwnerGoal(coordination.wire_root, coordination.thread))
+        self.controller.require_owner(coordination, authority)
+        for fact in snapshot.updates:
+            consumer.dispatch_sync(fact)
+        return snapshot
+
+    async def get_goal_history(self, goal_id: str):
+        result = await self.controller.request_owner("goal_history", goal_id=goal_id)
+        return result["history"]
+
+    async def edit_goal(self, goal: Goal, text: str) -> Goal:
+        result = await self.controller.request_owner(
+            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
+        )
+        return FieldCodec.decode(Goal, result["goal"])
+
+    def observed_thread(self) -> tuple[str, str] | None:
+        coordination = self.coordination
+        if coordination is None or coordination.wire_root is None or coordination.thread.name is None:
+            return None
+        return coordination.wire_root, coordination.thread.name
+
+    def thread_read(self) -> ThreadRead | None:
+        """Capture, before a presentation read, what its result must still match."""
+        from .comms_updates import OwnerSnapshotConsumer
+
+        if (thread := self.observed_thread()) is None:
+            return None
+        return ThreadRead(self, thread, ClientSessionRequest(self, self.session_id),
+                          OwnerSnapshotConsumer(self, self.session_id,
+                                                turn_token=self.presentation.turns.sequence))
+
+    async def observe_thread_presentation(self, presentation) -> None:
+        await self.session.observe_owner(presentation)
+
+    async def update_project(self, path: str) -> str:
+        if (self.coordination.wire_root if self.coordination else None) is None or (
+            self.coordination.thread.name if self.coordination else None
+        ) is None:
+            raise ValueError("Project changes require an agent-comms thread.")
+        from agent_comms.comms import wire
+
+        result = await asyncio.to_thread(
+            wire(
+                (self.coordination.wire_root if self.coordination else None)
+            ).threads.set_project,
+            (self.coordination.thread.name if self.coordination else None),
+            path,
+        )
+        self.coordination = replace(self.coordination, worktree=result.current)
+        self.project_root_path = Path(result.current)
+        self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
+        return result.current
+
+    async def update_goal(self, action: type[GoalAction], text: str = "") -> Goal | None:
+        result = await action.submit_control(
+            self.get_goal_snapshot, self.controller.request_owner, text,
+        )
+        return (
+            FieldCodec.decode(Goal, result["goal"])
+            if result["goal"] is not None
+            else None
+        )
+
+
+    async def cancel(self) -> bool:
+        """AgentBase cancellation contract."""
+        return await self.controller.cancel_prompt()
+
+    async def set_session_name(self, name: str) -> None:
+        await self.session.set_name(name)

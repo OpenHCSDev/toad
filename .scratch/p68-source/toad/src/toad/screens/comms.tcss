@@ -1,0 +1,32 @@
+CommsScreen {
+    background: $background;
+    layers: sidebar screen base;
+
+    & > Center { height: 1fr; }
+
+    #comms-content {
+        width: 1fr;
+        height: 1fr;
+    }
+
+    CommsChatView {
+        height: 1fr;
+
+        #comms-activity {
+            height: auto;
+        }
+
+        .comms-activity {
+            background: $primary-muted 20%;
+            color: $text-primary;
+            border-left: tall $primary;
+            padding: 0 1;
+
+            &:ansi {
+                background: ansi_default;
+                border-left: tall ansi_blue;
+            }
+        }
+    }
+
+}

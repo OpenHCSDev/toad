@@ -1,0 +1,41 @@
+{
+  "healthy_ready": true,
+  "healthy_reason": "",
+  "healthy_label_display": false,
+  "healthy_acp_alive": true,
+  "app_alive": true,
+  "healthy_shows": {
+    "sidebar_rows": [
+      "\u2713 p68-healthy\n  Ready"
+    ],
+    "tab": [
+      "\u2713 p68-healthy"
+    ],
+    "status_line": [
+      "Ready"
+    ],
+    "footer": [
+      "openai-codex/gpt-6.1-sol \u00b7 high"
+    ],
+    "navigation_row": "\u2713 p68-healthy | Ready",
+    "screen_current": true,
+    "screen": "WorkspaceScreen"
+  },
+  "failed_shows_from_healthy_tab": {
+    "sidebar_rows": [
+      "\u2713 p68-failed\n  Ready"
+    ],
+    "tab": [
+      "\u2713 p68-healthy"
+    ],
+    "status_line": [
+      "Ready"
+    ],
+    "footer": [
+      "openai-codex/gpt-6.1-sol \u00b7 high"
+    ],
+    "navigation_row": "\u2717 p68-failed | Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'",
+    "screen_current": true,
+    "screen": "WorkspaceScreen"
+  }
+}

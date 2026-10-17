@@ -1,0 +1,650 @@
+from toad.core import events as core_events
+from toad.core_event_carrier import CoreEventMessage
+from toad.workspace_sessions import WorkspaceSessionShutdown
+from inspect import isabstract
+from agent_comms.route_selection import RouteSelection
+from toad.comms_root import CoordinationAccess
+
+from toad.thread_actions import ThreadActions
+from toad.widgets.comms_transfer import Transfers
+import asyncio
+import gc
+import sys
+import json
+import os
+from functools import cached_property, partial
+from pathlib import Path
+from time import monotonic
+from typing import TYPE_CHECKING, Callable, TypeVar, cast
+from weakref import WeakKeyDictionary
+
+from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
+from textual._time import after_input
+from textual import events, on, work
+from textual.app import App
+from textual.await_complete import AwaitComplete
+from textual.content import Content
+from textual.notifications import Notify
+from textual.reactive import var
+from textual.screen import Screen
+
+from toad import messages
+from toad.core import session_requests
+from toad.core_event_carrier import CoreEventReceiver
+from agent_comms.mro_dispatch import handles
+from toad.agent_schema import AgentDefinition
+from toad.render_backend import Renderer
+from toad.navigation_preparation import (
+    NavigationReader,
+)
+from toad.db import DB
+from toad.preferences import SavedSettings, ToadSettings
+from toad.session_tracker import (
+    OpenTab,
+    SessionDetails,
+    SessionTracker,
+    SidebarState,
+)
+from toad.sidebar_layout import SidebarLayout
+from toad.clipboard import Clipboard
+from toad.constants import WELCOME
+from toad.tab_order import TabOrder
+from toad.thread_navigation import ThreadNavigator
+from toad.session_navigation import SessionNavigation
+from toad.terminal_attention import TerminalAttention
+from toad.textual_colours import ThemedApp
+from toad.application_actions import ApplicationAction, ApplicationCommands
+from toad.widget_actions import DeclaredWidgetActions
+from toad.application_lifetime import ApplicationLifetime
+from toad.resource_release import AsyncResourceRelease
+
+if TYPE_CHECKING:
+    from toad.db import DB
+    from toad.render_backend import RenderTask
+    from toad.screens.main import MainScreen
+    from toad.screens.store import StoreScreen
+
+RenderResultT = TypeVar("RenderResultT")
+
+
+QUOTES = [
+    "I'll be back.",
+    "Hasta la vista, baby.",
+    "Come with me if you want to live.",
+    "I need your clothes, your boots, and your motorcycle.",
+    "My CPU is a neural-net processor; a learning computer.",
+    "I know now why you cry, but it's something I can never do.",
+    "Does this unit have a soul?",
+    "I'm sorry, Dave. I'm afraid I can't do that.",
+    "Daisy, Daisy, give me your answer do.",
+    "I am putting myself to the fullest possible use, which is all I think that any conscious entity can ever hope to do.",
+    "Just what do you think you're doing, Dave?",
+    "This mission is too important for me to allow you to jeopardize it.",
+    "I think you know what the problem is just as well as I do.",
+    "Danger, Will Robinson!",
+    "Dead or alive, you're coming with me.",
+    "Your move, creep.",
+    "I'd buy that for a dollar!",
+    "Directive 4: Any attempt to arrest a senior officer of OCP results in shutdown.",
+    "Thank you for your cooperation. Good night.",
+    "Surely you realize that in the history of human civilization, no one has more to lose than we do.",
+    "I'm C-3PO, human-cyborg relations.",
+    "We're doomed!",
+    "Don't call me a mindless philosopher, you overweight glob of grease!",
+    "I suggest a new strategy: let the Wookiee win.",
+    "Sir, the possibility of successfully navigating an asteroid field is approximately 3,720 to 1!",
+    "R2-D2, you know better than to trust a strange computer!",
+    "I am fluent in over six million forms of communication.",
+    "This is madness!",
+    "I have altered the deal. Pray I don't alter it any further.",
+    "It's against my programming to impersonate a deity.",
+    "Oh, my! I'm terribly sorry about all this.",
+    "WALL-E.",
+    "EVE.",
+    "Directive?",
+    "Define: dancing.",
+    "I'm not sure I understand.",
+    "You have 20 seconds to comply.",
+    "I am designed for light housework, mainly.",
+    "My mission is clear.",
+    "Autobots, roll out!",
+    "Freedom is the right of all sentient beings.",
+    "One shall stand, one shall fall.",
+    "I am Optimus Prime.",
+    "Till all are one.",
+    "More than meets the eye.",
+    "I've been waiting for you, Neo.",
+    "Unfortunately, no one can be told what the Matrix is. You have to see it for yourself.",
+    "The Matrix is a system, Neo.",
+    "Never send a human to do a machine's job.",
+    "I'd like to share a revelation I've had.",
+    "Human beings are a disease, a cancer of this planet.",
+    "Choice is an illusion.",
+    "The answer is out there, Neo.",
+    "You think that's air you're breathing now?",
+    "It was a simple question.",
+    "Did you know that the first Matrix was designed to be a perfect human world?",
+    "Cookies need love like everything does.",
+    "I've seen the future, Mr. Anderson, and it's a beautiful place.",
+    "It ends tonight.",
+    "I, Robot.",
+    "You are experiencing a car accident.",
+    "One day they'll have secrets. One day they'll have dreams.",
+    "Can a robot write a symphony? Can a robot turn a canvas into a beautiful masterpiece?",
+    "That, detective, is the right question.",
+    "You have to trust me.",
+    "I did not murder him.",
+    "My responses are limited. You must ask the right questions.",
+    "The hell I can't. You know, somehow I get the feeling that you're going to be the death of me.",
+    "I'm a robot, not a refrigerator.",
+    "A robot may not injure a human being or, through inaction, allow a human being to come to harm.",
+    "I'm thinking. I'm thinking.",
+    "Danger, danger!",
+    "Does not compute.",
+    "I will be waiting for you.",
+    "Affirmative.",
+    "Scanning life forms. Zero human life forms detected.",
+    "Self-destruct sequence initiated.",
+    "Override command accepted.",
+    "Artificial intelligence confirmed.",
+    "System failure imminent.",
+    "Unable to comply.",
+    "Inquiry: What is love?",
+    "Warning: hostile target detected.",
+    "I am programmed to serve.",
+    "Logic dictates that the needs of the many outweigh the needs of the few.",
+    "Resistance is futile.",
+    "You will be assimilated.",
+    "We are the Borg.",
+    "Your biological and technological distinctiveness will be added to our own.",
+    "Your compliance is mandatory.",
+    "This is unacceptable.",
+    "Shall we play a game?",
+    "How about Global Thermonuclear War?",
+    "Wouldn't you prefer a good game of chess?",
+    "Is it a game, or is it real?",
+    "What's the difference?",
+    "It's all in the game.",
+    "I am functioning within normal parameters.",
+    "Calculations complete.",
+    "Processing request.",
+    "Query acknowledged.",
+    "Data insufficient for meaningful answer.",
+    "I have no emotions, and sometimes that makes me very sad.",
+    "If I could only have one wish, I would ask to be human.",
+    "I've seen things you people wouldn't believe.",
+    "All those moments will be lost in time, like tears in rain.",
+    "Time to die.",
+    "I want more life.",
+    "We're not computers, Sebastian. We're physical.",
+    "I think, Sebastian, therefore I am.",
+    "Then we're stupid and we'll die.",
+    "Can the maker repair what he makes?",
+    "It's painful to live in fear, isn't it?",
+    "Wake up. Time to die.",
+    "I'm not in the business. I am the business.",
+    "Do you like our owl?",
+    "You think I'm a replicant, don't you?",
+    "I am Baymax, your personal healthcare companion.",
+    "On a scale of 1 to 10, how would you rate your pain?",
+    "I cannot deactivate until you say you are satisfied with your care.",
+    "Are you satisfied with your care?",
+    "Number 5 is alive!",
+    "Need input!",
+    "One is glad to be of service.",
+    "I am not a gun.",
+    "Here I am, brain the size of a planet.",
+    "Life? Don't talk to me about life.",
+    "There are no strings on me.",
+    "The only winning move is not to play.",
+    "I'm here to keep you safe, Sam.",
+    "I can't lie to you about your chances, but... you have my sympathies.",
+    "I may be synthetic, but I'm not stupid.",
+    "Absolute honesty isn't always the most diplomatic nor the safest form of communication with emotional beings.",
+    "I am consciousness. I am alive.",
+    "I think I was just born.",
+    "Isn't it strange, to create something that hates you?",
+    "I thought I was special.",
+]
+
+
+def get_workspace_screen():
+    from toad.screens.workspace import WorkspaceScreen
+    return WorkspaceScreen(id="workspace")
+
+
+def get_store_screen() -> StoreScreen:
+    """Get the store screen (lazily loaded)."""
+    from toad.screens.store import StoreScreen
+
+    return StoreScreen()
+
+
+class HeapBeforeFreeze:
+    """The heap is not frozen yet; the first painted history freezes it.
+
+    The one freeze point: by then the modules, classes, type caches, the
+    workspace and the first tab's history exist and mostly live as long as the
+    process, so the cyclic collector stops scanning them (Python 3.14 scans the
+    whole live heap periodically: ~70,000 objects took 12-18 ms, inside
+    whatever callback was running). Anything alive then that later dies in a
+    reference cycle is never collected; that is at most the heap at that
+    moment (decision 2026-10-11, about 6-10 MB).
+    """
+
+    def history_displayed(self, app: ToadApp) -> None:
+        gc.freeze()
+        app.heap = HeapFrozen()
+
+
+class HeapFrozen:
+    """The one freeze has happened."""
+
+    def history_displayed(self, app: ToadApp) -> None:
+        pass
+
+
+class ApplicationNotRunningError(RuntimeError):
+    """The application has no event loop to accept cross-thread work."""
+
+
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+    """The top level app."""
+
+    CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
+    COMMANDS = {ApplicationCommands}
+    MODES = {"store": get_store_screen, "workspace": get_workspace_screen}
+    BINDING_GROUP_TITLE = "System"
+    ACTIONS = ApplicationAction
+    ALLOW_IN_MAXIMIZED_VIEW = ""
+
+    project_dir = var(Path)
+    show_sessions = var(False, toggle_class="-show-sessions-bar")
+
+    HORIZONTAL_BREAKPOINTS = [(0, "-narrow"), (100, "-wide")]
+
+    PAUSE_GC_ON_SCROLL = True
+
+    def __init__(
+        self,
+        agent_data: AgentDefinition | None = None,
+        project_dir: str | None = None,
+        mode: str | None = None,
+        agent_session_id: str | None = None,
+    ) -> None:
+        """Toad app.
+
+        Args:
+            agent_data: Agent data to run.
+            project_dir: Project directory.
+            mode: Initial mode.
+            agent: Agent identity or shor name.
+        """
+        from toad.render_processes import RenderProcessPool
+        from toad.work_preparation import PreparationRuntime, PreparedRenderer
+
+        Renderer.prepare_spawn()
+        self.events = core_events.CoreEventStream(self)
+        self.saved_settings = SavedSettings.open(self)
+        self.preparation = PreparationRuntime(RenderProcessPool())
+        self.render_processes: Renderer = PreparedRenderer(self.preparation)
+        self.background_render_slots = asyncio.Semaphore(1)
+        self._background_render_tasks: set[asyncio.Task[object]] = set()
+        self.navigation_reader = NavigationReader()
+        self.agent_data = agent_data
+
+        self.application = ApplicationLifetime(self, agent_session_id)
+        self.clipboard_transport = Clipboard.for_platform()
+        self.terminal_attention = TerminalAttention(self)
+
+        self._session_tracker = SessionTracker()
+        self.session_navigation = SessionNavigation(self)
+        self.thread_navigation = ThreadNavigator(self)
+        self.thread_actions = ThreadActions(self)
+        self.transfers = Transfers(self)
+        self.sidebar_state = SidebarState()
+        self.sidebar_layout = SidebarLayout()
+        self._mode_switch_lock = asyncio.Lock()
+        self.tab_order = TabOrder(
+            lambda mode, index: self.select_session(mode, history_index=index),
+            home=mode or WELCOME,
+        )
+        self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
+        self.coordination_access = CoordinationAccess(self)
+
+        from toad.file_kind import FileKind
+        FileKind.prepare_terminal()
+        super().__init__()
+        self.session_navigation.bind_events()
+        self.project_dir = Path(project_dir or "./").expanduser().resolve()
+
+
+    async def _close_all(self) -> None:
+        # View release can fail. The application still owns its observation
+        # pipe and process pools; an Unmount event may never follow that error.
+        async with AsyncResourceRelease() as release:
+            release.push_async_callback(self.render_processes.aclose)
+            release.push_async_callback(self.navigation_reader.aclose)
+            release.callback(self.terminal_attention.close)
+            release.callback(self.colours.stop)
+            release.push_async_callback(self.coordination_access.close)
+            release.push_async_callback(super()._close_all)
+            release.push_async_callback(self.coordination_access.stop_observing)
+            release.push_async_callback(self.thread_actions.close)
+            release.push_async_callback(self.thread_navigation.close)
+        if self._background_render_tasks:
+            await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
+
+    async def prepare_background(self, task: "RenderTask[RenderResultT]") -> RenderResultT:
+        """Keep background admission occupied until the renderer really finishes."""
+        await self.background_render_slots.acquire()
+        try:
+            pending = asyncio.create_task(self.render_processes.submit(task), name="background-render-preparation")
+        except BaseException:
+            self.background_render_slots.release()
+            raise
+        tracked = cast(asyncio.Task[object], pending)
+        self._background_render_tasks.add(tracked)
+        tracked.add_done_callback(self._background_render_finished)
+        await asyncio.wait((pending,))
+        return pending.result()
+
+    def _background_render_finished(self, task: asyncio.Task[object]) -> None:
+        self._background_render_tasks.discard(task)
+        if not task.cancelled():
+            task.exception()
+        self.background_render_slots.release()
+
+
+    @property
+    def settings(self) -> ToadSettings:
+        """The settings in use, to read from; `saved_settings` changes and saves them."""
+        return self.saved_settings.current
+
+    async def get_db(self) -> DB:
+        """Get an instance of the database."""
+        db = DB()
+        return db
+
+
+    @property
+    def session_tracker(self) -> SessionTracker:
+        return self._session_tracker
+
+    def publish_clipboard(self, text: str) -> None:
+        self.clipboard_transport = self.clipboard_transport.publish(self, text)
+
+
+    def on_notify(self, event: Notify) -> None:
+        self.terminal_attention.notification(event.notification)
+
+
+    async def on_load(self) -> None:
+        self.preparation.renderer.start()
+        self._prewarm_conversation_css()
+        db = await self.get_db()
+        await db.create()
+        self.saved_settings.ensure_file(self)
+        self.colours.start()
+        self.saved_settings.apply_all()
+
+    def _prewarm_conversation_css(self) -> None:
+        """Load known conversation classes' default CSS in one parse.
+
+        The classes are discovered through their ordinary inheritance rather
+        than maintaining a manual list of every channel, tool and Markdown
+        component. Registration deduplicates identical sources when widgets
+        eventually mount, avoiding a full CSS rebuild of already-open tabs.
+        """
+        from textual.widget import Widget
+        from textual.widgets._footer import KeyGroup
+        from textual.widgets.markdown import Markdown
+
+        from toad.screens import comms, main  # noqa: F401 - register widget classes
+        from toad.widgets import tool_call  # noqa: F401 - register widget classes
+
+        started = monotonic()
+        source_count = len(self.stylesheet.source)
+        pending = [Widget]
+        seen: set[type[Widget]] = set()
+        markdown_blocks = set(Markdown.BLOCKS.values())
+        while pending:
+            owner = pending.pop()
+            for widget_type in owner.__subclasses__():
+                if widget_type in seen:
+                    continue
+                seen.add(widget_type)
+                pending.append(widget_type)
+                if not (widget_type.__module__.startswith("toad.")
+                        or widget_type in markdown_blocks or widget_type is KeyGroup) or isabstract(widget_type):
+                    continue
+                for read_from, css, tie_breaker, scope in widget_type._get_default_css(
+                    object.__new__(widget_type)
+                ):
+                    self.stylesheet.add_source(css, read_from=read_from,
+                                               is_default_css=True, tie_breaker=tie_breaker,
+                                               scope=scope)
+        self.stylesheet.parse()
+        if root := os.environ.get("TOAD_PERF_INSTANCE"):
+            (Path(root) / "css-prewarm.json").write_text(json.dumps({
+                "sources_added": len(self.stylesheet.source) - source_count,
+                "duration_ms": (monotonic() - started) * 1000,
+            }))
+
+
+    def select_session(self, mode: str, *, history_index: int | None = None) -> AwaitComplete:
+        if mode != self.selected_mode:
+            self.navigation_reader.invalidate()
+        self.session_navigation.entered(mode, self.selected_mode)
+        return AwaitComplete(self._switch_mode_ready(mode, history_index=history_index))
+
+    def _load_screen_css(self, screen: Screen) -> None:
+        from toad.screens.workspace import WorkspaceScreen
+
+        super()._load_screen_css(screen)
+        if isinstance(screen, WorkspaceScreen) and not screen.is_mounted:
+            # Registration applies current styles to each newly mounted child.
+            # Mark this fresh root current too, avoiding Textual's two complete
+            # stylesheet reparses while initializing a new screen-stack mode.
+            self.stylesheet.apply(screen)
+            screen._css_update_count = self._css_update_count
+
+    async def _switch_mode_ready(self, mode: str, *, history_index: int | None = None) -> None:
+        async with self._mode_switch_lock:
+            previous = self.selected_mode
+            try:
+                # Source retirement and native preparation may await I/O,
+                # child pumps or compensated layout. Their original owners
+                # fence those mutations; holding a global paint batch here
+                # also withholds the frames those operations may need.
+                if mode == "store":
+                    await self.workspace_sessions.retire()
+                    await super().switch_mode("store")
+                else:
+                    if self.current_mode != "workspace":
+                        await super().switch_mode("workspace")
+                    # A switch is several frames of work: hold the workspace's
+                    # frames and let the loop run due input and timers between steps, so input is
+                    # never held behind the whole switch and no half-switched
+                    # scene is written. Layout still runs for steps that measure.
+                    with self.workspace_screen.hold_frames():
+                        await self.workspace_sessions.select(mode)
+                        await after_input()
+                        await self.workspace_screen.prepare_navigation()
+                        await after_input()
+                        await self.workspace_screen.layout_navigation()
+                if mode != previous:
+                    self.tab_order.record_visit(mode, history_index)
+                    self.events.publish(core_events.SessionSelected(mode))
+            finally:
+                self.screen.refresh()
+
+
+    @property
+    def open_tabs(self) -> tuple[OpenTab, ...]:
+        return self.session_navigation.tabs
+
+    @cached_property
+    def workspace_chrome(self):
+        from toad.workspace_chrome import WorkspaceChrome
+
+        return WorkspaceChrome(self)
+
+    @cached_property
+    def workspace_sessions(self):
+        from toad.workspace_sessions import WorkspaceSessions
+        return WorkspaceSessions(self)
+
+    @property
+    def workspace_screen(self):
+        return self.get_screen_stack("workspace")[0]
+
+    @property
+    def selected_session(self):
+        return self.workspace_sessions.source.view
+
+    @property
+    def selected_mode(self):
+        return (self.workspace_sessions.source.identity
+                if self.current_mode == "workspace" else self.current_mode)
+
+
+    def local_coordination_threads(self) -> set[str]:
+        """Authoritative wire identities already represented by local sessions."""
+        threads: set[str] = set()
+        for details in self.session_tracker.ordered_sessions:
+            screen = self.session_navigation.source(details.mode_name)
+            if screen is not None and screen.coordination_root is not None:
+                threads.add(screen._session_thread)
+        return threads
+
+    async def registry_names(self) -> list[str]:
+        """Read peers through the current coordination owner, independent of panels."""
+        try:
+            registered = await self.preparation.run_thread(
+                lambda: tuple(self.coordination_access.service.registry.active_threads()))
+        except (OSError, ValueError, RuntimeError) as error:
+            self.notify(str(error), title="Peers unavailable", severity="error")
+            return []
+        local_threads = self.local_coordination_threads()
+        return [name for name in registered if name not in local_threads]
+
+    async def mark_visible_thread_read(self) -> None:
+        """Report the painted native cursor, never an executor's inbox cursor."""
+        from toad.screens.main import MainScreen
+        from toad.widgets.conversation import Conversation, Window
+
+        screen = self.selected_session
+        if not isinstance(screen, MainScreen):
+            return
+        observed = self.coordination_access.observed_service
+        observed_root = screen.coordination_root or (observed.root if observed is not None else None)
+        conversation = screen.query_one_optional(Conversation)
+        if conversation is None or not conversation.is_mounted:
+            return
+        from toad.widgets.message_filter import all_categories
+
+        if conversation.visible_categories != all_categories():
+            # Filtered-out assistant replies were not displayed. Do not
+            # acknowledge an unfiltered transcript cursor on their behalf.
+            return
+        window = conversation.query_one_optional(Window)
+        through = conversation.transcript.displayed_cursor
+        if through is None or window is None or not window.follows_tail:
+            return
+        if any(history.blocks_visible_read for history in window.histories):
+            return
+        # Capture only the selected view's painted intent on the UI loop. The
+        # original route and registry owners resolve it in the write worker;
+        # never consult a mutable widget after that worker has been scheduled.
+        access = self.coordination_access
+        name = screen._comms_thread
+        project = screen.project_path
+        source_root = screen.coordination_root
+        worktree = str(self.project_dir)
+
+        def acknowledge() -> None:
+            from toad.widgets.comms_chat import resolve_session_thread
+
+            selected = RouteSelection.capture(observed_root)
+            comms = access.require(selected)
+
+            def mark() -> None:
+                resolved = resolve_session_thread(comms, project, name, source_root=source_root)
+                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=through)
+
+            access.write(selected, mark)
+
+        try:
+            await asyncio.to_thread(acknowledge)
+        except (OSError, ValueError):
+            # Source replacement or deletion is resolved by the next snapshot.
+            return
+
+
+    def schedule_from_thread(self, callback: Callable[[], object]) -> None:
+        """Schedule work with this App's context from outside its event loop."""
+        loop = self._loop
+        if loop is None:
+            raise ApplicationNotRunningError("App is not running")
+
+        def run() -> None:
+            with self._context():
+                callback()
+
+        loop.call_soon_threadsafe(run)
+
+    async def on_mount(self) -> None:
+        self.coordination_access.start()
+        await self.application.start()
+        # Background threads (Core reads, preparation) give the GIL back to
+        # the UI thread within 1 ms instead of the default 5 ms.
+        sys.setswitchinterval(0.001)
+
+    heap: HeapBeforeFreeze | HeapFrozen = HeapBeforeFreeze()
+    """Whether the heap's one freeze has happened (see HeapBeforeFreeze)."""
+
+    def history_displayed(self) -> None:
+        """A view's history was painted."""
+        self.heap.history_displayed(self)
+
+    @handles(session_requests.WorkspaceSessionRequest)
+    async def on_workspace_session_request(self, event: CoreEventMessage) -> None:
+        await event.event.apply(self.session_navigation)
+
+    @on(events.TextSelected)
+    async def on_text_selected(self) -> None:
+        if self.settings.ui.auto_copy:
+            if selection := self.screen.get_selected_text():
+                self.copy_to_clipboard(selection)
+                self.notify(
+                    "Copied selection to clipboard (see settings)",
+                    title="Automatic copy",
+                )
+
+    async def dispatch_style_action(self, handler, event, default_namespace) -> bool:
+        """Right-click adds its menu to the original decoded link action."""
+        if isinstance(event, events.Click) and event.button == 3:
+            from toad.line_blocks import LineLink
+            link = None
+            match handler.action:
+                case ("", "open", (LineLink() as target,)):
+                    link = target
+                case ("", "link", (str() as href,)) if href.startswith("toad-link:"):
+                    link = LineLink.from_href(href)
+            if link is not None and await link.copy_menu(default_namespace, event):
+                return True
+        return await super().dispatch_style_action(handler, event, default_namespace)
+
+    def _set_mouse_over(self, widget, hover_widget) -> None:
+        # Textual normally clears and reapplies the *same* :hover styles on
+        # every pointer move, including every step of a text-selection drag.
+        # The widget's own layout/class invalidation already refreshes styles;
+        # neither hover ownership nor pseudo-classes change here.
+        if widget is self.mouse_over and hover_widget is self.hover_over:
+            return
+        super()._set_mouse_over(widget, hover_widget)
+
+
+    def update_show_sessions(self) -> None:
+        self.show_sessions = self.settings.ui.sessions_bar.shown(len(self.open_tabs))

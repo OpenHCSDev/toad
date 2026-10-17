@@ -1,0 +1,292 @@
+from __future__ import annotations
+
+import os
+import sys
+from typing import TYPE_CHECKING
+
+import click
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+    from toad.agent_schema import AgentDefinition
+
+
+def persist_terminal_failure(error: Exception) -> None:
+    """Keep Textual's terminal failure in the existing diagnostic directory."""
+    import traceback
+    from toad import paths
+    from toad.acp.agent import generate_datetime_filename
+
+    path = paths.get_log() / generate_datetime_filename("Terminal_crash", ".txt")
+    try:
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(descriptor, "w") as stream:
+            traceback.print_exception(error, file=stream)
+    except OSError as log_error:
+        click.echo(f"Unable to save terminal traceback: {log_error}", err=True)
+    else:
+        click.echo(f"Terminal traceback saved: {path}", err=True)
+
+
+def run_terminal(app: ToadApp) -> None:
+    """Own both escaping and Textual-retained failures at the CLI boundary."""
+    try:
+        app.run()
+    except Exception as error:
+        persist_terminal_failure(error)
+        raise
+    finally:
+        # The failure that ended the app is saved even when closing the app
+        # then raised its own error, or was interrupted.
+        if app._exception is not None:
+            persist_terminal_failure(app._exception)
+    if app._exception is not None:
+        raise SystemExit(app.return_code or 1)
+    app.application.version.status.print_notice()
+
+
+def check_directory(path: str) -> None:
+    """Check a path is directory, or exit the app.
+
+    Args:
+        path: Path to check.
+    """
+    from pathlib import Path
+
+    if not Path(path).resolve().is_dir():
+        print(f"Not a directory: {path}")
+        sys.exit(-1)
+
+
+async def get_agent_data(launch_agent) -> AgentDefinition | None:
+    launch_agent = launch_agent.lower()
+
+    from toad.agents import read_agents, AgentReadError
+
+    try:
+        agents = await read_agents()
+    except AgentReadError:
+        agents = {}
+
+    for agent_data in agents.values():
+        if (
+            agent_data.short_name.lower() == launch_agent
+            or agent_data.identity.lower() == launch_agent
+        ):
+            launch_agent = agent_data.identity
+            break
+
+    return agents.get(launch_agent)
+
+
+class DefaultCommandGroup(click.Group):
+    def parse_args(self, ctx, args):
+        if "--help" in args or "-h" in args:
+            return super().parse_args(ctx, args)
+        if "--version" in args or "-v" in args:
+            return super().parse_args(ctx, args)
+        # Check if first arg is a known subcommand
+        if not args or args[0] not in self.commands:
+            # If not a subcommand, prepend the default command name
+            args.insert(0, "run")
+        return super().parse_args(ctx, args)
+
+    def format_usage(self, ctx, formatter):
+        formatter.write_usage(ctx.command_path, "[OPTIONS] PATH OR COMMAND [ARGS]...")
+
+
+class AcpCommand(click.Command):
+    """Decode the two raw project spellings into Click's original value slot."""
+
+    def parse_args(self, ctx, args):
+        remaining = super().parse_args(ctx, args)
+        project_option = ctx.params.pop("project_option")
+        if project_option is not None:
+            ctx.params["project_dir"] = project_option
+            ctx.set_parameter_source(
+                "project_dir", ctx.get_parameter_source("project_option")
+            )
+        return remaining
+
+
+@click.group(cls=DefaultCommandGroup, invoke_without_command=True)
+@click.option("-v", "--version", is_flag=True, help="Show version and exit.")
+@click.pass_context
+def main(ctx, version):
+    """🐸 Toad — AI for your terminal."""
+    if version:
+        from toad import get_version
+
+        click.echo(get_version())
+        ctx.exit()
+    # If no command and no version flag, let the default command handling proceed
+    if ctx.invoked_subcommand is None and not version:
+        pass
+
+
+# @click.group(invoke_without_command=True)
+# @click.pass_context
+@main.command("run")
+@click.argument("project_dir", metavar="PATH", required=False, default=".")
+@click.option("-a", "--agent", metavar="AGENT", default="")
+def run(project_dir: str = ".", agent: str = "1"):
+    """Run an installed agent (same as `toad PATH`)."""
+
+    check_directory(project_dir)
+
+    if agent:
+        import asyncio
+
+        agent_data = asyncio.run(get_agent_data(agent))
+    else:
+        agent_data = None
+
+    from toad.app import ToadApp
+
+    app = ToadApp(
+        mode=None if agent_data else "store",
+        agent_data=agent_data,
+        project_dir=project_dir,
+    )
+    run_terminal(app)
+
+
+@main.command("acp", cls=AcpCommand)
+@click.argument("command", metavar="COMMAND")
+@click.argument("project_dir", metavar="PATH", default=None)
+@click.option(
+    "--session",
+    "session_id",
+    default=None,
+    help="Resume an existing ACP session instead of creating a new one.",
+)
+@click.option(
+    "-t",
+    "--title",
+    metavar="TITLE",
+    help="Optional title to display in the status bar",
+    default=None,
+)
+@click.option("-d", "--project-dir", "project_option", metavar="PATH", default=None)
+def acp(
+    command: str,
+    title: str | None,
+    project_dir: str | None,
+    session_id: str | None = None,
+) -> None:
+    """Run an ACP agent from a command."""
+
+    from rich import print
+
+    from toad.agent_schema import AgentDefinition
+
+    command_name = command.split(" ", 1)[0].lower()
+    identity = f"{command_name}.custom.batrachian.ai"
+
+    agent_data = AgentDefinition.decode({
+        "identity": identity,
+        "name": title or command.partition(" ")[0],
+        "short_name": "agent",
+        "url": "https://github.com/batrachianai/toad",
+        "protocol": "acp",
+        "type": "coding",
+        "author_name": "Will McGugan",
+        "author_url": "https://willmcgugan.github.io/",
+        "publisher_name": "Will McGugan",
+        "publisher_url": "https://willmcgugan.github.io/",
+        "description": "Agent launched from CLI",
+        "tags": [],
+        "help": "",
+        "run_command": {"*": command},
+        "actions": {},
+    })
+    from toad.app import ToadApp
+
+    app = ToadApp(
+        agent_data=agent_data, project_dir=project_dir, agent_session_id=session_id,
+    )
+    run_terminal(app)
+
+    print("")
+    print("[bold magenta]Thanks for trying out Toad!")
+    print("Please head to Discussions to share your experiences (good or bad).")
+    print("https://github.com/batrachianai/toad/discussions")
+
+
+@main.command("settings")
+def settings() -> None:
+    """Settings information."""
+    from toad.preferences import SavedSettings
+    print(f"{SavedSettings.file_path()}")
+
+
+@main.command("replay")
+@click.argument("path", metavar="FILE")
+def replay(path: str) -> None:
+    """Replay interaction from a log file.
+
+    This is a debugging aid. You probably won't need it unless you are building an agent.
+
+    Run it in place of a command line to run an ACP agent:
+
+    toad acp "toad replay toad.log"
+
+    This will replay the agents output, and Toad will update the conversation as it would a real agent.
+    """
+    import time
+
+    stdout = sys.stdout.buffer
+    with open(path, "rb") as replay_file:
+        for line in replay_file.readlines():
+            sender, space, json_line = line.partition(b" ")
+            if sender == b"[agent]":
+                stdout.write(json_line.strip() + b"\n")
+            time.sleep(0.01)
+            stdout.write(line)
+            stdout.flush()
+
+
+@main.command(
+    "serve",
+    context_settings={"allow_interspersed_args": False},
+)
+@click.option("-p", "--port", metavar="PORT", default=8000, type=int)
+@click.option(
+    "-H",
+    "--host",
+    metavar="HOST",
+    default="127.0.0.1",
+    help="Loopback address to listen on (127.0.0.1 or localhost).",
+)
+@click.argument("toad_args", metavar="[TOAD ARGS]...", nargs=-1, type=click.UNPROCESSED)
+def serve(port: int, host: str, toad_args: tuple[str, ...]) -> None:
+    """Serve a Toad command line in a web browser.
+
+    Each browser tab runs `toad TOAD ARGS` as its own process, for example
+    `toad serve acp agent-comms-acp`.
+    """
+    import shlex
+
+    from toad.application_lifetime import ApplicationLifetime
+    from toad.web_server import ToadWebServer
+
+    command = shlex.join([sys.executable, "-m", "toad", *toad_args])
+    server = ToadWebServer(command, host=host, port=port, title="Toad")
+    ApplicationLifetime.set_process_title("toad serve")
+    server.serve()
+
+
+@main.command("about")
+def about() -> None:
+    """Show about information."""
+
+    from toad import about
+    from toad.app import ToadApp
+
+    app = ToadApp()
+
+    print(about.render(app))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,4 @@
+{
+  "type": "RuntimeError",
+  "error": "LogAgentFail(message='Request failed', details=\"Unable to attach to 'p68-failed' owner 831211: Invalid registry document: Unknown ThreadStatus name: 'connected'\\nNot sent\\nInspect the input delivery status before deciding whether to send again.\", log_path=PosixPath('/home/ts/wt/toad-forms-migration/.scratch/p68-live/state/toad/logs/P68_2026-10-16T19_30_39_890540.txt'))"
+}

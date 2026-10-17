@@ -1,0 +1,17 @@
+"""Local observer views, never encoded as ACP facts or used as input authority."""
+
+from dataclasses import dataclass
+
+from agent_comms.acp_extension import InputStartedUpdate
+
+from toad.private_native_cursor import CursorStatus
+
+
+@dataclass(frozen=True)
+class CursorPresentation:
+    status: type[CursorStatus]
+
+
+@dataclass(frozen=True)
+class QueuePresentation:
+    starts: tuple[InputStartedUpdate, ...] = ()

@@ -1,0 +1,20 @@
+{
+  "toad_file": "/home/ts/wt/toad-forms-migration/src/toad/__init__.py",
+  "agent_comms_file": "/home/ts/wt/core-p55-new-session/src/agent_comms/__init__.py",
+  "sys_path": [
+    "/home/ts/wt/toad-forms-migration/.scratch",
+    "/home/ts/wt/toad-forms-migration/src",
+    "/home/ts/wt/core-p55-new-session/src",
+    "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python314.zip",
+    "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14",
+    "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/lib-dynload",
+    "/home/ts/.local/share/agent-comms/runtimes/toad-331540219-core-1076a32b3-native-6468a1979d983e9d-20261016T221633Z/lib/python3.14/site-packages"
+  ],
+  "app_pid": 983544,
+  "failed_mode": "session-1",
+  "healthy_mode": "session-2",
+  "failed_acp_pid": 983958,
+  "healthy_acp_pid": 984184,
+  "failed_ready": true,
+  "healthy_ready": true
+}

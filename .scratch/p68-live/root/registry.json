@@ -1,0 +1,208 @@
+{
+  "threads": {
+    "p68-seed": {
+      "name": "p68-seed",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792186596.1044047,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/saved-session.jsonl",
+      "title": null,
+      "parent": null,
+      "task": null,
+      "process_identity": null,
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "p68-failed": {
+      "name": "p68-failed",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792186711.129391,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/sessions/p68-failed.jsonl",
+      "title": null,
+      "parent": "p68-seed",
+      "task": "",
+      "process_identity": {
+        "pid": 1396075,
+        "start_time": 166933143
+      },
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "p68-healthy": {
+      "name": "p68-healthy",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-b",
+      "created_at": 1792186712.901538,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/sessions/p68-healthy.jsonl",
+      "title": null,
+      "parent": "p68-seed",
+      "task": "",
+      "process_identity": {
+        "pid": 1396171,
+        "start_time": 166933366
+      },
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "user": {
+      "name": "user",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792187073.1387713,
+      "session_file": null,
+      "title": null,
+      "parent": null,
+      "task": null,
+      "process_identity": null,
+      "model": null,
+      "thinking_level": null,
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "user",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "p55-dialog-check": {
+      "name": "p55-dialog-check",
+      "tags": [],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-b",
+      "created_at": 1792188423.267411,
+      "session_file": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/root/sessions/enrolled-56da5be72dfc41048a05984d70963ae5.jsonl",
+      "title": null,
+      "parent": null,
+      "task": "",
+      "process_identity": {
+        "pid": 778773,
+        "start_time": 166406336
+      },
+      "model": "openai-codex/gpt-6.1-sol",
+      "thinking_level": "high",
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    },
+    "cli-probe": {
+      "name": "cli-probe",
+      "tags": [
+        "p68"
+      ],
+      "worktree": "/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a",
+      "created_at": 1792191508.8423908,
+      "session_file": null,
+      "title": null,
+      "parent": null,
+      "task": null,
+      "process_identity": {
+        "pid": 1195317,
+        "start_time": 166714188
+      },
+      "model": null,
+      "thinking_level": null,
+      "service_tier": "priority",
+      "goal": null,
+      "previous_worktrees": [],
+      "auto_title_pending": false,
+      "role": "agent",
+      "execution": "external",
+      "active_turn": null,
+      "channel_scope_generation": 0,
+      "turn_generation": 0,
+      "last_finished_turn_id": null
+    }
+  },
+  "statuses": {
+    "p68-seed": {
+      "kind": "stopped"
+    },
+    "p68-failed": {
+      "kind": "stopped"
+    },
+    "p68-healthy": {
+      "kind": "stopped"
+    },
+    "user": {
+      "kind": "running"
+    },
+    "p55-dialog-check": {
+      "kind": "stopped"
+    },
+    "cli-probe": {
+      "kind": "connected"
+    }
+  },
+  "last_seen": {
+    "p68-seed": 1792186596.1053424,
+    "p68-failed": 1792193694.5174913,
+    "p68-healthy": 1792193696.4622576,
+    "user": 1792187073.1390526,
+    "p55-dialog-check": 1792188426.2218814,
+    "cli-probe": 1792191508.8512192
+  },
+  "aliases": {},
+  "owners": {
+    "counter": 24,
+    "generations": {
+      "p68-seed": 1,
+      "p68-failed": 23,
+      "p68-healthy": 24,
+      "user": 10,
+      "p55-dialog-check": 15,
+      "cli-probe": 18
+    }
+  },
+  "admissions": {
+    "counter": 24,
+    "generations": {
+      "p68-seed": 1,
+      "p68-failed": 23,
+      "p68-healthy": 24,
+      "user": 10,
+      "p55-dialog-check": 15,
+      "cli-probe": 18
+    }
+  }
+}

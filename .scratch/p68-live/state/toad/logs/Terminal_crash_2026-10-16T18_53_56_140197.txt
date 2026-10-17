@@ -1,0 +1,1 @@
+textual.worker.WorkerFailed: Worker raised exception: TypeError("'NoneType' object is not subscriptable")

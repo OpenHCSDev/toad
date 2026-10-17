@@ -1,0 +1,20 @@
+{"t": 1792190980.9062767, "step": "show_menu", "subject": "core-goal-retry", "comms": 140324151563264, "sidebar_service": 140324151563264, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792190980.9064126, "step": "choices-start"}
+{"t": 1792190980.9182084, "step": "choices-done", "n": 8}
+{"t": 1792190980.9183493, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792190996.1528673, "step": "show_menu", "subject": "core-goal-retry", "comms": 140324151563264, "sidebar_service": 140324151563264, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792190996.1531057, "step": "choices-start"}
+{"t": 1792190996.15825, "step": "choices-done", "n": 8}
+{"t": 1792190996.158364, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191011.3992653, "step": "show_menu", "subject": "core-native-runtime", "comms": 140324151563264, "sidebar_service": 140324151563264, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191011.3994973, "step": "choices-start"}
+{"t": 1792191011.4042034, "step": "choices-done", "n": 8}
+{"t": 1792191011.4043176, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191026.6701732, "step": "show_menu", "subject": "core-native-runtime", "comms": 140324151563264, "sidebar_service": 140324151563264, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191026.6704805, "step": "choices-start"}
+{"t": 1792191026.6746862, "step": "choices-done", "n": 8}
+{"t": 1792191026.6748033, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191041.9152906, "step": "show_menu", "subject": "core-native-runtime", "comms": 140324151563264, "sidebar_service": 140324151563264, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191041.9154634, "step": "choices-start"}
+{"t": 1792191041.9183788, "step": "choices-done", "n": 8}
+{"t": 1792191041.918468, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}

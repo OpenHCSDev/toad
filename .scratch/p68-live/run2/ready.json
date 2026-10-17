@@ -1,0 +1,9 @@
+{
+  "app_pid": 663184,
+  "failed_mode": "session-1",
+  "healthy_mode": "session-2",
+  "failed_acp_pid": 663728,
+  "healthy_acp_pid": 664082,
+  "failed_ready": true,
+  "healthy_ready": true
+}

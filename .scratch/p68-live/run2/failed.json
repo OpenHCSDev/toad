@@ -1,0 +1,23 @@
+{
+  "app_pid": 663184,
+  "failed_mode": "session-1",
+  "healthy_mode": "session-2",
+  "failed_acp_pid": 663728,
+  "healthy_acp_pid": 664082,
+  "failed_ready": true,
+  "healthy_ready": true,
+  "after_kill": {
+    "message": "Agent returned a failure code: [b]-9",
+    "details": "/home/ts/.local/share/uv/python/cpython-3.14.2-linux-x86_64-gnu/lib/python3.14/multiprocessing/resource_tracker.py:396: UserWarning: resource_tracker: There appear to be 5 leaked semaphore objects to clean up at shutdown: {'/mp-951fo63i', '/mp-5dcgg6_k', '/mp-yjvx9ozs', '/mp-12kggj3m', '/mp-nll4gpha'}\n  warnings.warn(\n"
+  },
+  "after_reconnect": {
+    "message": "Failed to start agent",
+    "details": "[Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'"
+  },
+  "escaped_from_reconnect": null,
+  "label_text": "Thread disconnected: Failed to start agent: [Errno 2] No such file or directory: '/home/ts/wt/toad-forms-migration/.scratch/p68-live/project-a'",
+  "label_display": true,
+  "failed_connected": false,
+  "healthy_reason": null,
+  "healthy_acp_alive": true
+}

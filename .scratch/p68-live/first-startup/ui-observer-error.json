@@ -1,0 +1,4 @@
+{
+  "type": "AttributeError",
+  "error": "'NoneType' object has no attribute 'session'"
+}

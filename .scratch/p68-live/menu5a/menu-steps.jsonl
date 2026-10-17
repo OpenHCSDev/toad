@@ -1,0 +1,4 @@
+{"t": 1792191227.2542937, "step": "show_menu", "subject": "p68-healthy", "comms": 140256880219136, "sidebar_service": 140256880219136, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191227.2545524, "step": "choices-start"}
+{"t": 1792191227.2637608, "step": "choices-done", "n": 8}
+{"t": 1792191227.263894, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}

@@ -1,0 +1,50 @@
+Traceback (most recent call last):
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/textual/worker.py", line 394, in _run
+    self._result = await self.run()
+                   ^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/textual/worker.py", line 376, in run
+    return await (
+           ^^^^^^^
+        self._run_threaded() if self._thread_worker else self._run_async()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/textual/worker.py", line 361, in _run_async
+    return await self._work()
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_state.py", line 229, in execute
+    result = await work()
+             ^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/widgets/comms_chat.py", line 301, in _refresh_source
+    changed = await history.read_changes()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/widgets/wire_history.py", line 107, in read_changes
+    await self.show_newest(observed.through, PreparedWirePage.empty(WirePage.unread()))
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/widgets/transcript_history.py", line 928, in show_newest
+    await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_source_preparation.py", line 155, in _jump_latest
+    if await self._publish_latest(current):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_source_preparation.py", line 228, in _publish_latest
+    self._update_edges()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/widgets/transcript_history.py", line 861, in _update_edges
+    older, newer = shown and self.filter.older_visible, shown and self.has_newer
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_filter.py", line 284, in older_visible
+    def older_visible(self): return self.state.older_visible(self.owner)
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_filter.py", line 79, in older_visible
+    return owner.has_older
+           ^^^^^^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/widgets/transcript_history.py", line 799, in has_older
+    return page.prepared.can_extend(True) or page.page.has_older
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_preparation.py", line 96, in can_extend
+    return self.start > 0 if older else self.stop < len(self.fragments)
+           ^^^^^^^^^^
+  File "/home/ts/.local/share/agent-comms/runtimes/toad-b73e50199-core-9ed8e0560-native-6468a1979d983e9d-20261016T223633Z/lib/python3.14/site-packages/toad/transcript_preparation.py", line 133, in start
+    return self.fragment_range[0]
+           ~~~~~~~~~~~~~~~~~~~^^^
+TypeError: 'NoneType' object is not subscriptable
+

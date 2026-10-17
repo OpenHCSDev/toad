@@ -1,0 +1,1 @@
+{"source": {"identity": {"device": 2084, "inode": 11798416}, "size": 89, "mtime_ns": 1792192869032646828, "ctime_ns": 1792192869032646828}, "offset": 89, "tail": "544a32c1ade85cac14bed7994c6dea9aaa6294e5e5d1011c002871b2bf36c12a", "latest": {"cli-probe": {"thread": "cli-probe", "state": "working", "detail": "probe", "ts": 1792192869.0288248}}, "schema": 1}

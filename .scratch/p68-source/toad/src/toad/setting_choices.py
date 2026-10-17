@@ -1,0 +1,252 @@
+"""Preference choices own their effects and external presentation values."""
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import ClassVar
+
+from agent_comms.declared_family import DeclaredFamily
+from python_introspect import AnnotationChoices
+
+
+class Choice(ABC):
+    title: ClassVar[str | None] = None
+
+    @classmethod
+    def label(cls) -> str:
+        return (
+            cls.title or cls.declared_name.replace("-", " ").replace("_", " ").title()
+        )
+
+
+@dataclass(frozen=True)
+class FamilyChoices(AnnotationChoices):
+    """A setting holding one member of a choice family: `Annotated[type[F], FamilyChoices(F)]`."""
+
+    family: type[DeclaredFamily]
+
+    def choices(self) -> tuple[object, ...]:
+        return tuple(self.family.members_with(self.family))
+
+    def label(self, choice: object) -> str:
+        return choice.label()  # type: ignore[attr-defined]
+
+
+@dataclass(frozen=True)
+class SchemeName:
+    """A setting holding a colour scheme's name: `Annotated[str, SchemeName()]`.
+
+    Any name can be stored; which schemes exist is known to the running app,
+    which offers them in the form and reports a stored one it does not have.
+    """
+
+
+class Expansion(Choice, DeclaredFamily, affix="Expansion"):
+    patch_preview = True
+
+    @classmethod
+    @abstractmethod
+    def should_expand(cls, status) -> bool: ...
+
+
+class NeverExpansion(Expansion):
+    patch_preview = False
+
+    @classmethod
+    def should_expand(cls, status) -> bool:
+        return False
+
+
+class AlwaysExpansion(Expansion):
+    @classmethod
+    def should_expand(cls, status) -> bool:
+        return True
+
+
+class SuccessExpansion(Expansion):
+    title = "Success only"
+
+    @classmethod
+    def should_expand(cls, status) -> bool:
+        return status.completed
+
+
+class FailExpansion(Expansion):
+    title = "Fail only"
+
+    @classmethod
+    def should_expand(cls, status) -> bool:
+        return status.failed
+
+
+class BothExpansion(SuccessExpansion, FailExpansion):
+    title = "Fail and success"
+
+    @classmethod
+    def should_expand(cls, status) -> bool:
+        return SuccessExpansion.should_expand(status) or FailExpansion.should_expand(
+            status
+        )
+
+
+class SessionBar(Choice, DeclaredFamily, affix="SessionBar"):
+    @classmethod
+    @abstractmethod
+    def shown(cls, count: int) -> bool: ...
+
+
+class AlwaysSessionBar(SessionBar):
+    @classmethod
+    def shown(cls, count: int) -> bool:
+        return True
+
+
+class MultipleSessionBar(SessionBar):
+    title = "When there are multiple sessions"
+
+    @classmethod
+    def shown(cls, count: int) -> bool:
+        return count > 1
+
+
+class NeverSessionBar(SessionBar):
+    @classmethod
+    def shown(cls, count: int) -> bool:
+        return False
+
+
+class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
+    @classmethod
+    def deliver(cls, app, message: str, *, title: str = "", sound: str | None = None) -> None:
+        """Shared delivery belongs to the policy that admits it."""
+        if not cls.enabled(app.app_focus):
+            return
+        from importlib.resources import files
+        from notifypy import Notify
+        import toad
+
+        notification = Notify()
+        notification.message = message
+        notification.title = title
+        notification.application_name = "🐸 Toad" if toad.os == "macos" else "Toad"
+        if sound and app.settings.notifications.enable_sounds:
+            notification.audio = str(files("toad.data").joinpath(f"sounds/{sound}.wav"))
+        notification.icon = str(files("toad.data").joinpath("images/frog.png"))
+        notification.send()
+
+    @classmethod
+    @abstractmethod
+    def enabled(cls, focused: bool) -> bool: ...
+
+
+class NeverNotification(NotificationPolicy):
+    @classmethod
+    def enabled(cls, focused: bool) -> bool:
+        return False
+
+
+class BlurNotification(NotificationPolicy):
+    title = "When app is not focused"
+
+    @classmethod
+    def enabled(cls, focused: bool) -> bool:
+        return not focused
+
+
+class AlwaysNotification(NotificationPolicy):
+    @classmethod
+    def enabled(cls, focused: bool) -> bool:
+        return True
+
+
+class DiffMode(Choice, DeclaredFamily, affix="Diff"):
+    split = False
+    auto_split = False
+
+    @classmethod
+    def use_split(cls, width: int, required: int) -> bool:
+        return cls.split
+
+
+class UnifiedDiff(DiffMode):
+    pass
+
+
+class SplitDiff(DiffMode):
+    split = True
+
+
+class AutoDiff(DiffMode):
+    title = "Best fit"
+    auto_split = True
+
+    @classmethod
+    def use_split(cls, width: int, required: int) -> bool:
+        return width >= required
+
+
+class WrapMode(Choice, DeclaredFamily, affix="Mode"):
+    enabled = False
+
+    @classmethod
+    def fitted_width(cls, available: int, content: int) -> int:
+        return max(available, content)
+
+
+class NoWrapMode(WrapMode, declared_name="no-wrap"):
+    title = "Don't wrap"
+
+
+class WrapModeEnabled(WrapMode, declared_name="wrap"):
+    title = "Wrap long lines"
+    enabled = True
+
+    @classmethod
+    def fitted_width(cls, available: int, content: int) -> int:
+        return available
+
+
+class Scrollbar(Choice, DeclaredFamily, affix="Scrollbar"):
+    """Spelling is the Textual reactive/CSS value, declared once by each member."""
+
+
+class NormalScrollbar(Scrollbar):
+    pass
+
+
+class ThinScrollbar(Scrollbar):
+    pass
+
+
+class HiddenScrollbar(Scrollbar):
+    pass
+
+
+class LoadingStyle(Choice, DeclaredFamily, affix="Loading"):
+    @classmethod
+    @abstractmethod
+    def widget(cls, screen): ...
+
+
+class PulseLoading(LoadingStyle):
+    @classmethod
+    def widget(cls, screen):
+        from textual.screen import Screen
+
+        return Screen.get_loading_widget(screen)
+
+
+class QuotesLoading(LoadingStyle):
+    @classmethod
+    def widget(cls, screen):
+        import random
+
+        from textual.content import Content
+
+        from toad.app import QUOTES
+        from toad.widgets.future_text import FutureText
+
+        quotes = QUOTES.copy()
+        random.shuffle(quotes)
+        return FutureText([Content(quote) for quote in quotes])

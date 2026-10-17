@@ -1,0 +1,35 @@
+{
+  "healthy_ready": true,
+  "healthy_reason": "",
+  "healthy_label_display": false,
+  "healthy_acp_alive": true,
+  "app_alive": true,
+  "healthy_shows": {
+    "sidebar_rows": [
+      "\u2713 p68-healthy\n  Ready"
+    ],
+    "tab": [
+      "\u2713 p68-healthy"
+    ],
+    "status_line": [
+      "Ready"
+    ],
+    "footer": [
+      "openai-codex/gpt-6.1-sol \u00b7 high"
+    ]
+  },
+  "failed_shows_from_healthy_tab": {
+    "sidebar_rows": [
+      "\u2713 p68-failed\n  Ready"
+    ],
+    "tab": [
+      "\u2713 p68-healthy"
+    ],
+    "status_line": [
+      "Ready"
+    ],
+    "footer": [
+      "openai-codex/gpt-6.1-sol \u00b7 high"
+    ]
+  }
+}

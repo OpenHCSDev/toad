@@ -1,0 +1,5 @@
+{"t": 1792191974.2645202, "step": "show_menu", "subject": "p68-healthy", "comms": 139713409037184, "sidebar_service": 139713409037184, "selected": "MainScreen(id='session-1')", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191974.2647324, "step": "choices-start"}
+{"t": 1792191974.2908206, "step": "choices-done", "n": 8}
+{"t": 1792191974.2910655, "step": "show_target_menu", "screen": "WorkspaceScreen(id='workspace', classes='-wide')"}
+{"t": 1792191977.0855572, "step": "publish_latest", "cls": "WireHistory", "through": "AfterSequence(cursor=0)", "result": true, "before": [["WirePage(events=(), before=None, after=NothingRead(cursor=0), has_older=False, has_newer=True, source=None)", [0, 0]]], "after": [["WirePage(events=(), before=None, after=AfterSequence(cursor=0), has_older=False, has_newer=False, source=MessagePage(messages=(), has_older=False, has_newer=False, display_scope=None, display_basis=DMDisplayBasis(root='/home/ts/wt/toad-forms-migration/.scratch/p68-live/root', root_identity=(2084, 11", [0, 0]]]}

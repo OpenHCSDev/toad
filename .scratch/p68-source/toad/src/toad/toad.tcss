@@ -1,0 +1,301 @@
+/* Schemes own these paired roles. All views use the same selection pair. */
+Screen > .screen--selection,
+Input > .input--selection,
+TextArea > .text-area--selection {
+    color: $block-cursor-foreground;
+    background: $block-cursor-background;
+    text-style: $block-cursor-text-style;
+}
+
+/* A scrollbar is a navigation mark, not a translucent surface tint. */
+Widget {
+    scrollbar-color: $secondary;
+    scrollbar-color-hover: $primary;
+    scrollbar-color-active: $primary;
+}
+
+.block {
+    margin: 0 1 1 0;
+}
+
+
+Markdown {
+    layout: stream;    
+}
+
+LoadingIndicator {
+    background: transparent;
+}
+
+Throbber {
+    width: 100%;
+    height: 1;
+    background: transparent;
+}
+
+.-hidden {
+    display: none;
+}
+
+App.-hide-footer {
+    #info-container {
+        margin: 0 !important;        
+    }
+    Footer {
+        display: none;        
+    }
+}
+
+App.-hide-footer.-compact-input {
+    #prompt-container {
+        margin: 0 0;
+    }
+}
+
+
+App.-hide-thoughts AgentThought {
+    display: none;
+}
+
+App.-hide-status-line StatusLine {
+    display: none;        
+}
+
+App.-hide-agent-title AgentInfo {
+    display: none;
+}
+
+App.-hide-info-bar #info-container {
+    height: 1;    
+    display: none;
+}
+
+App.-compact-input {    
+    Prompt {           
+        &.-mode-ask #prompt-container {
+            border: tall transparent !important;
+            &:focus-within {
+                border: tall $primary !important;
+            }   
+        }
+        #prompt-container {
+            border: none;
+            &:focus-within {
+                border: none;
+            }   
+            margin: 0 0 0 0;
+            #prompt {
+                padding: 0 1 0 0;
+            }            
+        }        
+        #info-container {
+            margin: 0 0;   
+            
+            AgentInfo {                
+                padding: 0 0 0 0;
+            }     
+        }
+        
+    }
+
+    
+}
+
+App.-show-sessions-bar {
+    SessionsTabs {
+        display: block;
+    }
+}
+
+Checkbox {
+    # TODO: Bug in Textual?
+    text-overflow: clip;    
+}
+
+
+Footer {    
+    background: transparent;
+    FooterKey {
+        background: $footer-description-background;
+
+        &:hover {
+            background: $secondary 25%;
+        }
+    }
+
+    .footer-key--key {
+        color: $text;
+        background: $secondary 15%;
+        # text-style: not bold;
+        padding: 0 1;        
+    }
+
+    .footer-key--description {
+        padding: 0 1 0 0;
+        color: $text-muted;
+        background: $footer-description-background;
+    }
+
+    &:hover {
+        color: transparent;
+        background: transparent;
+    }
+
+    &.-disabled {
+        text-style: dim;
+    }
+
+    &.-compact {
+        .footer-key--key {
+            padding: 0;
+        }
+        .footer-key--description {
+            padding: 0 0 0 1;
+        }
+    }
+    FooterLabel {
+        color: $text-muted;
+        background: $footer-description-background;
+    }
+
+    FooterKey.-disabled {
+        .footer-key--key {
+            text-opacity: 0.6;       
+        }
+    }
+
+    &:ansi FooterKey .footer-key--key {
+        color: ansi_default;
+        background: ansi_default;
+        text-style: reverse;
+    }
+
+    &:ansi FooterKey:hover {
+        background: ansi_default;
+
+        .footer-key--key,
+        .footer-key--description {
+            color: ansi_default;
+            background: ansi_default;
+            text-style: reverse;
+        }
+    }
+}
+
+HelpPanel {    
+    
+    border-left: solid $primary;
+    padding-right: 0;
+    # color: $text-secondary;
+    
+    #widget-help {
+        # color: $text-secondary;
+        border: round $secondary;
+        background: transparent;
+        margin-top: 0;
+        padding: 0 0;        
+        MarkdownBlock {
+            padding: 0 1;
+        }
+        MarkdownH2 {
+            margin: 0 0 1 0;
+        }
+    }
+
+    KeyPanel {
+        # color: $text-secondary;
+        scrollbar-gutter: stable;        
+        &> BindingsTable > .bindings-table--description {            
+            # color: $text-secondary;
+            text-opacity:90%;
+        }
+        .bindings-table--key {
+            # color: $text-secondary;  
+            color: $text;
+        }
+        &> BindingsTable > .bindings-table--header {        
+            color: $primary;
+            text-style: underline;
+        }
+    }
+}
+
+
+
+Toast {    
+    margin: 0 0;
+    padding: 0 1;
+    background: $background;
+    color: $text-muted;
+    .toast--title {        
+        color: $text;            
+    }    
+    &.-information {
+        border: round $primary;                          
+    }
+    &.-warning {
+        border: round $warning;                        
+    }
+    &.-error {
+        border: round $error;                  
+    }    
+}
+
+
+Loading {
+    color: $text-primary;        
+}
+
+SessionsTabs {
+    layout: grid;
+    grid-columns: auto auto;
+    grid-rows: 1 1;
+    grid-size: 1 ;
+    overflow: auto hidden;
+    scrollbar-size-horizontal: 1;
+    scrollbar-size-vertical: 0;
+    width: 1fr;
+    display: none;
+        
+    height: 3;
+    box-sizing: content-box;
+    & > #title-container, & > Underline {
+        offset: 0 1;
+    }
+    Underline {
+        width: 1fr;
+        height: 1;
+        & > .underline--bar {
+            color: $block-cursor-background;
+            background: $foreground 10%;
+        }        
+    }
+    #title-container {
+        width: auto;
+        height: 1;
+        Label {
+            height: 1;
+            text-style: dim;
+            pointer: pointer;
+            padding: 0 1;
+
+            &:hover {
+                background: $foreground 10%;
+                text-style: not dim;
+            }
+
+            &:ansi:hover {
+                color: ansi_default;
+                background: ansi_default;
+                text-style: reverse;
+            }
+
+        }
+    }
+}
+
+#tab-navigation-header {
+    width: 1fr;
+    height: auto;
+    padding: 0;
+}
