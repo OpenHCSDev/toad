@@ -68,10 +68,10 @@ async def test_standby_stays_visible_while_the_previous_turn_settles(workspace):
     async with workspace.app(size=(100, 35)) as ui:
         owner, view, bar, status = await shown_goal(workspace, ui)
         throbber = view.query_one(Throbber)
-        view.busy_count = 1
+        view.turns.start_client()
         await ui.until(lambda: throbber.busy, why="the busy indicator")
         assert status.display, "Canonical standby remains visible while the previous turn settles"
-        view.busy_count = 0
+        view.turns.finish_client()
         await ui.until(lambda: not throbber.busy, why="the busy indicator settled")
         assert status.display
 

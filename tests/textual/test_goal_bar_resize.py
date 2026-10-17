@@ -72,7 +72,6 @@ async def test_busy_separator_drags_within_bounds_and_follows_terminal_resize(wo
         await drag(ui, bar, bar, 3)
         resized = document.region.height
         # During activity, the colored separator of the busy indicator owns this row.
-        view.busy_count = 1
         view.turns.start_client()
         await ui.until(lambda: view.query_one(Throbber).busy, why="the busy indicator")
         throbber = view.query_one(Throbber)
