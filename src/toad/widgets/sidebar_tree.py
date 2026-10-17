@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+from collections import Counter
 from collections.abc import Iterable
+from functools import wraps
+from itertools import islice
 from contextlib import contextmanager
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
@@ -67,6 +70,56 @@ class SidebarReaderLayout(VerticalLayout):
         placements = super().arrange(parent, children, size, greedy)
         parent.query_ancestor(TargetTree).preserve_reader(placements)
         return placements
+
+
+class RowReconciliation:
+    """One sync's model membership and transferable native rows, never a retained cache."""
+
+    def __init__(self, tree):
+        demand = Counter(tree.member_keys)
+        self.listed = frozenset(demand)
+        self.sources = {}
+        requests = {}
+        for group in tree.navigation_groups:
+            wanted = frozenset(group.member_keys)
+            for key in wanted - group.rows.keys():
+                requests.setdefault(group, set()).add(key)
+            for key in group.rows:
+                if key in wanted:
+                    demand[key] -= 1
+                else:
+                    self.sources.setdefault(key, {})[group] = None
+        # A thread can have simultaneous views. Keep only the native rows
+        # needed by unfilled model slots; a removed duplicate must retire.
+        self.sources = {key: dict.fromkeys(islice(groups, max(0, demand[key])))
+                        for key, groups in self.sources.items()}
+        self.requests = requests
+
+    @staticmethod
+    def sync(method):
+        @wraps(method)
+        def synchronized(view, *args, **kwargs):
+            with view.reconciliation_tree.reconcile_members():
+                return method(view, *args, **kwargs)
+        return synchronized
+
+    def finish(self):
+        for group, keys in self.requests.items():
+            if any(self.sources.get(key) for key in keys):
+                group.sync_members()
+
+    def retains(self, key, group):
+        return key in self.listed and group in self.sources.get(key, ())
+
+    def take(self, key, destination):
+        sources = self.sources.get(key)
+        if not sources:
+            return None
+        source, _ = sources.popitem()
+        row = source.rows.pop(key)
+        row.reparent(destination.member_container)
+        source.rows_changed()
+        return row
 
 
 class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
@@ -164,9 +217,11 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         """Keys listed by this group's current model, including hidden rows."""
         raise NotImplementedError
 
-    def has_member(self, key):
-        return key in self.member_keys
+    @property
+    def reconciliation_tree(self):
+        return self.query_ancestor(TargetTree)
 
+    @RowReconciliation.sync
     def reconcile_rows(self, create, update, *, changed=None):
         """Retain rows by identity; mount, remove and reorder only what differs.
 
@@ -181,7 +236,8 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         keys = tuple(self.member_keys)
         wanted = set(keys)
         tree = self.query_ancestor(TargetTree)
-        retired = [key for key in rows if key not in wanted and not tree.needs_row(key, self)]
+        members = tree.row_reconciliation
+        retired = [key for key in rows if key not in wanted and not members.retains(key, self)]
         for key in retired:
             rows.pop(key).retire()
         mounted = []
@@ -189,7 +245,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         for key in keys:
             current = rows.get(key)
             if current is None:
-                current = tree.take_row(key, self)
+                current = members.take(key, self)
                 if current is None:
                     if not self.expanded:
                         continue
@@ -236,20 +292,32 @@ class TargetTree(Vertical):
     def preserve_reader(self, placements) -> None:
         """A sidebar viewport may retain its reader across a native relayout."""
 
-    def needs_row(self, key, origin):
-        return any(group is not origin and key not in group.rows and group.has_member(key)
-                   for group in self.navigation_groups)
+    _member_reconciliation = None
 
-    def take_row(self, key, destination):
-        """Move an existing native row only after its old model stops listing it."""
-        for group in self.navigation_groups:
-            row = group.rows.get(key)
-            if row is not None and group is not destination and not group.has_member(key):
-                del group.rows[key]
-                row.reparent(destination.member_container)
-                group.rows_changed()
-                return row
-        return None
+    @property
+    def member_keys(self):
+        return (key for group in self.navigation_groups for key in group.member_keys)
+
+    @property
+    def row_reconciliation(self):
+        return self._member_reconciliation or RowReconciliation(self)
+
+    @contextmanager
+    def reconcile_members(self):
+        previous = self._member_reconciliation
+        self._member_reconciliation = self.row_reconciliation
+        try:
+            yield
+        finally:
+            try:
+                if previous is None:
+                    self._member_reconciliation.finish()
+            finally:
+                self._member_reconciliation = previous
+
+    @property
+    def reconciliation_tree(self):
+        return self
 
     @property
     def selection_state(self):

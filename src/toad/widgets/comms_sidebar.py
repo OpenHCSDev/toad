@@ -42,7 +42,7 @@ from toad.widgets.session_sidebar import ThreadStatusRow
 from toad.widgets.selection import ChangingText, HoverSelection
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -136,9 +136,6 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def member_keys(self):
         channel = self.sidebar.model.channels.rows.get(self.row.target_name)
         return channel.members if channel is not None else ()
-
-    def has_member(self, key):
-        return self.sidebar.has_member(self.row.target_name, key)
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         if self.channel is None or not self.member_container.is_attached:
@@ -502,6 +499,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         self.enabled = enabled
         self.present()
 
+    @RowReconciliation.sync
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
@@ -564,18 +562,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
             if self.is_attached and self.model is not None:
                 self._order_groups()
 
-    def has_member(self, channel, key):
-        snapshot = self.model.snapshot
-        person = snapshot.threads.get(key)
-        view = snapshot.channels.get(channel)
-        return person is not None and view is not None and view.channel.matches(person.thread.tags)
-
-    def needs_row(self, key, origin):
-        for name in self.model.channels.rows:
-            group = self.groups.get(name)
-            if group is not origin and (group is None or key not in group.rows) and self.has_member(name, key):
-                return True
-        return False
+    @property
+    def member_keys(self):
+        return (key for channel in self.model.channels.rows.values() for key in channel.members)
 
     def _order_groups(self) -> None:
         """Order current groups, retiring old groups after their rows can move."""
