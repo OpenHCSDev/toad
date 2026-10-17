@@ -1,6 +1,9 @@
 from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from toad.core import events as core_events
+from textual.content import Content
+from toad.application_actions import ApplicationAction
+from toad.widgets.comms_menu import ContextMenu
 from toad.core.preference_events import PreferenceChanged
 from toad.preferences import SETTINGS
 from dataclasses import dataclass
@@ -265,21 +268,27 @@ class TabHistoryButton(HeaderButton):
 
 
 class MainMenuButton(HeaderButton):
-    """Open Toad's existing anchored menu beside the tab-history controls."""
-
-    class Pressed(Message):
-        pass
+    """Own the declared application menu and its full-height hamburger."""
 
     def __init__(self) -> None:
-        super().__init__("☰", id="main-menu")
-        self.tooltip = "Main menu: export wire or import thread"
+        super().__init__(id="main-menu")
+        self.tooltip = "Main menu"
+
+    def render(self):
+        return Content("\n".join("━" * self.content_size.width for _ in range(self.content_size.height)))
 
     @property
     def primary_activation(self):
         return self.open_menu
 
     def open_menu(self) -> None:
-        self.post_message(self.Pressed())
+        self.app.push_screen(ContextMenu(
+            Offset(self.region.x, self.region.bottom), "Toad", ApplicationAction.menu()),
+            callback=self.chosen)
+
+    async def chosen(self, action: ApplicationAction | None) -> None:
+        if action is not None:
+            await action.apply(self.app)
 
 
 class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
@@ -297,23 +306,6 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
         yield MainMenuButton()
         yield TabHistoryButton(-1)
         yield TabHistoryButton(+1)
-
-    @on(MainMenuButton.Pressed)
-    def on_main_menu_pressed(self, event: MainMenuButton.Pressed) -> None:
-        from toad.widgets.comms_menu import show_target_menu
-        from toad.widgets.comms_transfer import TransferRequest
-        from functools import partial
-
-        event.stop()
-        button = self.query_one(MainMenuButton)
-        show_target_menu(
-            self.screen,
-            Offset(button.region.x, button.region.y + button.size.height),
-            "Toad",
-            [(kind.declared_name, kind.menu_label) for kind in TransferRequest.menu()],
-            {kind.declared_name: partial(cast("ToadApp", self.app).transfers.open, kind)
-             for kind in TransferRequest.menu()},
-        )
 
     def on_mount(self) -> None:
         app = cast("ToadApp", self.app)

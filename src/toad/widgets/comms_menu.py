@@ -17,7 +17,7 @@ from textual.widget import PrimaryActivation
 from toad.widgets.selection import FocusSelection
 
 
-class ContextMenuItem(PrimaryActivation, FocusSelection):
+class ContextMenuItem[Choice](PrimaryActivation, FocusSelection):
     """A menu item with desktop-style press and release behavior."""
 
     class Selected(Message):
@@ -25,7 +25,7 @@ class ContextMenuItem(PrimaryActivation, FocusSelection):
             self.item = item
             super().__init__()
 
-    def __init__(self, action: str, label: str) -> None:
+    def __init__(self, action: Choice, label: str) -> None:
         super().__init__(label, classes="item")
         self.action = action
 
@@ -55,7 +55,7 @@ class ContextMenuItem(PrimaryActivation, FocusSelection):
     def on_leave(self) -> None:
         self.remove_class("-pressed")
 
-class ContextMenu(ModalScreen[str]):
+class ContextMenu[Choice](ModalScreen[Choice | None]):
     """A transparent modal with a menu anchored to a screen coordinate.
 
     The interaction pattern follows trissim/textual-window's WindowBarMenu:
@@ -63,7 +63,7 @@ class ContextMenu(ModalScreen[str]):
     the pointer and clamped inside the terminal viewport.
     """
 
-    CSS = """
+    DEFAULT_CSS = """
     ContextMenu {
         align: left top;
         background: transparent;
@@ -105,7 +105,7 @@ class ContextMenu(ModalScreen[str]):
         self,
         menu_offset: Offset,
         title: str,
-        items: list[tuple[str, str]],
+        items: list[tuple[Choice, str]] | tuple[tuple[Choice, str], ...],
     ) -> None:
         super().__init__()
         self.menu_offset = menu_offset
@@ -157,7 +157,7 @@ class ContextMenu(ModalScreen[str]):
             self.dismiss(self.focused.action)
 
     def action_cancel(self) -> None:
-        self.dismiss("")
+        self.dismiss(None)
 
     @on(ContextMenuItem.Selected)
     def item_selected(self, event: ContextMenuItem.Selected) -> None:
@@ -170,7 +170,7 @@ class ContextMenu(ModalScreen[str]):
             if node.id == "context-menu":
                 return
             node = node.parent
-        self.dismiss("")
+        self.dismiss(None)
 
 
 def show_target_menu(
