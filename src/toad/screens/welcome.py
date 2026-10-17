@@ -25,7 +25,7 @@ from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, SidebarModelView
 from toad.application_actions import NewThreadAction
-from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, TargetTree
 from toad.widgets.splash_text import SplashText
 
 if TYPE_CHECKING:
@@ -182,6 +182,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     def row_selected(self, row) -> bool:
         return False
 
+    @RowReconciliation.sync
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         # A channel change can change which threads are listed and their order.
