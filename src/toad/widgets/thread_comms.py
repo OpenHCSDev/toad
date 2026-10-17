@@ -407,7 +407,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     def row_for(self, selection):
         group = self.groups.get(selection[0])
-        return group.rows.get(selection[1][1]) if group is not None and group.expanded and group.accepts_navigation() else None
+        row = group.rows.get(selection[1][1]) if group is not None and group.expanded and group.accepts_navigation() else None
+        return row if row is not None and row.entry.identity == selection[1] else None
 
     @property
     def navigation_root(self):
