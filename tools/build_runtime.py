@@ -90,10 +90,14 @@ print(json.dumps(names))
                     ('welcome', ['acp', f'{python} -I -B -m agent_comms.acp', str(home)], 'welcome'),
                 ):
                     observation = output / f'{name}.json'
+                    exit_status = output / f'{name}-exit-code'
                     with (output / f'{name}.log').open('w') as terminal_log:
                         terminal = subprocess.Popen(
                             ['st', '-g', '140x34', '-e', 'env',
-                             *(f'{k}={v}' for k, v in private.items()), str(runtime / 'bin/toad'), *arguments],
+                             *(f'{k}={v}' for k, v in private.items()),
+                             f'TOAD_STARTUP_EXIT={exit_status}', 'sh', '-c',
+                             '"$@"; code=$?; printf "%s\\n" "$code" > "$TOAD_STARTUP_EXIT"; exit "$code"',
+                             'toad-startup', str(runtime / 'bin/toad'), *arguments],
                             cwd=home, env=environment, stdout=terminal_log, stderr=terminal_log)
                         try:
                             deadline = time.monotonic() + 30
@@ -121,7 +125,9 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
                             while not observation.exists():
                                 if terminal.poll() is not None or time.monotonic() >= deadline:
                                     raise RuntimeError(f'{name} launch did not paint; see {output}')
-                                children = psutil.Process(terminal.pid).children()
+                                children = [child for child in psutil.Process(terminal.pid).children(recursive=True)
+                                            if str(runtime / 'bin/toad') in child.cmdline()
+                                            and child.name() != 'sh']
                                 if children:
                                     child, = children
                                     subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
@@ -134,7 +140,9 @@ if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
                                 env=environment, text=True).strip()
                             XvfbDisplay.input(psutil.Process(terminal.pid),
                                               psutil.Process(terminal.pid).create_time(), int(window), 'key', 'ctrl+q')
-                            if terminal.wait(timeout=10) != 0:
+                            terminal_code = terminal.wait(timeout=10)
+                            (output / f'{name}-terminal-exit-code').write_text(str(terminal_code))
+                            if int(exit_status.read_text()) != 0:
                                 raise RuntimeError(f'{name} exited unsuccessfully; see {output}')
                         finally:
                             if terminal.poll() is None:
