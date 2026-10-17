@@ -20,7 +20,7 @@ class MCPDecisionScreen(ModalScreen[None]):
     MCPDecisionScreen { align: center middle; }
     MCPDecisionScreen #mcp-decision-panel {
         width: 90%; height: 85%; border: round $warning; background: $surface;
-        padding: 1 2; layout: vertical;
+        padding: 1 2;
     }
     MCPDecisionScreen #mcp-decision-terminal { height: 1fr; border: round $accent; }
     MCPDecisionScreen #mcp-decision-controls { height: auto; }

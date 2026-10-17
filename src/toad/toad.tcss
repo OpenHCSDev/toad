@@ -19,9 +19,6 @@ Widget {
 }
 
 
-Markdown {
-    layout: stream;    
-}
 
 LoadingIndicator {
     background: transparent;

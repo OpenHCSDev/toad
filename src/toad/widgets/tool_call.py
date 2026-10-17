@@ -54,7 +54,6 @@ class ToolCall(ConversationBlock, SnapshotPresentation, CategorizedBlock, contai
     ToolCall {
         margin: 0 !important;
         width: 1fr;
-        layout: vertical;
         height: auto;
 
         #tool-title, #tool-content {
