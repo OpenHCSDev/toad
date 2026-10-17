@@ -45,7 +45,7 @@ from toad.markdown_links import LinkContext
 from toad.markdown_preparation import MarkdownStyleConsole
 from agent_comms.display_references import ChannelDisplayReference, HistoricalDisplayReference, ThreadDisplayReference
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import linked_target
+from toad.navigation_target import NavigationTarget
 from toad.render_backend import ReusableRenderTask
 from toad.patch import Patch
 from toad.preferences import DiffSettings
@@ -173,7 +173,7 @@ class OpensLinks(CoreEventReceiver, MroDispatch):
 
     @handles(OpenTarget)
     def open_target(self, link: OpenTarget) -> None:
-        self.publish_core(SelectTarget(linked_target(link.target)))
+        self.publish_core(SelectTarget(NavigationTarget.named(link.target)))
 
     @handles(OpenHistoricalTarget)
     def open_historical_target(self, link: OpenHistoricalTarget) -> None:

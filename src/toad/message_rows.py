@@ -18,9 +18,10 @@ from agent_comms.routing import MessageRoute
 
 from toad.inline_spans import inline_spans
 from toad.menus import MenuItem
+from toad.navigation_target import NavigationTarget
 from toad.line_blocks import (
-    MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole, OpenHistoricalTarget,
-    OpenTarget, OutgoingRole, Span, Spans,
+    MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole,
+    OutgoingRole, Span, Spans,
 )
 
 
@@ -58,10 +59,7 @@ class MessageRow:
 
     def name(self, target: str, role: type[LineRole] = NameRole) -> Span:
         """A thread or channel name that opens what it names."""
-        link: LineLink = (OpenHistoricalTarget(target, self.history)
-                          if self.history is not None and not target.startswith("#")
-                          else OpenTarget(target))
-        return Span(target, role, link)
+        return Span(target, role, NavigationTarget.named(target).message_link(self.history))
 
     @property
     def sender(self) -> LineLink:
