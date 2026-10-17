@@ -26,10 +26,11 @@ from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
 from textual.dom import DOMNode
-from textual.reactive import reactive
+from textual.reactive import reactive, var
+from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
-from ui_theme.scheme import WarningColour
+from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
 
 
 from agent_comms.mro_dispatch import handles
@@ -38,8 +39,8 @@ from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
 from toad.session_tracker import SidebarSelection
-from toad.widgets.session_sidebar import ThreadStatusRow
-from toad.widgets.selection import ChangingText, HoverSelection
+from toad.frame_presentation import AlternatingTonePaint
+from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, TargetTree, TargetTreeMember
@@ -165,8 +166,11 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
+class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, AlternatingTonePaint, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
+
+    alternate_tone = AlternateRowToneColour
+    leaving = var(False)
 
     @property
     def target_name(self) -> str:
@@ -195,6 +199,33 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
         super().__init__(Content(label))
         self.target = target
 
+    def on_mount(self) -> None:
+        self.run_effect(SIDEBAR_ENTER)
+
+    def compute_disabled(self) -> bool:
+        return self.leaving
+
+    def retire(self) -> None:
+        self.leaving = True
+        self.run_effect(SIDEBAR_EXIT)
+        self.repaint()
+
+    @property
+    def paint_opacity(self) -> float:
+        return self.effect_frame(SIDEBAR_ENTER).value * (
+            self.effect_frame(SIDEBAR_EXIT).value if self.leaving else 1.0)
+
+    def repaint(self) -> None:
+        if self.leaving and (not self.animation_visible
+                or self.effect_frame(SIDEBAR_EXIT) == SIDEBAR_EXIT.final):
+            self.remove()
+            return
+        self.refresh(layout=False)
+
+    def on_hide(self) -> None:
+        if self.leaving:
+            self.remove()
+
     def is_navigation_row(self) -> bool:
         return self.is_attached and not self.leaving
 
@@ -217,7 +248,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
         return super().paint_foreground
 
     def set_label(self, label: str) -> None:
-        self.retire_thread_row()
         self.update(Content(label))
 
     @property
@@ -241,7 +271,57 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
         self.action_open_selected()
 
 
-class ThreadRow(CommsRow):
+class ThreadStatusRow(CommsRow):
+    """Thread rows own their fixed geometry and model-derived activity ink."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.styles.height = 2
+        self.styles.padding = 0
+        self.styles.text_wrap = "nowrap"
+        self.styles.text_overflow = "ellipsis"
+        self.styles.pointer = "pointer"
+        self.thread_row: ThreadRowModel | None = None
+        self.pinned = False
+        self.action_status: str | None = None
+
+    @property
+    def busy(self) -> bool:
+        return self.thread_row is not None and (self.action_status is not None or self.thread_row.status.working)
+
+    @property
+    def paint_foreground(self):
+        if self.busy:
+            return self.app.colours.colour(WarningColour)
+        return super().paint_foreground or self.app.colours.colour(MutedColour)
+
+    def show(self, row: ThreadRowModel, *, pinned: bool = False) -> None:
+        """Render the model with this app's pin and pending action."""
+        app = cast("ToadApp", self.app)
+        row = app.session_navigation.thread_row(row)
+        action_status = app.thread_actions.pending.get(row.name)
+        if (row, pinned, action_status) == (self.thread_row, self.pinned, self.action_status):
+            return
+        self.thread_row, self.pinned, self.action_status = row, pinned, action_status
+        summary = action_status if action_status is not None else row.summary
+        self.tooltip = Content("\n".join(str(value) for value in (
+            row.name, summary, row.unread.detail, "Pinned in this channel" if pinned else None, row.model,
+        ) if value))
+        badge = f"{row.unread.label} " if row.unread.label else ""
+        title = self.activity_content(row.title, Content(row.label), self.busy,
+                                      prefix=Content.assemble(badge, "* " if self.pinned else ""))
+        self.update(Content.assemble(title, f"\n  {summary}"), layout=False)
+
+    def set_label(self, label: str) -> None:
+        self.retire_thread_row()
+        super().set_label(label)
+
+    def retire_thread_row(self) -> None:
+        self.stop_effect()
+        self.thread_row = None
+
+
+class ThreadRow(ThreadStatusRow):
     """A retained wire thread row, with an optional currently open native view."""
 
     @property
