@@ -61,7 +61,7 @@ from toad.widgets.transcript_lines import (
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory, TranscriptInputClaim
-from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
@@ -70,7 +70,6 @@ from toad.widgets.transcript_fragments import (
 )
 
 if TYPE_CHECKING:
-    from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.conversation import Contents, Conversation
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
@@ -495,8 +494,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         self.newer = JumpToLatest("↓ Jump to latest")
         self.filter = TranscriptFilter(self)
         self._fragment_budget = self.budget.max_items
-        # Bound when mounted; a history closed before its mount has no window to leave.
-        self.window: HistoryWindow | None = None
+
+    @property
+    def window(self) -> HistoryWindow:
+        return self.query_ancestor(HistoryWindow)
 
     async def park_document(self) -> PreparedPageSource:
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
@@ -853,8 +854,6 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         yield self.newer
 
     async def on_mount(self) -> None:
-        from toad.widgets.history_anchor import HistoryWindow
-        self.window = self.query_ancestor(HistoryWindow)
         await self._finish_mount()
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:

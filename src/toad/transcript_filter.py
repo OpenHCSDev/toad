@@ -67,8 +67,8 @@ class FilterState(DeclaredFamily, affix="Filter"):
     @abstractmethod
     def scan_available(self, owner: LineHistory) -> bool: ...
 
-    @abstractmethod
-    def scan_needed(self, owner: LineHistory) -> bool: ...
+    def scan_needed(self, owner: LineHistory) -> bool:
+        return False
 
     @abstractmethod
     async def advance(self, filtering: TranscriptFilter, snapshot: HistorySourceSnapshot) -> bool: ...
@@ -82,9 +82,6 @@ class NoFilter(FilterState):
         return owner.has_older
 
     def scan_available(self, owner):
-        return False
-
-    def scan_needed(self, owner):
         return False
 
     async def advance(self, filtering, snapshot):
@@ -181,9 +178,6 @@ class Filtered(FilterState):
     def scan_available(self, owner):
         return self.view.older_page_available
 
-    def scan_needed(self, owner):
-        return False
-
     def covers_incoming(self, sequence):
         return self.view.covers_incoming(sequence)
 
@@ -216,9 +210,11 @@ class Filtered(FilterState):
         owner.invalidate_projection()
 
     async def advance(self, filtering, snapshot):
-        previous = {id(fragment) for fragment in self.view.fragments_in_range}
+        previous = self.view.pages[0]
+        start, before = previous.start, previous.page.before
         await self.view.load_older()
-        return any(id(fragment) not in previous for fragment in self.view.fragments_in_range)
+        first = self.view.pages[0]
+        return first.start < start if first is previous else before.contains(first.page.before)
 
 
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):

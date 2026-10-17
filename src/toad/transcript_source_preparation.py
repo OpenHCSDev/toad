@@ -342,7 +342,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state = (ParkedSourceTranscript(source) if parked
                               else RetiredSourceTranscript(source))
         self._generation += 1
-        if self.window is not None:
+        if self.is_attached:
             self.window.histories.discard(self)
         self._source_state.retire_preparation(self._page_buffer)
         workers = self.workers.cancel_node(self)

@@ -47,6 +47,10 @@ class PreparedTranscriptPage:
     outgoing_coverage: frozenset[OutgoingMessageReference] = field(kw_only=True)
     fragment_range: tuple[int, int] | None = None
 
+    def __deepcopy__(self, memo):
+        """Copy page-local fields; keep the original source and fragments."""
+        return replace(self)
+
     @classmethod
     def prepare(cls, page: TranscriptPage) -> PreparedTranscriptPage:
         """Prepare and measure one whole page in the worker that owns its result."""
