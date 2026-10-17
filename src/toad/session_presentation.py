@@ -235,7 +235,7 @@ class MailboxSessionSources(OperationalSessionSources):
         return conversation.thread_activity.row
 
     def agent_info(self, conversation: Conversation) -> str:
-        return conversation.thread_activity.row.title
+        return conversation.thread_activity.row.presentation.title
 
     def prompt(self, conversation: Conversation):
         from toad.conversation_kind import DmConversation
