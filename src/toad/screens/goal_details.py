@@ -15,7 +15,7 @@ from textual.widgets import Button, Static
 from toad.core.input_events import SelectTarget
 from toad.goal_interaction import GoalSession
 from toad.project_path_owner import ProjectPathOwner
-from toad.widgets.goal_text import GoalText, GoalProgressText
+from toad.widgets.goal_text import GoalText
 
 
 class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
@@ -62,7 +62,7 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
             with VerticalScroll(id="goal-document"):
                 yield Static("", markup=False, id="goal-current-heading")
                 yield GoalText(classes="goal-text", id="goal-current-objective")
-                yield GoalProgressText(prefix="Progress: ", classes="goal-text", id="goal-current-progress")
+                yield GoalText(classes="goal-text", id="goal-current-progress")
                 if self.history:
                     yield Static("Revision history", markup=False)
                     for entry in reversed(self.history):
@@ -79,7 +79,8 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
                             markup=False,
                         )
                         yield GoalText(revision_goal.summary, classes="goal-text")
-                        yield GoalProgressText(revision_goal.progress, classes="goal-text")
+                        if revision_goal.progress:
+                            yield GoalText(revision_goal.progress, classes="goal-text")
             yield Button("Close (Esc)", id="goal-details-close")
 
     def on_mount(self) -> None:
@@ -98,11 +99,9 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         self.query_one("#goal-current-objective", GoalText).update_goal_text(
             f"Objective: {goal.text}" if goal else ""
         )
-        progress = self.query_one("#goal-current-progress", GoalProgressText)
-        if goal is not None:
-            progress.update_progress(goal.progress)
-        else:
-            progress.hide_progress()
+        self.query_one("#goal-current-progress", GoalText).update_goal_text(
+            f"Progress: {goal.progress}" if goal and goal.progress else ""
+        )
 
     @on(Button.Pressed, "#goal-details-close")
     def action_close(self) -> None:

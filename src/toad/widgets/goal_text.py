@@ -1,5 +1,4 @@
 """Goal text uses the same mention syntax and navigation as wire messages."""
-from agent_comms.goals import NoGoalProgress
 from agent_comms.mentions import MentionCandidate
 from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.widgets.selection import ChangingText
@@ -30,28 +29,3 @@ class GoalText(ReferenceRendering, OpensLinks, ChangingText):
     def update_goal_text(self, text: str) -> None:
         self.goal_text = text
         self.update(inline_message(text, self.app.colours, LinkContext.containing(self)))
-
-
-class GoalProgressText(GoalText):
-    """A progress member controls this view; the widget never infers absence."""
-    def __init__(self, progress=NoGoalProgress(), *, prefix="", **kwargs):
-        self.progress = progress
-        self.prefix = prefix
-        super().__init__(**kwargs)
-
-    def on_mount(self):
-        super().on_mount()
-        self.progress.present(self)
-
-    def update_progress(self, progress):
-        self.progress = progress
-        if self.is_mounted:
-            progress.present(self)
-
-    def show_progress(self, text):
-        self.update_goal_text(self.prefix + text)
-        self.display = True
-
-    def hide_progress(self):
-        self.update_goal_text("")
-        self.display = False
