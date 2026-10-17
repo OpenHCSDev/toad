@@ -20,9 +20,10 @@ from textual.reactive import reactive
 from textual._activation import PrimaryActivation
 from textual.widget import Widget
 
-from ui_theme.scheme import SidebarToneColour
+from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour
 
 from toad.frame_presentation import TonePaint
+from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
     Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
@@ -151,8 +152,13 @@ The Sidebar contains additonal information associated with the conversation.
                 yield from self._contents_list
 
 
-class SideBarToggle(PrimaryActivation, widgets.Static):
+class SideBarToggle(HoverSelection, PrimaryActivation, widgets.Static):
     """Full-height collapse target beside the conversation-facing resize edge."""
+
+    @property
+    def paint_highlighted(self):
+        bar = self.query_ancestor(SideBar)
+        return super().paint_highlighted or (bar.collapsed and bar.mouse_hover)
 
     ALLOW_SELECT = False
 
@@ -165,13 +171,6 @@ class SideBarToggle(PrimaryActivation, widgets.Static):
         color: $text-muted;
         background: $primary 8%;
         layer: sidebar-toggle;
-    }
-    SideBarToggle:hover,
-    SideBarToggle:focus,
-    SideBarToggle.-gutter-hover {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
     }
     """
 
@@ -222,7 +221,7 @@ class SideBarToggle(PrimaryActivation, widgets.Static):
             self.action_pointer_toggle()
 
 
-class HeaderButton(PrimaryActivation, widgets.Static, can_focus=True):
+class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
     """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -237,12 +236,7 @@ class HeaderButton(PrimaryActivation, widgets.Static, can_focus=True):
         text-style: bold;
         pointer: pointer;
     }
-    HeaderButton:hover, HeaderButton:focus {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
-    }
-    HeaderButton.-unavailable {
+    HeaderButton:disabled {
         color: $text-disabled;
         pointer: default;
     }
@@ -329,7 +323,6 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
         for button in self.query(TabHistoryButton):
             unavailable = app.tab_order.history_target(button.direction) is None
             button.disabled = unavailable
-            button.set_class(unavailable, "-unavailable")
             button.tooltip = (
                 "No earlier visited tab" if button.direction == -1 else "No later visited tab"
             ) if unavailable else (
@@ -338,8 +331,10 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
             )
 
 
-class SidebarSlider(widgets.Static, can_focus=True):
+class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
+
+    highlight_foreground = AccentColour
 
     ALLOW_SELECT = False
 
@@ -349,7 +344,6 @@ class SidebarSlider(widgets.Static, can_focus=True):
     ]
     DEFAULT_CSS = """
     SidebarSlider { height: 1; width: 1fr; color: $text-muted; pointer: pointer; }
-    SidebarSlider:hover, SidebarSlider:focus { color: $accent; }
     """
 
     @dataclass
@@ -448,7 +442,7 @@ class SidebarSlider(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
+class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
     """One spatial arrow or float/push action."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
@@ -457,11 +451,6 @@ class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
     DEFAULT_CSS = """
     SidebarAction { height: 1; width: auto; padding: 0 1; color: $text-muted; pointer: pointer; }
     SidebarAction.-direction { width: 7; content-align: center middle; text-style: bold; }
-    SidebarAction:hover, SidebarAction:focus {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
-    }
     """
 
     @dataclass
@@ -486,8 +475,10 @@ class SidebarAction(PrimaryActivation, widgets.Static, can_focus=True):
             self.action_activate()
 
 
-class SidebarResizeHandle(widgets.Static, can_focus=True):
+class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
+
+    highlight_foreground = ForegroundColour
 
     # The screen starts text selection before forwarding MouseDown to us.
     # Capturing/stopping that event alone cannot prevent a competing selection
@@ -499,9 +490,7 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         dock: right; width: 1; height: 1fr; padding: 0;
         color: $success; pointer: ew-resize;
     }
-    SidebarResizeHandle:hover, SidebarResizeHandle:focus { color: $foreground; }
     SidebarResizeHandle:ansi { color: ansi_green; }
-    SidebarResizeHandle:ansi:hover, SidebarResizeHandle:ansi:focus { color: ansi_white; }
     """
     BINDINGS = [Binding("left", "resize(-1)", "Resize left", show=False),
                 Binding("right", "resize(1)", "Resize right", show=False)]
@@ -862,8 +851,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         toggle = self.query_one_optional(SideBarToggle)
         if toggle is not None:
             toggle.set_collapsed(collapsed)
-            if not collapsed:
-                toggle.remove_class("-gutter-hover")
+            toggle.refresh_paint()
         for panel in self.panels:
             if isinstance(panel.widget, SidebarVisibilityObserver):
                 panel.widget.sidebar_visibility_changed()
@@ -890,13 +878,10 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             event.stop()
             self.toggle(focus=False)
 
-    def on_enter(self) -> None:
-        if self.collapsed:
-            self.query_one(SideBarToggle).add_class("-gutter-hover")
-
-    def on_leave(self) -> None:
-        if toggle := self.query_one_optional(SideBarToggle):
-            toggle.remove_class("-gutter-hover")
+    @on(events.Enter)
+    @on(events.Leave)
+    def gutter_hover_changed(self) -> None:
+        self.query_one(SideBarToggle).refresh_paint()
 
     def toggle(self, *, focus: bool = True) -> None:
         collapsed = not self.collapsed

@@ -10,9 +10,11 @@ from textual.content import Content
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from ui_theme.effects import NEW_TEXT, SPINNER, Frame, TextFrame
+from ui_theme.scheme import ThemeColour, BlockCursorForegroundColour, BlockCursorBackgroundColour
+from typing import ClassVar
 from textual.visual import VisualType
 
-from toad.frame_presentation import Animated
+from toad.frame_presentation import Animated, UntintedTonePaint
 from rich.style import Style
 from textual.message import Message
 from textual.widgets import ListItem, ListView, OptionList, Static
@@ -81,13 +83,46 @@ class FocusSelection(Static, can_focus=True):
         self._pointer_focus = False
 
 
-class HoverSelection(Static, can_focus=True):
-    """A focusable row that highlights from CSS `:hover`.
+class HoverSelection(UntintedTonePaint):
+    """Paint a control from native pointer/focus state, without CSS transitions."""
 
-    Taking keyboard focus on every pointer move runs the whole focus machinery
-    (focus-within restyles, binding refresh). Rows only need a repaint, so
-    pointer movement must not change focus.
-    """
+    highlight_foreground: ClassVar[type[ThemeColour] | None] = BlockCursorForegroundColour
+    highlight_background: ClassVar[type[ThemeColour] | None] = BlockCursorBackgroundColour
+    highlighted_text_style = Style()
+
+    @property
+    def paint_highlighted(self):
+        return not self.disabled and (self.has_focus or self.mouse_hover)
+
+    @property
+    def paint_foreground(self):
+        return (self.app.colours.colour(self.highlight_foreground)
+                if self.paint_highlighted and self.highlight_foreground else None)
+
+    @property
+    def paint_background(self):
+        return (self.app.colours.colour(self.highlight_background)
+                if self.paint_highlighted and self.highlight_background else None)
+
+    @property
+    def text_style(self):
+        return self.highlighted_text_style if self.paint_highlighted else None
+
+    def watch_mouse_hover(self):
+        self.refresh_paint()
+
+
+class InlineSelection(HoverSelection):
+    """An inline action adds emphasis without replacing its colours."""
+
+    highlight_foreground = highlight_background = None
+    highlighted_text_style = Style(underline=True)
+
+
+class ColourSelection(HoverSelection):
+    """A handle changes only its ink, keeping its declared surface and text."""
+
+    highlight_background = None
 
 
 class SelectionOptionList(OptionList):
