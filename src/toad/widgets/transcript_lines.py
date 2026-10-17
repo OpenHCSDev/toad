@@ -644,7 +644,7 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         return self.preparation.blocks
 
     def current_for(self, view) -> bool:
-        return self.context.current_for(view) and self.preparation.theme == view.app.colours.line_theme
+        return self.context.current_for(view) and self.preparation.theme is view.app.colours.line_theme
 
     def hold(self, view, fragment, lines) -> bool:
         return self.current_for(view) and fragment.hold_lines(self, lines.wrap(view.line_width, view.app.colours.line_renderer))
