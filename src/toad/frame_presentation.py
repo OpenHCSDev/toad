@@ -262,12 +262,22 @@ class Animated[FrameT: Frame](Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.effects: dict[Effect, Animation] = {}
+        self.hidden_effects: set[Effect] | None = None
 
     def run_effect(self, effect: Effect) -> None:
         self.stop_effect(effect)
+        if self.hidden_effects is not None:
+            if not effect.finite:
+                self.hidden_effects.add(effect)
+            return
         self.effects[effect] = self.app.colours.clock.start(effect, self)
 
     def stop_effect(self, *effects: Effect) -> None:
+        if self.hidden_effects is not None:
+            if effects:
+                self.hidden_effects.difference_update(effects)
+            else:
+                self.hidden_effects.clear()
         for effect in effects or tuple(self.effects):
             if animation := self.effects.pop(effect, None):
                 animation.stop()
@@ -280,9 +290,15 @@ class Animated[FrameT: Frame](Widget):
         self.stop_effect()
 
     def on_hide(self) -> None:
-        for effect in tuple(self.effects):
-            if effect.finite:
-                self.stop_effect(effect)
+        hidden = {effect for effect in self.effects if not effect.finite}
+        self.stop_effect()
+        self.hidden_effects = hidden
+        self.refresh()
+
+    def on_show(self) -> None:
+        hidden, self.hidden_effects = self.hidden_effects or set(), None
+        for effect in hidden:
+            self.run_effect(effect)
         self.refresh()
 
     def paint_effects(self, strip: Strip) -> Strip:
