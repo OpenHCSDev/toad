@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from textual.widget import Widget
-from agent_comms.transcript_events import TranscriptEvent, UserTranscript
+from agent_comms.transcript_events import TranscriptEvent
 from toad.transcript_state import CommitTranscript, LatestViewportRequest
 from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageReference
 from toad.core.source_events import TranscriptCoverage
@@ -45,9 +45,6 @@ class CommitClaim(ABC):
     @property
     def required_sequences(self) -> frozenset[int]:
         return frozenset()
-
-    def represents_input(self, input_id: str) -> bool:
-        return False
 
     @abstractmethod
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
@@ -103,36 +100,14 @@ class OutgoingMessageClaim(CommitClaim):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.message.reference in evidence.outgoing
 
-class NativeInputClaim(CommitClaim):
-    """An original started input retires only against its saved native identity."""
-
-    @property
-    @abstractmethod
-    def native_id(self) -> str | None: ...
-
-    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
-        return self.native_id in evidence.native_inputs
-
 @dataclass(frozen=True)
-class StartedInputClaim(NativeInputClaim):
-    """The native start notification supplies the original request and journal identity."""
+class StartedInputClaim(CommitClaim):
+    """An original started input retires only against its saved native identity."""
 
     source: InputStartedUpdate
 
-    @property
-    def native_id(self):
-        return self.source.native_id
-
-    def represents_input(self, input_id: str) -> bool:
-        return self.source.input_id == input_id
-
-@dataclass(frozen=True)
-class TranscriptInputClaim(NativeInputClaim):
-    source: UserTranscript
-
-    @property
-    def native_id(self):
-        return self.source.native_id
+    def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
+        return self.source.native_id in evidence.native_inputs
 
 class CommitParticipant:
     """Nominal widget contract; unrelated/local widgets are retained by default."""

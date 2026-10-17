@@ -219,7 +219,9 @@ class Agent(AgentBase):
         self.controller.coordination = value
 
     def _post_queue_view(self, starts: tuple[InputStartedUpdate, ...] = ()) -> None:
-        self.events.publish(core_events.CommsUpdated(QueuePresentation(starts), self.session_id))
+        self.controller.surface.sync_queue()
+        if starts:
+            self.events.publish(core_events.CommsUpdated(QueuePresentation(starts), self.session_id))
 
     def _post_private_cursor(self) -> None:
         self._private_cursor_sequence += 1
