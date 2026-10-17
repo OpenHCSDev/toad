@@ -144,7 +144,7 @@ class Renderer(RendererSpawn):
 
     @staticmethod
     async def wait_for_work(pending: asyncio.Future) -> None:
-        """A cancelled consumer releases its wait, not admitted execution.
+        """A cancelled consumer releases its wait, not accepted execution.
 
         Python 3.14 wait removes its callback on cancellation but leaves the
         awaited-by edge on a pending job. Close that original edge at the same

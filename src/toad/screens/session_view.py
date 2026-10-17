@@ -145,6 +145,6 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
         """Views without retained operational sources need no domain finalization."""
 
     def retained_native_presentations(self):
-        """Declare admitted native trees; non-native views own no such trees."""
+        """Declare accepted native trees; non-native views own no such trees."""
         return ()
 

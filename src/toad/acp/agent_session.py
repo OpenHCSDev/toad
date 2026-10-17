@@ -307,7 +307,7 @@ class AgentSession:
                     await self.new()
                 self.connected = True
             except jsonrpc.APIError as error:
-                # The handshake has not admitted a prompt, regardless of the
+                # The handshake has not accepted a prompt, regardless of the
                 # server's reason for refusing this attachment.
                 failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
                                   input_state=NotSentInput)
