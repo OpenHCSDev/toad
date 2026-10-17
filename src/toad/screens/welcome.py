@@ -24,6 +24,7 @@ from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwne
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, SidebarModelView, ThreadRow
+from toad.application_actions import NewThreadAction
 from toad.widgets.sidebar_tree import SidebarGroup, TargetTree
 from toad.widgets.splash_text import SplashText
 
@@ -256,8 +257,8 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
         self.query_one(WelcomeTitle).stop_effect()
         await super().retire_presentation()
 
-    def action_new_session(self) -> None:
-        self.query_one(NewSessionButton).action_create()
+    async def action_new_session(self) -> None:
+        await NewThreadAction().apply(self.app)
 
     async def action_toggle_irc(self) -> None:
         await self.open_sidebar_target(FeedTarget())
