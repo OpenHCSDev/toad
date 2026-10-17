@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, ClassVar, Self
 
 from agent_comms.declared_family import DeclaredFamily
 from textual import events, on
@@ -23,6 +23,8 @@ class _PopupMeta(type(DeclaredFamily), type(VerticalGroup)):
 
 class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Popup"):
     """One mounted popup is the authority for its open state and interaction."""
+
+    requires_completion: ClassVar[bool] = False
 
     DEFAULT_CSS = "PromptPopup { display: none; } PromptPopup.-open { display: block; }"
     is_open = var(False, toggle_class="-open")
@@ -46,8 +48,8 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
         # before a priority Key event reaches its focused control.
         return (self.is_open and key in self._bindings.key_to_bindings) or super().check_consume_key(key, character)
 
-    def admitted(self) -> bool:
-        return True
+    def can_open(self) -> bool:
+        return not self.requires_completion or self.prompt.supports_completion
 
     def compose(self) -> ComposeResult:
         if self._content_build is not None:
@@ -60,7 +62,7 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
     def focus(self, scroll_visible: bool = False) -> Self:
         build = self._content_build
         if build is None:
-            if not self.admitted():
+            if not self.can_open():
                 return self
             # Built while still hidden, so the popup opens with its content.
             # The state exists before the build runs: compose reads it, and an
@@ -93,7 +95,7 @@ class PromptPopup(DeclaredFamily, VerticalGroup, metaclass=_PopupMeta, affix="Po
         """The leaf focuses its own control; opening and eligibility are shared."""
 
     def open(self) -> bool:
-        if not self.admitted():
+        if not self.can_open():
             return False
         for popup in self.prompt.query(PromptPopup):
             if popup is not self:

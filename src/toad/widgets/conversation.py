@@ -1786,13 +1786,13 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def _on_queue_choice(self, action: str | None) -> None:
         # A stale menu callback must not edit the draft or mutate the remote
-        # queue. Text/index matching cannot identify an admitted input safely.
+        # queue. Text/index matching cannot identify a sent input safely.
         if action:
             self._queue_edit_unavailable()
 
     @work
     async def replace_queued(self, prompts: list[str]) -> None:
-        """Never clear-and-resend admitted inputs when editing the queue.
+        """Never clear-and-resend sent inputs when editing the queue.
 
         An empty snapshot or control ACK does not prove consumption, and a
         surviving row may be UNKNOWN. Reissuing its text could execute it twice.
