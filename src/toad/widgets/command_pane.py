@@ -39,7 +39,7 @@ class CommandPane(CoreEventReceiver, Terminal):
             await self.wait_for_refresh()
             self.update_size(*self.scrollable_content_region.size)
             await execution.start()
-            completion = await execution.wait_for_exit()
+            completion = await execution.operation.wait()
             self.project_state(None, None)
             if final:
                 self.set_class(completion.successful, "-success")

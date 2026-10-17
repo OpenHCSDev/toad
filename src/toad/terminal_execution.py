@@ -372,7 +372,7 @@ class TerminalExecution:
         self._output: deque[bytes] = deque()
         self._bytes_read = 0
         self._output_bytes_count = 0
-        self._operation: TerminalOperation = NewTerminalOperation()
+        self.operation: TerminalOperation = NewTerminalOperation()
         # An existing ANSI resource retains prefixes and sequential command output.
         self.state = (ansi.TerminalState(self.write_stdin, width=width, height=height)
                       if state is None else state)
@@ -384,7 +384,7 @@ class TerminalExecution:
 
     @property
     def outcome(self):
-        return self._operation.outcome()
+        return self.operation.outcome()
 
     @property
     def tool_state(self):
@@ -407,28 +407,18 @@ class TerminalExecution:
 
     def update_size(self, width, height):
         self.state.update_size(width, height)
-        self._operation.resize(width, height)
+        self.operation.resize(width, height)
 
     async def close(self):
         self.detach()
         # Active acquisition already revokes another start. Only a never-started
         # operation needs retirement; retain the SAME active task while joining.
-        self._operation = self._operation.retire()
-        await self._operation.close()
-
-    def kill(self) -> None:
-        self._operation.kill()
-
-    async def wait_for_exit(self):
-        return await self._operation.wait()
-
-    async def process(self) -> PtyProcess:
-        """Observe the SAME original acquired resource, never a copied PID/status."""
-        return await self._operation.process()
+        self.operation = self.operation.retire()
+        await self.operation.close()
 
     async def start(self):
-        operation = self._operation.start(self)
-        self._operation = operation
+        operation = self.operation.start(self)
+        self.operation = operation
         self.state.bind_stdin(self.write_stdin)
         self.state.show_cursor = True
         await asyncio.shield(operation.ready)
@@ -463,7 +453,7 @@ class TerminalExecution:
 
     async def write_stdin(self, text: str | bytes, hide_echo=False):
         data = text.encode("utf-8", "ignore") if isinstance(text, str) else text
-        return await self._operation.write(data)
+        return await self.operation.write(data)
 
     def _record_output(self, data: bytes) -> None:
         """Keep a record of the bytes left.

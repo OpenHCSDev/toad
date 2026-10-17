@@ -50,7 +50,7 @@ class Shell(ShellOperationalSource):
 
     async def is_busy(self) -> bool:
         """Observe the children of this SAME acquired shell incarnation."""
-        process = await self._operation.process()
+        process = await self.operation.process()
         import psutil
 
         def children():
@@ -74,7 +74,7 @@ class Shell(ShellOperationalSource):
         self.outputs.append(command_output)
         await self._present(command_output)
 
-        self._operation.resize(width, max(height, 1))
+        self.operation.resize(width, max(height, 1))
 
         if self._pending_directory is not None:
             import shlex
@@ -108,7 +108,7 @@ class Shell(ShellOperationalSource):
     def start(self, binding: SurfaceBinding) -> None:
         self.surface = binding
         binding.prepare_shell(self)
-        self._operation = self._operation.start(self)
+        self.operation = self.operation.start(self)
         logging.getLogger(__name__).debug("shell starting")
 
     async def interrupt(self) -> None:
@@ -125,7 +125,7 @@ class Shell(ShellOperationalSource):
         self._terminal_size = width, height
         if self.output is not None:
             self.output.state.update_size(width, height)
-        self._operation.resize(width, max(height, 1))
+        self.operation.resize(width, max(height, 1))
 
     async def write(
         self, text: str | bytes, hide_echo: bool = False, hide_output: bool = False
@@ -136,7 +136,7 @@ class Shell(ShellOperationalSource):
             for line in text_bytes.split(b"\n"):
                 if line:
                     self._hide_echo.add(line)
-        result = await self._operation.write(text_bytes)
+        result = await self.operation.write(text_bytes)
         self._hide_output = hide_output
         return result
 

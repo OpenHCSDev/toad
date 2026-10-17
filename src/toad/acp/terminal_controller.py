@@ -76,10 +76,10 @@ class TerminalController:
         return self.require(terminal_id).tool_state
 
     async def wait(self, terminal_id: str):
-        return await self.require(terminal_id).wait_for_exit()
+        return await self.require(terminal_id).operation.wait()
 
     def kill(self, terminal_id: str) -> None:
-        self.require(terminal_id).kill()
+        self.require(terminal_id).operation.kill()
 
     async def release(self, terminal_id: str) -> None:
         execution = self.require(terminal_id)
