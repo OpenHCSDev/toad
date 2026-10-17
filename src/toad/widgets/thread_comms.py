@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
+from agent_comms.route_selection import RouteSelection
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual import on
 from textual.binding import Binding
@@ -239,13 +240,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     def set_identity(self, owner: str, wire_root: str | None, *,
                      source: RelationshipSource | None = None):
-        if self._live and source is None:
-            if (owner, wire_root) == (self.owner, self.wire_root) and self._source is not None:
-                return
-            if wire_root is not None:
-                from toad.widgets.thread_comms_source import WireRelationshipSource
-
-                source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
+        if self._live and source is None and (owner, wire_root) == (self.owner, self.wire_root):
+            return
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
         self._generation += 1
@@ -324,7 +320,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if not self.owner or not self.wire_root:
             context.update(Content("Waiting for thread identity"), layout=False)
             return
-        if self._source is None:
+        if self._source is None and not self._live:
             context.update(Content("Relationship source not connected"), layout=False)
             return
         if self._refresh_task is not None and not self._refresh_task.done():
@@ -340,6 +336,14 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
 
     async def _refresh(self, generation):
         try:
+            if self._source is None:
+                root = self.wire_root
+                access = self.app.coordination_access
+                source = await self.app.preparation.run_thread(
+                    lambda: access.require(RouteSelection.capture(root)).relationships)
+                if generation != self._generation or not self.is_attached:
+                    return
+                self._source = source
             service, owner = self.service, self.owner
             revision = await asyncio.to_thread(service.revision)
             if revision == self._revision:

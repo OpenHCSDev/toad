@@ -13,7 +13,7 @@ from toad import surface_binding
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
-from .transcript_reader import DetachedTranscriptReader
+from .transcript_reader import CoordinationTranscriptReader
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
 from toad.core import events as core_events
@@ -63,13 +63,13 @@ class ApplicationValidationOwner(ValidationOwner):
 
 class AgentController(OperationalTerminalOwner):
     """One operational source; the surface is an optional weak projection."""
-    def __init__(self, agent):
+    def __init__(self, agent, transcripts: CoordinationTranscriptReader):
         super().__init__(agent)
         self.surface: surface_binding.SurfaceBinding = surface_binding.DetachedSurfaceBinding()
         self.validation: ValidationOwner = HeadlessValidationOwner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
-        self.transcripts = DetachedTranscriptReader()
+        self.transcripts = transcripts
         self.coordination = None
         self.session = SessionBinding(None)
         self.mode_state: SessionModeState | None = None

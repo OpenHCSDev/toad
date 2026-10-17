@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.comms import wire
 from agent_comms.route_selection import RouteSelection
 from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
@@ -154,7 +153,8 @@ class NativeSessionEntry(SessionEntry):
         if session_id in {source._agent_session_id, live.session_id if live else None}:
             return True
         root = source.coordination_root
-        return root is not None and wire(root).registry.canonical_name(session_id) == source.resolve_thread()
+        return root is not None and sessions.app.coordination_access.require(
+            RouteSelection.capture(root)).registry.canonical_name(session_id) == source.resolve_thread()
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
@@ -232,7 +232,8 @@ class HistorySessionEntry(SessionEntry):
     def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
         if self.key.owner_mode != owner:
             return
-        if self.key.me != previous and wire(self.key.root).registry.canonical_name(self.key.me) != current:
+        if self.key.me != previous and sessions.app.coordination_access.require(
+                RouteSelection.capture(self.key.root)).registry.canonical_name(self.key.me) != current:
             return
         self.key = replace(self.key, me=current)
         if view := sessions.app.workspace_sessions.views.get(self.mode):

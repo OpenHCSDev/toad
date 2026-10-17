@@ -277,7 +277,7 @@ class AgentSession:
         if self.chosen_name is not None:
             coordination = self.agent.coordination
             if coordination is not None and coordination.title != self.chosen_name:
-                self.rename_coordination(self.chosen_name)
+                self.start_operation(self.rename_coordination(self.chosen_name))
             return
         if title:
             self.agent.events.publish(SessionThreadTitle(title))
@@ -512,7 +512,7 @@ class AgentSession:
         self.publish_configuration(response)
 
 
-    def rename_coordination(self, display_name: str) -> None:
+    async def rename_coordination(self, display_name: str) -> None:
         if not self.accepts_session(self.agent.session_id):
             return
         thread = self.agent.coordination.thread.name if self.agent.coordination else None
@@ -520,13 +520,15 @@ class AgentSession:
         if thread is None or wire_root is None:
             return
 
-        from agent_comms.comms import wire
-
-        result = wire(wire_root).threads.rename_managed_thread(
-            thread,
-            display_name,
-            owner_pid=self.agent.coordination.owner_pid,
-        )
+        authority = ClientSessionRequest(self.agent, self.agent.session_id)
+        owner_pid = self.agent.coordination.owner_pid
+        async with self.agent.controller.transcripts.bind(wire_root) as comms:
+            authority.require()
+            result = await asyncio.to_thread(
+                comms.threads.rename_managed_thread,
+                thread, display_name, owner_pid=owner_pid,
+            )
+        authority.require()
         self.agent.coordination = replace(
             self.agent.coordination,
             thread=replace(self.agent.coordination.thread, name=result.current),
@@ -560,7 +562,7 @@ class AgentSession:
         if self.chosen_name == name:
             return
         self.chosen_name = name or None
-        self.rename_coordination(name)
+        await self.rename_coordination(name)
         if self.pk is None:
             return
         db = DB()

@@ -8,6 +8,7 @@ from toad.acp.context_measurement import ContextMeasurement
 from toad.acp.agent_log import AgentLog
 from toad.acp.agent_process import AgentProcess
 from toad.acp.agent_controller import AgentController
+from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
@@ -82,6 +83,7 @@ class Agent(AgentBase):
         session_pk: int | None = None,
         *,
         app_events: core_events.CoreEventStream,
+        transcripts: CoordinationTranscriptReader,
     ) -> None:
         """
 
@@ -93,7 +95,7 @@ class Agent(AgentBase):
         self.process = AgentProcess(self)
         self.presentation = ACPAgentPresentation(self)
         self.permissions = PermissionController(self)
-        self.controller = AgentController(self)
+        self.controller = AgentController(self, transcripts)
         self.tools = SessionToolCalls(self)
         self.definition = agent
         self.session_id = session_id
@@ -300,15 +302,14 @@ class Agent(AgentBase):
             self.coordination.thread.name if self.coordination else None
         ) is None:
             raise ValueError("Project changes require an agent-comms thread.")
-        from agent_comms.comms import wire
-
-        result = await asyncio.to_thread(
-            wire(
-                (self.coordination.wire_root if self.coordination else None)
-            ).threads.set_project,
-            (self.coordination.thread.name if self.coordination else None),
-            path,
-        )
+        authority = ClientSessionRequest(self, self.session_id)
+        coordination = self.coordination
+        async with self.controller.transcripts.bind(coordination.wire_root) as comms:
+            authority.require()
+            result = await asyncio.to_thread(
+                comms.threads.set_project, coordination.thread.name, path,
+            )
+        authority.require()
         self.coordination = replace(self.coordination, worktree=result.current)
         self.project_root_path = Path(result.current)
         self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
