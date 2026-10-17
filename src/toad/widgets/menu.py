@@ -10,6 +10,7 @@ from textual.widgets import ListView, Label
 from textual._partition import partition
 from textual import events
 from textual.widget import Widget
+from textual.layouts.horizontal import HorizontalLayout
 
 from toad.menus import MenuItem
 from toad.widgets.selection import SelectionListItem
@@ -22,6 +23,7 @@ class NonSelectableLabel(Label):
 
 class MenuOption(SelectionListItem):
     ALLOW_SELECT = False
+    DEFAULT_LAYOUT = HorizontalLayout
 
     def __init__(self, action: str | None, description: str, key: str | None) -> None:
         self._action = action
@@ -52,7 +54,6 @@ class Menu(ListView, can_focus=True):
    
         & > MenuOption {         
             
-            layout: horizontal;            
             width: 1fr;            
             padding: 0 1;
             height: auto !important;
