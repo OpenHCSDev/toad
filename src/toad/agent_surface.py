@@ -94,7 +94,8 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     async def show_shell_command(self, output, target):
         from toad.widgets.shell_result import ShellResult
 
-        if not any(result.source is output for result in target.query(ShellResult)):
+        if not any(isinstance(child, ShellResult) and child.source is output
+                   for child in target.contents.children):
             await target.post(ShellResult(output))
 
     @handles(ShellTerminalOutput)

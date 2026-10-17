@@ -336,9 +336,9 @@ class CheckpointPublication(CanonicalSourcePublication):
             return False
         if not self.owner.readable:
             return False
-        if any(isinstance(node, CheckpointBarrier) for node in self.contents.walk_children()):
-            return False
         if not self.owner.checkpoint_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
+            return False
+        if any(isinstance(child, CheckpointBarrier) for child in self.contents.children):
             return False
         potential = tuple(child for child in self.contents.children
                           if child is not self.history and isinstance(child, CommitParticipant))
