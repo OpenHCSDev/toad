@@ -7,14 +7,19 @@ from typing import TYPE_CHECKING, cast
 from textual.content import Content
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
+from ui_theme.scheme import AlternateRowToneColour
+
+from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import HoverSelection, ViewLabel
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-class ThreadStatusRow(ViewLabel, HoverSelection):
+class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     """Compact wire status presentation shared by open and unopened threads."""
+
+    alternate_tone = AlternateRowToneColour
 
     DEFAULT_CSS = """
     ThreadStatusRow.-wire-thread {

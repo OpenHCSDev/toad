@@ -30,7 +30,6 @@ LoadingIndicator {
 Throbber {
     width: 100%;
     height: 1;
-    background: transparent;
 }
 
 .-hidden {
