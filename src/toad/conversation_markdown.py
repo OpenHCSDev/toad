@@ -1,6 +1,5 @@
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.layout import WidgetPlacement
-from textual.layouts.stream import StreamLayout
 from textual.widgets import Markdown
 
 from toad.layout import trim_trailing_margin
@@ -21,8 +20,6 @@ class ConversationCodeFence(MarkdownFence):
 
 class ConversationMarkdown(ReferenceRendering, OpensLinks, Markdown):
     """Textual blocks borrow the same syntax, links and opening actions as rows."""
-
-    DEFAULT_LAYOUT = StreamLayout
 
     BLOCKS = {
         **MarkdownBlockContent.blocks_for(Markdown.BLOCKS),
