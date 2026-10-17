@@ -1,10 +1,10 @@
-"""Session-scoped reader intent, with only selected rich panels admitted."""
+"""Session side panels retain reader position while their view is parked."""
 from typing import TYPE_CHECKING
 from weakref import ref
 from textual.app import ComposeResult
+from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
-from toad.widgets.plan import Plan
-from toad.widgets.retiring_sidebar import RetiringSidebar
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 from toad.widgets.sidebar_viewport import SidebarViewport
 
@@ -12,8 +12,12 @@ if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionThreadSidebar(RetiringSidebar):
-    """Warm panels survive parking; actual eviction releases their widget graph."""
+class SessionThreadSidebar(SideBar):
+    """Keep warm panels until eviction releases their widgets."""
+
+    # Panels retain widgets, not separate transcript sources or paint assets.
+    retained_source_bytes = 0
+    retained_paint_bytes = 0
 
     def __init__(self, screen: "MainScreen") -> None:
         self._owner = ref(screen)
@@ -22,6 +26,60 @@ class SessionThreadSidebar(RetiringSidebar):
         super().__init__(id="thread-sidebar", right=True, hide=True,
                          navigation=screen._thread_sidebar_state,
                          defer_mount=True)
+
+    @property
+    def retained_widget_count(self) -> int:
+        return 1 + self.descendant_count if self._panels_loaded else 0
+
+    def schedule_hydration(self) -> None:
+        if not self.collapsed:
+            if not self._panels_loaded:
+                self._panels_ready.clear()
+            super().schedule_hydration()
+        else:
+            self._panels_ready.set()
+
+    def _start_hydration(self) -> None:
+        if not self.collapsed:
+            super()._start_hydration()
+        else:
+            self._panels_ready.set()
+
+    async def prepare_presentation(self) -> None:
+        self.schedule_hydration()
+
+    async def _cancel_panel_workers(self) -> None:
+        for worker in self.workers.cancel_group(self, "sidebar-panels"):
+            try:
+                await worker.wait()
+            except WorkerCancelled:
+                pass
+
+    async def retire_presentation(self) -> None:
+        if not self._panels_loaded:
+            # A partial mount is discarded rather than parked as a complete view.
+            await self.evict()
+            return
+        await self._cancel_panel_workers()
+        for panel in self.panels:
+            if isinstance(panel.widget, SidebarVisibilityObserver):
+                panel.widget.sidebar_visibility_changed()
+
+    async def evict(self) -> None:
+        """Release panels on eviction or close, preserving their reader position."""
+        await self._cancel_panel_workers()
+        viewport = self.query_one("#sidebar-panels", SidebarViewport)
+        self.navigation.panel_scroll_y = viewport.scroll_y
+        for panel in self.query(SideBarCollapsible):
+            self.navigation.panels_collapsed[str(panel.title)] = panel.collapsed
+        self.capture_panels()
+        await viewport.remove_children()
+        if controls := self.query_one_optional("#sidebar-controls"):
+            await controls.remove_children()
+        self.panels.clear()
+        self._panels_loaded = self._panels_loading = False
+        self._presented_layout = None
+        self._panels_ready.set()
 
     async def panels_hydrated(self) -> None:
         screen = self._owner()

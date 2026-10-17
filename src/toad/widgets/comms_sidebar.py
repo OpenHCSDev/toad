@@ -386,7 +386,6 @@ class CoordinationStatus(Static):
 
     def refresh_status(self) -> None:
         root = self.service.root
-        timing = self.service.configuration.reply_timing
         backend = NativeArguments.configured_binary()
         thread = self.thread or "connecting..."
         self.update(
@@ -404,10 +403,7 @@ class CoordinationStatus(Static):
             "is scoped to this Toad session.\n\n"
             f"AGENT_COMMS_ROOT={root.resolve()}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
-            f"AGENT_COMMS_AGENT_ARGS={args}\n"
-            f"Reply window={timing.reply_window}\n"
-            f"No-reply window={timing.no_reply_window}\n"
-            f"Reply quiet={timing.reply_quiet}"
+            f"AGENT_COMMS_AGENT_ARGS={args}"
         )
 
 

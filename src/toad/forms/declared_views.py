@@ -148,4 +148,4 @@ class OptionalMemberField(DeclaredField):
 
     @property
     def annotation(self) -> object:
-        return optional_member_type(super().annotation)
+        return optional_member_type(resolve_annotated(super().annotation))

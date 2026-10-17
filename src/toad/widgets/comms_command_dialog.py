@@ -7,6 +7,7 @@ from typing import Annotated
 
 from agent_comms.cli_commands import ChoiceTargetField, TargetAction, TargetField
 from agent_comms.config_options import ModelConfigOption
+from agent_comms.field_codec import compile_decoder
 from agent_comms.login import run_login
 from agent_comms.native_pi import NativePiUnavailable
 from objectstate import ObjectState
@@ -28,7 +29,7 @@ class PreparedChoices(AnnotationChoices):
     parameter: ChoiceTargetField
 
     def choices(self):
-        return ('', *(value for _, value in self.parameter.choices))
+        return tuple(value for _, value in self.parameter.choices)
 
     def label(self, choice):
         return next((label for label, value in self.parameter.choices if value == choice), 'Choose…')
@@ -119,7 +120,7 @@ class CatalogChoiceDialog(ModalScreen[str]):
         yield CatalogFieldSelection(self.editor)
 
 
-class CommandDialog(ModalScreen[dict[str, str]]):
+class CommandDialog(ModalScreen[dict[str, str | None]]):
     DEFAULT_CSS = """
     CommandDialog { align: center middle; background: $background 40%; }
     CommandDialog #command-box { width: 68; max-width: 95%; height: 90%;
@@ -144,7 +145,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
                 lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
                 hints.append(Multiline())
-            declarations.append((parameter.name, Annotated[str, *hints],
+            declarations.append((parameter.name, Annotated[compile_decoder(parameter.annotation).editor_annotation, *hints],
                                  field(default=parameter.editor_default)))
         self.state = ObjectState(make_dataclass('CommandDraft', declarations)())
         self.form = InlineFormView(self.state)
@@ -227,7 +228,7 @@ class CommandDialog(ModalScreen[dict[str, str]]):
         async def prepare():
             def read():
                 for name, choices in self.choices.items():
-                    if not arguments[name] or arguments[name] not in choices.choices():
+                    if arguments[name] not in choices.choices():
                         return f'Choose {name.replace("_", " ")}', False
                 try:
                     return self.definition.edited(arguments).confirmation, True
