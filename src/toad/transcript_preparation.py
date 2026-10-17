@@ -57,7 +57,6 @@ class PreparedTranscriptPage:
     def measured(cls, page, fragments, **view):
         coverage = frozenset(reference for fragment in fragments
                              for reference in fragment.outgoing_sources)
-        fragments = tuple(fragment.for_body_sources(coverage) for fragment in fragments)
         prepared = cls(page, fragments, 0, outgoing_coverage=coverage, **view)
         prepared.measure_sources()
         return prepared

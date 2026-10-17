@@ -33,7 +33,7 @@ class MCPInventoryScreen(ModalScreen[None]):
     MCPInventoryScreen { align: center middle; }
     MCPInventoryScreen #mcp-inventory-panel {
         width: 85%; height: 85%; border: round $accent; background: $surface;
-        padding: 1 2; layout: vertical;
+        padding: 1 2;
     }
     MCPInventoryScreen #mcp-inventory-scroll { height: 1fr; }
     MCPInventoryScreen #mcp-inventory-rows { height: 8; }

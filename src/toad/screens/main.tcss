@@ -58,8 +58,7 @@ Conversation {
         }
     }
 
-    Window {                      
-        layout: vertical;
+    Window {
         margin: 0;                
         scrollbar-size-vertical: 2;
         scrollbar-gutter: stable;
@@ -122,8 +121,7 @@ Conversation {
         }                  
     }
     
-    Contents {        
-        layout: vertical;
+    Contents {
         width: 1fr;
         overflow: hidden;         
         height: auto;  

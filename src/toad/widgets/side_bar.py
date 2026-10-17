@@ -592,9 +592,9 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         margin: 0 4 0 0;
         layer: sidebar-content;
     }
-    SideBar #sidebar-layout-actions { height: 1; width: 1fr; overflow: hidden hidden; }
+    SideBar #sidebar-layout-actions { height: 1; width: 1fr; overflow: hidden hidden; grid-size: 3; grid-columns: 7 7 auto; }
     SideBar #sidebar-layout-actions.-compact {
-        layout: grid; grid-size: 2; grid-columns: 1fr 1fr; height: 2;
+        grid-size: 2; grid-columns: 1fr 1fr; height: 2;
     }
     SideBar #sidebar-layout-actions.-compact > #sidebar-float { column-span: 2; width: 1fr; }
     SideBar.-right {
@@ -740,7 +740,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
 
     def _compose_controls(self) -> ComposeResult:
         yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
-        yield containers.Horizontal(
+        yield containers.Grid(
             *(SidebarAction(kind()) for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)),
             id="sidebar-layout-actions",
         )
