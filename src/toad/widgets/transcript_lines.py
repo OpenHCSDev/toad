@@ -425,7 +425,7 @@ class StyledPatch(Patch):
 
 
 class RichLineRenderer(MroDispatch):
-    """Rows for each block type; plain mode skips Markdown for immediate drawing."""
+    """Paint each primitive through its most-specific declared renderer."""
 
     def __init__(self, theme: LineTheme, width: int, *, plain: bool = False):
         self.console = Console(width=max(1, width), color_system=theme.color_system,
@@ -438,7 +438,7 @@ class RichLineRenderer(MroDispatch):
     def rows(self, blocks: tuple[LineBlock, ...]) -> tuple[Row, ...]:
         self.output = []
         for block in blocks:
-            self.dispatch_sync(block)
+            next(self.handlers_for(block))(block)
         return tuple(self.output)
 
     @handles(Patch)
@@ -592,7 +592,7 @@ class PlainRowCount(MroDispatch):
     def height(self, blocks: tuple[LineBlock, ...]) -> int:
         self.count = 0
         for block in blocks:
-            self.dispatch_sync(block)
+            next(self.handlers_for(block))(block)
         return self.count
 
     @handles(Divider, Summary, Gap)
