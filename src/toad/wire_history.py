@@ -190,16 +190,12 @@ class WireFragment(TranscriptFragment):
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
 
-    def text_rows(self, lines: Lines, theme) -> range:
-        """The rows of `lines` that draw the message's own text: seeing one is reading it."""
-        from toad.widgets.transcript_lines import PlainRowCount
-
-        # Captions, summaries and unformatted text take the same rows styled or plain.
-        prepared = self.plain_lines(lines.width, theme).prepared_blocks
+    def text_rows(self, lines: Lines) -> range:
+        """Read visibility uses the same block snapshots that draw this viewport."""
+        prepared = lines.prepared_blocks
         trailing = len(self.trailing(self.shown))
-        count = PlainRowCount(lines.width, theme)
-        return range(count.height(prepared[:len(self.leading)]),
-                     lines.height - count.height(prepared[-trailing:] if trailing else ()))
+        return range(sum(block.height for block in prepared[:len(self.leading)]),
+                     lines.height - sum(block.height for block in prepared[-trailing:] if trailing))
 
 
 class MembershipFragment(WireFragment):

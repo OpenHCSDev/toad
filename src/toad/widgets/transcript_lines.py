@@ -444,17 +444,16 @@ class RichLineRenderer(MroDispatch):
     """Paint each primitive through its most-specific declared renderer."""
 
     def __init__(self, theme: LineTheme, width: int = 1):
-        self.console = Console(width=max(1, width), color_system=theme.color_system,
-                               force_terminal=True, file=io.StringIO(), legacy_windows=False)
-        self.theme = theme
+        self.theme, self.width = theme, max(1, width)
         self.output: list[Row] = []
 
-    @property
-    def width(self) -> int:
-        return self.console.width
+    @cached_property
+    def console(self) -> Console:
+        return Console(width=self.width, color_system=self.theme.color_system,
+                       force_terminal=True, file=io.StringIO(), legacy_windows=False)
 
     def at_width(self, width: int) -> RichLineRenderer:
-        self.console.width = max(1, width)
+        self.width = self.console.width = max(1, width)
         return self
 
     def __call__(self, block: LineBlock) -> PreparedLines:
@@ -615,56 +614,6 @@ class RichLineRenderer(MroDispatch):
         self.output.extend(rows)
 
 
-class PlainRowCount(MroDispatch):
-    """How many rows plain mode draws blocks in at a width, without building them."""
-
-    def __init__(self, width: int, renderer: RichLineRenderer):
-        self.width, self.renderer = width, renderer
-        self.count = 0
-        self.content_width = width
-
-    def height(self, blocks: tuple[LineBlock, ...]) -> int:
-        self.count = 0
-        for block in blocks:
-            next(self.handlers_for(block))(block)
-        return self.count
-
-    @handles(Divider, Summary, Gap)
-    def one_row(self, block: LineBlock) -> None:
-        self.count += 1
-
-    @handles(Body, WireBody)
-    def body(self, block: Body) -> None:
-        inner = _text_width(block, self.width)
-        self.count += sum(len(_plain_spans(line, inner)) for line in _plain_lines(block.text))
-
-    @handles(Spans)
-    def spans(self, block: Spans) -> None:
-        self.count += sum(len(_plain_spans(line, self.width)) for line in _plain_lines(block.text))
-
-    @handles(PreparedLines)
-    def prepared(self, block: PreparedLines) -> None:
-        self.count += block.height
-        self.content_width = max(self.content_width, block.content_width)
-
-    @handles(SpanColumns, SpanColumnLayout)
-    def columns(self, block) -> None:
-        rows = block.prepared_rows(self.width, self.renderer.at_width(self.width))
-        self.count += rows.height
-        self.content_width = max(self.content_width, rows.content_width)
-
-    @handles(Patch)
-    def patch(self, block: Patch) -> None:
-        layout = PatchLayout(block, self.width, self.renderer.theme.diff)
-        self.count += layout.height
-        self.content_width = max(self.content_width, layout.content_width)
-
-    @handles(RichTextBody)
-    def rich_text(self, block: RichTextBody) -> None:
-        inner = _text_width(block, self.width)
-        self.count += sum(len(divide_line(line, inner)) + 1 for line in _plain_lines(block.content.plain))
-
-
 @dataclass(frozen=True)
 class LinePreparation:
     """Source styling and palette, independent of every viewport's width."""
@@ -700,21 +649,6 @@ class PlainLines(BlockLines):
 
     def __init__(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
         super().__init__(width, LinePreparation(blocks, renderer.theme), renderer)
-
-    @cached_property
-    def _measurement(self) -> PlainRowCount:
-        measurement = PlainRowCount(self.width, self.renderer)
-        measurement.height(self.preparation.blocks)
-        return measurement
-
-    @property
-    def height(self) -> int:
-        return self._measurement.count
-
-    @property
-    def content_width(self) -> int:
-        return self._measurement.content_width
-
 
 @dataclass(frozen=True)
 class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]):

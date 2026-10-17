@@ -236,7 +236,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         lines = fragment.lines_for(width, theme)
         if lines is None:
             self._pending[id(fragment)] = fragment
-            lines = fragment.plain_lines(width, theme)
+            lines = fragment.plain_lines(width, self.app.colours.line_renderer)
         return lines
 
     def _measure(self, width: int) -> None:
@@ -616,7 +616,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             return ()
         return tuple(
             fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
-            if (text := fragment.text_rows(lines, self.app.colours.line_theme)) and rows.start < text.stop and text.start < rows.stop)
+            if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
 
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
         return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))

@@ -68,7 +68,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
                 continue
             window = self.query_ancestor(HistoryWindow)
             window.keep_reader()
-            self._lines = source.wrap(self._width or width)
+            self._lines = source.wrap(self._width or width, self.app.colours.line_renderer)
             self.display = True
             self.refresh(layout=True)
             if window.follows_tail:

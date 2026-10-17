@@ -57,7 +57,7 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
 
     def _plain_lines(self, width: int) -> PlainLines:
         if self._plain is None or self._plain.width != width:
-            self._plain = PlainLines(width, self.app.colours.line_theme, self.blocks)
+            self._plain = PlainLines(width, self.app.colours.line_renderer, self.blocks)
         return self._plain
 
     @property
@@ -83,7 +83,7 @@ class ToolContent(ReferenceRendering, HorizontalRows, BlockContent, Widget):
         if self.is_attached and (blocks, theme) == (self.blocks, self.app.colours.line_theme):
             previous_height = self._lines(self._width).height
             previous_width = self._lines(self._width).content_width
-            self._styled = lines = source.wrap(self._width)
+            self._styled = lines = source.wrap(self._width, self.app.colours.line_renderer)
             self.refresh(layout=(previous_height, previous_width) != (lines.height, lines.content_width))
 
     @height_dependency(INDEPENDENT_HEIGHT)

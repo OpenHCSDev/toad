@@ -19,7 +19,7 @@ from toad.block_content import BlockContent
 from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    BlockLines, Lines, LinkedRows, LinePreparation, PreparedLines, RichLineRenderer, TranscriptLinesRenderTask, link_place,
+    BlockLines, Lines, LinkedRows, LinePreparation, PreparedLines, TranscriptLinesRenderTask, link_place,
 )
 
 
@@ -93,7 +93,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         self.update(self.text + text)
 
     def _plain_rows(self, text: str, width: int, *, complete: bool = True):
-        return RichLineRenderer(self.app.colours.line_theme, width, plain=True).rows(
+        return self.app.colours.line_renderer.at_width(width).rows(
             self.line_blocks(text, complete=complete)
         )
 
@@ -167,7 +167,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
                     # prefix render, it belongs only to that exact text.
                     if not complete or self.text == target:
                         rows = self._row_count()
-                        self._styled, self._styled_text = source.wrap(self._width), target
+                        self._styled, self._styled_text = source.wrap(self._width, self.app.colours.line_renderer), target
                         self._redraw(rows)
             if target == self.text:
                 return

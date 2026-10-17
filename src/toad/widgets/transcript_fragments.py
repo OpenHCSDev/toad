@@ -242,7 +242,7 @@ class TranscriptFragment:
     def for_body_sources(self, supplied):
         return self
 
-    def text_rows(self, lines, theme) -> range:
+    def text_rows(self, lines) -> range:
         """The fragment's content occupies its drawn rows unless it owns a header."""
         return range(lines.height)
 
@@ -332,13 +332,13 @@ class TranscriptFragment:
             return True
         return False
 
-    def plain_lines(self, width: int, theme):
+    def plain_lines(self, width: int, renderer):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
         from toad.widgets.transcript_lines import PlainLines
 
         held = self.__dict__.get("_plain")
-        if held is None or held[0] != theme or held[1].width != width:
-            held = self.__dict__["_plain"] = theme, PlainLines(width, theme, self.line_blocks)
+        if held is None or held[0] != renderer.theme or held[1].width != width:
+            held = self.__dict__["_plain"] = renderer.theme, PlainLines(width, renderer, self.line_blocks)
         return held[1]
 
 
