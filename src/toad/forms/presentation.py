@@ -10,11 +10,11 @@ from textual.layouts.horizontal import HorizontalLayout
 from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
-from toad.widget_view import AUTO, WidgetView
+from toad.widget_view import AUTO, FocusWithinView, WidgetView
 from toad.screens.modal import ModalScreen
 
 
-class FramedControl(WidgetView):
+class FramedControl(FocusWithinView):
     height = Scalar.from_number(3)
     padding = Spacing(0, 2, 0, 2)
     horizontal_scrollbar_size = 0

@@ -20,7 +20,7 @@ from ui_theme.scheme import BackgroundColour, ForegroundColour, MutedColour, Pri
 from toad.forms.declared_views import DeclaredField, DeclaredViews
 from toad.forms.editors import ValueEditor
 from toad.forms.field_path import FieldPath
-from toad.widget_view import AUTO, WidgetView
+from toad.widget_view import AUTO, FocusWithinView, WidgetView
 
 
 class FieldTitle(WidgetView, Static):
@@ -126,7 +126,7 @@ class ValueView(FieldView):
         )
 
 
-class GroupView(FieldView):
+class GroupView(FocusWithinView, FieldView):
     """A nested dataclass: a heading and the views of its fields."""
 
     shows = (DirectDataclassInfo,)
