@@ -5,10 +5,16 @@ import asyncio
 from collections.abc import Callable
 from functools import partial
 from weakref import ref
+from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
+from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
-from toad.screens.workspace import WorkspaceScreen
+from ui_theme.clock import Animation
+from ui_theme.effects import Effect, Frame
+
+if TYPE_CHECKING:
+    from toad.screens.workspace import WorkspaceScreen
 
 
 class FrameState(DeclaredFamily, affix="Frame"):
@@ -184,3 +190,39 @@ class FramePresentation:
         await self.presented.wait()
         screen = self.screen
         return self.ready and screen.is_attached and screen.is_current
+
+
+class Animated[FrameT: Frame](Widget):
+    """A native widget whose effect uses the app clock and published visibility."""
+
+    animation: Animation[FrameT] | None = None
+
+    def run_effect(self, effect: Effect[FrameT]) -> None:
+        self.animation = self.app.colours.clock.start(effect, self)  # type: ignore[attr-defined]
+
+    def stop_effect(self) -> None:
+        if self.animation is not None:
+            self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
+            self.animation = None
+
+    def on_unmount(self) -> None:
+        self.stop_effect()
+
+    def on_hide(self) -> None:
+        if self.animation is not None and self.animation.effect.duration is not None:
+            self.stop_effect()
+            self.refresh()
+
+    @property
+    def animation_visible(self) -> bool:
+        if not self.is_attached or not self.app.app_focus:
+            return False
+        screen = self.screen
+        try:
+            current = self.app.screen
+        except (ScreenStackError, UnknownModeError):
+            return False
+        return screen is current and self in screen._compositor.visible_widgets
+
+    def repaint(self) -> None:
+        self.refresh()

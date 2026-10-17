@@ -12,7 +12,7 @@ from textual.layouts.horizontal import HorizontalLayout
 from textual.layouts.grid import GridLayout
 from textual.reactive import var
 from textual.strip import Strip
-from ui_theme.effects import STANDBY_PULSE
+from ui_theme.effects import STANDBY_PULSE, Mix
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
 
@@ -20,7 +20,7 @@ from toad.goal_interaction import GoalInteraction
 from toad.core.input_events import GoalControlActivated
 from toad.core_event_carrier import CoreEventReceiver
 from toad.widgets.goal_text import GoalText
-from toad.textual_colours import Animated
+from toad.frame_presentation import Animated
 
 
 class GoalControl(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
@@ -43,7 +43,7 @@ class GoalControl(PrimaryActivation, CoreEventReceiver, Static, can_focus=True):
         self.action_activate()
 
 
-class StandbyPulse(Animated, Static):
+class StandbyPulse(Animated[Mix], Static):
     """A goal's standby marker; its existing clock owns time and visibility."""
 
     DEFAULT_CSS = "StandbyPulse { width: 2; height: 1; }"

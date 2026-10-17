@@ -13,9 +13,10 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
-from ui_theme.effects import ACTIVITY_SWEEP
+from ui_theme.effects import ACTIVITY_SWEEP, Ribbon
 
-from toad.textual_colours import Animated, BlockInk, BottomInk, TopInk
+from toad.frame_presentation import Animated
+from toad.textual_colours import BlockInk, BottomInk, TopInk
 
 
 class ThrobberVisual(Visual):
@@ -44,7 +45,7 @@ class ThrobberVisual(Visual):
         return 1
 
 
-class Throbber(Animated, Widget):
+class Throbber(Animated[Ribbon]):
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
     effect = ACTIVITY_SWEEP

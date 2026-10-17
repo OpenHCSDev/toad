@@ -14,15 +14,17 @@ import os
 from functools import lru_cache
 from typing import Any, ClassVar
 
+from rich.console import RenderableType
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
-from textual.app import App, ScreenStackError, UnknownModeError
+from textual.app import App
 from textual.color import Color
 from textual.content import Content
 from textual.css.styles import Styles
 from textual.style import Style as VisualStyle
 from textual.strip import Strip
+from textual.screen import Screen
 from textual.theme import Theme
 from textual.timer import Timer
 from watchdog.events import FileClosedEvent, FileSystemEvent, FileSystemEventHandler
@@ -30,10 +32,10 @@ from watchdog.observers import Observer
 
 from ui_theme.backend import Backend, TerminalBackend
 from ui_theme.catalog import SCHEMES
-from ui_theme.clock import Animation, AnimationClock
+from ui_theme.clock import AnimationClock
 from ui_theme.colour import AnsiColour, Rgb, TerminalPalette
 from ui_theme.depth import ColourDepth
-from ui_theme.effects import Band, Effect, Gradient, Mix, TextFrame
+from ui_theme.effects import Band, Gradient, Mix, TextFrame
 from ui_theme.scheme import BackgroundColour, ColourScheme, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme
@@ -329,6 +331,13 @@ class ThemedApp:
         super().__init__(*args, **kwargs)
         self.colours.register_catalog()
 
+    def _display(self, screen: Screen, renderable: RenderableType | None) -> None:
+        super()._display(screen, renderable)
+        self.colours.clock.refresh()
+
+    def watch_app_focus(self, focused: bool) -> None:
+        self.colours.clock.refresh()
+
     def get_color_system(self) -> str:
         return self.colours.depth.name
 
@@ -340,48 +349,6 @@ class ThemedApp:
     @property
     def ansi_theme(self) -> TerminalTheme:
         return self.colours.terminal_theme(self.theme)  # type: ignore[attr-defined]
-
-
-class Animated:
-    """A widget an effect decorates; the app's animation clock repaints it while it shows.
-
-    Mixed into Textual widgets. The widget reads `self.animation.frame()` when
-    it renders.
-    """
-
-    animation: Animation[Any] | None = None
-
-    def run_effect(self, effect: Effect[Any]) -> None:
-        self.animation = self.app.colours.clock.start(effect, self)  # type: ignore[attr-defined]
-
-    def stop_effect(self) -> None:
-        if self.animation is not None:
-            self.app.colours.clock.stop(self)  # type: ignore[attr-defined]
-            self.animation = None
-
-    def on_unmount(self) -> None:
-        self.stop_effect()
-
-    @property
-    def animation_visible(self) -> bool:
-        # Only what the compositor last showed on the current screen. An
-        # off-screen or hidden widget is not repainted (Widget.is_on_screen
-        # says "laid out", which includes rows scrolled out of view); layout
-        # paints it when it shows.
-        widget: Any = self
-        if not widget.is_attached:
-            return False
-        screen = widget.screen
-        try:
-            current = widget.app.screen
-        except (ScreenStackError, UnknownModeError):
-            # Mode removal and shutdown can retire the stack before the clock
-            # stops this widget's animation.
-            return False
-        return screen is current and widget in screen._compositor.visible_widgets
-
-    def repaint(self) -> None:
-        self.refresh()  # type: ignore[attr-defined]
 
 
 @lru_cache(maxsize=128)
