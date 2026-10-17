@@ -20,15 +20,15 @@ from ui_theme.scheme import BackgroundColour, ForegroundColour, MutedColour, Pri
 from toad.forms.declared_views import DeclaredField, DeclaredViews
 from toad.forms.editors import ValueEditor
 from toad.forms.field_path import FieldPath
-from toad.widget_view import AUTO, WidgetView
+from toad.forms.presentation import AUTO, FormPart
 
 
-class FieldTitle(WidgetView, Static):
+class FieldTitle(FormPart, Static):
     padding = Spacing(0, 0, 0, 1)
     text_style = Style(bold=True)
 
 
-class FieldHelp(WidgetView, Static):
+class FieldHelp(FormPart, Static):
     padding = Spacing(0, 0, 0, 1)
     margin = Spacing(0, 0, 1, 0)
 
@@ -37,7 +37,7 @@ class FieldHelp(WidgetView, Static):
         return self.app.colours.colour(MutedColour)
 
 
-class GroupTitle(WidgetView, Static):
+class GroupTitle(FormPart, Static):
     padding = Spacing(0, 0, 0, 1)
 
     @property
@@ -45,7 +45,7 @@ class GroupTitle(WidgetView, Static):
         return self.app.colours.colour(PrimaryColour)
 
 
-class FieldView(WidgetView, containers.VerticalGroup, DeclaredViews):
+class FieldView(FormPart, containers.VerticalGroup, DeclaredViews):
     """One parameter of a form, shown the way its formbridge kind asks for."""
 
     def __init__(self, field: DeclaredField,
@@ -160,7 +160,7 @@ class GroupView(FieldView):
         return bool(self.display)
 
 
-class FormView(WidgetView, containers.VerticalScroll, can_focus=False):
+class FormView(FormPart, containers.VerticalScroll, can_focus=False):
     """Every field of the object an ObjectState holds, edited in place.
 
     The form holds no values. An edit goes to the state; the state says which
