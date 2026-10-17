@@ -56,7 +56,7 @@ class SidebarRowLayout(VerticalLayout):
         reader = next((p for p in placements if viewport.scroll_y
                        and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
                        and p.widget.is_navigation_row()), None)
-        shift = Offset() if reader is None else reader.widget.preserve_reader(reader, viewport)
+        shift = Offset() if reader is None else viewport.preserve_reader(reader)
         return [placement.widget.place(placement, shift) for placement in placements]
 
 

@@ -8,7 +8,6 @@ from math import prod
 from textual.content import Content
 from textual.geometry import Offset
 from textual.layout import WidgetPlacement
-from toad.widgets.sidebar_viewport import SidebarViewport
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -65,16 +64,6 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
 
     def pending_move(self, placement: WidgetPlacement) -> bool:
         return placement.region.offset != self._motion_target
-
-    def preserve_reader(self, placement: WidgetPlacement, viewport: SidebarViewport) -> Offset:
-        if not self.pending_move(placement):
-            return Offset()
-        before = viewport.scroll_y
-        viewport.scroll_y += placement.region.y - self._motion_target.y
-        shift = viewport.scroll_y - before
-        viewport.app.animator.transform_running_animation(viewport, "scroll_y", lambda value: value + shift)
-        viewport.scroll_target_y += shift
-        return Offset(0, round(shift))
 
     def place(self, placement: WidgetPlacement, shift: Offset) -> WidgetPlacement:
         if self.size and (self.pending_move(placement) or shift.y):
