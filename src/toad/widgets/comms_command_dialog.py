@@ -35,7 +35,7 @@ class PreparedChoices(AnnotationChoices):
 
 
 ValueEditor.shown_by[PreparedChoices] = lambda field: ValueEditor.showing(
-    (field.metadata(PreparedChoices).parameter.catalog, AnnotationChoices)
+    (*field.metadata(PreparedChoices).parameter.editor_declarations, AnnotationChoices)
 )(field)
 
 
