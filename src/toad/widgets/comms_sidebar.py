@@ -226,7 +226,7 @@ class CommsRow(PrimaryActivation, CoreEventReceiver, ThreadStatusRow):
         self.target = target
 
     def is_navigation_row(self) -> bool:
-        return self.is_attached and not self._pruning and not self._closing
+        return self.is_attached and not self.is_disabled and not self._pruning and not self._closing
 
     @property
     def selected(self) -> bool:

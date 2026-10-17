@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
 from time import perf_counter_ns
 from typing import TYPE_CHECKING
 
@@ -15,10 +14,9 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup, VerticalScroll
 from textual.widgets import Static
-from textual.widget import PrimaryActivation, Widget
+from textual.widget import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
 from textual.geometry import Offset
-from textual.layout import WidgetPlacement
 from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
@@ -46,32 +44,19 @@ class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
             self.action_toggle()
 
 
-@dataclass(frozen=True)
-class SidebarReaderAnchor:
-    placement: WidgetPlacement
-    viewport: Widget
-
-    def restore(self):
-        viewport, placement = self.viewport, self.placement
-        before = viewport.scroll_y
-        viewport.scroll_y += placement.region.y - placement.widget.virtual_region.y
-        shift = viewport.scroll_y - before
-        viewport.app.animator.transform_running_animation(viewport, "scroll_y", lambda value: value + shift)
-        viewport.scroll_target_y += shift
-        return Offset(0, round(shift))
-
-
 class SidebarRowLayout(VerticalLayout):
     """Native flow owns destinations; rows add time-derived paint displacement."""
 
     @height_dependency(FLOW_HEIGHT)
     def arrange(self, parent, children, size, greedy=True):
         placements = super().arrange(parent, children, size, greedy)
-        viewport = parent if parent.allow_vertical_scroll else parent.query_ancestor(VerticalScroll)
-        anchor = next((SidebarReaderAnchor(p, viewport) for p in placements
-                       if viewport.scroll_y and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
-                       and p.widget in parent.parent.rows.values()), None)
-        shift = Offset() if anchor is None else anchor.restore()
+        if not placements:
+            return placements
+        viewport = placements[0].widget.query_ancestor(VerticalScroll)
+        reader = next((p for p in placements if viewport.scroll_y
+                       and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
+                       and p.widget.is_navigation_row()), None)
+        shift = Offset() if reader is None else reader.widget.preserve_reader(reader, viewport)
         return [placement.widget.place(placement, shift) for placement in placements]
 
 
@@ -153,9 +138,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     @property
     def navigation_rows(self):
         """Native-order destinations, excluding explanatory placeholder widgets."""
-        labels = set(self.rows.values())
-        return tuple(row for row in self.visible_rows
-                     if (row is self.row or row in labels) and row.is_navigation_row())
+        return tuple(row for row in self.visible_rows if row.is_navigation_row())
 
     def accepts_members(self):
         """Native membership is valid until this group starts retirement."""

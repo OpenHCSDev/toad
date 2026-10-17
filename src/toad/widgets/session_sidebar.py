@@ -43,6 +43,7 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._motion_origin = Offset()
+        self._motion_target = Offset()
         self.thread_row: ThreadRowModel | None = None
         self.pinned = False
         self.action_status: str | None = None
@@ -60,14 +61,27 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         return prod(self.effect_frame(effect).value for effect in (SIDEBAR_ENTER, SIDEBAR_EXIT)
                     if effect in self.effects)
 
+    def pending_move(self, placement):
+        return bool(self.size) and placement.region.offset != self._motion_target
+
+    def preserve_reader(self, placement, viewport):
+        if not self.pending_move(placement):
+            return Offset()
+        before = viewport.scroll_y
+        viewport.scroll_y += placement.region.y - self._motion_target.y
+        shift = viewport.scroll_y - before
+        viewport.app.animator.transform_running_animation(viewport, "scroll_y", lambda value: value + shift)
+        viewport.scroll_target_y += shift
+        return Offset(0, round(shift))
+
     def place(self, placement, shift):
-        destination = placement.region.offset
-        if self.size and destination != self.virtual_region.offset:
+        if self.pending_move(placement):
             self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset + shift
             self.run_effect(SIDEBAR_MOVE)
+        self._motion_target = placement.region.offset
         frame = self.effect_frame(SIDEBAR_MOVE)
-        offset = Offset(round(frame.displacement(self._motion_origin.x, destination.x)),
-                        round(frame.displacement(self._motion_origin.y, destination.y)))
+        offset = Offset(round(frame.displacement(self._motion_origin.x, self._motion_target.x)),
+                        round(frame.displacement(self._motion_origin.y, self._motion_target.y)))
         return placement._replace(offset=placement.offset + offset)
 
     def repaint(self) -> None:
@@ -75,11 +89,10 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
                 or not self.animation_visible or SIDEBAR_EXIT.finished(self.effects[SIDEBAR_EXIT].elapsed)):
             self.remove()
             return
-        self.refresh()
-        if SIDEBAR_MOVE in self.effects:
-            if SIDEBAR_MOVE.finished(self.effects[SIDEBAR_MOVE].elapsed):
-                self.stop_effect(SIDEBAR_MOVE)
-            self.parent.refresh(layout=True)
+        moving = SIDEBAR_MOVE in self.effects
+        if moving and SIDEBAR_MOVE.finished(self.effects[SIDEBAR_MOVE].elapsed):
+            self.stop_effect(SIDEBAR_MOVE)
+        self.refresh(layout=moving)
 
     def on_hide(self) -> None:
         if SIDEBAR_EXIT in self.effects:

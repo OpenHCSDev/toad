@@ -37,7 +37,6 @@ def entry_target(entry: RelationshipEntry) -> NavigationTarget:
 @dataclass
 class RelationshipTreeState:
     expanded: dict[type[RelationshipGroup], bool] = field(default_factory=dict)
-    scroll: dict[type[RelationshipGroup], float] = field(default_factory=dict)
     selected: tuple[type[RelationshipGroup], str] | None = None
     selected_targets: tuple[tuple[type[RelationshipGroup], str], ...] = ()
 
@@ -137,11 +136,6 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:
         state = self.query_ancestor(ThreadCommsSidebar).view_state
         state.expanded[type(self.model)] = expanded
-        if previous:
-            state.scroll[type(self.model)] = self.member_container.scroll_y
-        if expanded:
-            self.member_container.scroll_to(
-                y=state.scroll.get(type(self.model), 0), animate=False)
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
@@ -248,11 +242,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
-    def capture_state(self) -> None:
-        state = self.view_state
-        for group in self.groups.values():
-            state.scroll[type(group.model)] = group.member_container.scroll_y
-
     def set_identity(self, owner: str, wire_root: str | None, *,
                      source: RelationshipSource | None = None):
         if self._live and source is None:
@@ -264,7 +253,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
                 source = WireRelationshipSource(wire_root, self.app.coordination_access.observed_service)
         if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
             return
-        self.capture_state()
         self._generation += 1
         self.owner, self.wire_root = owner, wire_root
         self._revision = None
