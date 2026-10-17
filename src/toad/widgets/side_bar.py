@@ -639,6 +639,10 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             self.collapsed = hide
 
     @property
+    def panels_loaded(self) -> bool:
+        return self._panels_loaded
+
+    @property
     def navigation(self) -> SidebarState:
         return (self._navigation if self._navigation is not None
                 else cast("ToadApp", self.app).sidebar_state)
