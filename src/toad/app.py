@@ -138,7 +138,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     ALLOW_IN_MAXIMIZED_VIEW = ""
 
     project_dir = var(Path)
-    show_sessions = var(False, toggle_class="-show-sessions-bar")
+    show_sessions = var(False)
 
     HORIZONTAL_BREAKPOINTS: list[tuple[int, str]] = [
         (mode, f"-{mode.name.lower()}") for mode in ScreenWidth
