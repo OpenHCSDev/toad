@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
-from textual.containers import Vertical, VerticalGroup, VerticalScroll
+from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
 from textual.widget import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
@@ -21,7 +21,7 @@ from textual._measurement import FLOW_HEIGHT, height_dependency
 
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected
-from toad.widgets.sidebar_viewport import SidebarHeader
+from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 
 class SidebarDisclosure(PrimaryActivation, Static, can_focus=True):
@@ -52,7 +52,7 @@ class SidebarRowLayout(VerticalLayout):
         placements = super().arrange(parent, children, size, greedy)
         if not placements:
             return placements
-        viewport = placements[0].widget.query_ancestor(VerticalScroll)
+        viewport = placements[0].widget.query_ancestor(SidebarViewport)
         reader = next((p for p in placements if viewport.scroll_y
                        and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
                        and p.widget.is_navigation_row()), None)
@@ -71,7 +71,6 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     SidebarGroup > .group-header > .group-title { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; }
     SidebarGroup > .group-members { display: none; height: auto; margin-left: 2; }
     SidebarGroup.-expanded > .group-members { display: block; }
-    SidebarGroup > VerticalScroll.group-members { max-height: 12; overflow-x: hidden; }
     """
 
     expanded = reactive(False, init=False, toggle_class="-expanded")
@@ -82,7 +81,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
     _row_mounting = None
     """The worker mounting pending rows after the following frames."""
 
-    def __init__(self, row, *, expanded: bool, controls=(), scrollable=False,
+    def __init__(self, row, *, expanded: bool, controls=(),
                  disclosure_type=SidebarDisclosure, **kwargs):
         super().__init__(**kwargs)
         self.row = row
@@ -90,8 +89,7 @@ class SidebarGroup[KeyT, RowT: "CommsRow"](VerticalGroup):
         self.row.add_class("group-title")
         self.disclosure = disclosure_type()
         self.controls = controls
-        container = VerticalScroll if scrollable else VerticalGroup
-        self.member_container = container(classes="group-members channel-members")
+        self.member_container = VerticalGroup(classes="group-members channel-members")
         self.member_container.styles.layout = SidebarRowLayout()
         self.expanded = expanded
 

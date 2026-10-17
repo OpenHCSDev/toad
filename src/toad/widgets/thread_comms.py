@@ -130,7 +130,7 @@ class RelationshipRows(SidebarGroup[tuple[str, str], RelationshipRow]):
 
     def __init__(self, model: RelationshipGroup, expanded: bool):
         self.model = model
-        super().__init__(Static(model.title), expanded=expanded, scrollable=False,
+        super().__init__(Static(model.title), expanded=expanded,
                          id=f"relationships-{type(model).declared_name}")
 
     def members_visibility_changed(self, previous: bool, expanded: bool) -> None:

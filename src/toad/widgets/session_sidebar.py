@@ -7,6 +7,8 @@ from math import prod
 
 from textual.content import Content
 from textual.geometry import Offset
+from textual.layout import WidgetPlacement
+from toad.widgets.sidebar_viewport import SidebarViewport
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT, SIDEBAR_MOVE
 from agent_comms.ui_model.sidebar import ThreadRowModel
 
@@ -61,10 +63,10 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         return prod(self.effect_frame(effect).value for effect in (SIDEBAR_ENTER, SIDEBAR_EXIT)
                     if effect in self.effects)
 
-    def pending_move(self, placement):
-        return bool(self.size) and placement.region.offset != self._motion_target
+    def pending_move(self, placement: WidgetPlacement) -> bool:
+        return placement.region.offset != self._motion_target
 
-    def preserve_reader(self, placement, viewport):
+    def preserve_reader(self, placement: WidgetPlacement, viewport: SidebarViewport) -> Offset:
         if not self.pending_move(placement):
             return Offset()
         before = viewport.scroll_y
@@ -74,8 +76,8 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
         viewport.scroll_target_y += shift
         return Offset(0, round(shift))
 
-    def place(self, placement, shift):
-        if self.pending_move(placement):
+    def place(self, placement: WidgetPlacement, shift: Offset) -> WidgetPlacement:
+        if self.size and (self.pending_move(placement) or shift.y):
             self._motion_origin = self.region.offset - self.parent.content_region.offset + self.parent.scroll_offset + shift
             self.run_effect(SIDEBAR_MOVE)
         self._motion_target = placement.region.offset
