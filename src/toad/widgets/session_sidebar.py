@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from textual.content import Content
-from textual import events, on
 from textual.geometry import Offset
 from textual.layout import WidgetPlacement
 from textual.reactive import var
@@ -59,11 +58,8 @@ class ThreadStatusRow(AlternatingTonePaint, ViewLabel, HoverSelection):
     def paint_foreground(self):
         return self.app.colours.colour(BlockCursorForegroundColour) if self.highlighted else None
 
-    @on(events.Enter)
-    @on(events.Leave)
-    def hover_changed(self, event) -> None:
-        if event.node is self:
-            self.refresh_paint()
+    def watch_mouse_hover(self) -> None:
+        self.refresh_paint()
 
     def on_mount(self) -> None:
         self.run_effect(SIDEBAR_ENTER)
