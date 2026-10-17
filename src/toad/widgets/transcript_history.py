@@ -301,7 +301,7 @@ class TranscriptPageView(ReferenceRendering, Animated[Mix], HorizontalRows, Widg
         return selection_painted(self, self.on_background(strip), y)
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, int, bool] | None:
-        """Where an admitted fragment is: its first measured row, height and whether it is drawn.
+        """A fragment's first measured row, height and whether the page draws it.
 
         A fragment without rows of its own (the filter hides it, or layout
         has not measured it yet) is where the next drawn fragment starts, or
