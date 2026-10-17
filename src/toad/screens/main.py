@@ -235,7 +235,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     ]
 
     BINDING_GROUP_TITLE = "Screen"
-    busy_count = var(0)
     conversation = getters.query_one(Conversation)
     @property
     def side_bar(self):
