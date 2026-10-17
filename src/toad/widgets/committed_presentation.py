@@ -175,7 +175,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         if self._source_state.reports_coverage:
             references = frozenset(reference for page in self.pages
                                    for reference in page.prepared.outgoing_coverage)
-            projection = self.filter.state.overlay
+            projection = self.filter.overlay
             return references | (projection.outgoing_coverage if projection is not None else frozenset())
         return frozenset()
 

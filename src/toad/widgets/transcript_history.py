@@ -36,7 +36,7 @@ from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widgets import Static
 
-from toad.transcript_filter import TranscriptFilter
+from toad.transcript_filter import FilterState
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
@@ -495,7 +495,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         self.older = HistoryEdge("↑ Earlier history loads as you scroll")
         self.older.tooltip = "Click or press Enter to load earlier history, including in In/out only mode"
         self.newer = JumpToLatest("↓ Jump to latest")
-        self.filter = TranscriptFilter(self)
+        self.filter: FilterState = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
     @property
@@ -506,7 +506,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
         source = self._reader()
-        projection = self.filter.state.overlay
+        projection = self.filter.overlay
         projected = await projection.park_document() if projection is not None else None
         pages = tuple(page.prepared for page in self.pages)
         position = self.window.reader_position
@@ -532,19 +532,19 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         if projected is not None:
             from toad.transcript_filter import Filtered
             projection = ProjectedTranscriptHistory.from_source(projected, owner=history)
-            history.filter.state = Filtered(projection)
+            history.filter = Filtered(history, projection)
         return history
 
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
         if self._page_buffer is not None:
             self._page_buffer.release_held()
-        if (projection := self.filter.state.overlay) is not None:
+        if (projection := self.filter.overlay) is not None:
             projection.acquire_document()
 
     def resume_source(self) -> None:
         super().resume_source()
-        if (projection := self.filter.state.overlay) is not None:
+        if (projection := self.filter.overlay) is not None:
             projection.resume_source()
 
     async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
@@ -598,7 +598,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             for page in self.pages:
                 await self.prepare_fragments(page.fragments_in_range, current,
                                              selected=selected, target=target)
-        await self.filter.state.prepare_rows(
+        await self.filter.prepare_rows(
             current, window=window, target=target, rows_needed=max(0, rows_needed),
         )
 
@@ -747,7 +747,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         # loaded ranges and the filter. A check that finds a read running is
         # skipped, and the read asks again only when one of these changed
         # under it, so a filter chosen during a read must count.
-        return self.through, self.filter.state, tuple(
+        return self.through, self.filter, tuple(
             (page.page.before, page.page.after, page.capture_range()) for page in self.pages)
 
     def capture_reader_ranges(self) -> tuple[PageFragmentRange, ...]:
@@ -758,7 +758,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         for page in self.pages:
             for page_range in ranges:
                 page.prepared.restore_range(page_range)
-        if (projection := self.filter.state.overlay) is not None:
+        if (projection := self.filter.overlay) is not None:
             projection.set_reader_ranges(ranges)
 
     async def restore_reader_ranges(self, ranges, current: Callable[[], bool]) -> bool:
@@ -782,7 +782,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 await self.prepare_fragments(page_range.members, current)
                 if not await page.select_range(slice(page_range.start, page_range.stop), current):
                     return False
-        if (projection := self.filter.state.overlay) is not None:
+        if (projection := self.filter.overlay) is not None:
             if not await projection.restore_reader_ranges(ranges, current):
                 return False
         if not current():
@@ -791,11 +791,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return True
 
     def projection_changed(self) -> None:
-        self.filter.changed()
-
-    def _require_can_draw(self) -> None:
-        if not self.state.can_draw:
-            raise _DrawingStopped
+        self.filter = self.filter.changed()
+        self._update_edges()
+        self.window.prepare_history(self)
+        self.request_preparation()
 
     def invalidate_projection(self) -> None:
         self._generation += 1
@@ -849,7 +848,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     def compose(self) -> ComposeResult:
         yield self.older
-        if (projection := self.filter.state.overlay) is not None:
+        if (projection := self.filter.overlay) is not None:
             yield projection
         for page in self.pages:
             page.visible_categories = self.selected_categories
