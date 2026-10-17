@@ -50,7 +50,7 @@ class SessionViewState:
         editor = conversation.prompt.prompt_text_area
         return cls(
             editor.capture_editor_state(), conversation.visible_categories,
-            conversation.window.park_reader(),
+            conversation.window.park_reader(conversation.contents),
             editor.shell_mode, conversation.input_histories, conversation.take_initial_prompt(),
         )
 
@@ -392,7 +392,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
     def capture_reader(self) -> None:
         """The tab is being left: its window keeps the reader's place until it is drawn again."""
         if (conversation := self.widget) is not None:
-            conversation.window.park_reader()
+            conversation.window.park_reader(conversation.contents)
 
     def external_transcript_changed(self) -> None:
         """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
