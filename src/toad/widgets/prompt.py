@@ -40,6 +40,8 @@ from toad.path_complete import PathComplete
 from toad.prompt_cursor import CommandText, PromptCursor, PreviousHistoryCursor, NextHistoryCursor
 from toad.widgets.selection import ChangingText, SelectionOptionList
 from toad.widget_actions import DeclaredWidgetActions
+from toad.frame_presentation import TonePaint
+from ui_theme.scheme import PromptToneColour
 from toad.prompt_actions import PromptAction, SubmitNowAction
 
 if TYPE_CHECKING:
@@ -459,7 +461,8 @@ See on-screen instructions for details.
             self.input_cursor.changed(previous_selection, selection)
 
 
-class Prompt(containers.VerticalGroup):
+class Prompt(TonePaint, containers.VerticalGroup):
+    tone = PromptToneColour
 
     DEFAULT_CSS = """
     Prompt .queue-summary { display: none; height: auto; max-height: 3; color: $text-muted; }

@@ -16,6 +16,9 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import PrimaryActivation, Widget
 
+from ui_theme.scheme import SidebarToneColour
+
+from toad.frame_presentation import TonePaint
 from toad.session_tracker import SidebarState
 from toad.sidebar_layout import (
     Side, SidebarGeometry, SidebarPlacement, SidebarPlacementAction, SidebarShift,
@@ -208,32 +211,43 @@ class SideBarToggle(PrimaryActivation, widgets.Static):
             self.action_pointer_toggle()
 
 
-class TabHistoryButton(PrimaryActivation, widgets.Static, can_focus=True):
-    """One compact, keyboard-accessible tab-history control."""
+class HeaderButton(PrimaryActivation, widgets.Static, can_focus=True):
+    """One compact, keyboard-accessible control in the top bar, on the bar's own tone."""
 
     BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("enter,space", "navigate", "Navigate tab", show=False)
+        Binding("enter,space", "activate", "Activate", show=False)
     ]
     DEFAULT_CSS = """
-    TabHistoryButton {
+    HeaderButton {
         width: 7;
         height: 3;
         content-align: center middle;
         color: $text;
-        background: $background;
         text-style: bold;
         pointer: pointer;
     }
-    TabHistoryButton:hover, TabHistoryButton:focus {
+    HeaderButton:hover, HeaderButton:focus {
         color: $block-cursor-foreground;
         background: $block-cursor-background;
         text-style: $block-cursor-text-style;
     }
-    TabHistoryButton.-unavailable {
+    HeaderButton.-unavailable {
         color: $text-disabled;
         pointer: default;
     }
     """
+
+    def action_activate(self) -> None:
+        self.primary_activation()
+
+    def on_click(self, event: Click) -> None:
+        if event.button == 1:
+            event.stop()
+            self.primary_activation()
+
+
+class TabHistoryButton(HeaderButton):
+    """Back or forward through visited tabs."""
 
     def __init__(self, direction: int) -> None:
         super().__init__("<──" if direction == -1 else "──>",
@@ -244,39 +258,14 @@ class TabHistoryButton(PrimaryActivation, widgets.Static, can_focus=True):
 
     @property
     def primary_activation(self):
-        return self.action_navigate
+        return self.navigate
 
-    def action_navigate(self) -> None:
+    def navigate(self) -> None:
         cast("ToadApp", self.app).tab_order.navigate(self.direction)
 
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_navigate()
 
-
-class MainMenuButton(PrimaryActivation, widgets.Static, can_focus=True):
+class MainMenuButton(HeaderButton):
     """Open Toad's existing anchored menu beside the tab-history controls."""
-
-    BINDINGS: ClassVar[list[BindingType]] = [
-        Binding("enter,space", "open_menu", "Main menu", show=False)
-    ]
-    DEFAULT_CSS = """
-    MainMenuButton {
-        width: 7;
-        height: 3;
-        content-align: center middle;
-        color: $text;
-        background: $background;
-        text-style: bold;
-        pointer: pointer;
-    }
-    MainMenuButton:hover, MainMenuButton:focus {
-        color: $block-cursor-foreground;
-        background: $block-cursor-background;
-        text-style: $block-cursor-text-style;
-    }
-    """
 
     class Pressed(Message):
         pass
@@ -287,15 +276,10 @@ class MainMenuButton(PrimaryActivation, widgets.Static, can_focus=True):
 
     @property
     def primary_activation(self):
-        return self.action_open_menu
+        return self.open_menu
 
-    def action_open_menu(self) -> None:
+    def open_menu(self) -> None:
         self.post_message(self.Pressed())
-
-    def on_click(self, event: Click) -> None:
-        if event.button == 1:
-            event.stop()
-            self.action_open_menu()
 
 
 class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
@@ -579,13 +563,13 @@ class SidebarResizeHandle(widgets.Static, can_focus=True):
         self._dragging = False
 
 
-class SideBar(CoreEventReceiver, containers.Vertical):
+class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
+    tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
     DEFAULT_CSS = """
     SideBar {
         layers: sidebar-content sidebar-toggle;
-        background: transparent;
         dock: none;
         layer: comms-sidebar;
         overflow: hidden;
@@ -608,7 +592,6 @@ class SideBar(CoreEventReceiver, containers.Vertical):
         height: auto;
         margin: 0 4 0 0;
         layer: sidebar-content;
-        background: $background;
     }
     SideBar #sidebar-layout-actions { height: 1; width: 1fr; overflow: hidden hidden; }
     SideBar #sidebar-layout-actions.-compact {

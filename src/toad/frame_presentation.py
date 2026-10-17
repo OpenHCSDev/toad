@@ -11,7 +11,7 @@ from agent_comms.declared_family import DeclaredFamily
 from rich.style import NULL_STYLE
 from textual._paint_state import PaintLayer
 from textual.color import Color, TRANSPARENT
-from ui_theme.scheme import TurnBandColour
+from ui_theme.scheme import ThemeColour
 from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
@@ -38,10 +38,54 @@ class WidgetPaint(PaintLayer):
         return self
 
 
-class TurnBandPaint(WidgetPaint):
+class ToneLayer(PaintLayer):
+    """A widget's own CSS paint laid over its area tone.
+
+    CSS backgrounds (hover, selection, transparency) compose over the tone by
+    alpha; with no tone the CSS paint is unchanged.
+    """
+
+    __slots__ = ("styles", "paint_background", "paint_key", "paint_cacheable")
+
+    def __init__(self, styles, tone: Color | None, cacheable: bool) -> None:
+        self.styles = styles
+        self.paint_cacheable = cacheable
+        stated = styles.paint_background
+        self.paint_background = stated if tone is None else tone if stated is None else tone + stated
+        self.paint_key = hash((styles.paint_key, self.paint_background))
+
+    paint_foreground = property(lambda self: self.styles.paint_foreground)
+    background_tint = property(lambda self: self.styles.background_tint)
+    text_style = property(lambda self: self.styles.text_style)
+    text_opacity = property(lambda self: self.styles.text_opacity)
+    layer_opacity = property(lambda self: self.styles.layer_opacity)
+    auto_color = property(lambda self: self.styles.auto_color)
+
+
+class TonePaint:
+    """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
+
+    tone: ClassVar[type[ThemeColour] | None]
+    # A tone read from layout changes without a style or tree revision.
+    tone_cacheable: ClassVar[bool] = True
+
     @property
-    def paint_background(self) -> Color:
-        return self.app.colours.colour(TurnBandColour)
+    def paint_layer(self) -> PaintLayer:
+        tone = self.tone
+        return ToneLayer(self.styles, None if tone is None else self.app.colours.colour(tone),
+                         self.tone_cacheable)
+
+
+class AlternatingTonePaint(TonePaint):
+    """A row of a list: every other row, by its laid-out position, steps onto ``alternate_tone``."""
+
+    alternate_tone: ClassVar[type[ThemeColour]]
+    tone_cacheable = False
+
+    @property
+    def tone(self) -> type[ThemeColour] | None:
+        region = self.virtual_region
+        return self.alternate_tone if region.height and region.y // region.height % 2 else None
 
 
 class FrameState(DeclaredFamily, affix="Frame"):
