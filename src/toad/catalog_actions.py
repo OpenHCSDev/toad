@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.application_actions import NativeAction
+from toad.widget_actions import NativeAction
 from toad.agent_schema import AgentDefinition, Command
 
 if TYPE_CHECKING:

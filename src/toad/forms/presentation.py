@@ -1,7 +1,7 @@
 """Native form geometry and paint, supplied directly to Textual's owners."""
 from __future__ import annotations
 
-from textual import events
+from textual.binding import Binding
 from textual.color import Color, TRANSPARENT
 from textual.css._style_properties import Edges
 from textual.css.scalar import Scalar
@@ -11,6 +11,7 @@ from textual.widgets._select import SelectCurrent
 from textual.widgets import Checkbox, Input
 from ui_theme.scheme import BackgroundColour, ErrorColour, ForegroundColour, PrimaryColour, SurfaceColour
 from toad.widget_view import AUTO, WidgetView
+from toad.screens.modal import ModalScreen
 
 
 class FramedControl(WidgetView):
@@ -71,24 +72,25 @@ class FormSelectCurrent(FramedControl, SelectCurrent):
         return self.parent.has_focus or self.parent.has_focus_within
 
 
-class FormModal(WidgetView):
+class FormModal[Result](WidgetView, ModalScreen[Result]):
     """Shared native modal presentation and theme invalidation lifecycle."""
+
+    BINDINGS = [Binding("escape", "cancel", "Cancel", priority=True)]
 
     height = None
     align_horizontal = "center"
     align_vertical = "middle"
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.listen(events.Mount, self.follow_theme)
-
     @property
     def paint_background(self) -> Color:
         return self.app.colours.colour(BackgroundColour).multiply_alpha(0.6)
 
-    def follow_theme(self, event: events.Mount) -> None:
+    def on_mount(self) -> None:
         self.app.theme_changed_signal.subscribe(self, self.theme_changed)
 
     def theme_changed(self, theme) -> None:
         # A theme changes the entire visible modal, not each offscreen field.
         self.refresh()
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)

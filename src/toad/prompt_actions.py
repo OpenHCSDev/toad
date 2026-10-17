@@ -1,6 +1,6 @@
 """Prompt bindings, eligibility and effects share the native action owners."""
 from agent_comms.declared_family import DeclaredFamily
-from toad.application_actions import KeyboundAction, NativeAction
+from toad.widget_actions import KeyboundAction, NativeAction
 
 
 class PromptAction(NativeAction, DeclaredFamily, affix="Action"):

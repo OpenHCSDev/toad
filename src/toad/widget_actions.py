@@ -1,5 +1,95 @@
-"""Project declared actions into Textual's native action method namespace."""
+"""Native action declarations and their Textual dispatch projection."""
+from abc import abstractmethod
 from functools import partialmethod
+from typing import ClassVar, Generic, TypeVar
+
+from agent_comms.command import Command
+from agent_comms.declared_family import DeclaredFamily
+from agent_comms.field_codec import FieldCodec
+from textual.binding import Binding
+
+
+class KeyboundAction:
+    key: ClassVar[str]
+    description: ClassVar[str] = ""
+    tooltip: ClassVar[str] = ""
+    show: ClassVar[bool] = False
+    priority: ClassVar[bool] = False
+    system: ClassVar[bool] = False
+    group: ClassVar[Binding.Group | None] = None
+    key_display: ClassVar[str | None] = None
+
+    @classmethod
+    def binding(cls) -> Binding:
+        return Binding(cls.key, cls.binding_name(), cls.description, tooltip=cls.tooltip,
+                       show=cls.show, priority=cls.priority, system=cls.system,
+                       group=cls.group, key_display=cls.key_display)
+
+    @classmethod
+    def bindings(cls):
+        return (cls.binding(),)
+
+
+class MenuAction:
+    menu_order: ClassVar[int]
+    menu_label: str
+
+    @classmethod
+    def menu_items(cls):
+        yield cls()
+
+
+Context = TypeVar("Context")
+
+
+class NativeAction(Command, Generic[Context]):
+    """Only the Textual boundary decodes an external action name."""
+
+    binding_prefix: ClassVar[str] = ""
+
+    @classmethod
+    def binding_name(cls) -> str:
+        return cls.binding_prefix + FieldCodec.encode(cls)
+
+    @classmethod
+    def parse(cls, parameters: tuple[object, ...]):
+        if parameters:
+            raise ValueError(f"{cls.declared_name} takes no parameters")
+        return cls()
+
+    @classmethod
+    def bindings(cls):
+        return ()
+
+    def available(self, context: Context) -> bool | None:
+        return True
+
+    @abstractmethod
+    async def apply(self, context: Context) -> None: ...
+
+
+class ApplicationAction(NativeAction, DeclaredFamily, affix="Action"):
+    """Application action membership and native namespace belong here."""
+
+    binding_prefix = "app."
+
+    @classmethod
+    def menu(cls):
+        return tuple((action, action.menu_label)
+                     for kind in sorted(cls.members_with(MenuAction), key=lambda kind: kind.menu_order)
+                     for action in kind.menu_items())
+
+
+class VimApplicationAction(KeyboundAction, ApplicationAction):
+    def available(self, app):
+        return app.settings.ui.vim_keys and app.current_mode == "workspace"
+
+
+class VimHintsAction(VimApplicationAction):
+    key = "f"
+
+    async def apply(self, app):
+        await app.screen.action_show_hints()
 
 
 class DeclaredWidgetActions:
