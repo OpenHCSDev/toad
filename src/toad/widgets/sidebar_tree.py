@@ -67,7 +67,7 @@ class SidebarRowLayout(VerticalLayout):
     @height_dependency(FLOW_HEIGHT)
     def arrange(self, parent, children, size, greedy=True):
         placements = super().arrange(parent, children, size, greedy)
-        viewport = next((node for node in parent.ancestors_with_self if node.allow_vertical_scroll), parent)
+        viewport = parent if parent.allow_vertical_scroll else parent.query_ancestor(VerticalScroll)
         anchor = next((SidebarReaderAnchor(p, viewport) for p in placements
                        if viewport.scroll_y and p.widget.region.y <= viewport.content_region.y < p.widget.region.bottom
                        and p.widget in parent.parent.rows.values()), None)
