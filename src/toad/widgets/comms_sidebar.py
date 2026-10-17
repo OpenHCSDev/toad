@@ -194,13 +194,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
 
 
 
-    DEFAULT_CSS = """
-    CommsRow {
-        height: auto;
-        padding: 0;
-    }
-    """
-
     BINDINGS = [
         Binding("down", "cursor_down", "Next", show=False),
         Binding("up", "cursor_up", "Previous", show=False),
@@ -250,9 +243,6 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
             partial(self.app.selected_session.open_sidebar_target, self.target),
             group="sidebar-open",
         )
-
-    def on_focus(self) -> None:
-        self.navigation_tree.focus_row(self)
 
     def on_click(self, event) -> None:
         if event.button == 3:
@@ -319,16 +309,6 @@ class NewSessionButton(TargetTreeMember, Static):
         if event.button == 1:
             await self.action_create()
 
-    def on_focus(self) -> None:
-        self.navigation_tree._cursor = -1
-
-    def action_cursor_up(self) -> None:
-        sidebar = self.navigation_tree
-        rows = sidebar.rows
-        if rows:
-            sidebar._cursor = len(rows)
-            sidebar.action_cursor_up()
-
 
 class CoordinationStatus(Static):
     """Compact diagnostics for the persistent coordination wire."""
@@ -391,7 +371,7 @@ class SidebarModelView(CoreEventReceiver):
         return self.service.root if self.service is not None else None
 
     def channel_active(self, row) -> bool:
-        channel = self.model.channels.rows.get(row.target_name) if self.model is not None and isinstance(row.target, ChannelLike) else None
+        channel = self.model.channels.rows.get(row.target_name) if self.shows_model and isinstance(row.target, ChannelLike) else None
         return channel is not None and channel.active
 
     def accepts_observation(self) -> bool:
@@ -496,7 +476,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         from toad.sidebar_navigation import SidebarNavigation
         self.session_thread = session_thread
         self.can_focus = True
-        self._cursor = 0
         self.navigation = SidebarNavigation(self)
         self.enabled = observe
         self.groups: dict[str, ChannelGroup] = {}
@@ -660,20 +639,6 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         if group is None or not group.display or not group.accepts_members():
             return None
         return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.expanded else None
-
-    def action_open_selected(self) -> None:
-        rows = self.rows
-        focused = self.app.focused if self.app else None
-        if isinstance(focused, CommsRow) and focused in rows:
-            target = focused
-            self._cursor = rows.index(target)
-        elif 0 <= self._cursor < len(rows):
-            target = rows[self._cursor]
-        else:
-            return
-        self._apply_cursor(rows)
-        self.remember_row(target)
-        target.action_open_selected()
 
     def on_click(self, event) -> None:
         """Right click anywhere -> menu on the row under the mouse."""

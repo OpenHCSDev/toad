@@ -181,7 +181,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, TargetTre
         super().__init__()
         self.owner = owner
         self.wire_root = wire_root
-        self._cursor = 0
         self._generation = 0
         self._refresh_task = None
         self._revision = None

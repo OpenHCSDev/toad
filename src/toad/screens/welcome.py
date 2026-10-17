@@ -150,7 +150,6 @@ class WelcomeEntries(SidebarModelView, TargetTree):
 
     def __init__(self) -> None:
         super().__init__()
-        self._cursor = -1
         self.navigation_groups = (WelcomeChannels(), WelcomeThreads())
 
     def compose(self) -> ComposeResult:

@@ -10,7 +10,6 @@ class SidebarNavigation:
         self.sidebar = sidebar
         self.ready = asyncio.Event()
         self.revision = 0
-        self.worker = None
 
     @property
     def state(self) -> SidebarState:
@@ -48,18 +47,8 @@ class SidebarNavigation:
         """Rebuild native rows only after the selected shell has been painted."""
         if not self.sidebar.accepts_publication():
             return
-        if self.worker is None or self.worker.is_finished:
-            self.worker = self.sidebar.run_worker(
-                self.hydrate, group="sidebar-navigation",
-            )
-
-    async def hydrate(self) -> None:
-        while self.sidebar.accepts_publication():
-            revision = self.revision
-            self.sidebar.present()
-            if revision == self.revision:
-                self.sidebar.call_after_refresh(self.finish, revision)
-                return
+        self.sidebar.present()
+        self.sidebar.call_after_refresh(self.finish, self.revision)
 
     def finish(self, revision: int) -> None:
         if revision != self.revision or not self.sidebar.accepts_publication():
@@ -89,20 +78,17 @@ class SidebarNavigation:
         return replace(context, targets=names, mode=None, channel=channels)
 
     def apply(self) -> None:
-        """Reconcile the canonical selection with admitted rows after membership changes."""
+        """Reconcile the canonical selection with visible rows after membership changes."""
         state = self.state
-        with self.sidebar.selection_change():
-            had_selection = bool(state.selected_targets)
-            self.sidebar.apply_selection()
-            if state.selected is not None and self.sidebar.row_for(state.selected) is None:
-                header = SidebarSelection(state.selected.channel, state.selected.channel)
+        had_selection = bool(state.selected_targets)
+        self.sidebar.apply_selection()
+        selected = state.selected
+        if selected is not None and self.sidebar.row_for(selected) is None:
+            with self.sidebar.selection_change():
+                header = SidebarSelection(selected.channel, selected.channel)
                 state.selected = header if self.sidebar.row_for(header) is not None else None
                 if had_selection and not state.selected_targets and state.selected is not None:
                     state.selected_targets = (state.selected,)
-        if state.selected is not None:
-            row = self.sidebar.row_for(state.selected)
-            if row is not None:
-                self.sidebar._cursor = self.sidebar.rows.index(row)
 
     def restore_scroll(self) -> bool:
         if not self.sidebar.shows_model:
@@ -129,6 +115,5 @@ class SidebarNavigation:
                 rows = self.sidebar.rows
                 current = self.sidebar.current_rows
         target = current[0] if current else rows[0]
-        self.sidebar._cursor = rows.index(target)
-        self.sidebar._apply_cursor(rows)
+        target.scroll_visible(animate=False)
         target.focus()

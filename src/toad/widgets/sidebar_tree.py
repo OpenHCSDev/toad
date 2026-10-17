@@ -260,7 +260,6 @@ class TargetTree(Vertical):
         """Navigation establishes a range anchor; it is not bulk selection."""
         rows = self.rows
         if self.accepts_selection() and row in rows:
-            self._cursor = rows.index(row)
             with self.selection_change():
                 state = self.selection_state
                 state.selected = self.selection_for(row)
@@ -290,8 +289,6 @@ class TargetTree(Vertical):
             else:
                 state.selected = selected
                 state.selected_targets = (selected,)
-        if state.selected == selected:
-            self._cursor = rows.index(row)
 
     def apply_selection(self) -> None:
         with self.selection_change():
@@ -323,31 +320,21 @@ class TargetTree(Vertical):
     def rows(self) -> list[CommsRow]:
         return [row for group in self.navigation_groups for row in group.navigation_rows]
 
-    def focus_row(self, row) -> None:
-        rows = self.rows
-        if row in rows:
-            self._cursor = rows.index(row)
-
     def action_cursor_up(self) -> None:
-        rows = self.rows
-        if rows:
-            self._cursor = max(0, min(len(rows) - 1, self._cursor - 1))
-            self._apply_cursor(rows)
-            rows[self._cursor].focus()
+        self.move_cursor(-1)
 
     def action_cursor_down(self) -> None:
+        self.move_cursor(1)
+
+    def move_cursor(self, direction: int) -> None:
         rows = self.rows
         if rows:
-            self._cursor = min(len(rows) - 1, self._cursor + 1)
-            self._apply_cursor(rows)
-            rows[self._cursor].focus()
-
-    def _apply_cursor(self, rows) -> None:
-        rows[self._cursor].scroll_visible(animate=False)
+            focused = self.app.focused
+            index = rows.index(focused) if focused in rows else -1 if direction > 0 else len(rows)
+            row = rows[max(0, min(len(rows) - 1, index + direction))]
+            row.scroll_visible(animate=False)
+            row.focus()
 
     def action_open_selected(self) -> None:
-        rows = self.rows
-        focused = self.app.focused
-        row = focused if focused in rows else rows[self._cursor] if rows else None
-        if row is not None:
+        if (row := self.app.focused) in self.rows:
             row.action_open_selected()
