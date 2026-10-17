@@ -57,6 +57,11 @@ def saved_as(name: str) -> dict[str, str]:
 
 @dataclass(frozen=True)
 class UiSettings(AnnotatedDataclassValidationMixin):
+    wheel_scroll_rows: Annotated[
+        int, FieldLabel("Rows per mouse wheel notch"), Ge(1), effects.wheel_scroll_rows,
+    ] = field(default=1, metadata=saved_as("wheel-scroll-rows"))
+    """Vertical rows per wheel event in transcripts and sidebars. Increase for faster travel."""
+
     history_buffer_viewports: Annotated[
         int,
         FieldLabel("History buffer in message-area heights"),

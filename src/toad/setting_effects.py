@@ -32,6 +32,11 @@ def visibility(app: ToadApp, field: DeclaredField) -> None:
 
 
 @Effect
+def wheel_scroll_rows(app: ToadApp, field: DeclaredField) -> None:
+    app.scroll_sensitivity_y = field.value
+
+
+@Effect
 def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
     for view in app.workspace_sessions.views.values():
         for window in view.query(HistoryWindow):
