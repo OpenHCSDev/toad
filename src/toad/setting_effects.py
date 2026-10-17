@@ -53,7 +53,7 @@ def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def diff_style(app: ToadApp, field: DeclaredField) -> None:
-    app.colours.variables_changed(app.colours.variables)
+    app.colours.refresh_line_renderer()
     app.theme_changed_signal.publish(app.current_theme)
 
 
