@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from agent_comms.transcript_events import TranscriptEvent
+from agent_comms import transcript_events
 from .events import CoreEvent
 
 
@@ -27,14 +27,5 @@ class TranscriptSourceWorkFinished(CoreEvent):
 
 
 @dataclass(frozen=True)
-class TranscriptCoverage(CoreEvent):
-    events: tuple[TranscriptEvent, ...]
-
-    @property
-    def sequences(self) -> frozenset[int]:
-        return frozenset(source.seq for event in self.events
-                         for source in event.incoming_sources if source.seq > 0)
-
-    @property
-    def native_inputs(self) -> frozenset[str]:
-        return frozenset(native_id for event in self.events for native_id in event.native_inputs)
+class TranscriptCoverage(CoreEvent, transcript_events.TranscriptCoverage):
+    """Publishes what a committed history covers."""
