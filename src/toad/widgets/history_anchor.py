@@ -11,11 +11,13 @@ from typing import TYPE_CHECKING
 from weakref import WeakSet
 
 from textual.widget import Widget
+from textual.geometry import Size
 from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 
 if TYPE_CHECKING:
+    from textual._arrange import DockArrangeResult
     from toad.transcript_preparation import PageFragmentRange
     from toad.transcript_source_preparation import TranscriptSourcePreparation
     from toad.widgets.transcript_fragments import TranscriptFragment
@@ -50,8 +52,9 @@ class ReaderPosition(ABC):
         if reading is not None:
             first, page = reading
             row = max(0, int(y - first))
-            fragment, within = page.fragment_at(row)
-            return FragmentPosition(fragment, first + row - within, y)
+            fragment, _ = page.fragment_at(row)
+            start, height, _ = page.fragment_row(fragment)
+            return FragmentPosition(fragment, (y - first - start) / height, height)
         if (block := window.top_block()) is not None:
             return BlockPosition(block, window.row_of(block), y)
         return RowPosition(y)
@@ -118,9 +121,7 @@ class TailPosition(ReaderPosition):
 
 
 class OffsetPosition(ReaderPosition):
-    """A position inside the history: `y` is the window's scroll when it was read."""
-
-    y: float
+    """A position inside the history, placed by its destination in the current layout."""
 
     @abstractmethod
     def destination(self, window: "HistoryWindow") -> float:
@@ -151,14 +152,14 @@ class RowPosition(OffsetPosition):
 class FragmentPosition(OffsetPosition):
     """A message of a line-drawn history.
 
-    `row` is the window row of the message's first line when the position was
-    read. The fragment is the saved message itself: it is the same object in
-    whichever page draws it, through paging, trimming and a tab being rebuilt.
+    The fraction records where the reader is within the message, independent
+    of wrapping. Its captured height converts explicit reader motion to that
+    coordinate. The same saved fragment survives paging, trimming and tab return.
     """
 
     fragment: "TranscriptFragment"
-    row: int
-    y: float
+    fraction: float
+    height: int
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that has this message admitted."""
@@ -176,9 +177,12 @@ class FragmentPosition(OffsetPosition):
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
-        first, drawn = page.fragment_row(self.fragment)
+        first, height, drawn = page.fragment_row(self.fragment)
         # A message the filter hides has no rows: the reader is at the next message drawn.
-        return window.row_of(page) + first + (self.y - self.row if drawn else 0)
+        return window.row_of(page) + first + (self.fraction * height if drawn else 0)
+
+    def moved(self, rows: float) -> ReaderPosition:
+        return replace(self, fraction=self.fraction + rows / self.height)
 
 
 @dataclass(frozen=True)
@@ -742,6 +746,12 @@ class HistoryWindow(VerticalScroll):
             # rejoins it once the current source has no unpublished newer rows.
             super()._check_anchor()
         self.tail_follow_changed()
+
+    def arrange(self, size: Size, optimal: bool = False) -> DockArrangeResult:
+        # Capture from the old rows before descendants reflow a changed viewport.
+        if size != self.scrollable_size:
+            self.keep_reader()
+        return super().arrange(size, optimal)
 
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
         # Native size commit owns scrollbar clamping. Compensate that movement
