@@ -59,7 +59,7 @@ class ViewLabel(ChangingText[TextFrame]):
         return line.apply_style(Style(bold=current, underline=current))
 
     def paint_current(self) -> None:
-        self.refresh_paint()
+        self.refresh(layout=False)
 
 
 class FocusSelection(Static, can_focus=True):
