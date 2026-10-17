@@ -15,17 +15,17 @@ class ShellOperationalSource(ABC):
         self.output: ShellTerminalOutput | None = None
         self._presentation_lock = asyncio.Lock()
         self._terminal_size = terminal_size
-        self._operation: TerminalOperation = NewTerminalOperation()
+        self.operation: TerminalOperation = NewTerminalOperation()
 
     @abstractmethod
     async def _run_pty(self, ready): ...
 
     @property
     def is_finished(self) -> bool:
-        return self._operation.outcome().finished
+        return self.operation.outcome().finished
 
     async def wait_for_ready(self) -> None:
-        await self._operation.process()
+        await self.operation.process()
 
     def focus_output(self) -> None:
         if self.output is not None:
@@ -55,8 +55,8 @@ class ShellOperationalSource(ABC):
     async def close(self) -> None:
         """Closing a logical session ends its owned PTY; UI retirement does not."""
         await self.detach()
-        self._operation = self._operation.retire()
-        await self._operation.close()
+        self.operation = self.operation.retire()
+        await self.operation.close()
         self.outputs.clear()
         self.output = None
 

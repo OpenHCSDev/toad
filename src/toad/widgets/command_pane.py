@@ -22,7 +22,7 @@ class CommandPane(CoreEventReceiver, Terminal):
 
     @property
     def return_code(self) -> int | None:
-        return self.execution.outcome.return_code
+        return self.execution.operation.outcome().return_code
 
     def resize_process(self, width: int, height: int) -> None:
         self.execution.update_size(width, height)
@@ -39,7 +39,7 @@ class CommandPane(CoreEventReceiver, Terminal):
             await self.wait_for_refresh()
             self.update_size(*self.scrollable_content_region.size)
             await execution.start()
-            completion = await execution.wait_for_exit()
+            completion = await execution.operation.wait()
             self.project_state(None, None)
             if final:
                 self.set_class(completion.successful, "-success")
