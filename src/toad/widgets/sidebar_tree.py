@@ -131,11 +131,10 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     SidebarGroup { height: auto; }
     SidebarGroup > .group-header { height: 1; }
     SidebarGroup > .group-header > .group-title { width: 1fr; height: 1; text-wrap: nowrap; text-overflow: ellipsis; }
-    SidebarGroup > .group-members { display: none; height: auto; margin-left: 2; }
-    SidebarGroup.-expanded > .group-members { display: block; }
+    SidebarGroup > .group-members { height: auto; margin-left: 2; }
     """
 
-    expanded = reactive(False, init=False, toggle_class="-expanded")
+    expanded = reactive(False, init=False)
 
     _rows_pending = False
     """A reconciliation ran out of its step and left rows unmounted."""
@@ -175,6 +174,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
     def watch_expanded(self, previous: bool, expanded: bool) -> None:
         self.disclosure.refresh(layout=False)
         if self.is_mounted:
+            self.member_container.set_display_constraint("members", self.members_visible)
             self.members_visibility_changed(previous, expanded)
             self.rows_changed()
 
@@ -245,8 +245,8 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         keys = self.matching_keys
         wanted = set(keys)
         tree = self.reconciliation_tree
-        self.display = bool(keys) if tree.search else True
-        self.member_container.styles.display = "block" if tree.search else None
+        self.set_display_constraint("sidebar-search", bool(keys) or not tree.search)
+        self.member_container.set_display_constraint("members", self.members_visible)
         self._rows_pending = False
         members = tree.row_reconciliation
         retired = [key for key in rows if key not in wanted and not members.retains(key, self)]
