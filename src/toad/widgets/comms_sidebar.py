@@ -704,7 +704,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, TargetTree):
         group = self.groups.get(selection.channel)
         if group is None or not group.accepts_navigation():
             return None
-        return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.expanded else None
+        return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.members_visible else None
 
     def on_click(self, event) -> None:
         """Right click anywhere -> menu on the row under the mouse."""
