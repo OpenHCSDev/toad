@@ -32,9 +32,6 @@ class TargetTreeMember:
     def navigation_tree(self) -> TargetTree:
         return self.query_ancestor(TargetTree)
 
-    def on_focus(self) -> None:
-        self.navigation_tree.focus_row(self)
-
     def action_cursor_up(self) -> None:
         self.navigation_tree.action_cursor_up()
 

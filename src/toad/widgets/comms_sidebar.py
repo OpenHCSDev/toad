@@ -248,6 +248,9 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, ThreadSta
             group="sidebar-open",
         )
 
+    def on_focus(self) -> None:
+        self.navigation_tree.focus_row(self)
+
     def on_click(self, event) -> None:
         if event.button == 3:
             return  # right click handled by context menu in CommsSidebar
