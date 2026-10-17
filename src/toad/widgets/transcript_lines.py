@@ -1,9 +1,7 @@
-"""The Rich/Textual frontend for transcript line blocks.
+"""The shared line renderer: workers style source; native views wrap it at their width.
 
-`toad.line_blocks` says what a fragment shows. This module decides how it looks
-in Textual: a theme maps each role's colour to a style, and a renderer turns each block
-into rows. Styled rows are rendered in the render worker processes; until they
-arrive a fragment draws plain rows, so a row is never blank.
+`toad.line_blocks` owns content. Prepared source survives resizing, while each
+viewport owns its measured rows. Unprepared source retains its initial preview.
 """
 
 from __future__ import annotations
@@ -723,30 +721,31 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         return LinePreparation(tuple(self.dispatch_sync(block) for block in self.blocks), self.preparation.theme)
 
     @handles(LineBlock)
-    def unchanged(self, block):
+    def unchanged(self, block: LineBlock) -> LineBlock:
         return block
 
     @handles(Body)
-    def body(self, block):
-        if not block.markdown:
-            return block
+    def body(self, block: Body) -> Body:
+        return block.prepare(self.markdown)
+
+    def markdown(self, block: Body) -> StyledBody:
         console = MarkdownStyleConsole(force_terminal=True, file=io.StringIO(),
                                        color_system=self.preparation.theme.color_system)
         return StyledBody(block.text, role=block.role, bar=block.bar,
                           content=console.prepare(block.text, self.context))
 
     @handles(WireBody)
-    def wire_body(self, block):
+    def wire_body(self, block: WireBody) -> LineBlock:
         return self.dispatch_sync(block.prepare(self.context.for_source(block.row.source)))
 
     @handles(Spans)
-    def spans(self, block):
+    def spans(self, block: Spans) -> RichTextBody:
         text = Text.assemble(*((span.text, self.preparation.theme.style(span.role) + link_style(span.link))
                                for span in block.spans), tab_size=4)
         return RichTextBody(text, role=TextRole, bar=None)
 
     @handles(Patch)
-    def patch(self, block):
+    def patch(self, block: Patch) -> StyledPatch:
         def highlight(lines, path):
             code = "\n".join(lines.values()).expandtabs(4)
             syntax = Syntax(code, Syntax.guess_lexer(path, code),

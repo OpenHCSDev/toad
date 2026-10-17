@@ -7,6 +7,7 @@ imports a terminal or rendering library.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 import json
 import re
@@ -360,6 +361,9 @@ class Body(LineBlock):
     @property
     def selection_text(self) -> str:
         return self.text
+
+    def prepare(self, markdown: Callable[[Body], Body]) -> Body:
+        return markdown(self) if self.markdown else self
 
     @classmethod
     def code(cls, text: str, language: str = "", **shown) -> Body:
