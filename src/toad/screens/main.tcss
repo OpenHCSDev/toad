@@ -144,7 +144,6 @@ Conversation {
     }
 
     #cursor-container {            
-        height: auto;
         width: 1;                    
         color: $foreground 7%;            
                 
