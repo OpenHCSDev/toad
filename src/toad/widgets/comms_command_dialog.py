@@ -5,7 +5,7 @@ import asyncio
 from dataclasses import dataclass, field, make_dataclass
 from typing import Annotated
 
-from agent_comms.cli_commands import TargetAction, TargetField
+from agent_comms.cli_commands import ChoiceTargetField, TargetAction, TargetField
 from agent_comms.config_options import ModelConfigOption
 from agent_comms.login import run_login
 from agent_comms.native_pi import NativePiUnavailable
@@ -25,7 +25,7 @@ from toad.widgets.model_switcher import ModelSelection
 @dataclass(eq=False)
 class PreparedChoices(AnnotationChoices):
     """The catalog last prepared for a draft, not another copy of its value."""
-    parameter: TargetField
+    parameter: ChoiceTargetField
 
     def choices(self):
         return ('', *(value for _, value in self.parameter.choices))
@@ -144,9 +144,8 @@ class CommandDialog(ModalScreen[dict[str, str]]):
         declarations = []
         for parameter in fields:
             hints = [FieldLabel(parameter.description)]
-            if parameter.choices is not None:
-                self.choices[parameter.name] = choices = PreparedChoices(parameter)
-                hints.append(choices)
+            hints.extend(parameter.editor_hints(
+                lambda item: self.choices.setdefault(item.name, PreparedChoices(item))))
             if parameter.multiline:
                 hints.append(Multiline())
             declarations.append((parameter.name, Annotated[str, *hints],
