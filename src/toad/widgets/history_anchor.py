@@ -746,8 +746,8 @@ class HistoryWindow(VerticalScroll):
         self.tail_follow_changed()
 
     def arrange(self, size: Size, optimal: bool = False) -> DockArrangeResult:
-        # Capture from the old rows before descendants measure the new width.
-        if size.width != self.scrollable_size.width:
+        # Capture from the old rows before descendants reflow a changed viewport.
+        if size != self.scrollable_size:
             self.keep_reader()
         return super().arrange(size, optimal)
 
