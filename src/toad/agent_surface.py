@@ -17,7 +17,6 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def prepare(self, controller) -> None:
         app = self.target.app
-        controller.transcripts = app.coordination_access.transcripts
         controller.validation = ApplicationValidationOwner(app.render_processes)
 
     def owns_publication(self, message, target):
