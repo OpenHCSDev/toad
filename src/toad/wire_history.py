@@ -221,7 +221,7 @@ class MessageFragment(BusMessageFragment, WireFragment):
         if source is None:
             return super().leading
         return (Gap(), Summary.titled(f"History · {source.original_root} · @{message.sender} "
-                               f"created {message.display_metadata['history']['sender_created_at']}"), self.row.header)
+                               f"created {message.sender_created_at}"), self.row.header)
 
 @dataclass(frozen=True, eq=False)
 class WireSource:
