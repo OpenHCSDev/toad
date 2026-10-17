@@ -313,7 +313,7 @@ requires-dist = [
     { name = "formbridge", git = "https://github.com/OpenHCSDev/formbridge.git?rev=ebe2fa9173428e2bd7154a0de23698757677c3c2" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "notify-py", specifier = "==0.3.43" },
-    { name = "objectstate", git = "https://github.com/OpenHCSDev/objectstate.git?rev=ad8727278d9e83f9c0d4bfa94334177d5ea8fdf3" },
+    { name = "objectstate", git = "https://github.com/OpenHCSDev/objectstate.git?rev=b5dd9f78b9293df145d7629f21deb89b042b9400" },
     { name = "packaging", specifier = "==26.2" },
     { name = "pathspec", specifier = "==1.1.1" },
     { name = "platformdirs", specifier = "==4.9.6" },
@@ -1084,7 +1084,7 @@ wheels = [
 [[package]]
 name = "objectstate"
 version = "5.0.0"
-source = { git = "https://github.com/OpenHCSDev/objectstate.git?rev=ad8727278d9e83f9c0d4bfa94334177d5ea8fdf3#ad8727278d9e83f9c0d4bfa94334177d5ea8fdf3" }
+source = { git = "https://github.com/OpenHCSDev/objectstate.git?rev=b5dd9f78b9293df145d7629f21deb89b042b9400#b5dd9f78b9293df145d7629f21deb89b042b9400" }
 dependencies = [
     { name = "dill" },
     { name = "pycodify" },
