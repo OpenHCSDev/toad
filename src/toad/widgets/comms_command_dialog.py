@@ -43,15 +43,11 @@ class CatalogField(ValueEditor, Button):
     """The shared model selector edits the form's canonical draft value."""
     shows = (ModelConfigOption,)
 
-    @property
-    def parameter(self):
-        return self.field.metadata(PreparedChoices).parameter
-
     def bind_control(self):
         self.paint()
 
     def paint(self):
-        self.label = next((choice.name for choice in self.parameter.options
+        self.label = next((choice.name for choice in self.field.metadata(PreparedChoices).parameter.options
                            if choice.value == self.field.value), 'Choose / connect a provider…')
 
     def on_button_pressed(self, event: Button.Pressed):
@@ -72,7 +68,7 @@ class CatalogFieldSelection(ModelSelection):
 
     @property
     def choices(self):
-        return self.editor.parameter.options
+        return self.editor.field.metadata(PreparedChoices).parameter.options
 
     @property
     def current(self):
