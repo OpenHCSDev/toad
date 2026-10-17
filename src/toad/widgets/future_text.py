@@ -32,7 +32,7 @@ class FutureText(Animated[Band], Static):
         self.text = text
         length = len(text) + 1
         self.effect = Wipe(AccentColour, width=1 / length,
-                           duration=(length + 1) / speed, frames_per_second=30)
+                           duration=(length + 1) / speed, frames_per_second=60)
         super().__init__(name=name, id=id, classes=classes)
 
     def on_mount(self) -> None:
