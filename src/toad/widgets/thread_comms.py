@@ -19,7 +19,7 @@ from textual.content import Content
 from textual.widgets import Checkbox, Static
 
 from toad.core.input_events import SelectTarget
-from toad.widgets.comms_sidebar import CommsRow
+from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -68,7 +68,7 @@ class RelationshipSort(SortControl[ThreadSort]):
         return write
 
 
-class RelationshipRow(CommsRow):
+class RelationshipRow(ThreadStatusRow):
     BINDINGS = [Binding("ctrl+c", "copy_identity", "Copy name", show=False)]
     available = True
     entry: RelationshipEntry | None = None
@@ -78,7 +78,6 @@ class RelationshipRow(CommsRow):
         self.available, self.target = entry.available, entry_target(entry)
         if not entry.available:
             self.retire_thread_row()
-            self.update_classes({"-busy": False, "-wire-thread": True})
             self.update(Content(f"? {entry.target}\n  Unavailable · Ctrl+C copies name"), layout=False)
         elif entry.person is not None:
             if model is not None and model.incarnation == entry.person.thread.incarnation:
