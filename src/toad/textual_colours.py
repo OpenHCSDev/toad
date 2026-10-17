@@ -94,6 +94,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         # Set from the theme's CSS variables, which the app builds before it runs.
         self.line_renderer: RichLineRenderer
         self.variables: dict[str, str] = {}
+        self._colours: dict[type[ThemeColour], Color] = {}
         self.schemes: dict[str, ColourScheme] = {}
         # Textual asks for the terminal palette before themes can be registered.
         self._terminal_themes: dict[str, TerminalTheme] = {}
@@ -175,20 +176,23 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         if cursor.auto_color:
             variables[BlockCursorForegroundColour.name] = cursor.background.get_contrast_text(cursor.color.a).hex
 
+        self._colours = {member: Color.parse(value) for member in ThemeColour.members()
+                         if (value := variables.get(member.name)) is not None}
+
         def read(member: type[ThemeColour]) -> Rgb:
-            value = Color.parse(variables[member.name])
+            value = self._colours[member]
             return Rgb(*value.rich_color.get_truecolor(terminal, foreground=not member.background), value.a)
 
-        self.variables = {**variables, **{
-            member.name: self.rgb(member.resolve_rgb(read)) for member in ThemeColour.members()
-            if not issubclass(member, (CoreColour, LayerColour))
-        }}
-        from dataclasses import replace
-        from toad.rich_preparation import SyntaxPalette
+        for member in ThemeColour.members():
+            if not issubclass(member, (CoreColour, LayerColour)):
+                value = member.resolve_rgb(read)
+                self._colours[member] = Color(*value.triple, value.alpha)
+                variables[member.name] = self.rgb(value)
+        self.variables = variables
+        self.refresh_line_renderer()
 
-        self.line_renderer = RichLineRenderer(replace(
-            LineTheme.of(self.variables, self.depth.name, self.app.ansi_theme), diff=self.app.settings.diff,
-            syntax=SyntaxPalette.of(self.app)))
+    def refresh_line_renderer(self) -> None:
+        self.line_renderer = RichLineRenderer(LineTheme.of(self))
 
     @property
     def line_theme(self) -> LineTheme:
@@ -223,8 +227,8 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return "ansi_default"
 
     def colour(self, colour: type[ThemeColour]) -> Color:
-        """A theme colour as the current CSS variables make it."""
-        return Color.parse(self.variables[colour.name])
+        """The resolved value for a declared colour in the active theme."""
+        return self._colours[colour]
 
     def style(self, role: type[LineRole]) -> VisualStyle:
         """The same resolved line role for Textual content as for rendered rows."""

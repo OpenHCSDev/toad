@@ -88,7 +88,7 @@ class ReusableRenderTask(RenderTask[ResultT]):
 class RendererSpawn(ABC):
     @staticmethod
     def start_workers(executor) -> None:
-        """Start the owned pool without occupying admission with a dummy job.
+        """Start the owned pool without occupying a work slot with a dummy job.
 
         ProcessPoolExecutor has no public prestart operation. Its original
         launch hook starts the configured workers before the manager thread;
@@ -206,7 +206,7 @@ class Renderer(RendererSpawn):
 
     @abstractmethod
     async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
-        """Prepare one typed result, retaining admission until execution finishes."""
+        """Prepare one typed result, keeping its work slot until execution finishes."""
 
     @abstractmethod
     async def aclose(self) -> None:

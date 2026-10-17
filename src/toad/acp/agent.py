@@ -154,10 +154,10 @@ class Agent(AgentBase):
 
     @asynccontextmanager
     async def prompt_request(self, require):
-        """A session/prompt request, written under Core ingress admission.
+        """A session/prompt request, written after Core permits input.
 
-        Acquiring admission awaits, so ``require`` re-decides the caller's
-        authority once admission is held, before any request is opened.
+        Waiting for permission can suspend, so ``require`` checks the caller
+        again once permission is held, before any request is opened.
         """
         async with self.process.admitted_prompt(self):
             require()

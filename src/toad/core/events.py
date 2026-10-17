@@ -96,11 +96,11 @@ class SessionSelected(CoreEvent):
 
 @dataclass(frozen=True)
 class OpenTabsChanged(CoreEvent):
-    """Read the original session admissions and tab order again."""
+    """Read the open sessions and tab order again."""
 
     def can_replace(self, event: CoreEvent) -> bool:
         # No transition payload belongs to this invalidation. Its receivers
-        # read the current admissions; adjacent identical requests need one
+        # read the currently open sessions; adjacent identical requests need one
         # publication, not another traversal for each busy recipient.
         return self == event
 

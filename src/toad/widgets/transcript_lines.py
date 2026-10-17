@@ -11,6 +11,10 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
 from itertools import count
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toad.textual_colours import TextualColours
 
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
@@ -33,7 +37,7 @@ from toad.rich_preparation import RichTextBody
 from toad.project_link import ProjectLink
 
 from agent_comms.mro_dispatch import MroDispatch, handles
-from ui_theme.scheme import MutedColour, ThemeColour
+from ui_theme.scheme import ForegroundColour, MutedColour, ThemeColour
 from toad.line_blocks import (
     Body, Divider, Gap, LineBlock, LineLink, LineRole, OpenHistoricalTarget, OpenReference, OpenTarget, Span, Spans, SpanColumns,
     Summary, MutedRole, TextRole,
@@ -83,18 +87,14 @@ class LineTheme:
                                      if role.colour is colour else held for role, held in self.styles.items()})
 
     @classmethod
-    def of(cls, variables: Mapping[str, str], color_system: str,
-           terminal_theme: TerminalTheme) -> LineTheme:
-        from textual.color import Color
-
-        def colour(name: str) -> Style:
-            return Style(color=Color.parse(variables[name]).rich_color)
-
+    def of(cls, colours: TextualColours) -> LineTheme:
         # Native ANSI text retains its distinct dim attribute rather than a palette guess.
-        muted = Style(dim=True) if Color.parse(variables["foreground"]).ansi is not None else colour(MutedColour.name)
-        return cls({role: cls._style(role, muted if role.colour is MutedColour else colour(role.colour.name),
-                                    terminal_theme) for role in LineRole.members_with(LineRole)},
-                   color_system)
+        muted = (Style(dim=True) if colours.colour(ForegroundColour).ansi is not None
+                 else Style(color=colours.colour(MutedColour).rich_color))
+        return cls({role: cls._style(role, muted if role.colour is MutedColour
+                                    else Style(color=colours.colour(role.colour).rich_color),
+                                    colours.app.ansi_theme) for role in LineRole.members_with(LineRole)},
+                   colours.depth.name, diff=colours.app.settings.diff, syntax=SyntaxPalette.of(colours.app))
 
 
 def link_style(link: LineLink | None) -> Style:

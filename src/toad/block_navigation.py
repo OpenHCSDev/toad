@@ -253,7 +253,7 @@ class ChildBlockCursor(BlockCursor):
         while 0 <= index < len(children):
             self._child = children[index]
             # An entry awaiting the original producer is still this child.
-            # Only a completed empty admission permits crossing its boundary.
+            # Only a completed empty entry permits crossing its boundary.
             if self._child.block_cursor.enter(direction):
                 return True
             index += direction.step
@@ -286,7 +286,7 @@ class ChildBlockCursor(BlockCursor):
 
 
 class ConversationBlock(BlockContent):
-    """Nominal content admission, with an owned atomic cursor by default."""
+    """Conversation content, with an owned atomic cursor by default."""
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1

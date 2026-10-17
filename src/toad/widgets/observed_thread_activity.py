@@ -17,7 +17,7 @@ from textual.widget import Widget
 class ObservedThreadActivity(Widget):
     """Shared observation capability; its view decides how to display the row.
 
-    Observation never starts/settles an ACP turn or changes send admission.
+    Observation never starts/settles an ACP turn or changes permission to send.
     """
 
     row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)

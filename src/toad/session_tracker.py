@@ -169,7 +169,7 @@ class SessionDetails:
         return None if self.name.is_placeholder else self.name.display
 
     def bind_initial_identity(self, session_id: str | None) -> None:
-        """An existing native identity names an otherwise unnamed admission."""
+        """An existing native identity names an otherwise unnamed session."""
         if session_id is not None and self.name.is_placeholder:
             self.update_thread_title(session_id)
 
