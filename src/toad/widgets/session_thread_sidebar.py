@@ -29,11 +29,11 @@ class SessionThreadSidebar(SideBar):
 
     @property
     def retained_widget_count(self) -> int:
-        return 1 + self.descendant_count if self._panels_loaded else 0
+        return 1 + self.descendant_count if self.panels_loaded else 0
 
     def schedule_hydration(self) -> None:
         if not self.collapsed:
-            if not self._panels_loaded:
+            if not self.panels_loaded:
                 self._panels_ready.clear()
             super().schedule_hydration()
         else:
@@ -56,7 +56,7 @@ class SessionThreadSidebar(SideBar):
                 pass
 
     async def retire_presentation(self) -> None:
-        if not self._panels_loaded:
+        if not self.panels_loaded:
             # A partial mount is discarded rather than parked as a complete view.
             await self.evict()
             return

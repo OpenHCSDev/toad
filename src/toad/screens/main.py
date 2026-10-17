@@ -35,10 +35,14 @@ from toad.agent_schema import AgentDefinition
 from toad.app import ToadApp
 from toad.navigation_target import NavigationContext, NavigationOwner
 from toad.screens.session_view import SessionOrigin, SessionView
+from toad.screens.mcp_inventory import MCPInventoryScreen
+from toad.session_presentation import OperationalSessionPresentation
 from toad.session_tracker import SidebarState
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
-from toad.widgets.conversation import Conversation
+from toad.widgets.conversation import Conversation, ThreadLoading
+from toad.widgets.context_explorer import ContextExplorer
+from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
 from toad.widgets.thread_comms import ThreadCommsSidebar
@@ -147,8 +151,6 @@ class OpeningContent(ScreenContent):
         self.completion = asyncio.get_running_loop().create_future()
 
     def line(self) -> str:
-        from toad.widgets.conversation import ThreadLoading
-
         return ThreadLoading.LABEL
 
     async def wait(self, screen: "MainScreen") -> None:
@@ -237,6 +239,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     BINDING_GROUP_TITLE = "Screen"
     busy_count = var(0)
     conversation = getters.query_one(Conversation)
+    thread_sidebar = getters.query_one(SessionThreadSidebar)
     @property
     def side_bar(self):
         return self.screen.query_one(ChannelsSidebar)
@@ -269,8 +272,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self._thread_sidebar_state = SidebarState()
         self._project_panel: ProjectPanel | None = None
         self.content: ScreenContent = OpeningContent()
-        from toad.session_presentation import OperationalSessionPresentation
-
         self.presentation = OperationalSessionPresentation()
 
     @classmethod
@@ -292,13 +293,10 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         await self.content.prepare(self)
 
     async def _prepare_content(self) -> None:
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
         try:
             await self.presentation.prepare(self)
             await super().prepare_presentation()
-            if sidebar := self.query_one_optional(SessionThreadSidebar):
-                await sidebar.prepare_presentation()
+            await self.thread_sidebar.prepare_presentation()
         except asyncio.CancelledError as error:
             self.opening_failed(error)
             raise
@@ -311,21 +309,17 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         self.content.finish(self, FailedContent(error))
 
     async def retire_presentation(self) -> None:
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
         # The departing scene is still committed here. Awaiting source/sidebar
         # retirement can publish a new layout which no longer contains it.
         self.presentation.capture_reader()
         await super().retire_presentation()
-        if sidebar := self.query_one_optional(SessionThreadSidebar):
-            await sidebar.retire_presentation()
+        await self.thread_sidebar.retire_presentation()
         await self.presentation.retire(self)
 
     def retained_native_presentations(self):
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
         resources = [(self, self.presentation)] if self.presentation.widget is not None else []
-        if (sidebar := self.query_one_optional(SessionThreadSidebar)) is not None and sidebar._panels_loaded:
+        sidebar = self.thread_sidebar
+        if sidebar.panels_loaded:
             resources.append((self, sidebar))
         return tuple(resources)
 
@@ -345,8 +339,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         return self.app.settings.ui.throbber.widget(self)
 
     def activate_session(self) -> None:
-        from toad.widgets.comms_sidebar import CommsSidebar
-
         # The identity is updated by ACP's coordination notification and
         # cached on this screen. Resolving it through the wire here can
         # block the first frame of every navigation on store I/O.
@@ -356,16 +348,9 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
     def sidebars(self):
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
-        sidebar = self.query_one_optional(SessionThreadSidebar)
-        return (sidebar,) if sidebar is not None else ()
+        return (self.thread_sidebar,)
 
     def compose(self) -> ComposeResult:
-        from toad.widgets.channels_sidebar import ChannelsSlot
-
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
         with containers.Center().set_styles(layout=self.app.workspace_chrome):
             yield SessionThreadSidebar(self)
             with containers.Vertical(id="session-content"):
@@ -383,10 +368,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         await self.content.wait(self)
 
     async def close_presentation(self) -> None:
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
-        if sidebar := self.query_one_optional(SessionThreadSidebar):
-            await sidebar.evict()
+        await self.thread_sidebar.evict()
         self.content.close(self)
         await self.presentation.close(self)
 
@@ -409,7 +391,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
             status.set_thread(self._comms_thread)
         if comms_tree := self.query_one_optional(ThreadCommsSidebar):
             comms_tree.set_identity(self._comms_thread, self.coordination_root)
-        from toad.widgets.context_explorer import ContextExplorer
         if context := self.query_one_optional(ContextExplorer):
             context.set_identity(self._comms_thread, self.coordination_root)
 
@@ -481,8 +462,6 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
     def action_mcp_inventory(self) -> None:
         """Open an inert package-owned snapshot; never locate a source checkout."""
-        from toad.screens.mcp_inventory import MCPInventoryScreen
-
         self.app.push_screen(
             MCPInventoryScreen(
                 self.project_path,
@@ -545,9 +524,7 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
 
     @handles(core_events.Plan)
     async def on_acp_plan(self, message: CoreEventMessage):
-        from toad.widgets.session_thread_sidebar import SessionThreadSidebar
-
-        self.query_one(SessionThreadSidebar).update_plan(message.event.entries)
+        self.thread_sidebar.update_plan(message.event.entries)
 
     @handles(core_events.SessionTitleChanged)
     def on_session_title_changed(self, message: CoreEventMessage) -> None:
