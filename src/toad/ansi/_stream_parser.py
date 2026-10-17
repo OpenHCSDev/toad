@@ -86,21 +86,6 @@ class ReadUntil[ResultType](StreamRead[ResultType]):
         return end, (SeparatorToken(text[:end]),)
 
 
-@rich.repr.auto
-class ReadRegex[ResultType](StreamRead[ResultType]):
-    def __init__(self, regex: str) -> None:
-        self.regex = re.compile(regex, re.VERBOSE)
-
-    def feed(self, text: str) -> tuple[int, tuple[Token, ...]]:
-        match = self.regex.search(text)
-        if match is None:
-            return len(text), (Token(text),)
-        tokens = (MatchToken(match.group(0), match),)
-        if match.start():
-            tokens = (Token(text[: match.start()]), *tokens)
-        return match.end(), tokens
-
-
 class PatternRead[ResultType](StreamRead[ResultType]):
     """Shared incremental consumption for one or several pattern declarations."""
 
