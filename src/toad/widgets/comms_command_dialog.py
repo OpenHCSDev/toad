@@ -22,7 +22,7 @@ from toad.screens.modal import ModalScreen
 from toad.widgets.model_switcher import ModelSelection
 
 
-@dataclass
+@dataclass(eq=False)
 class PreparedChoices(AnnotationChoices):
     """The catalog last prepared for a draft, not another copy of its value."""
     parameter: TargetField
