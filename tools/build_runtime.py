@@ -379,7 +379,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
             app.show_saved_thread('startup-saved')
             app.screenshot('saved')
             app.keys('C-g')
-            app.wait('any', lambda text: 'Message #any' in text)
+            app.wait('any', lambda text: '#any · all comms' in text)
             app.screenshot('any')
             check_filtered_return(app)
     result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
@@ -404,7 +404,7 @@ def check_filtered_return(app: TerminalApp) -> None:
     (app.output / 'filtered-before.txt').write_text(before)
     app.screenshot('filtered-before')
     app.keys('C-g')
-    app.wait('filtered-away', lambda text: 'Message #any' in text)
+    app.wait('filtered-away', lambda text: '#any · all comms' in text)
     app.keys('Escape')
     # Ignore the tab bar and animated footer; compare the actual message rows.
     expected = before.splitlines()[4:-4]
@@ -498,7 +498,7 @@ finally:
         with TerminalApp(command, display, output / 'reply', environment, output) as app:
             app.wait('welcome', lambda text: 'build-parent' in text)
             app.keys('C-g')
-            app.wait('reply', lambda text: 'Message #any' in text and 'BUILD_WAKE_OK' in text)
+            app.wait('reply', lambda text: '#any · all comms' in text and 'BUILD_WAKE_OK' in text)
             app.screenshot('reply')
     return result
 
