@@ -220,7 +220,8 @@ class TerminalApp:
         self.output.mkdir(parents=True, exist_ok=True)
         self.log = (self.output / 'st.log').open('w')
         self.terminal = subprocess.Popen(
-            ['st', '-g', f'{self.columns}x{self.rows}', '-e', 'tmux', '-S', str(self.socket),
+            ['st', '-g', f'{self.columns}x{self.rows}', '-e',
+             'env', f'HOME={self.environment["HOME"]}', 'tmux', '-S', str(self.socket),
              'new-session', '-s', 'qualify', '-x', str(self.columns), '-y', str(self.rows),
              shlex.join(list(map(str, self.command)))],
             cwd=self.cwd, env=self.environment, stdout=self.log, stderr=self.log)
@@ -261,6 +262,13 @@ class TerminalApp:
 
     def keys(self, *keys):
         self.mux('send-keys', '-t', 'qualify:0.0', *keys).check_returncode()
+
+    def show_saved_thread(self, thread):
+        self.wait('saved-ready', lambda text: thread in text
+                  and '▶ Ready' in '\n'.join(text.splitlines()[-8:]))
+        # The thread sidebar starts collapsed; expand its visible right gutter.
+        self.click_cell(self.columns - 1, self.rows // 2)
+        return self.wait('saved', lambda text: 'User messages' in text)
 
     def click(self, label):
         text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
@@ -368,11 +376,10 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
             app.wait('welcome', lambda text: 'startup-saved' in text)
             app.screenshot('welcome')
             app.click('startup-saved')
-            app.wait('saved', lambda text: 'User messages' in text and 'startup-saved' in text)
+            app.show_saved_thread('startup-saved')
             app.screenshot('saved')
-            app.click('Channels')
-            app.click('#any')
-            app.wait('any', lambda text: 'Message #any' in text)
+            app.keys('C-g')
+            app.wait('any', lambda text: '#any · all comms' in text)
             app.screenshot('any')
             check_filtered_return(app)
     result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
@@ -383,7 +390,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
 
 def check_filtered_return(app: TerminalApp) -> None:
     """Choose user-only checkboxes, PageUp and compare the visible returned rows."""
-    app.keys('Escape')
+    app.click('startup-saved')
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.click(label)
@@ -396,10 +403,9 @@ def check_filtered_return(app: TerminalApp) -> None:
     before = app.capture()
     (app.output / 'filtered-before.txt').write_text(before)
     app.screenshot('filtered-before')
-    app.click('Channels')
-    app.click('#any')
-    app.wait('filtered-away', lambda text: 'Message #any' in text)
-    app.keys('Escape')
+    app.keys('C-g')
+    app.wait('filtered-away', lambda text: '#any · all comms' in text)
+    app.click('startup-saved')
     # Ignore the tab bar and animated footer; compare the actual message rows.
     expected = before.splitlines()[4:-4]
     app.wait('filtered-return', lambda text: text.splitlines()[4:-4] == expected)
@@ -413,7 +419,7 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
     for name in ('NO_COLOR', 'TOAD_VALIDATION'):
         environment.pop(name, None)
     with TerminalApp(['toad-comms', thread], display, output / 'saved', environment, Path.home()) as app:
-        app.wait('saved-thread', lambda text: thread in text and 'User messages' in text)
+        app.show_saved_thread(thread)
         return app.screenshot('saved-thread')
 
 
@@ -488,12 +494,11 @@ finally:
     with BuildDisplay(output) as display:
         command = [runtime / 'bin/toad', 'acp',
                    f'{runtime / "bin/python"} -I -B -m agent_comms.acp',
-                   str(output), '--session', 'build-parent']
+                   str(output)]
         with TerminalApp(command, display, output / 'reply', environment, output) as app:
-            app.wait('parent', lambda text: 'User messages' in text)
-            app.click('Channels')
-            app.click('#any')
-            app.wait('reply', lambda text: 'Message #any' in text and 'BUILD_WAKE_OK' in text)
+            app.wait('welcome', lambda text: 'build-parent' in text)
+            app.keys('C-g')
+            app.wait('reply', lambda text: '#any · all comms' in text and 'BUILD_WAKE_OK' in text)
             app.screenshot('reply')
     return result
 
@@ -633,7 +638,10 @@ class RuntimeBuild:
             native_source = self.core.repository / 'stack' / native_relative
             run(python, '-I', '-B', '-c',
                 'import sys; from pathlib import Path; from agent_comms.native_package import verify_native_package; '
-                'verify_native_package(Path(sys.argv[1]))', native_source)
+                'from agent_comms.private_path import PrivateDirectoryRole; '
+                'verify_native_package(Path(sys.argv[1])); '
+                'Path(sys.argv[2]).mkdir(mode=PrivateDirectoryRole.permissions)',
+                native_source, resources / native_relative.parents[2])
             if any(path.stat().st_mode & 0o222 for path in native_source.rglob('*') if path.is_file()):
                 raise ValueError('Shared native package files must be immutable')
             shutil.copytree(native_source, resources / native_relative, copy_function=os.link)
@@ -675,6 +683,7 @@ class RuntimeBuild:
             'message_wake': wake,
         }
         (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+        print('qualify: ok', flush=True)
         return destination
 
     def accept(self, runtime: Path, display: XvfbDisplay) -> None:
