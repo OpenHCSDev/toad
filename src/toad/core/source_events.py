@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from agent_comms import transcript_events
+import agent_comms.transcript_events as transcript_events
 from .events import CoreEvent
 
 

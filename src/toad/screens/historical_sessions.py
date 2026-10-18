@@ -12,7 +12,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
 from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from agent_comms import HistoricalThread
+from agent_comms.historical_views import HistoricalThread
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
