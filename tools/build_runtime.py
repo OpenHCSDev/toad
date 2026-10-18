@@ -276,6 +276,10 @@ class TerminalApp:
             self.window = int(subprocess.check_output(
                 ['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(self.terminal.pid)],
                 env=self.environment, text=True, timeout=10).splitlines()[0])
+            geometry = self.mux('display-message', '-p', '-t', 'qualify:0.0',
+                                '#{pane_width} #{pane_height}')
+            geometry.check_returncode()
+            self.columns, self.rows = map(int, geometry.stdout.split())
             return self
         except BaseException:
             self.__exit__(*sys.exc_info())
