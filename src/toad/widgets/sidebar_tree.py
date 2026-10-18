@@ -568,7 +568,7 @@ class Behind(BoundSidebar):
         return dict(change=AllSidebarRows(), reorder=True)
 
 
-class SidebarModelView(CoreEventReceiver, Widget):
+class SidebarModelView(CoreEventReceiver):
     """A widget showing the observed service's sidebar model.
 
     Core's model is observed only while a view shows it. Changes that arrive
