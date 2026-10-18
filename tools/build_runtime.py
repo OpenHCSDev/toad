@@ -135,7 +135,8 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     publication.publish(root)
     print(f'Linked {publication.runtime}', flush=True)
     # Pass the actual prior pointer, not a build baseline or a persistent list.
-    print('Older runtimes are unchanged; cleanup is a separate explicit operation.')
+    print(run(sys.executable, Path(__file__).resolve(), '--prune-runtimes',
+              '--current', publication.current, '--previous', previous, '--delete'))
 
 
 def installation_main() -> None:
