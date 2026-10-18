@@ -139,7 +139,7 @@ class ReaderPosition(ABC):
         return self
 
     def for_parking(self, window: "HistoryWindow") -> "ReaderPosition":
-        return self
+        return self.resolve(window)
 
     def resolve(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
@@ -187,9 +187,6 @@ class UnheldPosition(ReaderPosition):
 
     def kept(self, window: "HistoryWindow") -> ReaderPosition:
         window.screen.reader_kept()
-        return ReaderPosition.of(window)
-
-    def for_parking(self, window: "HistoryWindow") -> ReaderPosition:
         return ReaderPosition.of(window)
 
     def resolve(self, window: "HistoryWindow") -> ReaderPosition:
