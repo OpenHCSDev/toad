@@ -465,6 +465,8 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         loop.call_soon_threadsafe(run)
 
     async def on_mount(self) -> None:
+        # The terminal driver is running now, so ANSI themes can query its colours.
+        await self.colours.mount()
         self.coordination_access.start()
         await self.application.start()
         # Background threads (Core reads, preparation) give the GIL back to

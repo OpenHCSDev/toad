@@ -193,6 +193,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         visible = {id(fragment) for fragment in self.visible_fragments(self.history.window)} if previous else set()
         theme = self.app.colours.line_theme
         layout, starts, y = [], [], 0
+        repaint = []
         if width > 0:
             for fragment in self.prepared.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
@@ -204,10 +205,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
                 if (lines is None or id(fragment) in visible
                         or not fragment.retains_lines(lines, theme)):
                     lines = self._lines(fragment, width)
+                if id(fragment) in previous and lines is not previous[id(fragment)]:
+                    repaint.append((y, lines.height))
                 layout.append((fragment, y, lines))
                 starts.append(y)
                 y += lines.height
         self._layout, self._starts, self._height = layout, starts, y
+        for first, height in repaint:
+            self.refresh(Region(0, first, width, height))
         self._fragment_rows = {id(fragment): range(first, first + lines.height) for fragment, first, lines in layout}
         if self.is_mounted:
             self.history.request_preparation()
