@@ -251,8 +251,7 @@ class SessionNavigation:
     @property
     def tabs(self) -> tuple[OpenTab, ...]:
         observed = self.app.coordination_access.observation
-        return self.app.tab_order.project({entry.mode: entry.tab(self, observed)
-                                          for entry in self.members})
+        return self.app.tab_order.project(observed.tabs(self))
 
     def sync_identity(self, owner: str, previous: str, current: str) -> None:
         for entry in self.members:
