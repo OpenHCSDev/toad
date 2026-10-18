@@ -245,6 +245,11 @@ class Span:
 class LineBlock:
     """One visual part of a fragment."""
 
+    @property
+    def retained_bytes(self) -> int:
+        """Record plus Unicode payload; not a census of shared theme objects."""
+        return 64 + 4 * len(self.selection_text)
+
     def prepared_rows[RowsT](self, width: int, draw: Callable[[LineBlock], RowsT]) -> RowsT:
         return draw(self)
 

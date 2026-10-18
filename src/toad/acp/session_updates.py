@@ -5,7 +5,6 @@ import asyncio
 from abc import abstractmethod
 
 from agent_comms.declared_family import DeclaredFamily
-from toad import jsonrpc
 
 from toad.core import events
 from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
@@ -117,28 +116,16 @@ class SessionNotificationOwner(ClientRequestOwner):
         super().__init__(agent)
         self.lock = asyncio.Lock()
 
-    @classmethod
-    def resolve(cls, agent):
-        return agent.updates
-
-    @jsonrpc.expose('session/update', ordered=True)
-    async def receive(self, sessionId: str, update: object, _meta: dict | None = None):
+    async def receive(self, notification, raw_update):
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         async with self.lock:
-            if authority.retired or not authority.binding.accepts_notification(sessionId):
+            if authority.retired or not authority.binding.accepts_notification(notification.session_id):
                 return
-            validation = await self.agent.controller.validate(sessionId, update, _meta)
+            validation = await self.agent.controller.validation.validate(
+                ValidateSessionUpdateTask(notification, raw_update))
             if authority.retired:
                 return
-            validation.publish(self, sessionId, update, _meta)
-
-    def accept(self, session_id, update, metadata=None):
-        """Official SDK boundary for synchronous in-process protocol consumers."""
-        authority = ClientSessionRequest(self.agent, self.agent.session_id)
-        if authority.retired or not authority.binding.accepts_notification(session_id):
-            return
-        ValidateSessionUpdateTask(session_id, update, metadata).execute().publish(
-            self, session_id, update, metadata)
+            validation.publish(self, notification.session_id, raw_update, notification.field_meta)
 
     def reject(self, session_id, update, metadata, error):
         self.agent.log(

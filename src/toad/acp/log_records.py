@@ -5,9 +5,16 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import ast
 from dataclasses import dataclass
+from functools import singledispatchmethod
 import json
 from pathlib import Path
+from typing import Literal
 
+from acp.schema import (
+    AgentErrorMessage, AgentNotification, AgentRequest, AgentResponseMessage,
+    ContentChunk, SessionNotification, TextContentBlock,
+)
+from pydantic import TypeAdapter, ValidationError
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.declared_family import DeclaredFamily
 
@@ -42,6 +49,18 @@ class LogRecord(ABC):
     def diagnostic(self) -> str | None:
         return None
 
+    def collect(self, records: list[LogRecord], diagnostics: list[str]) -> None:
+        if diagnostics:
+            records.append(DiagnosticLogRecord("".join(diagnostics)))
+            diagnostics.clear()
+        records.append(self)
+
+    def continued_by(self, records: tuple[LogRecord, ...]) -> tuple[LogRecord, ...]:
+        return (self, *records)
+
+    def with_diagnostic(self, previous: DiagnosticLogRecord) -> tuple[LogRecord, ...]:
+        return (previous, self)
+
     @classmethod
     def decode(cls, raw: str) -> LogRecord:
         """The agent JSON and client repr are distinct current logger sources."""
@@ -56,30 +75,10 @@ class LogRecord(ABC):
             value = source.parse(body)
         except (ValueError, SyntaxError, RecursionError) as error:
             return UnparsedLogRecord(raw, f"Unable to decode {source.declared_name} record: {error}")
-        if not isinstance(value, dict):
-            return UnparsedLogRecord(raw, "Protocol record is not an object")
-        if isinstance(error := value.get("error"), dict):
-            code = error.get("code")
-            message = error.get("message")
-            failure = ACPFailure.from_error(
-                code if isinstance(code, int) and not isinstance(code, bool) else None,
-                message if isinstance(message, str) else "ACP request failed",
-                error.get("data"),
-            )
-            return FailureLogRecord(raw, source, str(value.get("id", "")), failure)
-        if isinstance(method := value.get("method"), str):
-            params = value.get("params")
-            update = params.get("update") if isinstance(params, dict) else None
-            update_name = ""
-            if isinstance(update, dict):
-                content = update.get("content")
-                text = content.get("text") if isinstance(content, dict) else None
-                if isinstance(text, str) and text.startswith("[agent error] "):
-                    failure = ACPFailure.from_error(None, text.removeprefix("[agent error] "))
-                    return FailureLogRecord(raw, source, method, failure)
-                update_name = str(update.get("sessionUpdate", "update"))
-            return MethodLogRecord(raw, source, method, update_name)
-        return ResponseLogRecord(raw, source, str(value.get("id", "")))
+        try:
+            return LOG_MESSAGE.validate_python(value, strict=True).log_record(raw, source)
+        except ValidationError as error:
+            return UnparsedLogRecord(raw, str(error))
 
 
 @dataclass(frozen=True)
@@ -120,6 +119,15 @@ class FailureLogRecord(ProtocolLogRecord):
 
 
 class DiagnosticLogRecord(LogRecord):
+    def collect(self, records: list[LogRecord], diagnostics: list[str]) -> None:
+        diagnostics.append(self.raw)
+
+    def continued_by(self, records: tuple[LogRecord, ...]) -> tuple[LogRecord, ...]:
+        return (*records[0].with_diagnostic(self), *records[1:])
+
+    def with_diagnostic(self, previous: DiagnosticLogRecord) -> tuple[LogRecord, ...]:
+        return (DiagnosticLogRecord(previous.raw + self.raw),)
+
     @property
     def event(self) -> str:
         return self.raw.rstrip("\r\n")
@@ -152,6 +160,65 @@ class RecordFragment(LogRecord):
         return self.event
 
 
+class ErrorLogMessage(AgentErrorMessage):
+    def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
+        return FailureLogRecord(raw, source, str(self.id), ACPFailure.from_error(
+            self.error.code, self.error.message, self.error.data,
+        ))
+
+
+class SessionUpdateLogMessage(AgentNotification):
+    method: Literal["session/update"]
+    params: SessionNotification
+
+    def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
+        record = MethodLogRecord(raw, source, self.method, self.params.update.session_update)
+        return SessionContentLog(record).render(self.params.update)
+
+
+class MethodLogMessage(AgentNotification):
+    def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
+        return MethodLogRecord(raw, source, self.method, "")
+
+
+class RequestLogMessage(AgentRequest, MethodLogMessage):
+    """The SDK request fields share notification display behavior."""
+
+
+class ResultLogMessage(AgentResponseMessage):
+    def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
+        return ResponseLogRecord(raw, source, str(self.id))
+
+
+LOG_MESSAGE = TypeAdapter(
+    ErrorLogMessage | SessionUpdateLogMessage | RequestLogMessage | MethodLogMessage | ResultLogMessage
+)
+
+
+class SessionContentLog:
+    """Typed session content owns the textual agent-error convention."""
+
+    def __init__(self, record: MethodLogRecord) -> None:
+        self.record = record
+
+    @singledispatchmethod
+    def render(self, content: object) -> LogRecord:
+        return self.record
+
+    @render.register
+    def chunk(self, update: ContentChunk) -> LogRecord:
+        return self.render(update.content)
+
+    @render.register
+    def text(self, content: TextContentBlock) -> LogRecord:
+        if content.text.startswith("[agent error] "):
+            return FailureLogRecord(
+                self.record.raw, self.record.source, self.record.identity,
+                ACPFailure.from_error(None, content.text.removeprefix("[agent error] ")),
+            )
+        return self.record
+
+
 def decode_records(data: bytes, *, leading_fragment: bool, trailing_fragment: bool) -> tuple[LogRecord, ...]:
     lines = data.decode("utf-8", errors="replace").splitlines(keepends=True)
     records: list[LogRecord] = []
@@ -161,15 +228,7 @@ def decode_records(data: bytes, *, leading_fragment: bool, trailing_fragment: bo
             record = RecordFragment(line)
         else:
             record = LogRecord.decode(line)
-        # Adjacent process stderr/traceback lines are one physical diagnostic.
-        # This is the decode boundary; presentation never switches on cases.
-        if isinstance(record, DiagnosticLogRecord):
-            diagnostics.append(line)
-            continue
-        if diagnostics:
-            records.append(DiagnosticLogRecord("".join(diagnostics)))
-            diagnostics.clear()
-        records.append(record)
+        record.collect(records, diagnostics)
     if diagnostics:
         records.append(DiagnosticLogRecord("".join(diagnostics)))
     return tuple(records)
@@ -229,13 +288,10 @@ class LogPage:
         if not data:
             return self
         records = decode_records(data, leading_fragment=False, trailing_fragment=False)
-        last = self.records[-1] if self.records else None
-        if isinstance(last, DiagnosticLogRecord) and isinstance(records[0], DiagnosticLogRecord):
-            # Process output continuing across the two reads is one diagnostic.
-            records = (DiagnosticLogRecord(last.raw + records[0].raw), *records[1:])
-            earlier = self.records[:-1]
-        else:
-            earlier = self.records
+        earlier = self.records
+        if earlier:
+            records = earlier[-1].continued_by(records)
+            earlier = earlier[:-1]
         end = self.end + len(data)
         return LogPage(self.start, end, end, self.raw + data, earlier + records)
 

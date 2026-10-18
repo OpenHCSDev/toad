@@ -32,6 +32,9 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
     width: int
     tab_width: int
 
+    def result_size(self, result: WrappedDocument) -> int:
+        return 256 + 4 * len(result.document.text) + 64 * result.height
+
     def execute(self) -> WrappedDocument:
         from textual.widgets import PreparedTextArea
 
@@ -48,6 +51,9 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
     source: RichSource
     presentation: RichPresentation
 
+    def result_size(self, result: PreparedRichContent) -> int:
+        return result.retained_bytes
+
     def execute(self) -> PreparedRichContent:
         return self.source.prepare(self.presentation)
 
@@ -63,6 +69,10 @@ class TextEffectRenderTask(ReusableRenderTask[PlayedText]):
 
     effect: TextEffect
     scheme: ColourScheme
+
+    def result_size(self, result: PlayedText) -> int:
+        return 256 + sum(64 + sum(64 + 64 * len(line) for line in frame.lines)
+                         for frame in result.frames)
 
     def execute(self) -> PlayedText:
         return self.effect.build(self.scheme)

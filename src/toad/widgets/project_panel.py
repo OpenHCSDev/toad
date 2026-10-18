@@ -7,6 +7,7 @@ from textual import events, work
 from textual.reactive import reactive
 from textual.app import ComposeResult
 from textual.binding import Binding
+from toad.widgets.side_bar import SidebarPanelWidget
 from textual.containers import Vertical, VerticalScroll
 from textual.message import Message
 from textual.widgets import Static
@@ -53,7 +54,7 @@ class ProjectSearchButton(HoverSelection, PrimaryActivation, Static, can_focus=T
             self.action_search()
 
 
-class ProjectPanel(Vertical):
+class ProjectPanel(SidebarPanelWidget, Vertical):
     path: reactive[Path] = reactive(Path, init=False)
     DEFAULT_CSS = """
     ProjectPanel {

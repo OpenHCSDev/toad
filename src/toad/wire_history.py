@@ -26,10 +26,11 @@ from toad.transcript_preparation import (
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
-from toad.work_preparation import WorkKey
+from toad.work_preparation import WorkKey, WorkRevision
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import HistoryCursor
+    from agent_comms.read_basis import NamedViewer
     from toad.widgets.transcript_lines import Lines
 
 
@@ -132,6 +133,10 @@ class WirePage:
 class PreparedWirePage(PreparedTranscriptPage):
     """Wire intervals preserve Core's original display page when advanced empty."""
 
+    @property
+    def source_payload_bytes(self) -> int:
+        return sum(256 + 4 * len(message.body) for message in self.page.events)
+
     def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
         self.page = self.page.advanced(prepared.page, older=older)
 
@@ -162,10 +167,6 @@ class WireFragment(TranscriptFragment):
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
         return frozenset({OtherCategory})
-
-    @cached_property
-    def retained_bytes(self) -> int:
-        return len(self.message.body) + 256
 
     @property
     def timestamp(self) -> float | None:
@@ -241,9 +242,12 @@ class WireSource:
     page_limit: int = 40
     max_bytes: int = 256 * 1024
 
+    @property
+    def viewer(self) -> NamedViewer:
+        return self.comms.views.display_viewer(str(self.project))
+
     def page(self, **bounds) -> MessagePage:
-        return self.kind.page(self.comms, self.target, worktree=str(self.project),
-                              max_bytes=self.max_bytes, **bounds)
+        return self.kind.page(self, max_bytes=self.max_bytes, **bounds)
 
     def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
@@ -295,13 +299,20 @@ class WireObservation:
 
 
 @dataclass(frozen=True)
+class WirePageRevision(WorkRevision):
+    through: AfterSequence | None
+    request: PageRequest
+    size: ClassVar[int] = 512
+
+
+@dataclass(frozen=True)
 class WirePageWork(TranscriptPageWork):
     """Read one wire page off the UI thread; `loader` is the WireSource."""
 
     @property
     def work_key(self) -> WorkKey:
         cut = self.request.before or self.request.after
-        return WorkKey(type(self), (self.through if cut.bounded else None, self.request), self.scope)
+        return WorkKey(type(self), WirePageRevision(self.through if cut.bounded else None, self.request), self.scope)
 
     @property
     def retain_result(self) -> bool:

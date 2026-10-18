@@ -10,8 +10,7 @@ from acp.schema import (SessionConfigSelectOption, SessionConfigSelectGroup,
 from agent_comms.acp_failure import ACPFailure
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import MroDispatch, handles
-from toad import jsonrpc
-from toad.acp import api
+from acp.exceptions import RequestError
 
 
 class SelectChoices(MroDispatch):
@@ -67,14 +66,10 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
         from toad.acp.client_session import ClientSessionRequest
         authority = ClientSessionRequest(agent, agent.session_id)
         authority.require()
-        with agent.request():
-            response = api.session_set_config_option(agent.session_id, self.option.id, value)
         try:
-            result = await response.wait()
+            result = await agent.process.rpc.set_config_option(self.option.id, agent.session_id, value)
             authority.require()
-        except jsonrpc.JSONRPCError as error:
-            return ACPFailure.from_error(error.code, error.message).feedback
-        except jsonrpc.APIError as error:
+        except RequestError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
         agent.configuration.receive(result.config_options)
         return None

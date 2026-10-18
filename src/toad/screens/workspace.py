@@ -11,7 +11,6 @@ from textual.widget import Widget
 from textual.box_model import DEFAULT_LAYER
 from toad.widget_view import WidgetView
 
-from toad.widgets.side_bar import SidebarFocusOwner
 from agent_comms.declared_family import DeclaredFamily
 from abc import abstractmethod
 
@@ -60,7 +59,7 @@ class MeasuredWorkspaceLayout(WorkspaceLayout):
         return WorkspaceLayoutSnapshot.capture(screen, include_scroll=include_scroll) == requested
 
 
-class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
+class WorkspaceScreen(WidgetView, Screen):
     layer_order = (DEFAULT_LAYER, "comms-sidebar", "_tooltips", "_toastrack")
 
     BINDINGS = [

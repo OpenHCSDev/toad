@@ -26,10 +26,10 @@ from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPresentation
 from toad.widgets.message_filter import MessageCategory, event_category
+from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
     from toad.tool_output import ToolOutputPart
-    from toad.widgets.transcript_lines import PlainLines
 
 
 @dataclass(frozen=True)
@@ -207,8 +207,8 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     checks_notifications: ClassVar[bool] = False
-    _lines: ClassVar[tuple | None] = None
-    _plain: ClassVar["PlainLines | None"] = None
+    _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
+    _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
@@ -252,7 +252,7 @@ class TranscriptFragment:
         self.shown = shown
         self.__dict__.pop("line_blocks", None)
         self.invalidate_lines()
-        self._plain = None
+        self._plain = NoRows()
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -288,12 +288,7 @@ class TranscriptFragment:
 
     def lines_for(self, width: int, theme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
-        held = self._lines
-        if held is not None and held[0].preparation.theme is theme:
-            lines = held[1].rewrap(width)
-            self._lines = held[0], lines
-            return lines
-        return None
+        return self._lines.for_view(width, theme)
 
     def retains_lines(self, lines, theme) -> bool:
         """Whether measured rows still belong to this source and palette.
@@ -301,39 +296,27 @@ class TranscriptFragment:
         Their width belongs to the rows themselves. Offscreen geometry may
         retain that measured width until the viewport asks for another one.
         """
-        held, plain = self._lines, self._plain
-        return (held is not None and held[0].preparation.theme is theme
-                and held[1].preparation is lines.preparation
-                or plain is not None and plain.preparation.theme is theme
-                and plain.preparation.blocks is lines.preparation.blocks)
+        return self._lines.retains(lines, theme) or self._plain.retains(lines, theme)
 
     def invalidate_lines(self):
-        self._lines = None
+        self._lines = NoRows()
 
     def hold_lines(self, request, lines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
         if request.blocks is self.line_blocks:
-            self._lines = request, lines
+            self._lines = AcquiredRows(request.preparation, lines)
             return True
         return False
 
     def plain_lines(self, width: int, renderer):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
-        from toad.widgets.transcript_lines import PlainLines
+        self._plain = acquired = self._plain.plain(width, renderer, self.line_blocks)
+        return acquired.lines
 
-        held = self._plain
-        if held is None or held.preparation.theme is not renderer.theme:
-            held = PlainLines(width, renderer, self.line_blocks)
-        self._plain = held.rewrap(width)
-        return self._plain
-
-
-    @cached_property
+    @property
     def retained_bytes(self) -> int:
-        """Worker-owned immutable input cost, never an acquisition graph."""
-        from toad.work_preparation import retained_bytes
-
-        return retained_bytes(self)
+        """Only this fragment's record and acquired rows; the page owns events."""
+        return 256 + self._lines.preparation.retained_bytes + self._plain.preparation.retained_bytes
 
 
 @dataclass(kw_only=True)
@@ -530,8 +513,6 @@ def transcript_fragments(
             fragments.append(replace(source, output_parts=parts))
         else:
             fragments.append(source)
-    for fragment in fragments:
-        fragment.retained_bytes
     return tuple(fragments)
 
 
@@ -539,6 +520,9 @@ def transcript_fragments(
 class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
+
+    def result_size(self, result: tuple[TranscriptFragment, ...]) -> int:
+        return 64 + sum(fragment.retained_bytes for fragment in result)
 
     def execute(self) -> tuple[TranscriptFragment, ...]:
         return transcript_fragments(self.events, continuation=self.continuation)

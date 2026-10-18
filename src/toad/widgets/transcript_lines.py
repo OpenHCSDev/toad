@@ -6,6 +6,7 @@ viewport owns its measured rows. Unprepared source retains its initial preview.
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
@@ -372,6 +373,11 @@ class PreparedLines(Lines, LineBlock):
     width: int
     rows: tuple[Row, ...]
 
+    @property
+    def retained_bytes(self) -> int:
+        return 64 + sum(64 + sum(64 + 4 * len(segment.text) for segment in row)
+                        for row in self.rows)
+
     def prepared_rows(self, width, draw) -> PreparedLines:
         if width != self.width:
             raise ValueError("Prepared rows belong to a different width")
@@ -600,6 +606,10 @@ class LinePreparation:
     blocks: tuple[LineBlock, ...]
     theme: LineTheme
 
+    @property
+    def retained_bytes(self) -> int:
+        return 256 + sum(block.retained_bytes for block in self.blocks)
+
     def wrap(self, width: int, renderer: RichLineRenderer) -> BlockLines:
         return BlockLines(width, self, renderer)
 
@@ -633,8 +643,73 @@ class PlainLines(BlockLines):
     def __init__(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]):
         super().__init__(width, LinePreparation(blocks, renderer.theme), renderer)
 
+class RowAcquisition(ABC):
+    """The source witness and rows acquired by one fragment."""
+
+    @property
+    @abstractmethod
+    def preparation(self) -> LinePreparation | NoRows: ...
+
+    @abstractmethod
+    def for_view(self, width: int, theme: LineTheme) -> BlockLines | None: ...
+
+    @abstractmethod
+    def retains(self, lines: BlockLines, theme: LineTheme) -> bool: ...
+
+    def plain(self, width: int, renderer: RichLineRenderer, blocks: tuple[LineBlock, ...]) -> AcquiredRows:
+        lines = PlainLines(width, renderer, blocks)
+        return PlainRows(lines.preparation, lines)
+
+
+class NoRows(RowAcquisition):
+    retained_bytes = 0
+
+    @property
+    def preparation(self) -> NoRows:
+        return self
+
+    def for_view(self, width, theme):
+        return None
+
+    def retains(self, lines, theme):
+        return False
+
+
+@dataclass
+class AcquiredRows(RowAcquisition):
+    source: LinePreparation
+    lines: BlockLines
+
+    @property
+    def preparation(self) -> LinePreparation:
+        return self.lines.preparation
+
+    def for_view(self, width, theme):
+        if self.source.theme is not theme:
+            return None
+        self.lines = self.lines.rewrap(width)
+        return self.lines
+
+    def retains(self, lines, theme):
+        return self.source.theme is theme and self.lines.preparation is lines.preparation
+
+    def plain(self, width, renderer, blocks):
+        if self.source.theme is renderer.theme:
+            self.lines = self.lines.rewrap(width)
+            return self
+        return super().plain(width, renderer, blocks)
+
+
+class PlainRows(AcquiredRows):
+    def retains(self, lines, theme):
+        return self.source.theme is theme and self.lines.preparation.blocks is lines.preparation.blocks
+
+
 @dataclass(frozen=True)
 class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]):
+    def result_size(self, result: LinePreparation) -> int:
+        return result.retained_bytes
+
     """Style one source once; width never enters the worker contract."""
 
     preparation: LinePreparation
@@ -714,6 +789,9 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
 
 @dataclass(frozen=True)
 class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, ...]]):
+    def result_size(self, result: tuple[LinePreparation, ...]) -> int:
+        return 64 + sum(preparation.retained_bytes for preparation in result)
+
     """Style several newly acquired sources in one worker round trip."""
 
     items: tuple[TranscriptLinesRenderTask, ...]

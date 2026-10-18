@@ -31,14 +31,6 @@ class ToolCallWire(FieldRepresentation):
         return ToolCall.model_json_schema(by_alias=True)
 
 
-def decode_session_update(session_id: str, update: object,
-                          metadata: dict[str, Any] | None = None) -> SessionNotification:
-    notification = SessionNotification.model_validate(
-        {"sessionId": session_id, "update": update, "_meta": metadata}, strict=True)
-    NotificationItems(update).dispatch_sync(notification.update)
-    return notification
-
-
 class SessionUpdateValidation(DeclaredFamily, affix='SessionUpdateValidation'):
     @abstractmethod
     def publish(self, owner, session_id, raw, metadata): ...
@@ -63,19 +55,18 @@ class RejectedSessionUpdateValidation(SessionUpdateValidation):
 
 @dataclass(frozen=True)
 class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
-    """Keep the official SDK's validator graph in process workers, not the UI."""
+    """Check complete plans and decode Comms metadata after SDK protocol decoding."""
 
-    session_id: str
-    update: object
-    metadata: dict | None = None
+    notification: SessionNotification
+    raw_update: dict
 
     def execute(self) -> SessionUpdateValidation:
         try:
-            notification = decode_session_update(self.session_id, self.update, self.metadata)
-            updates = decode_updates(notification.update.field_meta)
+            NotificationItems(self.raw_update).dispatch_sync(self.notification.update)
+            updates = decode_updates(self.notification.update.field_meta)
         except (ValueError, TypeError) as error:
             return RejectedSessionUpdateValidation(str(error))
-        return AcceptedSessionUpdateValidation(notification, updates)
+        return AcceptedSessionUpdateValidation(self.notification, updates)
 
     def accept_result(self, result: object) -> SessionUpdateValidation:
         if not isinstance(result, SessionUpdateValidation):
