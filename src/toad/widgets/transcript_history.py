@@ -42,10 +42,9 @@ from toad.transcript_preparation import (
 )
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.message_divider import MessageClock
-from toad.frame_presentation import AnimationEffects
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
-from ui_theme.effects import NEW_TEXT, Mix
+from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
@@ -409,7 +408,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return await self.prepared.replace_range(self, selected, current)
 
-class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
+class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the
@@ -421,6 +420,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
     page_buffer = SavedHistory
+    # Saved rows fade as each fragment arrives (`repaint`), not when the history mounts.
+    text_fades = ()
 
     @property
     def message_category(self) -> None:

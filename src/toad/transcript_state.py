@@ -367,8 +367,10 @@ class CommitTranscript(WorkingTranscript):
         self.live_blocks = live_blocks
 
     def arriving(self, prepared, followed_end: bool):
-        # Rows already seen as live blocks have not arrived again.
-        return () if self.live_blocks else super().arriving(prepared, followed_end)
+        # Rows its live blocks already showed have not arrived again; every other row has.
+        claims = tuple(block.commit_claim for block in self.live_blocks)
+        return tuple(fragment for fragment in super().arriving(prepared, followed_end)
+                     if not any(fragment.shown_live_by(claim) for claim in claims))
 
     def rows_published(self, owner) -> None:
         if not NEWER_END.visible_more(owner):

@@ -29,19 +29,22 @@ def command(*argv: str, name: str = "Test command", identity: str = "test-comman
     })
 
 
-def detached(project: Path, session_id: str | None = None, *, identity: str = "test-agent"):
+def detached(project: Path, session_id: str | None = None, *, app, identity: str = "test-agent"):
     """A Toad agent object with no process behind it; the test delivers its updates by hand."""
     from toad.acp.agent import Agent
     from toad.agent_schema import AgentDefinition
 
-    return Agent(project, AgentDefinition(identity, identity, {"*": "true"}), session_id)
+    return Agent(project, AgentDefinition(identity, identity, {"*": "true"}), session_id,
+                 app_events=app.events, transcripts=app.coordination_access.transcripts)
 
 
 async def deliver(agent, update: dict, *, session_id: str | None = None):
     """Hand the agent one ACP ``session/update`` exactly as its process would send it."""
-    result = await agent.server.call({"jsonrpc": "2.0", "method": "session/update", "params": {
-        "sessionId": session_id or agent.session_id, "update": update}})
-    assert result is None, result
+    from acp import schema
+
+    notification = schema.SessionNotification.model_validate({
+        "sessionId": session_id or agent.session_id, "update": update})
+    await agent.updates.receive(notification, update)
 
 
 def script(*steps: dict) -> str:

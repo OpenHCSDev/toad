@@ -8,6 +8,8 @@ from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
 from toad.block_content import BlockContent
+from toad.frame_presentation import AnimationEffects
+from ui_theme.effects import NEW_TEXT, Fade, Mix
 from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
 
 
@@ -275,11 +277,25 @@ class ChildBlockCursor(BlockCursor):
         self._child = None
 
 
-class ConversationBlock(BlockContent):
-    """Conversation content, with an owned atomic cursor by default."""
+class ConversationBlock(AnimationEffects[Mix], BlockContent):
+    """Conversation content, with an owned atomic cursor by default.
+
+    A new entry fades into its own colours as it appears: the rows drawn
+    inside it paint its fades (`LinkedRows.on_background`).
+    """
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1
+    text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
+
+    def on_mount(self) -> None:
+        for fade in self.text_fades:
+            self.run_effect(fade)
+
+    def repaint(self) -> None:
+        # The widgets inside the entry draw its rows.
+        for widget in self.walk_children(with_self=True):
+            widget.refresh()
 
     def notification_targets(self):
         return ()

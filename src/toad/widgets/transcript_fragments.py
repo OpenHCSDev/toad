@@ -31,6 +31,7 @@ from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
     from toad.tool_output import ToolOutputPart
+    from toad.widgets.committed_presentation import CommitClaim
 
 
 @dataclass(frozen=True)
@@ -256,6 +257,10 @@ class TranscriptFragment:
         """The fragment keeps its identity within its prepared source."""
         return id(self)
 
+    def shown_live_by(self, claim: CommitClaim) -> bool:
+        """Whether the live block that claim retires already showed this saved row."""
+        return claim.repeats_native(self)
+
     _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
     _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
@@ -416,6 +421,9 @@ class BusMessageFragment(TranscriptFragment):
     def notification_references(self) -> tuple[MessageReference, ...]:
         return self.part_position.notification_references(self.events[0])
 
+    def shown_live_by(self, claim: CommitClaim) -> bool:
+        return claim.repeats_received(self)
+
     @property
     def block_menu(self):
         return self.row.menu
@@ -449,6 +457,9 @@ class SentMessageFragment(BusMessageFragment):
     @property
     def outgoing_sources(self):
         return self.part_position.outgoing_sources(self.publication)
+
+    def shown_live_by(self, claim: CommitClaim) -> bool:
+        return claim.repeats_sent(self)
 
 class ContextTranscriptFragment(TranscriptFragment):
     """The coordination context an agent was given: one line, and its text when opened."""

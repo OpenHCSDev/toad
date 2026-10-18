@@ -33,6 +33,7 @@ from textual.widget import Widget
 from textual.scroll_view import ScrollView
 from textual.geometry import Size
 from textual.selection import Selection
+from toad.block_navigation import ConversationBlock
 from toad.rich_preparation import RichTextBody
 from toad.project_link import ProjectLink
 
@@ -282,8 +283,13 @@ class LinkedRows(OpensLinks):
         Rendered rows carry text colours only. Textual fills a widget's
         background around its content, not under the rows it draws itself, so
         each row takes the widget's style here. A strip remembers the styles
-        applied to it, so a repaint reuses the same drawn row.
+        applied to it, so a repaint reuses the same drawn row. The conversation
+        entry the row belongs to paints its arrival fade over it.
         """
+        for entry in self.ancestors_with_self:
+            if isinstance(entry, ConversationBlock):
+                strip = entry.paint_effects(strip)
+                break
         return strip.apply_style(paint.rich_style).apply_offsets(x, y)
 
     def blank_row(self, width: int, paint: PaintState) -> Strip:
