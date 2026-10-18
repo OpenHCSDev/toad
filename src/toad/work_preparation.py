@@ -392,7 +392,7 @@ class PreparedRenderer(Renderer):
         self.runtime = runtime
 
     async def submit(self, task: RenderTask[ResultT]) -> ResultT:
-        return await self.runtime.submit(RenderPreparation(task))
+        return await task.complete(self.runtime.submit(RenderPreparation(task)))
 
     async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
         _, prepared = await self.runtime._prepare(RenderPreparation(task))

@@ -781,11 +781,6 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
         return StyledPatch(block.before_path, block.after_path, block.before, block.after, block.groups,
                            highlight(block.before, block.before_path), highlight(block.after, block.after_path))
 
-    def accept_result(self, result: object) -> LinePreparation:
-        if not isinstance(result, LinePreparation):
-            raise TypeError("Transcript styling returned an invalid source")
-        return result
-
 
 @dataclass(frozen=True)
 class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, ...]]):
@@ -805,12 +800,7 @@ class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, .
         context = await LinkContext.acquire(view)
         items = tuple(TranscriptLinesRenderTask(preparation, context) for preparation in preparations)
         lines = await view.app.render_processes.submit(cls(items))
-        return tuple(zip(items, lines))
+        return tuple(zip(items, lines, strict=True))
 
     def execute(self) -> tuple[LinePreparation, ...]:
         return tuple(item.execute() for item in self.items)
-
-    def accept_result(self, result: object) -> tuple[LinePreparation, ...]:
-        if not isinstance(result, tuple) or len(result) != len(self.items):
-            raise TypeError("Transcript batch renderer returned a different number of fragments")
-        return tuple(item.accept_result(lines) for item, lines in zip(self.items, result))
