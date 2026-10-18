@@ -37,7 +37,7 @@ from toad.transcript_filter import FilterState
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
-    RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
+    RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, SavedHistory,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -420,7 +420,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
-    page_buffer = TranscriptPageBuffer
+    page_buffer = SavedHistory
 
     @property
     def message_category(self) -> None:

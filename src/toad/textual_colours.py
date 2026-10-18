@@ -167,12 +167,12 @@ class KnownPalette(MappedAnsiPalette, PaletteState):
         if frame.amount >= 1.0:
             return target
         start = self.resolved(colours.colour(frame.start).rich_color, foreground=False)
-        end = self.resolved(colours.colour(frame.end).rich_color, foreground=True)
+        resting_foreground = Color(*self.colours.foreground.triple)
 
         def risen(segment: Segment) -> Segment:
             text, style, control = segment
             own = (self.resolved(style.color, foreground=True)
-                   if style is not None and style.color is not None else end)
+                   if style is not None and style.color is not None else resting_foreground)
             colour = start.blend(own, frame.amount).rich_color
             return Segment(text, (style or RichStyle()) + RichStyle(color=colour), control)
 

@@ -13,6 +13,7 @@ from time import monotonic, get_clock_info
 from typing import Annotated, ClassVar, TYPE_CHECKING, get_args
 
 if TYPE_CHECKING:
+    from agent_comms.transcripts import TranscriptPage
     from textual.widget import Widget
 
 
@@ -167,8 +168,6 @@ class PageEnd(ABC):
         return edge.session_file == cursor.session_file and not (
             start.contains(stop) and self.edge((page.has_older, page.has_newer)))
     @abstractmethod
-    def reader(self, source, cursor): ...
-    @abstractmethod
     def wire_page(self, source, cursor, through): ...
 
     def entry(self, length):
@@ -221,12 +220,6 @@ class OlderEnd(PageEnd):
     def loader_keywords(self, cursor):
         return {'before': cursor}
 
-    def reader(self, source, cursor):
-        if cursor == source.through or source._raw is None:
-            return None
-        upstream = source._upstream
-        return upstream if upstream is not None and not upstream.closed else source._raw
-
     def wire_page(self, source, cursor, through):
         return source.page(limit=source.tail_limit if cursor == through else source.page_limit, **cursor.older())
 
@@ -264,9 +257,6 @@ class NewerEnd(PageEnd):
     def loader_keywords(self, cursor):
         return {'after': cursor}
 
-    def reader(self, source, cursor):
-        return None if cursor == source._boundary.page.before else source._raw
-
     def wire_page(self, source, cursor, through):
         page = source.page(limit=source.page_limit, **cursor.newer())
         kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor)
@@ -303,6 +293,9 @@ NEWER_END = NewerEnd()
 class PageRequest[Cursor = TranscriptCursor | None]:
     end: PageEnd
     cursor: Cursor
+
+    def progressed(self: "PageRequest[TranscriptCursor | None]", page: "TranscriptPage") -> bool:
+        return self.cursor is None or self.end.progressed(page, self.cursor)
 
 
 class PreparationDemand(ABC):

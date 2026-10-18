@@ -10,7 +10,8 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.widgets.message_filter import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.widgets.presentation_window import OLDER_END
+from toad.widgets.presentation_window import OLDER_END, PageRequest
+from toad.transcript_preparation import NoProjection
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -24,7 +25,6 @@ class NoProjectionOverlay:
     outgoing_coverage = frozenset()
 
     async def park_document(self):
-        from toad.transcript_preparation import NoProjection
         return NoProjection()
 
     def acquire_document(self) -> None:
@@ -197,7 +197,7 @@ class SeekingFilter(NoFilter):
         owner = self.owner
         source = owner.projected_source(owner.selected_categories)
         try:
-            prepared = await source.boundary()
+            prepared = await source.get(PageRequest(OLDER_END, source.through))
             if not snapshot.current(owner):
                 return False
             rows, limit = snapshot.window.latest_limits(owner.budget)

@@ -694,6 +694,25 @@ class TranscriptPresentation:
         self.commit_required = self.dirty = True
         self.request()
 
+    async def refresh_cursor(self) -> TranscriptCursor:
+        """Commit and return the cursor from the resulting painted transcript."""
+        view = self.view
+        if view is None or not view.is_attached:
+            raise TranscriptChanged()
+        self.require_commit()
+        worker = self.worker
+        if worker is None:
+            raise TranscriptChanged()
+        await worker.wait()
+        if self.view is not view or not view.is_attached:
+            raise TranscriptChanged()
+        ready = asyncio.get_running_loop().create_future()
+        view.call_after_refresh(lambda: ready.set_result(self.displayed_cursor))
+        cursor = await ready
+        if cursor is None:
+            raise TranscriptChanged()
+        return cursor
+
     def request(self) -> Worker[None] | None:
         if (view := self.view) is None or not view.is_attached:
             return None

@@ -22,7 +22,7 @@ from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
+    PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
@@ -324,7 +324,7 @@ class WirePageWork(TranscriptPageWork[WireCut]):
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
-class WirePageBuffer(TranscriptPageBuffer):
+class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork
