@@ -405,6 +405,13 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
     @handles(core_events.AgentReady)
     async def on_session_attached(self, message: CoreEventMessage) -> None:
+        agent = self.presentation.operational_agent
+        if agent is not None and agent.session_id is not None:
+            with self.changing_identity() as previous:
+                self._identity = previous.with_session(agent.session_id)
+            if self.id is not None:
+                self.app.session_navigation.sync_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+                self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
         await self.content.attached(self)
 
     @handles(core_events.AgentFail)
