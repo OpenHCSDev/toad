@@ -14,7 +14,7 @@ from textual.widget import Widget
 from toad.widget_view import WorkspaceHosted
 from textual import events
 from textual.containers import VerticalScroll
-from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
+from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget, OLDER_END, NEWER_END
 from toad.transcript_state import LatestViewportRequest
 
 if TYPE_CHECKING:
@@ -93,6 +93,26 @@ class ReaderPosition(ABC):
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
         return self if window.history_change is not None else None
 
+    def preparation_start(self, history) -> tuple[int, int]:
+        """Where preparation begins when no message supplies a more exact place."""
+        return 0, history.pages[0].prepared.start
+
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        """Fill the reader's earlier rows, then the later rows in the remaining budget."""
+        start = self.preparation_start(history)
+        anchor = history.pages[start[0]].prepared
+        _, limit = await OLDER_END.walk(
+            history, current, target, selected, start,
+            history.window.latest_limits(history.budget)[0], limit,
+        )
+        earlier = anchor.capture_range()
+        rows_needed, limit = await NEWER_END.walk(
+            history, current, target, selected, start, rows_needed, limit,
+        )
+        anchor.set_fragment_range(slice(min(anchor.start, earlier.start),
+                                        max(anchor.stop, earlier.stop)))
+        return rows_needed, limit
+
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Give a history about to be mounted the page ranges this position needs."""
         history.set_reader_ranges(self.ranges)
@@ -101,6 +121,13 @@ class ReaderPosition(ABC):
 @dataclass(frozen=True)
 class TailPosition(ReaderPosition):
     """Following the latest message."""
+
+    def preparation_start(self, history) -> tuple[int, int]:
+        return len(history.pages) - 1, len(history.pages[-1].prepared.fragments)
+
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await OLDER_END.walk(history, current, target, selected,
+                                  self.preparation_start(history), rows_needed, limit)
 
     def place(self, window: "HistoryWindow") -> bool:
         if not window.follows_tail:
@@ -170,6 +197,11 @@ class FragmentPosition(OffsetPosition):
         # the earlier ones; the layout that change asked for places this.
         return super().laid_out(window) and self.page(window).rows_measured
 
+    def preparation_start(self, history) -> tuple[int, int]:
+        return next(((index, boundary) for index, page in enumerate(history.pages)
+                     for boundary, fragment in enumerate(page.prepared.fragments) if fragment is self.fragment),
+                    super().preparation_start(history))
+
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
         first, height, drawn = page.fragment_row(self.fragment)
@@ -219,6 +251,9 @@ class UnreachedPosition(ReaderPosition):
     """
 
     position: ReaderPosition
+
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await self.position.prepare(history, current, target, selected, rows_needed, limit)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return self.position.bodies(window)
@@ -327,7 +362,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
         latest = cls(
             window.scroll_revision,
             sources,
-            not any(history.has_newer for history, _through in sources),
+            not any(NEWER_END.visible_more(history) for history, _through in sources),
         )
         window.reader_position = latest
         return latest
@@ -441,12 +476,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
     scroll_revision = 0
     _restoring = False
     reader_position: ReaderPosition | None = None
-    """The position every layout puts the reader back on; None when nothing is changing under them.
-
-    The one record of where the reader is while the scroll offset cannot say
-    it: during a change to the history, a filter change, and from a tab being
-    left until it is drawn again.
-    """
+    """The position held during history changes and across tab returns."""
     history_change: HistoryChange | None = None
     _history_mutation_root: Widget | None = None
 
@@ -458,7 +488,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         latest = LatestPosition.hold(self)
         self.destination()
         for history in tuple(self.histories):
-            if history.needs_latest_publication:
+            if NEWER_END.visible_more(history):
                 history.request_latest(latest)
 
     def tail_follow_changed(self) -> None:
@@ -705,12 +735,11 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             self.tail_follow_changed()
 
     def release_anchor(self) -> None:
-        changed = self.follows_tail
-        if not self._restoring and changed:
+        if not self.follows_tail:
+            return
+        if not self._restoring:
             self.scroll_revision += 1
         super().release_anchor()
-        if not changed:
-            return
         if self.reader_position is not None and not self._restoring and self.shown:
             self.reader_position = self.reader_position.left_tail(self)
         self.tail_follow_changed()
@@ -733,7 +762,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         # keyboard, wheel and scrollbar input. Compensation uses the existing
         # restoration transaction and cannot choose a different reader policy.
         if (new_value > old_value and not self._restoring
-                and all(not history.has_newer for history in self.histories)):
+                and all(not NEWER_END.visible_more(history) for history in self.histories)):
             # A lazy pager's mounted edge is not the source tail. Explicit End
             # still chooses follow through jump_to_latest; ordinary travel only
             # rejoins it once the current source has no unpublished newer rows.

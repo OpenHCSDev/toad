@@ -1,6 +1,7 @@
 """Source evidence and viewport intent govern retirement of live presentation."""
 
 from __future__ import annotations
+from toad.widgets.presentation_window import NEWER_END
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator
@@ -168,15 +169,14 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
-        return (event for page in self.pages for event in page.page.events)
+        return (event for page in self.pages for event in page.prepared.page.events)
 
     @property
     def outgoing_coverage(self):
         if self._source_state.reports_coverage:
             references = frozenset(reference for page in self.pages
                                    for reference in page.prepared.outgoing_coverage)
-            projection = self.filter.overlay
-            return references | (projection.outgoing_coverage if projection is not None else frozenset())
+            return references | self.filter.overlay.outgoing_coverage
         return frozenset()
 
     def covers_incoming(self, sequence: int) -> bool:
@@ -186,7 +186,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
             return True
         if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
-        return self.filter.covers_incoming(sequence)
+        return self.filter.overlay.covers_incoming(sequence)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""
@@ -225,7 +225,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     ) -> bool:
         if not is_current() or not self.state.can_draw:
             return False
-        if not self.has_newer:
+        if not NEWER_END.visible_more(self):
             return await self.extend(through, is_current)
         self.retain_committed(through)
         request = LatestViewportRequest(LatestPosition.hold(self.window))

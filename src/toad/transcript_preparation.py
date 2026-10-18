@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
+from itertools import islice
 from dataclasses import dataclass, field, replace
 from typing import ClassVar, TYPE_CHECKING
 from weakref import ReferenceType, ref
@@ -13,13 +14,14 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
+from toad.widgets.presentation_window import PageEnd, PageRequest
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
 from toad.widgets.message_filter import MessageCategory
 from toad.work_preparation import (
     PreparationRuntime,
-    PreparedValue,
+    PreparedResult,
     PreparationScope,
     ReusableWork,
     ScopedWork,
@@ -39,8 +41,6 @@ if TYPE_CHECKING:
 @dataclass
 class PreparedTranscriptPage:
     """One transcript page's immutable fragments and the range a view draws."""
-
-    BATCH: ClassVar[int] = 4
 
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
@@ -86,31 +86,17 @@ class PreparedTranscriptPage:
             return self.for_view()
         return type(self).measured(self.page, fragments)
 
-    @staticmethod
-    def initial_slice(fragments, batch_size: int, newest: bool) -> slice:
-        start = max(0, len(fragments) - batch_size) if newest else 0
-        return slice(start, min(len(fragments), start + batch_size))
-
-    def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
-        """Keep rendered members while a nonmatching source interval advances."""
-        page = prepared.page
-        self.page = replace(self.page,
-                            before=page.before if older else self.page.before,
-                            after=self.page.after if older else page.after,
-                            has_older=page.has_older if older else self.page.has_older,
-                            has_newer=self.page.has_newer if older else page.has_newer)
-
-    def can_extend(self, older: bool) -> bool:
-        """Whether this already-decoded page has fragments outside its drawn range."""
-        return self.start > 0 if older else self.stop < len(self.fragments)
-
-    def configure(self, *, batch_size, newest=True):
+    def configure(self, *, batch_size):
         if self.fragment_range is None:
-            self.set_fragment_range(self.initial_slice(self.fragments, batch_size, newest))
+            self.set_fragment_range(slice(max(0, len(self.fragments) - batch_size), len(self.fragments)))
+
+    @property
+    def fragments_in_range(self):
+        return self.fragments[self.start:self.stop]
 
     async def prepare_rows(self, view: LineHistory, current: Callable[[], bool], *,
                            target: LineHistory | Contents, selected: frozenset[type[MessageCategory]],
-                           boundary: int, older: bool, rows_needed: int, limit: int) -> int:
+                           boundary: int, end: PageEnd, rows_needed: int, limit: int) -> int:
         """Select one directional range from its actual rendered rows.
 
         Latest destinations and ordinary edge travel use the same selection.
@@ -118,40 +104,35 @@ class PreparedTranscriptPage:
         the source owner publishes it under its original fences.
         """
         take = rows = 0
-        available = boundary if older else len(self.fragments) - boundary
-        while take < min(available, limit) and rows < rows_needed:
-            count = min(view.budget.batch_items, limit - take, available - take)
-            start = boundary - take - count if older else boundary + take
-            batch = self.fragments[start:start + count]
-            await view.prepare_fragments(batch, current, target=target, selected=selected)
+        start = stop = boundary
+        indices = iter(end.indices(self, boundary))
+        while take < limit and rows < rows_needed:
+            batch = tuple(islice(indices, min(view.budget.batch_items, limit - take)))
+            if not batch:
+                break
+            await view.prepare_fragments(tuple(self.fragments[index] for index in batch),
+                                         current, target=target, selected=selected)
             if not current():
                 return 0
-            for fragment in reversed(batch) if older else batch:
+            for index in batch:
+                fragment = self.fragments[index]
                 lines = (fragment.lines_for(target.line_width, view.app.colours.line_theme)
                          if fragment.shown_in(selected) else None)
                 take += 1
+                start, stop = min(start, index), max(stop, index + 1)
                 rows += 0 if lines is None else lines.height
                 if rows >= rows_needed:
                     break
-        self.set_fragment_range(slice(boundary - take, boundary) if older
-                                else slice(boundary, boundary + take))
+        self.set_fragment_range(slice(start, stop))
         return rows
 
     @property
     def start(self):
         return self.fragment_range[0]
 
-    @start.setter
-    def start(self, start):
-        self.fragment_range = start, self.fragment_range[1] if self.fragment_range is not None else start
-
     @property
     def stop(self):
         return self.fragment_range[1]
-
-    @stop.setter
-    def stop(self, stop):
-        self.fragment_range = self.start, stop
 
     def set_fragment_range(self, selected: slice) -> None:
         self.fragment_range = selected.start, selected.stop
@@ -165,10 +146,6 @@ class PreparedTranscriptPage:
         if len(fragment_range.members) != fragment_range.stop - fragment_range.start:
             raise RuntimeError("Original transcript suppliers do not cover their range")
         self.set_fragment_range(slice(fragment_range.start, fragment_range.stop))
-
-    @property
-    def retained_source_bytes(self):
-        return self.retained_bytes
 
     # A page draws its selected fragments as lines: drawing moves a range,
     # it never mounts or removes native members.
@@ -196,13 +173,6 @@ class PreparedTranscriptPage:
         return (self.page == other.page
                 and tuple(fragment.events for fragment in self.fragments)
                 == tuple(fragment.events for fragment in other.fragments))
-
-    def trim(self, view, count: int, *, older: bool) -> None:
-        if older:
-            self.start += count
-        else:
-            self.stop -= count
-        view.range_changed()
 
     def for_view(self) -> PreparedTranscriptPage:
         """An independent view owns its drawing range and loaded source data.
@@ -236,23 +206,9 @@ class PageFragmentRange:
 
 
 @dataclass(frozen=True)
-class PageRequest:
-    before: TranscriptCursor | None = None
-    after: TranscriptCursor | None = None
-
-    @classmethod
-    def adjacent(cls, page: TranscriptPage, older: bool) -> PageRequest:
-        return cls(before=page.before) if older else cls(after=page.after)
-
-    @property
-    def older(self) -> bool:
-        return self.before is not None
-
-
-@dataclass(frozen=True)
-class PageRevision(WorkRevision):
-    through: TranscriptCursor | None
-    request: PageRequest
+class PageRevision[Cursor = TranscriptCursor | None](WorkRevision):
+    through: Cursor | None
+    request: PageRequest[Cursor]
     size: ClassVar[int] = 512
 
 
@@ -277,7 +233,7 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
         return WorkKey(type(self), UniqueRevision())
 
     def result_size(self, result: FilteredTranscriptBatch) -> int:
-        return 64 + result.prepared.retained_source_bytes
+        return 64 + result.prepared.retained_bytes
 
     def prepare(self) -> FilteredTranscriptBatch:
         matches = []
@@ -376,9 +332,9 @@ class PreparedPageSource(ABC):
     @abstractmethod
     async def _prepare(self, request: PageRequest) -> None: ...
 
-    async def prepare_next(self, page: TranscriptPage, older: bool) -> None:
-        if (page.has_older if older else page.has_newer):
-            await self.prepare(PageRequest.adjacent(page, older))
+    async def prepare_next(self, page: TranscriptPage, end: PageEnd) -> None:
+        if end.has_more(self.through, page):
+            await self.prepare(end.adjacent(page))
 
     def close(self) -> None:
         self.runtime.discard_scope(self.scope)
@@ -424,41 +380,35 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_source_bytes
+        return result.retained_bytes
 
     def execute(self) -> PreparedTranscriptPage:
         return PreparedTranscriptPage.prepare(self.page)
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
-    through: TranscriptCursor
-    request: PageRequest
+    through: Cursor
+    request: PageRequest[Cursor]
     lane = WorkLane.MODEL
 
     @property
     def work_key(self) -> WorkKey:
         # An older page is immutable as its source grows; a newer read ends at the source end.
-        return WorkKey(type(self), PageRevision(None if self.request.older else self.through, self.request), self.scope)
+        return WorkKey(type(self), PageRevision(self.request.end.work_cursor(self.through), self.request), self.scope)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_source_bytes
+        return result.retained_bytes
 
     async def execute(
-        self, runtime: PreparationRuntime, key: WorkKey,
-    ) -> tuple[PreparedValue[PreparedTranscriptPage], int]:
+        self: TranscriptPageWork[TranscriptCursor | None], runtime: PreparationRuntime, key: WorkKey,
+    ) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
-        page = await self.loader(before=request.before, after=request.after, through=self.through)
-        cursor = request.before or request.after
-        if cursor is not None:
-            edge = page.before if request.older else page.after
-            more = page.has_older if request.older else page.has_newer
-            wrong_direction = (edge.contains(cursor) if request.older
-                               else cursor.contains(edge))
-            if edge.session_file != cursor.session_file or (wrong_direction and more):
-                raise ValueError("Transcript history made no cursor progress")
+        page = await request.end.load_page(self.loader, request.cursor, self.through)
+        if not request.progressed(page):
+            raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
             raise asyncio.CancelledError
         prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
@@ -504,13 +454,10 @@ class SavedPrefix(SavedHistory):
         self.earlier = earlier
 
     async def _get(self, request):
-        return await self.earlier.get(request) if request.older else await super()._get(request)
+        return await request.end.edge((self.earlier.get, super()._get))(request)
 
     async def _prepare(self, request):
-        if request.older:
-            await self.earlier.prepare(request)
-        else:
-            await super()._prepare(request)
+        await request.end.edge((self.earlier.prepare, super()._prepare))(request)
 
 
 class ClosedHistory(SavedHistory):
@@ -557,9 +504,9 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
         return self._projected_boundary
 
     def _reader_for(self, request: PageRequest) -> PreparedPageSource | None:
-        """The reader that serves a request; None when the kept boundary answers it."""
-        if (request.before == self.through
-                or request.after == self._boundary.page.before or self.loader is None):
+        """The source owns reader availability and its fixed boundary."""
+        boundary = request.end.edge((self.through, self._boundary.page.before))
+        if request.cursor == boundary or self.loader is None:
             return None
         return self._raw
 
@@ -568,16 +515,7 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
             return await self.boundary()
         initial = await reader.get(request)
         prepared = await self.projection.project(initial, self.runtime)
-        if not request.older and not prepared.fragments and not prepared.page.has_newer:
-            boundary = await self.boundary()
-            return replace(boundary, page=replace(
-                boundary.page, before=initial.page.before,
-                has_older=initial.page.has_older,
-            ))
-        # One requested source page, including an empty matching interval.
-        # Only the viewport or an explicit filter scan may request another;
-        # a projection cannot decode arbitrary older pages behind that request.
-        return replace(prepared, page=replace(prepared.page, has_newer=True))
+        return await request.end.project(self, initial, prepared)
 
     async def _prepare(self, request: PageRequest) -> None:
         if (reader := self._reader_for(request)) is None:
