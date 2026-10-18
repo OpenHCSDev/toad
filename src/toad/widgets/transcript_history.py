@@ -41,7 +41,7 @@ from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTr
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
     RangeCategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
-    ProjectedTranscriptSource,
+    ProjectedTranscriptSource, NoProjection,
 )
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
@@ -507,11 +507,9 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         await self.retire_source(parked=True)
         source = self._reader()
         projection = self.filter.overlay
-        projected = await projection.park_document() if projection is not None else None
+        projected = await projection.park_document() if projection is not None else NoProjection()
         pages = tuple(page.prepared for page in self.pages)
-        position = self.window.reader_position
-        await source.runtime.run_thread(source.measure_held, pages, projected,
-                                        () if position is None else position.ranges)
+        await source.runtime.run_thread(source.measure_held, pages, projected)
         source.park(pages, projected)
         return source
 
@@ -529,7 +527,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             page, batch_size=history.budget.batch_items,
         ) for page in pages[1:])
         projected = source.projection_source
-        if projected is not None:
+        if projected.held_pages:
             from toad.transcript_filter import Filtered
             projection = ProjectedTranscriptHistory.from_source(projected, owner=history)
             history.filter = Filtered(history, projection)
