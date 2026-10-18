@@ -605,10 +605,9 @@ class TranscriptPresentation:
                     and view.query_ancestor(SessionView) is source
                     and view.app.workspace_sessions.owns(source))
 
-        if position is not None:
-            for history in self.histories:
-                if not await history.restore_reader_ranges(position.ranges, current):
-                    return
+        for history in self.histories:
+            if not await history.restore_reader_ranges(position.ranges, current):
+                return
         if not current():
             return
         if first_history is not None:

@@ -1,6 +1,9 @@
 """Shared budgets for a source-backed window of native widget presentation."""
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, replace
+from collections import deque
+from agent_comms.transcripts import TranscriptCursor
+from agent_comms.message_page import PageBounds, PageTraversal
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import zip_longest
@@ -8,9 +11,10 @@ from functools import partial
 from math import ceil
 from operator import gt, ge
 from time import monotonic, get_clock_info
-from typing import Annotated, TYPE_CHECKING, get_args
+from typing import Annotated, ClassVar, TYPE_CHECKING, get_args
 
 if TYPE_CHECKING:
+    from agent_comms.transcripts import TranscriptPage
     from textual.widget import Widget
 
 
@@ -110,8 +114,186 @@ class Runway:
     above: int
     below: int
 
-    def rows_toward(self, older: bool) -> int:
-        return self.above if older else self.below
+
+class PageEnd(ABC):
+    """One end owns page traversal, source reads and eviction at that edge."""
+
+    step: ClassVar[int]
+    accepts_destination = True
+
+    def boundary(self, page) -> int:
+        return self.entry(len(page.fragments) + 1)
+
+    def indices(self, page, boundary: int) -> range:
+        return range(boundary + min(self.step, 0), self.edge((-1, len(page.fragments))), self.step)
+
+    def can_extend(self, page) -> bool:
+        return self.edge((page.start, len(page.fragments) - page.stop)) > 0
+
+    def has_more(self, through, page) -> bool:
+        return self.edge((page.has_older, page.has_newer))
+
+    def adjacent(self, page) -> PageRequest:
+        return PageRequest(self, self.edge((page.before, page.after)))
+    @abstractmethod
+    def advance_empty(self, edge, staged) -> None: ...
+    @abstractmethod
+    def edge(self, pages): ...
+    def edge_boundary(self, edge, local: bool, staged) -> int:
+        return self.edge((edge.prepared.start, edge.prepared.stop)) if local else self.boundary(staged)
+    @abstractmethod
+    async def mount(self, history, view, pages) -> None: ...
+    @staticmethod
+    @abstractmethod
+    def append[Item](pages: deque[Item], view: Item, /) -> None: ...
+    @staticmethod
+    @abstractmethod
+    def pop[Item](pages: deque[Item], /) -> Item: ...
+
+    def eviction_fragments(self, page):
+        return page.fragments_in_range[:: -self.step]
+    def rows_toward(self, runway: Runway) -> int:
+        return self.edge((runway.above, runway.below))
+    def at_boundary(self, window) -> bool:
+        boundary = self.edge((0, window.max_scroll_y))
+        return all((position - boundary) * self.step >= 0
+                   for position in (window.scroll_y, window.scroll_target_y))
+
+    def work_cursor[Cursor](self, through: Cursor) -> Cursor | None:
+        return self.edge((None, through))
+    @abstractmethod
+    def loader_keywords(self, cursor: TranscriptCursor | None) -> dict[str, TranscriptCursor | None]: ...
+    def progressed(self, page, cursor: TranscriptCursor) -> bool:
+        edge = self.edge((page.before, page.after))
+        start, stop = self.edge(((edge, cursor), (cursor, edge)))
+        return edge.session_file == cursor.session_file and not (
+            start.contains(stop) and self.edge((page.has_older, page.has_newer)))
+    @abstractmethod
+    def wire_page(self, source, cursor, through): ...
+
+    def entry(self, length):
+        return self.edge((length - 1, 0))
+
+    async def project(self, source, initial, prepared):
+        return replace(prepared, page=replace(prepared.page, has_newer=True))
+
+    def visible_more(self, history):
+        page = self.edge(history.pages).prepared
+        return self.can_extend(page) or self.has_more(page.page.after, page.page)
+
+    def fresh(self, history) -> bool:
+        return False
+
+    def accepts_velocity(self, velocity: float) -> bool:
+        return velocity * self.step > 0
+
+    async def walk(self, history, current, target, selected, start, rows_needed, limit):
+        for index in range(start[0], self.edge((-1, len(history.pages))), self.step):
+            if not current() or rows_needed <= 0 or limit <= 0:
+                break
+            page = history.pages[index].prepared
+            boundary = start[1] if index == start[0] else self.boundary(page)
+            rows_needed -= await page.prepare_rows(
+                history, current, target=target, selected=selected, end=self,
+                boundary=boundary, rows_needed=rows_needed, limit=limit)
+            limit -= page.stop - page.start
+        return rows_needed, limit
+
+    def eviction_order(self, history):
+        return OLDER_END, NEWER_END
+
+    def can_evict(self, overlay_visible) -> bool:
+        return True
+
+    def leave_tail(self, window) -> None:
+        pass
+
+    def trim(self, view, count) -> None:
+        page = view.prepared
+        page.set_fragment_range(slice(page.start + self.edge((count, 0)), page.stop - self.edge((0, count))))
+        view.range_changed()
+
+
+class OlderEnd(PageEnd):
+    step = -1
+    pop = staticmethod(deque.popleft)
+    append = staticmethod(deque.appendleft)
+
+    def loader_keywords(self, cursor):
+        return {'before': cursor}
+
+    def wire_page(self, source, cursor, through):
+        return source.kind.page(source, PageBounds(
+            PageTraversal.capture(**cursor.older()),
+            source.tail_limit if cursor == through else source.page_limit, source.max_bytes))
+
+    def advance_empty(self, edge, staged):
+        edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
+
+    def edge(self, pages):
+        return pages[0]
+
+    async def mount(self, history, view, pages):
+        await history.mount(view, before=self.edge(pages) if pages else history.newer)
+
+    def eviction_order(self, history):
+        return super().eviction_order(history) if history.follows_source_tail else (NEWER_END, self)
+
+    def can_evict(self, overlay_visible):
+        return not overlay_visible
+
+    def leave_tail(self, window):
+        window.release_anchor()
+
+
+class NewerEnd(PageEnd):
+    step = 1
+    accepts_destination = False
+    pop = staticmethod(deque.pop)
+    append = staticmethod(deque.append)
+
+    def has_more(self, through, page):
+        return super().has_more(through, page) or page.after != through
+
+    def loader_keywords(self, cursor):
+        return {'after': cursor}
+
+    def wire_page(self, source, cursor, through):
+        page = source.kind.page(source, PageBounds(PageTraversal.capture(**cursor.newer()), source.page_limit, source.max_bytes))
+        kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor)
+        return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
+
+    async def project(self, source, initial, prepared):
+        if not prepared.fragments and not prepared.page.has_newer:
+            boundary = await source.boundary()
+            return replace(boundary, page=replace(boundary.page, before=initial.page.before,
+                                                 has_older=initial.page.has_older))
+        return await super().project(source, initial, prepared)
+
+    def advance_empty(self, edge, staged):
+        edge.page = replace(edge.page, after=staged.page.after, has_newer=staged.page.has_newer)
+
+    def fresh(self, history):
+        return history.drawn_tail_followed
+
+    def edge(self, pages):
+        return pages[-1]
+
+    async def mount(self, history, view, pages):
+        await history.mount(view, before=history.newer)
+
+
+OLDER_END = OlderEnd()
+NEWER_END = NewerEnd()
+
+
+@dataclass(frozen=True)
+class PageRequest[Cursor = TranscriptCursor | None]:
+    end: PageEnd
+    cursor: Cursor
+
+    def progressed(self: PageRequest[TranscriptCursor | None], page: TranscriptPage) -> bool:
+        return self.cursor is None or self.end.progressed(page, self.cursor)
 
 
 class PreparationDemand(ABC):
@@ -123,18 +305,18 @@ class PreparationDemand(ABC):
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
         return MovingPreparation(travel / elapsed)
 
-    def accepts_result(self, older: bool) -> bool:
+    def accepts_result(self, end) -> bool:
         """A running read may finish after input settles; it starts no next read."""
         return True
 
-    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
+    def read_rows(self, preparation, history, end, runway: Runway) -> int:
         """Stationary input never requests another source page."""
         return 0
 
     def source_read(self) -> None:
         """Only a bounded destination counts the pages its request read."""
 
-    def prepare_ahead(self, preparation, history, page, older: bool) -> None:
+    def prepare_ahead(self, preparation, history, page, end) -> None:
         """Only measured movement speculates beyond its current destination."""
 
     def destination_painted(self) -> "PreparationDemand":
@@ -161,21 +343,21 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def accepts_result(self, older: bool) -> bool:
-        return older == (self.velocity < 0)
+    def accepts_result(self, end) -> bool:
+        return end.accepts_velocity(self.velocity)
 
-    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
-        if not self.accepts_result(older):
+    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+        if not self.accepts_result(end):
             return 0
         ahead = preparation.ahead_rows(preparation.window.outer_size.height)
-        return max(0, ceil(ahead) - runway.rows_toward(older))
+        return max(0, ceil(ahead) - end.rows_toward(runway))
 
-    def prepare_ahead(self, preparation, history, page, older: bool) -> None:
-        if self.accepts_result(older):
+    def prepare_ahead(self, preparation, history, page, end) -> None:
+        if self.accepts_result(end):
             # The existing runtime owns the single decoded/prepared result.
             # This native worker only waits for that original bounded work;
             # foreground paging shares it, without a page store in the widget.
-            history.run_worker(partial(history._reader().prepare_next, page, older),
+            history.run_worker(partial(history._reader().prepare_next, page, end),
                                group="transcript-read-ahead", exclusive=True,
                                exit_on_error=False)
 
@@ -193,15 +375,15 @@ class DestinationPreparation(PreparationDemand):
         # An explicit reversal immediately replaces the burst.
         return super().moved(travel, elapsed) if travel < 0 else self
 
-    def accepts_result(self, older: bool) -> bool:
+    def accepts_result(self, end) -> bool:
         # A newer destination supersedes older work through its source snapshot.
-        return older
+        return end.accepts_destination
 
-    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
-        if not older:
+    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+        if not self.accepts_result(end):
             return 0
-        edge = history.pages[0].prepared
-        if not edge.can_extend(older) and not preparation.budget.can_read_destination(self.pages_read):
+        edge = end.edge(history.pages).prepared
+        if not end.can_extend(edge) and not preparation.budget.can_read_destination(self.pages_read):
             return 0
         return max(0, self.target_rows - history.drawn_extent[0])
 
@@ -246,21 +428,12 @@ class DirectionalPreparation:
     def request_boundary(self, travel: float) -> bool:
         """Measure reader input while its lazy source edge has no native travel."""
         window = self.window
-        older = travel < 0
-        boundary = (
-            window.scroll_y <= 0 and window.scroll_target_y <= 0
-            if older else
-            window.scroll_y >= window.max_scroll_y and window.scroll_target_y >= window.max_scroll_y
-        )
-        source_available = any(
-            history.has_older if older else history.has_newer for history in window.histories
-        )
-        if not boundary or not source_available:
+        end = OLDER_END if travel < 0 else NEWER_END
+        if not end.at_boundary(window) or not any(end.visible_more(h) for h in window.histories):
             return False
         self.requested(travel)
         window._schedule_settle()
-        if older and window.follows_tail:
-            window.release_anchor()
+        end.leave_tail(window)
         window.request_preparation()
         return True
 
@@ -324,11 +497,11 @@ class DirectionalPreparation:
         # destination items may exceed the nominal working-set item budget.
         return max(budget.item_limit(0), viewport_rows)
 
-    def read_rows(self, history, older: bool) -> int:
-        if not (history.has_older if older else history.has_newer):
+    def read_rows(self, history, end) -> int:
+        if not end.visible_more(history):
             return 0
         runway = self.runway(history)
-        return 0 if runway is None else self.demand.read_rows(self, history, older, runway)
+        return 0 if runway is None else self.demand.read_rows(self, history, end, runway)
 
     def runway(self, history) -> Runway | None:
         """Published rows above and below this viewport; None while the history is off screen."""
@@ -346,15 +519,15 @@ class DirectionalPreparation:
         if (not window.screen.is_active or not history.selected_categories
                 or self.runway(history) is None):
             return
-        if history.follows_source_tail and history.has_newer:
+        if history.follows_source_tail and NEWER_END.visible_more(history):
             window.jump_to_latest()
         elif history.filter.active:
             # Projection scans share the original source's decoded boundary.
             history.filter.check_edges()
         else:
-            for older in (True, False):
-                if self.read_rows(history, older):
-                    history.request_page(older)
+            for end in (OLDER_END, NEWER_END):
+                if self.read_rows(history, end):
+                    history.request_page(end)
                     return
 
     def request_older(self) -> None:

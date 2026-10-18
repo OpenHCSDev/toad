@@ -8,29 +8,19 @@ from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
 from toad.block_content import BlockContent
+from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
 
 
-
-class CursorDirection(DeclaredFamily, affix="Cursor"):
-    @property
-    @abstractmethod
-    def step(self) -> int: ...
-
+class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
     @property
     @abstractmethod
     def enters_from_prompt(self) -> bool: ...
 
-    def entry(self, length: int) -> int:
-        return length - 1 if self.step < 0 else 0
-
-
-class UpCursor(CursorDirection):
-    step = -1
+class UpCursor(OlderEnd, CursorDirection):
     enters_from_prompt = True
 
 
-class DownCursor(CursorDirection):
-    step = 1
+class DownCursor(NewerEnd, CursorDirection):
     enters_from_prompt = False
 
 
@@ -198,7 +188,7 @@ class FragmentBlockCursor(BlockCursor):
             return True
         # At a loaded edge with more history beyond it the cursor waits there:
         # scrolling to it loads the next page.
-        return self.block.has_older if direction.step < 0 else self.block.has_newer
+        return direction.visible_more(self.block)
 
     def select(self, widget):
         fragment = self.block.fragment_under_mouse(widget)
