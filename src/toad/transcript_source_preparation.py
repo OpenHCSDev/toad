@@ -127,16 +127,16 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 page.prepare_viewport(self.window)
             self.state.check_edges(self)
 
-    def request_page(self, older: bool) -> None:
-        self.schedule_source_work(partial(self._prepare_edge, older))
+    def request_page(self, end) -> None:
+        self.schedule_source_work(partial(self._prepare_edge, end))
 
-    async def _prepare_edge(self, older: bool) -> None:
+    async def _prepare_edge(self, end) -> None:
         """Keep one preparation slot while committed publications request more rows."""
         snapshot = self.source_snapshot()
-        while snapshot.current(self) and await self._load_page(older):
+        while snapshot.current(self) and await self._load_page(end):
             pass
 
-    async def _load_page(self, older: bool) -> bool:
+    async def _load_page(self, end) -> bool:
         """Publish one source range; return whether this edge still needs rows."""
         raise NotImplementedError
 
@@ -268,7 +268,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             edge.page = replace(edge.page, has_newer=True)
             self._update_edges()
         else:
-            await self._load_page(False, prepared, publication_current)
+            from toad.widgets.transcript_history import NewerEnd
+            await self._load_page(NewerEnd(), prepared, publication_current)
             if not snapshot.current(self) or not publication_current():
                 return False
             tail = self.pages[-1]

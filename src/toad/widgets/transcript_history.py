@@ -64,7 +64,7 @@ from toad.widgets.transcript_lines import (
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition, Older, Newer, PageWalk
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
@@ -74,6 +74,73 @@ from toad.widgets.transcript_fragments import (
 
 if TYPE_CHECKING:
     from toad.widgets.conversation import Contents, Conversation
+
+
+class PageEnd(PageWalk):
+    """One page traversal also owns source growth at that end."""
+
+    def fresh(self, history) -> bool:
+        return False
+
+    def can_extend(self, page) -> bool:
+        return page.can_extend(self.older)
+
+    def adjacent(self, page):
+        return PageRequest.adjacent(page, self.older)
+
+    def advance_empty(self, edge, staged) -> None:
+        edge.advance_empty(staged, self.older)
+
+    async def prepare_edge(self, staged, history, current, missing, boundary):
+        await self.prepare(staged, history, current, history, history.selected_categories,
+                           boundary, max(1, missing), history.fragment_limit)
+
+    def read_rows(self, window, history) -> int:
+        return window.lookahead.read_rows(history, self.older)
+
+    def accepts_result(self, demand) -> bool:
+        return demand.accepts_result(self.older)
+
+    def prepare_ahead(self, demand, lookahead, history, page) -> None:
+        demand.prepare_ahead(lookahead, history, page, self.older)
+
+
+class OlderEnd(Older, PageEnd):
+    def edge(self, pages):
+        return pages[0]
+
+    def edge_boundary(self, edge, local, staged):
+        return edge.start if local else len(staged.fragments)
+
+    def before(self, history, edge):
+        return edge
+
+    def append(self, pages, view) -> None:
+        pages.appendleft(view)
+
+    def trim_older(self, history) -> bool:
+        return history.follows_source_tail
+
+
+class NewerEnd(Newer, PageEnd):
+    def fresh(self, history) -> bool:
+        return not history.has_newer and history.follows_source_tail
+
+    def edge(self, pages):
+        return pages[-1]
+
+    def edge_boundary(self, edge, local, staged):
+        return edge.stop if local else 0
+
+    def before(self, history, edge):
+        return history.newer
+
+    def append(self, pages, view) -> None:
+        pages.append(view)
+
+    def trim_older(self, history) -> bool:
+        return True
+
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
@@ -937,7 +1004,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self._update_edges()
 
     async def _load_page(
-        self, older: bool, prepared: PreparedTranscriptPage | None = None,
+        self, end: PageEnd, prepared: PreparedTranscriptPage | None = None,
         publication_current: Callable[[], bool] = lambda: True,
     ) -> bool:
         """Publish one readable range; report whether its edge still needs rows."""
@@ -945,64 +1012,57 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         window, loader = snapshot.window, self.loader
         # Only an append beyond the fully drawn, followed end is an arrival.
         # Local range growth, older paging and destination restoration are not.
-        fresh = not older and not self.has_newer and self.follows_source_tail
+        fresh = end.fresh(self)
 
         def current() -> bool:
             if not snapshot.current(self) or not publication_current():
                 return False
-            return (window.follows_tail if fresh
-                    else window.lookahead.demand.accepts_result(older))
+            return window.follows_tail if fresh else end.accepts_result(window.lookahead.demand)
 
         try:
             if not current():
                 return False
-            edge = self.pages[0] if older else self.pages[-1]
+            edge = end.edge(self.pages)
             page_range = edge.capture_range()
             edge_cursor = edge.page.before, edge.page.after
             demand = window.lookahead.demand
             missing = (window.lookahead.ahead_rows(window.outer_size.height) if fresh
-                       else window.lookahead.read_rows(self, older))
-            local = edge.prepared.can_extend(older)
+                       else end.read_rows(window, self))
+            local = end.can_extend(edge.prepared)
             staged = edge.prepared.for_view() if local else prepared
             if not local:
                 if loader is None:
                     return False
                 if staged is None:
-                    staged = await self._reader().get(PageRequest.adjacent(edge.page, older))
+                    staged = await self._reader().get(end.adjacent(edge.page))
                     demand.source_read()
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
-            window.lookahead.demand.prepare_ahead(window.lookahead, self, staged.page, older)
-            boundary = (edge.start if older else edge.stop) if local else (len(staged.fragments) if older else 0)
-            await staged.prepare_rows(
-                self, current, target=self, selected=self.selected_categories,
-                boundary=boundary, older=older,
-                rows_needed=max(1, missing),
-                limit=self.fragment_limit,
-            )
+            end.prepare_ahead(window.lookahead.demand, window.lookahead, self, staged.page)
+            await end.prepare_edge(staged, self, current, missing, end.edge_boundary(edge, local, staged))
             if not current():
                 return False
             async with window.history_lock:
                 if not current():
                     return False
-                if (self.pages[0] if older else self.pages[-1]) is not edge:
+                if end.edge(self.pages) is not edge:
                     return False
                 if edge.capture_range() != page_range:
                     return False
                 protected = {id(fragment) for fragment in self.visible_fragments()}
                 async with window.preserve_history(root=self):
-                    await self._extend_and_trim(edge, older, local, protected, staged, current=current,
+                    await self._extend_and_trim(edge, end, local, protected, staged, current=current,
                                                 fresh=fresh and self._source_state.rows_arrive)
                     self._require_can_draw()
                     self._source_state.rows_published(self)
             self.state.delivered(self)
-            advanced = self.pages[0] if older else self.pages[-1]
+            advanced = end.edge(self.pages)
             if (advanced is edge and edge.capture_range() == page_range
                     and (edge.page.before, edge.page.after) == edge_cursor):
                 return False
             if fresh or not current():
                 return False
-            return bool(window.lookahead.read_rows(self, older))
+            return bool(end.read_rows(window, self))
         except _DrawingStopped:
             return False
         finally:
@@ -1010,7 +1070,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self.window.check_follow()
 
     async def _extend_and_trim(
-        self, edge: TranscriptPageView, older: bool, local: bool,
+        self, edge: TranscriptPageView, end: PageEnd, local: bool,
         protected: set[int], prepared: PreparedTranscriptPage, *,
         current: Callable[[], bool], fresh: bool = False,
     ) -> None:
@@ -1026,7 +1086,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             if not prepared.fragments:
                 # A nonmatching interval advances the original source span,
                 # not the native tree. No empty page widget or decoded cache.
-                edge.prepared.advance_empty(prepared, older)
+                end.advance_empty(edge.prepared, prepared)
                 await self._page_added(prepared.page, prepared.fragments)
             elif local:
                 previous = {id(fragment) for fragment in edge.fragments_in_range}
@@ -1038,13 +1098,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
             else:
                 page_range = edge.capture_range()
                 async with TranscriptPageView.acquire(
-                    self, prepared, fresh=fresh, before=edge if older else self.newer,
+                    self, prepared, fresh=fresh, before=end.before(self, edge),
                     current=lambda: current() and edge.capture_range() == page_range,
                 ) as view:
-                    if older:
-                        self.pages.appendleft(view)
-                    else:
-                        self.pages.append(view)
+                    end.append(self.pages, view)
                 protected.update(id(fragment) for fragment in view.fragments_in_range)
                 protected_pages.add(view)
                 await self._page_added(prepared.page, prepared.fragments)
@@ -1052,7 +1109,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 self.budget.item_limit(len(protected)), self._visible_fragment_budget(),
             )
             excess = self.fragment_count - limit
-            trim_older = self.follows_source_tail or not older
+            trim_older = end.trim_older(self)
             while (excess > 0 or len(self.pages) > limit) and (self.fragment_count > 1 or len(self.pages) > 1):
                 selected = None
                 for side in (trim_older, not trim_older):
@@ -1142,7 +1199,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     def request_older(self) -> None:
         if self.older_page_available:
-            self.request_page(True)
+            self.request_page(OlderEnd())
 
     async def load_older(self) -> None:
         if self.older_page_available:

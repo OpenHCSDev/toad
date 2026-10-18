@@ -352,9 +352,10 @@ class DirectionalPreparation:
             # Projection scans share the original source's decoded boundary.
             history.filter.check_edges()
         else:
-            for older in (True, False):
-                if self.read_rows(history, older):
-                    history.request_page(older)
+            from toad.widgets.transcript_history import OlderEnd, NewerEnd
+            for end in (OlderEnd(), NewerEnd()):
+                if end.read_rows(window, history):
+                    history.request_page(end)
                     return
 
     def request_older(self) -> None:

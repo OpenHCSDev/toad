@@ -129,11 +129,14 @@ class ReaderPosition(ABC):
         """
         if not reached:
             return UnreachedPosition(self)
+        return self.unheld(window)
+
+    def unheld(self, window: "HistoryWindow") -> "ReaderPosition":
         return self if window.history_change is not None else UnheldPosition()
 
     def without_holder(self, window: "HistoryWindow") -> "ReaderPosition":
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
-        return self if window.history_change is not None else UnheldPosition()
+        return self.unheld(window)
 
     def kept(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
@@ -141,13 +144,22 @@ class ReaderPosition(ABC):
     def for_parking(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
 
+    def resolve(self, window: "HistoryWindow") -> "ReaderPosition":
+        return self
+
     def preparation_start(self, history) -> tuple[int, int]:
+        return self.resolve(history.window)._preparation_start(history)
+
+    def _preparation_start(self, history) -> tuple[int, int]:
         """Where preparation begins when no message supplies a more exact place."""
         return 0, history.pages[0].start
 
     async def prepare(self, history, current, target, selected, rows_needed, limit):
         """Fill the reader's earlier rows, then the later rows in the remaining budget."""
-        start = self.preparation_start(history)
+        return await self.resolve(history.window)._prepare(history, current, target, selected, rows_needed, limit)
+
+    async def _prepare(self, history, current, target, selected, rows_needed, limit):
+        start = self._preparation_start(history)
         anchor = history.pages[start[0]].prepared
         _, limit = await Older().walk(
             history, current, target, selected, start,
@@ -183,12 +195,8 @@ class UnheldPosition(ReaderPosition):
     def for_parking(self, window: "HistoryWindow") -> ReaderPosition:
         return ReaderPosition.of(window)
 
-    def preparation_start(self, history) -> tuple[int, int]:
-        return ReaderPosition.of(history.window).preparation_start(history)
-
-    async def prepare(self, history, current, target, selected, rows_needed, limit):
-        return await ReaderPosition.of(history.window).prepare(
-            history, current, target, selected, rows_needed, limit)
+    def resolve(self, window: "HistoryWindow") -> ReaderPosition:
+        return ReaderPosition.of(window)
 
     def joined_tail(self) -> ReaderPosition:
         return self
@@ -201,10 +209,10 @@ class UnheldPosition(ReaderPosition):
 class TailPosition(ReaderPosition):
     """Following the latest message."""
 
-    def preparation_start(self, history) -> tuple[int, int]:
+    def _preparation_start(self, history) -> tuple[int, int]:
         return len(history.pages) - 1, len(history.pages[-1].fragments)
 
-    async def prepare(self, history, current, target, selected, rows_needed, limit):
+    async def _prepare(self, history, current, target, selected, rows_needed, limit):
         return await Older().walk(history, current, target, selected,
                                   self.preparation_start(history), rows_needed, limit)
 
@@ -276,10 +284,10 @@ class FragmentPosition(OffsetPosition):
         # the earlier ones; the layout that change asked for places this.
         return super().laid_out(window) and self.page(window).rows_measured
 
-    def preparation_start(self, history) -> tuple[int, int]:
+    def _preparation_start(self, history) -> tuple[int, int]:
         return next(((index, boundary) for index, page in enumerate(history.pages)
                      for boundary, fragment in enumerate(page.fragments) if fragment is self.fragment),
-                    super().preparation_start(history))
+                    super()._preparation_start(history))
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
@@ -331,11 +339,8 @@ class UnreachedPosition(ReaderPosition):
 
     position: ReaderPosition
 
-    def preparation_start(self, history) -> tuple[int, int]:
-        return self.position.preparation_start(history)
-
-    async def prepare(self, history, current, target, selected, rows_needed, limit):
-        return await self.position.prepare(history, current, target, selected, rows_needed, limit)
+    def resolve(self, window: "HistoryWindow") -> ReaderPosition:
+        return self.position.resolve(window)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return self.position.bodies(window)
@@ -356,7 +361,7 @@ class UnreachedPosition(ReaderPosition):
         return self.position.placed(window, reached) if reached else self
 
     def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
-        return self if window.history_change is not None else UnheldPosition()
+        return self.unheld(window)
 
 
 class HeldReaderDestination:
