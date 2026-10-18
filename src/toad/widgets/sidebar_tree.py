@@ -427,9 +427,6 @@ class SidebarModelView(CoreEventReceiver):
     def navigation_root(self):
         return self.model_state.service.root
 
-    def channel_active(self, row) -> bool:
-        return self.model_state.channel_active(row)
-
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
         raise NotImplementedError

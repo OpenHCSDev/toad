@@ -244,7 +244,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, Alternati
 
     def resting_ink(self):
         """Ink while not highlighted; the highlight always paints its own contrast."""
-        if self.is_navigation_row() and self.navigation_tree.channel_active(self):
+        if self.is_navigation_row() and self.navigation_tree.model_state.channel_active(self):
             return WarningColour
         return None
 
