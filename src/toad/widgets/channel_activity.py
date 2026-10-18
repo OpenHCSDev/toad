@@ -1,39 +1,47 @@
-"""Live channel members, reconciled from the shared sidebar's keyed rows."""
+"""Live channel members use the sidebar's keyed widget reconciliation."""
 
 from textual.containers import VerticalGroup
 
 from toad.screens.session_view import SessionView
 from toad.widgets.observed_thread_activity import StatusThread
-from toad.widgets.sidebar_tree import SidebarModelView, UnpaintedChannel
+from toad.widgets.sidebar_tree import KeyedRows, SidebarModelView, UnpaintedChannel
 
 
-class ChannelActivity(SidebarModelView, VerticalGroup):
+class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def __init__(self, view):
         self.view = view
         super().__init__()
+
+    @property
+    def member_container(self):
+        return self
+
+    @property
+    def rows(self):
+        return {row.target.name: row for row in self.children if not row.is_leaving}
+
+    @property
+    def member_keys(self):
+        model = self.model_state.shown
+        channel = model.channels.rows.get(self.view.target, UnpaintedChannel(self.view.target))
+        return tuple(name for name in channel.members if model.threads.rows[name].active)
 
     def accepts_observation(self) -> bool:
         return (self.view.query_ancestor(SessionView).is_current
                 and self.model_state.serves(self.view._bound_root))
 
+    def model_replaced(self) -> None:
+        self.remove_children()
+
     def sync(self, *, channels, threads, reorder=False) -> None:
         self.call_next(self.sync_members)
 
-    async def sync_members(self) -> None:
-        model = self.model_state.shown
-        channel = model.channels.rows.get(self.view.target, UnpaintedChannel(self.view.target))
-        members = tuple(name for name in channel.members if model.threads.rows[name].active)
-        present = {row.target.name: row for row in self.children}
-        for name, row in present.items():
-            if name not in members:
-                await row.remove()
-        for name in members:
-            if name not in present:
-                await self.mount(self.view.conversation_kind.activity_details(name))
-        for row in self.children:
-            row.bind(StatusThread.for_root(
-                self.model_state.root(), row.target.name, self.app.coordination_access))
-        present = {row.target.name: row for row in self.children}
-        positions = {present[name]: index for index, name in enumerate(members)}
-        if tuple(self.children) != tuple(positions):
-            self.sort_children(key=lambda row: positions[row])
+    def create_row(self, name):
+        row = self.view.conversation_kind.activity_details(name)
+        row.thread = StatusThread.for_root(
+            self.model_state.root(), name, self.app.coordination_access)
+        return row
+
+    def sync_members(self) -> None:
+        if self.is_attached and not self.is_leaving:
+            self.reconcile_keys(self.member_keys, changed=frozenset())

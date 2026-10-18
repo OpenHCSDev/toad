@@ -82,27 +82,16 @@ class WelcomeSection(SidebarGroup[CommsRow]):
     def keys(self, model: SidebarModel) -> tuple[str, ...]:
         raise NotImplementedError
 
-    def create(self, model: SidebarModel, key: str) -> CommsRow:
-        raise NotImplementedError
-
-    def update(self, model: SidebarModel, key: str, row: CommsRow) -> None:
-        raise NotImplementedError
-
     @property
     def member_keys(self):
         model = self.query_ancestor(WelcomeEntries).model_state.shown
         return self.keys(model)[:self.LIMIT]
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
-        model = self.query_ancestor(WelcomeEntries).model_state.shown
         if not self.member_container.is_attached:
             return
         self.display = bool(self.member_keys)
-
-        def update(key: str, row: CommsRow) -> None:
-            self.update(model, key, row)
-
-        self.reconcile_rows(lambda key: self.create(model, key), update, changed=changed)
+        self.reconcile_rows(changed=changed)
 
 
 class WelcomeChannels(WelcomeSection):
@@ -113,11 +102,11 @@ class WelcomeChannels(WelcomeSection):
     def keys(self, model):
         return tuple(model.channels.rows)
 
-    def create(self, model, key):
+    def new_row(self, key):
         return CommsRow(channel_target(key), key)
 
-    def update(self, model, key, row):
-        channel = model.channels.rows[key]
+    def show_member(self, key, row):
+        channel = self.query_ancestor(WelcomeEntries).model_state.shown.channels.rows[key]
         row.set_label(
             f"{channel.label} {channel.unread.label}" if channel.unread.label else channel.label,
         )
@@ -135,11 +124,11 @@ class WelcomeThreads(WelcomeSection):
         return tuple(name for name in (listed.members if listed is not None else ())
                      if name in model.threads.rows)
 
-    def create(self, model, key):
+    def new_row(self, key):
         return ThreadStatusRow(ThreadTarget(key), key)
 
-    def update(self, model, key, row):
-        thread = model.threads.rows[key]
+    def show_member(self, key, row):
+        thread = self.query_ancestor(WelcomeEntries).model_state.shown.threads.rows[key]
         row.target = ThreadTarget(key)
         row.show(thread)
 

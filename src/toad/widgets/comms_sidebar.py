@@ -111,6 +111,9 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def rows_changed(self) -> None:
         self.sidebar.navigation.apply()
 
+    def new_row(self, name: str) -> ThreadRow:
+        return ThreadRow(ThreadTarget(name), name)
+
     def show_member(self, name: str, view: ThreadRow) -> None:
         """Paint one member row from its current model row."""
         sidebar = self.sidebar
@@ -126,8 +129,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
-        self.reconcile_rows(
-            lambda name: ThreadRow(ThreadTarget(name), name), self.show_member, changed=changed)
+        self.reconcile_rows(changed=changed)
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint this group's shown rows among the changed threads ``names``.
