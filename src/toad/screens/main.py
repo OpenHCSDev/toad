@@ -7,6 +7,7 @@ import asyncio
 from abc import abstractmethod
 from functools import partial
 from pathlib import Path
+from typing import cast
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.declared_family import DeclaredFamily
@@ -404,7 +405,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
-    async def on_session_attached(self, event: core_events.AgentReady) -> None:
+    async def on_session_attached(self, message: CoreEventMessage) -> None:
+        event = cast(core_events.AgentReady, message.event)
         with self.changing_identity() as previous:
             self._identity = previous.with_session(event.session_id)
         await self.content.attached(self)
