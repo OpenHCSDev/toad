@@ -30,6 +30,14 @@ class CoreEvent(DeclaredFamily, affix="Event"):
 
 
 @dataclass(frozen=True)
+class ThreadIdentityChanged(CoreEvent):
+    """The originating session's current thread or wire changed."""
+
+    def can_replace(self, event: CoreEvent) -> bool:
+        return isinstance(event, ThreadIdentityChanged)
+
+
+@dataclass(frozen=True)
 class Update(CoreEvent):
     """The original stream owns grouping; its native block is not wire data."""
 
