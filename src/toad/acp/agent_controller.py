@@ -351,7 +351,7 @@ class AgentController(OperationalTerminalOwner):
                 owner = comms.registry.require(coordination.thread.name)
                 if owner.incarnation != coordination.thread:
                     raise ValueError('The owner incarnation changed while preparing the request.')
-                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.pid))
+                return RuntimeProxy(OwnerRequestContext(comms), owner.name, socket_path(comms.root, owner.require_process().pid))
             proxy = await asyncio.to_thread(resolve)
         try:
             self.require_owner(coordination, authority)
