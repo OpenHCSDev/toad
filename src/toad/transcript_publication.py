@@ -73,7 +73,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """The mounted main history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
-        return cursor.over_native(tuple(history.committed_cursor for history in self.owner.histories
+        return cursor.over_native(tuple(history.committed_cursor for history in self.binding.histories()
                                         if history in self.captured and history.state.reports_coverage))
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
@@ -369,7 +369,7 @@ class CommitPublication(CanonicalSourcePublication):
                 retired = retirement_candidates(contents.children, evidence)
                 if (
                     not is_current()
-                    or history is not next(iter(self.owner.histories), None)
+                    or history is not next(iter(self.binding.histories()), None)
                     or not plan.ready(prepared.history)
                     or not plan.permits(view, retired)
                 ):
@@ -556,11 +556,11 @@ class BoundView(ViewBinding):
         view.resume_retained_history()
         if not owner.readable:
             return
-        first_history = next(iter(owner.histories), None)
+        first_history = next(iter(self.histories()), None)
         moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
         position = self.window.reader_position
         if position is not None:
-            for history in owner.histories:
+            for history in self.histories():
                 if not await history.restore_reader_ranges(position.ranges, moment.current):
                     return
         if not moment.current():
@@ -693,31 +693,20 @@ class TranscriptPresentation:
         return sum(source.retained_source_bytes for source in self.documents)
 
 
-    @property
-    def histories(self) -> tuple[TranscriptHistory, ...]:
-        """Main saved sources are direct children of this transcript.
-
-        A body may own pagers for its Markdown or filtered projection. Those
-        rendering resources cannot certify this conversation's saved source.
-        The parent-child widget tree, rather than a kept pointer, owns this
-        relation through provisional mount, replacement, park and disposal.
-        """
-        return self.binding.histories()
-
     def received(self, page: TranscriptPage) -> None:
         """A read page resumes parked history; a commit adds what the history lacks."""
-        for history in self.histories:
+        for history in self.binding.histories():
             history.state.validate_snapshot(history, page)
-        history = next(iter(self.histories), None)
+        history = next(iter(self.binding.histories()), None)
         if history is None or not history.committed_cursor.contains(page.after):
             self.require_commit()
 
     @property
     def reports_coverage(self) -> bool:
-        return any(history.state.reports_coverage for history in self.histories)
+        return any(history.state.reports_coverage for history in self.binding.histories())
 
     def covers_outgoing(self, message) -> bool:
-        return any(history.covers_outgoing(message) for history in self.histories)
+        return any(history.covers_outgoing(message) for history in self.binding.histories())
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether saved history already draws the input Core started under this identity.
@@ -726,7 +715,7 @@ class TranscriptPresentation:
         the conversation. Retirement only removes live blocks that exist when
         a page is accepted, so a start arriving afterwards asks here first.
         """
-        return any(history.covers_input(native_id) for history in self.histories)
+        return any(history.covers_input(native_id) for history in self.binding.histories())
 
     def invalidate_publications(self) -> None:
         """Revoke in-flight view work without forgetting its published source."""
@@ -785,14 +774,14 @@ class TranscriptPresentation:
             self.binding.request(self)
 
     def source_work_finished(self, history) -> None:
-        if history in self.histories:
+        if history in self.binding.histories():
             self.retry()
 
     async def close(self) -> None:
         self.closed = True
         try:
             async with AsyncResourceRelease() as release:
-                for history in reversed(tuple(self.histories)):
+                for history in reversed(self.binding.histories()):
                     release.callback(history.close)
                 release.callback(self._close_documents)
                 await self.suspend()
@@ -898,7 +887,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 # A different origin does not authorize reusing these pages.
                 # Withdraw every old source before joining any cancelled work.
                 retirement = AwaitComplete(*(history.retire_source()
-                                             for history in self.histories))
+                                             for history in self.binding.histories()))
                 self.binding.reset_reader()
                 await retirement
 
@@ -911,7 +900,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
             return
         generation = self.generation
         documents = []
-        for history in self.histories:
+        for history in self.binding.histories():
             if history._source_state.retirement_source().reports_coverage:
                 documents.append(await history.park_document())
                 if self.closed or not self.binding.matches(view) or self.generation != generation:

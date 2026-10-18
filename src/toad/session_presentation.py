@@ -369,7 +369,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.state.restore(conversation)
             self.state = None
         await self.attach_binding(conversation)
-        await conversation.prepare_retained_session()
+        await self.transcript.bind(conversation).restore(self.transcript)
         conversation.display = True
         if returning:
             conversation.start_native_session()

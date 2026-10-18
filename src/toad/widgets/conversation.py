@@ -654,9 +654,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             release.callback(self.set_reactive, Conversation.agent, None)
             await self._release_source_resources()
 
-    async def prepare_retained_session(self) -> None:
-        await self.transcript.bind(self).restore(self.transcript)
-
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
         for history in self.contents.line_histories():
@@ -1108,7 +1105,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
         reference = MessageReference(sent.seq, sent.message_id)
         return any(reference in fragment.notification_references
-                   for history in self.transcript.histories
+                   for history in self.transcript.binding.histories()
                    for fragment in history.visible_fragments())
 
     async def _apply_session_name(self, name: str) -> None:
