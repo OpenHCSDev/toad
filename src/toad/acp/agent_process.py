@@ -1,25 +1,28 @@
-"""Subprocess and task lifetime, independent of ACP session semantics."""
+"""ACP connection, admitted subprocess and attached-session lifetime."""
 from __future__ import annotations
 import asyncio
 import json
 import os
-from contextlib import ExitStack, asynccontextmanager
+from contextlib import ExitStack
+from contextvars import ContextVar
 from pathlib import Path
+from acp import Client, ClientSideConnection, schema
+from acp.connection import StreamDirection, StreamEvent
+from acp.exceptions import RequestError
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.child_process import StreamingChildStdio, join_retirement
 from toad.acp.shell_command import ShellCommand
-from toad import jsonrpc
 from toad.core.events import LogAgentFail
-from toad.acp.wire_message import IncomingWireMessage
 
 
-class AgentProcess:
+class AgentProcess(Client):
     def __init__(self, agent):
         self.agent = agent
         self.env = None
         self.cwd = None
         self.route_selection = None
         self.process = None
+        self.connection: ClientSideConnection | None = None
         self.runner = None
         self.retirement = None
         self.cleanup = ExitStack()
@@ -27,6 +30,14 @@ class AgentProcess:
         self.initialization = None
         self.command = None
         self.attachment_lock = asyncio.Lock()
+        self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
+        self._prompt_written: ContextVar[asyncio.Future] = ContextVar('acp_prompt_written')
+
+    @property
+    def rpc(self) -> ClientSideConnection:
+        if self.connection is None:
+            raise ConnectionError('ACP process is not connected')
+        return self.connection
 
     def accepts_attachment(self, agent, env, cwd, selection):
         response = self.initialization
@@ -64,14 +75,11 @@ class AgentProcess:
                 return self
             for connection in dict.fromkeys((self, *processes)):
                 if connection.accepts_attachment(agent, env, cwd, selection):
-                    # Bind the acquired connection before eager session tasks run.
                     agent.process = connection
                     connection.sessions.add(agent.session)
                     agent.controller.replace_terminal_session()
                     agent.session.start()
                     return connection
-            # A previously shared connection cannot be repurposed for another
-            # launch. Keep its original sessions and acquire a new process.
             connection = AgentProcess(agent) if self.sessions else self
             connection.agent = agent
             connection.env, connection.cwd, connection.route_selection = env, cwd, selection
@@ -85,16 +93,6 @@ class AgentProcess:
             connection.cleanup.enter_context(acquisition.pop_all())
             return connection
 
-    def send(self, request, agent):
-        if self.process is None:
-            agent.log("[error] Agent process isnt running")
-            return
-
-        body = request.body
-        agent.log(f"[client] {body}")
-        if (stdin := self.process.stdin) is not None:
-            stdin.write(b"%s\n" % request.body_json)
-
     @staticmethod
     def attached_root(agent):
         return agent.coordination.wire_root if agent.coordination else None
@@ -102,24 +100,125 @@ class AgentProcess:
     def ingress(self, agent):
         return AcpIngress(self.route_selection, Path(self.cwd), self.attached_root(agent))
 
-    @asynccontextmanager
-    async def locked_prompt(self, agent):
-        """Keep Core's input lock until the prompt is written to stdin.
+    async def prompt(self, agent, content, metadata, require):
+        """Core admits the actual SDK write, not the duration of the reply."""
+        written = asyncio.get_running_loop().create_future()
+        token = self._prompt_written.set(written)
+        try:
+            async with self.ingress(agent).prompt():
+                require()
+                pending = asyncio.create_task(self.rpc.prompt(agent.session_id, content, **metadata))
+                flushed = asyncio.create_task(asyncio.wait(
+                    (written, pending), return_when=asyncio.FIRST_COMPLETED))
+                try:
+                    await asyncio.shield(flushed)
+                except asyncio.CancelledError:
+                    # The SDK may already have queued bytes. Keep Core's lock
+                    # until that write finishes or fails, even during retirement.
+                    await flushed
+                    pending.cancel()
+                    await asyncio.gather(pending, return_exceptions=True)
+                    raise
+                if not written.done():
+                    return await pending
+        finally:
+            self._prompt_written.reset(token)
+        return await pending
 
-        Acquire the lock off this loop; keep the write on it. Without a
-        process there is nothing to send, and send() reports that.
-        """
-        if self.process is None:
-            yield
-            return
-        async with self.ingress(agent).prompt():
-            yield
+    def observe_stream(self, event: StreamEvent):
+        """Keep the original frame with its SDK handler and acknowledge real writes."""
+        if event.direction is StreamDirection.INCOMING:
+            # SDK creates the handler task immediately after this observer; its
+            # context captures this frame, independently of later notifications.
+            self._incoming.set(event.message)
+            sender = 'agent'
+        else:
+            sender = 'client'
+            try:
+                written = self._prompt_written.get()
+            except LookupError:
+                pass
+            else:
+                if not written.done():
+                    written.set_result(None)
+        line = f'[{sender}] {json.dumps(event.message)}'
+        for session in tuple(self.sessions):
+            session.agent.log(line)
+
+    def recipient(self, session_id: str):
+        members = tuple(member.agent for member in self.sessions if member.accepts_updates)
+        for agent in members:
+            if agent.session.accepts_session(session_id):
+                return agent
+        if len(members) == 1 and not members[0].controller.session.bound:
+            return members[0]
+        raise RequestError.invalid_params({'details': 'ACP session is retired or unknown'})
+
+    async def request_permission(self, session_id, tool_call, options, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(
+            agent.permissions.request_permission(session_id, options, tool_call, kwargs))
+
+    async def session_update(self, session_id, update, **kwargs):
+        agent = self.recipient(session_id)
+        notification = schema.SessionNotification.model_construct(
+            session_id=session_id, update=update, field_meta=kwargs or None)
+        raw = self._incoming.get()['params']['update']
+        await agent.session.start_operation(agent.updates.receive(notification, raw))
+
+    async def read_text_file(self, session_id, path, line=None, limit=None, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(asyncio.to_thread(
+            agent.files.read_text_file, session_id, path, line, limit))
+
+    async def write_text_file(self, session_id, path, content, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(asyncio.to_thread(
+            agent.files.write_text_file, session_id, path, content))
+
+    async def create_terminal(self, session_id, command, args=None, env=None,
+                              cwd=None, output_byte_limit=None, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(agent.controller.terminal_create(
+            session_id, command, kwargs, args, cwd, env, output_byte_limit))
+
+    async def terminal_output(self, session_id, terminal_id, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(
+            agent.controller.terminal_output(session_id, terminal_id, kwargs))
+
+    async def release_terminal(self, session_id, terminal_id, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(
+            agent.controller.terminal_release(session_id, terminal_id, kwargs))
+
+    async def wait_for_terminal_exit(self, session_id, terminal_id, **kwargs):
+        agent = self.recipient(session_id)
+        return await agent.session.start_operation(
+            agent.controller.terminal_wait_for_exit(session_id, terminal_id, kwargs))
+
+    async def kill_terminal(self, session_id, terminal_id, **kwargs):
+        agent = self.recipient(session_id)
+        return agent.controller.terminal_kill(session_id, terminal_id, kwargs)
+
+    async def create_elicitation(self, message, mode, **kwargs):
+        raise RequestError.method_not_found('elicitation/create')
+
+    async def complete_elicitation(self, elicitation_id, **kwargs):
+        raise RequestError.method_not_found('elicitation/complete')
+
+    async def ext_method(self, method, params):
+        raise RequestError.method_not_found(f'_{method}')
+
+    async def ext_notification(self, method, params):
+        self.agent.log(f'[ACP unsupported notification] _{method}: {params}')
+
+    def on_connect(self, conn):
+        pass
 
     async def retire(self):
         for session in tuple(self.sessions):
             session.close()
-            # EOF must release a pending close response too. Those replies are
-            # owned by the session, just like all its other outstanding work.
             for task in tuple(session.responses):
                 task.cancel()
         if self.retirement is None:
@@ -128,6 +227,9 @@ class AgentProcess:
 
     async def _retire(self):
         try:
+            if self.connection is not None:
+                await self.connection.close()
+                self.connection = None
             await asyncio.gather(*(session.retire() for session in tuple(self.sessions)),
                                  return_exceptions=True)
         finally:
@@ -138,25 +240,17 @@ class AgentProcess:
             self.cleanup.close()
 
     async def detach(self, session):
-        from . import api
         async with self.attachment_lock:
             if session not in self.sessions:
                 return
             try:
                 if (self.retirement is None and len(self.sessions) > 1
                         and session.disposition.held_by_agent):
-                    # Only advertised scoped-close transports acquire multiple
-                    # members. Revoke locally first, then join remote retirement.
-                    # A session the agent refused has nothing there to close.
-                    with session.agent.request():
-                        response = api.session_close(session.agent.session_id)
-                    task = asyncio.create_task(response.wait())
+                    task = asyncio.create_task(self.rpc.close_session(session.agent.session_id))
                     session.responses.add(task)
                     task.add_done_callback(session.responses.discard)
                     await task
             except BaseException:
-                # Unknown remote closure cannot leave a shared connection with
-                # an unowned attachment. Retire it; never replay the close.
                 if self.runner is not None:
                     self.runner.cancel()
                 raise
@@ -182,12 +276,11 @@ class AgentProcess:
             await self.retire()
 
     async def communicate(self) -> None:
-        """Task to communicate with the agent subprocess."""
         agent = self.agent
         env = (self.env or os.environ).copy()
-        env["TOAD_CWD"] = str(Path("./").absolute())
+        env['TOAD_CWD'] = str(Path('./').absolute())
         if (command := self.command) is None:
-            agent.session.startup_failed("No run command for this OS")
+            agent.session.startup_failed('No run command for this OS')
             return
         try:
             process = self.process = await self.ingress(agent).spawn(
@@ -197,67 +290,20 @@ class AgentProcess:
         except (OSError, ValueError, RuntimeError) as error:
             agent.session.startup_failed(str(error))
             return
-        agent.session.start()
         assert process.stdout is not None
         assert process.stdin is not None
-
-        async def call_jsonrpc(request, recipient):
-            if recipient is None:
-                result = ({"jsonrpc": "2.0", "id": request["id"], "error": {
-                    "code": -32602, "message": "ACP session is retired or unknown"}}
-                    if "id" in request else None)
-            else:
-                result = await recipient.server.call(request)
-            if result is not None:
-                result_json = json.dumps(result).encode("utf-8")
-                process.stdin.write(b"%s\n" % result_json)
-
-        while line := (await process.stdout.readline()):
-            if not line.strip():
-                continue
-            try:
-                line_str = line.decode("utf-8")
-            except UnicodeDecodeError as error:
-                agent.log(f"[error] Unable to decode utf-8 from agent: {error}")
-                continue
-            for session in tuple(self.sessions):
-                session.agent.log(f"[agent] {line_str}")
-            try:
-                agent_data: jsonrpc.JSONType = json.loads(line_str)
-            except json.JSONDecodeError as error:
-                agent.log(f"[error] failed to decode JSON from agent: {error}")
-                continue
-            try:
-                incoming = IncomingWireMessage.decode(agent_data)
-            except ValueError as error:
-                agent.log(f"[error] {error}")
-                continue
-            await incoming.receive(self.recipient(agent_data), call_jsonrpc)
-        fail_details = await process.stderr_tail()
+        self.connection = ClientSideConnection(
+            self, process.stdin, process.stdout, observers=[self.observe_stream])
+        agent.session.start()
         outcome = await process.wait()
+        fail_details = await process.stderr_tail()
         for session in tuple(self.sessions):
             if not session.accepts_updates:
                 continue
             if not outcome.successful:
-                session.agent.log(f"[error] {fail_details}")
+                session.agent.log(f'[error] {fail_details}')
                 session.record_failure(LogAgentFail(
-                    f"Agent {outcome.summary}",
+                    f'Agent {outcome.summary}',
                     details=fail_details, log_path=session.agent.presentation.log_path))
             elif not session.settled.is_set():
-                session.startup_failed("ACP process closed before session initialization completed.")
-
-    def recipient(self, request):
-        if not isinstance(request, dict):
-            return None
-        params = request.get("params")
-        session_id = params.get("sessionId") if isinstance(params, dict) else None
-        members = tuple(member.agent for member in self.sessions if member.accepts_updates)
-        if session_id is not None:
-            matched = next((agent for agent in members if agent.session.accepts_session(session_id)), None)
-            if matched is not None:
-                return matched
-            return (members[0] if len(members) == 1
-                    and not members[0].controller.session.bound else None)
-        # Unbound new sessions are never multiplexed; their original callback
-        # contract remains available on their dedicated process.
-        return members[0] if len(members) == 1 else None
+                session.startup_failed('ACP process closed before session initialization completed.')

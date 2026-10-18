@@ -1,6 +1,6 @@
 from toad.acp.agent_session import AgentSession
 from toad.acp.session_updates import SessionNotificationOwner
-from toad.acp.client_session import ClientRequestOwner, ClientSessionRequest
+from toad.acp.client_session import ClientSessionRequest
 from toad.acp.client_files import FileClientRequestOwner
 from toad.acp.tool_calls import SessionToolCalls
 from toad.acp.agent_configuration import ModelConfigurationSetting, ThinkingConfigurationSetting
@@ -12,7 +12,7 @@ from toad.acp.transcript_reader import CoordinationTranscriptReader
 from toad.acp.permission_controller import PermissionController
 from toad.agent_presentation import ACPAgentPresentation
 import asyncio
-from contextlib import asynccontextmanager, suppress
+from contextlib import suppress
 from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
@@ -27,14 +27,13 @@ from agent_comms.acp_failure import ACPFailure
 from agent_comms.field_codec import FieldCodec
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_presentation import GoalSnapshot
+from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
 from agent_comms.goals import Goal
 from agent_comms.ui_model.observation import ReadOwnerGoal
 
 import toad
-from toad import jsonrpc, paths
+from toad import paths
 from toad.core import events as core_events
-from toad.acp.api import API
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.acp.comms_updates import CommsUpdateConsumer, ThreadRead
 from toad.acp.projection_attachment import CursorAttachment
@@ -99,11 +98,8 @@ class Agent(AgentBase):
         self.tools = SessionToolCalls(self)
         self.definition = agent
         self.session_id = session_id
-        self.server = jsonrpc.Server()
         self.updates = SessionNotificationOwner(self)
-        self.server.expose_instance(self)
-        for owner in ClientRequestOwner.members_with(ClientRequestOwner):
-            self.server.expose_instance(owner.resolve(self))
+        self.files = FileClientRequestOwner(self)
         self.session = AgentSession(self, session_pk, app_events)
         self.done_event = asyncio.Event()
         self._private_cursor = CursorAttachment()
@@ -138,33 +134,6 @@ class Agent(AgentBase):
     async def start(self, processes=()) -> None:
         """Start the operational agent; attachment resources are acquired separately."""
         await self.process.start(self, processes)
-
-    def send(self, request: jsonrpc.Request) -> None:
-        """Send a request to the agent.
-
-        This is called automatically, if you go through `self.request`.
-
-        Args:
-            request: JSONRPC request object.
-
-        """
-        self.process.send(request, self)
-
-    def request(self) -> jsonrpc.Request:
-        """Create a request object."""
-        return API.request(self.send)
-
-    @asynccontextmanager
-    async def prompt_request(self, require):
-        """A session/prompt request, written after Core permits input.
-
-        Waiting for permission can suspend, so ``require`` checks the caller
-        again once permission is held, before any request is opened.
-        """
-        async with self.process.locked_prompt(self):
-            require()
-            with self.request() as request:
-                yield request
 
     def update_status_line(self) -> None:
         """The measurement owns availability and source-specific presentation."""
@@ -258,7 +227,7 @@ class Agent(AgentBase):
         from .comms_updates import OwnerSnapshotConsumer
         coordination = self.coordination
         if coordination is None:
-            return GoalSnapshot(None, None)
+            return GoalSnapshot(None, IdleGoalExecution())
         authority = ClientSessionRequest(self, self.session_id)
         consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
         snapshot = await self.controller.transcripts.read(

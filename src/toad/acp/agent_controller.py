@@ -10,15 +10,13 @@ from functools import partial
 
 from agent_comms.declared_family import DeclaredFamily
 from toad import surface_binding
-from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
 from .transcript_reader import CoordinationTranscriptReader
 from .client_session import ClientSessionRequest
 from .prompt import build as build_prompt
 from toad.core import events as core_events
-from . import api
-from toad import jsonrpc
+from acp.exceptions import RequestError
 from toad.core.events import LogAgentFail
 from agent_comms.acp_extension import (
     PromptRequest, QueuePromptRequest, ClearQueueRequest, SendNowRequest,
@@ -105,9 +103,6 @@ class AgentController(OperationalTerminalOwner):
             self.surface = surface_binding.DetachedSurfaceBinding()
             self.agent.permissions.detach(target)
             self.terminals.detach()
-
-    async def validate(self, session_id, update, metadata):
-        return await self.validation.validate(ValidateSessionUpdateTask(session_id, update, metadata))
 
     async def restore(self, binding):
         from toad.core.events import CommsUpdated
@@ -270,12 +265,10 @@ class AgentController(OperationalTerminalOwner):
             if not agent.queue_attachment.accepts_request(queue_scope):
                 raise ValueError('The queued input owner changed before submission; inspect the current queue.')
 
-        async with agent.prompt_request(require):
-            pending = api.session_prompt(content, authority.session_id,
-                encode_request(command) if command is not None else {})
         try:
-            result = await pending.wait()
-        except jsonrpc.APIError as error:
+            result = await agent.process.prompt(agent, content,
+                encode_request(command) if command is not None else {}, require)
+        except RequestError as error:
             if authority.retired:
                 return None
             request_failure = RequestFailure.from_error(error.code, error.message, error.data)
@@ -283,12 +276,12 @@ class AgentController(OperationalTerminalOwner):
             self._prompt_failed(command, authority, queue_scope, failure,
                 failure.title, failure.feedback, published=request_failure.notification_published)
             return None
-        except jsonrpc.JSONRPCError as error:
+        except (OSError, ValueError) as error:
             if authority.retired:
                 return None
-            detail = error.message or 'Connection failed'
+            detail = str(error) or 'Connection failed'
             self._prompt_failed(command, authority, queue_scope, BackendDeliveryFailure(detail),
-                'Failed to send prompt', error.message or f"{agent.definition.name} returned an error")
+                'Failed to send prompt', detail)
             return None
         if authority.retired:
             return None
@@ -321,12 +314,10 @@ class AgentController(OperationalTerminalOwner):
 
     async def _compact_context(self, instructions, authority):
         agent = self.agent
-        async with agent.prompt_request(authority.require):
-            pending = api.session_prompt([{'type': 'text', 'text': ' '}],
-                authority.session_id, encode_request(CompactRequest(instructions)))
         try:
-            response = await pending.wait()
-        except jsonrpc.APIError as error:
+            response = await agent.process.prompt(agent, [{'type': 'text', 'text': ' '}],
+                encode_request(CompactRequest(instructions)), authority.require)
+        except RequestError as error:
             failure = ACPFailure.from_error(error.code, error.message, error.data)
             raise ValueError(f'{failure.title}: {failure.detail}\n{failure.input_disposition}\n{failure.action}') from error
         authority.require()
@@ -342,11 +333,9 @@ class AgentController(OperationalTerminalOwner):
 
     async def _cancel_prompt(self, authority):
         authority.require()
-        with self.agent.request():
-            pending = api.session_cancel(authority.session_id, {})
         try:
-            await pending.wait()
-        except jsonrpc.APIError:
+            await self.agent.process.rpc.cancel(authority.session_id)
+        except RequestError:
             return False
         return authority.current
 
@@ -370,7 +359,7 @@ class AgentController(OperationalTerminalOwner):
             result = await proxy.request(method, **params)
             self.require_owner(coordination, authority)
             return result
-        except (RuntimeError, jsonrpc.InvalidParams) as error:
+        except (RuntimeError, RequestError) as error:
             raise ValueError(str(error)) from error
         finally:
             await proxy.close()
