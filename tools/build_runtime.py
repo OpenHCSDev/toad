@@ -644,7 +644,7 @@ class RuntimeBuild:
         return self.qualify(destination)
 
     def qualify(self, destination: Path) -> Path:
-        """Finish the existing readiness checks on an installed candidate."""
+        """Finish native installation and readiness checks on an installed candidate."""
         if (destination / 'build.json').exists():
             raise ValueError('Runtime is already qualified')
         toad_commit, core_commit = self.toad.commit, self.core.commit
@@ -658,9 +658,17 @@ class RuntimeBuild:
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'])
         if (resources / 'pi-native.sha256').read_bytes() != manifest:
             raise RuntimeError('Installed Core native pin differs from the clean export')
-        run(destination / 'bin/python', '-I', '-B', '-c',
-            'from agent_comms.native_package import pinned_native_package, verify_native_package; '
-            'verify_native_package(pinned_native_package())')
+        # copytree creates the native deployment's missing parents with the umask.
+        # Finish that private directory here, for new and already-built candidates;
+        # never chmod the immutable resource files shared with the source package.
+        run(destination / 'bin/python', '-I', '-B', '-c', '''
+from agent_comms.native_package import pinned_native_package
+from agent_comms.native_pi import _trusted_package
+from agent_comms.private_path import PrivateDirectoryRole
+package = pinned_native_package()
+package.parents[2].chmod(PrivateDirectoryRole.permissions, follow_symlinks=False)
+_trusted_package(package)
+''')
         native_pin = hashlib.sha256(manifest).hexdigest()
         startup = check_startup(destination, self.scratch / f'startup-{destination.name}', self.baseline, self.thread)
         wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
