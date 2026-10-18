@@ -253,8 +253,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, int, bool] | None:
-        """A fragment's first measured row, height and whether the page draws it.
+    def fragment_row(self, position: int) -> tuple[int, int, bool] | None:
+        """A position's first measured row, height and whether the page draws it.
 
         A fragment without rows of its own (the filter hides it, or layout
         has not measured it yet) is where the next drawn fragment starts, or
@@ -262,12 +262,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         loaded here.
         """
         loaded = self.prepared.fragments_in_range
-        at = next((index for index, candidate in enumerate(loaded) if candidate is fragment), None)
+        at = next((index for index, candidate in enumerate(loaded)
+                   if candidate.arrival_position == position), None)
         if at is None:
             return None
         for candidate in loaded[at:]:
             if (rows := self._fragment_rows.get(id(candidate))) is not None:
-                return rows.start, len(rows), candidate is fragment
+                return rows.start, len(rows), candidate.arrival_position == position
         return self._height, 0, False
 
     @property
@@ -582,13 +583,14 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         """
         from toad.widgets.history_anchor import FragmentPosition
 
+        position = fragment.arrival_position
         for page in self.pages:
-            placed = page.fragment_row(fragment)
+            placed = page.fragment_row(position)
             if placed is None:
                 continue
             _first, height, drawn = placed
             if drawn:
-                self.window.reader_position = FragmentPosition(fragment, 0, height)
+                self.window.reader_position = FragmentPosition(position, 0, height)
             return
 
     def can_expand(self) -> bool | None:
