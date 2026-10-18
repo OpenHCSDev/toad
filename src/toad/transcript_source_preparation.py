@@ -243,6 +243,15 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self._source_state.rows_published(self)
             return True
 
+    @property
+    def drawn_end_more(self) -> bool:
+        """Rows below the drawn end that the reader was already shown exist: prepared ones, or a known newer page.
+
+        Source rows a commit adds beyond the drawn end are not among them; they arrive.
+        """
+        edge = self.pages[-1].prepared
+        return NEWER_END.can_extend(edge) or edge.page.has_newer
+
     async def extend(self, through, publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Append to a complete followed tail; a gap uses the bounded latest read."""
         if not publication_current():
@@ -251,7 +260,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         edge = self.pages[-1]
         if edge.prepared.page.after == self.page_source.through:
             return True
-        if NEWER_END.visible_more(self):
+        if self.drawn_end_more:
             destination = HeldReaderDestination.held(self.window)
             if destination is not None and await destination.source_arrived(self):
                 return True
@@ -262,7 +271,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         prepared = await self.page_source.get(NEWER_END.adjacent(edge.prepared.page))
         if not await self.source_is_current(snapshot) or not publication_current():
             return False
-        if self.pages[-1] is not edge or NEWER_END.visible_more(self):
+        if self.pages[-1] is not edge:
             return False
         if not await self.accept_extension(edge, prepared):
             return False

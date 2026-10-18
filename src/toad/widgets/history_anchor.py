@@ -233,12 +233,10 @@ class BlockPosition(OffsetPosition):
     def of(cls, window: "HistoryWindow") -> "BlockPosition | None":
         """The topmost drawn live block; containers of other blocks do not hold the reader."""
         from toad.block_navigation import ConversationBlock
-        from toad.widgets.transcript_history import LineHistory
 
         visible = window.screen._compositor.published_widgets
         blocks = [widget for widget in visible
-                  if isinstance(widget, ConversationBlock) and not isinstance(widget, LineHistory)
-                  and window in widget.ancestors]
+                  if isinstance(widget, ConversationBlock) and window in widget.ancestors]
         holders = {ancestor for block in blocks for ancestor in block.ancestors}
         block = min(window.visible_history_items(block for block in blocks if block not in holders),
                     key=lambda node: visible[node][0].y, default=None)

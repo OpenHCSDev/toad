@@ -12,7 +12,7 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
 from itertools import count
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
@@ -33,6 +33,8 @@ from textual.widget import Widget
 from textual.scroll_view import ScrollView
 from textual.geometry import Size
 from textual.selection import Selection
+from toad.block_navigation import ConversationEntry
+from toad.frame_presentation import AnimationEffects
 from toad.rich_preparation import RichTextBody
 from toad.project_link import ProjectLink
 
@@ -265,7 +267,17 @@ def selection_painted(widget: Widget, strip: Strip, row: int) -> Strip:
 
 
 class LinkedRows(OpensLinks):
-    """A widget that draws rendered rows: on its own background, opening the links clicked in them."""
+    """A widget that draws rendered rows: on its own background, opening the links clicked in them.
+
+    The conversation entry the rows are mounted in owns their arrival fade; rows outside any
+    entry hold an owner with no fades.
+    """
+
+    arrival: AnimationEffects = AnimationEffects()
+
+    def on_mount(self) -> None:
+        self.arrival = next((entry for entry in cast(Widget, self).ancestors_with_self
+                             if isinstance(entry, ConversationEntry)), LinkedRows.arrival)
 
     @property
     def line_sets(self) -> tuple[Lines, ...]:
@@ -282,8 +294,10 @@ class LinkedRows(OpensLinks):
         Rendered rows carry text colours only. Textual fills a widget's
         background around its content, not under the rows it draws itself, so
         each row takes the widget's style here. A strip remembers the styles
-        applied to it, so a repaint reuses the same drawn row.
+        applied to it, so a repaint reuses the same drawn row. The entry the
+        row was mounted in paints its arrival fade over it.
         """
+        strip = self.arrival.paint_effects(strip)
         return strip.apply_style(paint.rich_style).apply_offsets(x, y)
 
     def blank_row(self, width: int, paint: PaintState) -> Strip:
