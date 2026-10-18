@@ -16,22 +16,12 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         self.details = widgets.Collapsible(self._members, title="0 active", collapsed=True)
         self.details.styles.border = None
         self.details.styles.padding = 0
+        self.details.styles.overflow_y = "auto"
+        self.details.styles.max_height = "33%"
         super().__init__()
 
     def compose(self):
         yield self.details
-
-    async def on_mount(self) -> None:
-        contents = self.details.query_children(self.details.Contents).first()
-        contents.styles.padding = 0
-        contents.styles.overflow_y = "auto"
-        self.watch(self.view, "virtual_size", self.bound_members)
-        await super().on_mount()
-
-    def bound_members(self, *_args) -> None:
-        budget = max(1, self.view.size.height // 3)
-        self.details.styles.max_height = budget
-        self.details.query_children(self.details.Contents).first().styles.max_height = max(0, budget - 1)
 
     @property
     def member_container(self):
