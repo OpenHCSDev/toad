@@ -8,7 +8,7 @@ Nothing here imports a terminal library.
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from functools import cached_property, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -89,7 +89,7 @@ class NothingRead(AfterSequence):
     so even an empty bus is read once instead of taken as already drawn.
     """
 
-    cursor: LiveCursor = LiveCursor(0)
+    cursor: LiveCursor = field(default_factory=lambda: LiveCursor(0))
 
 
 @dataclass(frozen=True)
