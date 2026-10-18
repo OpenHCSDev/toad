@@ -4,6 +4,8 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from toad.widgets.side_bar import SidebarFocusOwner
 from pathlib import Path
+from contextlib import contextmanager
+from toad.core.events import ThreadIdentityChanged
 from typing import TYPE_CHECKING
 from toad.core_event_carrier import CoreEventReceiver
 from toad.thread_identity import ThreadIdentity
@@ -96,20 +98,23 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertic
         """Supply this view's native sidebar resources through its declaration."""
         return ()
 
-    def channels_context(self) -> tuple[str, str]:
-        return "", ""
-
     @property
     def navigation_target_name(self) -> str | None:
         """The displayed destination, independent of sidebar click intent."""
         return None
 
-    def relationship_context(self) -> tuple[str, str | None]:
-        return self.channels_context()[0], self.coordination_root
-
     @property
     def thread_identity(self) -> ThreadIdentity:
-        return ThreadIdentity(*self.relationship_context())
+        raise NotImplementedError
+
+    @contextmanager
+    def changing_identity(self):
+        previous = self.thread_identity
+        try:
+            yield previous
+        finally:
+            if previous != self.thread_identity:
+                self.app.events.publish(ThreadIdentityChanged(self))
 
     def activate_session(self) -> None:
         """Bind surface-local observers before its selected frame."""

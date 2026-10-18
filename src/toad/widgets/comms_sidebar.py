@@ -383,7 +383,7 @@ class CoordinationStatus(ShowsThreadIdentity, Static):
     """
 
     def identity_changed(self, identity: ThreadIdentity) -> None:
-        root = _display_path(Path(identity.root)) if identity.managed else "No managed wire"
+        root = _display_path(Path(identity.root)) if identity.root is not None else "No managed wire"
         backend = NativeArguments.configured_binary()
         self.update(
             Content.assemble(

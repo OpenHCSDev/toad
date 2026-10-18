@@ -19,12 +19,13 @@ class ShowsThreadIdentity(CoreEventReceiver, Widget):
         return self.thread_view.thread_identity
 
     def _on_mount(self) -> None:
-        self.observe_core(self.thread_view.core_publications)
+        self.observe_core(self.app.events)
         self.identity_changed(self.thread_identity)
 
     @handles(ThreadIdentityChanged)
     def thread_identity_changed(self, message: CoreEventMessage) -> None:
-        self.identity_changed(self.thread_identity)
+        if message.event.view is self.thread_view:
+            self.identity_changed(self.thread_identity)
 
     def identity_changed(self, identity: ThreadIdentity) -> None:
         raise NotImplementedError

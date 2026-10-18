@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class ThreadIdentity:
-    thread: str
-    root: str | None
+    thread: str = ""
+    root: str | None = None
 
     @property
     def managed(self) -> bool:

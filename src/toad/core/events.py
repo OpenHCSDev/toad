@@ -33,8 +33,10 @@ class CoreEvent(DeclaredFamily, affix="Event"):
 class ThreadIdentityChanged(CoreEvent):
     """The originating session's current thread or wire changed."""
 
+    view: object
+
     def can_replace(self, event: CoreEvent) -> bool:
-        return isinstance(event, ThreadIdentityChanged)
+        return isinstance(event, ThreadIdentityChanged) and event.view is self.view
 
 
 @dataclass(frozen=True)
