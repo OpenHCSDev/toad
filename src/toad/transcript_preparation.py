@@ -19,7 +19,7 @@ from toad.render_backend import ReusableRenderTask
 from toad.widgets.message_filter import MessageCategory
 from toad.work_preparation import (
     PreparationRuntime,
-    PreparedValue,
+    PreparedResult,
     PreparationScope,
     ReusableWork,
     ScopedWork,
@@ -438,7 +438,7 @@ class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[Prepar
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
-    ) -> tuple[PreparedValue[PreparedTranscriptPage], int]:
+    ) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
         page = await self.loader(before=request.before, after=request.after, through=self.through)
         cursor = request.before or request.after

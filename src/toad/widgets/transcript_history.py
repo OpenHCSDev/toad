@@ -41,7 +41,7 @@ from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTr
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
     RangeCategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
-    ProjectedTranscriptSource, NoProjection,
+    ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
@@ -506,8 +506,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
         source = self._reader()
-        projection = self.filter.overlay
-        projected = await projection.park_document() if projection is not None else NoProjection()
+        projected = await self.filter.park_projection()
         pages = tuple(page.prepared for page in self.pages)
         await source.runtime.run_thread(source.measure_held, pages, projected)
         source.park(pages, projected)
@@ -537,13 +536,11 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
         if self._page_buffer is not None:
             self._page_buffer.release_held()
-        if (projection := self.filter.overlay) is not None:
-            projection.acquire_document()
+        self.filter.acquire_projection()
 
     def resume_source(self) -> None:
         super().resume_source()
-        if (projection := self.filter.overlay) is not None:
-            projection.resume_source()
+        self.filter.resume_projection()
 
     async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
                                 current: Callable[[], bool], *, selected=None,
@@ -756,8 +753,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         for page in self.pages:
             for page_range in ranges:
                 page.prepared.restore_range(page_range)
-        if (projection := self.filter.overlay) is not None:
-            projection.set_reader_ranges(ranges)
+        self.filter.set_reader_ranges(ranges)
 
     async def restore_reader_ranges(self, ranges, current: Callable[[], bool]) -> bool:
         """A kept native view loads the same source suppliers before paint.
@@ -780,9 +776,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 await self.prepare_fragments(page_range.members, current)
                 if not await page.select_range(slice(page_range.start, page_range.stop), current):
                     return False
-        if (projection := self.filter.overlay) is not None:
-            if not await projection.restore_reader_ranges(ranges, current):
-                return False
+        if not await self.filter.restore_reader_ranges(ranges, current):
+            return False
         if not current():
             return False
         self._update_edges()
@@ -846,8 +841,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     def compose(self) -> ComposeResult:
         yield self.older
-        if (projection := self.filter.overlay) is not None:
-            yield projection
+        yield from self.filter.compose_projection()
         for page in self.pages:
             page.visible_categories = self.selected_categories
             yield page

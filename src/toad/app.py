@@ -161,7 +161,8 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             agent: Agent identity or shor name.
         """
         from toad.render_processes import RenderProcessPool
-        from toad.work_preparation import PreparationRuntime, PreparedRenderer
+        from toad.work_preparation import PreparationRuntime
+        from toad.render_backend import PreparedRenderer
 
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)

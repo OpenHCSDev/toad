@@ -19,7 +19,6 @@ if TYPE_CHECKING:
 
 class FilterState(DeclaredFamily, affix="Filter"):
     active = False
-    overlay = None
     older_visible = False
     has_older = False
     scan_available = False
@@ -47,6 +46,29 @@ class FilterState(DeclaredFamily, affix="Filter"):
     @property
     def idle(self):
         return not self.scanning
+
+    async def park_projection(self):
+        from toad.transcript_preparation import NoProjection
+        return NoProjection()
+
+    def acquire_projection(self) -> None:
+        pass
+
+    def resume_projection(self) -> None:
+        pass
+
+    def set_reader_ranges(self, ranges) -> None:
+        pass
+
+    async def restore_reader_ranges(self, ranges, current) -> bool:
+        return True
+
+    def compose_projection(self):
+        return ()
+
+    @property
+    def outgoing_coverage(self):
+        return frozenset()
 
     def owns_projection(self, projection) -> bool:
         return False
@@ -219,6 +241,28 @@ class Filtered(FilterState):
     @property
     def idle(self):
         return super().idle and self.overlay.source_ready
+
+    async def park_projection(self):
+        return await self.overlay.park_document()
+
+    def acquire_projection(self) -> None:
+        self.overlay.acquire_document()
+
+    def resume_projection(self) -> None:
+        self.overlay.resume_source()
+
+    def set_reader_ranges(self, ranges) -> None:
+        self.overlay.set_reader_ranges(ranges)
+
+    async def restore_reader_ranges(self, ranges, current) -> bool:
+        return await self.overlay.restore_reader_ranges(ranges, current)
+
+    def compose_projection(self):
+        return (self.overlay,)
+
+    @property
+    def outgoing_coverage(self):
+        return self.overlay.outgoing_coverage
 
     def owns_projection(self, projection):
         return self.overlay is projection
