@@ -146,7 +146,7 @@ class CommsChatView(Conversation):
             self.display = False
             return
         shared = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.open_current().service)
+            lambda: self.app.coordination_access.observation.observed().service)
         if shared.root != root:
             self.display = False
             return

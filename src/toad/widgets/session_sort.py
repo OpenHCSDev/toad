@@ -187,7 +187,7 @@ class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
 
     async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         access = self.app.coordination_access
-        observed = await self.app.preparation.run_thread(access.open_current)
+        observed = await self.app.preparation.run_thread(access.observation.observed)
         return partial(observed.write_order, access, self.screen.coordination_root, self.channel)
 
 

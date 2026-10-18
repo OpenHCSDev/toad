@@ -186,7 +186,7 @@ class SessionNavigation:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.open_current().service)
+            comms = await app.preparation.run_thread(lambda: app.coordination_access.observation.observed().service)
             requested_root = str(comms.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode

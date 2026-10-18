@@ -394,7 +394,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         """Read peers through the current coordination owner, independent of panels."""
         try:
             registered = await self.preparation.run_thread(
-                lambda: tuple(self.coordination_access.open_current().service.registry.active_threads()))
+                lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
         except (OSError, ValueError, RuntimeError) as error:
             self.notify(str(error), title="Peers unavailable", severity="error")
             return []

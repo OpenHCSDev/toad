@@ -464,10 +464,10 @@ class SidebarModelView(CoreEventReceiver):
     while this one is hidden are applied in one pass when it shows again.
     """
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        self.app.coordination_access.observation.show_sidebar(self)
+        await self.coordination_observed(None)
 
     def on_unmount(self) -> None:
         self.stop_showing()
@@ -504,11 +504,6 @@ class SidebarModelView(CoreEventReceiver):
         self.app.coordination_access.show_sidebar(self, False)
         self.unsubscribe()
 
-    def attach(self, observed: Observing) -> None:
-        """Bind the acquired observation only while it still owns this route."""
-        if observed is self.app.coordination_access.observation:
-            self.bind_observation(observed)
-
     def bind_observation(self, observed: Observing) -> None:
         if self.model_state.observes(observed):
             return
@@ -537,7 +532,12 @@ class SidebarModelView(CoreEventReceiver):
 
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
-        self.app.coordination_access.observation.show_sidebar(self)
+        try:
+            observed = await self.app.preparation.run_thread(self.app.coordination_access.observation.observed)
+        except (OSError, ValueError, RuntimeError) as error:
+            self.tooltip = str(error)
+            return
+        observed.show_sidebar(self)
 
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: CoreEventMessage) -> None:

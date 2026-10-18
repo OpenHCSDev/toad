@@ -38,7 +38,7 @@ class SessionOrigin:
             if source_root is not None and Path(source_root).expanduser().resolve() != root:
                 raise ValueError("Comms route changed; this session retains its former wire")
             access = self.app.coordination_access
-            service = access.open_current().service
+            service = access.observation.observed().service
             if not access.observation.observes(root):
                 raise ValueError("Comms route changed before resolving the session")
             resolved = resolve_session_thread(

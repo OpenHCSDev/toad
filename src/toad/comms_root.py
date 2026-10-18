@@ -85,9 +85,12 @@ class FailedRoute(RouteObservation):
 ROUTE_CHECK_SECONDS = 1.0
 
 
+@dataclass(frozen=True)
 class NotObserving:
-    def show_sidebar(self, view) -> None:
-        pass
+    access: CoordinationAccess
+
+    def observed(self) -> Observing:
+        return self.access.open_current()
 
     def uses(self, service) -> bool:
         return False
@@ -133,8 +136,15 @@ class Observing:
     def tabs(self, sessions):
         return {entry.mode: entry.tab(sessions, self) for entry in sessions.members}
 
+    def observed(self) -> Observing:
+        return self
+
+    def current(self) -> bool:
+        return self is self.access.observation
+
     def show_sidebar(self, view) -> None:
-        view.bind_observation(self)
+        if self.current():
+            view.bind_observation(self)
 
     def uses(self, service) -> bool:
         return self.service is service
@@ -167,7 +177,7 @@ class Observing:
 
     def attach(self, access, previous):
         previous.retire(access)
-        if self is not access.observation:
+        if not self.current():
             self.retire(access)
             return
         self.loop.add_reader(self.process.fileno(), self.receive, access)
@@ -196,7 +206,7 @@ class Observing:
         task.add_done_callback(access.retiring.discard)
 
     def receive(self, access):
-        if self is not access.observation:
+        if not self.current():
             return
         try:
             for result in self.process.results():
@@ -258,7 +268,7 @@ class CoordinationAccess(MroDispatch):
         from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
-        self.observation: Observation = NotObserving()
+        self.observation: Observation = NotObserving(self)
         self.events = CoreEventStream(self)
         self.revision: ReadState = NoRevision()
         self.route_observation: RouteObservation = RouteObservation()
@@ -440,7 +450,7 @@ class CoordinationAccess(MroDispatch):
 
     async def current_sidebar(self) -> SidebarObservation:
         """Return the source's current answer, including a failed observation."""
-        observed = await self.preparation.run_thread(self.open_current)
+        observed = await self.preparation.run_thread(self.observation.observed)
         request = self.sidebar_request()
         if self.sidebar_interest == request and self.sidebar_current == request:
             return observed.sidebar.observation
@@ -457,7 +467,7 @@ class CoordinationAccess(MroDispatch):
 
     async def update_thread_interest(self) -> None:
         """Acquire the observer through preparation before sending current-root interest."""
-        observed = await self.preparation.run_thread(self.open_current)
+        observed = await self.preparation.run_thread(self.observation.observed)
         observed.thread_interest(self)
 
     def start(self) -> None:
@@ -481,7 +491,7 @@ class CoordinationAccess(MroDispatch):
     async def close(self) -> None:
         await self.stop_observing()
         self.observation.retire(self)
-        self.observation = NotObserving()
+        self.observation = NotObserving(self)
         await asyncio.gather(*self.retiring, return_exceptions=True)
         self.cleanup.close()
 
