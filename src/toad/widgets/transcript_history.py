@@ -57,7 +57,7 @@ from toad.widgets.presentation_window import PresentationBudget
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
 from toad.markdown_links import ReferenceRendering
-from toad.widgets.message_notifications import HistoryNotifications
+from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from toad.widgets.transcript_lines import (
     HorizontalRows, Lines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
@@ -457,7 +457,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return await self.prepared.replace_range(self, selected, current)
 
-class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
+class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the
@@ -479,8 +479,9 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         return FragmentBlockCursor(self)
 
     def __init__(self, prepared: PreparedTranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
-                  *, budget: PresentationBudget | None = None,
+                  *, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
                   source_state: TranscriptState | None = None):
+        self.notification_view = notification_view
         super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, prepared.page.after
         self.budget = budget or PresentationBudget(
@@ -1178,7 +1179,8 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:
         self._projection_owner = ref(owner)
-        super().__init__(prepared, source.loader, budget=owner.budget)
+        super().__init__(prepared, source.loader, budget=owner.budget,
+                         notification_view=owner.notification_view)
         self._page_buffer = source
         self.add_class("filtered-history-results")
 

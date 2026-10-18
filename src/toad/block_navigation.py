@@ -291,6 +291,9 @@ class ConversationBlock(BlockContent):
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1
 
+    def notification_targets(self):
+        return ()
+
     @cached_property
     def block_cursor(self) -> BlockCursor:
         return AtomicBlockCursor(self)
