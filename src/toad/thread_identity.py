@@ -24,6 +24,10 @@ class SessionIdentity(ABC):
     def with_root(self, root: str | None):
         return self.for_thread(self.thread_name(), root)
 
+    def with_session(self, session_id: str):
+        """A newly attached ACP session supplies an unbound view's name."""
+        return LocalThreadIdentity(session_id)
+
     def wire_root(self) -> str | None:
         return None
 
@@ -96,6 +100,10 @@ class ThreadIdentity(NamedThreadIdentity):
 
     def with_root(self, root: str | None):
         return self if root == self.root else super().with_root(root)
+
+    def with_session(self, session_id: str):
+        """A managed thread keeps its declared name and incarnation."""
+        return self
 
     async def inspect_owner(self, read_owner, show_detached) -> None:
         await read_owner(self)

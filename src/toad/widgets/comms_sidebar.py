@@ -32,7 +32,7 @@ from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
 
 
 from agent_comms.mro_dispatch import handles
-from toad.core.events import SessionChangedEvent
+from toad.core.events import SessionChangedEvent, ThreadIdentityChanged
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
@@ -552,14 +552,12 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
             if screen is None:
                 continue
             name = screen.thread_identity.thread_name()
-            if name not in threads and screen._agent_session_id in threads:
-                name = screen._agent_session_id
             if (name in threads and name not in views
                     and screen.belongs_to_wire(self.navigation_root)):
                 views[name] = details.mode_name
         return views
 
-    @handles(SessionChangedEvent)
+    @handles(SessionChangedEvent, ThreadIdentityChanged)
     async def session_changed(self, event: CoreEventMessage) -> None:
         self.open_views = self.find_open_views()
 
