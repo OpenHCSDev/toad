@@ -148,15 +148,6 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         yield NewSessionButton()
         yield from self.navigation_groups
 
-    async def on_mount(self) -> None:
-        app = self.app
-        try:
-            observed = await app.preparation.run_thread(app.coordination_access.observation.observed)
-        except (OSError, ValueError, RuntimeError) as error:
-            self.notify(str(error), title="Comms unavailable", severity="error")
-            return
-        observed.show_sidebar(self)
-
     def accepts_observation(self) -> bool:
         return self.is_attached and self.query_ancestor(WelcomeScreen).is_current
 

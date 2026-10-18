@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.widgets.comms_sidebar import CommsRow
-    from toad.comms_root import Observing
+    from toad.comms_root import Observing, FailedObservation
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -405,6 +405,16 @@ class Detached(SidebarModelState):
 
 
 @dataclass(frozen=True)
+class FailedSidebarState(SidebarModelState):
+    observed: FailedObservation
+
+    def present(self, view):
+        view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
+        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
+        return self
+
+
+@dataclass(frozen=True)
 class BoundSidebar(SidebarModelState):
     observed: Observing
 
@@ -463,14 +473,17 @@ class SidebarModelView(CoreEventReceiver):
     while this one is hidden are applied in one pass when it shows again.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.unavailable = Static("", markup=False)
+        self.unavailable.display = False
+
     async def on_mount(self) -> None:
+        await self.mount(self.unavailable)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        try:
-            observed = await self.app.preparation.run_thread(
-                self.app.coordination_access.observation.observed)
-        except (OSError, ValueError, RuntimeError):
-            return  # The route observer reports why Comms could not be opened.
+        observed = await self.app.preparation.run_thread(
+            self.app.coordination_access.observation.observed)
         observed.show_sidebar(self)
 
     def on_unmount(self) -> None:
@@ -508,11 +521,23 @@ class SidebarModelView(CoreEventReceiver):
         self.app.coordination_access.show_sidebar(self, False)
         self.unsubscribe()
 
+    def bind_failed_observation(self, observed: FailedObservation) -> None:
+        self.unsubscribe()
+        self.model_state = FailedSidebarState(observed)
+        self.model_replaced()
+        for child in self.children:
+            child.set_display_constraint("comms-available", child is self.unavailable)
+        self.unavailable.display = self.display = True
+        self.present()
+
     def bind_observation(self, observed: Observing) -> None:
         if self.model_state.observes(observed):
             return
         self.unsubscribe()
         self.model_state = Behind(observed)
+        self.unavailable.display = False
+        for child in self.children:
+            child.set_display_constraint("comms-available", True)
         observed.sidebar.channels.subscribe(self.channels_changed)
         observed.sidebar.threads.subscribe(self.threads_changed)
         self.model_replaced()
@@ -680,6 +705,8 @@ class TargetTree(Vertical):
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:
+        if not self.rows:
+            return
         workspace = self.app.workspace_sessions
         previous = workspace.target_for_mode(event.event.previous_mode, self.navigation_root)
         current = workspace.visible_target(self.navigation_root)

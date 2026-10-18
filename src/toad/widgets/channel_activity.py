@@ -10,15 +10,19 @@ from toad.widgets.sidebar_tree import KeyedRows, SidebarModelView, UnpaintedChan
 class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def __init__(self, view):
         self.view = view
+        self._members = VerticalGroup()
         super().__init__()
+
+    def compose(self):
+        yield self._members
 
     @property
     def member_container(self):
-        return self
+        return self._members
 
     @property
     def rows(self):
-        return {row.target.name: row for row in self.children if not row.is_leaving}
+        return {row.target.name: row for row in self.member_container.children if not row.is_leaving}
 
     @property
     def member_keys(self):
@@ -31,7 +35,7 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
                 and self.model_state.serves(self.view._bound_root))
 
     def model_replaced(self) -> None:
-        self.remove_children()
+        self.member_container.remove_children()
 
     def sync(self, *, channels, threads, reorder=False) -> None:
         self.call_next(self.sync_members)
