@@ -3,7 +3,7 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
-from agent_comms.coordination_errors import DMScopeChanged, TranscriptChanged
+from agent_comms.coordination_errors import DMScopeChanged
 from toad.comms_root import CoordinationAccess
 from toad.widgets.message_notifications import VisibleReadMarking
 
@@ -448,12 +448,9 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
         async def mark():
             try:
-                try:
-                    await asyncio.to_thread(acknowledge, through)
-                except TranscriptChanged:
-                    fresh = await conversation.transcript.refresh_cursor()
-                    if self.selected_session is screen:
-                        await asyncio.to_thread(acknowledge, fresh)
+                await conversation.transcript.mark_read(
+                    through, acknowledge, lambda: self.selected_session is screen,
+                )
             except DMScopeChanged as error:
                 self.notify(str(error), title="DM read not marked", severity="error")
 
