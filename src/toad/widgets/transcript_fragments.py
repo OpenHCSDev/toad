@@ -1,5 +1,6 @@
 """Render-sized transcript fragments; wire records and cursors remain model-owned."""
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
 from collections.abc import Iterator
@@ -196,12 +197,56 @@ class MessageShown(Shown):
     status: NotificationStatus = field(default_factory=UncheckedNotifications)
 
 
+class PartPosition(ABC):
+    __slots__ = ()
+
+    @property
+    @abstractmethod
+    def has_details(self) -> bool: ...
+
+    @abstractmethod
+    def notification_references(self, event) -> tuple[MessageReference, ...]: ...
+
+    @abstractmethod
+    def status_blocks(self, shown: MessageShown) -> tuple[LineBlock, ...]: ...
+
+    @abstractmethod
+    def outgoing_sources(self, publication: PublishedSentMessage): ...
+
+
+class LastPart(PartPosition):
+    __slots__ = ()
+    has_details = True
+
+    def notification_references(self, event):
+        return (event.source,)
+
+    def status_blocks(self, shown):
+        return shown.status.blocks(shown)
+
+    def outgoing_sources(self, publication):
+        return (publication.reference,)
+
+
+class InnerPart(PartPosition):
+    __slots__ = ()
+    has_details = False
+
+    def notification_references(self, event):
+        return ()
+
+    def status_blocks(self, shown):
+        return ()
+
+    def outgoing_sources(self, publication):
+        return ()
+
+
 @dataclass
 class TranscriptFragment:
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
-    # The producer knows whether more pieces of this source text follow.
-    continues: bool = field(default=False, kw_only=True)
+    part_position: PartPosition = field(default_factory=LastPart, kw_only=True)
     starts_agent_activity: bool = False
     shown: Shown = field(default_factory=Shown, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
@@ -360,11 +405,11 @@ class BusMessageFragment(TranscriptFragment):
 
     @property
     def has_details(self) -> bool:
-        return not self.continues
+        return self.part_position.has_details
 
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
-        return () if self.continues else (self.events[0].source,)
+        return self.part_position.notification_references(self.events[0])
 
     @property
     def block_menu(self):
@@ -386,7 +431,7 @@ class BusMessageFragment(TranscriptFragment):
         return shown.style.body(self.row, self.body_text)
 
     def trailing(self, shown):
-        return () if self.continues else shown.status.blocks(shown)
+        return self.part_position.status_blocks(shown)
 
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
@@ -398,7 +443,7 @@ class SentMessageFragment(BusMessageFragment):
 
     @property
     def outgoing_sources(self):
-        return () if self.continues else (self.publication.reference,)
+        return self.part_position.outgoing_sources(self.publication)
 
 class ContextTranscriptFragment(TranscriptFragment):
     """The coordination context an agent was given: one line, and its text when opened."""
@@ -450,7 +495,7 @@ class TranscriptFragmentConsumer(MroProjection):
         parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
             kind.capture_part(event, part.text, continuation=self.continuation or index > 0,
-                 continues=index < len(parts) - 1,
+                 part_position=LastPart() if index == len(parts) - 1 else InnerPart(),
                  starts_agent_activity=starts_activity and index == 0, **kwargs)
             for index, part in enumerate(parts)
         )
