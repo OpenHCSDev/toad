@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, ClassVar
 from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
-from agent_comms.message_page import MessagePage
+from agent_comms.message_page import MessagePage, PageBounds
 from agent_comms.presentation import ReadThrough
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
@@ -38,7 +38,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def page(cls, source: WireSource, **bounds) -> MessagePage: ...
+    def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage: ...
 
     @classmethod
     @abstractmethod
@@ -128,9 +128,9 @@ class ChannelConversation(ConversationKind):
         return ChannelViewAddress(key.root, key.target, cls)
 
     @classmethod
-    def page(cls, source: WireSource, **bounds) -> MessagePage:
+    def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.channel_display_page(
-            source.target, viewer=source.viewer, **bounds)
+            source.target, viewer=source.viewer, bounds=bounds)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
@@ -226,9 +226,9 @@ class DmConversation(ConversationKind):
         return observation.bus_unread(target)
 
     @classmethod
-    def page(cls, source: WireSource, **bounds) -> MessagePage:
+    def page(cls, source: WireSource, bounds: PageBounds) -> MessagePage:
         return source.comms.views.dm_display_page(
-            source.target, worktree=str(source.project), **bounds)
+            source.target, worktree=str(source.project), bounds=bounds)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
