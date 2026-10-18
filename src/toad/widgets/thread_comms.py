@@ -217,7 +217,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
             return self._source
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
-            lambda: access.require(RouteSelection.capture(identity.root_path())).relationships)
+            lambda: access.require(RouteSelection.capture(identity.root_path())).service.relationships)
 
     def use_source(self, source: RelationshipSource) -> None:
         self._source = source
@@ -419,7 +419,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
 
     def open_target(self, target: NavigationTarget):
         identity = self.thread_view.thread_identity
-        if identity.root_path() != self.app.coordination_access.observation.current(self.app.coordination_access).root.resolve():
+        if identity.root_path() != self.app.coordination_access.open_current().service.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return

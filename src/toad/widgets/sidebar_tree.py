@@ -504,9 +504,10 @@ class SidebarModelView(CoreEventReceiver):
         self.app.coordination_access.show_sidebar(self, False)
         self.unsubscribe()
 
-    def attach(self, service: Comms) -> None:
-        """Render ``service``'s shared model; another service's rows are retired first."""
-        self.app.coordination_access.observation.attach_sidebar(self, service)
+    def attach(self, observed: Observing) -> None:
+        """Bind the acquired observation only while it still owns this route."""
+        if observed is self.app.coordination_access.observation:
+            self.bind_observation(observed)
 
     def bind_observation(self, observed: Observing) -> None:
         if self.model_state.observes(observed):

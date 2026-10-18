@@ -223,6 +223,8 @@ class LinkContextChanged(CoreEvent):
 class ObservedServiceChanged(LinkContextChanged):
     """The access owner attached a replacement service, not just new references."""
 
+    observed: object
+
 
 @dataclass(frozen=True)
 class SessionPathChanged(CoreEvent):

@@ -157,7 +157,7 @@ class NativeSessionEntry(SessionEntry):
             return True
         root = source.coordination_root
         return root is not None and sessions.app.coordination_access.require(
-            RouteSelection.capture(root)).registry.canonical_name(session_id) == source.resolve_thread()
+            RouteSelection.capture(root)).service.registry.canonical_name(session_id) == source.resolve_thread()
 
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.mode, self.details.name.display or "New Session")
@@ -237,7 +237,7 @@ class HistorySessionEntry(SessionEntry):
         if self.key.owner_mode != owner:
             return
         if self.key.me != previous and sessions.app.coordination_access.require(
-                RouteSelection.capture(self.key.root)).registry.canonical_name(self.key.me) != current:
+                RouteSelection.capture(self.key.root)).service.registry.canonical_name(self.key.me) != current:
             return
         self.key = replace(self.key, me=current)
         if view := sessions.app.workspace_sessions.views.get(self.mode):

@@ -394,7 +394,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         """Read peers through the current coordination owner, independent of panels."""
         try:
             registered = await self.preparation.run_thread(
-                lambda: tuple(self.coordination_access.observation.current(self.coordination_access).registry.active_threads()))
+                lambda: tuple(self.coordination_access.open_current().service.registry.active_threads()))
         except (OSError, ValueError, RuntimeError) as error:
             self.notify(str(error), title="Peers unavailable", severity="error")
             return []
@@ -409,7 +409,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         screen = self.selected_session
         if not isinstance(screen, MainScreen):
             return
-        observed_root = self.coordination_access.observation.selected_root(screen.coordination_root)
+        observed_root = screen.coordination_root
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
@@ -438,7 +438,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             from toad.widgets.comms_chat import resolve_session_thread
 
             selected = RouteSelection.capture(observed_root)
-            comms = access.require(selected)
+            comms = access.require(selected).service
 
             def mark() -> None:
                 resolved = resolve_session_thread(comms, project, name, source_root=source_root)

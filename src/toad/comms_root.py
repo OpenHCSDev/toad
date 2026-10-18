@@ -18,7 +18,6 @@ from functools import partial
 from collections.abc import Callable, Mapping
 from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
-from abc import ABC, abstractmethod
 from pathlib import Path
 from weakref import WeakKeyDictionary, WeakSet
 
@@ -91,89 +90,21 @@ class FailedRoute(RouteObservation):
 ROUTE_CHECK_SECONDS = 1.0
 
 
-class Observation(ABC):
-    @abstractmethod
-    def observes(self, root) -> bool: ...
-    @abstractmethod
-    def thread_rows(self) -> tuple: ...
-    @abstractmethod
-    def tabs(self, sessions): ...
-    @abstractmethod
-    async def write_order(self, access, root, channel, order): ...
-    @abstractmethod
-    def uses(self, service) -> bool: ...
-    @abstractmethod
-    def attach_sidebar(self, view, service) -> None: ...
-    @abstractmethod
-    def show_sidebar(self, view) -> None: ...
-    @abstractmethod
-    def route_stamp(self): ...
-    @abstractmethod
-    async def observe_route(self, access): ...
-    @abstractmethod
-    def selected_root(self, root): ...
-    @abstractmethod
-    def sidebar_snapshot(self): ...
-    @abstractmethod
-    def current(self, access): ...
-    @abstractmethod
-    def require(self, access, selected): ...
-    @abstractmethod
-    def retire(self, access): ...
-    @abstractmethod
-    async def read(self, access, request): ...
-    @abstractmethod
-    def notifications(self, access, wanted): ...
-    @abstractmethod
-    def views(self, access, request): ...
-    @abstractmethod
-    def sidebar_interest(self, access): ...
-    @abstractmethod
-    def references_for(self, root): ...
-    @abstractmethod
-    async def current_references(self, access, root): ...
-    @abstractmethod
-    def thread_interest(self, access): ...
-    @abstractmethod
-    def stop(self): ...
-
-
-class NotObserving(Observation):
+class NotObserving:
     def observes(self, root) -> bool:
         return False
-    def thread_rows(self) -> tuple:
-        return ()
     def tabs(self, sessions):
         return {entry.mode: entry.unobserved_tab() for entry in sessions.members}
-    async def write_order(self, access, root, channel, order):
-        raise ValueError("Comms ordering is not available yet")
-    def uses(self, service) -> bool:
-        return False
-    def attach_sidebar(self, view, service) -> None:
-        pass
-    def show_sidebar(self, view) -> None:
-        pass
     def route_stamp(self):
         return (FileRevision.capture(active_route_path()),)
     async def observe_route(self, access):
-        await access.preparation.run_thread(access.open_current)
-        return await access.observation.observe_route(access)
-    def selected_root(self, root):
-        return root
-    def sidebar_snapshot(self):
-        raise RouteChanged("The sidebar has not been observed")
-    def current(self, access):
-        return access.open_current()
+        observed = await access.preparation.run_thread(access.open_current)
+        return await observed.observe_route(access)
     def require(self, access, selected):
         return access.open_selected(selected)
     def retire(self, access):
         pass
-    async def read(self, access, request):
-        await access.preparation.run_thread(access.open_current)
-        return await access.observation.read(access, request)
     def notifications(self, access, wanted):
-        pass
-    def views(self, access, request):
         pass
     def sidebar_interest(self, access):
         pass
@@ -181,25 +112,22 @@ class NotObserving(Observation):
         return PendingReferences(root)
     async def current_references(self, access, root):
         return access.reference_context(root)
-    def thread_interest(self, access):
-        pass
     def stop(self):
         pass
 
 
 @dataclass(frozen=True)
-class Observing(Observation):
+class Observing:
     selection: RouteSelection
     service: Comms = field()
     sidebar: SidebarModel = field()
     process: ObservationProcess = field(compare=False)
     loop: asyncio.AbstractEventLoop
+    access: CoordinationAccess = field(compare=False)
+    subscriptions: ResourceRelease = field(default_factory=ResourceRelease, compare=False)
 
     def observes(self, root) -> bool:
         return self.service.root == Path(root).resolve()
-
-    def thread_rows(self) -> tuple:
-        return tuple(self.sidebar.threads.rows.values())
 
     def tabs(self, sessions):
         return {entry.mode: entry.tab(sessions, self) for entry in sessions.members}
@@ -209,16 +137,6 @@ class Observing(Observation):
             raise ValueError("Comms route changed before sorting")
         return await access.preparation.run_thread(
             access.write, self.selection, order.store_channel_order, self.service.channels, channel)
-
-    def uses(self, service) -> bool:
-        return self.service is service
-
-    def attach_sidebar(self, view, service) -> None:
-        if self.uses(service):
-            view.bind_observation(self)
-
-    def show_sidebar(self, view) -> None:
-        view.bind_observation(self)
 
     def route_stamp(self):
         return (FileRevision.capture(active_route_path()),
@@ -237,17 +155,8 @@ class Observing(Observation):
             access.events.publish(LinkContextChanged())
         return True
 
-    def selected_root(self, root):
-        return root or self.service.root
-
-    def sidebar_snapshot(self):
-        return self.sidebar.observation
-
-    def current(self, access):
-        return self.service
-
     def require(self, access, selected):
-        return self.service if self.selection == selected else access.open_selected(selected)
+        return self if self.selection == selected else access.open_selected(selected)
 
     def attach(self, access, previous):
         previous.retire(access)
@@ -267,10 +176,12 @@ class Observing(Observation):
         access.notification_interest = ObserveNotifications(frozenset())
         self.sidebar_interest(access)
         self.thread_interest(access)
-        access.app.session_navigation.declare_views()
-        access.events.publish(ObservedServiceChanged())
+        self.subscriptions.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
+        self.views_changed()
+        access.events.publish(ObservedServiceChanged(self))
 
     def retire(self, access):
+        self.subscriptions.close()
         self.loop.remove_reader(self.process.fileno())
         self.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
         task = asyncio.ensure_future(asyncio.to_thread(self.process.close))
@@ -287,15 +198,18 @@ class Observing(Observation):
             self.loop.remove_reader(self.process.fileno())
             access.app._handle_exception(error)
 
-    async def read(self, access, request):
-        return await self.process.read(request)
-
     def notifications(self, access, wanted):
         if wanted != access.notification_interest:
             access.notification_interest = wanted
             self.process.request(wanted)
 
-    def views(self, access, request):
+    def views_changed(self, event=None, subscription=None):
+        access, root = self.access, str(self.service.root)
+        threads, channels = set(), set()
+        for member in access.app.session_navigation.members:
+            threads.update(identity for owner, identity in member.original_threads(access.app.session_navigation) if owner == root)
+            channels.update(target for owner, target in member.original_channels() if owner == root)
+        request = ObserveViews(frozenset(threads), frozenset(channels))
         if request != access.views_interest:
             access.views_interest = request
             self.process.request(request)
@@ -324,6 +238,9 @@ class Observing(Observation):
         process.request(StopObserving())
         self.loop.remove_reader(process.fileno())
         self.loop.add_reader(process.fileno(), process.results)
+
+
+type Observation = NotObserving | Observing
 
 
 class CoordinationAccess(MroDispatch):
@@ -357,18 +274,18 @@ class CoordinationAccess(MroDispatch):
         self.notification_outcomes: dict[ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
 
-    def open_current(self) -> Comms:
+    def open_current(self) -> Observing:
         """Capture the current route and open (or keep) its service; file I/O."""
         return self.require(RouteSelection.capture())
 
-    def require(self, selected: RouteSelection) -> Comms:
+    def require(self, selected: RouteSelection) -> Observing:
         """The service for ``selected``; a new selection opens it and starts its observation."""
         if RouteSelection.capture() != selected:
             raise RouteChanged("Comms route changed before the operation")
         with self.opening:
             return self.observation.require(self, selected)
 
-    def open_selected(self, selected: RouteSelection) -> Comms:
+    def open_selected(self, selected: RouteSelection) -> Observing:
         from agent_comms.comms import wire
 
         previous = self.observation
@@ -380,12 +297,12 @@ class CoordinationAccess(MroDispatch):
             self.cleanup.enter_context(acquisition.pop_all())
         observed = Observing(
             selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
-            self.app.running_loop)
+            self.app.running_loop, self)
         self.observation = observed
         self.revision = NoRevision()
         self.route_observation = WaitingRoute()
         observed.loop.call_soon_threadsafe(observed.attach, self, previous)
-        return service
+        return observed
 
     @handles(RevisionObserved)
     def revision_observed(self, result: RevisionObserved, observed: Observing) -> None:
@@ -516,9 +433,10 @@ class CoordinationAccess(MroDispatch):
 
     async def current_sidebar(self) -> SidebarObservation:
         """Return the source's current answer, including a failed observation."""
+        observed = await self.preparation.run_thread(self.open_current)
         request = self.sidebar_request()
         if self.sidebar_interest == request and self.sidebar_current == request:
-            return self.observation.sidebar_snapshot()
+            return observed.sidebar.observation
         waiter = asyncio.get_running_loop().create_future()
         pending = request, waiter
         self.sidebar_waiters.append(pending)
@@ -532,8 +450,8 @@ class CoordinationAccess(MroDispatch):
 
     async def update_thread_interest(self) -> None:
         """Acquire the observer through preparation before sending current-root interest."""
-        await self.preparation.run_thread(self.open_current)
-        self.observation.thread_interest(self)
+        observed = await self.preparation.run_thread(self.open_current)
+        observed.thread_interest(self)
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""

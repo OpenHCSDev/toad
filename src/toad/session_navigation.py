@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, cast
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.observation import ObserveViews
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
                                 PreviewSessionEntry, SessionEntry)
@@ -102,7 +101,7 @@ class SessionNavigation:
             return
         originals = self.members
         snapshot = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.require(selected).registry.snapshot())
+            lambda: self.app.coordination_access.require(selected).service.registry.snapshot())
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)
 
@@ -119,17 +118,6 @@ class SessionNavigation:
     def publish(self) -> None:
         self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()
-        self.declare_views()
-
-    def declare_views(self) -> None:
-        """Tell the observation service which views are open on its root."""
-        access = self.app.coordination_access
-        root = str(access.observation.current(access).root)
-        threads, channels = set(), set()
-        for member in self.members:
-            threads.update(identity for owner, identity in member.original_threads(self) if owner == root)
-            channels.update(target for owner, target in member.original_channels() if owner == root)
-        access.observation.views(access, ObserveViews(frozenset(threads), frozenset(channels)))
 
     def views_retired(self, root, retired) -> None:
         """Close the open views on ``root`` whose sources the observation service found retired."""
@@ -198,7 +186,7 @@ class SessionNavigation:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.observation.current(app.coordination_access))
+            comms = await app.preparation.run_thread(lambda: app.coordination_access.open_current().service)
             requested_root = str(comms.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
@@ -343,7 +331,7 @@ class SessionNavigation:
             for root, (threads, channels) in asked.items():
                 try:
                     selected = RouteSelection.capture(root)
-                    service = self.app.coordination_access.require(selected)
+                    service = self.app.coordination_access.require(selected).service
                     retired = service.views.retired_views(threads, channels)
                     if RouteSelection.capture(root) != selected:
                         continue  # Replaced while reading; the next observation reads it.
