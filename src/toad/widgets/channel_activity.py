@@ -32,9 +32,12 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         return {row.target.name: row for row in self.member_container.children if not row.is_leaving}
 
     @property
+    def members(self):
+        return self.view.conversation_kind.active_members(self.model_state.shown, self.view.target)
+
+    @property
     def member_keys(self):
-        return tuple(row.name for row in self.view.conversation_kind.active_members(
-            self.model_state.shown, self.view.target))
+        return tuple(row.name for row in self.members)
 
     def accepts_observation(self) -> bool:
         return (self.view.query_ancestor(SessionView).is_current
@@ -54,7 +57,8 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
 
     def sync_members(self, changed: frozenset[str]) -> None:
         if self.is_attached and not self.is_leaving:
-            members = self.view.conversation_kind.active_members(self.model_state.shown, self.view.target)
-            self.details.title = Content(f"{len(members)} active · " + ", ".join(
-                f"{row.name} {row.summary}" for row in members))
+            members = self.members
+            names = ", ".join(row.name for row in members[:2])
+            remaining = f" +{len(members) - 2}" if len(members) > 2 else ""
+            self.details.title = Content(f"{len(members)} active · {names}{remaining}")
             self.reconcile_keys(tuple(row.name for row in members), changed=changed)
