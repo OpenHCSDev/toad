@@ -64,11 +64,10 @@ class ThreadTab(OpenTab):
 
 @dataclass(frozen=True)
 class CommsViewKey:
-    """A wire destination belongs to one owner session and sending identity."""
+    """A wire destination belongs to one owner session."""
 
     root: str
     owner_mode: str
-    me: str
     kind: type["ConversationKind"]
     target: str
 

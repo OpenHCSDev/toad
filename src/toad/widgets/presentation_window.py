@@ -3,7 +3,7 @@
 from dataclasses import dataclass, fields, replace
 from collections import deque
 from agent_comms.transcripts import TranscriptCursor
-from agent_comms.message_page import PageBounds, PageTraversal
+from agent_comms.message_page import PageBounds
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from itertools import zip_longest
@@ -162,7 +162,7 @@ class PageEnd(ABC):
     def work_cursor[Cursor](self, through: Cursor) -> Cursor | None:
         return self.edge((None, through))
     @abstractmethod
-    def loader_keywords(self, cursor: TranscriptCursor | None) -> dict[str, TranscriptCursor | None]: ...
+    async def load_page(self, loader, cursor: TranscriptCursor | None, through): ...
     def progressed(self, page, cursor: TranscriptCursor) -> bool:
         edge = self.edge((page.before, page.after))
         start, stop = self.edge(((edge, cursor), (cursor, edge)))
@@ -219,12 +219,12 @@ class OlderEnd(PageEnd):
     pop = staticmethod(deque.popleft)
     append = staticmethod(deque.appendleft)
 
-    def loader_keywords(self, cursor):
-        return {'before': cursor}
+    async def load_page(self, loader, cursor, through):
+        return await loader(before=cursor, through=through)
 
     def wire_page(self, source, cursor, through):
         return source.kind.page(source, PageBounds(
-            PageTraversal.capture(**cursor.older()),
+            cursor.older(),
             source.tail_limit if cursor == through else source.page_limit, source.max_bytes))
 
     def advance_empty(self, edge, staged):
@@ -255,12 +255,12 @@ class NewerEnd(PageEnd):
     def has_more(self, through, page):
         return super().has_more(through, page) or page.after != through
 
-    def loader_keywords(self, cursor):
-        return {'after': cursor}
+    async def load_page(self, loader, cursor, through):
+        return await loader(after=cursor, through=through)
 
     def wire_page(self, source, cursor, through):
-        page = source.kind.page(source, PageBounds(PageTraversal.capture(**cursor.newer()), source.page_limit, source.max_bytes))
-        kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor)
+        page = source.kind.page(source, PageBounds(cursor.newer(), source.page_limit, source.max_bytes))
+        kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor.sequence)
         return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
 
     async def project(self, source, initial, prepared):
