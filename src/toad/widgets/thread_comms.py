@@ -141,16 +141,15 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
 
     @property
     def member_keys(self):
-        snapshot = self.query_ancestor(ThreadCommsSidebar)._snapshot
-        model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
-        return frozenset(entry.target for entry in model.entries) if model is not None else frozenset()
+        return self.model.targets
 
     def present(self, model: RelationshipGroup) -> None:
         previous, self.model = self.model, model
         if previous != model:
-            entries = {entry.target: entry for entry in previous.entries}
-            changed = frozenset(entry.target for entry in model.entries
-                                if entries.get(entry.target) != entry)
+            changed = frozenset(
+                t for t in model.targets
+                if t not in previous.targets or previous.entry(t) != model.entry(t)
+            )
             self.sync_members(changed=changed)
 
     def accepts_members(self) -> bool:
@@ -162,11 +161,11 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
                          if entry.person is not None and entry.person.thread.name in names)
 
     def new_row(self, key: str):
-        entry = self._entries[key]
+        entry = self.model.entry(key)
         return RelationshipRow(entry_target(entry), entry.target)
 
     def show_member(self, key: str, row: RelationshipRow) -> None:
-        entry = self._entries[key]
+        entry = self.model.entry(key)
         threads = self.query_ancestor(ThreadCommsSidebar).model_state.shown.threads.rows
         row.present(entry, threads.get(entry.person.thread.name) if entry.person is not None else None)
 
@@ -175,16 +174,12 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         if not self.member_container.is_attached or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
-        self._entries = {entry.target: entry for entry in self.model.entries}
         empty = self.query_one_optional(".relationship-empty")
-        if (self._entries or not self.expanded) and empty is not None:
+        if (self.model.entries or not self.expanded) and empty is not None:
             empty.remove()
-        if self.expanded and not self._entries and empty is None:
+        if self.expanded and not self.model.entries and empty is None:
             self.mount(Static(self.model.empty_text, classes="relationship-empty"))
-        try:
-            self.reconcile_rows(changed=changed)
-        finally:
-            del self._entries  # Per-sync lookup only; the model owns the entries.
+        self.reconcile_rows(changed=changed)
         tree.apply_selection()
 
 
