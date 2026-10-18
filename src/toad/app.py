@@ -464,6 +464,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
     async def on_mount(self) -> None:
         # The terminal driver is running now, so ANSI themes can query its colours.
+        self.colours.mount()
         self.saved_settings.apply_all()
         self.coordination_access.start()
         await self.application.start()

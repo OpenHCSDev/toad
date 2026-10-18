@@ -15,7 +15,7 @@ from itertools import count
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from toad.textual_colours import TextualColours
+    from toad.textual_colours import PaletteState, TextualColours
 
 from rich.cells import cell_len, set_cell_size
 from rich.columns import Columns
@@ -26,7 +26,6 @@ from rich.text import Text
 from rich._wrap import divide_line
 from rich.segment import Segment
 from rich.style import Style
-from rich.terminal_theme import TerminalTheme
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.visual import Visual
@@ -72,19 +71,15 @@ class LineTheme:
         return self.styles[role]
 
     @staticmethod
-    def _style(role: type[LineRole], style: Style, terminal_theme: TerminalTheme) -> Style:
-        from textual.color import Color
-
+    def _style(role: type[LineRole], style: Style, palette: PaletteState) -> Style:
         if role.background_tint:
-            base = Color(*terminal_theme.background_color)
-            fill = base.blend(Color(*style.color.get_truecolor(terminal_theme)), role.background_tint)
-            style += Style(bgcolor=fill.rich_color)
+            style = palette.tint(style, role.background_tint)
         return style + Style(italic=role.italic or None, bold=role.bold or None,
                              underline=role.underline or None)
 
-    def with_colour(self, colour: type[ThemeColour], style: Style, terminal_theme: TerminalTheme) -> LineTheme:
+    def with_colour(self, colour: type[ThemeColour], style: Style, palette: PaletteState) -> LineTheme:
         """This theme with one colour drawn another way, as a fade draws it part of the way through."""
-        return replace(self, styles={role: self._style(role, style, terminal_theme)
+        return replace(self, styles={role: self._style(role, style, palette)
                                      if role.colour is colour else held for role, held in self.styles.items()})
 
     @classmethod
@@ -94,7 +89,7 @@ class LineTheme:
                  else Style(color=colours.colour(MutedColour).rich_color))
         return cls({role: cls._style(role, muted if role.colour is MutedColour
                                     else Style(color=colours.colour(role.colour).rich_color),
-                                    colours.app.ansi_theme) for role in LineRole.members_with(LineRole)},
+                                    colours.schemes[colours.app.theme].palette) for role in LineRole.members_with(LineRole)},
                    colours.depth.name, diff=colours.app.settings.diff, syntax=SyntaxPalette.of(colours.app))
 
 

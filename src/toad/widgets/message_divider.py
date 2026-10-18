@@ -135,7 +135,8 @@ class MessageDivider(Animated[Mix], SingleLineBlock):
         theme = self.app.colours.line_theme
         mix = self.effect_frame(NEW_MESSAGE.ending_at(self.block.role.colour))
         colour = self.app.colours.mixed(mix.start, mix.end, mix.amount)
-        return theme.with_colour(self.block.role.colour, Style(color=colour.rich_color), self.app.ansi_theme)
+        return theme.with_colour(self.block.role.colour, Style(color=colour.rich_color),
+                                 self.app.colours.schemes[self.app.theme].palette)
 
     def on_mount(self) -> None:
         if self.fresh:
