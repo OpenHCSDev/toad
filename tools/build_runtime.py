@@ -146,13 +146,21 @@ def installation_main() -> None:
     actions = parser.add_mutually_exclusive_group(required=True)
     actions.add_argument('--prune-runtimes', action='store_true')
     actions.add_argument('--publish-runtime', action='store_true')
+    actions.add_argument('--stop-watchers', action='store_true')
+    actions.add_argument('--restore-watchers', action='store_true')
+    parser.add_argument('--watcher-state', type=Path)
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
     parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
-    if args.prune_runtimes:
+    if args.stop_watchers or args.restore_watchers:
+        if args.watcher_state is None:
+            parser.error('watcher stop/restore requires --watcher-state')
+        watchers = InstallWatchers(args.watcher_state)
+        watchers.stop() if args.stop_watchers else watchers.restore()
+    elif args.prune_runtimes:
         if args.current is None or args.previous is None:
             parser.error('--prune-runtimes requires --current and --previous')
         print(json.dumps(prune_runtimes(args.current, args.previous, delete=args.delete), indent=2))
@@ -160,6 +168,33 @@ def installation_main() -> None:
         if args.publication_tools is None or args.root is None:
             parser.error('--publish-runtime requires --publication-tools and --root')
         publish_runtime(args.publication_tools, args.root)
+
+
+@dataclass(frozen=True)
+class InstallWatchers:
+    """The install restores exactly the services it recorded before stopping."""
+
+    path: Path
+
+    def stop(self) -> None:
+        units = json.loads(run('systemctl', '--user', 'list-units', '--type=service',
+                               '--state=active', '--output=json'))
+        names = [unit['unit'] for unit in units if unit['unit'] in (
+            'codex-comms-inbox.service', 'opencode-comms-inbox.service', 'toad-serve.service')]
+        with self.path.open('x') as output:
+            json.dump(names, output)
+            output.flush()
+            os.fsync(output.fileno())
+        if names:
+            run('systemctl', '--user', 'stop', *names)
+
+    def restore(self) -> None:
+        names = json.loads(self.path.read_text())
+        if names:
+            run('systemctl', '--user', 'start', *names)
+            for name in names:
+                run('systemctl', '--user', 'is-active', name)
+        print(json.dumps({'watchers_restarted': names}))
 
 
 def inventory() -> dict:
@@ -798,7 +833,8 @@ def main() -> None:
 
 
 if __name__ == '__main__':
-    if '--prune-runtimes' in sys.argv or '--publish-runtime' in sys.argv:
+    if any(option in sys.argv for option in (
+        '--prune-runtimes', '--publish-runtime', '--stop-watchers', '--restore-watchers')):
         installation_main()
     elif sys.argv[1:] == ['--inventory']:
         print(json.dumps(inventory()))
