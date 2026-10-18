@@ -2,7 +2,7 @@
 from dataclasses import dataclass, replace
 
 from acp.schema import ToolCall, ToolCallStart, ToolCallUpdate
-from agent_comms.transcript_receipts import AssignedSourceIdentity
+from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.core import events
 from toad.acp.client_session import ClientSessionRequest
 from toad.acp.status import ToolCallStatus

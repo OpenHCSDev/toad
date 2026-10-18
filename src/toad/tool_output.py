@@ -19,7 +19,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.transcript_events import SentTranscript, ToolEndTranscript
 from agent_comms.tool_results import ToolDiff, ToolText
 from agent_comms.sent_message import PublishedSentMessage
-from agent_comms.transcript_receipts import AssignedTranscriptSource
+from agent_comms.transcript_sources import AssignedTranscriptSource
 from toad.message_rows import MessageRow
 from textual.await_complete import AwaitComplete
 from rich.text import Text
