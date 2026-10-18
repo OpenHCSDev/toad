@@ -132,11 +132,11 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         sidebar = self.sidebar
         channel = self.channel
         view.target = ThreadTarget(name)
-        view.show(sidebar.model.threads.rows[name], pinned=name in channel.pinned_members)
+        view.show(sidebar.model_state.shown.threads.rows[name], pinned=name in channel.pinned_members)
 
     @property
     def member_keys(self):
-        channel = self.sidebar.model.channels.rows.get(self.row.target_name)
+        channel = self.sidebar.model_state.shown.channels.rows.get(self.row.target_name)
         return channel.members if channel is not None else ()
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
@@ -153,7 +153,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         """
         if self.channel is None or not self.accepts_members():
             return
-        threads = self.sidebar.model.threads.rows
+        threads = self.sidebar.model_state.shown.threads.rows
         shown = [(name, view) for name in names
                  if (view := self.rows.get(name)) is not None and name in threads]
         for name, view in shown:
@@ -244,7 +244,7 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, Alternati
 
     def resting_ink(self):
         """Ink while not highlighted; the highlight always paints its own contrast."""
-        if self.is_navigation_row() and self.navigation_tree.channel_active(self):
+        if self.is_navigation_row() and self.navigation_tree.model_state.channel_active(self):
             return WarningColour
         return None
 
@@ -420,6 +420,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
     """
     BINDINGS = [("up", "cursor_up", "Previous"), ("down", "cursor_down", "Next"),
                 ("enter", "open_selected", "Open")]
+    GROUP_MOUNT = "sidebar-groups"
     selected: reactive[str] = reactive("", init=False)
     def __init__(self, *, observe: bool = True, **kwargs):
         super().__init__(**kwargs)
@@ -455,7 +456,16 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         screen.start_sidebar_navigation(self)
         self.attach(service)
 
+    def stop_mounting(self) -> None:
+        self.workers.cancel_group(self, self.GROUP_MOUNT)
+        self._group_mounting = None
+
+    def sidebar_visibility_changed(self) -> None:
+        self.stop_mounting()
+        super().sidebar_visibility_changed()
+
     def model_replaced(self) -> None:
+        self.stop_mounting()
         self.display = False
         self.navigation.reset()
         if self.groups:
@@ -470,8 +480,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
     def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
              reorder: bool = False) -> None:
         """Apply model changes; ``None`` means every channel or thread changed."""
-        model = self.model
-        assert model is not None
+        model = self.model_state.shown
         rows = model.channels.rows
         if threads is None:
             self.open_views = self.find_open_views()
@@ -494,9 +503,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
                 group.repaint_members(threads)
         if self._group_mounting is None or self._group_mounting.is_finished:
             if added:
-                self._group_mounting = self.run_worker(self._mount_groups(), group="sidebar-groups")
+                self._group_mounting = self.run_worker(self._mount_groups(), group=self.GROUP_MOUNT)
             elif removed or reorder:
-                self._order_groups()
+                self.order_groups()
         panel = self.query_ancestor(SideBarCollapsible)
         control = panel.header_control
         assert isinstance(control, ChannelListSort)
@@ -513,13 +522,13 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         own; built together, every group would be built in the same turn.
         The mounted groups are ordered once per pass, not after each mount.
         """
-        while self.is_attached and self.model is not None:
-            missing = [key for key in self.model.channels.rows if key not in self.groups]
+        while self.is_attached:
+            missing = [key for key in self.model_state.shown.channels.rows if key not in self.groups]
             if not missing:
-                self._order_groups()
+                self.order_groups()
                 return
             for key in missing:
-                rows = self.model.channels.rows if self.model is not None else {}
+                rows = self.model_state.shown.channels.rows
                 if key not in rows or key in self.groups or not self.is_attached:
                     continue  # Removed or mounted while the previous group mounted.
                 row = CommsRow(channel_target(key), key)
@@ -530,16 +539,16 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     @property
     def member_keys(self):
-        return (key for channel in self.model.channels.rows.values() for key in channel.members)
+        return (key for channel in self.model_state.shown.channels.rows.values() for key in channel.members)
 
-    def _order_groups(self) -> None:
+    def order_groups(self) -> None:
         """Order current groups, retiring old groups after their rows can move."""
-        removed = [key for key in self.groups if key not in self.model.channels.rows]
+        removed = [key for key in self.groups if key not in self.model_state.shown.channels.rows]
         if removed:
             with self.reconcile_members():
                 self.row_reconciliation.finish()
             self.remove_children([self.groups.pop(key) for key in removed])
-        ordered = (self.new_session, *(self.groups[key] for key in self.model.channels.rows if key in self.groups))
+        ordered = (self.new_session, *(self.groups[key] for key in self.model_state.shown.channels.rows if key in self.groups))
         live = tuple(child for child in self.children if not child.is_leaving)
         if live != ordered:
             positions = {widget: index for index, widget in enumerate(ordered)}
@@ -549,23 +558,22 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
     def find_open_views(self) -> dict[str, str]:
         """Which open tab shows each thread of this service; the first tab claims it."""
         app = self.app
-        threads = self.model.threads.rows
+        threads = self.model_state.shown.threads.rows
         views: dict[str, str] = {}
         for details in app.session_tracker.ordered_sessions:
             screen = app.session_navigation.source(details.mode_name)
-            if screen is None or not screen.belongs_to_wire(self.service.root):
-                continue  # A same-named thread on another wire is not this open view.
+            if screen is None:
+                continue
             name = screen.thread_identity.thread_name()
             if name not in threads and screen._agent_session_id in threads:
                 name = screen._agent_session_id
-            if name in threads and name not in views:
+            if (name in threads and name not in views
+                    and screen.belongs_to_wire(self.navigation_root)):
                 views[name] = details.mode_name
         return views
 
     @handles(SessionChangedEvent)
     async def session_changed(self, event: CoreEventMessage) -> None:
-        if not self.shows_model:
-            return
         self.open_views = self.find_open_views()
 
     @property

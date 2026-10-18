@@ -33,14 +33,14 @@ class SidebarNavigation:
         # Retained rows belong to their validated route. Hide a changed route
         # before its first frame; ordinary same-route tab switches keep the
         # already-rendered roster while the canonical refresh runs afterward.
-        if self.sidebar.enabled and self.sidebar.shows_model:
-            model = self.sidebar.model
+        if self.sidebar.enabled and self.sidebar.model_state.shows_model():
+            observed = self.sidebar.model_state.observed
             try:
                 if (await self.sidebar.app.coordination_access.route_changed()
-                        and self.revision == revision and self.sidebar.model is model):
+                        and self.revision == revision and self.sidebar.model_state.observes(observed)):
                     self.sidebar.display = False
             except (OSError, ValueError):
-                if self.revision == revision and self.sidebar.model is model:
+                if self.revision == revision and self.sidebar.model_state.observes(observed):
                     self.sidebar.display = False
 
     def start(self) -> None:
@@ -53,7 +53,7 @@ class SidebarNavigation:
     def finish(self, revision: int) -> None:
         if revision != self.revision or not self.sidebar.accepts_publication():
             return
-        if (self.sidebar.display and self.sidebar.shows_model
+        if (self.sidebar.display and self.sidebar.model_state.shows_model()
                 and not self.ready.is_set()):
             # The native sender barrier owns committed row geometry. Restore
             # this reader through its original scroll owner; a changed position
@@ -91,7 +91,7 @@ class SidebarNavigation:
                     state.selected_targets = (state.selected,)
 
     def restore_scroll(self) -> bool:
-        if not self.sidebar.shows_model:
+        if not self.sidebar.model_state.shows_model():
             return False
         if self.restoring and self.sidebar.is_attached and self.sidebar.screen is self.sidebar.app.screen:
             viewport = self.sidebar.scroll_container
