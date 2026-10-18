@@ -368,7 +368,7 @@ class BoundSidebar(SidebarModelState):
     def present(self, view):
         shown = view.accepts_observation()
         view.app.coordination_access.show_sidebar(view, shown)
-        if not shown or self.observed.sidebar.snapshot is None:
+        if not shown:
             return Behind(self.observed)
         return self.present_current()
 
