@@ -119,8 +119,6 @@ class Observation(ABC):
     @abstractmethod
     def require(self, access, selected): ...
     @abstractmethod
-    def attach(self, access, previous): ...
-    @abstractmethod
     def retire(self, access): ...
     @abstractmethod
     async def read(self, access, request): ...
@@ -168,8 +166,6 @@ class NotObserving(Observation):
         return access.open_current()
     def require(self, access, selected):
         return access.open_selected(selected)
-    def attach(self, access, previous):
-        pass
     def retire(self, access):
         pass
     async def read(self, access, request):
@@ -541,7 +537,6 @@ class CoordinationAccess(MroDispatch):
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
-        self.observation.attach(self, NotObserving())
         self.timer = self.app.set_interval(ROUTE_CHECK_SECONDS, self.check_route)
         self.check_route()
 
