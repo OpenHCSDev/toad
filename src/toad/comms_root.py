@@ -85,15 +85,19 @@ class FailedRoute(RouteObservation):
 ROUTE_CHECK_SECONDS = 1.0
 
 
-class NotObserving:
-    def show_sidebar(self, view) -> None:
-        pass
+@dataclass(frozen=True, kw_only=True)
+class Observation:
+    access: CoordinationAccess = field(compare=False)
+    subscriptions: ResourceRelease = field(default_factory=ResourceRelease, compare=False)
 
-    def uses(self, service) -> bool:
-        return False
+    def observed(self) -> Observing:
+        raise NotImplementedError
 
-    def observes(self, root) -> bool:
-        return False
+
+class NotObserving(Observation):
+    def observed(self) -> Observing:
+        return self.access.open_current()
+
     def tabs(self, sessions):
         return {entry.mode: entry.unobserved_tab() for entry in sessions.members}
     def route_stamp(self):
@@ -103,29 +107,25 @@ class NotObserving:
         return await observed.observe_route(access)
     def require(self, access, selected):
         return access.open_selected(selected)
-    def retire(self, access):
-        pass
-    def notifications(self, access, wanted):
-        pass
-    def sidebar_interest(self, access):
-        pass
     def references_for(self, root):
         return PendingReferences(root)
     async def current_references(self, access, root):
         return access.reference_context(root)
-    def stop(self):
-        pass
 
 
 @dataclass(frozen=True)
-class Observing:
+class Observing(Observation):
     selection: RouteSelection
     service: Comms = field()
     sidebar: SidebarModel = field()
     process: ObservationProcess = field(compare=False)
     loop: asyncio.AbstractEventLoop
-    access: CoordinationAccess = field(compare=False)
-    subscriptions: ResourceRelease = field(default_factory=ResourceRelease, compare=False)
+
+    def observed(self) -> Observing:
+        return self
+
+    def is_current(self) -> bool:
+        return self is self.access.observation
 
     def observes(self, root) -> bool:
         return self.service.root == Path(root).resolve()
@@ -134,7 +134,8 @@ class Observing:
         return {entry.mode: entry.tab(sessions, self) for entry in sessions.members}
 
     def show_sidebar(self, view) -> None:
-        view.bind_observation(self)
+        if self.is_current():
+            view.bind_observation(self)
 
     def uses(self, service) -> bool:
         return self.service is service
@@ -166,9 +167,9 @@ class Observing:
         return self if self.selection == selected else access.open_selected(selected)
 
     def attach(self, access, previous):
-        previous.retire(access)
-        if self is not access.observation:
-            self.retire(access)
+        previous.subscriptions.close()
+        if not self.is_current():
+            self.subscriptions.close()
             return
         self.loop.add_reader(self.process.fileno(), self.receive, access)
         waiters, access.sidebar_waiters = access.sidebar_waiters, []
@@ -181,14 +182,14 @@ class Observing:
         access.notification_views.clear()
         access.notification_outcomes.clear()
         access.notification_interest = ObserveNotifications(frozenset())
-        self.sidebar_interest(access)
+        access.update_sidebar_interest()
         self.thread_interest(access)
         self.subscriptions.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
         self.views_changed()
         access.events.publish(ObservedServiceChanged())
 
     def retire(self, access):
-        self.subscriptions.close()
+        self.process.request(StopObserving())
         self.loop.remove_reader(self.process.fileno())
         self.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
         task = asyncio.ensure_future(asyncio.to_thread(self.process.close))
@@ -196,7 +197,7 @@ class Observing:
         task.add_done_callback(access.retiring.discard)
 
     def receive(self, access):
-        if self is not access.observation:
+        if not self.is_current():
             return
         try:
             for result in self.process.results():
@@ -204,11 +205,6 @@ class Observing:
         except (OSError, ValueError, RuntimeError) as error:
             self.loop.remove_reader(self.process.fileno())
             access.app._handle_exception(error)
-
-    def notifications(self, access, wanted):
-        if wanted != access.notification_interest:
-            access.notification_interest = wanted
-            self.process.request(wanted)
 
     def views_changed(self, event=None, subscription=None):
         access, root = self.access, str(self.service.root)
@@ -220,12 +216,6 @@ class Observing:
         if request != access.views_interest:
             access.views_interest = request
             self.process.request(request)
-
-    def sidebar_interest(self, access):
-        wanted = access.sidebar_request() if access.sidebar_views or access.reference_views or access.sidebar_waiters else None
-        if wanted != access.sidebar_interest:
-            access.sidebar_interest = wanted
-            self.process.request(wanted if wanted is not None else StopSidebar())
 
     def references_for(self, root):
         return self.sidebar.observation.references_for(root)
@@ -240,16 +230,6 @@ class Observing:
     def thread_interest(self, access):
         self.process.request(ObserveThreads(access.events.observed_threads(str(self.service.root))))
 
-    def stop(self):
-        process = self.process
-        process.request(StopObserving())
-        self.loop.remove_reader(process.fileno())
-        self.loop.add_reader(process.fileno(), process.results)
-
-
-type Observation = NotObserving | Observing
-
-
 class CoordinationAccess(MroDispatch):
     """A validated Core route owns cached access, observations and UI write checks."""
 
@@ -258,7 +238,7 @@ class CoordinationAccess(MroDispatch):
         from toad.acp.transcript_reader import CoordinationTranscriptReader
 
         self.transcripts = CoordinationTranscriptReader(self)
-        self.observation: Observation = NotObserving()
+        self.observation: NotObserving | Observing = NotObserving(access=self)
         self.events = CoreEventStream(self)
         self.revision: ReadState = NoRevision()
         self.route_observation: RouteObservation = RouteObservation()
@@ -304,7 +284,8 @@ class CoordinationAccess(MroDispatch):
             self.cleanup.enter_context(acquisition.pop_all())
         observed = Observing(
             selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
-            self.app.running_loop, self)
+            self.app.running_loop, access=self)
+        observed.subscriptions.callback(observed.retire, self)
         self.observation = observed
         self.revision = NoRevision()
         self.route_observation = RouteObservation()
@@ -359,7 +340,7 @@ class CoordinationAccess(MroDispatch):
             elif not waiter.done():
                 answered_waiters.append(waiter)
         self.sidebar_waiters = remaining
-        self.observation.sidebar_interest(self)
+        self.update_sidebar_interest()
         return answered_waiters
 
     @handles(ThreadsObserved)
@@ -385,7 +366,10 @@ class CoordinationAccess(MroDispatch):
         wanted = ObserveNotifications(frozenset(self.notification_views.values()))
         for previous in self.notification_outcomes.keys() - wanted.reads:
             self.notification_outcomes.pop(previous)
-        self.observation.notifications(self, wanted)
+        if wanted != self.notification_interest:
+            observed = self.observation.observed()
+            self.notification_interest = wanted
+            observed.process.request(wanted)
 
     @handles(NotificationsObserved)
     def notifications_observed(self, result: NotificationsObserved, observed: Observing) -> None:
@@ -420,44 +404,51 @@ class CoordinationAccess(MroDispatch):
             factory=partial(ThreadCallbackSubscription, scope=scope)))
         return release
 
+    def update_sidebar_interest(self) -> None:
+        wanted = self.sidebar_request() if self.sidebar_views or self.reference_views or self.sidebar_waiters else None
+        if wanted != self.sidebar_interest:
+            observed = self.observation.observed()
+            self.sidebar_interest = wanted
+            observed.process.request(wanted if wanted is not None else StopSidebar())
+
     def show_sidebar(self, view: object, shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""
         if shown:
             self.sidebar_views.add(view)
         else:
             self.sidebar_views.discard(view)
-        self.observation.sidebar_interest(self)
+        self.update_sidebar_interest()
 
     def show_references(self, view, shown):
         if shown:
             self.reference_views.add(view)
         else:
             self.reference_views.discard(view)
-        self.observation.sidebar_interest(self)
+        self.update_sidebar_interest()
 
     def reference_context(self, root):
         return self.route_observation.references_for(self.observation, root)
 
     async def current_sidebar(self) -> SidebarObservation:
         """Return the source's current answer, including a failed observation."""
-        observed = await self.preparation.run_thread(self.open_current)
+        observed = await self.preparation.run_thread(self.observation.observed)
         request = self.sidebar_request()
         if self.sidebar_interest == request and self.sidebar_current == request:
             return observed.sidebar.observation
         waiter = asyncio.get_running_loop().create_future()
         pending = request, waiter
         self.sidebar_waiters.append(pending)
-        self.observation.sidebar_interest(self)
+        self.update_sidebar_interest()
         try:
             return await waiter
         finally:
             if pending in self.sidebar_waiters:
                 self.sidebar_waiters.remove(pending)
-                self.observation.sidebar_interest(self)
+                self.update_sidebar_interest()
 
     async def update_thread_interest(self) -> None:
         """Acquire the observer through preparation before sending current-root interest."""
-        observed = await self.preparation.run_thread(self.open_current)
+        observed = await self.preparation.run_thread(self.observation.observed)
         observed.thread_interest(self)
 
     def start(self) -> None:
@@ -476,12 +467,11 @@ class CoordinationAccess(MroDispatch):
             self.route_task = None
         self.events.close_threads()
         self.app.workers.cancel_group(self.app, "thread-interest")
-        self.observation.stop()
+        self.observation.subscriptions.close()
 
     async def close(self) -> None:
         await self.stop_observing()
-        self.observation.retire(self)
-        self.observation = NotObserving()
+        self.observation = NotObserving(access=self)
         await asyncio.gather(*self.retiring, return_exceptions=True)
         self.cleanup.close()
 
@@ -503,6 +493,7 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(LinkContextChanged())
             if self.reference_views:
                 self.route_observation.report(self.app)
+            return
         self.events.publish(CoordinationObserved(self.revision))
 
     def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:

@@ -419,7 +419,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
 
     def open_target(self, target: NavigationTarget):
         identity = self.thread_view.thread_identity
-        if identity.root_path() != self.app.coordination_access.open_current().service.root.resolve():
+        if identity.root_path() != self.app.coordination_access.observation.observed().service.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return

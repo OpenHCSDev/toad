@@ -59,7 +59,7 @@ def diff_style(app: ToadApp, field: DeclaredField) -> None:
 
 @Effect
 def sidebar_filters(app: ToadApp, field: DeclaredField) -> None:
-    app.coordination_access.observation.sidebar_interest(app.coordination_access)
+    app.coordination_access.update_sidebar_interest()
 
 
 @Effect

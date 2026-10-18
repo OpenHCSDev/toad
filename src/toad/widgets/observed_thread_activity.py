@@ -26,7 +26,7 @@ class StatusThread(ABC):
     @classmethod
     def for_root(cls, root: Path, name: str, access) -> StatusThread:
         """Both the session binding and Comms service supply absolute wire roots."""
-        if access.observation.observes(root):
+        if access.observation.observed().observes(root):
             return LocalStatusThread(root, name)
         return ForeignStatusThread(root, name)
 

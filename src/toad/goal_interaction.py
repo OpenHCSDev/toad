@@ -111,7 +111,7 @@ class EditInteraction(GoalInteraction):
                 raise ValueError("The goal presentation changed; reopen its editor.")
             await session.write(agent, agent.edit_goal(goal, text))
 
-        observed = await view.app.preparation.run_thread(view.app.coordination_access.open_current)
+        observed = await view.app.preparation.run_thread(view.app.coordination_access.observation.observed)
         session.present(GoalEdit(goal, goal_mention_candidates(observed), on_save=save))
 
 
