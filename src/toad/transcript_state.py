@@ -5,7 +5,7 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import ClassVar, TYPE_CHECKING
+from typing import ClassVar, TYPE_CHECKING, cast
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
@@ -15,6 +15,7 @@ from toad.widgets.presentation_window import NEWER_END
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
+    from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import LatestPosition
 
 
@@ -368,7 +369,8 @@ class CommitTranscript(WorkingTranscript):
 
     def arriving(self, prepared, followed_end: bool):
         # Rows its live blocks already showed have not arrived again; every other row has.
-        claims = tuple(block.commit_claim for block in self.live_blocks)
+        # The live blocks are the commit participants `retirement_candidates` chose.
+        claims = tuple(cast("CommitParticipant", block).commit_claim for block in self.live_blocks)
         return tuple(fragment for fragment in super().arriving(prepared, followed_end)
                      if not any(fragment.shown_live_by(claim) for claim in claims))
 
