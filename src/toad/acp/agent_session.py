@@ -136,6 +136,11 @@ class AgentSession:
         self.load_plan: SessionLoadPlan = EnsuringSessionLoadPlan()
         self.settled = asyncio.Event()
 
+    def publish_thread_row_state(self) -> None:
+        if coordination := self.agent.coordination:
+            self.app_events.publish(core_events.ThreadRowStateChanged(
+                frozenset((coordination.thread.name,))))
+
     @property
     def disposition(self) -> SessionDisposition:
         return self._disposition
@@ -144,7 +149,7 @@ class AgentSession:
     def disposition(self, state: SessionDisposition) -> None:
         if state is not self._disposition:
             self._disposition = state
-            self.app_events.publish(core_events.ThreadRowStateChanged())
+            self.publish_thread_row_state()
 
     @property
     def capabilities(self):
@@ -314,7 +319,7 @@ class AgentSession:
                 self.session_failed(failure)
                 return
         self.settled.set()
-        self.app_events.publish(core_events.ThreadRowStateChanged())
+        self.publish_thread_row_state()
         self.agent.events.publish(AgentReady(session_id=self.agent.session_id, reconnected=self.reconnecting))
 
 
