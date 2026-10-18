@@ -159,7 +159,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             await self._mark_page(*selected, snapshot)
 
     async def _mark_historical(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
-        displayed = page.historical_display.select({fragment.message.seq for fragment in marked})
+        displayed = page.select(fragment.message.seq for fragment in marked).historical_display
         try:
             await self.page_source.mark_historical(displayed)
         except (HistoricalSourceChanged, DMScopeChanged):
@@ -176,9 +176,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             if snapshot.current(self):
                 for fragment in marked:
                     fragment.evidence = None
-        except DMScopeChanged as error:
-            self.view.app.notify(str(error), title="DM read not marked", severity="error")
-        except DMPaintedBoundChanged:
+        except (DMScopeChanged, DMPaintedBoundChanged):
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
