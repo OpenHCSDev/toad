@@ -97,10 +97,13 @@ class HistoryNotifications:
     # Core feedback for every visible bus message, native or wire.
 
     def check_notifications(self) -> None:
-        access = self.app.coordination_access
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
+        self.subscribe_notifications(references)
+
+    def subscribe_notifications(self, references) -> None:
+        access = self.app.coordination_access
         if references:
             access.show_notifications(self, self.notification_read(references))
         else:

@@ -156,7 +156,7 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
         assert not view.transcript.histories, "Expired read acquired a replacement application"
         await view.transcript.publish(HeldSourceCase, entered, release)
         await ui.until(lambda: len(view.transcript.histories) == 1, why="the current read to acquire its application")
-        assert view.transcript.histories[0].committed_cursor.session_file == str(journal)
+        assert view.transcript.histories[0].page_source.through.session_file == str(journal)
 
 
 async def test_closing_the_transcript_mid_application_paints_nothing(workspace):
