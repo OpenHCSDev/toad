@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from agent_comms.cli_commands import TargetAction, TargetEdit, TargetBatchResult, TargetFailed
+from agent_comms.cli_result import CliResult
 from agent_comms.native_pi import NativePiUnavailable
 from agent_comms.route_selection import RouteChanged, RouteSelection
 
@@ -98,11 +99,10 @@ class ThreadAction:
     def pending(self):
         return self.definition.label + '…'
 
-    async def completed(self, app, selected, result):
+    async def completed(self, app, selected, result: CliResult):
         await app.session_navigation.retire_missing()
-        await app.session_navigation.reconnect(
-            selected, self.request.declaration.reconnect_targets(result))
-        for target in self.request.declaration.open_targets(result):
+        await app.session_navigation.reconnect(selected, result.reconnect_targets())
+        for target in result.open_targets():
             await app.thread_navigation.open(owner_mode=self.context.mode,
                 project_path=self.context.project, target=target)
         title = self.context.title
