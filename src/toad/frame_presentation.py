@@ -284,6 +284,10 @@ class Animated[FrameT: Frame](Widget):
         animation = self.effects.get(effect)
         return effect.final if animation is None else animation.frame()
 
+    def effect_running(self, effect: Effect[FrameT]) -> bool:
+        animation = self.effects.get(effect)
+        return animation is not None and not animation.finished
+
     def on_unmount(self) -> None:
         self.stop_effect()
 

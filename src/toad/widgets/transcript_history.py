@@ -927,16 +927,19 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         if self.filter.active:
             self.filter.request_older()
 
-    def arriving_fragments(self, older: bool, prepared: PreparedTranscriptPage) -> tuple[TranscriptFragment, ...]:
-        """Only a source append beyond the fully drawn, followed end arrives."""
-        return (prepared.fragments if not older and not self.has_newer
-                and self.follows_source_tail and self._source_state.rows_arrive else ())
+    @property
+    def drawn_tail_followed(self) -> bool:
+        return not self.has_newer and self.follows_source_tail
+
+    def arriving_fragments(self, followed_end: bool, prepared: PreparedTranscriptPage) -> tuple[TranscriptFragment, ...]:
+        """Only an append beyond the followed end can supply arriving rows."""
+        return prepared.fragments if followed_end and self._source_state.rows_arrive else ()
 
     def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Bind the arrived source range to its current pages, on one history clock."""
         if not fragments:
             return
-        if self.effect_frame(NEW_TEXT) == NEW_TEXT.final:
+        if not self.effect_running(NEW_TEXT):
             for page in self.pages:
                 page.arrivals = ()
             self.run_effect(NEW_TEXT)
@@ -951,7 +954,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 page.refresh()
 
     def repaint(self) -> None:
-        finished = self.effect_frame(NEW_TEXT) == NEW_TEXT.final
+        finished = not self.effect_running(NEW_TEXT)
         for page in self.pages:
             if page.arrivals:
                 if finished:
@@ -970,7 +973,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         await self._clear(initial)
         self.extend_source(through)
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        if self.effect_frame(NEW_TEXT) != NEW_TEXT.final:
+        if self.effect_running(NEW_TEXT):
             self._place_arrivals(retained)
         self._arrive(arrivals)
 
@@ -1001,7 +1004,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         window, loader = snapshot.window, self.loader
         # Only an append beyond the fully drawn, followed end is an arrival.
         # Local range growth, older paging and destination restoration are not.
-        followed_end = not older and not self.has_newer and self.follows_source_tail
+        followed_end = not older and self.drawn_tail_followed
 
         def current() -> bool:
             if not snapshot.current(self) or not publication_current():
@@ -1047,7 +1050,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                     return False
                 protected = {id(fragment) for fragment in self.visible_fragments()}
                 async with window.preserve_history(root=self):
-                    arrivals = self.arriving_fragments(older, staged)
+                    arrivals = self.arriving_fragments(followed_end, staged)
                     await self._extend_and_trim(edge, older, local, protected, staged, current=current)
                     self._require_can_draw()
                     self._arrive(arrivals)

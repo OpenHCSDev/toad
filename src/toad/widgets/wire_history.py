@@ -124,7 +124,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
         if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
         await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
-                               arrivals=self.arriving_fragments(False, prepared))
+                               arrivals=self.arriving_fragments(self.drawn_tail_followed, prepared))
         return False
 
     @property
