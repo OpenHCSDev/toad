@@ -49,7 +49,7 @@ from toad.widgets.agent_thought import AgentThought
 from toad.widgets.tool_call import ToolCall
 from toad.widgets.user_input import UserInput
 from toad.widgets.message_divider import AgentActivityDivider, MessageClock
-from toad.frame_presentation import Animated
+from toad.frame_presentation import AnimationEffects
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
 from ui_theme.effects import NEW_TEXT, Mix
@@ -125,7 +125,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
     def __init__(self, prepared: PreparedTranscriptPage, *, newest: bool = True,
                  batch_size: int = PreparedTranscriptPage.BATCH):
-        self.arrivals: tuple[TranscriptFragment, ...] = ()
+        self.arrivals: set[int] = set()
         self.prepared = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size, newest=newest)
@@ -295,7 +295,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             return selection_painted(self, self.blank_row(width, paint), y)
         # Prepared rows span exactly this width (Lines.strips_at).
         strip = lines.strips_at(fragment.link_place)[row]
-        if fragment in self.arrivals:
+        if id(fragment) in self.arrivals:
             history = self.history
             strip = history.paint_effects(strip, history.effect_frame(NEW_TEXT))
         return selection_painted(self, self.on_background(strip, paint, y), y)
@@ -457,7 +457,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return await self.prepared.replace_range(self, selected, current)
 
-class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, Animated[Mix], VerticalGroup):
+class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the
@@ -931,28 +931,21 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
     def drawn_tail_followed(self) -> bool:
         return not self.has_newer and self.follows_source_tail
 
-    def arriving_fragments(self, followed_end: bool, prepared: PreparedTranscriptPage) -> tuple[TranscriptFragment, ...]:
-        """Only an append beyond the followed end can supply arriving rows."""
-        if not followed_end or not self._source_state.rows_arrive:
-            return ()
-        drawn = tuple(fragment.events for fragment in self.fragments_in_range)
-        return tuple(fragment for fragment in prepared.fragments if fragment.events not in drawn)
-
     def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Bind the arrived source range to its current pages, on one history clock."""
         if not fragments:
             return
         if not self.effect_running(NEW_TEXT):
             for page in self.pages:
-                page.arrivals = ()
+                page.arrivals.clear()
             self.run_effect(NEW_TEXT)
         self._place_arrivals(fragments)
 
     def _place_arrivals(self, fragments: tuple[TranscriptFragment, ...]) -> None:
+        positions = {fragment.arrival_position for fragment in fragments}
         for page in self.pages:
-            page.arrivals = tuple(fragment for fragment in page.fragments_in_range
-                                  if fragment in page.arrivals
-                                  or any(fragment.events == arrived.events for arrived in fragments))
+            page.arrivals.update(id(fragment) for fragment in page.fragments_in_range
+                                 if fragment.arrival_position in positions)
             if page.arrivals:
                 page.refresh()
 
@@ -961,17 +954,18 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         for page in self.pages:
             if page.arrivals:
                 if finished:
-                    page.arrivals = ()
+                    page.arrivals.clear()
                 page.refresh()
 
     def on_hide(self) -> None:
         for page in self.pages:
-            page.arrivals = ()
+            page.arrivals.clear()
 
     async def show_newest(self, through, initial: PreparedTranscriptPage, *,
                           arrivals: tuple[TranscriptFragment, ...] = ()) -> None:
         """Replace the drawn source, retaining the followed tail's active arrivals."""
-        retained = (tuple(fragment for page in self.pages for fragment in page.arrivals)
+        retained = (tuple(fragment for page in self.pages for fragment in page.fragments_in_range
+                          if id(fragment) in page.arrivals)
                     if self.follows_source_tail else ())
         await self._clear(initial)
         self.extend_source(through)
@@ -1053,7 +1047,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                     return False
                 protected = {id(fragment) for fragment in self.visible_fragments()}
                 async with window.preserve_history(root=self):
-                    arrivals = self.arriving_fragments(followed_end, staged)
+                    arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, older, local, protected, staged, current=current)
                     self._require_can_draw()
                     self._arrive(arrivals)

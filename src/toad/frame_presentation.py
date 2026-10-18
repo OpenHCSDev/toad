@@ -254,7 +254,7 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
-class Animated[FrameT: Frame](Widget):
+class AnimationEffects[FrameT: Frame](Widget):
     """A native widget whose effect uses the app clock and published visibility."""
 
     text_fades: ClassVar[tuple[Fade, ...]] = ()
@@ -307,9 +307,6 @@ class Animated[FrameT: Frame](Widget):
             strip = self.app.colours.paint_rising(frame, strip)
         return strip
 
-    def render_line(self, y: int, paint: PaintState) -> Strip:
-        return self.paint_effects(super().render_line(y, paint))
-
     @property
     def animation_visible(self) -> bool:
         if not self.is_attached or not self.app.app_focus:
@@ -323,3 +320,10 @@ class Animated[FrameT: Frame](Widget):
 
     def repaint(self) -> None:
         self.refresh()
+
+
+class Animated[FrameT: Frame](AnimationEffects[FrameT]):
+    """A widget whose own rendered rows receive its declared text fades."""
+
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        return self.paint_effects(super().render_line(y, paint))
