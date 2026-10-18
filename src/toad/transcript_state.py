@@ -54,9 +54,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def retirement_source(self) -> "TranscriptState":
         return self
 
-    def retire_preparation(self, preparation: "PreparedPageSource") -> None:
+    def retire_preparation(self, preparation: "PreparedPageSource") -> "PreparedPageSource":
         """Final source retirement releases its bounded prepared-page scope."""
-        preparation.close()
+        return preparation.retired()
 
     def resume(self) -> "TranscriptState":
         raise RuntimeError("Only a parked transcript can resume publication")
@@ -332,13 +332,9 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def retirement_source(self) -> TranscriptState:
         return self.source.retirement_source()
 
-    def retire_preparation(self, preparation: "PreparedPageSource") -> None:
-        """Parking retains data-only work under the shared runtime's budget.
-
-        Publication and speculative workers are revoked by the pager lifetime;
-        the same source revision can reuse its prepared pages after validation.
-        Replacement and final disposal still close the original scope.
-        """
+    def retire_preparation(self, preparation: "PreparedPageSource") -> "PreparedPageSource":
+        """Parking keeps the original prepared pages and their open scope."""
+        return preparation
 
     def resume(self) -> TranscriptState:
         return self.source

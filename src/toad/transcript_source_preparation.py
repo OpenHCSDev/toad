@@ -101,7 +101,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_observation.close()
         # Parked preparation belongs to the logical document. Unmount revokes
         # this publisher, not the source scope transferred with it.
-        self._source_state.retire_preparation(self._history)
+        self._history = self._source_state.retire_preparation(self._history)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
         self.window.histories.discard(self)
@@ -332,7 +332,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation += 1
         if self.is_attached:
             self.window.histories.discard(self)
-        self._source_state.retire_preparation(self._history)
+        self._history = self._source_state.retire_preparation(self._history)
         workers = self.workers.cancel_node(self)
 
         async def join():
