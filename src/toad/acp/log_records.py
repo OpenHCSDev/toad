@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-import ast
 from dataclasses import dataclass
 from functools import singledispatchmethod
-import json
 from pathlib import Path
 from typing import Literal
 
@@ -21,21 +19,15 @@ from agent_comms.declared_family import DeclaredFamily
 
 
 class LogSource(DeclaredFamily, affix="LogSource"):
-    @classmethod
-    @abstractmethod
-    def parse(cls, body: str) -> object: ...
+    """Sender identity; both directions use the same JSON message schema."""
 
 
 class AgentLogSource(LogSource):
-    @classmethod
-    def parse(cls, body: str) -> object:
-        return json.loads(body)
+    """A message received from the agent."""
 
 
 class ClientLogSource(LogSource):
-    @classmethod
-    def parse(cls, body: str) -> object:
-        return ast.literal_eval(body)
+    """A message sent by the client."""
 
 
 @dataclass(frozen=True)
@@ -64,7 +56,7 @@ class LogRecord(ABC):
 
     @classmethod
     def decode(cls, raw: str) -> LogRecord:
-        """The agent JSON and client repr are distinct current logger sources."""
+        """Decode the JSON written by AgentProcess for either sender."""
         tag, separator, body = raw.partition("] ")
         if not separator or not tag.startswith("["):
             return DiagnosticLogRecord(raw)
@@ -73,11 +65,7 @@ class LogRecord(ABC):
         except ValueError:
             return DiagnosticLogRecord(raw)
         try:
-            value = source.parse(body)
-        except (ValueError, SyntaxError, RecursionError) as error:
-            return UnparsedLogRecord(raw, f"Unable to decode {source.declared_name} record: {error}")
-        try:
-            return LOG_MESSAGE.validate_python(value, strict=True).log_record(raw, source)
+            return LOG_MESSAGE.validate_json(body, strict=True).log_record(raw, source)
         except ValidationError as error:
             return UnparsedLogRecord(raw, str(error))
 
