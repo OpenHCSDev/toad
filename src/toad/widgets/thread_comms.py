@@ -144,6 +144,8 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
         return frozenset(entry.target for entry in model.entries) if model is not None else frozenset()
 
+    _thread_model = None
+
     def on_mount(self) -> None:
         tree = self.query_ancestor(ThreadCommsSidebar)
         observed = self.app.coordination_access.observation
