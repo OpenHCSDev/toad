@@ -154,7 +154,8 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         # the page, without holding the conversation's message pump. A
         # saved viewer outside a conversation has no live blocks.
         if self._source_state.reports_coverage and (conversation := self.conversation) is not None:
-            conversation.transcript.covered(TranscriptCoverage(page.events), self).call_when_ready(conversation)
+            conversation.transcript.binding.covered(
+                conversation.transcript, TranscriptCoverage(page.events), self).call_when_ready(conversation)
 
     def publish_committed(self) -> None:
         """Acquire source ownership now; report coverage after its first painted frame."""
@@ -317,7 +318,7 @@ class FollowTailCommit(CommitPlan):
                               | history.covered_sequences(required_sequences(captured)))
 
     def finish(self, view, cursor):
-        view.transcript.painted(cursor)
+        view.transcript.binding.painted(view.transcript, cursor)
         view.call_after_refresh(self.restore_reader, view.window)
 
     def restore_reader(self, window):

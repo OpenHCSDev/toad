@@ -399,7 +399,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
         """Consume this thread's one observation, including handling and presentation."""
-        self.transcript.request_handling()
+        self.transcript.binding.request_handling(self.transcript)
         presentation = self.app.coordination_access.thread_status.open(self.status_thread().name).presentation
         read = self._thread_read
         self.arm_thread_read()
@@ -636,7 +636,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             await self._release_source_resources()
 
     async def prepare_retained_session(self) -> None:
-        await self.transcript.restore()
+        await self.transcript.binding.restore(self.transcript)
 
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
@@ -671,10 +671,10 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     async def _session_ready(self) -> None:
         """The agent (or the shell) can take input: drop loading, then post start content."""
         presentation = self.transcript
-        if presentation.view is not self:
+        if not presentation.binding.matches(self):
             return
         await self.query(ThreadLoading).remove()
-        if self.transcript is not presentation or presentation.view is not self:
+        if self.transcript is not presentation or not presentation.binding.matches(self):
             return
         if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
@@ -682,7 +682,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
                 from toad.widgets.markdown_note import MarkdownNote
 
                 await self.post(MarkdownNote(welcome))
-                if self.transcript is not presentation or presentation.view is not self:
+                if self.transcript is not presentation or not presentation.binding.matches(self):
                     return
         self._native_agent_started_here = False
         if self.agent is not None and self.agent.configuration.model.requires_selection:
@@ -741,7 +741,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self.refresh_thread_status()
         self.call_later(self.goal_observation.invalidate)
         self.call_later(self.delivery_observation.invalidate)
-        self.transcript.request()
+        self.transcript.binding.request(self.transcript)
 
     def watch_agent(self, agent: AgentBase | None) -> None:
         # A presentation remount is not a fresh attachment. Start at the
@@ -1516,12 +1516,12 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @handles(TranscriptCoverage)
     async def on_transcript_coverage(self, message: CoreEventMessage) -> None:
         message.stop()
-        await self.transcript.covered(message.event, message.publisher)
+        await self.transcript.binding.covered(self.transcript, message.event, message.publisher)
 
     @handles(MessageHandlingRequested)
     def request_message_handling(self, message: CoreEventMessage) -> None:
         message.stop()
-        self.transcript.request_handling()
+        self.transcript.binding.request_handling(self.transcript)
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
@@ -2068,7 +2068,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def jump_to_latest(self) -> None:
         self.window.jump_to_latest()
-        self.transcript.request()
+        self.transcript.binding.request(self.transcript)
 
     async def action_select_block(self) -> None:
         cursor = self.navigation.cursor

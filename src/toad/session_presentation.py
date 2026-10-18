@@ -364,7 +364,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         yield conversation
         if self.state is not None:
             self.state.prepare_transcript(conversation)
-        await self.transcript.restore_documents()
+        await self.transcript.binding.restore_documents(self.transcript)
         if self.state is not None:
             self.state.restore(conversation)
             self.state = None
