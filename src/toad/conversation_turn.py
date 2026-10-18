@@ -240,7 +240,7 @@ class ManagedTurnBinding(TurnBinding):
                 and message.event.sequence == self.sequence)
 
     def receive(self, state: TurnState):
-        if not state.busy and not state.matches(self.owner.managed_id):
+        if not state.active.phase.busy and not state.matches(self.owner.managed_id):
             return False
         owner = ManagedTurn(state)
         if owner == self.owner:
