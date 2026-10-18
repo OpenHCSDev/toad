@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from collections.abc import Callable
 from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
@@ -409,15 +408,13 @@ class Subscription:
 
     @property
     def active(self) -> bool:
-        return self in self.stream.subscriptions.get(self.event_type, ())
+        return self in self.stream.subscriptions[self.event_type]
 
     def accepts(self, original: Subscription) -> bool:
         return self is original and self.active
 
     def close(self) -> None:
-        subscriptions = self.stream.subscriptions.get(self.event_type)
-        if subscriptions is not None:
-            subscriptions.discard(self)
+        self.stream.subscriptions[self.event_type].discard(self)
 
     def __enter__(self) -> Subscription:
         return self
@@ -431,7 +428,7 @@ class CoreEventStream:
 
     def __init__(self, publisher: object) -> None:
         self._publisher = ref(publisher)
-        self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = defaultdict(WeakSet)
+        self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
 
     @property
     def publisher(self) -> object:
@@ -443,7 +440,7 @@ class CoreEventStream:
     def subscribe(self, event_type: type[CoreEvent],
                   listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
         subscription = Subscription(self, event_type, listener)
-        self.subscriptions[event_type].add(subscription)
+        self.subscriptions.setdefault(event_type, WeakSet()).add(subscription)
         return subscription
 
     def publish(self, event: CoreEvent) -> None:
