@@ -4,14 +4,14 @@ from weakref import ref
 from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
-from toad.widgets.side_bar import SideBar
+from toad.widgets.side_bar import ThreadSidebar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 
 if TYPE_CHECKING:
     from toad.screens.main import MainScreen
 
 
-class SessionThreadSidebar(SideBar):
+class SessionThreadSidebar(ThreadSidebar):
     """Keep warm panels until eviction releases their widgets."""
 
     # Panels retain widgets, not separate transcript sources or paint assets.
@@ -22,9 +22,7 @@ class SessionThreadSidebar(SideBar):
         self._owner = ref(screen)
         self._panel_owners = tuple(member() for member in SessionPanel.members_with(SessionPanel))
         self.plan = next(owner for owner in self._panel_owners if isinstance(owner, PlanSessionPanel))
-        super().__init__(id="thread-sidebar", right=True, hide=True,
-                         navigation=screen._thread_sidebar_state,
-                         defer_mount=True)
+        super().__init__(state=screen._thread_sidebar_state, defer_mount=True)
 
     @property
     def retained_widget_count(self) -> int:

@@ -644,7 +644,6 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         disabled: bool = False,
         hide: bool = False,
         right: bool = False,
-        navigation: SidebarState | None = None,
         defer_mount: bool = False,
     ) -> None:
         super().__init__(name=name, id=id, classes=classes, disabled=disabled)
@@ -655,15 +654,12 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         self.hide = hide
         self.right = right
         self.width_slider = SidebarSlider(15, 50, 40 if not right else 34)
-        self._navigation = navigation
         self._panels_loaded = not defer_mount
         self._panels_loading = False
         self._panels_ready = asyncio.Event()
         self._presented_collapsed: bool | None = None
         self._presented_layout: PresentedBar | None = None
         self.set_class(right, "-right")
-        if navigation is not None:
-            self.collapsed = hide
 
     @property
     def panels_loaded(self) -> bool:
@@ -671,17 +667,21 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
 
     @property
     def navigation(self) -> SidebarState:
-        return (self._navigation if self._navigation is not None
-                else cast("ToadApp", self.app).sidebar_state)
+        return cast("ToadApp", self.app).sidebar_state
+
+    def mount_collapse(self) -> None:
+        app = cast("ToadApp", self.app)
+        self.observe_core(app.saved_settings.events)
+        self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
+
+    def store_collapsed(self, value: bool) -> None:
+        app = cast("ToadApp", self.app)
+        app.saved_settings.set(SETTINGS.sidebar.hide, value)
+        self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
 
     def on_mount(self) -> None:
         self.trap_focus()
-        app = cast("ToadApp", self.app)
-        if self._navigation is None:
-            self.observe_core(app.saved_settings.events)
-            self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
-        else:
-            self.collapsed = self.hide
+        self.mount_collapse()
         self.watch_collapsed(self.collapsed)
         if self._panels_loaded:
             self._panels_ready.set()
@@ -922,14 +922,7 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
                 # Native Hide otherwise reconstructs a full geometry-sorted
                 # focus chain before the queued Dismiss can return to input.
                 screen.set_focus(target, scroll_visible=False)
-        if self._navigation is None:
-            app = cast("ToadApp", self.app)
-            app.saved_settings.set(SETTINGS.sidebar.hide, collapsed)
-            # Project this input on its visible owner immediately. The shared
-            # settings signal still updates other views, idempotently.
-            self.collapsed = SETTINGS.sidebar.hide.bind(app.saved_settings.state).value
-        else:
-            self.collapsed = collapsed
+        self.store_collapsed(collapsed)
         if collapsed:
             if return_focus:
                 self.post_message(self.Dismiss())
@@ -943,10 +936,7 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
                 self.schedule_hydration()
 
     def reveal(self) -> None:
-        if self._navigation is None:
-            cast("ToadApp", self.app).saved_settings.set(SETTINGS.sidebar.hide, False)
-        else:
-            self.collapsed = False
+        self.store_collapsed(False)
 
     def action_dismiss(self) -> None:
         if SETTINGS.sidebar.hide.bind(self.app.saved_settings.state).value:
@@ -955,5 +945,17 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
 
 
 class ThreadSidebar(SideBar):
-    def __init__(self, *panels, **kwargs):
-        super().__init__(*panels, id="thread-sidebar", **kwargs)
+    def __init__(self, *panels, state: SidebarState, **kwargs):
+        self.state = state
+        super().__init__(*panels, id="thread-sidebar", right=True, hide=True, **kwargs)
+        self.collapsed = self.hide
+
+    @property
+    def navigation(self) -> SidebarState:
+        return self.state
+
+    def mount_collapse(self) -> None:
+        self.collapsed = self.hide
+
+    def store_collapsed(self, value: bool) -> None:
+        self.collapsed = value
