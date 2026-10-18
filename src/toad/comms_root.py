@@ -22,6 +22,7 @@ from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.private_path import FileRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
@@ -41,7 +42,6 @@ from agent_comms.display_references import PendingReferences, UnavailableReferen
 if TYPE_CHECKING:
     from toad.widgets.message_notifications import HistoryNotifications
     from agent_comms.comms import Comms
-    from agent_comms.presentation import WireRevision
     from toad.app import ToadApp
 
 T = TypeVar("T")
@@ -108,7 +108,7 @@ class CoordinationAccess(MroDispatch):
         self.transcripts = CoordinationTranscriptReader(self)
         self.observation: ObservedCommsService | None = None
         self.events = CoreEventStream(self)
-        self.revision: WireRevision | None = None
+        self.revision: ReadState = NoRevision()
         self.route_observation: RouteObservation = WaitingRoute()
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
@@ -173,7 +173,7 @@ class CoordinationAccess(MroDispatch):
             # before the next frame is composed.
             self.observation = ObservedCommsService(
                 selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route))
-            self.revision = None
+            self.revision = NoRevision()
             self.route_observation = WaitingRoute()
         if self.loop is not None:
             # Reader registration belongs to the event loop; require runs on workers too.
@@ -232,9 +232,9 @@ class CoordinationAccess(MroDispatch):
     def revision_observed(self, result: RevisionObserved, observed: ObservedCommsService) -> None:
         previous = self.revision
         self.revision = result.revision
-        if previous is None or result.revision.status_changed_since(previous):
+        if previous.status_changed_since(result.revision):
             self.events.publish(CoordinationObserved(result.revision))
-        if previous is None or result.revision.external_transcripts_changed_since(previous):
+        if previous.external_transcripts_changed_since(result.revision):
             self.events.publish(ExternalTranscriptChanged())
         if self.sidebar_views:
             # The painted view owns read work, not this source observer.
