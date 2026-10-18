@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING
 from weakref import ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
-from agent_comms.ui_model.observation import ReadNotifications
 from agent_comms.mro_dispatch import handles
 from agent_comms.transcript_events import TranscriptEvent
 from textual import events, on
@@ -1040,14 +1039,6 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     parked with a tab and rebuilt from what was parked.
     """
 
-    def notification_read(self, references) -> ReadNotifications:
-        from toad.widgets.conversation import Conversation
-
-        scope = self.query_ancestor(Conversation).transcript.binding.thread_scope
-        if scope is None:
-            raise ValueError("Notification observation requires a bound thread")
-        return ReadNotifications(scope[0], references)
-
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
                  *, committed: bool = True, **kwargs):
         super().__init__(prepared, page_source, **kwargs,
@@ -1055,9 +1046,6 @@ class TranscriptHistory(CommittedHistory, LineHistory):
 
 class ProjectedTranscriptHistory(TranscriptHistory):
     """A filtered source view with the ordinary pager's loading and eviction policy."""
-
-    def notification_read(self, references) -> ReadNotifications:
-        return self._projection_owner().notification_read(references)
 
     def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:

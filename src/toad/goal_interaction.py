@@ -7,7 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
-from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
+from agent_comms.goal_presentation import ThreadGoalExecution
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.goal import GoalDisplay
@@ -127,12 +127,8 @@ class GoalSession:
     """Owns the optional dialog and goal controls for this source binding."""
 
     def __init__(self, view: Conversation):
-        self._view = ref(view)
+        self.view = view
         self._modal = None
-
-    @property
-    def view(self) -> Conversation | None:
-        return self._view() if self._view is not None else None
 
     @property
     def modal(self):
@@ -140,16 +136,15 @@ class GoalSession:
 
     @property
     def display(self):
-        from agent_comms.ui_model.goal import NoGoal
-        return self.view.goal_display if self.view is not None else NoGoal()
+        return self.view.goal_display
 
     @property
     def execution(self) -> ThreadGoalExecution:
-        return self.view.goal_execution if self.view is not None else IdleGoalExecution()
+        return self.view.goal_execution
 
     def owns(self, agent) -> bool:
         view = self.view
-        if view is None or not view.is_attached:
+        if not view.is_attached:
             return False
         return view.goal_controls is self and view.agent is agent
 
@@ -159,7 +154,7 @@ class GoalSession:
 
     async def activate(self, action: type[GoalInteraction]) -> None:
         view = self.view
-        if view is None or not self.owns(view.agent):
+        if not self.owns(view.agent):
             return
         agent = view.agent
         try:
@@ -176,7 +171,7 @@ class GoalSession:
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
-        if view is None or not view.is_attached:
+        if not view.is_attached:
             raise ValueError("The goal presentation changed; reopen its controls.")
         agent = view.agent
         if not self.owns(agent):
@@ -208,4 +203,7 @@ class GoalSession:
             raise
 
     def close(self) -> None:
-        self._view = self._modal = None
+        modal = self.modal
+        if modal is not None and modal.is_attached:
+            modal.dismiss()
+        self._modal = None
