@@ -1,6 +1,7 @@
 """Native Toad conversation view for an agent-comms channel or DM."""
 
 from __future__ import annotations
+from toad.widgets.presentation_window import OLDER_END, NEWER_END
 from toad.core import input_events
 from functools import partial
 from toad.widgets.wire_history import WireHistory
@@ -361,7 +362,7 @@ class CommsChatView(Conversation):
         self.status = self.send_block_reason or status
         if self.window.follows_tail:
             self.window.anchor()
-        if history.has_newer or (history.has_older and self.window.max_scroll_y == 0):
+        if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
             history.request_preparation()
 
     async def command_target_context(self):

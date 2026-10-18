@@ -3,7 +3,7 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
-from agent_comms.coordination_errors import TranscriptChanged
+from agent_comms.coordination_errors import DMScopeChanged, TranscriptChanged
 from toad.comms_root import CoordinationAccess
 from toad.widgets.message_notifications import VisibleReadMarking
 
@@ -38,6 +38,7 @@ from toad.core_event_carrier import CoreEventReceiver
 from agent_comms.mro_dispatch import handles
 from toad.agent_schema import AgentDefinition
 from toad.render_backend import Renderer
+from toad.work_preparation import PreparationRuntime
 from toad.navigation_preparation import (
     NavigationReader,
 )
@@ -163,7 +164,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             agent: Agent identity or shor name.
         """
         from toad.render_processes import RenderProcessPool
-        from toad.work_preparation import PreparationRuntime, PreparedRenderer
+        from toad.render_backend import PreparedRenderer
 
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
@@ -216,7 +217,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
 
-    async def prepare_background(self, task: "RenderTask[RenderResultT]") -> RenderResultT:
+    async def prepare_background(self, task: RenderTask[RenderResultT]) -> RenderResultT:
         """Keep the background work slot occupied until the renderer really finishes."""
         await self.background_render_slots.acquire()
         try:
@@ -447,11 +448,14 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
         async def mark():
             try:
-                await asyncio.to_thread(acknowledge, through)
-            except TranscriptChanged:
-                fresh = await conversation.transcript.refresh_cursor()
-                if self.selected_session is screen:
-                    await asyncio.to_thread(acknowledge, fresh)
+                try:
+                    await asyncio.to_thread(acknowledge, through)
+                except TranscriptChanged:
+                    fresh = await conversation.transcript.refresh_cursor()
+                    if self.selected_session is screen:
+                        await asyncio.to_thread(acknowledge, fresh)
+            except DMScopeChanged as error:
+                self.notify(str(error), title="DM read not marked", severity="error")
 
         return mark()
 

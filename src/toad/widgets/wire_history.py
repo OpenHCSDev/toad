@@ -7,6 +7,7 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
+from agent_comms.coordination_errors import DMPaintedBoundChanged, DMScopeChanged
 
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import PreparedTranscriptPage
@@ -58,7 +59,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     @property
     def undrawn(self) -> bool:
         """Nothing of the bound source has been drawn yet."""
-        return all(view.page.undrawn for view in self.pages)
+        return all(view.prepared.page.undrawn for view in self.pages)
 
     @property
     def source_identity(self):
@@ -112,7 +113,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             self.extend_source(observed.through)
         elif not self.undrawn:
             # A recorded observation may still have an unfinished page read.
-            return (self.pages[-1].page.after != self.through
+            return (self.pages[-1].prepared.page.after != self.through
                     and await self.extend(self.through))
         # The existing prepared reader owns this pending page. Retry drawing it,
         # not clearing its source and starting the same read again.
@@ -122,9 +123,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
     # What is drawn
 
     async def accept_extension(self, edge, prepared) -> bool:
-        if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
+        if edge.prepared.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
-        prepared.configure(batch_size=len(prepared.fragments), newest=False)
+        prepared.configure(batch_size=len(prepared.fragments))
         await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
                                arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
@@ -187,7 +188,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             await asyncio.to_thread(run_selected_write, comms.root,
                                     comms.views.mark_historical_view_read, displayed,
                                     implicit=implicit_root())
-        except ValueError:
+        except (ValueError, DMScopeChanged):
             # The attached history changed; this page's evidence marks nothing any more.
             marked = tuple(fragment for fragment in self.fragments if fragment.evidence is page)
         if snapshot.current(self):
@@ -201,7 +202,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
             if snapshot.current(self):
                 for fragment in marked:
                     fragment.evidence = None
-        except ValueError:
+        except DMScopeChanged as error:
+            self.view.app.notify(str(error), title="DM read not marked", severity="error")
+        except (ValueError, DMPaintedBoundChanged):
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
