@@ -17,11 +17,6 @@ class CommandComplete(CoreEvent):
 
 
 @dataclass(frozen=True)
-class MessageHandlingRequested(CoreEvent):
-    """Request handling publication from the original mounted source."""
-
-
-@dataclass(frozen=True)
 class TranscriptSourceWorkFinished(CoreEvent):
     """The original source released its accepted mutation resource."""
 

@@ -444,11 +444,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             access.write(selected, mark)
 
         async def mark():
-            try:
-                await asyncio.to_thread(acknowledge)
-            except (OSError, ValueError):
-                # Source replacement or deletion is resolved by the next snapshot.
-                return
+            await asyncio.to_thread(acknowledge)
 
         return mark()
 

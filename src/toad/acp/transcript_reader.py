@@ -19,7 +19,7 @@ from agent_comms.route_selection import RouteSelection
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
-    AwaitedRead, ReadNotifications, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
+    AwaitedRead, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
     TranscriptPublicationState,
 )
 
@@ -53,9 +53,6 @@ class CoordinationTranscriptReader:
         identity = update.identity
         current = await self.read(RefreshTranscript(identity.root, identity))
         return update if current is None else current
-
-    async def notifications(self, root, references):
-        return await self.read(ReadNotifications(root, tuple(references)))
 
     async def page(self, root, thread, *, before=None, after=None, through=None,
                    read_identity: TranscriptReadIdentity | None = None,

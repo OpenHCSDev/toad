@@ -206,7 +206,6 @@ class TranscriptFragment:
     shown: Shown = field(default_factory=Shown, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
-    checks_notifications: ClassVar[bool] = False
     _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
     _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
@@ -360,17 +359,12 @@ class BusMessageFragment(TranscriptFragment):
         return super().text_parts(source, budget) or (source,)
 
     @property
-    def checks_notifications(self) -> bool:
-        # One footer per original message, not one per Markdown piece.
+    def has_details(self) -> bool:
         return not self.continues
 
     @property
-    def has_details(self) -> bool:
-        return self.checks_notifications
-
-    @property
     def notification_references(self) -> tuple[MessageReference, ...]:
-        return (self.events[0].source,)
+        return () if self.continues else (self.events[0].source,)
 
     @property
     def block_menu(self):
