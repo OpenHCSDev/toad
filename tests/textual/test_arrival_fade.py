@@ -37,7 +37,11 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
     project = workspace.project
     comms = workspace.comms
     comms.messaging.initialize_private_initial_protocol()
-    thread = workspace.thread("source", running=True)
+    saved = project / "first-native.jsonl"
+    prompt = json.dumps({"type": "message", "id": "first-user", "message": {
+        "role": "user", "content": [{"type": "text", "text": "ASK_ROW"}]}}) + "\n"
+    saved.write_text(prompt)
+    thread = comms.registry.declare(replace(workspace.thread("source"), session_file=str(saved)))
     workspace.thread("peer")
     comms.messaging.send_message("peer", "source", "EARLIER_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:
@@ -63,21 +67,19 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ANSWER}})
         await ui.until(lambda: ANSWER in ui.painted(view.window), why="the live answer")
         # The answer is saved and the turn ends; another sender's message lands in the same append.
-        saved = project / "first-native.jsonl"
-        saved.write_text(json.dumps({"type": "message", "id": "first-assistant", "message": {
+        saved.write_text(prompt + json.dumps({"type": "message", "id": "first-assistant", "message": {
             "role": "assistant", "content": [{"type": "text", "text": ANSWER}]}}) + "\n")
-        comms.registry.declare(replace(thread, session_file=str(saved)))
         comms.messaging.send_message("peer", "source", PEER)
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ""},
             "_meta": encode_updates(TurnChangedUpdate(TurnState(finished_turn_id="first-turn")))})
         view.transcript.require_commit()
 
-        def arrived() -> str:
-            return " ".join(event.text for page in history.pages
-                            for fragment in page.prepared.fragments_in_range if id(fragment) in page.arrivals
-                            for event in fragment.events)
+        def rows(arriving: bool) -> str:
+            return " ".join(event.text for page in history.pages for fragment in page.prepared.fragments_in_range
+                            if not arriving or id(fragment) in page.arrivals for event in fragment.events)
 
-        await ui.until(lambda: PEER in arrived(), why="the other sender's saved row to arrive")
-        assert ANSWER not in arrived()
+        await ui.until(lambda: PEER in rows(arriving=False), why="the commit's saved rows")
+        assert PEER in rows(arriving=True)
+        assert ANSWER not in rows(arriving=True)
         assert ui.painted(view.window).count(ANSWER) == 1
