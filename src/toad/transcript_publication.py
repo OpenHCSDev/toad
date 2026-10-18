@@ -851,8 +851,7 @@ class TranscriptPresentation:
         try:
             async with AsyncResourceRelease() as release:
                 for history in reversed(tuple(self.histories)):
-                    if history._page_buffer is not None:
-                        release.callback(history._page_buffer.close)
+                    release.callback(history.close)
                 release.callback(self._close_documents)
                 await self.suspend()
         finally:
