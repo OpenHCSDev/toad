@@ -42,13 +42,15 @@ class ThreadActions:
         execution = ThreadActionExecution(self, action, selected, subject)
         for target in action.resources:
             self.requests[target] = execution
-        app.events.publish(core_events.ThreadRowStateChanged())
+        app.events.publish(core_events.ThreadRowStateChanged(frozenset(
+            target for target in action.resources if isinstance(target, str))))
 
     def finished(self, execution: ThreadActionExecution) -> None:
         for target in execution.action.resources:
             if self.requests.get(target) is execution:
                 del self.requests[target]
-        self.app.events.publish(core_events.ThreadRowStateChanged())
+        self.app.events.publish(core_events.ThreadRowStateChanged(frozenset(
+            target for target in execution.action.resources if isinstance(target, str))))
 
     async def close(self) -> None:
         # Domain writes already accepted at their sink must finish, not be
