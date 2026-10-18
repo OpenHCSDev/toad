@@ -12,7 +12,7 @@ from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
-from toad.transcript_preparation import PageRequest, PageBuffer, NoPageBuffer, PreparedTranscriptPage
+from toad.transcript_preparation import PageRequest, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
 
@@ -49,7 +49,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def __init__(self, *args, source_state: TranscriptState, **kwargs):
         self._source_state = source_state
         self._generation = 0
-        self._page_buffer: PageBuffer = NoPageBuffer()
         self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 
@@ -101,7 +100,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_observation.close()
         # Parked preparation belongs to the logical document. Unmount revokes
         # this publisher, not the source scope transferred with it.
-        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state.retire_preparation(self)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
         self.window.histories.discard(self)
@@ -332,7 +331,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation += 1
         if self.is_attached:
             self.window.histories.discard(self)
-        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state.retire_preparation(self)
         workers = self.workers.cancel_node(self)
 
         async def join():

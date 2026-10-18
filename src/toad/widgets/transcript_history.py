@@ -40,7 +40,7 @@ from toad.transcript_filter import FilterState
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
-    RangeCategoryProjection, PageRequest, NoPageBuffer, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, TranscriptPageBuffer,
+    RangeCategoryProjection, PageRequest, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, SavedHistory,
     ProjectedTranscriptSource, NoProjection,
 )
 from toad.response_delivery import ResponseDelivery
@@ -473,7 +473,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
-    page_buffer = TranscriptPageBuffer
+    page_buffer = SavedHistory
 
     @property
     def message_category(self) -> None:
@@ -487,6 +487,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                   *, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
                   source_state: TranscriptState | None = None):
         self.notification_view = notification_view
+        self._page_buffer: PreparedPageSource | None = None
         super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, prepared.page.after
         self.budget = budget or PresentationBudget(
@@ -538,7 +539,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
-        self._page_buffer.release_held()
+        self._reader().release_held()
         if (projection := self.filter.overlay) is not None:
             projection.acquire_document()
 
@@ -900,13 +901,16 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
     def _reader(self) -> PreparedPageSource:
-        reader = self._page_buffer.opened(self)
-        self._page_buffer = reader
-        return reader
+        # The source only grows under one reader; replacing the source clears it (_clear).
+        if self._page_buffer is None:
+            self._page_buffer = self.page_buffer(self.loader, self.through, self.app.preparation)
+        self._page_buffer.through = self.through
+        return self._page_buffer
 
     def close(self) -> None:
-        self._page_buffer.close()
-        self._page_buffer = NoPageBuffer()
+        if self._page_buffer is not None:
+            self._page_buffer.close()
+            self._page_buffer = None
 
     @property
     def drawn_extent(self) -> tuple[int, int]:
@@ -1149,7 +1153,7 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     def notification_read(self, references) -> ReadNotifications:
         from toad.widgets.conversation import Conversation
 
-        scope = self.query_ancestor(Conversation).transcript.thread_scope
+        scope = self.query_ancestor(Conversation).transcript.binding.thread_scope
         if scope is None:
             raise ValueError("Notification observation requires a bound thread")
         return ReadNotifications(scope[0], references)
@@ -1209,6 +1213,10 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def follows_source_tail(self) -> bool:
         # This window is a historical prefix, not the live main tail.
         return False
+
+    def _reader(self) -> PreparedPageSource:
+        assert self._page_buffer is not None
+        return self._page_buffer
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:

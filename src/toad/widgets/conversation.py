@@ -266,7 +266,7 @@ class ConversationContents(CategorizedMount, Contents):
                  for target in child.notification_targets()))
 
     def notification_read(self, references):
-        root, _name = self.query_ancestor(Conversation).transcript.thread_scope
+        root, _name = self.query_ancestor(Conversation).transcript.binding.thread_scope
         return ReadNotifications(root, references)
 
     @property
@@ -408,7 +408,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         return origin.transcript_scope() if origin is not None else None
 
     def status_thread(self) -> StatusThread:
-        scope = self.transcript.thread_scope
+        scope = self.transcript.binding.thread_scope
         if scope is None:
             return NoStatusThread()
         root, name = scope

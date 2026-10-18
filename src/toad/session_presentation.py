@@ -259,7 +259,7 @@ class MailboxSessionSources(OperationalSessionSources):
         from toad.conversation_kind import DmConversation
 
         view = owner.view
-        scope = view.transcript.thread_scope
+        scope = view.transcript.binding.thread_scope
         if scope is None:
             view.delivery_refused("CLI transcript is not ready", event.body)
             return
@@ -272,7 +272,7 @@ class MailboxSessionSources(OperationalSessionSources):
 
         await view.submit_comms_message(
             root, DmConversation, target, event.body,
-            lambda: view.is_attached and view.transcript.thread_scope == scope,
+            lambda: view.is_attached and view.transcript.binding.thread_scope == scope,
             presented,
         )
 

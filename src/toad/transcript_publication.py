@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+from collections import deque
 from abc import ABC, abstractmethod
 from contextlib import AsyncExitStack, asynccontextmanager
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
@@ -21,8 +22,7 @@ from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin, SessionView
-    from textual.screen import Screen
-    from toad.widgets.conversation import Conversation, Window, Contents
+    from toad.widgets.conversation import Conversation
     from toad.widgets.transcript_history import TranscriptHistory
     from toad.transcript_preparation import PreparedPageSource
 
@@ -32,22 +32,19 @@ class BoundFrame:
     binding: BoundView
     owner: TranscriptPresentation
     generation: int
-    window: Window
-    contents: Contents
-
     @classmethod
-    def capture(cls, binding, owner, **extra):
-        return cls(binding, owner, owner.generation, binding.window, binding.contents, **extra)
+    def capture(cls, binding, owner, *args, **extra):
+        return cls(binding, owner, owner.generation, *args, **extra)
 
     def current(self):
         return (self.owner.binding is self.binding
                 and self.owner.generation == self.generation
-                and self.binding.current(self.window, self.contents))
+                and self.binding.current())
 
     def painted(self, cursor):
         if self.current():
             self.owner.displayed_cursor = cursor
-            self.contents.check_notifications()
+            self.binding.contents.check_notifications()
             view = self.binding.view
             view.app.history_displayed()
             view.settle_user_message()
@@ -56,13 +53,12 @@ class BoundFrame:
 class TranscriptPublication(BoundFrame, ABC):
     """Holds the source, resources and generation for one read and publication."""
 
-    def __init__(self, owner: TranscriptPresentation, view: Conversation,
-                 window: Window, contents: Contents) -> None:
-        super().__init__(owner.binding, owner, owner.generation, window, contents)
-        self.thread_scope = owner.thread_scope
-        self.destination = HeldReaderDestination.held(window)
-        self.history = next(iter(owner.histories), None)
-        self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
+    def __init__(self, binding: BoundView, owner: TranscriptPresentation, generation: int) -> None:
+        super().__init__(binding, owner, generation)
+        self.thread_scope = binding.thread_scope
+        self.destination = HeldReaderDestination.held(binding.window)
+        self.history = next(iter(binding.histories()), None)
+        self.captured = binding.view.turns.owner.captured_snapshot(tuple(binding.contents.children))
 
     def native_current(self) -> bool:
         """Anonymous native output must have settled before the source captured it."""
@@ -70,7 +66,7 @@ class TranscriptPublication(BoundFrame, ABC):
 
         return self.current() and all(
             widget.commit_claim.accepts_native(widget, self.captured)
-            for widget in self.contents.children if isinstance(widget, CommitParticipant)
+            for widget in self.binding.contents.children if isinstance(widget, CommitParticipant)
         )
 
     def source_bound(self, cursor: TranscriptCursor) -> TranscriptCursor:
@@ -84,7 +80,7 @@ class TranscriptPublication(BoundFrame, ABC):
         return self.current() and self.source_bound(cursor) == cursor
 
     def current(self) -> bool:
-        return super().current() and self.thread_scope == self.owner.thread_scope
+        return super().current() and self.thread_scope == self.owner.binding.thread_scope
 
     async def publish(self) -> bool:
         """Wait for the UI to apply queued messages before acquiring their resources.
@@ -132,7 +128,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """Capture the original applied cohort once its source cut is known."""
         if not await self.application_current():
             return False
-        self.captured = self.binding.view.turns.owner.captured_snapshot(tuple(self.contents.children))
+        self.captured = self.binding.view.turns.owner.captured_snapshot(tuple(self.binding.contents.children))
         return True
 
     async def application_current(self) -> bool:
@@ -164,7 +160,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read))
+            partial(self.binding.reader.updates, *self.thread_scope, self.owner.current_read))
 
     async def read_past_history(self, read, **whole):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
@@ -191,8 +187,8 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     def show_draft(self, draft) -> None:
         widget = self.binding.view.cli_draft
-        if self.contents.children[-1] is not widget:
-            self.contents.move_child(widget, after=-1)
+        if self.binding.contents.children[-1] is not widget:
+            self.binding.contents.move_child(widget, after=-1)
         widget.show(draft)
 
     @handles(TranscriptSnapshotUpdate)
@@ -216,7 +212,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             if published and bound == snapshot.page.after:
                 self.owner.current_read = Published(snapshot.identity)
         if published and self.current() and self.destination is not None:
-            self.destination.source_settled(self.window)
+            self.destination.source_settled(self.binding.window)
         return published
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
@@ -225,19 +221,19 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
 
 class ObservedSourcePublication(CanonicalSourcePublication):
-    def __init__(self, owner, view, window, contents, presentation):
-        super().__init__(owner, view, window, contents)
+    def __init__(self, binding, owner, generation, presentation):
+        super().__init__(binding, owner, generation)
         self.presentation = presentation
-        self.agent = view.agent
+        self.agent = binding.view.agent
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read),
+            partial(self.binding.reader.updates, *self.thread_scope, self.owner.current_read),
             read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
-        if self.binding is self.owner.binding:
-            await self.binding.observe_agent(self.agent, self.presentation)
+        if self.current() and self.agent is not None and self.binding.view.agent is self.agent:
+            await self.agent.observe_thread_presentation(self.presentation)
         if self.current():
             return await super().publish_applied()
         return True
@@ -248,7 +244,7 @@ class SourcePublicationRequests:
 
     def __init__(self, owner: TranscriptPresentation):
         self.owner = owner
-        self.pending: asyncio.Queue[TranscriptPublication] = asyncio.Queue(maxsize=1)
+        self.pending: deque[TranscriptPublication] = deque(maxlen=1)
         self.worker: Worker[None] | None = None
         self.observation = ResourceRelease()
 
@@ -260,35 +256,39 @@ class SourcePublicationRequests:
 
     def submit(self, publication: TranscriptPublication) -> None:
         """Keep the original operation when its caller is the native UI pump."""
-        if self.pending.full():
-            self.pending.get_nowait()
-        self.pending.put_nowait(publication)
+        self.pending.append(publication)
         self.resume()
 
     def defer(self, publication: TranscriptPublication) -> None:
         """Retain a busy original read without replacing newer source work."""
-        if self.pending.empty():
-            self.pending.put_nowait(publication)
-        self.owner.binding.defer(self, publication)
+        if not self.pending:
+            self.pending.append(publication)
+        view = publication.binding.view
+        self.observation.close()
+        self.observation.enter_context(view.app.coordination_access.observe_thread_changes(
+            view, publication.thread_scope, self.resume))
 
     def resume(self, _event=None) -> bool:
         """Resume kept work only at an existing source/preparation signal."""
-        if self.pending.empty():
+        if not self.pending:
             return False
         if self.worker is None or self.worker.is_finished:
-            return self.owner.binding.resume(self)
+            view = self.pending[0].binding.view
+            if not view.is_attached:
+                return False
+            self.observation.close()
+            self.worker = view.run_worker(self.publish, group="transcript-source")
         return True
 
     async def publish(self) -> None:
-        while not self.pending.empty():
-            publication = self.pending.get_nowait()
+        while self.pending:
+            publication = self.pending.popleft()
             if not await publication.publish():
                 return
 
     def cancel(self) -> Worker[None] | None:
         self.observation.close()
-        while not self.pending.empty():
-            self.pending.get_nowait()
+        self.pending.clear()
         worker, self.worker = self.worker, None
         if worker is not None:
             worker.cancel()
@@ -296,17 +296,17 @@ class SourcePublicationRequests:
 
 
 class CommitPublication(CanonicalSourcePublication):
-    def __init__(self, owner, view, window, contents):
+    def __init__(self, binding, owner, generation):
         from toad.widgets.committed_presentation import commit_plan
-        super().__init__(owner, view, window, contents)
-        self.plan = commit_plan(window)
+        super().__init__(binding, owner, generation)
+        self.plan = commit_plan(binding.window)
 
     async def read_snapshot(self):
         # Mounted history grows by what follows its end; without one the window needs a whole page.
-        return await self.read_past_history(partial(self.owner.reader.snapshot, *self.thread_scope))
+        return await self.read_past_history(partial(self.binding.reader.snapshot, *self.thread_scope))
 
     def current(self) -> bool:
-        return super().current() and self.plan.current(self.window)
+        return super().current() and self.plan.current(self.binding.window)
 
     def ready_to_commit(self) -> bool:
         from toad.widgets.committed_presentation import CommitBarrier, CommitParticipant
@@ -316,11 +316,11 @@ class CommitPublication(CanonicalSourcePublication):
         view = self.binding.view
         if not self.owner.readable:
             return False
-        if not self.owner.commit_required and len(self.contents.children) < view.MAX_LIVE_BLOCKS:
+        if not self.owner.commit_required and len(self.binding.contents.children) < view.MAX_LIVE_BLOCKS:
             return False
-        if any(isinstance(child, CommitBarrier) for child in self.contents.children):
+        if any(isinstance(child, CommitBarrier) for child in self.binding.contents.children):
             return False
-        potential = tuple(child for child in self.contents.children
+        potential = tuple(child for child in self.binding.contents.children
                           if child is not self.history and isinstance(child, CommitParticipant))
         return self.plan.ready(self.history) and self.plan.permits(view, potential)
 
@@ -340,7 +340,7 @@ class CommitPublication(CanonicalSourcePublication):
         if not self.ready_to_commit():
             return True
         view = self.binding.view
-        window, contents = self.window, self.contents
+        window, contents = self.binding.window, self.binding.contents
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
         plan, history = self.plan, self.history
@@ -429,35 +429,10 @@ class ViewBinding(ABC):
     def thread_scope(self):
         return None
 
-    @property
-    def reader(self):
-        raise ValueError("Transcript reader requires a bound view")
-
-    def current(self, window, contents):
-        return False
-
     def histories(self):
         return ()
 
     def observe_thread(self, owner):
-        pass
-
-    async def observe_agent(self, agent, presentation):
-        pass
-
-    def defer(self, requests, publication):
-        pass
-
-    def resume(self, requests):
-        return False
-
-    async def restore_documents(self, owner):
-        pass
-
-    async def restore(self, owner):
-        pass
-
-    async def reveal_retained(self, owner, history):
         pass
 
     def capture(self, owner, kind, *args):
@@ -486,23 +461,17 @@ class NoView(ViewBinding):
 class BoundView(ViewBinding):
     @dataclass(frozen=True)
     class Moment(BoundFrame):
-        screen: Screen
         source: SessionView
 
         @classmethod
         def capture(cls, binding, owner, **extra):
             from toad.screens.session_view import SessionView
-            view = binding.view
-            return super().capture(binding, owner, screen=view.screen,
-                                   source=view.query_ancestor(SessionView), **extra)
+            return super().capture(binding, owner,
+                                   source=binding.view.query_ancestor(SessionView), **extra)
 
         def current(self):
-            if not super().current():
-                return False
-            from toad.screens.session_view import SessionView
-            view = self.binding.view
-            return (view.screen is self.screen and self.source.is_current
-                    and view.query_ancestor(SessionView) is self.source)
+            return (super().current() and self.source.is_current
+                    and self.source in self.binding.view.ancestors)
 
     @dataclass(frozen=True)
     class Restoration(Moment):
@@ -510,14 +479,14 @@ class BoundView(ViewBinding):
 
         def current(self):
             return (super().current() and not self.owner.closed
-                    and self.window.scroll_revision == self.revision)
+                    and self.binding.window.scroll_revision == self.revision)
 
         def refresh(self, publication):
             if not self.current():
                 return
             if publication is None:
-                if (destination := HeldReaderDestination.held(self.window)) is not None:
-                    destination.release(self.window)
+                if (destination := HeldReaderDestination.held(self.binding.window)) is not None:
+                    destination.release(self.binding.window)
             else:
                 self.owner.source_requests.submit(publication)
 
@@ -541,10 +510,9 @@ class BoundView(ViewBinding):
     def reader(self):
         return self.view.app.coordination_access.transcripts
 
-    def current(self, window, contents):
+    def current(self):
         return (self.view.is_attached and not self.view.is_leaving
-                and window.is_attached and contents.is_attached
-                and self.window is window and self.contents is contents)
+                and self.window.is_attached and self.contents.is_attached)
 
     def histories(self):
         from toad.widgets.transcript_history import TranscriptHistory
@@ -557,36 +525,18 @@ class BoundView(ViewBinding):
             owner._thread_observation.enter_context(
                 view.app.coordination_access.observe_thread_changes(view, scope, view.thread_observed))
 
-    async def observe_agent(self, agent, presentation):
-        if agent is not None and self.view.agent is agent:
-            await agent.observe_thread_presentation(presentation)
-
-    def defer(self, requests, publication):
-        view = self.view
-        requests.observation.close()
-        requests.observation.enter_context(view.app.coordination_access.observe_thread_changes(
-            view, publication.thread_scope, requests.resume))
-
-    def resume(self, requests):
-        view = self.view
-        if not view.is_attached:
-            return False
-        requests.observation.close()
-        requests.worker = view.run_worker(requests.publish, group="transcript-source")
-        return True
-
     async def restore_documents(self, owner):
         from toad.widgets.transcript_history import TranscriptHistory
         view = self.view
         if not view.is_attached:
             return
         moment = self.Moment.capture(self, owner)
-        contents = moment.contents
+        contents = self.contents
         for source in owner.documents:
             if not moment.current() or source.closed:
                 return
             history = TranscriptHistory.from_source(source, notification_view=contents)
-            await contents.prepare_history(history, moment.current, window=moment.window)
+            await contents.prepare_history(history, moment.current, window=self.window)
             if not moment.current():
                 return
             accepted = False
@@ -606,10 +556,9 @@ class BoundView(ViewBinding):
         view.resume_retained_history()
         if not owner.readable:
             return
-        await self.restore_documents(owner)
         first_history = next(iter(owner.histories), None)
         moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
-        position = moment.window.reader_position
+        position = self.window.reader_position
         if position is not None:
             for history in owner.histories:
                 if not await history.restore_reader_ranges(position.ranges, moment.current):
@@ -637,7 +586,7 @@ class BoundView(ViewBinding):
         view = self.view
         if not view.is_attached or view.is_leaving:
             return None
-        return kind(owner, view, self.window, self.contents, *args)
+        return kind.capture(self, owner, *args)
 
     def painted(self, owner, cursor):
         frame = BoundFrame.capture(self, owner)
@@ -712,11 +661,6 @@ class TranscriptPresentation:
         self.binding = binding
         self.bind_thread_observation()
 
-    @property
-    def thread_scope(self) -> tuple[str, str] | None:
-        """The view declares the thread whose main history it presents."""
-        return self.binding.thread_scope
-
     def bind_thread_observation(self) -> None:
         """Replace the observation when the owning session changes history source."""
         self._thread_observation.close()
@@ -728,20 +672,17 @@ class TranscriptPresentation:
 
     @property
     def readable(self) -> bool:
-        return self.thread_scope is not None
-
-    @property
-    def reader(self):
-        return self.binding.reader
+        return self.binding.thread_scope is not None
 
     async def get_transcript_page(self, *, before=None, after=None, through=None,
                                   read_identity=None) -> TranscriptPage:
-        scope = self.thread_scope
-        if scope is None:
+        frame = self.binding.capture(self, BoundFrame)
+        scope = self.binding.thread_scope
+        if frame is None or scope is None:
             raise ValueError("Transcript paging requires a bound thread")
-        page = await self.reader.page(*scope, before=before, after=after, through=through,
+        page = await frame.binding.reader.page(*scope, before=before, after=after, through=through,
                                       read_identity=read_identity)
-        if self.thread_scope != scope:
+        if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
 
@@ -816,6 +757,24 @@ class TranscriptPresentation:
         self.commit_required = self.dirty = True
         self.binding.request(self)
 
+    async def refresh_cursor(self) -> TranscriptCursor:
+        """Commit and return the cursor from the resulting painted transcript."""
+        frame = self.binding.capture(self, BoundFrame)
+        if frame is None:
+            raise TranscriptChanged()
+        self.require_commit()
+        worker = self.worker
+        if worker is None:
+            raise TranscriptChanged()
+        await worker.wait()
+        if self.binding is not frame.binding or not frame.binding.current():
+            raise TranscriptChanged()
+        ready = asyncio.get_running_loop().create_future()
+        frame.binding.view.call_after_refresh(lambda: ready.set_result(self.displayed_cursor))
+        cursor = await ready
+        if cursor is None:
+            raise TranscriptChanged()
+        return cursor
 
     def retry(self) -> None:
         if self.source_requests.resume():
