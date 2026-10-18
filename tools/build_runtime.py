@@ -390,7 +390,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
 
 def check_filtered_return(app: TerminalApp) -> None:
     """Choose user-only checkboxes, PageUp and compare the visible returned rows."""
-    app.keys('Escape')
+    app.click('startup-saved')
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.click(label)
@@ -405,7 +405,7 @@ def check_filtered_return(app: TerminalApp) -> None:
     app.screenshot('filtered-before')
     app.keys('C-g')
     app.wait('filtered-away', lambda text: '#any · all comms' in text)
-    app.keys('Escape')
+    app.click('startup-saved')
     # Ignore the tab bar and animated footer; compare the actual message rows.
     expected = before.splitlines()[4:-4]
     app.wait('filtered-return', lambda text: text.splitlines()[4:-4] == expected)
