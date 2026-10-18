@@ -16,10 +16,10 @@ import asyncio
 from contextlib import asynccontextmanager
 
 from agent_comms.route_selection import RouteSelection
-from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
-    AwaitedRead, ReadNotifications, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
+    AwaitedRead, ReadNotifications, ReadTranscript, RefreshTranscript,
 )
 
 
@@ -69,10 +69,3 @@ class CoordinationTranscriptReader:
         return await self.read(ReadTranscript(
             root, thread, before=before, after=after, through=through,
             read_identity=read_identity, historical_source=historical_source))
-
-    async def updates(
-        self, root: str, thread: str, previous: TranscriptReadIdentity | None,
-        *, after=None, read_identity: TranscriptReadIdentity | None = None,
-    ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
-        return await self.read(ReadTranscriptUpdate(
-            root, thread, after=after, previous=previous, read_identity=read_identity))
