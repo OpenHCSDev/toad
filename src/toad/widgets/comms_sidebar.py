@@ -398,7 +398,7 @@ class CoordinationStatus(ShowsThreadIdentity, Static):
         self.tooltip = (
             "Coordination state persists in the shared wire; the stdio ACP transport "
             "is scoped to this Toad session.\n\n"
-            f"AGENT_COMMS_ROOT={identity.display_root()}\n"
+            f"AGENT_COMMS_ROOT={identity.root_path()}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
             f"AGENT_COMMS_AGENT_ARGS={args}"
         )

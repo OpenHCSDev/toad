@@ -12,6 +12,7 @@ from weakref import WeakMethod, WeakSet, ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
+from agent_comms.ui_model.changes import Changes
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -194,6 +195,18 @@ class SessionSubtitleChanged(CoreEvent):
 @dataclass(frozen=True)
 class SessionAgentAttached(CoreEvent):
     """The selected session's operational agent is now attached."""
+
+
+@dataclass(frozen=True)
+class ThreadRowsChanged(CoreEvent):
+    """The observed model's original change set, under its source root."""
+
+    root: str
+    changes: Changes[str]
+
+    def affects(self, scope: tuple[str, str]) -> bool:
+        root, thread = scope
+        return root == self.root and (thread in self.changes.added or thread in self.changes.changed)
 
 
 @dataclass(frozen=True)

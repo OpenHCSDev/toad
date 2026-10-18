@@ -31,7 +31,8 @@ from agent_comms.ui_model.observation import (
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ThreadRowsChanged
+from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
 
@@ -94,6 +95,16 @@ class ObservedCommsService:
     service: Comms
     sidebar: SidebarModel
     process: ObservationProcess = field(compare=False)
+    events: CoreEventStream = field(compare=False)
+
+    def __post_init__(self) -> None:
+        self.sidebar.threads.subscribe(self.threads_changed)
+
+    def threads_changed(self, changes) -> None:
+        self.events.publish(ThreadRowsChanged(str(self.service.root), changes))
+
+    def retire(self) -> None:
+        self.sidebar.threads.unsubscribe(self.threads_changed)
 
 
 class CoordinationAccess(MroDispatch):
@@ -173,7 +184,7 @@ class CoordinationAccess(MroDispatch):
             # Textual runs the models' flushes after the current message,
             # before the next frame is composed.
             self.observation = ObservedCommsService(
-                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route))
+                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route), self.events)
             self.revision = None
             self.route_observation = WaitingRoute()
         if self.loop is not None:
@@ -205,6 +216,7 @@ class CoordinationAccess(MroDispatch):
         self.events.publish(LinkContextChanged())
 
     def retire(self, observed: ObservedCommsService) -> None:
+        observed.retire()
         self.loop.remove_reader(observed.process.fileno())
         observed.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
         # Joining the child may wait; it outlives the preparation runtime at app close.
@@ -342,6 +354,18 @@ class CoordinationAccess(MroDispatch):
         if wanted != self.sidebar_interest:
             self.sidebar_interest = wanted
             observed.process.request(wanted if wanted is not None else StopSidebar())
+
+    def observe_thread_changes(self, view, scope: tuple[str, str], resume) -> ResourceRelease:
+        """Hold the shared model while this native read waits for its own thread."""
+        if scope is None:
+            raise ValueError("A deferred transcript read requires a bound thread")
+        release = ResourceRelease()
+
+        release.callback(view.retire_core, view.observe_core_callback(
+            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope)))
+        release.callback(self.show_sidebar, release, False)
+        self.show_sidebar(release, True)
+        return release
 
     def show_sidebar(self, view: object, shown: bool) -> None:
         """A view started or stopped showing the sidebar model."""
