@@ -679,6 +679,7 @@ class RuntimeBuild:
             'message_wake': wake,
         }
         (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+        print('qualify: ok', flush=True)
         return destination
 
     def accept(self, runtime: Path, display: XvfbDisplay) -> None:
