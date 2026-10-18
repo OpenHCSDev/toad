@@ -1,11 +1,10 @@
 """Transcript publication states and the single Textual lifecycle boundary."""
 
 from abc import abstractmethod
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from weakref import ref
 from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -13,7 +12,9 @@ from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
     from toad.transcript_preparation import PreparedPageSource
+    from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
     from toad.widgets.history_anchor import LatestPosition
 
 
@@ -159,6 +160,33 @@ class LatestViewportRequest:
             owner.state.request_latest(owner, self)
 
 
+@dataclass(frozen=True, eq=False)
+class WaitingSourceWork:
+    """The pager's observation keeps one paused operation alive until release."""
+
+    owner: "TranscriptSourcePreparation"
+    snapshot: "HistorySourceSnapshot"
+    work: "Callable[[], Awaitable[object]]"
+    state: "WorkingTranscript"
+
+    @contextmanager
+    def observe(self):
+        from toad.widgets.conversation import Conversation
+
+        scope = self.owner.query_ancestor(Conversation).transcript.thread_scope
+        with self.owner.app.coordination_access.observe_thread_changes(
+            self.owner, scope, self.resume
+        ):
+            yield self
+
+    def resume(self, _event) -> None:
+        self.owner._source_observation.close()
+        if self.snapshot.current(self.owner) and self.owner._source_state is self.state:
+            self.state.schedule(self.owner, self.work)
+        else:
+            self.owner.finish_source_work(self.state)
+
+
 class WorkingTranscript(SuspendedTranscript):
     """One source update; only this operation can finish its work."""
 
@@ -220,26 +248,10 @@ class WorkingTranscript(SuspendedTranscript):
                 ClosingTranscript, DetachedTranscript)
 
     def defer_source_work(self, owner, work) -> None:
-        """This operation owns its paused work and its weak native receiver."""
-        from toad.widgets.conversation import Conversation
-
-        self.waiting_owner = ref(owner)
-        self.waiting_snapshot = owner.source_snapshot()
-        self.waiting_work = work
-        scope = owner.query_ancestor(Conversation).transcript.thread_scope
+        """The existing observation scope owns the paused operation's lifetime."""
+        waiting = WaitingSourceWork(owner, owner.source_snapshot(), work, self)
         owner._source_observation.close()
-        owner._source_observation.enter_context(
-            owner.app.coordination_access.observe_thread_changes(owner, scope, self.resume_source_work))
-
-    def resume_source_work(self, _event) -> None:
-        owner = self.waiting_owner()
-        if owner is None:
-            return
-        owner._source_observation.close()
-        if self.waiting_snapshot.current(owner) and owner._source_state is self:
-            self.schedule(owner, self.waiting_work)
-        else:
-            owner.finish_source_work(self)
+        owner._source_observation.enter_context(waiting.observe())
 
     async def execute(self, owner, work):
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
