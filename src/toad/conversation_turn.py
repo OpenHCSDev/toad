@@ -109,35 +109,35 @@ class ManagedTurn(TurnOwner):
 
     @property
     def busy(self):
-        return self.state.busy
+        return self.state.active.phase.busy
 
     @property
     def activity_state(self):
-        return self.state.phase.activity_state
+        return self.state.active.phase.activity_state
 
     @property
     def managed_id(self):
-        return self.state.managed_id
+        return self.state.active.id
 
     @property
     def accepts_prompt(self):
-        return self.state.accepts_prompt
+        return self.state.active.phase.accepts_prompt
 
     @property
     def can_compact(self):
-        return self.state.can_compact
+        return self.state.active.phase.can_compact
 
     @property
     def can_cancel(self):
-        return self.state.phase.can_cancel
+        return self.state.active.phase.can_cancel
 
     @property
     def activity(self):
-        return self.state.activity if self.busy else ""
+        return self.state.active.phase.summary if self.busy else ""
 
     @property
     def started_at(self):
-        return self.state.started_at
+        return self.state.active.started_at
 
     @property
     def session_state(self):
@@ -240,7 +240,7 @@ class ManagedTurnBinding(TurnBinding):
                 and message.event.sequence == self.sequence)
 
     def receive(self, state: TurnState):
-        if not state.busy and not state.matches(self.owner.managed_id):
+        if not state.active.phase.busy and not state.matches(self.owner.managed_id):
             return False
         owner = ManagedTurn(state)
         if owner == self.owner:

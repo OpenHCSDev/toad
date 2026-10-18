@@ -484,8 +484,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
-        if self._page_buffer is not None:
-            self._page_buffer.release_held()
+        self._reader().release_held()
         self.filter.overlay.acquire_document()
 
     def resume_source(self) -> None:
@@ -885,9 +884,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         async with self.window.history_lock:
             async with self.window.preserve_history(root=self):
                 self._generation += 1
-                if self._page_buffer is not None:
-                    self._page_buffer.close()
-                    self._page_buffer = None
+                self.close()
                 retired = tuple(self.pages)
                 view = TranscriptPageView(initial,
                                           batch_size=self.budget.batch_items)
@@ -1058,7 +1055,7 @@ class TranscriptHistory(CommittedHistory, LineHistory):
     def notification_read(self, references) -> ReadNotifications:
         from toad.widgets.conversation import Conversation
 
-        scope = self.query_ancestor(Conversation).transcript.thread_scope
+        scope = self.query_ancestor(Conversation).transcript.binding.thread_scope
         if scope is None:
             raise ValueError("Notification observation requires a bound thread")
         return ReadNotifications(scope[0], references)

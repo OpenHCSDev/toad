@@ -14,7 +14,6 @@ from toad.widgets.presentation_window import NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from toad.transcript_preparation import PreparedPageSource
     from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
     from toad.widgets.history_anchor import LatestPosition
 
@@ -57,10 +56,9 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def retirement_source(self) -> "TranscriptState":
         return self
 
-    def retire_preparation(self, preparation: "PreparedPageSource | None") -> None:
+    def retire_preparation(self, owner: "TranscriptSourcePreparation") -> None:
         """Final source retirement releases its bounded prepared-page scope."""
-        if preparation is not None:
-            preparation.close()
+        owner.close()
 
     def resume(self) -> "TranscriptState":
         raise RuntimeError("Only a parked transcript can resume publication")
@@ -176,7 +174,7 @@ class WaitingSourceWork:
     def observe(self):
         from toad.widgets.conversation import Conversation
 
-        scope = self.owner.query_ancestor(Conversation).transcript.thread_scope
+        scope = self.owner.query_ancestor(Conversation).transcript.binding.thread_scope
         with self.owner.app.coordination_access.observe_thread_changes(
             self.owner, scope, self.resume
         ):
@@ -336,7 +334,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def retirement_source(self) -> TranscriptState:
         return self.source.retirement_source()
 
-    def retire_preparation(self, preparation: "PreparedPageSource | None") -> None:
+    def retire_preparation(self, owner: "TranscriptSourcePreparation") -> None:
         """Parking retains data-only work under the shared runtime's budget.
 
         Publication and speculative workers are revoked by the pager lifetime;

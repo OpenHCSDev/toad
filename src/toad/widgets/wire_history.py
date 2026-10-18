@@ -7,6 +7,7 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
+from agent_comms.coordination_errors import DMPaintedBoundChanged, DMScopeChanged
 
 from toad.screens.session_view import SessionView
 from toad.transcript_preparation import PreparedTranscriptPage
@@ -187,7 +188,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             await asyncio.to_thread(run_selected_write, comms.root,
                                     comms.views.mark_historical_view_read, displayed,
                                     implicit=implicit_root())
-        except ValueError:
+        except (ValueError, DMScopeChanged):
             # The attached history changed; this page's evidence marks nothing any more.
             marked = tuple(fragment for fragment in self.fragments if fragment.evidence is page)
         if snapshot.current(self):
@@ -201,7 +202,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
             if snapshot.current(self):
                 for fragment in marked:
                     fragment.evidence = None
-        except ValueError:
+        except DMScopeChanged as error:
+            self.view.app.notify(str(error), title="DM read not marked", severity="error")
+        except (ValueError, DMPaintedBoundChanged):
             # The viewer, peer, channel scope or bus changed after the page
             # was read: draw the conversation as it is read now.
             if snapshot.current(self):
