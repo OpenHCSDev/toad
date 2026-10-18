@@ -32,6 +32,7 @@ from toad.widgets.sidebar_viewport import SidebarHeader, SidebarViewport
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
+    from toad.tab_order import TabOrder
 
 
 @dataclass(frozen=True)
@@ -254,12 +255,20 @@ class HeaderButton(HoverSelection, PrimaryActivation, widgets.Static, can_focus=
 class TabHistoryButton(HeaderButton):
     """Back or forward through visited tabs."""
 
-    def __init__(self, direction: int) -> None:
-        super().__init__("<──" if direction == -1 else "──>",
-                         id="tab-back" if direction == -1 else "tab-forward")
-        self.direction = direction
-        self.tooltip = ("Back through visited tabs" if direction == -1
-                        else "Forward through visited tabs")
+    direction: ClassVar[int]
+    label: ClassVar[str]
+    button_id: ClassVar[str]
+    available_tooltip: ClassVar[str]
+    unavailable_tooltip: ClassVar[str]
+
+    def __init__(self) -> None:
+        super().__init__(self.label, id=self.button_id)
+        self.tooltip = self.available_tooltip
+
+    def sync(self, tab_order: TabOrder) -> None:
+        unavailable = tab_order.history_target(self.direction) is None
+        self.disabled = unavailable
+        self.tooltip = self.unavailable_tooltip if unavailable else self.available_tooltip
 
     @property
     def primary_activation(self):
@@ -267,6 +276,22 @@ class TabHistoryButton(HeaderButton):
 
     def navigate(self) -> None:
         cast("ToadApp", self.app).tab_order.navigate(self.direction)
+
+
+class BackTabButton(TabHistoryButton):
+    direction = -1
+    label = "<──"
+    button_id = "tab-back"
+    available_tooltip = "Back through visited tabs"
+    unavailable_tooltip = "No earlier visited tab"
+
+
+class ForwardTabButton(TabHistoryButton):
+    direction = +1
+    label = "──>"
+    button_id = "tab-forward"
+    available_tooltip = "Forward through visited tabs"
+    unavailable_tooltip = "No later visited tab"
 
 
 class MainMenuButton(HeaderButton):
@@ -305,8 +330,8 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
 
     def compose(self) -> ComposeResult:
         yield MainMenuButton()
-        yield TabHistoryButton(-1)
-        yield TabHistoryButton(+1)
+        yield BackTabButton()
+        yield ForwardTabButton()
 
     def on_mount(self) -> None:
         app = cast("ToadApp", self.app)
@@ -321,14 +346,7 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
     def _sync(self) -> None:
         app = cast("ToadApp", self.app)
         for button in self.query(TabHistoryButton):
-            unavailable = app.tab_order.history_target(button.direction) is None
-            button.disabled = unavailable
-            button.tooltip = (
-                "No earlier visited tab" if button.direction == -1 else "No later visited tab"
-            ) if unavailable else (
-                "Back through visited tabs" if button.direction == -1
-                else "Forward through visited tabs"
-            )
+            button.sync(app.tab_order)
 
 
 class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
