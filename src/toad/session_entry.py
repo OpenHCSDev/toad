@@ -29,12 +29,8 @@ if TYPE_CHECKING:
 
 
 class SessionEntry(DeclaredFamily, affix="Entry"):
-    def __init__(self, mode: str) -> None:
-        self.mode = mode
-
-    @property
-    def owner_mode(self) -> str:
-        return self.mode
+    def __init__(self, mode: str, owner_mode: str) -> None:
+        self.mode, self.owner_mode = mode, owner_mode
 
     @abstractmethod
     def __call__(self) -> SessionView: ...
@@ -90,7 +86,7 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
 class NativeSessionEntry(SessionEntry):
     def __init__(self, details: SessionDetails, factory: Callable[[], MainScreen],
                  original: tuple[str, ThreadIncarnation] | None = None) -> None:
-        super().__init__(details.mode_name)
+        super().__init__(details.mode_name, details.mode_name)
         self.details = details
         self.factory = factory
         self.original = original
@@ -185,13 +181,9 @@ class NativeSessionEntry(SessionEntry):
 class HistorySessionEntry(SessionEntry):
     def __init__(self, mode: str, key: CommsViewKey, kind: type[ConversationKind], project: Path,
                  owner_root: str | None, participants: tuple[ThreadIncarnation, ...], owner) -> None:
-        super().__init__(mode)
+        super().__init__(mode, key.owner_mode)
         self.key, self.kind, self.project, self.owner_root = key, kind, project, owner_root
         self.participants, self.owner = participants, owner
-
-    @property
-    def owner_mode(self) -> str:
-        return self.key.owner_mode
 
     def original_threads(self, sessions):
         return tuple((self.key.root, participant) for participant in self.participants)
@@ -202,7 +194,7 @@ class HistorySessionEntry(SessionEntry):
     def __call__(self):
         from toad.screens.comms import CommsScreen
         key = self.key
-        return CommsScreen(project_path=self.project, owner_mode=key.owner_mode,
+        return CommsScreen(project_path=self.project, owner_mode=self.owner_mode,
                            me=self.owner.thread_identity.thread_name(),
                            target=key.target, kind=self.kind,
                            owner_root=self.owner_root, wire_root=key.root)
@@ -215,7 +207,7 @@ class HistorySessionEntry(SessionEntry):
         await sessions.app.workspace_sessions.require(self.mode).wait_content_ready()
 
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
-        return sessions.source(self.key.owner_mode)
+        return sessions.source(self.owner_mode)
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         unread: UnreadPresentation = UnobservedUnread()
@@ -224,10 +216,10 @@ class HistorySessionEntry(SessionEntry):
         return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
-        return super().depends_on(mode) or self.key.owner_mode == mode
+        return super().depends_on(mode) or self.owner_mode == mode
 
     async def return_to(self, sessions: SessionNavigation) -> None:
-        app, owner = sessions.app, self.key.owner_mode
+        app, owner = sessions.app, self.owner_mode
         await app.select_session(owner if sessions.get(owner) is not None
                                  else app.tab_order.previous(self.mode))
 
@@ -247,7 +239,7 @@ class PreviewSessionEntry(SessionEntry):
     """A read-only file in its own tab."""
 
     def __init__(self, mode: str, path: Path, origin: str) -> None:
-        super().__init__(mode)
+        super().__init__(mode, mode)
         self.path, self.origin = path, origin
 
     @classmethod
