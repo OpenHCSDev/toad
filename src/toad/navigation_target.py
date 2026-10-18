@@ -62,7 +62,8 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
     def menu_context(self, sidebar, *, mode_name=None, channel=None):
         from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.service, self.name,
-                             sidebar.session_thread, sidebar.app.project_dir, mode_name, channel)
+                             sidebar.app.workspace_sessions.source.view.navigation_context.actor,
+                             sidebar.app.project_dir, mode_name, channel)
 
     def show_menu(self, sidebar, offset, **kwargs) -> None:
         self.menu_context(sidebar, **kwargs).show_menu(sidebar, offset)
@@ -116,7 +117,8 @@ class ChannelLike:
     def menu_context(self, sidebar, **kwargs):
         from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.service, self.name,
-                              sidebar.session_thread, sidebar.app.project_dir)
+                              sidebar.app.workspace_sessions.source.view.navigation_context.actor,
+                              sidebar.app.project_dir)
 
 
 @dataclass(frozen=True)

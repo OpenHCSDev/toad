@@ -4,7 +4,11 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from toad.widgets.side_bar import SidebarFocusOwner
 from pathlib import Path
+from contextlib import contextmanager
+from toad.core.events import ThreadIdentityChanged
 from typing import TYPE_CHECKING
+from toad.core_event_carrier import CoreEventReceiver
+from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.project_path_owner import ProjectPathOwner
 
 if TYPE_CHECKING:
@@ -50,7 +54,7 @@ class SessionOrigin:
     def has_agent(self) -> bool:
         return self._agent is not None
 
-class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
+class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertical):
     title = reactive("")
     sub_title = reactive("")
 
@@ -94,16 +98,23 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
         """Supply this view's native sidebar resources through its declaration."""
         return ()
 
-    def channels_context(self) -> tuple[str, str]:
-        return "", ""
-
     @property
     def navigation_target_name(self) -> str | None:
         """The displayed destination, independent of sidebar click intent."""
         return None
 
-    def relationship_context(self) -> tuple[str, str | None]:
-        return self.channels_context()[0], self.coordination_root
+    @property
+    def thread_identity(self) -> SessionIdentity:
+        return NoThreadIdentity()
+
+    @contextmanager
+    def changing_identity(self):
+        previous = self.thread_identity
+        try:
+            yield previous
+        finally:
+            if previous != self.thread_identity:
+                self.app.events.publish(ThreadIdentityChanged(self))
 
     def activate_session(self) -> None:
         """Bind surface-local observers before its selected frame."""

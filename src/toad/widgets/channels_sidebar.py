@@ -7,11 +7,8 @@ from textual.widget import Widget
 
 
 class ChannelsSidebar(SideBar):
-    def __init__(self, session_thread: str = "", *,
-                 observe: bool = True, defer_mount: bool = False) -> None:
-        self.roster = CommsSidebar(
-            session_thread=session_thread, observe=observe,
-        )
+    def __init__(self, *, observe: bool = True, defer_mount: bool = False) -> None:
+        self.roster = CommsSidebar(observe=observe)
         super().__init__(
             SideBar.Panel(
                 "Channels",

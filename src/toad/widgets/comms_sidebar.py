@@ -36,6 +36,8 @@ from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
+from toad.thread_identity import SessionIdentity
+from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
 from toad.session_tracker import SidebarSelection
@@ -369,7 +371,7 @@ class NewSessionButton(HoverSelection, TargetTreeMember, Static):
             await self.action_create()
 
 
-class CoordinationStatus(Static):
+class CoordinationStatus(ShowsThreadIdentity, Static):
     """Compact diagnostics for the persistent coordination wire."""
 
     DEFAULT_CSS = """
@@ -380,26 +382,15 @@ class CoordinationStatus(Static):
     }
     """
 
-    def __init__(self, service: Comms, thread: str = "") -> None:
-        super().__init__()
-        self.service = service
-        self.thread = thread
-        self.refresh_status()
-
-    def set_thread(self, thread: str) -> None:
-        self.thread = thread
-        self.refresh_status()
-
-    def refresh_status(self) -> None:
-        root = self.service.root
+    def identity_changed(self, identity: SessionIdentity) -> None:
+        root = identity.display_root()
         backend = NativeArguments.configured_binary()
-        thread = self.thread or "connecting..."
         self.update(
             Content.assemble(
                 "Wire: ",
-                (_display_path(root), "$text"),
+                (root, "$text"),
                 (" · persistent", "$success"),
-                f"\nThread: {thread}",
+                f"\nThread: {identity.display_thread()}",
                 f"\nACP/session · {Path(backend).name}",
             )
         )
@@ -407,7 +398,7 @@ class CoordinationStatus(Static):
         self.tooltip = (
             "Coordination state persists in the shared wire; the stdio ACP transport "
             "is scoped to this Toad session.\n\n"
-            f"AGENT_COMMS_ROOT={root.resolve()}\n"
+            f"AGENT_COMMS_ROOT={identity.root_path()}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
             f"AGENT_COMMS_AGENT_ARGS={args}"
         )
@@ -527,13 +518,9 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
     BINDINGS = [("up", "cursor_up", "Previous"), ("down", "cursor_down", "Next"),
                 ("enter", "open_selected", "Open")]
     selected: reactive[str] = reactive("", init=False)
-    session_thread: reactive[str] = reactive("", init=False)
-
-    def __init__(self, session_thread: str = "", *,
-                 observe: bool = True, **kwargs):
+    def __init__(self, *, observe: bool = True, **kwargs):
         super().__init__(**kwargs)
         from toad.sidebar_navigation import SidebarNavigation
-        self.session_thread = session_thread
         self.can_focus = True
         self.navigation = SidebarNavigation(self)
         self.enabled = observe
