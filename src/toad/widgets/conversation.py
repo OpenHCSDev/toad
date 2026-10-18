@@ -603,7 +603,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self.delivery_observation = InputDeliveryObservation(self)
         self.transcript = transcript if transcript is not None else TranscriptPresentation()
         self.cli_draft = CliDraft()
-        self.transcript.bind(self)
         self.tool_expansions: dict[str, bool] = {}
         # Both explicit eviction and Textual unmount consume this same lifetime.
         # The stack removes callbacks before calling them and continues on error.
@@ -1704,6 +1703,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
+        self.transcript.bind(self)
         await self.initialize_view()
 
     def apply_layout_preferences(self) -> None:

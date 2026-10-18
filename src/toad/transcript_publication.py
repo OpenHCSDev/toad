@@ -1,7 +1,6 @@
 """Source-fenced saved transcript publication; commit policy stays declared."""
 from __future__ import annotations
 
-import weakref
 import asyncio
 from abc import ABC, abstractmethod
 from contextlib import AsyncExitStack, asynccontextmanager
@@ -38,8 +37,7 @@ class BoundFrame:
 
     @classmethod
     def capture(cls, binding, owner, **extra):
-        view = binding.view
-        return cls(binding, owner, owner.generation, view.window, view.contents, **extra)
+        return cls(binding, owner, owner.generation, binding.window, binding.contents, **extra)
 
     def current(self):
         return (self.owner.binding is self.binding
@@ -421,14 +419,11 @@ class CommitPublication(CanonicalSourcePublication):
 class ViewBinding(ABC):
     """The native view's binding and its view-dependent operations."""
 
-    def observed(self):
-        return self
-
     def matches(self, view):
         return False
 
     def bound_to(self, view):
-        return BoundView(weakref.ref(view))
+        return BoundView(view)
 
     @property
     def thread_scope(self):
@@ -437,10 +432,6 @@ class ViewBinding(ABC):
     @property
     def reader(self):
         raise ValueError("Transcript reader requires a bound view")
-
-    @property
-    def view(self) -> Conversation:
-        raise ValueError("Transcript operation requires a bound view")
 
     def current(self, window, contents):
         return False
@@ -530,21 +521,11 @@ class BoundView(ViewBinding):
             else:
                 self.owner.source_requests.submit(publication)
 
-    def __init__(self, reference):
-        self.reference = reference
-
-    def observed(self):
-        return NoView() if self.reference() is None else self
-
-    @property
-    def view(self) -> Conversation:
-        target = self.reference()
-        if target is None:
-            raise ValueError("Transcript view was released")
-        return target
+    def __init__(self, view: Conversation):
+        self.view, self.window, self.contents = view, view.window, view.contents
 
     def matches(self, view):
-        return self.reference() is view
+        return self.view is view
 
     def bound_to(self, view):
         if not self.matches(view):
@@ -561,16 +542,13 @@ class BoundView(ViewBinding):
         return self.view.app.coordination_access.transcripts
 
     def current(self, window, contents):
-        from toad.widgets.conversation import Window, Contents
-        view = self.view
-        return (view.is_attached and not view.is_leaving
+        return (self.view.is_attached and not self.view.is_leaving
                 and window.is_attached and contents.is_attached
-                and view.query_one_optional(Window) is window
-                and view.query_one_optional(Contents) is contents)
+                and self.window is window and self.contents is contents)
 
     def histories(self):
         from toad.widgets.transcript_history import TranscriptHistory
-        return tuple(self.view.contents.query_children(TranscriptHistory))
+        return tuple(self.contents.query_children(TranscriptHistory))
 
     def observe_thread(self, owner):
         scope = self.thread_scope
@@ -659,7 +637,7 @@ class BoundView(ViewBinding):
         view = self.view
         if not view.is_attached or view.is_leaving:
             return None
-        return kind(owner, view, view.window, view.contents, *args)
+        return kind(owner, view, self.window, self.contents, *args)
 
     def painted(self, owner, cursor):
         frame = BoundFrame.capture(self, owner)
@@ -684,7 +662,7 @@ class BoundView(ViewBinding):
             CommitEvidence, CommitParticipant, protected_blocks, retirement_candidates,
         )
         view = self.view
-        contents = view.contents
+        contents = self.contents
         if history.is_attached and history.parent is contents:
             owner.events.publish(coverage)
             candidates = retirement_candidates(contents.children, CommitEvidence(
@@ -704,14 +682,14 @@ class BoundView(ViewBinding):
         return AwaitComplete.nothing()
 
     def reset_reader(self):
-        self.view.window.reader_position = None
+        self.window.reader_position = None
 
 
 class TranscriptPresentation:
     """Owns the transcript document; attached native publishers can be replaced."""
 
     def __init__(self) -> None:
-        self._binding: ViewBinding = NoView()
+        self.binding: ViewBinding = NoView()
         self.documents: tuple[PreparedPageSource, ...] = ()
         self.closed = False
         self.generation = 0
@@ -725,18 +703,13 @@ class TranscriptPresentation:
         from toad.core.events import CoreEventStream
         self.events = CoreEventStream(self)
 
-    @property
-    def binding(self) -> ViewBinding:
-        self._binding = self._binding.observed()
-        return self._binding
-
     def bind(self, view: Conversation) -> None:
         if self.closed:
             raise ValueError("Transcript lifetime has ended")
         binding = self.binding.bound_to(view)
         self.invalidate_publications()
         self.current_read = NotPublished()
-        self._binding = binding
+        self.binding = binding
 
     @property
     def thread_scope(self) -> tuple[str, str] | None:
@@ -750,7 +723,7 @@ class TranscriptPresentation:
 
     def _unbind_view(self) -> None:
         self._thread_observation.close()
-        self._binding = NoView()
+        self.binding = NoView()
 
     @property
     def readable(self) -> bool:
