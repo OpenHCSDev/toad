@@ -166,10 +166,6 @@ class PreparationWork(ABC, Generic[ResultT]):
 class ReusableWork(ReusableStorage[ResultT], PreparationWork[ResultT]):
     """Mixin for results whose declared identity fully describes their inputs."""
 
-class SerializedWork(SerializedStorage[ResultT], ReusableWork[ResultT]):
-    """Reusable model work with the declared process-transfer representation."""
-
-
 class ContentAddressedWork(PreparationWork[ResultT]):
     @property
     @abstractmethod
