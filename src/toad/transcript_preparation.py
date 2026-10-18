@@ -70,13 +70,11 @@ class PreparedTranscriptPage:
     def source_payload_bytes(self) -> int:
         return sum(256 + 4 * event.text_size for event in self.page.events)
 
-    def measure_sources(self, readers=()):
-        # Charge declared payloads, including view-acquired rows. Shared inputs
-        # may be charged twice: eviction must not need a global graph census.
+    def measure_sources(self):
+        """The page owns its events; each fragment owns only its acquired rows."""
         self.retained_bytes = (256 + 64 * len(self.outgoing_coverage)
                                + self.source_payload_bytes
-                               + sum(fragment.retained_bytes for fragment in self.fragments)
-                               + sum(fragment.retained_bytes for reader in readers for fragment in reader))
+                               + sum(fragment.retained_bytes for fragment in self.fragments))
 
     @classmethod
     def empty(cls, page):
@@ -294,6 +292,33 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
         return FilteredTranscriptBatch(self.page.project(tuple(reversed(matches))), stop)
 
 
+class HeldProjection(ABC):
+    """The parked projection's pages, accounting and lifetime."""
+
+    held_pages: tuple[PreparedTranscriptPage, ...]
+
+    @property
+    @abstractmethod
+    def retained_source_bytes(self) -> int: ...
+
+    @abstractmethod
+    def measure_projection(self) -> None: ...
+
+    @abstractmethod
+    def close(self) -> None: ...
+
+
+class NoProjection(HeldProjection):
+    held_pages = ()
+    retained_source_bytes = 0
+
+    def measure_projection(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
 class PreparedPageSource(ABC):
     """One lifetime-owned source of prepared pages, independent of widget paging."""
 
@@ -306,34 +331,28 @@ class PreparedPageSource(ABC):
         # This source holds the resources after their widgets detach. These are the
         # original accepted resources, not another cache of transport pages.
         self.held_pages: tuple[PreparedTranscriptPage, ...] = ()
-        self.projection_source: ProjectedTranscriptSource | None = None
+        self.projection_source: HeldProjection = NoProjection()
 
     @property
     def retained_source_bytes(self) -> int:
-        return sum(page.retained_bytes for page in self.held_pages) + (
-            self.projection_source.retained_source_bytes if self.projection_source is not None else 0
-        )
+        return sum(page.retained_bytes for page in self.held_pages) + self.projection_source.retained_source_bytes
 
     def measure_held(self, pages: tuple[PreparedTranscriptPage, ...],
-                          projection: ProjectedTranscriptSource | None = None,
-                          ranges: tuple[PageFragmentRange, ...] = ()) -> None:
-        """Charge page payloads and their actual view acquisitions off-loop."""
+                     projection: HeldProjection = NoProjection()) -> None:
+        """Reader ranges reference these same fragments; charge them once."""
         for page in pages:
-            readers = tuple(page_range.members for page_range in ranges if page_range.page() is page)
-            page.measure_sources(readers)
-        if projection is not None:
-            projection.measure_held(projection.held_pages, projection.projection_source,
-                                         ranges)
+            page.measure_sources()
+        projection.measure_projection()
 
     def park(self, pages: tuple[PreparedTranscriptPage, ...],
-             projection: ProjectedTranscriptSource | None = None) -> None:
+             projection: HeldProjection = NoProjection()) -> None:
         if self.closed:
             raise ValueError("Cannot retain a revoked transcript source")
         self.held_pages, self.projection_source = pages, projection
 
     def release_held(self) -> None:
         """Native acquisition takes these same resources, not materialized copies."""
-        self.held_pages, self.projection_source = (), None
+        self.held_pages, self.projection_source = (), NoProjection()
 
     @property
     def closed(self) -> bool:
@@ -353,8 +372,7 @@ class PreparedPageSource(ABC):
 
     def close(self) -> None:
         self.runtime.discard_scope(self.scope)
-        if self.projection_source is not None:
-            self.projection_source.close()
+        self.projection_source.close()
         self.release_held()
 
 
@@ -478,7 +496,7 @@ class TranscriptPageBuffer(PreparedPageSource):
     async def prepare(self, request: PageRequest) -> None:
         await self.runtime.prepare(self.read_task(request))
 
-class ProjectedTranscriptSource(PreparedPageSource):
+class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
     """A projected prefix with a fixed boundary and ordinary bidirectional reads.
 
     The boundary is the unread prefix of one main page. Earlier reads
@@ -486,6 +504,9 @@ class ProjectedTranscriptSource(PreparedPageSource):
     kept boundary rather than overlapping the main mounted tail.
     Only the boundary and the caller's bounded pages remain strongly kept.
     """
+
+    def measure_projection(self) -> None:
+        self.measure_held(self.held_pages, self.projection_source)
 
     def __init__(
         self, boundary: PreparedTranscriptPage,
