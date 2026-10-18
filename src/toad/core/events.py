@@ -204,7 +204,9 @@ class ThreadRowsChanged(CoreEvent):
     root: str
     changes: Changes[str]
 
-    def affects(self, scope: tuple[str, str]) -> bool:
+    def affects(self, scope: tuple[str, str] | None) -> bool:
+        if scope is None:
+            return False
         root, thread = scope
         return root == self.root and (thread in self.changes.added or thread in self.changes.changed)
 
@@ -212,6 +214,11 @@ class ThreadRowsChanged(CoreEvent):
 @dataclass(frozen=True)
 class LinkContextChanged(CoreEvent):
     """The original project or reference observation changed; redraw from its owner."""
+
+
+@dataclass(frozen=True)
+class ObservedServiceChanged(LinkContextChanged):
+    """The access owner attached a replacement service, not just new references."""
 
 
 @dataclass(frozen=True)

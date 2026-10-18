@@ -31,7 +31,7 @@ from agent_comms.ui_model.observation import (
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ThreadRowsChanged
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
 from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -213,7 +213,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_interest = ObserveNotifications(frozenset())
         self.update_sidebar_interest()
         self.app.session_navigation.declare_views()
-        self.events.publish(LinkContextChanged())
+        self.events.publish(ObservedServiceChanged())
 
     def retire(self, observed: ObservedCommsService) -> None:
         observed.retire()
@@ -355,14 +355,13 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_interest = wanted
             observed.process.request(wanted if wanted is not None else StopSidebar())
 
-    def observe_thread_changes(self, view, scope: tuple[str, str], resume) -> ResourceRelease:
-        """Hold the shared model while this native read waits for its own thread."""
-        if scope is None:
-            raise ValueError("A deferred transcript read requires a bound thread")
+    def observe_thread_changes(self, view, scope: Callable[[], tuple[str, str] | None],
+                               resume) -> ResourceRelease:
+        """Hold the shared model and match the consumer's original current scope."""
         release = ResourceRelease()
 
         release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope)))
+            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope())))
         release.callback(self.show_sidebar, release, False)
         self.show_sidebar(release, True)
         return release

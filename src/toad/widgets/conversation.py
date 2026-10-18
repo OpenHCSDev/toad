@@ -426,6 +426,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
 
         if not self.query_ancestor(SessionView).is_current:
             return
+        self.refresh_thread_status()
         self.goal_observation.invalidate()
         presentation = self._unpublished_presentation
         if presentation is not None:
@@ -433,13 +434,13 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             self._unpublished_presentation = None
             self.transcript.source_requests.request(ObservedSourcePublication, presentation)
 
-    @handles(core_events.CoordinationObserved)
+    @handles(core_events.ObservedServiceChanged)
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:
-        # The observed root can change; a foreign thread reads again.
         self.refresh_thread_status()
-        # Read/handling changes can leave source text unchanged. Ask the same
-        # publication owner to refresh both live bodies and saved message rows.
+
+    def _thread_rows_changed(self, event: core_events.ThreadRowsChanged) -> None:
         self.transcript.request_handling()
+        self.prompt.slash_complete.refresh_commands()
 
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
@@ -1679,7 +1680,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             raise ValueError('Command view changed during discovery')
         return catalog
 
-    @handles(core_events.CoordinationObserved)
+    @handles(core_events.LinkContextChanged)
     async def _command_source_changed(self, event: CoreEventMessage) -> None:
         self.prompt.slash_complete.refresh_commands()
 
@@ -1709,6 +1710,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.observe_core(self.app.saved_settings.events)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
+        self._source_resources.enter_context(
+            self.app.coordination_access.observe_thread_changes(
+                self, lambda: self.transcript.thread_scope, self._thread_rows_changed))
         self.refresh_thread_status()
 
         self.input_histories.shell.complete.add_words(

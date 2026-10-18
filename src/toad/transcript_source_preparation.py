@@ -313,7 +313,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
         self._source_observation.close()
         self._source_observation.enter_context(
-            self.app.coordination_access.observe_thread_changes(self, scope, resume))
+            self.app.coordination_access.observe_thread_changes(self, lambda: scope, resume))
 
     def supersede_source_work(
         self, operation: WorkingTranscript, request: LatestViewportRequest,
