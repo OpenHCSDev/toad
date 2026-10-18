@@ -264,8 +264,6 @@ class DmConversation(ConversationKind):
         if page.newest_seq not in painted:
             return None
         basis = page.display_basis
-        if basis.older_unread:
-            return None
         if any(message.seq not in painted for message in page.messages
                if message.sender in basis.peer_names and message.target in basis.viewer_names):
             return None
