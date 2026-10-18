@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from functools import singledispatchmethod
 import json
 from pathlib import Path
+from typing import Literal
 
 from acp.schema import (
     AgentErrorMessage, AgentNotification, AgentRequest, AgentResponseMessage,
@@ -166,12 +167,17 @@ class ErrorLogMessage(AgentErrorMessage):
         ))
 
 
+class SessionUpdateLogMessage(AgentNotification):
+    method: Literal["session/update"]
+    params: SessionNotification
+
+    def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
+        record = MethodLogRecord(raw, source, self.method, self.params.update.session_update)
+        return SessionContentLog(record).render(self.params.update)
+
+
 class MethodLogMessage(AgentNotification):
     def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
-        if self.method == "session/update":
-            notification = SessionNotification.model_validate(self.params, strict=True)
-            record = MethodLogRecord(raw, source, self.method, notification.update.session_update)
-            return SessionContentLog(record).render(notification.update)
         return MethodLogRecord(raw, source, self.method, "")
 
 
@@ -184,7 +190,9 @@ class ResultLogMessage(AgentResponseMessage):
         return ResponseLogRecord(raw, source, str(self.id))
 
 
-LOG_MESSAGE = TypeAdapter(ErrorLogMessage | RequestLogMessage | MethodLogMessage | ResultLogMessage)
+LOG_MESSAGE = TypeAdapter(
+    ErrorLogMessage | SessionUpdateLogMessage | RequestLogMessage | MethodLogMessage | ResultLogMessage
+)
 
 
 class SessionContentLog:
