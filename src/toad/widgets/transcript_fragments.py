@@ -328,12 +328,16 @@ class TranscriptFragment:
         return self._plain
 
 
-    @cached_property
-    def retained_bytes(self) -> int:
-        """Worker-owned immutable input cost, never an acquisition graph."""
-        from toad.work_preparation import retained_bytes
+    @property
+    def source_payload_bytes(self) -> int:
+        return sum(256 + 4 * event.text_size for event in self.events)
 
-        return retained_bytes(self)
+    @property
+    def retained_bytes(self) -> int:
+        """Declared source payload plus rows actually acquired by this view."""
+        return (256 + self.source_payload_bytes
+                + (self._lines.preparation.retained_bytes if self._lines is not None else 0)
+                + (self._plain.preparation.retained_bytes if self._plain is not None else 0))
 
 
 @dataclass(kw_only=True)
@@ -342,6 +346,10 @@ class ToolTranscriptFragment(TranscriptFragment):
 
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
+
+    @property
+    def retained_bytes(self) -> int:
+        return super().retained_bytes + sum(part.retained_bytes for part in self.output_parts)
 
     @property
     def has_details(self) -> bool:
@@ -366,6 +374,10 @@ class BusMessageFragment(TranscriptFragment):
     shown: MessageShown = field(default_factory=MessageShown)
     text_part: str
     row: MessageRow
+
+    @property
+    def retained_bytes(self) -> int:
+        return super().retained_bytes + 4 * len(self.text_part)
 
     @classmethod
     def capture_part(cls, event, text, **kwargs):
@@ -530,8 +542,6 @@ def transcript_fragments(
             fragments.append(replace(source, output_parts=parts))
         else:
             fragments.append(source)
-    for fragment in fragments:
-        fragment.retained_bytes
     return tuple(fragments)
 
 
@@ -539,6 +549,9 @@ def transcript_fragments(
 class TranscriptRenderTask(ReusableRenderTask[tuple[TranscriptFragment, ...]]):
     events: tuple[TranscriptEvent, ...]
     continuation: bool = False
+
+    def result_size(self, result: tuple[TranscriptFragment, ...]) -> int:
+        return 64 + sum(fragment.retained_bytes for fragment in result)
 
     def execute(self) -> tuple[TranscriptFragment, ...]:
         return transcript_fragments(self.events, continuation=self.continuation)
