@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from pathlib import Path
@@ -12,7 +12,7 @@ from weakref import WeakMethod, WeakSet, ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
-from agent_comms.ui_model.changes import Changes
+from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -202,11 +202,11 @@ class ThreadRowsChanged(CoreEvent):
     """The observed model's original change set, under its source root."""
 
     root: str
-    changes: Changes[str]
+    presentations: Mapping[str, ThreadPresentation]
 
     def affects(self, scope: tuple[str, str]) -> bool:
         root, thread = scope
-        return root == self.root and (thread in self.changes.added or thread in self.changes.changed)
+        return root == self.root and thread in self.presentations
 
 
 @dataclass(frozen=True)
@@ -413,8 +413,12 @@ class Subscription:
     def accepts(self, original: Subscription) -> bool:
         return self is original and self.active
 
+    def observed_threads(self, root: str) -> tuple[str, ...]:
+        return ()
+
     def close(self) -> None:
         self.stream.subscriptions[self.event_type].discard(self)
+        self.stream.subscriptions_changed(self)
 
     def __enter__(self) -> Subscription:
         return self
@@ -423,11 +427,27 @@ class Subscription:
         self.close()
 
 
+@dataclass(eq=False)
+class ThreadChangeSubscription(Subscription):
+    """One live thread scope owns both delivery and observation interest."""
+
+    scope: tuple[str, str] = field(kw_only=True)
+
+    def observed_threads(self, root: str) -> tuple[str, ...]:
+        return (self.scope[1],) if root == self.scope[0] else ()
+
+    def publish(self, event: ThreadRowsChanged) -> None:
+        if event.affects(self.scope):
+            super().publish(event)
+
+
 class CoreEventStream:
     """Publish original events; neither retain state nor schedule frontend work."""
 
-    def __init__(self, publisher: object) -> None:
+    def __init__(self, publisher: object, *,
+                 subscriptions_changed: Callable[[Subscription], None] = lambda _: None) -> None:
         self._publisher = ref(publisher)
+        self.subscriptions_changed = subscriptions_changed
         self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
 
     @property
@@ -438,10 +458,17 @@ class CoreEventStream:
         return publisher
 
     def subscribe(self, event_type: type[CoreEvent],
-                  listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
-        subscription = Subscription(self, event_type, listener)
+                  listener: Callable[[CoreEvent, Subscription], object], *,
+                  factory: Callable[..., Subscription] = Subscription) -> Subscription:
+        subscription = factory(self, event_type, listener)
         self.subscriptions.setdefault(event_type, WeakSet()).add(subscription)
+        self.subscriptions_changed(subscription)
         return subscription
+
+    def observed_threads(self, root: str) -> frozenset[str]:
+        return frozenset(name
+                         for subscription in self.subscriptions.get(ThreadRowsChanged, ())
+                         for name in subscription.observed_threads(root))
 
     def publish(self, event: CoreEvent) -> None:
         # Snapshot matching resources before callbacks can subscribe or close.

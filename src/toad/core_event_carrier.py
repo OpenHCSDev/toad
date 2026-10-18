@@ -85,7 +85,8 @@ class CoreEventReceiver(MroDispatch):
 
     def observe_core_callback(self, stream: CoreEventStream,
                               event_type: type[CoreEvent], callback, *,
-                              accepts=lambda event: True) -> Subscription:
+                              accepts=lambda event: True,
+                              factory=Subscription) -> Subscription:
         """An original deferred operation receives relief inside its native pump."""
         recipient = ref(self)
         try:
@@ -109,7 +110,7 @@ class CoreEventReceiver(MroDispatch):
             message.bubble = False
             receiver.post_message(message)
 
-        subscription = stream.subscribe(event_type, publish)
+        subscription = stream.subscribe(event_type, publish, factory=factory)
         self._core_subscriptions.add(subscription)
         return subscription
 

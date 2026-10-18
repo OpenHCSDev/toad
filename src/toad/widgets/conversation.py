@@ -389,8 +389,10 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
         """Capture turn token and client authority for the next observed presentation."""
         self._thread_read = self.agent.thread_read() if self.agent is not None else None
 
-    def thread_observed(self, presentation) -> None:
-        """Settle the agent's turn from an observed presentation, as its own read would."""
+    def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
+        """Consume this thread's one observation, including handling and presentation."""
+        self.transcript.request_handling()
+        presentation = event.presentations[self.status_thread()[1]]
         read = self._thread_read
         self.arm_thread_read()
         if read is not None:
@@ -437,9 +439,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
     @handles(core_events.ObservedServiceChanged)
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:
         self.refresh_thread_status()
-
-    def _thread_rows_changed(self, event: core_events.ThreadRowsChanged) -> None:
-        self.transcript.request_handling()
 
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
