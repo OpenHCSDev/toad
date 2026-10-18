@@ -16,6 +16,7 @@ import hashlib
 import importlib.metadata
 import json
 import os
+import select
 from pathlib import Path
 import shutil
 import shlex
@@ -85,7 +86,7 @@ def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
     return references
 
 
-def prune_runtimes(current: Path, previous: Path, *, delete: bool) -> dict:
+def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
     """Keep the two published versions and every prefix still used by a process."""
     selected = current.resolve(strict=True)
     previous = previous.resolve(strict=True)
@@ -95,6 +96,10 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool) -> dict:
     runtimes = sorted(directory.iterdir())
     if any(path.is_symlink() or not path.is_dir() for path in runtimes):
         raise ValueError('Runtime directory contains unexpected files or symlinks')
+    if remove is not None:
+        if any(path not in runtimes for path in remove):
+            raise ValueError('Removal must name installed sibling runtimes')
+        runtimes = remove
     references = runtime_references(runtimes)
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
               'kept_by_pid': {path: pids for path, pids in references.items() if pids},
@@ -152,6 +157,7 @@ def installation_main() -> None:
     parser.add_argument('--current', type=Path)
     parser.add_argument('--previous', type=Path)
     parser.add_argument('--delete', action='store_true')
+    parser.add_argument('--remove', type=Path, nargs='+', help='Prune only these runtime directories')
     parser.add_argument('--publication-tools', type=Path, help="Core checkout's tools directory")
     parser.add_argument('--root', type=Path)
     args = parser.parse_args()
@@ -163,7 +169,7 @@ def installation_main() -> None:
     elif args.prune_runtimes:
         if args.current is None or args.previous is None:
             parser.error('--prune-runtimes requires --current and --previous')
-        print(json.dumps(prune_runtimes(args.current, args.previous, delete=args.delete), indent=2))
+        print(json.dumps(prune_runtimes(args.current, args.previous, delete=args.delete, remove=args.remove), indent=2))
     else:
         if args.publication_tools is None or args.root is None:
             parser.error('--publish-runtime requires --publication-tools and --root')
@@ -528,7 +534,7 @@ def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
                    if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
                    and k not in ('PYTHONPATH', 'PYTHONHOME')}
     with (output / 'wake.log').open('w') as log:
-        subprocess.run([str(runtime / 'bin/python'), '-I', '-B', '-c', '''
+        worker = subprocess.Popen([str(runtime / 'bin/python'), '-I', '-B', '-c', '''
 import asyncio,hashlib,json,os,sys,time
 from pathlib import Path
 from agent_comms.active_route import ActiveRoute,active_route_path
@@ -562,38 +568,71 @@ c.registry.declare(c.registry.new_thread('build-sender',frozenset(),str(out)),St
 os.environ['PI_CODING_AGENT_DIR']=saved['config']
 c.owners.start(child.name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
 try:
-    sent=c.messaging.send_message('build-sender',child.name,'Reply with BUILD_WAKE followed immediately by _OK. Do not use tools.')
+    print('READY',flush=True)
+    if sys.stdin.readline().strip() != 'SEND':raise RuntimeError('UI did not request the fresh message')
+    token='BUILD_WAKE_'+runtime.name.rsplit('-',1)[1]
+    (out/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=child.name)))
+    started=time.monotonic()
+    sent=c.messaging.send_message('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
     deadline=time.monotonic()+120
     while True:
         failures=list((c.root/'diagnostics').glob('drain-*.json'))
         if failures:raise RuntimeError(f'Private wake produced a drain diagnostic: {failures}')
         messages=[m for line in c.bus.log.path.read_text().splitlines()
                   for m in WireRecord.public_from_wire(json.loads(line)).messages()]
-        replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and 'BUILD_WAKE_OK' in m.body]
+        replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and token in m.body]
         current=c.registry.require(child.name)
-        if replies and current.active_turn is None:break
+        if replies and not current.active_turn.executing:break
         if time.monotonic()>deadline:raise TimeoutError('Private message did not complete its wake')
         time.sleep(.25)
     assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
     (out/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[-1].body,
-        session=forked.path,original_unchanged=True,drain_diagnostics=0)))
+        session=forked.path,original_unchanged=True,drain_diagnostics=0,reply_seconds=time.monotonic()-started)))
+    (out/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=child.name)))
 finally:
     c.owners.stop(child.name)
-''', str(output), str(startup), str(runtime)], env=environment, stdout=log, stderr=log, check=True)
-    result = json.loads((output / 'result.json').read_text())
-    environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'))
-    for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
-        environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
-    with BuildDisplay(output) as display:
-        command = [runtime / 'bin/toad', 'acp',
-                   f'{runtime / "bin/python"} -I -B -m agent_comms.acp',
-                   str(output)]
-        with TerminalApp(command, display, output / 'reply', environment, output) as app:
-            app.wait('welcome', lambda text: 'build-parent' in text)
-            app.keys('C-g')
-            app.wait('reply', lambda text: '#any · all comms' in text and 'BUILD_WAKE_OK' in text)
-            app.screenshot('reply')
-    return result
+''', str(output), str(startup), str(runtime)], env=environment, stdout=subprocess.PIPE,
+            stdin=subprocess.PIPE, stderr=log, text=True)
+        try:
+            readable, _, _ = select.select([worker.stdout], [], [], 60)
+            if not readable or worker.stdout.readline().strip() != 'READY':
+                raise RuntimeError(f'Private agent did not start; see {output / "wake.log"}')
+            environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'))
+            saved = json.loads((startup / 'saved-source.json').read_text())
+            environment['AGENT_COMMS_NATIVE_CONFIG_DIR'] = saved['config']
+            for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
+                environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
+            with BuildDisplay(output) as display:
+                command = [runtime / 'bin/toad', 'acp',
+                           f'{runtime / "bin/python"} -I -B -m agent_comms.acp', str(output)]
+                with TerminalApp(command, display, output / 'reply', environment, output) as app:
+                    app.wait('welcome', lambda text: 'build-wake' in text)
+                    app.click('build-wake')
+                    app.show_saved_thread('build-wake')
+                    app.screenshot('before-send')
+                    worker.stdin.write('SEND\n')
+                    worker.stdin.flush()
+                    token = 'BUILD_WAKE_' + runtime.name.rsplit('-', 1)[1]
+                    def replied(text):
+                        if worker.poll() not in (None, 0):
+                            raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
+                        return (output / 'result.json').exists() and token in text
+                    app.wait('reply', replied, seconds=150)
+                    app.screenshot('reply')
+                    app.keys('C-g')
+                    app.wait('reply-channel', lambda text: '#any · all comms' in text and token in text)
+                    app.keys('Escape')
+                    app.wait('reply-return', lambda text: token in text and 'build-wake' in text)
+                    app.screenshot('reply-return')
+            worker.wait(timeout=30)
+            if worker.returncode:
+                raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
+            return json.loads((output / 'result.json').read_text())
+        finally:
+            worker.stdin.close()
+            if worker.poll() is None:
+                worker.wait(timeout=150)
+            worker.stdout.close()
 
 
 
@@ -658,7 +697,6 @@ class RuntimeBuild:
     runtimes: Path
     thread: str
     start_env: Path | None
-    ui_only: bool = False
 
     def start_acceptance_thread(self, runtime: Path) -> bool:
         if self.start_env is None:
@@ -767,10 +805,8 @@ class RuntimeBuild:
         native_pin = hashlib.sha256(manifest).hexdigest()
         with check_startup(destination, self.scratch / f'startup-{destination.name}',
                            self.baseline, self.thread) as startup:
-            wake = {'completed': False, 'reason': 'UI-only qualification explicitly requested; no provider input'}
-            if not self.ui_only:
-                wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
-                                          self.scratch / f'startup-{destination.name}')
+            wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
+                                      self.scratch / f'startup-{destination.name}')
         record = {
             'baseline': str(self.baseline),
             'toad_commit': toad_commit, 'core_commit': core_commit,
@@ -805,7 +841,6 @@ def main() -> None:
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--qualify-runtime', type=Path, help='Finish gates on an existing unqualified candidate; build nothing')
-    parser.add_argument('--ui-only', action='store_true', help='Qualify UI without a paid wake request')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -823,7 +858,6 @@ def main() -> None:
         args.baseline.resolve(strict=True),
         args.scratch.resolve(), args.runtimes.resolve(), args.thread,
         args.start_env.resolve(strict=True) if args.start_env else None,
-        args.ui_only,
     )
     runtime = build.qualify(args.qualify_runtime.resolve(strict=True)) if args.qualify_runtime else build.build()
     if not args.build_only:
