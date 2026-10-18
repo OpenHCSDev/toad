@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PreparedTranscriptPage, PreparedPageSource
+from toad.transcript_preparation import PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
@@ -31,11 +31,13 @@ class WireHistory(VisibleReadMarking, LineHistory):
     seen, notification states and two styles.
     """
 
-    def __init__(self, prepared: PreparedTranscriptPage,
-                 history: PreparedPageSource, *, view) -> None:
+    page_buffer = WirePageBuffer
+
+    def __init__(self, prepared: PreparedTranscriptPage | None = None,
+                 loader: WireSource | None = None, *, view, notification_view) -> None:
         self.view = view
-        self._source: WireSource | None = None
-        super().__init__(prepared, history)
+        super().__init__(PreparedWirePage.empty(WirePage.unread()) if prepared is None else prepared,
+                         loader, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
 
@@ -43,13 +45,11 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     def open(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
-        self._source = source
-        self._history.close()
-        self._history = WirePageBuffer(source, self.through, self.app.preparation)
+        self.loader = source
 
     @property
     def source(self) -> WireSource | None:
-        return self._source
+        return self.loader
 
     @property
     def style(self) -> WireMessageStyle:
@@ -63,7 +63,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     @property
     def source_identity(self):
         # Growth of the bus is not another source: reads ahead stay valid.
-        return self.source, self.selected_categories
+        return self.loader, self.selected_categories
 
     @property
     def can_draw_on_screen(self) -> bool:
@@ -124,7 +124,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
     async def accept_extension(self, edge, prepared) -> bool:
         if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
-        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+        prepared.configure(batch_size=len(prepared.fragments), newest=False)
+        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+                               arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
 
     @property

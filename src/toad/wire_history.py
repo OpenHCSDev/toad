@@ -22,7 +22,7 @@ from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
+    PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
@@ -174,6 +174,11 @@ class WireFragment(TranscriptFragment):
     @property
     def message(self) -> Message:
         return self.events[0]
+
+    @property
+    def arrival_position(self) -> int:
+        """A new read preserves the message's original bus position."""
+        return self.message.seq
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -342,7 +347,7 @@ class WirePageWork(TranscriptPageWork):
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
-class WirePageBuffer(SavedHistory):
+class WirePageBuffer(TranscriptPageBuffer):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork

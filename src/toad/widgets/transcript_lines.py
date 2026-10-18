@@ -387,11 +387,11 @@ class PreparedLines(Lines, LineBlock):
 class PreparedBlock(LineBlock):
     """A prepared source owns one immutable row snapshot; views borrow it."""
 
-    _rows: PreparedLines | None = None
+    _rows: PreparedLines = PreparedLines(width=-1, rows=())
 
     def prepared_rows(self, width, draw) -> PreparedLines:
         rows = self._rows
-        if rows is None or rows.width != width:
+        if rows.width != width:
             self._rows = rows = draw(self)
         return rows
 

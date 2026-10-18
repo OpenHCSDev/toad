@@ -21,8 +21,6 @@ if TYPE_CHECKING:
 class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     can_draw: ClassVar[bool] = False
     reports_coverage: ClassVar[bool] = False
-    # Rows appended to the followed end are new to the reader and fade in.
-    rows_arrive: ClassVar[bool] = True
     accepts_source_work: ClassVar[bool] = False
 
     def source_ready(self, owner) -> bool:
@@ -48,15 +46,20 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
     def delivered(self, owner) -> None:
         """Only a running source operation measures time to publication."""
 
+    def arriving(self, prepared, followed_end: bool):
+        """The staged range begins at the edge this append advances."""
+        return prepared.fragments[prepared.start:prepared.stop] if followed_end else ()
+
     def rows_published(self, owner) -> None:
         """Only a commit's advance has live blocks that its saved rows replace."""
 
     def retirement_source(self) -> "TranscriptState":
         return self
 
-    def retire_preparation(self, preparation: "PreparedPageSource") -> None:
+    def retire_preparation(self, preparation: "PreparedPageSource | None") -> None:
         """Final source retirement releases its bounded prepared-page scope."""
-        preparation.close()
+        if preparation is not None:
+            preparation.close()
 
     def resume(self) -> "TranscriptState":
         raise RuntimeError("Only a parked transcript can resume publication")
@@ -332,7 +335,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def retirement_source(self) -> TranscriptState:
         return self.source.retirement_source()
 
-    def retire_preparation(self, preparation: "PreparedPageSource") -> None:
+    def retire_preparation(self, preparation: "PreparedPageSource | None") -> None:
         """Parking retains data-only work under the shared runtime's budget.
 
         Publication and speculative workers are revoked by the pager lifetime;
@@ -364,10 +367,9 @@ class CommitTranscript(WorkingTranscript):
         super().__init__(source, owner)
         self.live_blocks = live_blocks
 
-    @property
-    def rows_arrive(self) -> bool:
-        # Rows the reader already saw as live blocks have not arrived again.
-        return not self.live_blocks
+    def arriving(self, prepared, followed_end: bool):
+        # Rows already seen as live blocks have not arrived again.
+        return () if self.live_blocks else super().arriving(prepared, followed_end)
 
     def rows_published(self, owner) -> None:
         if not owner.has_newer:

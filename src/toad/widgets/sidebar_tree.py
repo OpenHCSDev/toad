@@ -30,9 +30,22 @@ from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected, CoordinationObserved, ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import SidebarModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
+from agent_comms.ui_model.unread import UnreadPresentation
+from agent_comms.display_order import ThreadSort
 from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar
+
+
+class UnpaintedUnread(UnreadPresentation):
+    label = " "
+
+
+class UnpaintedChannel(ChannelRowModel):
+    """An unobserved channel has no painted fields or known members."""
+
+    def __init__(self, name: str):
+        super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
 
 
 class TargetTreeMember:
@@ -118,6 +131,9 @@ class RowReconciliation:
     def retains(self, key, group):
         return key in self.listed and group in self.sources.get(key, ())
 
+    def has_spare(self, key):
+        return bool(self.sources.get(key))
+
     def take(self, key, destination):
         sources = self.sources.get(key)
         if not sources:
@@ -129,7 +145,58 @@ class RowReconciliation:
         return row
 
 
-class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
+class KeyedRows:
+    """Retain native member widgets by model key; the container owns their order."""
+
+    def keep_row(self, key: str) -> bool:
+        return False
+
+    def should_mount(self, key: str) -> bool:
+        return True
+
+    def create_row(self, key: str):
+        raise NotImplementedError
+
+    def update_row(self, key: str, row) -> None:
+        pass
+
+    def retire_row(self, row) -> None:
+        row.remove()
+
+    def rows_changed(self) -> None:
+        pass
+
+    def reconcile_keys(self, keys, *, changed):
+        rows = self.rows
+        wanted = set(keys)
+        retired = [key for key in rows if key not in wanted and not self.keep_row(key)]
+        for key in retired:
+            self.retire_row(rows.pop(key))
+        mounted = []
+        for key in keys:
+            if key not in rows:
+                if not self.should_mount(key):
+                    continue
+                current = self.create_row(key)
+                rows[key] = current
+                self.update_row(key, current)
+                if not current.is_attached:
+                    self.member_container.mount(current)
+                mounted.append(current)
+            elif changed is None or key in changed or not rows[key].is_attached:
+                self.update_row(key, rows[key])
+        ordered = tuple(rows[key] for key in keys if key in rows)
+        positions = {row: index for index, row in enumerate(ordered)}
+        live = tuple(child for child in self.member_container.children if child in positions)
+        reordered = bool(ordered) and live != ordered
+        if reordered:
+            self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
+        if retired or mounted or reordered:
+            self.rows_changed()
+        return ordered
+
+
+class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
     """A common header/disclosure and optional bounded member viewport."""
 
     navigation_header = False
@@ -216,8 +283,31 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         """Native membership is valid until this group starts retirement."""
         return self.is_attached and not self.is_leaving
 
-    def rows_changed(self) -> None:
-        """Specializations invalidate navigation after native membership changes."""
+    def keep_row(self, key: str) -> bool:
+        return self.reconciliation_tree.row_reconciliation.retains(key, self)
+
+    def should_mount(self, key: str) -> bool:
+        if self.reconciliation_tree.row_reconciliation.has_spare(key):
+            return True
+        if not self.members_visible:
+            return False
+        if perf_counter_ns() >= self._row_deadline:
+            self._rows_pending = True
+            return False
+        return True
+
+    def new_row(self, key: str):
+        raise NotImplementedError
+
+    def create_row(self, key: str):
+        spare = self.reconciliation_tree.row_reconciliation.take(key, self)
+        return spare if spare is not None else self.new_row(key)
+
+    def update_row(self, key: str, row) -> None:
+        self.show_member(key, row)
+
+    def retire_row(self, row) -> None:
+        row.retire()
 
     @property
     def member_keys(self):
@@ -238,7 +328,7 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         return self.expanded or bool(self.reconciliation_tree.search)
 
     @RowReconciliation.sync
-    def reconcile_rows(self, create, update, *, changed=None):
+    def reconcile_rows(self, *, changed=None):
         """Retain rows by identity; mount, remove and reorder only what differs.
 
         Neither a title/status change nor a selection repaint remounts the list.
@@ -248,48 +338,15 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
         """
         if not self.accepts_members():
             return ()
-        rows = self.rows
         keys = self.matching_keys
-        wanted = set(keys)
         tree = self.reconciliation_tree
         self.set_display_constraint("sidebar-search", bool(keys) or not tree.search)
         self.member_container.set_display_constraint("members", self.members_visible)
         self._rows_pending = False
-        members = tree.row_reconciliation
-        retired = [key for key in rows if key not in wanted and not members.retains(key, self)]
-        for key in retired:
-            rows.pop(key).retire()
-        mounted = []
-        deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
-        for key in keys:
-            current = rows.get(key)
-            if current is None:
-                current = members.take(key, self)
-                if current is None:
-                    if not self.members_visible:
-                        continue
-                    if perf_counter_ns() >= deadline:
-                        self._rows_pending = True
-                        continue
-                    current = create(key)
-                rows[key] = current
-                update(key, current)
-                if not current.is_attached:
-                    self.member_container.mount(current)
-                mounted.append(current)
-                continue
-            if changed is None or key in changed or not current.is_attached:
-                update(key, current)
+        self._row_deadline = perf_counter_ns() + self.screen.LAYOUT_STEP_NS
+        ordered = self.reconcile_keys(keys, changed=changed)
         if self._rows_pending and (self._row_mounting is None or self._row_mounting.is_finished):
             self._row_mounting = self.run_worker(self._mount_pending_rows(), group="sidebar-rows")
-        ordered = tuple(rows[key] for key in keys if key in rows)
-        positions = {row: index for index, row in enumerate(ordered)}
-        live = tuple(child for child in self.member_container.children if child in positions)
-        reordered = bool(ordered) and live != ordered
-        if reordered:
-            self.member_container.sort_children(key=lambda child: positions.get(child, len(positions)))
-        if retired or mounted or reordered:
-            self.rows_changed()
         return ordered
 
     async def _mount_pending_rows(self) -> None:
@@ -368,7 +425,7 @@ class BoundSidebar(SidebarModelState):
     def present(self, view):
         shown = view.accepts_observation()
         view.app.coordination_access.show_sidebar(view, shown)
-        if not shown or self.observed.sidebar.snapshot is None:
+        if not shown:
             return Behind(self.observed)
         return self.present_current()
 

@@ -12,7 +12,7 @@ from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
-from agent_comms.presentation import WireRevision
+from agent_comms.presentation import ReadState
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -132,13 +132,13 @@ class ThreadRowStateChanged(CoreEvent):
 
 @dataclass(frozen=True)
 class CoordinationObserved(CoreEvent):
-    """Core's stores changed; the revision Core observed, None without a service.
+    """Core's stores changed; NoRevision requests a first read without a service.
 
     Consumers ask the revision what changed (Core answers) instead of
     re-reading every store on every observation.
     """
 
-    revision: WireRevision | None
+    revision: ReadState
 
     def can_replace(self, event: CoreEvent) -> bool:
         # A newer observation supersedes a pending older one. The native

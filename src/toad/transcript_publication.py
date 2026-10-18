@@ -17,7 +17,7 @@ from agent_comms.ui_model.observation import NotPublished, Published, Transcript
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
-from toad.widgets.history_anchor import HeldReaderDestination
+from toad.widgets.history_anchor import HeldReaderDestination, UnheldPosition
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -138,26 +138,6 @@ class TranscriptPublication(ABC):
     async def publish_applied(self) -> bool: ...
 
 
-class HandlingPublication(TranscriptPublication):
-    """Render original recipient outcomes on existing original source bodies."""
-
-    async def publish_applied(self) -> bool:
-        from toad.widgets.wire_message_handling import WireMessageHandling
-
-        bodies = WireMessageHandling.within(self.contents)
-        if not self.owner.readable:
-            return True
-        references = WireMessageHandling.references_in(bodies)
-        if not references:
-            return True
-        results = await self.owner.get_message_notifications(references)
-        if self.current():
-            for body in bodies:
-                if body.is_attached:
-                    body.show_notifications(results)
-        return True
-
-
 class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
@@ -220,7 +200,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         self.owner.received(page)
-        return await self.owner.publish(HandlingPublication)
+        return True
 
 
 class ObservedSourcePublication(CanonicalSourcePublication):
@@ -333,7 +313,6 @@ class CommitPublication(CanonicalSourcePublication):
             self.binding.view.notify(str(error), title="Committed history", severity="error")
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
-        from toad.transcript_preparation import SavedHistory
         from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         from toad.widgets.transcript_history import TranscriptHistory
 
@@ -358,8 +337,8 @@ class CommitPublication(CanonicalSourcePublication):
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                prepared.page, SavedHistory(self.owner.get_transcript_page,
-                                            prepared.page.page.after, view.app.preparation), committed=False,
+                prepared.page, self.owner.get_transcript_page, committed=False,
+                notification_view=contents,
             )
             await contents.prepare_history(
                 replacement, is_current, window=window,
@@ -476,9 +455,6 @@ class ViewBinding(ABC):
     def request(self, owner):
         return None
 
-    def request_handling(self, owner):
-        pass
-
     def cancel_workers(self):
         return ()
 
@@ -580,7 +556,7 @@ class BoundView(ViewBinding):
         for source in owner.documents:
             if not current() or source.closed:
                 return
-            history = TranscriptHistory.from_source(source)
+            history = TranscriptHistory.from_source(source, notification_view=contents)
             await contents.prepare_history(history, current, window=window)
             if not current():
                 return
@@ -616,10 +592,9 @@ class BoundView(ViewBinding):
                     and view.screen is screen and screen.is_current
                     and view.query_ancestor(SessionView) is source
                     and view.app.workspace_sessions.owns(source))
-        if position is not None:
-            for history in owner.histories:
-                if not await history.restore_reader_ranges(position.ranges, current):
-                    return
+        for history in owner.histories:
+            if not await history.restore_reader_ranges(position.ranges, current):
+                return
         if not current():
             return
         if first_history is not None:
@@ -671,6 +646,7 @@ class BoundView(ViewBinding):
                 return
             if window.is_attached and contents.is_attached:
                 owner.displayed_cursor = cursor
+                contents.check_notifications()
                 view.app.history_displayed()
                 view.settle_user_message()
         view.call_after_refresh(record)
@@ -682,12 +658,6 @@ class BoundView(ViewBinding):
         owner.worker = view.run_worker(partial(owner.publish, CommitPublication),
                                        group="transcript-window", exclusive=True)
         return owner.worker
-
-    def request_handling(self, owner):
-        view = self.view
-        if view.is_attached:
-            view.run_worker(partial(owner.publish, HandlingPublication),
-                            group="transcript-handling", exclusive=True)
 
     def cancel_workers(self):
         view = self.view
@@ -717,15 +687,13 @@ class BoundView(ViewBinding):
             async def complete():
                 await retirement
                 view.query_one(SessionDetails)._refresh_summary()
-                if view.thread_presentation is not None:
-                    self.request_handling(owner)
             return AwaitComplete(complete())
         return AwaitComplete.nothing()
 
     def reset_reader(self):
         from toad.widgets.conversation import Window
         if (window := self.view.query_one_optional(Window)) is not None:
-            window.reader_position = None
+            window.reader_position = UnheldPosition()
 
 
 class TranscriptPresentation:
@@ -791,15 +759,6 @@ class TranscriptPresentation:
         if self.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
-
-    async def get_message_notifications(self, references):
-        scope = self.thread_scope
-        if scope is None:
-            raise ValueError("Notification reads require a bound thread")
-        results = await self.reader.notifications(scope[0], references)
-        if self.thread_scope != scope:
-            raise ValueError("Thread source changed during notification read")
-        return results
 
     @property
     def retained_source_bytes(self) -> int:
@@ -891,7 +850,8 @@ class TranscriptPresentation:
         try:
             async with AsyncResourceRelease() as release:
                 for history in reversed(tuple(self.histories)):
-                    release.callback(history._history.close)
+                    if history._page_buffer is not None:
+                        release.callback(history._page_buffer.close)
                 release.callback(self._close_documents)
                 await self.suspend()
         finally:

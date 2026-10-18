@@ -37,6 +37,8 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.ui_model.observation import ReadNotifications
+from toad.widgets.message_notifications import HistoryNotifications
 from rich.segment import Segment
 from rich.text import Text as RichText
 from textual import containers, events, getters, on, work
@@ -71,7 +73,7 @@ from toad.widgets.terminal_tool import TerminalTool
 from toad.agent_schema import AgentDefinition
 from toad.answer import Answer
 from toad.app import ToadApp
-from toad.core.source_events import CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished, MessageHandlingRequested
+from toad.core.source_events import CurrentWorkingDirectoryChanged, TranscriptCoverage, TranscriptSourceWorkFinished
 from toad.input_history import InputHistories
 from toad.widgets.flash import Flash
 from toad.widgets.menu import Menu
@@ -202,10 +204,11 @@ class CategorizedMount:
         # new widget's mount task or paint can run. The stable sort preserves
         # order within saved sources and within live output.
         self.sort_children(key=lambda block: block.conversation_order)
+        self.call_after_refresh(self.check_notifications)
         return mounted
 
 
-class Contents(containers.VerticalGroup, can_focus=False):
+class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     CACHE_SUBTREE_GEOMETRY = True
     BLANK = True
 
@@ -219,6 +222,16 @@ class Contents(containers.VerticalGroup, can_focus=False):
             if isinstance(child, LineHistory):
                 yield child
                 pending.extend(reversed(child.children))
+
+    @property
+    def can_draw_on_screen(self):
+        return self.is_attached and self.is_on_screen
+
+    def notification_targets(self):
+        return tuple(history for history in self.line_histories() if history.can_draw_on_screen)
+
+    def notification_read(self, references):
+        return next(self.line_histories()).notification_read(references)
 
     @property
     def line_width(self) -> int:
@@ -247,6 +260,14 @@ class Contents(containers.VerticalGroup, can_focus=False):
 
 class ConversationContents(CategorizedMount, Contents):
     """Conversation ordering and categories compose with the native row container."""
+
+    def notification_targets(self):
+        return (*super().notification_targets(), *(target for child in self.children
+                 for target in child.notification_targets()))
+
+    def notification_read(self, references):
+        root, _name = self.query_ancestor(Conversation).transcript.thread_scope
+        return ReadNotifications(root, references)
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
@@ -398,8 +419,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._thread_read = self.agent.thread_read() if self.agent is not None else None
 
     def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
-        """Consume this thread's one observation, including handling and presentation."""
-        self.transcript.binding.request_handling(self.transcript)
+        """Consume this thread's one observed presentation."""
         presentation = self.app.coordination_access.thread_status.open(self.status_thread().name).presentation
         read = self._thread_read
         self.arm_thread_read()
@@ -1517,11 +1537,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     async def on_transcript_coverage(self, message: CoreEventMessage) -> None:
         message.stop()
         await self.transcript.binding.covered(self.transcript, message.event, message.publisher)
-
-    @handles(MessageHandlingRequested)
-    def request_message_handling(self, message: CoreEventMessage) -> None:
-        message.stop()
-        self.transcript.binding.request_handling(self.transcript)
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:

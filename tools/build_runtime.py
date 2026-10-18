@@ -373,7 +373,6 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import RestartEnvironment
 c=wire(read_active_route());t=c.registry.require(sys.argv[1])
 print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backend),model=t.model,
-                     package=str(read_active_route().native_package),
                      config=str(RestartEnvironment.inherit(os.environ).native_config))))
 ''', thread))
     project = output / 'project'
@@ -407,16 +406,17 @@ from agent_comms.coordinator import Coordination
 from agent_comms.agent_backend import AgentBackend
 from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import RestartEnvironment
-from agent_comms.native_package import pinned_native_package
-c=wire();root_id=c.messaging.initialize_private_initial_protocol()
+c=wire();c.messaging.initialize_private_initial_protocol()
 c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3]),model=json.loads(sys.argv[5])))
 with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
-print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str(pinned_native_package()),
+print(json.dumps(RestartEnvironment(root=str(c.root),
     native_config=Path(sys.argv[4]),agent_directory=Path.home()/'pi').encode()))
 ''', str(project), str(source), saved['backend'], saved['config'], json.dumps(saved['model'])],
             env=environment, text=True)
         environment.update(json.loads(launch))
+        startup.callback(subprocess.run, [runtime / 'bin/agent-comms', '--root', output / 'wire',
+                         'stop', '--name', 'startup-saved'], env=environment, check=True)
         with BuildDisplay(output) as display:
             command = [runtime / 'bin/toad']
             with TerminalApp(command, display, output / 'plain', environment, home) as app:
@@ -512,11 +512,10 @@ os.environ.update(HOME=str(home), PI_CODING_AGENT_DIR=str(out/'pi'),
                   AGENT_COMMS_NATIVE_CONFIG_DIR=saved['config'])
 for kind in ('CONFIG','DATA','STATE','CACHE'):os.environ['XDG_'+kind+'_HOME']=str(out/kind.lower())
 c=Comms(out/'wire');root_id=c.messaging.initialize_private_initial_protocol()
-route=ActiveRoute(c.root,root_id,Path(saved['package']))
+route=ActiveRoute(c.root,root_id)
 path=active_route_path();path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
 path.write_text(json.dumps(FieldCodec.encode(route)));path.chmod(0o600)
-os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
-    AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=saved['package'],AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
+os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
 c=wire(route)
 parent=c.registry.declare(c.registry.new_thread('build-parent',frozenset(),str(out),session_file=str(source),
     backend=FieldCodec.decode(type[AgentBackend],saved['backend']),model=saved['model']),StoppedThreadStatus())
