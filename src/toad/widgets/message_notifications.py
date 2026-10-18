@@ -112,11 +112,14 @@ class HistoryNotifications:
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
-        access.show_notifications(self, self.notification_read(references) if references else None)
+        if references:
+            access.show_notifications(self, self.notification_read(references))
+        else:
+            access.stop_notifications(self)
 
     def notifications_observed(self, results) -> None:
         if not self.can_draw_on_screen:
-            self.app.coordination_access.show_notifications(self, None)
+            self.app.coordination_access.stop_notifications(self)
             return
         self.run_worker(self._show_notifications(results), group=self.NOTIFICATION_GROUP, exclusive=True)
 
@@ -137,10 +140,10 @@ class HistoryNotifications:
         self.call_after_refresh(self.check_notifications)
 
     def on_unmount(self) -> None:
-        self.app.coordination_access.show_notifications(self, None)
+        self.app.coordination_access.stop_notifications(self)
 
     def on_hide(self) -> None:
-        self.app.coordination_access.show_notifications(self, None)
+        self.app.coordination_access.stop_notifications(self)
 
     def on_show(self) -> None:
         self.call_after_refresh(self.check_notifications)

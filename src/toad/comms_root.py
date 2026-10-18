@@ -288,12 +288,15 @@ class CoordinationAccess(MroDispatch):
     def views_retired(self, result: ViewsRetired, observed: ObservedCommsService) -> None:
         self.app.session_navigation.views_retired(observed.service.root, result.retired)
 
-    def show_notifications(self, view: HistoryNotifications, read: ReadNotifications | None) -> None:
-        """Observe only original messages the views currently show."""
-        if read is not None:
-            self.notification_views[view] = read
-        else:
-            self.notification_views.pop(view, None)
+    def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> None:
+        self.notification_views[view] = read
+        self._request_interest()
+
+    def stop_notifications(self, view: HistoryNotifications) -> None:
+        self.notification_views.pop(view, None)
+        self._request_interest()
+
+    def _request_interest(self) -> None:
         wanted = ObserveNotifications(frozenset(self.notification_views.values()))
         if wanted != self.notification_interest and self.observation is not None:
             self.notification_interest = wanted
