@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
-from toad.core.events import CoordinationObserved
+from toad.resource_release import ResourceRelease
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PageRequest, PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
@@ -50,6 +50,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_state = source_state
         self._generation = 0
         self._page_buffer: PreparedPageSource | None = None
+        self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 
     @property
@@ -97,6 +98,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self.request_preparation()
 
     async def on_unmount(self) -> None:
+        self._source_observation.close()
         # Parked preparation belongs to the logical document. Unmount revokes
         # this publisher, not the source scope transferred with it.
         self._source_state.retire_preparation(self._page_buffer)
@@ -296,23 +298,22 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             snapshot.window.lookahead.destination_complete()
 
     def defer_source_work(self, operation: WorkingTranscript, work) -> None:
-        """Keep the pending read until the shared observer signals a change.
+        """Keep this read until its own thread changes in the shared model."""
+        from toad.widgets.conversation import Conversation
 
-        This signal subscription belongs to the operation. Its captured source
-        snapshot rejects a replaced, parked or retired pager before work starts.
-        """
         snapshot = self.source_snapshot()
+        scope = self.query_ancestor(Conversation).transcript.thread_scope
 
         def resume(_event) -> None:
-            self.retire_core_observations(self.app.coordination_access.events)
+            self._source_observation.close()
             if snapshot.current(self) and self._source_state is operation:
                 operation.schedule(self, work)
             else:
                 self.finish_source_work(operation)
 
-        self.retire_core_observations(self.app.coordination_access.events)
-        self.observe_core_callback(self.app.coordination_access.events,
-                                   CoordinationObserved, resume)
+        self._source_observation.close()
+        self._source_observation.enter_context(
+            self.app.coordination_access.observe_thread_changes(self, scope, resume))
 
     def supersede_source_work(
         self, operation: WorkingTranscript, request: LatestViewportRequest,
@@ -320,7 +321,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Replace an edge read with End's destination without publishing it."""
         if self._source_state is not operation:
             return
-        self.retire_core_observations(self.app.coordination_access.events)
+        self._source_observation.close()
         self._source_state = operation.source
         self.workers.cancel_node(self)
         request.apply(self)
@@ -329,6 +330,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         # Only the current operation may publish. A cancelled
         # old operation cannot publish again or settle a newer source's work.
         if self._source_state is operation:
+            self._source_observation.close()
             self._source_state = operation.source
             if self.state.can_draw:
                 self.window.check_follow()
@@ -341,7 +343,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
 
     def retire_source(self, *, parked: bool = False) -> AwaitComplete:
         """Withdraw publication now; join its cancelled work independently."""
-        self.retire_core_observations(self.app.coordination_access.events)
+        self._source_observation.close()
         source = self._source_state.retirement_source()
         self._source_state = (ParkedSourceTranscript(source) if parked
                               else RetiredSourceTranscript(source))

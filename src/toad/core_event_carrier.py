@@ -84,7 +84,8 @@ class CoreEventReceiver(MroDispatch):
                 self.retire_core(subscription)
 
     def observe_core_callback(self, stream: CoreEventStream,
-                              event_type: type[CoreEvent], callback) -> Subscription:
+                              event_type: type[CoreEvent], callback, *,
+                              accepts=lambda event: True) -> Subscription:
         """An original deferred operation receives relief inside its native pump."""
         recipient = ref(self)
         try:
@@ -101,6 +102,8 @@ class CoreEventReceiver(MroDispatch):
             receiver = recipient()
             if receiver is None:
                 subscription.close()
+                return
+            if not accepts(event):
                 return
             message = CoreEventMessage(event, subscription, consume)
             message.bubble = False
