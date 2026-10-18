@@ -83,7 +83,8 @@ from toad.widgets.throbber import AboveThrobber, BelowThrobber
 from toad.frame_presentation import Animated
 from ui_theme.effects import CURSOR_BLINK, Mix
 from agent_comms.ui_model.delivery import InputDelivery
-from agent_comms.ui_model.goal import GoalDisplay, NoGoal
+from agent_comms.goals import NoGoal
+from agent_comms.ui_model.goal import GoalDisplay
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
@@ -94,7 +95,7 @@ from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
-from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from toad.block_navigation import require_blocks, ConversationBlock, ConversationEntry, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
@@ -1084,7 +1085,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         return ContentNavigation(self.contents)
 
     @property
-    def cursor_block(self) -> ConversationBlock | None:
+    def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
 
     @property

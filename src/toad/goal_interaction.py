@@ -45,9 +45,7 @@ class HistoryInteraction(GoalInteraction):
     async def apply(cls, session):
         from toad.screens.goal_details import GoalDetails
         view = session.view
-        goal, agent = view.goal_display.snapshot, view.agent
-        if goal is None:
-            return
+        goal, agent = view.goal_display.snapshot.require(), view.agent
         history = await agent.get_goal_history(goal.id) if agent is not None else ()
         if not session.owns(agent):
             return
@@ -78,16 +76,16 @@ class ToggleInteraction(GoalInteraction):
 
     @classmethod
     def visible(cls, display):
-        return display.snapshot is not None and not display.snapshot.state.terminal
+        return display.can_control and not display.snapshot.require().state.terminal
 
     @classmethod
     def caption(cls, display, collapsed):
-        return display.snapshot.state.toggle_label if display.snapshot else cls.label
+        return display.snapshot.require().state.toggle_label if display.can_control else cls.label
 
     @classmethod
     async def apply(cls, session):
         view = session.view
-        action = view.goal_display.snapshot.state.toggle if view.goal_display.snapshot else None
+        action = view.goal_display.snapshot.require().state.toggle
         if action is None:
             view.flash("This goal is completed; set a new goal to continue.")
         else:
@@ -102,8 +100,8 @@ class EditInteraction(GoalInteraction):
         from toad.screens.goal_edit import GoalEdit
         from toad.widgets.goal_text import goal_mention_candidates
         view = session.view
-        goal, agent = view.goal_display.snapshot, view.agent
-        if goal is None or agent is None:
+        goal, agent = view.goal_display.snapshot.require(), view.agent
+        if agent is None:
             raise ValueError("Editing requires an agent-comms goal")
 
         async def save(text: str) -> None:

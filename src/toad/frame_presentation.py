@@ -295,11 +295,19 @@ class AnimationEffects[FrameT: Frame]:
         self.wanted: set[Effect] = set()
 
     def run_effect(self, effect: Effect) -> None:
+        # An effect requested before the widget shows (on mount) starts when it does.
         self.stop_effect(effect)
-        if not effect.finite:
-            self.wanted.add(effect)
+        self.wanted.add(effect)
         if self.is_on_screen:
-            self.effects[effect] = self.app.colours.clock.start(effect, self)
+            self.start_wanted()
+
+    def start_wanted(self) -> None:
+        # A finite effect plays once; a continuous one resumes each time the widget shows.
+        for effect in tuple(self.wanted):
+            if effect not in self.effects:
+                self.effects[effect] = self.app.colours.clock.start(effect, self)
+                if effect.finite:
+                    self.wanted.discard(effect)
 
     def stop_effect(self, *effects: Effect) -> None:
         if effects:
@@ -328,9 +336,7 @@ class AnimationEffects[FrameT: Frame]:
         self.refresh()
 
     def on_show(self) -> None:
-        for effect in self.wanted:
-            if effect not in self.effects:
-                self.effects[effect] = self.app.colours.clock.start(effect, self)
+        self.start_wanted()
         self.refresh()
 
     def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:

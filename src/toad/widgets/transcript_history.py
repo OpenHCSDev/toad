@@ -1,7 +1,7 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationBlock, FragmentBlockCursor
+from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 
 from toad.widgets.message_filter import OtherCategory
 
@@ -41,10 +41,9 @@ from toad.transcript_preparation import (
 )
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.message_divider import MessageClock
-from toad.frame_presentation import AnimationEffects
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
-from ui_theme.effects import NEW_TEXT, Mix
+from ui_theme.effects import NEW_TEXT
 from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
@@ -408,13 +407,12 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return await self.prepared.replace_range(self, selected, current)
 
-class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
+class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, CategorizedBlock, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
-    It owns paging in both directions, lookahead, trimming, the jump to the
-    newest page and the reader's position. A subclass says what its source is:
-    `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or
-    direct conversation.
+    It owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position.
+    Its saved rows fade as each fragment arrives (`repaint`). A subclass says what its source is:
+    `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or direct conversation.
     """
 
     CACHE_SUBTREE_GEOMETRY = True
@@ -838,7 +836,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def drawn_tail_followed(self) -> bool:
-        return not NEWER_END.visible_more(self) and self.follows_source_tail
+        return not self.drawn_end_more and self.follows_source_tail
 
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
         phase = self.effect_phase(NEW_TEXT)
