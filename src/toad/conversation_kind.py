@@ -5,15 +5,17 @@ from __future__ import annotations
 import asyncio
 from dataclasses import replace
 from abc import abstractmethod
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
-from agent_comms.read_basis import AnonymousViewer, NamedViewer
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
+
+if TYPE_CHECKING:
+    from toad.wire_history import WireSource
 
 
 class ConversationKind(DeclaredFamily, affix="Conversation"):
@@ -33,7 +35,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     @abstractmethod
-    def page(cls, comms: Comms, target: str, **bounds) -> MessagePage: ...
+    def page(cls, source: WireSource, **bounds) -> MessagePage: ...
 
     @classmethod
     @abstractmethod
@@ -119,11 +121,9 @@ class ChannelConversation(ConversationKind):
         return ChannelViewAddress(key.root, key.target, cls)
 
     @classmethod
-    def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
-        worktree = bounds.pop("worktree", None)
-        viewer = (AnonymousViewer() if worktree is None else NamedViewer(
-            comms.messaging.user_identity(worktree).name, comms.registry.snapshot()))
-        return comms.views.channel_display_page(target, viewer=viewer, **bounds)
+    def page(cls, source: WireSource, **bounds) -> MessagePage:
+        return source.comms.views.channel_display_page(
+            source.target, viewer=source.viewer, **bounds)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
@@ -221,8 +221,9 @@ class DmConversation(ConversationKind):
         return UnreadPresentation.for_bus(snapshot, target)
 
     @classmethod
-    def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
-        return comms.views.dm_display_page(target, **bounds)
+    def page(cls, source: WireSource, **bounds) -> MessagePage:
+        return source.comms.views.dm_display_page(
+            source.target, worktree=str(source.project), **bounds)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
