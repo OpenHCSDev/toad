@@ -259,8 +259,6 @@ class CommsChatView(Conversation):
             self._refreshed_from = announced
             snapshot = history.source_snapshot()
             if not await history.source_is_current(snapshot):
-                if snapshot.current(history):
-                    self.display = False
                 return
             source = history.page_source
             read_only = await source.read_only()
@@ -318,8 +316,6 @@ class CommsChatView(Conversation):
                 await source.update_mentions(self)
             if changed:
                 if not await history.source_is_current(snapshot):
-                    if snapshot.current(history):
-                        self.display = False
                     return
                 if (not self.is_attached or source is not history.page_source
                         or not self.query_ancestor(SessionView).is_current):
