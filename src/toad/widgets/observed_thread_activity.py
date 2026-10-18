@@ -47,6 +47,9 @@ class NoStatusThread(StatusThread):
     def bind(self, activity: ObservedThreadActivity) -> None:
         activity.show(ThreadStatusModel.pending(self.name))
 
+    def refresh(self, view: ThreadStatusOwner) -> None:
+        """A conversation without a status source has no row to refresh."""
+
 
 @dataclass(frozen=True)
 class LocalStatusThread(StatusThread):
@@ -88,7 +91,36 @@ class ForeignStatusThread(StatusThread):
         view.foreign_thread_read(presentation)
 
 
-class ObservedThreadActivity(Widget):
+class ActivityView:
+    """The status display a conversation kind supplies, mounted or absent."""
+
+    def bind(self, thread: StatusThread) -> None:
+        raise NotImplementedError
+
+    def show(self, row: ThreadStatusModel) -> None:
+        raise NotImplementedError
+
+    @property
+    def working(self) -> bool:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class NoActivityView(ActivityView):
+    """No status row, widget lifetime, subscription or paint work."""
+
+    def bind(self, thread: StatusThread) -> None:
+        pass
+
+    def show(self, row: ThreadStatusModel) -> None:
+        pass
+
+    @property
+    def working(self) -> bool:
+        return False
+
+
+class ObservedThreadActivity(Widget, ActivityView):
     """The composed status row; observation never starts or settles an ACP turn."""
 
     row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)
@@ -131,7 +163,8 @@ class ObservedThreadActivity(Widget):
 class ThreadStatusOwner:
     """A view with a composed row and a declared status source."""
 
-    thread_activity: ObservedThreadActivity
+    # Before compose there is no status view yet; the kind supplies its view.
+    thread_activity: ActivityView = NoActivityView()
 
     @property
     def _observed_working(self) -> bool:
