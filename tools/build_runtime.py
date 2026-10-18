@@ -219,7 +219,8 @@ class TerminalApp:
         self.output.mkdir(parents=True, exist_ok=True)
         self.log = (self.output / 'st.log').open('w')
         self.terminal = subprocess.Popen(
-            ['st', '-g', f'{self.columns}x{self.rows}', '-e', 'tmux', '-S', str(self.socket),
+            ['st', '-g', f'{self.columns}x{self.rows}', '-e',
+             'env', f'HOME={self.environment["HOME"]}', 'tmux', '-S', str(self.socket),
              'new-session', '-s', 'qualify', '-x', str(self.columns), '-y', str(self.rows),
              shlex.join(list(map(str, self.command)))],
             cwd=self.cwd, env=self.environment, stdout=self.log, stderr=self.log)
