@@ -97,10 +97,10 @@ class NativeSessionEntry(SessionEntry):
 
     def original_threads(self, sessions):
         source = self.source(sessions)
-        scope = source.thread_identity.transcript_scope() if source is not None else None
-        if scope is not None:
-            return ((scope[0], source.thread_identity.thread_incarnation()),)
-        return (self.original,) if self.original is not None else ()
+        if source is None:
+            return (self.original,) if self.original is not None else ()
+        scope = source.thread_identity.transcript_scope()
+        return ((scope[0], source.thread_identity.thread_incarnation()),) if scope is not None else ()
 
     def __call__(self) -> MainScreen:
         source = self.factory()

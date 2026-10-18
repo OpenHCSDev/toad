@@ -111,7 +111,6 @@ class SessionNavigation:
         view.bind_project(project)
         root, owner = original
         view.bind_thread(owner, root)
-        entry.original = original
         entry.details.bind_initial_identity(name)
         self.publish()
 
