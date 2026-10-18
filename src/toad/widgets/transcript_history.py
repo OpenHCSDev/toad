@@ -85,6 +85,9 @@ class PageEnd(PageWalk):
     def can_extend(self, page) -> bool:
         return page.can_extend(self.older)
 
+    def has_more(self, source, page) -> bool:
+        raise NotImplementedError
+
     def adjacent(self, page):
         return PageRequest.adjacent(page, self.older)
 
@@ -106,6 +109,9 @@ class PageEnd(PageWalk):
 
 
 class OlderEnd(Older, PageEnd):
+    def has_more(self, source, page) -> bool:
+        return source.has_older(page)
+
     def edge(self, pages):
         return pages[0]
 
@@ -141,6 +147,9 @@ class OlderEnd(Older, PageEnd):
 
 
 class NewerEnd(Newer, PageEnd):
+    def has_more(self, source, page) -> bool:
+        return source.has_newer(page)
+
     def fresh(self, history) -> bool:
         return not history.has_newer and history.follows_source_tail
 
@@ -1070,7 +1079,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 if loader is None:
                     return False
                 if staged is None:
-                    staged = await self._reader().get(end.adjacent(edge.page))
+                    source = self._reader()
+                    if not end.has_more(source, edge.page):
+                        return False
+                    staged = await source.get(end.adjacent(edge.page))
                     demand.source_read()
             # Speculation warms the same scoped runtime entry as the next
             # foreground request; it does not copy decoded pages into a widget.
