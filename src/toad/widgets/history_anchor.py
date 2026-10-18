@@ -521,6 +521,8 @@ class HistoryWindow(VerticalScroll):
 
     def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
+        self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
+        self.scroll_target_y = self.scroll_y
         if not isinstance(parked := self.reader_position, ParkedPosition):
             # Parked pagers stop reading and leave window.histories while their
             # pages stay in the tree: record those page ranges with the place.

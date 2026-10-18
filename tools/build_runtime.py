@@ -336,19 +336,22 @@ print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backe
     if not captured:
         raise ValueError('Startup requires nonempty saved history')
     source = project / 'saved.jsonl'
-    source.write_bytes(captured)
-    source.chmod(0o600)
-    (output / 'saved-source.json').write_text(json.dumps(saved, indent=2))
-    pointer = home / '.local/share/agent-comms/current'
-    pointer.parent.mkdir(parents=True)
-    pointer.symlink_to(runtime)
-    environment = {k: v for k, v in os.environ.items()
-                   if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
-                   and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
-    environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
-                       XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
-                       AGENT_COMMS_ROOT=str(output / 'wire'))
-    launch = subprocess.check_output([str(python), '-I', '-B', '-c', '''
+    with ExitStack() as startup:
+        with source.open('wb') as stream:
+            startup.callback(source.unlink)
+            stream.write(captured)
+        source.chmod(0o600)
+        (output / 'saved-source.json').write_text(json.dumps(saved, indent=2))
+        pointer = home / '.local/share/agent-comms/current'
+        pointer.parent.mkdir(parents=True)
+        pointer.symlink_to(runtime)
+        environment = {k: v for k, v in os.environ.items()
+                       if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
+                       and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
+        environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
+                           XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
+                           AGENT_COMMS_ROOT=str(output / 'wire'))
+        launch = subprocess.check_output([str(python), '-I', '-B', '-c', '''
 import sys,json
 from pathlib import Path
 from agent_comms.comms import wire
@@ -364,33 +367,35 @@ with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_pri
 print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str(pinned_native_package()),
     native_config=Path(sys.argv[4]),agent_directory=Path.home()/'pi').encode()))
 ''', str(project), str(source), saved['backend'], saved['config'], json.dumps(saved['model'])],
-        env=environment, text=True)
-    environment.update(json.loads(launch))
-    with BuildDisplay(output) as display:
-        command = [runtime / 'bin/toad']
-        with TerminalApp(command, display, output / 'plain', environment, home) as app:
-            app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
-            app.screenshot('store')
-        command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
-        with TerminalApp(command, display, output / 'welcome', environment, home) as app:
-            app.wait('welcome', lambda text: 'startup-saved' in text)
-            app.screenshot('welcome')
-            app.click('startup-saved')
-            app.show_saved_thread('startup-saved')
-            app.screenshot('saved')
-            app.keys('C-g')
-            app.wait('any', lambda text: '#any · all comms' in text)
-            app.screenshot('any')
-            check_filtered_return(app)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
-                  channel='passed', filtered_return='passed', evidence=str(output))
-    (output / 'result.json').write_text(json.dumps(result, indent=2))
-    return result
+            env=environment, text=True)
+        environment.update(json.loads(launch))
+        with BuildDisplay(output) as display:
+            command = [runtime / 'bin/toad']
+            with TerminalApp(command, display, output / 'plain', environment, home) as app:
+                app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
+                app.screenshot('store')
+            command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
+            with TerminalApp(command, display, output / 'welcome', environment, home) as app:
+                app.wait('welcome', lambda text: 'startup-saved' in text)
+                app.screenshot('welcome')
+                app.click('startup-saved')
+                app.show_saved_thread('startup-saved')
+                app.screenshot('saved')
+                plain_before = app.capture().splitlines()[4:-4]
+                app.keys('C-g')
+                app.wait('any', lambda text: '#any · all comms' in text)
+                app.screenshot('any')
+                app.keys('Escape')
+                app.wait('plain-return', lambda text: text.splitlines()[4:-4] == plain_before)
+                check_filtered_return(app)
+        result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
+                      channel='passed', filtered_return='passed', evidence=str(output))
+        (output / 'result.json').write_text(json.dumps(result, indent=2))
+        return result
 
 
 def check_filtered_return(app: TerminalApp) -> None:
     """Choose user-only checkboxes, PageUp and compare the visible returned rows."""
-    app.click('startup-saved')
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.click(label)
@@ -399,17 +404,21 @@ def check_filtered_return(app: TerminalApp) -> None:
     app.keys('PPage', 'PPage', 'PPage')
     app.wait('page-up-moved', lambda text: text.splitlines()[4:-8] != initial)
     before = app.wait('filtered-before', lambda text: 'User messages' in text)
-    time.sleep(.5)
     before = app.capture()
     (app.output / 'filtered-before.txt').write_text(before)
     app.screenshot('filtered-before')
     app.keys('C-g')
     app.wait('filtered-away', lambda text: '#any · all comms' in text)
-    app.click('startup-saved')
+    app.keys('Escape')
     # Ignore the tab bar and animated footer; compare the actual message rows.
     expected = before.splitlines()[4:-4]
     app.wait('filtered-return', lambda text: text.splitlines()[4:-4] == expected)
     app.screenshot('filtered-return')
+    app.keys('C-g')
+    app.wait('filtered-click-away', lambda text: '#any · all comms' in text)
+    app.click('startup-saved')
+    app.wait('filtered-click-return', lambda text: text.splitlines()[4:-4] == expected)
+    app.screenshot('filtered-click-return')
 
 
 def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
