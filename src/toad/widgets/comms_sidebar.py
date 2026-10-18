@@ -506,7 +506,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         panel = self.query_ancestor(SideBarCollapsible)
         control = panel.header_control
         assert isinstance(control, ChannelListSort)
-        control.update_order(model.channel_order)
+        control.update_order(model.observation.channel_order())
         self.navigation.apply()
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
