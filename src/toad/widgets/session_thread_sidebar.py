@@ -81,8 +81,6 @@ class SessionThreadSidebar(SideBar):
 
     async def panels_hydrated(self) -> None:
         screen = self._owner()
-        if screen is not None:
-            screen._sync_thread_sidebar()
         self.plan.update(self, self.plan.entries)
         self.call_after_refresh(self.panels_viewport.scroll_to, y=self.navigation.panel_scroll_y,
                                 animate=False, immediate=True)

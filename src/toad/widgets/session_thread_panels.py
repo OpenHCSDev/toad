@@ -9,6 +9,7 @@ from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_comms import RelationshipSort, RelationshipTreeState, ThreadCommsSidebar
 
 if TYPE_CHECKING:
@@ -42,19 +43,15 @@ class ThreadSessionPanel(SessionPanel[CoordinationStatus]):
     panel_id = "coordination-panel"
 
     def make_widget(self, screen: "MainScreen") -> CoordinationStatus:
-        return CoordinationStatus(screen.app.coordination_access.service, screen._comms_thread)
+        return CoordinationStatus()
 
 
 class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):
     def __init__(self) -> None:
-        self.states: dict[tuple[str | None, str], RelationshipTreeState] = {}
+        self.states: dict[SessionIdentity, RelationshipTreeState] = {}
 
     def make_widget(self, screen: "MainScreen") -> ThreadCommsSidebar:
-        widget = ThreadCommsSidebar(screen._comms_thread, wire_root=screen.coordination_root, live=True)
-        widget._states = self.states
-        if selected := widget.view_state.selected:
-            widget.selected = selected[1]
-        return widget
+        return ThreadCommsSidebar(states=self.states)
 
     def make_header(self) -> RelationshipSort:
         return RelationshipSort()
@@ -102,7 +99,5 @@ class ContextSessionPanel(SessionPanel):
         self.intents = {}
 
     def make_widget(self, screen):
-        from toad.widgets.context_explorer import ContextExplorer, ContextTreeIntent
-        key = (screen.coordination_root, screen._comms_thread)
-        intent = self.intents.setdefault(key, ContextTreeIntent())
-        return ContextExplorer(screen._comms_thread, screen.coordination_root, intent=intent)
+        from toad.widgets.context_explorer import ContextExplorer
+        return ContextExplorer(intents=self.intents)

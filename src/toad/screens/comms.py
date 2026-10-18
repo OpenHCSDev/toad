@@ -1,5 +1,5 @@
 from agent_comms.mro_dispatch import handles
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core_event_carrier import CoreEventMessage
 from toad.core import events as core_events
 from toad.core import session_requests
 from toad.screens.session_view import SessionView
@@ -29,7 +29,7 @@ from toad.widgets.side_bar import SideBar, ThreadSidebar, TabHistoryControls
 from toad.widgets.thread_comms import RelationshipSort, ThreadCommsSidebar
 
 
-class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=False):
+class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     """A channel or DM represented as a native concurrent Toad session."""
 
     AUTO_FOCUS = "CommsChatView Prompt TextArea"
@@ -92,20 +92,21 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
     def navigation_target_name(self) -> str:
         return self.target
 
-    def relationship_context(self) -> tuple[str, str | None]:
-        return self.me, self.owner_root
+    @property
+    def thread_identity(self):
+        from toad.thread_identity import ThreadIdentity, NoThreadIdentity
+        return (ThreadIdentity(self.me, self.owner_root)
+                if self.me and self.owner_root is not None else NoThreadIdentity())
 
     def rebind_identity(self, identity: str) -> None:
-        self.me = identity
-        if chat := self.query_one_optional(CommsChatView):
-            chat._me = identity
-        if sidebar := self.query_one_optional(CommsSidebar):
-            sidebar.session_thread = identity
-        if status := self.query_one_optional(CoordinationStatus):
-            status.set_thread(identity)
+        with self.changing_identity():
+            self.me = identity
+            if chat := self.query_one_optional(CommsChatView):
+                chat._me = identity
 
     def rebind_owner_root(self, root: str | None) -> None:
-        self.owner_root = root
+        with self.changing_identity():
+            self.owner_root = root
 
     def rebind_project(self, project: Path) -> None:
         changed = project != self.project_path
@@ -115,9 +116,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         if chat := self.query_one_optional(CommsChatView):
             chat.project_path = project
             chat.working_directory = str(project)
-
-    def channels_context(self) -> tuple[str, str]:
-        return self.me, self.target
 
     def sidebars(self):
         sidebar = self.query_one_optional(ThreadSidebar)
@@ -133,11 +131,10 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
             ThreadSidebar(
                 SideBar.Panel(
                     "Connection",
-                    CoordinationStatus(self.app.coordination_access.service, self.me),
+                    CoordinationStatus(),
                     id="coordination-panel",
                 ),
-                SideBar.Panel("Comms", ThreadCommsSidebar(
-                    self.me, wire_root=self.owner_root, live=True),
+                SideBar.Panel("Comms", ThreadCommsSidebar(),
                     id="thread-comms-panel", header_control=RelationshipSort()),
                 right=True, hide=True, navigation=self._thread_sidebar_state,
             ),
@@ -191,7 +188,6 @@ class CommsScreen(CoreEventReceiver, SessionView, NavigationOwner, can_focus=Fal
         chat.project_path = self.project_path
         # Shared navigation may already belong to another tab when hydration
         # finishes. Its actor/target are bound by the mode transition owner.
-        self.query_one(CoordinationStatus).set_thread(self.me)
         chat.prepare_prompt()
 
     async def _load_content(self) -> None:
