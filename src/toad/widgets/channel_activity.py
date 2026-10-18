@@ -1,20 +1,37 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
+from textual import widgets
+from textual.content import Content
 from textual.containers import VerticalGroup
 
 from toad.screens.session_view import SessionView
 from toad.widgets.observed_thread_activity import StatusThread
-from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView, UnpaintedChannel
+from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
 
 
 class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def __init__(self, view):
         self.view = view
         self._members = VerticalGroup()
+        self.details = widgets.Collapsible(self._members, title="0 active", collapsed=True)
+        self.details.styles.border = None
+        self.details.styles.padding = 0
         super().__init__()
 
     def compose(self):
-        yield self._members
+        yield self.details
+
+    async def on_mount(self) -> None:
+        contents = self.details.query_children(self.details.Contents).first()
+        contents.styles.padding = 0
+        contents.styles.overflow_y = "auto"
+        self.watch(self.view, "virtual_size", self.bound_members)
+        await super().on_mount()
+
+    def bound_members(self, *_args) -> None:
+        budget = max(1, self.view.size.height // 3)
+        self.details.styles.max_height = budget
+        self.details.query_children(self.details.Contents).first().styles.max_height = max(0, budget - 1)
 
     @property
     def member_container(self):
@@ -26,9 +43,8 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
 
     @property
     def member_keys(self):
-        model = self.model_state.shown
-        channel = model.channels.rows.get(self.view.target, UnpaintedChannel(self.view.target))
-        return tuple(name for name in channel.members if model.threads.rows[name].active)
+        return tuple(row.name for row in self.view.conversation_kind.active_members(
+            self.model_state.shown, self.view.target))
 
     def accepts_observation(self) -> bool:
         return (self.view.query_ancestor(SessionView).is_current
@@ -48,4 +64,7 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
 
     def sync_members(self) -> None:
         if self.is_attached and not self.is_leaving:
-            self.reconcile_keys(self.member_keys, changed=frozenset())
+            members = self.view.conversation_kind.active_members(self.model_state.shown, self.view.target)
+            self.details.title = Content(f"{len(members)} active · " + ", ".join(
+                f"{row.name} {row.summary}" for row in members))
+            self.reconcile_keys(tuple(row.name for row in members), changed=frozenset())
