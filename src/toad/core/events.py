@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Callable
 from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
@@ -408,13 +409,15 @@ class Subscription:
 
     @property
     def active(self) -> bool:
-        return self in self.stream.subscriptions
+        return self in self.stream.subscriptions.get(self.event_type, ())
 
     def accepts(self, original: Subscription) -> bool:
         return self is original and self.active
 
     def close(self) -> None:
-        self.stream.subscriptions.discard(self)
+        subscriptions = self.stream.subscriptions.get(self.event_type)
+        if subscriptions is not None:
+            subscriptions.discard(self)
 
     def __enter__(self) -> Subscription:
         return self
@@ -428,7 +431,7 @@ class CoreEventStream:
 
     def __init__(self, publisher: object) -> None:
         self._publisher = ref(publisher)
-        self.subscriptions: WeakSet[Subscription] = WeakSet()
+        self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = defaultdict(WeakSet)
 
     @property
     def publisher(self) -> object:
@@ -440,10 +443,15 @@ class CoreEventStream:
     def subscribe(self, event_type: type[CoreEvent],
                   listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
         subscription = Subscription(self, event_type, listener)
-        self.subscriptions.add(subscription)
+        self.subscriptions[event_type].add(subscription)
         return subscription
 
     def publish(self, event: CoreEvent) -> None:
-        for subscription in tuple(self.subscriptions):
-            if isinstance(event, subscription.event_type):
-                subscription.publish(event)
+        # Snapshot matching resources before callbacks can subscribe or close.
+        subscriptions = tuple(
+            subscription
+            for event_type in type(event).__mro__
+            for subscription in self.subscriptions.get(event_type, ())
+        )
+        for subscription in subscriptions:
+            subscription.publish(event)
