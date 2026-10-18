@@ -126,12 +126,6 @@ class WireHistory(VisibleReadMarking, LineHistory):
         """Draw every message in the other style, here and in pages read from now on."""
         await self.page_source.change_style(self)
 
-    def notification_read(self, references):
-        return self.page_source.notification_read(references)
-
-    def subscribe_notifications(self, references) -> None:
-        self.page_source.observe_notifications(self, references)
-
     # Read marks
 
     def read_visible(self):

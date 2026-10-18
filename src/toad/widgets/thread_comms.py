@@ -169,7 +169,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         threads = self.query_ancestor(ThreadCommsSidebar).model_state.shown.threads.rows
         row.present(entry, threads.get(entry.person.thread.name) if entry.person is not None else None)
 
-    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
         if not self.member_container.is_attached or not self.accepts_members():
             return

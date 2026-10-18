@@ -37,7 +37,6 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.ui_model.observation import ReadNotifications
 from toad.widgets.message_notifications import HistoryNotifications
 from rich.segment import Segment
 from rich.text import Text as RichText
@@ -231,9 +230,6 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     def notification_targets(self):
         return tuple(history for history in self.line_histories() if history.can_draw_on_screen)
 
-    def notification_read(self, references):
-        return next(self.line_histories()).notification_read(references)
-
     @property
     def line_width(self) -> int:
         """The native width of full-width history rows prepared before mounting."""
@@ -265,10 +261,6 @@ class ConversationContents(CategorizedMount, Contents):
     def notification_targets(self):
         return (*super().notification_targets(), *(target for child in self.children
                  for target in child.notification_targets()))
-
-    def notification_read(self, references):
-        root, _name = self.query_ancestor(Conversation).transcript.binding.thread_scope
-        return ReadNotifications(root, references)
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:

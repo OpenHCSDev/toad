@@ -112,5 +112,4 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
     def open_target(self, event: CoreEventMessage) -> None:
         event.stop()
         self.dismiss(None)
-        if (view := self.source.view) is not None:
-            view.publish_core(event.event)
+        self.source.view.publish_core(event.event)
