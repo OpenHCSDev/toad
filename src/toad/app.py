@@ -9,6 +9,7 @@ from toad.widgets.message_notifications import VisibleReadMarking
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
+import signal
 import gc
 import sys
 import json
@@ -259,6 +260,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
 
     async def on_load(self) -> None:
+        asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, self.exit)
         self.preparation.renderer.start()
         self._prewarm_conversation_css()
         db = await self.get_db()
