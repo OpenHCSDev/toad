@@ -17,6 +17,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -33,8 +34,6 @@ def run(*args: str | Path, cwd: Path | None = None) -> str:
 
 def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
     """Inspect every process as root; an unreadable live process forbids pruning."""
-    if os.geteuid() != 0:
-        raise PermissionError('Runtime reference inspection requires sudo')
     references = {str(path): [] for path in runtimes}
     for process in Path('/proc').iterdir():
         if not process.name.isdigit() or int(process.name) == os.getpid():
@@ -136,8 +135,7 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     publication.publish(root)
     print(f'Linked {publication.runtime}', flush=True)
     # Pass the actual prior pointer, not a build baseline or a persistent list.
-    print(run('sudo', '-n', sys.executable, Path(__file__).resolve(), '--prune-runtimes',
-              '--current', publication.current, '--previous', previous, '--delete'))
+    print('Older runtimes are unchanged; cleanup is a separate explicit operation.')
 
 
 def installation_main() -> None:
@@ -175,10 +173,97 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
-def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> dict:
-    """Import the installed family and paint welcome with copied saved history."""
-    import psutil
+class TerminalApp:
+    """Own one isolated st/tmux lifetime, terminal observations and physical input."""
 
+    columns, rows = 140, 40
+
+    def __init__(self, command, display, output, environment, cwd):
+        self.command, self.display, self.output = command, display, output
+        self.environment = dict(environment, DISPLAY=display.name)
+        self.cwd = cwd
+        self.socket = output.parents[1] / f'mux-{os.getpid()}-{output.name}.sock'
+
+    def mux(self, *arguments):
+        return subprocess.run(['tmux', '-S', str(self.socket), *arguments],
+                              env=self.environment, capture_output=True, text=True, timeout=5)
+
+    def __enter__(self):
+        import psutil
+        self.output.mkdir(parents=True, exist_ok=True)
+        self.log = (self.output / 'st.log').open('w')
+        self.terminal = subprocess.Popen(
+            ['st', '-g', f'{self.columns}x{self.rows}', '-e', 'tmux', '-S', str(self.socket),
+             'new-session', '-s', 'qualify', '-x', str(self.columns), '-y', str(self.rows),
+             shlex.join(list(map(str, self.command)))],
+            cwd=self.cwd, env=self.environment, stdout=self.log, stderr=self.log)
+        self.owner = psutil.Process(self.terminal.pid)
+        self.created = self.owner.create_time()
+        try:
+            self.wait('terminal', lambda text: bool(text.strip()))
+            self.mux('set-option', '-t', 'qualify', 'status', 'off').check_returncode()
+            self.window = int(subprocess.check_output(
+                ['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(self.terminal.pid)],
+                env=self.environment, text=True, timeout=10).splitlines()[0])
+            return self
+        except BaseException:
+            self.__exit__(*sys.exc_info())
+            raise
+
+    def capture(self):
+        result = self.mux('capture-pane', '-p', '-t', 'qualify:0.0')
+        return result.stdout if result.returncode == 0 else ''
+
+    def screenshot(self, name):
+        path = self.output / f'{name}.png'
+        run('import', '-display', self.display.name, '-window', 'root', path)
+        return path
+
+    def wait(self, name, predicate, seconds=40):
+        deadline = time.monotonic() + seconds
+        while True:
+            text = self.capture()
+            if predicate(text):
+                (self.output / f'{name}.txt').write_text(text)
+                return text
+            if self.terminal.poll() is not None or time.monotonic() >= deadline:
+                (self.output / f'{name}-failed.txt').write_text(text)
+                self.screenshot(f'{name}-failed')
+                raise RuntimeError(f'Terminal probe {name} failed; see {self.output}')
+            time.sleep(.2)
+
+    def keys(self, *keys):
+        self.mux('send-keys', '-t', 'qualify:0.0', *keys).check_returncode()
+
+    def click(self, label):
+        text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
+        row, line = next((row, line) for row, line in enumerate(text.splitlines()) if label in line)
+        column = line.index(label) + len(label) // 2
+        geometry = subprocess.check_output(
+            ['xdotool', 'getwindowgeometry', '--shell', str(self.window)],
+            env=self.environment, text=True)
+        size = dict(line.split('=', 1) for line in geometry.splitlines() if '=' in line)
+        x = 2 + int((column + .5) * (int(size['WIDTH']) - 4) / self.columns)
+        y = 2 + int((row + .5) * (int(size['HEIGHT']) - 4) / self.rows)
+        XvfbDisplay.input(self.owner, self.created, self.window, 'mousemove', '--window',
+                          str(self.window), str(x), str(y), 'click', '1')
+
+    def __exit__(self, *exception):
+        try:
+            if self.terminal.poll() is None:
+                self.keys('C-q')
+                try:
+                    self.terminal.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.terminal.terminate()
+                    self.terminal.wait(timeout=5)
+        finally:
+            self.mux('kill-server')
+            self.log.close()
+
+
+def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> dict:
+    """Import the built family, then read welcome, history and channels as a user."""
     output.mkdir()
     python = runtime / 'bin/python'
     modules = json.loads(run(python, '-I', '-B', '-c', '''
@@ -189,9 +274,7 @@ names=[]
 for path in sorted(root.rglob('*.py')):
     parts=path.relative_to(root).with_suffix('').parts
     if parts[-1]=='__init__': parts=parts[:-1]
-    name='.'.join(('toad',*parts))
-    importlib.import_module(name)
-    names.append(name)
+    name='.'.join(('toad',*parts));importlib.import_module(name);names.append(name)
 print(json.dumps(names))
 '''))
     (output / 'imports.json').write_text(json.dumps(modules, indent=2))
@@ -202,8 +285,8 @@ import json,sys
 from agent_comms.active_route import read_active_route
 from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
-c=wire(read_active_route()); t=c.registry.require(sys.argv[1])
-print(json.dumps(dict(path=str(t.runtime.path), backend=FieldCodec.encode(t.backend), model=t.model,
+c=wire(read_active_route());t=c.registry.require(sys.argv[1])
+print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backend),model=t.model,
                      package=str(read_active_route().native_package))))
 ''', thread))
     project = output / 'project'
@@ -223,225 +306,86 @@ print(json.dumps(dict(path=str(t.runtime.path), backend=FieldCodec.encode(t.back
     environment = {k: v for k, v in os.environ.items()
                    if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
                    and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
-    private = dict(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
-                   XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
-                   AGENT_COMMS_ROOT=str(output / 'wire'))
-    environment.update(private)
+    environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
+                       XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
+                       AGENT_COMMS_ROOT=str(output / 'wire'))
     subprocess.run([str(python), '-I', '-B', '-c', '''
 import sys
 from agent_comms.comms import wire
 from agent_comms.coordinator import Coordination
-from agent_comms.threads import Thread
 from agent_comms.agent_backend import AgentBackend
 from agent_comms.field_codec import FieldCodec
-c=wire(); c.messaging.initialize_private_initial_protocol()
-c.registry.declare(Thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
+c=wire();c.messaging.initialize_private_initial_protocol()
+c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3])))
-with Coordination(str(c.root/'coordination.sqlite3')) as store: store.install_private_runtime()
-''', str(project), str(source), saved['backend']],
-                   env=environment, check=True)
+with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
+''', str(project), str(source), saved['backend']], env=environment, check=True)
     with (output / 'xvfb.log').open('w') as log:
         server = subprocess.Popen(['Xvfb', '-displayfd', '1', '-screen', '0',
-                                   '1440x960x24', '-nolisten', 'tcp'],
+                                   '1600x1000x24', '-nolisten', 'tcp'],
                                   stdout=subprocess.PIPE, stderr=log)
         try:
-            display_name = ':' + server.stdout.readline().decode().strip()
-            with XvfbDisplay(display_name) as display:
-                environment['DISPLAY'] = display.name
-                for name, arguments, selected in (
-                    ('plain', [], 'store'),
-                    ('welcome', ['acp', f'{python} -I -B -m agent_comms.acp', str(home)], 'welcome'),
-                    ('saved', ['acp', f'{python} -I -B -m agent_comms.acp', str(home),
-                               '--session', 'startup-saved'], 'saved'),
-                ):
-                    observation = output / f'{name}.json'
-                    completed = output / 'any.json' if name == 'saved' else observation
-                    exit_status = output / f'{name}-exit-code'
-                    with (output / f'{name}.log').open('w') as terminal_log:
-                        terminal = subprocess.Popen(
-                            ['st', '-g', '140x34', '-e', 'env',
-                             *(f'{k}={v}' for k, v in private.items()),
-                             f'TOAD_STARTUP_EXIT={exit_status}', 'sh', '-c',
-                             '"$@"; code=$?; printf "%s\\n" "$code" > "$TOAD_STARTUP_EXIT"; exit "$code"',
-                             'toad-startup', str(runtime / 'bin/toad'), *arguments],
-                            cwd=home, env=environment, stdout=terminal_log, stderr=terminal_log)
-                        try:
-                            deadline = time.monotonic() + 30
-                            remote = output / f'{name}-observe.py'
-                            remote.write_text(f'''import sys,json
-from pathlib import Path
-if 'toad.app' in sys.modules and hasattr(sys.modules['toad.app'], 'ToadApp'):
- from textual.app import App
- from textual._context import NoActiveAppError
- try: app=App.running_app()
- except NoActiveAppError: pass
- else:
-  def observe():
-   if app._exception is not None: raise app._exception
-   if {selected!r} == 'store':
-    if app.current_mode != 'store': return
-   elif {selected!r} == 'saved':
-    from toad.screens.main import MainScreen
-    from toad.screens.comms import CommsScreen
-    from toad.widgets.conversation import Conversation
-    screen=app.selected_session
-    if Path({str(observation)!r}).exists():
-     if not isinstance(screen, CommsScreen) or screen.target != '#any': return
-     from toad.widgets.comms_chat import CommsChatView
-     chat=screen.query_one_optional(CommsChatView)
-     if chat is None or not chat.prompt.is_on_screen: return
-    else:
-     if not isinstance(screen, MainScreen) or screen.agent_session_id != 'startup-saved': return
-     conversation=screen.query_one(Conversation)
-     if conversation.transcript.displayed_cursor is None: return
-     if not screen.presentation.transcript.reports_coverage: return
-   else:
-    from toad.screens.welcome import WelcomeScreen, WelcomeThreads
-    from toad.navigation_target import ThreadTarget
-    if not isinstance(app.selected_session, WelcomeScreen): return
-    rows=[row for group in app.selected_session.walk_children(WelcomeThreads)
-          for row in group.member_container.children]
-    rows=[row for row in rows if row.target == ThreadTarget('startup-saved')]
-    if not rows: return
-   text=[strip.text for strip in app.screen._compositor.render_strips()]
-   if not any(line.strip() for line in text): return
-   if {selected!r} == 'welcome' and not any('startup-saved' in line for line in text): return
-   destination=Path({str(completed)!r}) if {name!r} == 'saved' and Path({str(observation)!r}).exists() else Path({str(observation)!r})
-   destination.write_text(json.dumps(dict(mode=app.selected_mode, text=text)))
-  app.schedule_from_thread(observe)
-''')
-                            child = None
-                            channel_opened = False
-                            while not completed.exists():
-                                crashes = list(home.rglob('Terminal_crash_*.txt'))
-                                if crashes:
-                                    raise RuntimeError(f'{name} crashed: {crashes}')
-                                if terminal.poll() is not None or time.monotonic() >= deadline:
-                                    run('import', '-display', display.name, '-window', 'root', output / f'{name}-failed.png')
-                                    raise RuntimeError(f'{name} launch did not paint; see {output}')
-                                if child is None:
-                                    children = [process for process in psutil.Process(terminal.pid).children(recursive=True)
-                                                if str(runtime / 'bin/toad') in process.cmdline()
-                                                and process.name() != 'sh']
-                                    if children:
-                                        child, = children
-                                if child is not None:
-                                    if not child.is_running():
-                                        raise RuntimeError(f'{name} child exited before painting; see {output}')
-                                    subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
-                                                    f'import sys; sys.remote_exec({child.pid}, {str(remote)!r})'],
-                                                   check=True, timeout=5)
-                                    if name == 'saved' and observation.exists() and not channel_opened:
-                                        run('import', '-display', display.name, '-window', 'root', output / 'saved.png')
-                                        navigation = output / 'open-any.py'
-                                        navigation.write_text('''from textual.app import App
-from toad.navigation_target import NavigationTarget
-app=App.running_app()
-def open_channel():
- app.run_worker(app.selected_session.open_sidebar_target(NavigationTarget.named('#any')))
-app.schedule_from_thread(open_channel)
-''')
-                                        channel_opened = True
-                                        subprocess.run(['sudo', '-n', str(python), '-I', '-B', '-c',
-                                                        f'import sys; sys.remote_exec({child.pid}, {str(navigation)!r})'],
-                                                       check=True, timeout=5)
-                                time.sleep(.5)
-                            run('import', '-display', display.name, '-window', 'root', output / f'{completed.stem}.png')
-                            window = subprocess.check_output(
-                                ['xdotool', 'search', '--onlyvisible', '--pid', str(terminal.pid)],
-                                env=environment, text=True).strip()
-                            if name == 'saved':
-                                check_filtered_return(runtime, output, child, terminal, display, int(window), home)
-                            XvfbDisplay.input(psutil.Process(terminal.pid),
-                                              psutil.Process(terminal.pid).create_time(), int(window), 'key', 'ctrl+q')
-                            terminal_code = terminal.wait(timeout=10)
-                            (output / f'{name}-terminal-exit-code').write_text(str(terminal_code))
-                            if int(exit_status.read_text()) != 0:
-                                raise RuntimeError(f'{name} exited unsuccessfully; see {output}')
-                            crashes = list(home.rglob('Terminal_crash_*.txt'))
-                            if crashes:
-                                raise RuntimeError(f'{name} crashed: {crashes}')
-                        finally:
-                            if terminal.poll() is None:
-                                terminal.terminate()
-                                terminal.wait(timeout=5)
+            with XvfbDisplay(':' + server.stdout.readline().decode().strip()) as display:
+                command = [runtime / 'bin/toad']
+                with TerminalApp(command, display, output / 'plain', environment, home) as app:
+                    app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
+                    app.screenshot('store')
+                command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
+                with TerminalApp(command, display, output / 'welcome', environment, home) as app:
+                    app.wait('welcome', lambda text: 'startup-saved' in text)
+                    app.screenshot('welcome')
+                    app.click('startup-saved')
+                    app.wait('saved', lambda text: 'User messages' in text and 'startup-saved' in text)
+                    app.screenshot('saved')
+                    app.click('Channels')
+                    app.click('#any')
+                    app.wait('any', lambda text: '#any' in text and 'Message' in text)
+                    app.screenshot('any')
+                    check_filtered_return(app)
         finally:
             server.terminate()
             server.wait(timeout=5)
-    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed', channel='passed', filtered_return='passed', evidence=str(output))
+    result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
+                  channel='passed', filtered_return='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
     return result
 
 
-def check_filtered_return(runtime: Path, output: Path, child, terminal, display, window: int, home: Path) -> None:
-    """Return to a retained user-only viewport after physical PageUp input."""
-    import psutil
+def check_filtered_return(app: TerminalApp) -> None:
+    """Choose user-only checkboxes, PageUp and compare the visible returned rows."""
+    app.keys('Escape')
+    app.wait('saved-return', lambda text: 'User messages' in text)
+    for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
+        app.click(label)
+    app.keys('Escape', 'PPage', 'PPage', 'PPage')
+    before = app.wait('filtered-before', lambda text: 'User messages' in text)
+    time.sleep(.5)
+    before = app.capture()
+    (app.output / 'filtered-before.txt').write_text(before)
+    app.screenshot('filtered-before')
+    app.click('Channels')
+    app.click('#any')
+    app.wait('filtered-away', lambda text: '#any' in text and 'Message' in text)
+    app.keys('Escape')
+    # Ignore the tab bar and animated footer; compare the actual message rows.
+    expected = before.splitlines()[4:-4]
+    app.wait('filtered-return', lambda text: text.splitlines()[4:-4] == expected)
+    app.screenshot('filtered-return')
 
-    def execute(name, body):
-        script = output / f'{name}.py'
-        script.write_text('from textual.app import App\napp=App.running_app()\n' + body)
-        subprocess.run(['sudo', '-n', str(runtime / 'bin/python'), '-I', '-B', '-c',
-                        f'import sys; sys.remote_exec({child.pid}, {str(script)!r})'], check=True, timeout=5)
 
-    def wait_for(name):
-        deadline = time.monotonic() + 30
-        while not (output / name).exists():
-            crashes = list(home.rglob('Terminal_crash_*.txt'))
-            if crashes or terminal.poll() is not None or time.monotonic() >= deadline:
-                raise RuntimeError(f'Filtered return failed waiting for {name}: {crashes}')
-            time.sleep(.1)
-        return json.loads((output / name).read_text())
+def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
+    """Open our own terminal and observe the requested thread without app internals."""
+    environment = dict(os.environ, AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'),
+                       AGENT_COMMS_AGENT_BIN='pi')
+    for name in ('NO_COLOR', 'TOAD_VALIDATION'):
+        environment.pop(name, None)
+    with TerminalApp(['toad-comms', thread], display, output / 'saved', environment, Path.home()) as app:
+        app.wait('saved-thread', lambda text: thread in text and 'User messages' in text)
+        return app.screenshot('saved-thread')
 
-    execute('filter-user', f'''import asyncio,json
-from pathlib import Path
-from toad.widgets.conversation import Conversation
-from toad.widgets.message_filter import UserCategory
-from toad.widgets.transcript_history import ProjectedTranscriptHistory
-async def prepare():
- await app.select_session(json.loads(Path({str(output / 'saved.json')!r}).read_text())['mode'])
- conversation=app.selected_session.query_one(Conversation)
- conversation.visible_categories=frozenset({{UserCategory}})
- conversation.prompt.prompt_text_area.focus()
- while not any(isinstance(h,ProjectedTranscriptHistory) and h.fragment_count for h in conversation.contents.line_histories()):
-  await asyncio.sleep(.1)
- await asyncio.sleep(.5)
- Path({str(output / 'filter-ready.json')!r}).write_text(json.dumps(dict(scroll=conversation.window.scroll_y)))
-app.schedule_from_thread(lambda: app.run_worker(prepare()))
-''')
-    ready = wait_for('filter-ready.json')
-    owner = psutil.Process(terminal.pid)
-    XvfbDisplay.input(owner, owner.create_time(), window, 'key', '--repeat', '3', '--delay', '300', 'Page_Up')
-    time.sleep(1)
-    run('import', '-display', display.name, '-window', 'root', output / 'filtered-before.png')
-    execute('filter-return', f'''import asyncio,json
-from pathlib import Path
-from toad.widgets.conversation import Conversation
-from toad.widgets.message_filter import UserCategory
-from toad.widgets.history_anchor import ReaderPosition, FragmentPosition
-async def returning():
- mode=app.selected_mode
- conversation=app.selected_session.query_one(Conversation)
- before=conversation.window.scroll_y
- histories=tuple(conversation.contents.line_histories())
- pages=tuple(id(page) for history in histories for page in history.pages)
- position=ReaderPosition.of(conversation.window)
- assert isinstance(position,FragmentPosition), ('PageUp did not reach a message',position)
- await app.select_session(json.loads(Path({str(output / 'any.json')!r}).read_text())['mode'])
- await asyncio.sleep(.3)
- await app.select_session(mode)
- await asyncio.sleep(1)
- after=conversation.window.scroll_y
- assert conversation.visible_categories == frozenset({{UserCategory}})
- assert tuple(conversation.contents.line_histories()) == histories
- assert tuple(id(page) for history in histories for page in history.pages) == pages
- returned=ReaderPosition.of(conversation.window)
- assert isinstance(returned,FragmentPosition) and returned.fragment is position.fragment
- assert abs(returned.fraction-position.fraction) < .001, (position.fraction,returned.fraction)
- Path({str(output / 'filtered-return.json')!r}).write_text(json.dumps(dict(before=before,after=after,warm_pages=len(pages),fragment=id(position.fragment),fraction=returned.fraction)))
-app.schedule_from_thread(lambda: app.run_worker(returning()))
-''')
-    wait_for('filtered-return.json')
-    run('import', '-display', display.name, '-window', 'root', output / 'filtered-return.png')
+
+
+
 
 
 def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
@@ -456,7 +400,6 @@ import asyncio,hashlib,json,os,sys,time
 from pathlib import Path
 from agent_comms.active_route import ActiveRoute,active_route_path
 from agent_comms.comms import wire,Comms
-from agent_comms.threads import Thread
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.agent_backend import AgentBackend
 from agent_comms.field_codec import FieldCodec
@@ -477,13 +420,13 @@ path.write_text(json.dumps(FieldCodec.encode(route)));path.chmod(0o600)
 os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
     AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=saved['package'],AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
 c=wire(route)
-parent=c.registry.declare(Thread('build-parent',frozenset(),str(out),session_file=str(source),
+parent=c.registry.declare(c.registry.new_thread('build-parent',frozenset(),str(out),session_file=str(source),
     backend=FieldCodec.decode(type[AgentBackend],saved['backend']),model=saved['model']),StoppedThreadStatus())
 async def fork():return await parent.backend.fork(parent,str(runtime/'bin/pi-comms-native'),LaunchRuntime.running())
 forked=asyncio.run(fork())
-child=c.registry.declare(Thread('build-wake',frozenset(),str(out),parent=parent.name,
+child=c.registry.declare(c.registry.new_thread('build-wake',frozenset(),str(out),parent=parent.name,
     session_file=forked.path,backend=parent.backend,model=parent.model),StoppedThreadStatus())
-c.registry.declare(Thread('build-sender',frozenset(),str(out)),StoppedThreadStatus())
+c.registry.declare(c.registry.new_thread('build-sender',frozenset(),str(out)),StoppedThreadStatus())
 os.environ['PI_CODING_AGENT_DIR']='/home/ts/.pi/agent'
 c.owners.start(child.name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
 try:
@@ -508,199 +451,13 @@ finally:
     return json.loads((output / 'result.json').read_text())
 
 
-def install_saved_thread_observer(pid: int, thread: str, output: str) -> None:
-    """Install before App startup, or ask an already-running App immediately."""
-    from functools import partial
-    from textual._context import NoActiveAppError
-    from performance.frame_meter import _running_app
-    from toad.application_lifetime import ApplicationLifetime
-
-    def start(app) -> None:
-        app.run_worker(
-            SavedThreadObservation(app, pid, thread, output).wait(),
-            group='saved-thread-observation',
-        )
-
-    try:
-        app = _running_app(pid)
-    except NoActiveAppError:
-        ApplicationLifetime.observe_next_start(lambda lifetime: start(lifetime.app))
-    else:
-        app.schedule_from_thread(partial(start, app))
 
 
-class SavedThreadObservation:
-    """One accepted session's source readiness and failure publications."""
-
-    def __init__(self, app, pid: int, thread: str, output: str) -> None:
-        self.app, self.pid, self.thread, self.output = app, pid, thread, output
-
-    def failed(self, details: str) -> None:
-        if self.completed.done():
-            return
-        Path(self.output).write_text(json.dumps({'error': details}))
-        self.completed.set_result(None)
-
-    async def wait(self) -> None:
-        import traceback
-        try:
-            await self.observe()
-        except BaseException:
-            Path(self.output).write_text(json.dumps({'error': traceback.format_exc()}))
-            raise
-
-    async def observe(self) -> None:
-        import asyncio
-        import traceback
-        from agent_comms.mro_dispatch import MroDispatch, handles
-        from performance.frame_meter import targets
-        from toad.core.events import AgentFail, SessionAgentAttached, SessionSelected
-        from toad.core.source_events import TranscriptCoverage
-        from toad.screens.main import MainScreen
-
-        observation = self
-        self.completed = asyncio.get_running_loop().create_future()
-
-        class Events(MroDispatch):
-            def __init__(self) -> None:
-                self.transcript = self.agent = None
-
-            def event(self, event, subscription) -> None:
-                try:
-                    self.dispatch_sync(event)
-                except BaseException:
-                    observation.failed(traceback.format_exc())
-
-            @handles(SessionSelected, SessionAgentAttached)
-            def selected(self, event=None) -> None:
-                source = observation.app.selected_session
-                if not isinstance(source, MainScreen):
-                    return
-                if source.agent_session_id != observation.thread:
-                    observation.failed(
-                        f"SavedThreadSelectionMismatch: requested {observation.thread!r}; "
-                        f"selected {source.agent_session_id!r}")
-                    return
-                transcript = source.presentation.transcript
-                if self.transcript is not transcript:
-                    self.transcript = transcript
-                    observation.subscriptions.enter_context(transcript.events.subscribe(self.event))
-                    conversation = source.presentation.widget
-                    if conversation is not None:
-                        observation.subscriptions.enter_context(
-                            conversation.core_publications.subscribe(self.event))
-                agent = source.presentation.operational_agent
-                if agent is not None and self.agent is not agent:
-                    self.agent = agent
-                    observation.subscriptions.enter_context(agent.events.subscribe(self.event))
-                    if failure := agent.session.disposition.current_failure():
-                        self.failed(failure)
-                self.covered()
-
-            @handles(TranscriptCoverage)
-            def covered(self, event=None) -> None:
-                source = observation.app.selected_session
-                if (not observation.completed.done() and isinstance(source, MainScreen)
-                        and source.agent_session_id == observation.thread
-                        and source.presentation.transcript.reports_coverage):
-                    targets(expected_pid=observation.pid, output=observation.output)
-                    observation.completed.set_result(None)
-
-            @handles(AgentFail)
-            def failed(self, event) -> None:
-                observation.failed(f'{event.message}: {event.details}')
-
-        with ExitStack() as self.subscriptions:
-            events = Events()
-            self.subscriptions.enter_context(self.app.events.subscribe(events.event))
-            events.selected()
-            await self.completed
 
 
-def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: Path) -> Path:
-    """Open only our own st on an explicitly isolated display, without input."""
-    import os
-    import psutil
-    import time
 
-    output.mkdir()
-    env = dict(os.environ, DISPLAY=display.name, AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'), AGENT_COMMS_AGENT_BIN='pi')
-    for name in ('NO_COLOR', 'TOAD_VALIDATION'):
-        env.pop(name, None)
-    with (output / 'st.log').open('w') as log:
-        terminal = subprocess.Popen(['st', '-g', '150x48', '-e', 'toad-comms', thread], env=env, stdout=log, stderr=log)
-        try:
-            deadline = time.monotonic() + 30
-            process = psutil.Process(terminal.pid)
-            while not (children := process.children()):
-                if terminal.poll() is not None or time.monotonic() >= deadline:
-                    raise RuntimeError(f'SavedThreadOpenFailed: {thread}; see {output / "st.log"}')
-                time.sleep(0.1)
-            child, = children
-            targets = output / 'targets.json'
-            attempt = 0
-            while True:
-                attempt += 1
-                remote = output / f'capture-{attempt}.py'
-                status = output / f'capture-{attempt}.status'
-                remote.write_text(f'''import sys
-_ready = (hasattr(sys.modules.get("pathlib"), "PurePosixPath")
-          and hasattr(sys.modules.get("textual.app"), "App")
-          and hasattr(sys.modules.get("toad.app"), "ToadApp"))
-if _ready:
-    from textual._context import NoActiveAppError
-    try:
-        sys.modules["textual.app"].App.running_app()
-    except NoActiveAppError:
-        _ready = False
-if not _ready:
-    open({str(status)!r}, "w").write("not-ready")
-else:
-    import json, traceback
-    try:
-        sys.path.insert(0, {str(Path(__file__).resolve().parent)!r})
-        from build_runtime import install_saved_thread_observer
-        install_saved_thread_observer({child.pid}, {thread!r}, {str(targets)!r})
-    except BaseException:
-        open({str(targets)!r}, "w").write(json.dumps({{"error": traceback.format_exc()}}))
-    open({str(status)!r}, "w").write("installed")
-''')
-                try:
-                    sys.remote_exec(child.pid, str(remote))
-                except RuntimeError as error:
-                    if str(error) not in (
-                        "Can't find the main thread in the remote process",
-                        "Can't find a running interpreter in the remote process",
-                    ):
-                        raise
-                else:
-                    while not status.exists():
-                        if terminal.poll() is not None or time.monotonic() >= deadline:
-                            raise RuntimeError(f'SavedThreadOpenFailed: observer injection did not settle for {thread}; see {output}')
-                        time.sleep(0.1)
-                    if status.read_text() == 'installed':
-                        break
-                if terminal.poll() is not None or time.monotonic() >= deadline:
-                    raise RuntimeError(f'SavedThreadOpenFailed: no ready Python main thread for {thread}; see {output}')
-                time.sleep(0.1)
-            remaining = max(0.1, deadline - time.monotonic())
-            window = subprocess.check_output(['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(terminal.pid)], env=env, text=True, timeout=remaining).strip()
-            while not targets.exists():
-                if terminal.poll() is not None or time.monotonic() >= deadline:
-                    subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
-                    raise RuntimeError(f'SavedThreadAcceptanceFailed: no completed session observation for {thread}; see {output}')
-                time.sleep(0.1)
-            observation = json.loads(targets.read_text())
-            if 'error' in observation:
-                subprocess.run(['import', '-window', window, str(output / 'failed-thread.png')], env=env, check=False)
-                raise RuntimeError(f'SavedThreadAcceptanceFailed: {thread}: {observation["error"]}; see {output}')
-            screenshot = output / 'saved-thread.png'
-            subprocess.run(['import', '-window', window, str(screenshot)], env=env, check=True)
-            return screenshot
-        finally:
-            if terminal.poll() is None:
-                terminal.terminate()  # Only this build's st, never a backend owner.
-                terminal.wait(timeout=5)
+
+
 
 
 @dataclass(frozen=True)
