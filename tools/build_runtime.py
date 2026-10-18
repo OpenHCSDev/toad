@@ -132,12 +132,13 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     publisher = (publication_tools / 'publish_runtime.py').resolve(strict=True)
     sys.path.insert(0, str(publisher.parents[1]))
     from tools.publish_runtime import RuntimePublication
+    from agent_comms.owner_cutover import StoppedOwnerInstallation
 
     publication = RuntimePublication.installed()
     record = json.loads((publication.runtime / 'build.json').read_text())
     if record['runtime'] != str(publication.runtime):
         raise ValueError('Build record does not describe the installed runtime')
-    previous = publication.current.resolve(strict=True)
+    previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
     if previous == publication.runtime:
         raise ValueError('Runtime is already current; do not repeat publication')
     publication.publish(root)
