@@ -43,6 +43,9 @@ class MessageNotifications(Collapsible):
         self._details: NotificationDetails | None = None
         super().__init__(title=self.status.title, collapsed=True)
 
+    def on_mount(self) -> None:
+        self.call_after_refresh(self.query_ancestor(HistoryNotifications).check_notifications)
+
     def compose(self) -> ComposeResult:
         yield self._title
         if self._details is not None:
@@ -135,9 +138,6 @@ class HistoryNotifications:
     async def _show_notification_error(self, status):
         for target in self.notification_targets():
             await target.show_notification_status(status)
-
-    def on_mount(self) -> None:
-        self.call_after_refresh(self.check_notifications)
 
     def on_unmount(self) -> None:
         self.app.coordination_access.stop_notifications(self)
