@@ -582,7 +582,7 @@ try:
                   for m in WireRecord.public_from_wire(json.loads(line)).messages()]
         replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and token in m.body]
         current=c.registry.require(child.name)
-        if replies and not current.active_turn.executing:break
+        if replies and not current.turn_state.active.executing:break
         if time.monotonic()>deadline:raise TimeoutError('Private message did not complete its wake')
         time.sleep(.25)
     assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
