@@ -1,6 +1,7 @@
 from __future__ import annotations
 from toad.core import input_events
 from toad.core_event_carrier import CoreEventMessage
+from toad.widget_view import WorkspaceHosted
 
 from toad.conversation_submission import ConversationSubmissions
 from toad.live_output import LiveOutput, ThoughtStream
@@ -769,7 +770,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             self.update_slash_commands()
 
 
-from toad.widget_view import WorkspaceHosted
 from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
 
