@@ -43,7 +43,7 @@ from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
+from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -125,7 +125,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         channel = self.sidebar.model_state.shown.channels.rows.get(self.row.target_name)
         return channel.members if channel is not None else ()
 
-    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
         self.reconcile_rows(changed=changed)
@@ -463,31 +463,16 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         self.enabled = enabled
         self.present()
 
-    @RowReconciliation.sync
-    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-             reorder: bool = False) -> None:
-        """Apply model changes; ``None`` means every channel or thread changed."""
+    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
+        """Apply the changed rows without rebuilding other groups' members."""
         model = self.model_state.shown
         rows = model.channels.rows
-        if threads is None:
-            self.open_views = self.find_open_views()
         if self.new_session is None:
             self.new_session = NewSessionButton()
             self.mount(self.new_session)
         removed = [key for key in self.groups if key not in rows]
-        added = False
-        for key, channel in rows.items():
-            group = self.groups.get(key)
-            if group is None:
-                added = True  # Created and mounted by _mount_groups.
-            elif channels is None or key in channels:
-                # Membership, pins or order changed: every member row is current.
-                group.present(channel)
-                group.sync_members()
-            elif threads is None:
-                group.sync_members()
-            elif threads:
-                group.repaint_members(threads)
+        added = any(key not in self.groups for key in rows)
+        change.apply_comms(self, rows)
         if self._group_mounting is None or self._group_mounting.is_finished:
             if added:
                 self._group_mounting = self.run_worker(self._mount_groups(), group=self.GROUP_MOUNT)
@@ -497,7 +482,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         control = panel.header_control
         assert isinstance(control, ChannelListSort)
         control.update_order(model.observation.channel_order())
-        self.navigation.apply()
+        change.apply_navigation(self)
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:
             self.call_after_refresh(self.navigation.finish, self.navigation.revision)
@@ -563,7 +548,8 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     @property
     def navigation_groups(self):
-        return (group for group in self.children if isinstance(group, ChannelGroup))
+        return (group for key in self.model_state.shown.channels.rows
+                if (group := self.groups.get(key)) is not None and not group.is_leaving)
 
     @property
     def selection_state(self):

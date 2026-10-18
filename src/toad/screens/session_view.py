@@ -144,9 +144,11 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, Vertical):
     async def retire_presentation(self) -> None:
         """Release rich presentation without stopping its operational sources."""
         from toad.widgets.history_anchor import HistoryWindow
+        from toad.widgets.conversation import Conversation
 
-        # Specialized source owners capture their reader before entering this
-        # shared retirement. Clear its focus before hiding any native resource;
+        for conversation in self.query(Conversation):
+            conversation.window.park_reader(conversation.contents)
+        # Clear focus before hiding any native resource;
         # shared chrome retains its independently owned focus.
         if self.has_focus_within:
             self.screen.set_focus(None)

@@ -5,7 +5,7 @@ from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
-from typing import ClassVar, TYPE_CHECKING
+from typing import ClassVar, TYPE_CHECKING, cast
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
@@ -15,6 +15,7 @@ from toad.widgets.presentation_window import NEWER_END
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from toad.transcript_source_preparation import HistorySourceSnapshot, TranscriptSourcePreparation
+    from toad.widgets.committed_presentation import CommitParticipant
     from toad.widgets.history_anchor import LatestPosition
 
 
@@ -351,7 +352,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def validate_snapshot(self, owner, page) -> None:
         # The publication already holds a certified current source page. Its
         # native/assigned cursor, not rendered content, validates this resource.
-        if page.after.contains(owner.through):
+        if page.after.contains(owner.page_source.through):
             owner.resume_source()
 
 
@@ -367,8 +368,11 @@ class CommitTranscript(WorkingTranscript):
         self.live_blocks = live_blocks
 
     def arriving(self, prepared, followed_end: bool):
-        # Rows already seen as live blocks have not arrived again.
-        return () if self.live_blocks else super().arriving(prepared, followed_end)
+        # Rows its live blocks already showed have not arrived again; every other row has.
+        # The live blocks are the commit participants `retirement_candidates` chose.
+        claims = tuple(cast("CommitParticipant", block).commit_claim for block in self.live_blocks)
+        return tuple(fragment for fragment in super().arriving(prepared, followed_end)
+                     if not any(fragment.shown_live_by(claim) for claim in claims))
 
     def rows_published(self, owner) -> None:
         if not NEWER_END.visible_more(owner):

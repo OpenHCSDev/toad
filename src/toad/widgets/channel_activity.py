@@ -4,7 +4,7 @@ from textual.containers import VerticalGroup
 
 from toad.screens.session_view import SessionView
 from toad.widgets.observed_thread_activity import StatusThread
-from toad.widgets.sidebar_tree import KeyedRows, SidebarModelView, UnpaintedChannel
+from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView, UnpaintedChannel
 
 
 class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
@@ -37,8 +37,8 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def model_replaced(self) -> None:
         self.member_container.remove_children()
 
-    def sync(self, *, channels, threads, reorder=False) -> None:
-        self.call_next(self.sync_members)
+    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
+        change.apply_activity(self)
 
     def create_row(self, name):
         row = self.view.conversation_kind.activity_details(name)

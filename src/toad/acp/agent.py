@@ -28,7 +28,7 @@ from agent_comms.field_codec import FieldCodec
 from agent_comms.context_reading import UnmeasuredContext
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution
-from agent_comms.goals import Goal
+from agent_comms.goals import Goal, GoalDeclaration, NoGoal
 from agent_comms.ui_model.observation import ReadOwnerGoal
 
 import toad
@@ -227,13 +227,13 @@ class Agent(AgentBase):
         from .comms_updates import OwnerSnapshotConsumer
         coordination = self.coordination
         if coordination is None:
-            return GoalSnapshot(None, IdleGoalExecution())
+            return GoalSnapshot(NoGoal(), IdleGoalExecution())
         authority = ClientSessionRequest(self, self.session_id)
         consumer = OwnerSnapshotConsumer(self, self.session_id, turn_token=self.presentation.turns.sequence)
         snapshot = await self.controller.transcripts.read(
             ReadOwnerGoal(coordination.wire_root, coordination.thread))
         self.controller.require_owner(coordination, authority)
-        for fact in snapshot.updates:
+        for fact in snapshot.meta.batch.updates:
             consumer.dispatch_sync(fact)
         return snapshot
 
@@ -284,15 +284,11 @@ class Agent(AgentBase):
         self.events.publish(core_events.CommsUpdated(self.coordination, self.session_id))
         return result.current
 
-    async def update_goal(self, action: type[GoalAction], text: str = "") -> Goal | None:
+    async def update_goal(self, action: type[GoalAction], text: str = "") -> GoalDeclaration:
         result = await action.submit_control(
             self.get_goal_snapshot, self.controller.request_owner, text,
         )
-        return (
-            FieldCodec.decode(Goal, result["goal"])
-            if result["goal"] is not None
-            else None
-        )
+        return FieldCodec.decode(GoalDeclaration, result["goal"])
 
 
     async def cancel(self) -> bool:

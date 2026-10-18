@@ -9,6 +9,8 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible
 
+from agent_comms.ui_model.observation import ReadNotifications
+
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
@@ -93,14 +95,26 @@ class HistoryNotifications:
     """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
 
     NOTIFICATION_GROUP = "message-notifications"
+    notification_request = ReadNotifications
 
     # Core feedback for every visible bus message, native or wire.
 
     def check_notifications(self) -> None:
-        access = self.app.coordination_access
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
+        self.subscribe_notifications(references)
+
+    def notification_read(self, references) -> ReadNotifications:
+        from toad.project_path_owner import ProjectPathOwner
+
+        root = ProjectPathOwner.containing(self).coordination_root
+        if root is None:
+            raise ValueError("Notification observation requires a bound thread root")
+        return self.notification_request(root, references)
+
+    def subscribe_notifications(self, references) -> None:
+        access = self.app.coordination_access
         if references:
             access.show_notifications(self, self.notification_read(references))
         else:

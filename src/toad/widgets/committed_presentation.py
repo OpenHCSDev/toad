@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Conversation
     from toad.widgets.history_anchor import HistoryWindow
     from toad.transcript_preparation import PreparedTranscriptPage
-    from toad.widgets.transcript_fragments import TranscriptFragment
+    from toad.widgets.transcript_fragments import BusMessageFragment, SentMessageFragment, TranscriptFragment
 
 @dataclass(frozen=True)
 class CommitEvidence:
@@ -51,6 +51,17 @@ class CommitClaim(ABC):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         pass
 
+    # Whether the live block already showed a saved row its commit retires it for;
+    # a row no live block showed arrives (`CommitTranscript.arriving`).
+    def repeats_native(self, fragment: TranscriptFragment) -> bool:
+        return False
+
+    def repeats_received(self, fragment: BusMessageFragment) -> bool:
+        return False
+
+    def repeats_sent(self, fragment: SentMessageFragment) -> bool:
+        return False
+
 class CapturedClaim(CommitClaim):
     """A settled source-owned block captured before the snapshot read."""
 
@@ -63,6 +74,10 @@ class CapturedClaim(CommitClaim):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return widget in evidence.captured and widget is not evidence.retained_history
 
+    def repeats_native(self, fragment: TranscriptFragment) -> bool:
+        # The snapshot captured the native output its saved records hold.
+        return True
+
 @dataclass(frozen=True)
 class ToolOutputClaim(CapturedClaim):
     """A compact tool cannot retire before its separate bodies are supplied."""
@@ -71,6 +86,9 @@ class ToolOutputClaim(CapturedClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return super().covered(widget, evidence) and self.outgoing <= evidence.outgoing
+
+    def repeats_sent(self, fragment: SentMessageFragment) -> bool:
+        return fragment.publication.reference in self.outgoing
 
 class RetainedSourceClaim(CapturedClaim):
     """An original saved source is transferable independently of live output."""
@@ -94,12 +112,18 @@ class SequenceClaim(CommitClaim):
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.sequence is not None and self.sequence in evidence.sequences
 
+    def repeats_received(self, fragment: BusMessageFragment) -> bool:
+        return self.sequence in TranscriptCoverage(fragment.events).sequences
+
 @dataclass(frozen=True)
 class OutgoingMessageClaim(CommitClaim):
     message: PublishedSentMessage
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.message.reference in evidence.outgoing
+
+    def repeats_sent(self, fragment: SentMessageFragment) -> bool:
+        return fragment.publication.reference == self.message.reference
 
 @dataclass(frozen=True)
 class StartedInputClaim(CommitClaim):
@@ -109,6 +133,9 @@ class StartedInputClaim(CommitClaim):
 
     def covered(self, widget: Widget, evidence: CommitEvidence) -> bool:
         return self.source.native_id in evidence.native_inputs
+
+    def repeats_native(self, fragment: TranscriptFragment) -> bool:
+        return self.source.native_id in TranscriptCoverage(fragment.events).native_inputs
 
 class CommitParticipant:
     """Nominal widget contract; unrelated/local widgets are retained by default."""
@@ -138,7 +165,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         return RETAINED_SOURCE_CLAIM
 
     def accepts_commit(self, cursor: TranscriptCursor) -> bool:
-        return cursor.contains(self.committed_cursor)
+        return cursor.contains(self.page_source.through)
 
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
@@ -183,7 +210,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:
             return False
-        if self.committed_cursor.covers_incoming(sequence):
+        if self.page_source.through.covers_incoming(sequence):
             return True
         if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
@@ -193,10 +220,6 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         """Whether the loaded saved pages hold the input Core started under this identity."""
         return (self._source_state.reports_coverage
                 and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
-
-    @property
-    def committed_cursor(self) -> TranscriptCursor:
-        return self.through
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""

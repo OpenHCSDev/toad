@@ -37,7 +37,6 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.ui_model.observation import ReadNotifications
 from toad.widgets.message_notifications import HistoryNotifications
 from rich.segment import Segment
 from rich.text import Text as RichText
@@ -84,7 +83,8 @@ from toad.widgets.throbber import AboveThrobber, BelowThrobber
 from toad.frame_presentation import Animated
 from ui_theme.effects import CURSOR_BLINK, Mix
 from agent_comms.ui_model.delivery import InputDelivery
-from agent_comms.ui_model.goal import GoalDisplay, NoGoal
+from agent_comms.goals import NoGoal
+from agent_comms.ui_model.goal import GoalDisplay
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
@@ -95,7 +95,7 @@ from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
-from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from toad.block_navigation import require_blocks, ConversationBlock, ConversationEntry, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
@@ -230,9 +230,6 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     def notification_targets(self):
         return tuple(history for history in self.line_histories() if history.can_draw_on_screen)
 
-    def notification_read(self, references):
-        return next(self.line_histories()).notification_read(references)
-
     @property
     def line_width(self) -> int:
         """The native width of full-width history rows prepared before mounting."""
@@ -264,10 +261,6 @@ class ConversationContents(CategorizedMount, Contents):
     def notification_targets(self):
         return (*super().notification_targets(), *(target for child in self.children
                  for target in child.notification_targets()))
-
-    def notification_read(self, references):
-        root, _name = self.query_ancestor(Conversation).transcript.binding.thread_scope
-        return ReadNotifications(root, references)
 
     @property
     def selected_categories(self) -> frozenset[type[MessageCategory]]:
@@ -1092,7 +1085,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         return ContentNavigation(self.contents)
 
     @property
-    def cursor_block(self) -> ConversationBlock | None:
+    def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
 
     @property

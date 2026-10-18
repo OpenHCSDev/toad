@@ -285,8 +285,10 @@ class TextualUi(Ui):
         await self.step()
 
     async def new_session(self) -> str:
-        navigation = self.app.session_navigation
-        details = await navigation.new(navigation.default_source)
+        from toad.screens.main import MainScreen
+
+        app = self.app
+        details = await app.session_navigation.new(lambda: MainScreen(app.project_dir, app.agent_data))
         await self.step()
         return details.mode_name
 

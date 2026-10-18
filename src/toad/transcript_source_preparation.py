@@ -47,10 +47,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
 
-    def __init__(self, *args, source_state: TranscriptState, **kwargs):
+    def __init__(self, *args, source_state: TranscriptState, page_source: PreparedPageSource, **kwargs):
         self._source_state = source_state
         self._generation = 0
-        self._page_buffer: PreparedPageSource | None = None
+        self.page_source = page_source
         self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 
@@ -109,9 +109,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         await self.close_source_reader()
 
     def close(self) -> None:
-        if self._page_buffer is not None:
-            self._page_buffer.close()
-            self._page_buffer = None
+        from toad.transcript_preparation import ClosedHistory
+
+        source = self.page_source
+        source.close()
+        self.page_source = ClosedHistory(source.through, source.runtime)
 
     async def close_source_reader(self) -> None:
         """Close source subscriptions without releasing the separately held pages."""
@@ -177,10 +179,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
-        if self.loader is None or edge.prepared.page.after == self.through:
-            prepared = edge.prepared.for_view()
-        else:
-            prepared = (await self._reader().get(PageRequest(OLDER_END, self.through))).for_view()
+        source = self.page_source
+        prepared = await source.latest(edge.prepared)
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -201,12 +201,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             if take:
                 destination.insert(0, (prepared, existing))
             limit -= take
-            if rows <= 0 or self.loader is None:
+            if rows <= 0:
                 break
-            if (not prepared.page.has_older or limit <= 0
+            if (not source.has_older(prepared.page) or limit <= 0
                     or not window.presentation_budget.can_read_destination(pages_read)):
                 break
-            prepared = (await self._reader().get(OLDER_END.adjacent(prepared.page))).for_view()
+            prepared = (await source.get(OLDER_END.adjacent(prepared.page))).for_view()
             pages_read += 1
         async with window.history_lock:
             if not current() or self.pages[-1] is not edge:
@@ -243,15 +243,24 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self._source_state.rows_published(self)
             return True
 
+    @property
+    def drawn_end_more(self) -> bool:
+        """Rows below the drawn end that the reader was already shown exist: prepared ones, or a known newer page.
+
+        Source rows a commit adds beyond the drawn end are not among them; they arrive.
+        """
+        edge = self.pages[-1].prepared
+        return NEWER_END.can_extend(edge) or edge.page.has_newer
+
     async def extend(self, through, publication_current: Callable[[], bool] = lambda: True) -> bool:
         """Append to a complete followed tail; a gap uses the bounded latest read."""
         if not publication_current():
             return False
-        self.through = through
+        self.page_source.through = through
         edge = self.pages[-1]
-        if edge.prepared.page.after == self.through:
+        if edge.prepared.page.after == self.page_source.through:
             return True
-        if NEWER_END.visible_more(self):
+        if self.drawn_end_more:
             destination = HeldReaderDestination.held(self.window)
             if destination is not None and await destination.source_arrived(self):
                 return True
@@ -259,10 +268,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 edge.prepared.page = replace(edge.prepared.page, has_newer=True)
             return True
         snapshot = self.source_snapshot()
-        prepared = await self._reader().get(NEWER_END.adjacent(edge.prepared.page))
+        prepared = await self.page_source.get(NEWER_END.adjacent(edge.prepared.page))
         if not await self.source_is_current(snapshot) or not publication_current():
             return False
-        if self.pages[-1] is not edge or NEWER_END.visible_more(self):
+        if self.pages[-1] is not edge:
             return False
         if not await self.accept_extension(edge, prepared):
             return False
@@ -276,7 +285,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             if not snapshot.current(self) or not publication_current():
                 return False
             tail = self.pages[-1]
-            if tail.prepared.page.after != self.through:
+            if tail.prepared.page.after != self.page_source.through:
                 # Rejected preparation still leaves the source gap reachable.
                 tail.prepared.page = replace(tail.prepared.page, has_newer=True)
                 self._update_edges()

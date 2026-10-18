@@ -26,15 +26,12 @@ from toad.widgets.conversation import Contents
 from toad.widgets.transcript_history import TranscriptHistory
 
 
-class RecordedTranscriptHistory(TranscriptHistory):
-    """History and handling retain the same selected archive."""
+class RecordedContents(Contents):
+    """The notification subscriber reads the same archive as its history."""
 
-    def __init__(self, prepared, loader, *, root: str, source: str, notification_view):
-        super().__init__(prepared, loader, notification_view=notification_view)
-        self.root, self.source = root, source
-
-    def notification_read(self, references) -> ReadRecordedNotifications:
-        return ReadRecordedNotifications(self.root, references, self.source)
+    def __init__(self, source: str, **kwargs):
+        self.notification_request = partial(ReadRecordedNotifications, source=source)
+        super().__init__(**kwargs)
 
 
 class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, ModalScreen):
@@ -112,8 +109,11 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
         self.workers.cancel_group(self, "historical-handling")
         generation = self._selection_generation
         item = self.threads[event.value]
-        content = self.query_one("#saved-content", Contents)
-        await content.remove_children()
+        previous = self.query_one("#saved-content", Contents)
+        content = RecordedContents(item.source.key, id="saved-content")
+        with self.app.batch_update():
+            await previous.remove()
+            await self.query_one("#saved-window", HistoryWindow).mount(content)
         self.query_one("#source-label", Static).update(
             f"@{item.thread.name} · original incarnation {item.thread.created_at}\n"
             f"Source: {item.source.original_root}\n"
@@ -142,14 +142,14 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            from toad.transcript_preparation import TranscriptPageRenderTask
+            from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
             from toad.work_preparation import RenderPreparation
 
             prepared = await self.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = RecordedTranscriptHistory(prepared, load, root=root, source=item.source.key,
-                                                notification_view=content)
+            history = TranscriptHistory(prepared, SavedHistory(load, page.after, self.app.preparation),
+                                        notification_view=content)
             window = self.query_one(HistoryWindow)
             window.anchor()
             await content.prepare_history(

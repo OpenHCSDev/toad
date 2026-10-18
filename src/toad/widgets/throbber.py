@@ -9,7 +9,6 @@ from textual.visual import Visual
 from textual.style import Style
 from textual.strip import Strip
 from textual.visual import RenderOptions
-from textual.widget import Widget
 from textual.reactive import reactive
 from textual.css.styles import RulesMap
 
@@ -46,6 +45,7 @@ class ThrobberVisual(Visual):
 
 
 class Throbber(TonePaint, Animated[Ribbon]):
+    _paint_only_render = True
     tone = TurnBandColour
     # The row is always reserved; only its paint and animation change.
     busy = reactive(False, layout=False)
@@ -72,16 +72,6 @@ class Throbber(TonePaint, Animated[Ribbon]):
 
     def render(self) -> ThrobberVisual | str:
         return self._busy_visual if self.busy else ""
-
-    def _render_styles_sensitive(self) -> bool:
-        # The visual measures only available width and one row.
-        # Paint rules affect its segments; custom renderers retain the native
-        # conservative contract rather than inheriting a fixed-shape claim.
-        return (
-            type(self).render is not Throbber.render
-            or type(self)._render is not Widget._render
-            or type(self)._busy_visual is not Throbber._busy_visual
-        )
 
 
 class ObservedThrobber(Throbber):

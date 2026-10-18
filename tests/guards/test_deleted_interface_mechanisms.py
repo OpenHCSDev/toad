@@ -158,7 +158,7 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
                  '_publish_latest', 'extend_source'):
         assert name in vars(LineHistory), name
         assert name not in vars(WireHistory) and name not in vars(TranscriptHistory), name
-    for name in ('covers_incoming', 'covers_input', 'coverage_events', 'committed_cursor'):
+    for name in ('covers_incoming', 'covers_input', 'coverage_events'):
         assert not hasattr(WireHistory, name), name
 
 
