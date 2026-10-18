@@ -56,7 +56,7 @@ class CommsNavigationRequest(NavigationRequest[CommsNavigation]):
         if owner_root is not None and Path(owner_root).expanduser().resolve() != root:
             owner_root = None
         return CommsNavigation(
-            CommsViewKey(str(root), self.owner_mode, me, self.kind, target),
+            CommsViewKey(str(root), self.owner_mode, self.kind, target),
             owner_root,
             self.kind.threads_needed(comms.registry.snapshot(), me, target),
         )
