@@ -406,7 +406,7 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
         self: TranscriptPageWork[TranscriptCursor | None], runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
-        page = await self.loader(through=self.through, **request.end.loader_keywords(request.cursor))
+        page = await request.end.load_page(self.loader, request.cursor, self.through)
         if not request.progressed(page):
             raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
