@@ -7,7 +7,7 @@ from collections.abc import Awaitable
 import asyncio
 from contextvars import Context, copy_context
 import os
-from typing import TypeVar, Generic, TYPE_CHECKING
+from typing import TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
 
 from agent_comms.declared_family import DeclaredFamily
 
@@ -17,6 +17,33 @@ if TYPE_CHECKING:
     from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey, PreparationWork, PreparedValue
 
 class RenderExecution(ABC, Generic[ResultT]):
+    def __init_subclass__(cls, **kwargs) -> None:
+        for base in cls.__orig_bases__:
+            origin = get_origin(base)
+            if origin is None or not issubclass(origin, RenderExecution):
+                continue
+            result_type, = get_args(base)
+            if isinstance(result_type, TypeVar):
+                break
+            if get_origin(result_type) is tuple:
+                item_type, repeated = get_args(result_type)
+                if repeated is not Ellipsis:
+                    raise TypeError("Render tuple results must declare their repeated item type")
+
+                def matches(result: object) -> bool:
+                    return isinstance(result, tuple) and all(isinstance(item, item_type) for item in result)
+            else:
+                def matches(result: object) -> bool:
+                    return isinstance(result, result_type)
+            cls._matches_result = staticmethod(matches)
+            break
+        super().__init_subclass__(**kwargs)
+
+    @staticmethod
+    @abstractmethod
+    def _matches_result(result: object) -> bool:
+        """Compiled from the concrete task's Generic declaration before registration."""
+
     async def complete(self, execution: Awaitable[object]) -> ResultT:
         """Accept the actual completed worker result through this task's contract."""
         return self.accept_result(await execution)
@@ -25,9 +52,11 @@ class RenderExecution(ABC, Generic[ResultT]):
     def execute(self) -> ResultT:
         """Execute pure preparation in the renderer process."""
 
-    @abstractmethod
     def accept_result(self, result: object) -> ResultT:
         """Validate the result at a transport boundary."""
+        if not self._matches_result(result):
+            raise TypeError(f"{type(self).__name__} returned an invalid renderer result")
+        return cast(ResultT, result)
 
 
 class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
@@ -48,7 +77,7 @@ class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
         return self
 
     def capture_result(self) -> PreparedValue[ResultT]:
-        """Validate and store the result in the worker which produced it.
+        """Store the result in the worker which produced it.
 
         The existing task storage declaration selects the representation carried
         by both renderer transports and retained by preparation. No intermediate
@@ -56,7 +85,7 @@ class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
         """
         from toad.work_preparation import RenderPreparation
 
-        return RenderPreparation(self).store_result(self.accept_result(self.execute()))
+        return RenderPreparation(self).store_result(self.execute())
 
     async def complete_capture(self, execution: Awaitable[object]) -> PreparedValue[ResultT]:
         from toad.work_preparation import PreparedValue

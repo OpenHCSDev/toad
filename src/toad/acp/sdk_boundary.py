@@ -68,11 +68,6 @@ class ValidateSessionUpdateTask(RenderTask[SessionUpdateValidation]):
             return RejectedSessionUpdateValidation(str(error))
         return AcceptedSessionUpdateValidation(self.notification, updates)
 
-    def accept_result(self, result: object) -> SessionUpdateValidation:
-        if not isinstance(result, SessionUpdateValidation):
-            raise TypeError("ACP validation worker returned an invalid result")
-        return result
-
 
 @dataclass(frozen=True)
 class DecodeCommsMetadataTask(RenderTask[tuple[AgentCommsUpdate, ...]]):
@@ -82,8 +77,3 @@ class DecodeCommsMetadataTask(RenderTask[tuple[AgentCommsUpdate, ...]]):
 
     def execute(self) -> tuple[AgentCommsUpdate, ...]:
         return decode_updates(self.metadata)
-
-    def accept_result(self, result: object) -> tuple[AgentCommsUpdate, ...]:
-        if not isinstance(result, tuple) or not all(isinstance(item, AgentCommsUpdate) for item in result):
-            raise TypeError("Comms metadata worker returned invalid updates")
-        return result

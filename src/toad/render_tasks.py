@@ -40,11 +40,6 @@ class ReadOnlyDocumentRenderTask(ReusableRenderTask[WrappedDocument]):
 
         return PreparedTextArea.prepare_document(self.source, self.width, self.tab_width)
 
-    def accept_result(self, result: object) -> WrappedDocument:
-        if not isinstance(result, WrappedDocument):
-            raise TypeError("Document renderer returned an invalid native view")
-        return result
-
 
 @dataclass(frozen=True)
 class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
@@ -56,11 +51,6 @@ class RichRenderTask(ReusableRenderTask[PreparedRichContent]):
 
     def execute(self) -> PreparedRichContent:
         return self.source.prepare(self.presentation)
-
-    def accept_result(self, result: object) -> PreparedRichContent:
-        if not isinstance(result, PreparedRichContent):
-            raise TypeError("Rich renderer returned an invalid result")
-        return result
 
 
 @dataclass(frozen=True)
@@ -76,8 +66,3 @@ class TextEffectRenderTask(ReusableRenderTask[PlayedText]):
 
     def execute(self) -> PlayedText:
         return self.effect.build(self.scheme)
-
-    def accept_result(self, result: object) -> PlayedText:
-        if not isinstance(result, PlayedText):
-            raise TypeError("Text effect renderer returned an invalid result")
-        return result
