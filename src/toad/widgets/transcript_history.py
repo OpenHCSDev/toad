@@ -64,7 +64,7 @@ from toad.widgets.transcript_lines import (
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition, ReaderPosition
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
@@ -507,7 +507,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
         source = self._reader()
-        projected = await self.filter.park_projection()
+        projected = await self.filter.overlay.park_document()
         pages = tuple(page.prepared for page in self.pages)
         await source.runtime.run_thread(source.measure_held, pages, projected)
         source.park(pages, projected)
@@ -537,11 +537,11 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
         if self._page_buffer is not None:
             self._page_buffer.release_held()
-        self.filter.acquire_projection()
+        self.filter.overlay.acquire_document()
 
     def resume_source(self) -> None:
         super().resume_source()
-        self.filter.resume_projection()
+        self.filter.overlay.resume_source()
 
     async def prepare_fragments(self, fragments: tuple[TranscriptFragment, ...],
                                 current: Callable[[], bool], *, selected=None,
@@ -577,46 +577,13 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         window.prepare_history(self)
         if target.line_width <= 0:
             return
-        capacity, limit = window.latest_limits(self.budget)
-        position = window.reader_position or ReaderPosition.of(window)
-        start = position.preparation_start(self)
-        if window.follows_tail:
-            rows_needed, limit = await self.prepare_pages(
-                current, target=target, selected=selected, start=start, older=True,
-                rows_needed=rows_needed, limit=limit,
-            )
-        else:
-            rows_needed, limit = await self.prepare_pages(
-                current, target=target, selected=selected, start=start, older=False,
-                rows_needed=rows_needed, limit=limit,
-            )
-            anchor = self.pages[start[0]].prepared
-            forward = anchor.capture_range()
-            await self.prepare_pages(
-                current, target=target, selected=selected, start=start, older=True,
-                rows_needed=capacity, limit=limit,
-            )
-            anchor.set_fragment_range(slice(min(anchor.start, forward.start),
-                                            max(anchor.stop, forward.stop)))
+        _, limit = window.latest_limits(self.budget)
+        rows_needed, _ = await window.reader_position.prepare(
+            self, current, target, selected, rows_needed, limit,
+        )
         await self.filter.prepare_rows(
             current, window=window, target=target, rows_needed=max(0, rows_needed),
         )
-
-    async def prepare_pages(self, current, *, target, selected, start: tuple[int, int],
-                            older: bool, rows_needed: int, limit: int) -> tuple[int, int]:
-        """Walk outward from a reader boundary, stopping at either measured budget."""
-        index, boundary = start
-        while current() and rows_needed > 0 and limit > 0 and 0 <= index < len(self.pages):
-            page = self.pages[index].prepared
-            rows_needed -= await page.prepare_rows(
-                self, current, target=target, selected=selected, boundary=boundary,
-                older=older, rows_needed=rows_needed, limit=limit,
-            )
-            limit -= page.stop - page.start
-            index += -1 if older else 1
-            if 0 <= index < len(self.pages):
-                boundary = len(self.pages[index].fragments) if older else 0
-        return rows_needed, limit
 
     @property
     def fragments(self) -> tuple[TranscriptFragment, ...]:
@@ -774,7 +741,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         for page in self.pages:
             for page_range in ranges:
                 page.prepared.restore_range(page_range)
-        self.filter.set_reader_ranges(ranges)
+        self.filter.overlay.set_reader_ranges(ranges)
 
     async def restore_reader_ranges(self, ranges, current: Callable[[], bool]) -> bool:
         """A kept native view loads the same source suppliers before paint.
@@ -797,7 +764,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                 await self.prepare_fragments(page_range.members, current)
                 if not await page.select_range(slice(page_range.start, page_range.stop), current):
                     return False
-        if not await self.filter.restore_reader_ranges(ranges, current):
+        if not await self.filter.overlay.restore_reader_ranges(ranges, current):
             return False
         if not current():
             return False
@@ -862,7 +829,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     def compose(self) -> ComposeResult:
         yield self.older
-        yield from self.filter.compose_projection()
+        yield from self.filter.overlay.children()
         for page in self.pages:
             page.visible_categories = self.selected_categories
             yield page
@@ -1053,7 +1020,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """
         async with self.lock:
             previous_start = self.pages[0], self.pages[0].start
-            overlay_visible = self.filter.projection_visible()
+            overlay_visible = bool(self.filter.overlay.visible_fragments())
             protected_pages: set[TranscriptPageView] = set()
             if not prepared.fragments:
                 # A nonmatching interval advances the original source span,
@@ -1198,13 +1165,16 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         assert self._page_buffer is not None
         return self._page_buffer
 
+    def children(self):
+        return (self,)
+
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
         return (event for page in self.pages for fragment in page.fragments for event in fragment.events)
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
-        if owner is not None and owner.filter.owns_projection(self):
+        if owner is not None and owner.filter.overlay is self:
             await owner._page_added(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)

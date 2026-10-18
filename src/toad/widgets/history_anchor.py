@@ -24,6 +24,52 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Contents
 
 
+class PageWalk(ABC):
+    """One outward traversal of prepared pages, with its own boundary."""
+
+    step: int
+
+    @abstractmethod
+    def boundary(self, page) -> int: ...
+
+    @abstractmethod
+    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit) -> int: ...
+
+    async def walk(self, history, current, target, selected, start, rows_needed, limit):
+        index, boundary = start
+        while current() and rows_needed > 0 and limit > 0 and 0 <= index < len(history.pages):
+            page = history.pages[index].prepared
+            rows_needed -= await self.prepare(page, history, current, target, selected,
+                                              boundary, rows_needed, limit)
+            limit -= page.stop - page.start
+            index += self.step
+            if 0 <= index < len(history.pages):
+                boundary = self.boundary(history.pages[index])
+        return rows_needed, limit
+
+
+class Older(PageWalk):
+    step = -1
+
+    def boundary(self, page) -> int:
+        return len(page.fragments)
+
+    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit):
+        return await page.prepare_rows(history, current, target=target, selected=selected,
+                                       boundary=boundary, older=True, rows_needed=rows_needed, limit=limit)
+
+
+class Newer(PageWalk):
+    step = 1
+
+    def boundary(self, page) -> int:
+        return 0
+
+    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit):
+        return await page.prepare_rows(history, current, target=target, selected=selected,
+                                       boundary=boundary, older=False, rows_needed=rows_needed, limit=limit)
+
+
 class ReaderPosition(ABC):
     """Where the reader is in a history window, named by what they read.
 
@@ -67,11 +113,11 @@ class ReaderPosition(ABC):
     def place(self, window: "HistoryWindow") -> bool:
         """Scroll the window here in the layout just made; False when the layout is too short to reach it."""
 
-    def moved(self, rows: float) -> "ReaderPosition | None":
+    def moved(self, rows: float) -> "ReaderPosition":
         """The position after the reader scrolled by `rows`."""
         return self
 
-    def left_tail(self, window: "HistoryWindow") -> "ReaderPosition | None":
+    def left_tail(self, window: "HistoryWindow") -> "ReaderPosition":
         """The position after the reader stopped following the latest message."""
         return self
 
@@ -79,7 +125,7 @@ class ReaderPosition(ABC):
         """The position after the reader chose to follow the latest message."""
         return TailPosition()
 
-    def placed(self, window: "HistoryWindow", reached: bool) -> "ReaderPosition | None":
+    def placed(self, window: "HistoryWindow", reached: bool) -> "ReaderPosition":
         """What the window keeps after a layout placed this: itself while the history is still changing.
 
         A history too short to reach it (its matches or pages are still being
@@ -87,19 +133,65 @@ class ReaderPosition(ABC):
         """
         if not reached:
             return UnreachedPosition(self)
-        return self if window.history_change is not None else None
+        return self if window.history_change is not None else UnheldPosition()
 
-    def without_holder(self, window: "HistoryWindow") -> "ReaderPosition | None":
+    def without_holder(self, window: "HistoryWindow") -> "ReaderPosition":
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
-        return self if window.history_change is not None else None
+        return self if window.history_change is not None else UnheldPosition()
+
+    def for_parking(self, window: "HistoryWindow") -> "ReaderPosition":
+        return self
 
     def preparation_start(self, history) -> tuple[int, int]:
         """Where preparation begins when no message supplies a more exact place."""
         return 0, history.pages[0].start
 
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        """Fill the reader's earlier rows, then the later rows in the remaining budget."""
+        start = self.preparation_start(history)
+        anchor = history.pages[start[0]].prepared
+        _, limit = await Older().walk(
+            history, current, target, selected, start,
+            history.window.latest_limits(history.budget)[0], limit,
+        )
+        earlier = anchor.capture_range()
+        rows_needed, limit = await Newer().walk(
+            history, current, target, selected, start, rows_needed, limit,
+        )
+        anchor.set_fragment_range(slice(min(anchor.start, earlier.start),
+                                        max(anchor.stop, earlier.stop)))
+        return rows_needed, limit
+
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Give a history about to be mounted the page ranges this position needs."""
         history.set_reader_ranges(self.ranges)
+
+
+@dataclass(frozen=True)
+class UnheldPosition(ReaderPosition):
+    """No layout needs to keep a place; sample the reader only when work asks."""
+
+    def bodies(self, window: "HistoryWindow") -> None:
+        return None
+
+    def place(self, window: "HistoryWindow") -> bool:
+        return True
+
+    def for_parking(self, window: "HistoryWindow") -> ReaderPosition:
+        return ReaderPosition.of(window)
+
+    def preparation_start(self, history) -> tuple[int, int]:
+        return ReaderPosition.of(history.window).preparation_start(history)
+
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await ReaderPosition.of(history.window).prepare(
+            history, current, target, selected, rows_needed, limit)
+
+    def joined_tail(self) -> ReaderPosition:
+        return self
+
+    def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
+        pass
 
 
 @dataclass(frozen=True)
@@ -108,6 +200,10 @@ class TailPosition(ReaderPosition):
 
     def preparation_start(self, history) -> tuple[int, int]:
         return len(history.pages) - 1, len(history.pages[-1].fragments)
+
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await Older().walk(history, current, target, selected,
+                                  self.preparation_start(history), rows_needed, limit)
 
     def place(self, window: "HistoryWindow") -> bool:
         if not window.follows_tail:
@@ -235,6 +331,9 @@ class UnreachedPosition(ReaderPosition):
     def preparation_start(self, history) -> tuple[int, int]:
         return self.position.preparation_start(history)
 
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await self.position.prepare(history, current, target, selected, rows_needed, limit)
+
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return self.position.bodies(window)
 
@@ -244,17 +343,17 @@ class UnreachedPosition(ReaderPosition):
     def place(self, window: "HistoryWindow") -> bool:
         return self.position.place(window)
 
-    def moved(self, rows: float) -> None:
-        return None
+    def moved(self, rows: float) -> ReaderPosition:
+        return UnheldPosition()
 
-    def left_tail(self, window: "HistoryWindow") -> None:
-        return None
+    def left_tail(self, window: "HistoryWindow") -> ReaderPosition:
+        return UnheldPosition()
 
     def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition | None:
         return self.position.placed(window, reached) if reached else self
 
-    def without_holder(self, window: "HistoryWindow") -> ReaderPosition | None:
-        return self.position.without_holder(window) and self
+    def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
+        return self if window.history_change is not None else UnheldPosition()
 
 
 class HeldReaderDestination:
@@ -294,8 +393,8 @@ class HeldReaderDestination:
             return self.released()
         return self
 
-    def moved(self, rows: float) -> None:
-        return None
+    def moved(self, rows: float) -> ReaderPosition:
+        return UnheldPosition()
 
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
         return False
@@ -363,8 +462,8 @@ class LatestPosition(HeldReaderDestination, TailPosition):
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
         return await history._jump_latest(LatestViewportRequest(self))
 
-    def left_tail(self, window: "HistoryWindow") -> None:
-        return None
+    def left_tail(self, window: "HistoryWindow") -> ReaderPosition:
+        return UnheldPosition()
 
     def released(self) -> ReaderPosition:
         return TailPosition()
@@ -455,13 +554,14 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
     CACHE_SUBTREE_GEOMETRY = True
     scroll_revision = 0
     _restoring = False
-    reader_position: ReaderPosition | None = None
-    """The position every layout puts the reader back on; None when nothing is changing under them.
+    reader_position: ReaderPosition
+    """The reader's held place, or an unheld place sampled only when work needs it."""
 
-    The one record of where the reader is while the scroll offset cannot say
-    it: during a change to the history, a filter change, and from a tab being
-    left until it is drawn again.
-    """
+    def __init__(self, *args, **kwargs):
+        initial = LatestPosition(0, (), False)
+        object.__setattr__(initial, "source_ready", True)
+        self.reader_position = initial
+        super().__init__(*args, **kwargs)
     history_change: HistoryChange | None = None
     _history_mutation_root: Widget | None = None
 
@@ -529,7 +629,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
 
     def keep_reader(self) -> None:
         """What this window draws is about to change: layout keeps the reader where they are now."""
-        if self.reader_position is None:
+        if isinstance(self.reader_position, UnheldPosition):
             self.reader_position = ReaderPosition.of(self)
             self.screen.reader_kept()
 
@@ -542,13 +642,12 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             # pages stay in the tree: record those page ranges with the place.
             ranges = tuple(page_range for history in contents.line_histories()
                            for page_range in history.capture_reader_ranges())
-            parked = self.reader_position = ParkedPosition(self.reader_position or ReaderPosition.of(self), ranges)
+            parked = self.reader_position = ParkedPosition(self.reader_position.for_parking(self), ranges)
         return parked
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """A history about to be mounted loads the page ranges the kept position needs."""
-        if self.reader_position is not None:
-            self.reader_position.prepare_history(history)
+        self.reader_position.prepare_history(history)
         if self.follows_tail:
             self.lookahead.destination(self.outer_size.height, pages_read=len(history.pages))
 
@@ -565,7 +664,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
     def reader_for_layout(self) -> ReaderPosition | None:
         """The kept position, when this layout can place it."""
         position = self.reader_position
-        if position is None or not self.shown:
+        if not self.shown:
             return None
         if position.bodies(self) is None:
             self.reader_position = position.without_holder(self)
@@ -581,8 +680,6 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         (kept after the layout started) is placed by the layout that follows.
         """
         position = self.reader_position
-        if position is None:
-            return False
         if not position.laid_out(self):
             return False
         previous = self.scroll_y
@@ -713,7 +810,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         if anchor:
             self._anchor_released = False
             # A reader cannot move a window they cannot see: a parked place stays.
-            if self.reader_position is not None and self.shown:
+            if self.shown:
                 self.reader_position = self.reader_position.joined_tail()
         super().anchor(anchor)
         if changed:
@@ -726,7 +823,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         super().release_anchor()
         if not changed:
             return
-        if self.reader_position is not None and not self._restoring and self.shown:
+        if not self._restoring and self.shown:
             self.reader_position = self.reader_position.left_tail(self)
         self.tail_follow_changed()
 
@@ -739,7 +836,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         # too. The existing restoration scope excludes layout compensation.
         if new_value != old_value and not self._restoring:
             self.scroll_revision += 1
-            if self.reader_position is not None and self.shown:
+            if self.shown:
                 self.reader_position = self.reader_position.moved(new_value - old_value)
             if self.lookahead.observe(new_value):
                 self._schedule_settle()
@@ -850,7 +947,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             yield
             return
         screen = self.screen
-        kept = self.reader_position is None
+        kept = isinstance(self.reader_position, UnheldPosition)
         self.keep_reader()
         change = self.history_change = HistoryChange()
         geometry = self._geometry_revision
@@ -868,7 +965,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
                 return
             # Without waiting for the layout that places the reader, the next
             # change would start from rows that are not laid out yet.
-            if self.reader_position is not None and self.is_attached and screen.is_current:
+            if self.is_attached and screen.is_current:
                 await change.wait()
                 drawn = change.laid_out
         finally:

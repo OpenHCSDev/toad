@@ -633,10 +633,9 @@ class TranscriptPresentation:
                     and view.query_ancestor(SessionView) is source
                     and view.app.workspace_sessions.owns(source))
 
-        if position is not None:
-            for history in self.histories:
-                if not await history.restore_reader_ranges(position.ranges, current):
-                    return
+        for history in self.histories:
+            if not await history.restore_reader_ranges(position.ranges, current):
+                return
         if not current():
             return
         if first_history is not None:
@@ -918,7 +917,8 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 from toad.widgets.conversation import Window
                 view = self.view
                 if view is not None and (window := view.query_one_optional(Window)) is not None:
-                    window.reader_position = None
+                    from toad.widgets.history_anchor import UnheldPosition
+                    window.reader_position = UnheldPosition()
                 await retirement
 
     async def detach(self, view: Conversation) -> None:

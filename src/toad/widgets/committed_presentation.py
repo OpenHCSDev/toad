@@ -175,7 +175,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         if self._source_state.reports_coverage:
             references = frozenset(reference for page in self.pages
                                    for reference in page.prepared.outgoing_coverage)
-            return references | self.filter.outgoing_coverage
+            return references | self.filter.overlay.outgoing_coverage
         return frozenset()
 
     def covers_incoming(self, sequence: int) -> bool:
@@ -185,7 +185,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
             return True
         if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
-        return self.filter.covers_incoming(sequence)
+        return self.filter.overlay.covers_incoming(sequence)
 
     def covers_input(self, native_id: str | None) -> bool:
         """Whether the loaded saved pages hold the input Core started under this identity."""
