@@ -923,6 +923,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
     async def detach(self, view: Conversation) -> None:
         if self.view is not view:
             return
+        self._thread_observation.close()
         await self.suspend()
         if self.closed or self.view is not view:
             return
