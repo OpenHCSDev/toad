@@ -31,7 +31,7 @@ from agent_comms.ui_model.observation import (
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ThreadRowsChanged
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
 from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -213,7 +213,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_interest = ObserveNotifications(frozenset())
         self.update_sidebar_interest()
         self.app.session_navigation.declare_views()
-        self.events.publish(LinkContextChanged())
+        self.events.publish(ObservedServiceChanged())
 
     def retire(self, observed: ObservedCommsService) -> None:
         observed.retire()

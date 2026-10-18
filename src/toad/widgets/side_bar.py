@@ -369,9 +369,8 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
         slider: SidebarSlider
         value: int
 
-    def __init__(self, kind: str, minimum: int, maximum: int, value: int) -> None:
-        super().__init__(id=f"sidebar-{kind}-slider")
-        self.kind = kind
+    def __init__(self, minimum: int, maximum: int, value: int) -> None:
+        super().__init__()
         self.minimum = minimum
         self.maximum = maximum
         self.value = value
@@ -380,8 +379,7 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
         self._drag_origin_x = 0
         self._drag_width = 0
         self._drag_reversed = False
-        self.tooltip = ("Drag or use ←/→ to resize (15–50% of screen)" if kind == "width"
-                        else "Drag or use ←/→ to reveal long sidebar rows")
+        self.tooltip = "Drag or use ←/→ to resize (15–50% of screen)"
 
     def set_range(self, minimum: int, maximum: int, value: int) -> None:
         self.minimum, self.maximum = minimum, max(minimum, maximum)
@@ -389,7 +387,7 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
         self.refresh()
 
     def render(self) -> str:
-        label = f"{self.value:2d}%" if self.kind == "width" else "↔"
+        label = f"{self.value:2d}%"
         track = max(1, self.size.width - len(label) - 1)
         ratio = (self.value - self.minimum) / max(1, self.maximum - self.minimum)
         if self.reversed:
@@ -401,7 +399,7 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
     def _choose(self, x: int) -> None:
         width = self._drag_width if self._dragging else self.size.width
         reverse = self._drag_reversed if self._dragging else self.reversed
-        label_width = 4 if self.kind == "width" else 2
+        label_width = 4
         track = max(1, width - label_width)
         if reverse:
             label_width = 0
@@ -417,8 +415,7 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
     def action_step(self, direction: int) -> None:
         if self.reversed:
             direction = -direction
-        step = 1 if self.kind == "width" else max(1, self.maximum // 30)
-        value = max(self.minimum, min(self.maximum, self.value + direction * step))
+        value = max(self.minimum, min(self.maximum, self.value + direction))
         if value != self.value:
             self.value = value
             self.refresh()
@@ -536,7 +533,7 @@ class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
 
     def action_resize(self, direction: int) -> None:
         bar = self.query_ancestor(SideBar)
-        bar.query_one("#sidebar-width-slider", SidebarSlider).action_step(direction)
+        bar.width_slider.action_step(direction)
 
     def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button == 1:
@@ -655,6 +652,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
         self.panels_viewport: SidebarViewport = SidebarViewport()
         self.hide = hide
         self.right = right
+        self.width_slider = SidebarSlider(15, 50, 40 if not right else 34)
         self._navigation = navigation
         self._panels_loaded = not defer_mount
         self._panels_loading = False
@@ -769,7 +767,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             )
 
     def _compose_controls(self) -> ComposeResult:
-        yield SidebarSlider("width", 15, 50, 40 if not self.right else 34)
+        yield self.width_slider
         yield containers.Grid(
             *(SidebarAction(kind()) for kind in SidebarPlacementAction.members_with(SidebarPlacementAction)),
             id="sidebar-layout-actions",
@@ -802,7 +800,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
             return False
         self._presented_layout = current
         controls = self.query_one_optional("#sidebar-controls") if self._panels_loaded else None
-        slider = controls.query_one_optional("#sidebar-width-slider", SidebarSlider) if controls else None
+        slider = self.width_slider
         if previous is None or previous.presentation != current.presentation:
             self.right = placement.side == "right"
             self.set_class(self.right, "-right")
@@ -817,7 +815,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
                 actions = controls.query_one_optional("#sidebar-layout-actions")
                 buttons = {direction: controls.query_one_optional(f"#sidebar-{direction}", SidebarAction)
                            for direction in (*directions, "float")}
-                if slider is None or actions is None or any(button is None for button in buttons.values()):
+                if actions is None or any(button is None for button in buttons.values()):
                     # Mounted parents can precede their composed action rows.
                     self._presented_layout = None
                 else:
@@ -831,7 +829,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
                     toggle_mode.update("Push" if placement.floating else "Float", layout=False)
                     toggle_mode.tooltip = "Push conversation text" if placement.floating else "Float over conversation text"
                     actions.set_class(current.presentation.compact, "-compact")
-        if slider is not None and slider.value != placement.width_percent:
+        if slider.value != placement.width_percent:
             slider.value = placement.width_percent
             slider.refresh()
         return True
@@ -839,7 +837,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
     @on(SidebarSlider.Changed)
     def on_sidebar_slider(self, event: SidebarSlider.Changed) -> None:
         event.stop()
-        if event.slider.kind == "width" and self.id is not None:
+        if self.id is not None:
             app = cast("ToadApp", self.app)
             if app.sidebar_layout.width(self.id, event.value):
                 self._present_controls()
