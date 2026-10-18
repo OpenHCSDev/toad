@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from agent_comms.acp_extension import (
     InputStartedUpdate,
+    NoQueueScope,
     PendingQueueProjection,
     QueueChangedUpdate,
     UnavailableQueueProjection,
@@ -22,7 +23,7 @@ class QueueAttachment(ProjectionAttachment):
 
     @property
     def scope(self):
-        return self.current.scope if self.current is not None else None
+        return self.current.scope if self.current is not None else NoQueueScope()
 
     @property
     def projection(self):
@@ -33,21 +34,14 @@ class QueueAttachment(ProjectionAttachment):
             unavailable=self.unavailable,
         )
 
-    def _matches_request_scope(self, scope) -> bool:
-        """Freshness of the original scope, independent of queue availability."""
-        if scope is None:
-            return self.scope is None
-        return self.scope is not None and self.scope.relation(scope).current
-
     def accepts_request(self, scope) -> bool:
         """A request's original queue authority must still own this attachment."""
-        return self._matches_request_scope(scope) and (
-            scope is None or self.projection.status == "available")
+        return self.scope.same_request(scope) and scope.accepts_request(self.projection)
 
     def _acquire_input_scope(self, scope):
-        if scope is None or not self._matches_request_scope(scope):
+        if not self.scope.same_request(scope):
             raise ValueError('The original input attachment changed before capture.')
-        return scope
+        return scope.require_live()
 
     def capture_human_input(self, comms, scope):
         """Certify the original captured request through its current observation."""
@@ -70,7 +64,7 @@ class QueueAttachment(ProjectionAttachment):
     def started(
         self, update: InputStartedUpdate, session_id: str
     ) -> tuple[InputStartedUpdate, ...]:
-        if update.scope is None or update.scope.session_id != session_id:
+        if not update.scope.matches_session(session_id):
             return ()
         if self._pending:
             self._observe_floor(update.scope)
@@ -79,15 +73,14 @@ class QueueAttachment(ProjectionAttachment):
             else:
                 self._pending_starts.append(update)
             return ()
-        if (self.quarantined or self.scope is None
-                or not self.scope.relation(update.scope).current):
+        if self.quarantined or not self.scope.current_for(update.scope):
             return ()
         previous = self._last_started
         if (
             update.input_id is None
             or update.text is None
             or update.revision is None
-            or (previous is not None and previous.scope.relation(update.scope).current
+            or (previous is not None and previous.scope.current_for(update.scope)
                 and update.revision <= previous.revision)
         ):
             return ()

@@ -4,7 +4,7 @@ import os
 
 import pytest
 from agent_comms.acp_extension import (
-    AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, QueueScope,
+    AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope,
 )
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import Comms
@@ -19,7 +19,7 @@ def declared_scope(tmp_path):
     comms.messaging.initialize_private_initial_protocol()
     comms.registry.declare(Thread("source", frozenset(), str(tmp_path),
                                   process_identity=ProcessIdentity.capture(os.getpid())))
-    return comms, QueueScope("source", comms.registry.snapshot().admission_identity("source"), os.getpid())
+    return comms, LiveQueueScope("source", comms.registry.snapshot().admission_identity("source"), os.getpid())
 
 
 def test_capture_before_binding_is_refused(tmp_path):

@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
-    CursorAdvancedUpdate, CursorEnvelope, CursorScope, VerifiedCursorObservation, encode_updates,
+    CursorAdvancedUpdate, CursorEnvelope, LiveCursorScope, VerifiedCursorObservation, encode_updates,
 )
 from agent_comms.native_input_record import FullNativeExecution
 from agent_comms.native_runtime_input import CurrentNativeCursor
@@ -27,7 +27,7 @@ def response(session):
         owner_admission_generation=1, covered_seq=2, injected_seq=2, input_id="b" * 32,
         stage=FullNativeExecution, session_id="native-session", request_generation=1)
     fact = CursorAdvancedUpdate(CursorEnvelope(
-        CursorScope(session, "a" * 32, owner, 1234), 1, VerifiedCursorObservation(cursor)))
+        LiveCursorScope(session, "a" * 32, owner, 1234), 1, VerifiedCursorObservation(cursor)))
     return NewSessionResponse(sessionId=session, _meta=encode_updates(fact))
 
 

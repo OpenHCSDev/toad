@@ -112,12 +112,12 @@ class CommsUpdateConsumer(MroDispatch):
 
     @handles(InputStartedUpdate)
     def input_started(self, update: InputStartedUpdate) -> None:
-        if update.scope is None:
-            if update.input_id is None and self.session_id == self.agent.session_id:
+        if update.scope.unidentified_start(update.input_id):
+            if self.session_id == self.agent.session_id:
                 self.agent.events.publish(core_events.CommsUpdated(update, session_id=self.session_id))
-            return
-        starts = self.agent.queue_attachment.started(update, self.session_id)
-        self.agent._post_queue_view(starts)
+        elif update.scope.matches_session(self.session_id):
+            starts = self.agent.queue_attachment.started(update, self.session_id)
+            self.agent._post_queue_view(starts)
 
     @handles(CoordinationChangedUpdate)
     def coordination_changed(self, update: CoordinationChangedUpdate) -> None:

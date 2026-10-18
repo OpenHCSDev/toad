@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from acp.schema import NewSessionResponse
 from agent_comms.acp_extension import (
-    AvailableQueueProjection, QueueChangedUpdate, QueueItem, QueueScope, UnavailableQueueProjection,
+    AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, NoQueueScope, UnavailableQueueProjection,
     encode_updates,
 )
 from agent_comms.thread_identity import AdmissionIdentity, RecordedThreadIncarnation
@@ -20,7 +20,7 @@ from toad.jsonrpc import InvalidParams
 
 def response(session, next_owner=False):
     generation = 2 if next_owner else 1
-    scope = QueueScope(session, AdmissionIdentity(RecordedThreadIncarnation(session, 1000.0), generation), 1234)
+    scope = LiveQueueScope(session, AdmissionIdentity(RecordedThreadIncarnation(session, 1000.0), generation), 1234)
     items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
     return NewSessionResponse(
         sessionId=session, _meta=encode_updates(QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))))
@@ -112,7 +112,7 @@ async def test_a_failed_retired_send_does_not_roll_back_the_successors_draft_or_
             else:
                 await deliver(agent, {
                     "sessionUpdate": "session_info_update",
-                    "_meta": encode_updates(QueueChangedUpdate(None, 10, UnavailableQueueProjection()))},
+                    "_meta": encode_updates(QueueChangedUpdate(NoQueueScope(), 10, UnavailableQueueProjection()))},
                     session_id="beta")
             await ui.step()
             await ui.write_draft("successor draft")
