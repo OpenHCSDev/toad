@@ -1,6 +1,7 @@
 """ACP connection, admitted subprocess and attached-session lifetime."""
 from __future__ import annotations
 import asyncio
+import json
 import os
 from contextlib import ExitStack
 from contextvars import ContextVar
@@ -106,11 +107,19 @@ class AgentProcess(Client):
         try:
             async with self.ingress(agent).prompt():
                 require()
-                pending = agent.session.start_operation(
-                    self.rpc.prompt(agent.session_id, content, **metadata))
-                await asyncio.wait((written, pending), return_when=asyncio.FIRST_COMPLETED)
+                pending = asyncio.create_task(self.rpc.prompt(agent.session_id, content, **metadata))
+                flushed = asyncio.create_task(asyncio.wait(
+                    (written, pending), return_when=asyncio.FIRST_COMPLETED))
+                try:
+                    await asyncio.shield(flushed)
+                except asyncio.CancelledError:
+                    # The SDK may already have queued bytes. Keep Core's lock
+                    # until that write finishes or fails, even during retirement.
+                    await flushed
+                    pending.cancel()
+                    await asyncio.gather(pending, return_exceptions=True)
+                    raise
                 if not written.done():
-                    # A failed request before the SDK write must not strand admission.
                     return await pending
         finally:
             self._prompt_written.reset(token)
@@ -118,19 +127,23 @@ class AgentProcess(Client):
 
     def observe_stream(self, event: StreamEvent):
         """Keep the original frame with its SDK handler and acknowledge real writes."""
-        for session in tuple(self.sessions):
-            session.agent.log(f'[{event.direction.value}] {event.message}')
         if event.direction is StreamDirection.INCOMING:
             # SDK creates the handler task immediately after this observer; its
             # context captures this frame, independently of later notifications.
             self._incoming.set(event.message)
+            sender = 'agent'
         else:
+            sender = 'client'
             try:
                 written = self._prompt_written.get()
             except LookupError:
-                return
-            if not written.done():
-                written.set_result(None)
+                pass
+            else:
+                if not written.done():
+                    written.set_result(None)
+        line = f'[{sender}] {json.dumps(event.message)}'
+        for session in tuple(self.sessions):
+            session.agent.log(line)
 
     def recipient(self, session_id: str):
         members = tuple(member.agent for member in self.sessions if member.accepts_updates)
