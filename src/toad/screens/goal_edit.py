@@ -2,7 +2,7 @@
 
 from collections.abc import Awaitable, Callable
 
-from agent_comms.goals import Goal
+from agent_comms.goals import GoalDeclaration
 from agent_comms.mentions import MentionCandidate
 from textual import on
 from textual.app import ComposeResult
@@ -31,7 +31,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
 
     def __init__(
         self,
-        goal: Goal,
+        goal: GoalDeclaration,
         candidates: tuple[MentionCandidate, ...] = (),
         *,
         on_save: Callable[[str], Awaitable[None]],
@@ -50,7 +50,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
                 markup=False,
             )
             yield self.editor
-            if self.goal.progress:
+            if self.goal.shows_progress:
                 yield Static(
                     f"Progress (read-only): {self.goal.progress}",
                     markup=False,
@@ -62,7 +62,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
                 yield Button("Cancel", id="goal-cancel")
 
     def on_mount(self) -> None:
-        self.editor.text = self.goal.text
+        self.editor.text = self.goal.objective
 
     @handles(UserInputSubmitted)
     async def submit(self, event: CoreEventMessage) -> None:

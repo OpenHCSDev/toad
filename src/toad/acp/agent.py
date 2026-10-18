@@ -241,9 +241,10 @@ class Agent(AgentBase):
         result = await self.controller.request_owner("goal_history", goal_id=goal_id)
         return result["history"]
 
-    async def edit_goal(self, goal: Goal, text: str) -> Goal:
+    async def edit_goal(self, goal: GoalDeclaration, text: str) -> Goal:
+        revision = goal.captured.require_revision()
         result = await self.controller.request_owner(
-            "edit_goal", goal_id=goal.id, expected_revision=goal.revision, text=text
+            "edit_goal", goal_id=revision.id, expected_revision=revision.revision, text=text
         )
         return FieldCodec.decode(Goal, result["goal"])
 

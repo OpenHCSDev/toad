@@ -45,8 +45,8 @@ class HistoryInteraction(GoalInteraction):
     async def apply(cls, session):
         from toad.screens.goal_details import GoalDetails
         view = session.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent
-        history = await agent.get_goal_history(goal.id) if agent is not None else ()
+        revision, agent = view.goal_display.snapshot.captured.require_revision(), view.agent
+        history = await agent.get_goal_history(revision.id) if agent is not None else ()
         if not session.owns(agent):
             return
         details = GoalDetails(session, history=history)
@@ -100,7 +100,7 @@ class EditInteraction(GoalInteraction):
         from toad.screens.goal_edit import GoalEdit
         from toad.widgets.goal_text import goal_mention_candidates
         view = session.view
-        goal, agent = view.goal_display.snapshot.require(), view.agent
+        goal, agent = view.goal_display.snapshot, view.agent
         if agent is None:
             raise ValueError("Editing requires an agent-comms goal")
 
