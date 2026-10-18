@@ -570,6 +570,7 @@ class TargetTree(Vertical):
         """A sidebar viewport may retain its reader across a native relayout."""
 
     _member_reconciliation = None
+    _member_reconciliation_depth = 0
 
     @property
     def member_keys(self):
@@ -577,22 +578,25 @@ class TargetTree(Vertical):
 
     @property
     def row_reconciliation(self):
-        if self._member_reconciliation is None:
+        if not self._member_reconciliation_depth:
             raise RuntimeError("Row reconciliation requires an active member sync")
+        if self._member_reconciliation is None:
+            self._member_reconciliation = RowReconciliation(self)
         return self._member_reconciliation
 
     @contextmanager
     def reconcile_members(self):
-        previous = self._member_reconciliation
-        self._member_reconciliation = RowReconciliation(self) if previous is None else previous
+        self._member_reconciliation_depth += 1
         try:
             yield
         finally:
             try:
-                if previous is None:
+                if self._member_reconciliation_depth == 1 and self._member_reconciliation is not None:
                     self._member_reconciliation.finish()
             finally:
-                self._member_reconciliation = previous
+                self._member_reconciliation_depth -= 1
+                if not self._member_reconciliation_depth:
+                    self._member_reconciliation = None
 
     @property
     def reconciliation_tree(self):
