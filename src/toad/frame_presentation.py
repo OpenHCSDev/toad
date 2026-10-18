@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import asyncio
+from abc import ABC
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import partial
 from weakref import ref
 from typing import TYPE_CHECKING, ClassVar
@@ -254,6 +256,40 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
+@dataclass(frozen=True)
+class EffectPhase(ABC):
+    effect: Effect
+
+    def paint(self, owner, strip):
+        return owner.paint_effects(strip, owner.effect_frame(self.effect))
+
+    def keeps_arrivals(self, arrivals):
+        return arrivals
+
+    def on_new_arrival(self, owner, pages):
+        pass
+
+
+class EffectUnstarted(EffectPhase):
+    def paint(self, owner, strip):
+        owner.run_effect(self.effect)
+        return super().paint(owner, strip)
+
+
+class EffectRunning(EffectPhase):
+    pass
+
+
+class EffectFinished(EffectPhase):
+    def keeps_arrivals(self, arrivals):
+        return ()
+
+    def on_new_arrival(self, owner, pages):
+        for page in pages:
+            page.arrivals.clear()
+        owner.stop_effect(self.effect)
+
+
 class AnimationEffects[FrameT: Frame]:
     """A native widget whose effect uses the app clock and published visibility."""
 
@@ -284,9 +320,10 @@ class AnimationEffects[FrameT: Frame]:
         animation = self.effects.get(effect)
         return effect.final if animation is None else animation.frame()
 
-    def effect_running(self, effect: Effect[FrameT]) -> bool:
+    def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         animation = self.effects.get(effect)
-        return animation is not None and not animation.finished
+        return (EffectUnstarted(effect) if animation is None else
+                EffectFinished(effect) if animation.finished else EffectRunning(effect))
 
     def on_unmount(self) -> None:
         self.stop_effect()
