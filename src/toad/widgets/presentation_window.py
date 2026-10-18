@@ -188,16 +188,15 @@ class PageEnd(ABC):
         return velocity * self.step > 0
 
     async def walk(self, history, current, target, selected, start, rows_needed, limit):
-        index, boundary = start
-        while current() and rows_needed > 0 and limit > 0 and 0 <= index < len(history.pages):
+        for index in range(start[0], self.edge((-1, len(history.pages))), self.step):
+            if not current() or rows_needed <= 0 or limit <= 0:
+                break
             page = history.pages[index].prepared
+            boundary = start[1] if index == start[0] else self.boundary(page)
             rows_needed -= await page.prepare_rows(
                 history, current, target=target, selected=selected, end=self,
                 boundary=boundary, rows_needed=rows_needed, limit=limit)
             limit -= page.stop - page.start
-            index += self.step
-            if 0 <= index < len(history.pages):
-                boundary = self.boundary(history.pages[index].prepared)
         return rows_needed, limit
 
     def eviction_order(self, history):
