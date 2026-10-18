@@ -39,6 +39,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     tone = TurnBandColour
     DETAIL_ROWS = 8
+    DEFAULT_ID = "session-details"
     overview_text: var[str] = var("")
 
     DEFAULT_CSS = """
@@ -66,7 +67,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
             self.notifications, *(item for item in (history, delivery) if item is not None),
-            title="", collapsed=True, id="session-details",
+            title="", collapsed=True, id=self.DEFAULT_ID,
         )
 
     @handles(ThreadPresentationStatus)
@@ -108,9 +109,12 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         if self.is_mounted:
             self._refresh_summary()
 
+    def summary_title(self, row: ThreadStatusModel) -> str:
+        return row.summary[0]
+
     def _refresh_summary(self, *_args) -> None:
         row = self.status_source()
-        title = row.summary[0]
+        title = self.summary_title(row)
         # The status is already the disclosure's title, not a second row inside.
         detail = "\n".join(row.lines[1:])
         self.notifications.update(detail)
@@ -124,3 +128,24 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     def sync_turn(self) -> None:
         self._refresh_summary()
+
+
+class ConversationSessionDetails(SessionDetails):
+    """The same observed status row opens its thread from a conversation."""
+
+    DEFAULT_ID = None
+
+    def __init__(self, target, **kwargs) -> None:
+        self.target = target
+        super().__init__(**kwargs)
+
+    def summary_title(self, row: ThreadStatusModel) -> str:
+        return f"{self.target.name} · {super().summary_title(row)}"
+
+    async def _on_collapsible_title_toggle(self, event) -> None:
+        event.prevent_default()
+        event.stop()
+        context = self.app.selected_session.navigation_context
+        await self.app.thread_navigation.open(
+            owner_mode=context.owner_mode, project_path=context.project_path,
+            target=self.target.name)

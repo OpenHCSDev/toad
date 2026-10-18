@@ -124,7 +124,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
     async def accept_extension(self, edge, prepared) -> bool:
         if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
-        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+        prepared.configure(batch_size=len(prepared.fragments), newest=False)
+        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+                               arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
 
     @property

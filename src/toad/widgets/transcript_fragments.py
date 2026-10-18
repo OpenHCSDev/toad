@@ -251,6 +251,11 @@ class TranscriptFragment:
     shown: Shown = field(default_factory=Shown, kw_only=True)
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
+    @property
+    def arrival_position(self) -> int:
+        """The fragment keeps its identity within its prepared source."""
+        return id(self)
+
     _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
     _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
