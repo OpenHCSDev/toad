@@ -129,14 +129,11 @@ class ReaderPosition(ABC):
         """
         if not reached:
             return UnreachedPosition(self)
-        return self.unheld(window)
-
-    def unheld(self, window: "HistoryWindow") -> "ReaderPosition":
-        return self if window.history_change is not None else UnheldPosition()
+        return self.without_holder(window)
 
     def without_holder(self, window: "HistoryWindow") -> "ReaderPosition":
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
-        return self.unheld(window)
+        return self if window.history_change is not None else UnheldPosition()
 
     def kept(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
@@ -357,11 +354,9 @@ class UnreachedPosition(ReaderPosition):
     def left_tail(self, window: "HistoryWindow") -> ReaderPosition:
         return UnheldPosition()
 
-    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition | None:
+    def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
         return self.position.placed(window, reached) if reached else self
 
-    def without_holder(self, window: "HistoryWindow") -> ReaderPosition:
-        return self.unheld(window)
 
 
 class HeldReaderDestination:

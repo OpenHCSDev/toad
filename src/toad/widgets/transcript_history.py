@@ -96,13 +96,13 @@ class PageEnd(PageWalk):
                            boundary, max(1, missing), history.fragment_limit)
 
     def read_rows(self, window, history) -> int:
-        return window.lookahead.read_rows(history, self.older)
+        return window.lookahead.read_rows(history, self)
 
     def accepts_result(self, demand) -> bool:
-        return demand.accepts_result(self.older)
+        return demand.accepts_result(self)
 
     def prepare_ahead(self, demand, lookahead, history, page) -> None:
-        demand.prepare_ahead(lookahead, history, page, self.older)
+        demand.prepare_ahead(lookahead, history, page, self)
 
 
 class OlderEnd(Older, PageEnd):
@@ -120,6 +120,25 @@ class OlderEnd(Older, PageEnd):
 
     def trim_older(self, history) -> bool:
         return history.follows_source_tail
+
+    def accepts_velocity(self, velocity: float) -> bool:
+        return velocity < 0
+
+    def rows_toward(self, runway) -> int:
+        return runway.above
+
+    def accepts_destination(self) -> bool:
+        return True
+
+    def visible_more(self, history) -> bool:
+        return history.has_older
+
+    def at_boundary(self, window) -> bool:
+        return window.scroll_y <= 0 and window.scroll_target_y <= 0
+
+    def leave_tail(self, window) -> None:
+        if window.follows_tail:
+            window.release_anchor()
 
 
 class NewerEnd(Newer, PageEnd):
@@ -140,6 +159,24 @@ class NewerEnd(Newer, PageEnd):
 
     def trim_older(self, history) -> bool:
         return True
+
+    def accepts_velocity(self, velocity: float) -> bool:
+        return velocity > 0
+
+    def rows_toward(self, runway) -> int:
+        return runway.below
+
+    def accepts_destination(self) -> bool:
+        return False
+
+    def visible_more(self, history) -> bool:
+        return history.has_newer
+
+    def at_boundary(self, window) -> bool:
+        return window.scroll_y >= window.max_scroll_y and window.scroll_target_y >= window.max_scroll_y
+
+    def leave_tail(self, window) -> None:
+        pass
 
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):

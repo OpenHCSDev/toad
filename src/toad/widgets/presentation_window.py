@@ -110,8 +110,6 @@ class Runway:
     above: int
     below: int
 
-    def rows_toward(self, older: bool) -> int:
-        return self.above if older else self.below
 
 
 class PreparationDemand(ABC):
@@ -123,18 +121,18 @@ class PreparationDemand(ABC):
     def moved(self, travel: float, elapsed: float) -> "PreparationDemand":
         return MovingPreparation(travel / elapsed)
 
-    def accepts_result(self, older: bool) -> bool:
+    def accepts_result(self, end) -> bool:
         """A running read may finish after input settles; it starts no next read."""
         return True
 
-    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
+    def read_rows(self, preparation, history, end, runway: Runway) -> int:
         """Stationary input never requests another source page."""
         return 0
 
     def source_read(self) -> None:
         """Only a bounded destination counts the pages its request read."""
 
-    def prepare_ahead(self, preparation, history, page, older: bool) -> None:
+    def prepare_ahead(self, preparation, history, page, end) -> None:
         """Only measured movement speculates beyond its current destination."""
 
     def destination_painted(self) -> "PreparationDemand":
@@ -161,21 +159,21 @@ class MovingPreparation(PreparationDemand):
     def rows(self, horizon: float) -> float:
         return self.velocity * horizon
 
-    def accepts_result(self, older: bool) -> bool:
-        return older == (self.velocity < 0)
+    def accepts_result(self, end) -> bool:
+        return end.accepts_velocity(self.velocity)
 
-    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
-        if not self.accepts_result(older):
+    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+        if not self.accepts_result(end):
             return 0
         ahead = preparation.ahead_rows(preparation.window.outer_size.height)
-        return max(0, ceil(ahead) - runway.rows_toward(older))
+        return max(0, ceil(ahead) - end.rows_toward(runway))
 
-    def prepare_ahead(self, preparation, history, page, older: bool) -> None:
-        if self.accepts_result(older):
+    def prepare_ahead(self, preparation, history, page, end) -> None:
+        if self.accepts_result(end):
             # The existing runtime owns the single decoded/prepared result.
             # This native worker only waits for that original bounded work;
             # foreground paging shares it, without a page store in the widget.
-            history.run_worker(partial(history._reader().prepare_next, page, older),
+            history.run_worker(partial(history._reader().prepare_next, page, end),
                                group="transcript-read-ahead", exclusive=True,
                                exit_on_error=False)
 
@@ -193,15 +191,15 @@ class DestinationPreparation(PreparationDemand):
         # An explicit reversal immediately replaces the burst.
         return super().moved(travel, elapsed) if travel < 0 else self
 
-    def accepts_result(self, older: bool) -> bool:
+    def accepts_result(self, end) -> bool:
         # A newer destination supersedes older work through its source snapshot.
-        return older
+        return end.accepts_destination()
 
-    def read_rows(self, preparation, history, older: bool, runway: Runway) -> int:
-        if not older:
+    def read_rows(self, preparation, history, end, runway: Runway) -> int:
+        if not self.accepts_result(end):
             return 0
-        edge = history.pages[0].prepared
-        if not edge.can_extend(older) and not preparation.budget.can_read_destination(self.pages_read):
+        edge = end.edge(history.pages).prepared
+        if not end.can_extend(edge) and not preparation.budget.can_read_destination(self.pages_read):
             return 0
         return max(0, self.target_rows - history.drawn_extent[0])
 
@@ -246,21 +244,13 @@ class DirectionalPreparation:
     def request_boundary(self, travel: float) -> bool:
         """Measure reader input while its lazy source edge has no native travel."""
         window = self.window
-        older = travel < 0
-        boundary = (
-            window.scroll_y <= 0 and window.scroll_target_y <= 0
-            if older else
-            window.scroll_y >= window.max_scroll_y and window.scroll_target_y >= window.max_scroll_y
-        )
-        source_available = any(
-            history.has_older if older else history.has_newer for history in window.histories
-        )
-        if not boundary or not source_available:
+        from toad.widgets.transcript_history import OlderEnd, NewerEnd
+        end = OlderEnd() if travel < 0 else NewerEnd()
+        if not end.at_boundary(window) or not any(end.visible_more(h) for h in window.histories):
             return False
         self.requested(travel)
         window._schedule_settle()
-        if older and window.follows_tail:
-            window.release_anchor()
+        end.leave_tail(window)
         window.request_preparation()
         return True
 
@@ -324,11 +314,11 @@ class DirectionalPreparation:
         # destination items may exceed the nominal working-set item budget.
         return max(budget.item_limit(0), viewport_rows)
 
-    def read_rows(self, history, older: bool) -> int:
-        if not (history.has_older if older else history.has_newer):
+    def read_rows(self, history, end) -> int:
+        if not end.visible_more(history):
             return 0
         runway = self.runway(history)
-        return 0 if runway is None else self.demand.read_rows(self, history, older, runway)
+        return 0 if runway is None else self.demand.read_rows(self, history, end, runway)
 
     def runway(self, history) -> Runway | None:
         """Published rows above and below this viewport; None while the history is off screen."""
