@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
+from functools import cached_property
 from pathlib import Path
 from typing import Annotated
-from weakref import WeakMethod, WeakSet, ref
+from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
@@ -24,6 +25,10 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
+
+    def subscribers(self, stream: CoreEventStream):
+        for event_type in type(self).__mro__:
+            yield from stream.subscriptions.get(event_type, ())
 
     def can_replace(self, event: CoreEvent) -> bool:
         """Only declared coalescing invalidations replace queued publications."""
@@ -204,9 +209,10 @@ class ThreadRowsChanged(CoreEvent):
     root: str
     presentations: Mapping[str, ThreadPresentation]
 
-    def affects(self, scope: tuple[str, str]) -> bool:
-        root, thread = scope
-        return root == self.root and thread in self.presentations
+    def subscribers(self, stream: CoreEventStream):
+        for thread in self.presentations:
+            yield from stream.thread_subscriptions.get((self.root, thread), ())
+        yield from super().subscribers(stream)
 
 
 @dataclass(frozen=True)
@@ -399,25 +405,30 @@ class Subscription:
         except TypeError:
             self._listener = lambda: listener
 
-    def publish(self, event: CoreEvent) -> None:
+    @cached_property
+    def bucket(self) -> WeakSet[Subscription]:
+        return self.stream.subscriptions.setdefault(self.event_type, WeakSet())
+
+    def listeners(self):
+        """The resource supplies its live receiver; only the stream publishes."""
         listener = self._listener()
         if listener is None:
             self.close()
         elif self.active:
-            listener(event, self)
+            yield listener
 
     @property
     def active(self) -> bool:
-        return self in self.stream.subscriptions[self.event_type]
+        return self in self.bucket
 
     def accepts(self, original: Subscription) -> bool:
         return self is original and self.active
 
-    def observed_threads(self, root: str) -> tuple[str, ...]:
-        return ()
+    def observes_root(self, root: str) -> bool:
+        return False
 
     def close(self) -> None:
-        self.stream.subscriptions[self.event_type].discard(self)
+        self.bucket.discard(self)
         self.stream.subscriptions_changed(self)
 
     def __enter__(self) -> Subscription:
@@ -433,12 +444,12 @@ class ThreadChangeSubscription(Subscription):
 
     scope: tuple[str, str] = field(kw_only=True)
 
-    def observed_threads(self, root: str) -> tuple[str, ...]:
-        return (self.scope[1],) if root == self.scope[0] else ()
+    @cached_property
+    def bucket(self) -> WeakSet[Subscription]:
+        return self.stream.thread_subscriptions.setdefault(self.scope, WeakSet())
 
-    def publish(self, event: ThreadRowsChanged) -> None:
-        if event.affects(self.scope):
-            super().publish(event)
+    def observes_root(self, root: str) -> bool:
+        return root == self.scope[0]
 
 
 class CoreEventStream:
@@ -449,6 +460,7 @@ class CoreEventStream:
         self._publisher = ref(publisher)
         self.subscriptions_changed = subscriptions_changed
         self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
+        self.thread_subscriptions: WeakValueDictionary[tuple[str, str], WeakSet[Subscription]] = WeakValueDictionary()
 
     @property
     def publisher(self) -> object:
@@ -461,21 +473,17 @@ class CoreEventStream:
                   listener: Callable[[CoreEvent, Subscription], object], *,
                   factory: Callable[..., Subscription] = Subscription) -> Subscription:
         subscription = factory(self, event_type, listener)
-        self.subscriptions.setdefault(event_type, WeakSet()).add(subscription)
+        subscription.bucket.add(subscription)
         self.subscriptions_changed(subscription)
         return subscription
 
     def observed_threads(self, root: str) -> frozenset[str]:
-        return frozenset(name
-                         for subscription in self.subscriptions.get(ThreadRowsChanged, ())
-                         for name in subscription.observed_threads(root))
+        return frozenset(thread for (source, thread), bucket in self.thread_subscriptions.items()
+                         if source == root and bucket)
 
     def publish(self, event: CoreEvent) -> None:
         # Snapshot matching resources before callbacks can subscribe or close.
-        subscriptions = tuple(
-            subscription
-            for event_type in type(event).__mro__
-            for subscription in self.subscriptions.get(event_type, ())
-        )
+        subscriptions = tuple(event.subscribers(self))
         for subscription in subscriptions:
-            subscription.publish(event)
+            for listener in subscription.listeners():
+                listener(event, subscription)
