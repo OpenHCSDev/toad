@@ -372,5 +372,3 @@ class PreparationRuntime:
         self._ready.clear()
         self.retained_bytes = 0
         await self.renderer.aclose()
-
-

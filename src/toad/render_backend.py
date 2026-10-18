@@ -258,4 +258,3 @@ class PreparedRenderer(Renderer):
     async def aclose(self) -> None:
         await self._close_submissions()
         await self.runtime.aclose()
-
