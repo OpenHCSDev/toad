@@ -933,7 +933,10 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
 
     def arriving_fragments(self, followed_end: bool, prepared: PreparedTranscriptPage) -> tuple[TranscriptFragment, ...]:
         """Only an append beyond the followed end can supply arriving rows."""
-        return prepared.fragments if followed_end and self._source_state.rows_arrive else ()
+        if not followed_end or not self._source_state.rows_arrive:
+            return ()
+        drawn = tuple(fragment.events for fragment in self.fragments_in_range)
+        return tuple(fragment for fragment in prepared.fragments if fragment.events not in drawn)
 
     def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Bind the arrived source range to its current pages, on one history clock."""
