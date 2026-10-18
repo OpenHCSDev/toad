@@ -161,7 +161,7 @@ class GoalBar(VerticalGroup):
         goal = self.goal_display.snapshot
         progress_text = goal.progress
         self.display = self.goal_display.visible
-        if not self.display:
+        if not self.goal_display.visible:
             self._end_resize()
         self._update_goal_text()
         if self.is_attached:
@@ -204,7 +204,7 @@ class GoalBar(VerticalGroup):
         self.call_after_refresh(self.update_document_height)
 
     def begin_separator_resize(self, event: events.MouseDown) -> None:
-        if event.button != 1 or self.collapsed or not self.display or not self.goal_display.snapshot.shows_document:
+        if event.button != 1 or self.collapsed or not self.goal_display.visible or not self.goal_display.snapshot.shows_document:
             return
         throbber = self._throbber
         own_edge = bool(self.styles.border_top[0]) and event.screen_y == self.region.y
@@ -256,7 +256,7 @@ class GoalBar(VerticalGroup):
         self.remove_class("-resize-hover", "-resizing")
 
     def _update_control_layout(self) -> None:
-        if not self.is_attached or not self.display or not self.content_size.width:
+        if not self.is_attached or not self.goal_display.visible or not self.content_size.width:
             return
         controls = self.query_one(".goal-controls")
         widths = [
@@ -287,7 +287,7 @@ class GoalBar(VerticalGroup):
         # Conversation resize also reaches an absent goal or an outage header
         # without a document. Querying that hidden document's geometry forces
         # a full compositor map after the visible viewport was already laid out.
-        if self.is_attached and self.display and self.goal_display.snapshot.shows_document and not self.collapsed:
+        if self.is_attached and self.goal_display.snapshot.shows_document and not self.collapsed:
             document = self.query_one(".goal-document", VerticalScroll)
             width = document.content_size.width
             height = (
