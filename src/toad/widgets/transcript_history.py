@@ -626,6 +626,7 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         changes = [(fragment, shown) for fragment, shown in changes if shown != fragment.shown]
         if not changes:
             return
+        changed = {id(fragment) for fragment, _shown in changes}
         width, theme = self.line_width, self.app.colours.line_theme
         in_range = {id(fragment) for fragment in self.fragments_in_range}
         drawn = [(fragment, shown) for fragment, shown in changes if id(fragment) in in_range and width > 0]
@@ -637,8 +638,8 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         async with self.window.preserve_history(root=self):
             for fragment, shown in changes:
                 TranscriptLinesRenderTask.show(self, fragment, shown, ready.get(id(fragment)))
-            for page in [page for page in self.pages if not ready.keys().isdisjoint(map(id, page.fragments_in_range))]:
-                page.range_changed()  # Only a page drawing a changed fragment measures again.
+            for page in [page for page in self.pages if not changed.isdisjoint(map(id, page.fragments_in_range))]:
+                page.range_changed()  # A page holding a changed fragment measures again.
         self.window.check_follow()
 
     async def toggle_details(self, fragment: TranscriptFragment) -> None:
