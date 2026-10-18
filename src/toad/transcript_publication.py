@@ -8,7 +8,7 @@ from contextlib import AsyncExitStack, asynccontextmanager
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeGuard
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from agent_comms.transcript_events import TranscriptCoverage
@@ -418,7 +418,7 @@ class CommitPublication(CanonicalSourcePublication):
 class ViewBinding:
     """The native view's binding and its view-dependent operations."""
 
-    def matches(self, view):
+    def matches(self, view: object) -> TypeGuard[Conversation]:
         return False
 
     def bound_to(self, view):
@@ -492,7 +492,7 @@ class BoundView(ViewBinding):
     def __init__(self, view: Conversation):
         self.view, self.window, self.contents = view, view.window, view.contents
 
-    def matches(self, view):
+    def matches(self, view: object) -> TypeGuard[Conversation]:
         return self.view is view
 
     def bound_to(self, view):
