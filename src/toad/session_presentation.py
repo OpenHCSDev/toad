@@ -391,11 +391,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         self.state = SessionViewState.capture(conversation)
         await self.remove_native_tree()
 
-    def capture_reader(self) -> None:
-        """The tab is being left: its window keeps the reader's place until it is drawn again."""
-        if (conversation := self.widget) is not None:
-            conversation.window.park_reader(conversation.contents)
-
     def external_transcript_changed(self) -> None:
         """Refresh the owned CLI view; an unbuilt view reads its source on attach."""
         if self.widget is not None:

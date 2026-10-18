@@ -56,7 +56,7 @@ from toad.widgets.transcript_lines import (
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition, ReaderPosition
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
@@ -522,7 +522,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         if target.line_width <= 0:
             return
         _, limit = window.latest_limits(self.budget)
-        position = window.reader_position or ReaderPosition.of(window)
+        position = window.reader_position
         rows_needed, _ = await position.prepare(
             self, current, target, selected, rows_needed, limit,
         )
