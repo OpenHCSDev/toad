@@ -17,7 +17,7 @@ from agent_comms.ui_model.observation import NotPublished, Published, Transcript
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
-from toad.widgets.history_anchor import HeldReaderDestination, UnheldPosition
+from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -592,9 +592,10 @@ class BoundView(ViewBinding):
                     and view.screen is screen and screen.is_current
                     and view.query_ancestor(SessionView) is source
                     and view.app.workspace_sessions.owns(source))
-        for history in owner.histories:
-            if not await history.restore_reader_ranges(position.ranges, current):
-                return
+        if position is not None:
+            for history in owner.histories:
+                if not await history.restore_reader_ranges(position.ranges, current):
+                    return
         if not current():
             return
         if first_history is not None:
@@ -693,7 +694,7 @@ class BoundView(ViewBinding):
     def reset_reader(self):
         from toad.widgets.conversation import Window
         if (window := self.view.query_one_optional(Window)) is not None:
-            window.reader_position = UnheldPosition()
+            window.reader_position = None
 
 
 class TranscriptPresentation:
