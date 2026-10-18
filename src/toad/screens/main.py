@@ -42,7 +42,6 @@ from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
-from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.navigation_target import FeedTarget, DirectTarget
@@ -257,12 +256,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.set_reactive(MainScreen.project_path, project_path)
         self._agent = agent
         self._agent_session_id = agent_session_id
-        from toad.thread_identity import NoThreadIdentity, LocalThreadIdentity
-        self._identity = (
-            NoThreadIdentity()
-            if agent is not None and agent.identity == "agent-comms.openhcs.dev"
-            else LocalThreadIdentity(session_thread_name(project_path))
-        )
+        from toad.thread_identity import SessionIdentity
+        self._identity = SessionIdentity.for_thread(agent_session_id or "", None)
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
@@ -271,18 +266,22 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.presentation = OperationalSessionPresentation()
 
     @classmethod
-    def from_thread(cls, project: Path, root: str, target: str,
+    def from_thread(cls, project: Path, root: str, target,
                     agent: AgentDefinition | None = None) -> "MainScreen":
-        screen = cls(project, agent, agent_session_id=target)
-        from toad.thread_identity import ThreadIdentity
-        from agent_comms.thread_identity import UnrecordedThreadIncarnation
-        screen._identity = ThreadIdentity(UnrecordedThreadIncarnation(target), root)
+        screen = cls(project, agent, agent_session_id=target.name)
+        screen.bind_thread(target, root)
         return screen
+
+    def bind_thread(self, owner, root: str) -> None:
+        from toad.thread_identity import ThreadIdentity
+        with self.changing_identity():
+            self._identity = ThreadIdentity(owner, root)
 
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
-        screen = cls.from_thread(request.project, request.root, request.target,
-                                 origin.source._agent or app.agent_data)
+        # The request has only a name; bind the wire after its metadata read.
+        screen = cls(request.project, origin.source._agent or app.agent_data,
+                     agent_session_id=request.target)
         screen.content = NavigatedOpeningContent()
         return screen
 

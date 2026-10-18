@@ -85,7 +85,7 @@ class ThreadNavigation(DeclaredFamily, affix="ThreadNavigation"):
         """A named launch retains the same acquired identity as a sidebar open."""
         from toad.screens.main import MainScreen
 
-        screen = MainScreen.from_thread(self.project, self.root, self.thread.name, app.agent_data)
+        screen = MainScreen.from_thread(self.project, self.root, self.thread.incarnation, app.agent_data)
         self.bind(screen)
         return screen
 

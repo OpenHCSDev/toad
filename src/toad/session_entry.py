@@ -104,10 +104,6 @@ class NativeSessionEntry(SessionEntry):
 
     def __call__(self) -> MainScreen:
         source = self.factory()
-        if self.original is not None:
-            from toad.thread_identity import ThreadIdentity
-            root, owner = self.original
-            source._identity = ThreadIdentity(owner, root)
         self.details.bind_initial_identity(source._agent_session_id)
         return source
 
