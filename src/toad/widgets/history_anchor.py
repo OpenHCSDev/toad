@@ -14,10 +14,8 @@ from textual.widget import Widget
 from toad.widget_view import WorkspaceHosted
 from textual import events
 from textual.containers import VerticalScroll
-from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
+from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget, OlderEnd, NewerEnd
 from toad.transcript_state import LatestViewportRequest
-from agent_comms.transcripts import TranscriptCursor
-from collections import deque
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
@@ -26,162 +24,12 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Contents
 
 
-class PageEnd(ABC):
-    """One end owns page traversal, source reads and eviction at that edge."""
-
-    step: int
-    accepts_destination = True
-
-    def fresh(self, history) -> bool:
-        return False
-
-    def accepts_velocity(self, velocity: float) -> bool:
-        return velocity * self.step > 0
-
-    async def walk(self, history, current, target, selected, start, rows_needed, limit):
-        index, boundary = start
-        while current() and rows_needed > 0 and limit > 0 and 0 <= index < len(history.pages):
-            page = history.pages[index].prepared
-            rows_needed -= await page.prepare_rows(
-                history, current, target=target, selected=selected, end=self,
-                boundary=boundary, rows_needed=rows_needed, limit=limit)
-            limit -= page.stop - page.start
-            index += self.step
-            if 0 <= index < len(history.pages):
-                boundary = self.boundary(history.pages[index].prepared)
-        return rows_needed, limit
-
-    def eviction_order(self, history):
-        return OlderEnd(), NewerEnd()
-
-    def can_evict(self, overlay_visible) -> bool:
-        return True
-
-    def leave_tail(self, window) -> None:
-        pass
-
-    def trim(self, view, count) -> None:
-        self.trim_range(view.prepared, count)
-        view.range_changed()
 
 
-class OlderEnd(PageEnd):
-    step = -1
-    pop = staticmethod(deque.popleft)
-    append = staticmethod(deque.appendleft)
-
-    def boundary(self, page):
-        return len(page.fragments)
-
-    def indices(self, page, boundary):
-        return range(boundary - 1, -1, -1)
-
-    def can_extend(self, page):
-        return page.start > 0
-
-    def has_more(self, source, page):
-        return page.has_older
-
-    def adjacent(self, page):
-        return PageRequest(before=page.before)
-
-    def advance_empty(self, edge, staged):
-        edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
-
-    def edge(self, pages):
-        return pages[0]
-
-    def edge_boundary(self, edge, local, staged):
-        return edge.prepared.start if local else len(staged.fragments)
-
-    def before(self, history, edge):
-        return edge
-
-    def eviction_order(self, history):
-        return super().eviction_order(history) if history.follows_source_tail else (NewerEnd(), self)
-
-    def eviction_fragments(self, page):
-        return page.fragments_in_range
-
-    def can_evict(self, overlay_visible):
-        return not overlay_visible
-
-    def trim_range(self, page, count):
-        page.start += count
-
-    def rows_toward(self, runway):
-        return runway.above
-
-    def visible_more(self, history):
-        return history.has_older
-
-    def at_boundary(self, window):
-        return window.scroll_y <= 0 and window.scroll_target_y <= 0
-
-    def leave_tail(self, window):
-        window.release_anchor()
 
 
-class NewerEnd(PageEnd):
-    step = 1
-    accepts_destination = False
-    pop = staticmethod(deque.pop)
-    append = staticmethod(deque.append)
-
-    def boundary(self, page):
-        return 0
-
-    def indices(self, page, boundary):
-        return range(boundary, len(page.fragments))
-
-    def can_extend(self, page):
-        return page.stop < len(page.fragments)
-
-    def has_more(self, source, page):
-        return page.has_newer or page.after != source.through
-
-    def adjacent(self, page):
-        return PageRequest(after=page.after)
-
-    def advance_empty(self, edge, staged):
-        edge.page = replace(edge.page, after=staged.page.after, has_newer=staged.page.has_newer)
-
-    def fresh(self, history):
-        return not history.has_newer and history.follows_source_tail
-
-    def edge(self, pages):
-        return pages[-1]
-
-    def edge_boundary(self, edge, local, staged):
-        return edge.prepared.stop if local else 0
-
-    def before(self, history, edge):
-        return history.newer
-
-    def eviction_fragments(self, page):
-        return reversed(page.fragments_in_range)
-
-    def trim_range(self, page, count):
-        page.stop -= count
-
-    def rows_toward(self, runway):
-        return runway.below
-
-    def visible_more(self, history):
-        return history.has_newer
-
-    def at_boundary(self, window):
-        return window.scroll_y >= window.max_scroll_y and window.scroll_target_y >= window.max_scroll_y
 
 
-@dataclass(frozen=True)
-class PageRequest:
-    before: TranscriptCursor | None = None
-    after: TranscriptCursor | None = None
-
-    @property
-    def older(self) -> bool:
-        return self.before is not None
 
 
 class ReaderPosition(ABC):

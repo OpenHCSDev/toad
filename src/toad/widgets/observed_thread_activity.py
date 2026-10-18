@@ -5,16 +5,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from functools import partial
 
 from agent_comms.coordination_errors import CoordinationReadUnavailable
 from agent_comms.thread_presentation import ThreadPresentation
-from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.status import ThreadStatusModel
 from agent_comms.ui_model.observation import UnreadableHistory
 from textual.message import Message
 from textual.reactive import var
 from textual.widget import Widget
 from toad.core.events import ThreadRowsChanged
+from toad.core_event_carrier import CoreEventReceiver, ThreadCallbackSubscription
 
 
 class StatusThread(ABC):
@@ -27,7 +28,7 @@ class StatusThread(ABC):
         """Both the session binding and Comms service supply absolute wire roots."""
         observed = access.observed_service
         if observed is not None and root == observed.root:
-            return LocalStatusThread(name)
+            return LocalStatusThread(root, name)
         return ForeignStatusThread(root, name)
 
     @abstractmethod
@@ -36,8 +37,8 @@ class StatusThread(ABC):
     def refresh(self, view: ThreadStatusOwner) -> None:
         view.thread_activity.bind(self)
 
-    def rows_changed(self, activity: ObservedThreadActivity, changes: Changes[str]) -> None:
-        """Only a local source consumes the observed rows."""
+    def observe(self, activity: ObservedThreadActivity) -> None:
+        """Only a local source acquires a scoped observation subscription."""
 
 
 @dataclass(frozen=True)
@@ -53,14 +54,18 @@ class NoStatusThread(StatusThread):
 
 @dataclass(frozen=True)
 class LocalStatusThread(StatusThread):
+    root: Path
     name: str
 
     def bind(self, activity: ObservedThreadActivity) -> None:
         activity.show(activity.app.coordination_access.thread_status.open(self.name))
 
-    def rows_changed(self, activity: ObservedThreadActivity, changes: Changes[str]) -> None:
-        if self.name in changes.changed or self.name in changes.added or self.name in changes.removed:
-            self.bind(activity)
+    def observe(self, activity: ObservedThreadActivity) -> None:
+        access = activity.app.coordination_access
+        activity.observe_core_callback(
+            access.events, ThreadRowsChanged, activity.status_changed,
+            factory=partial(ThreadCallbackSubscription,
+                            scope=(str(self.root), self.name)))
 
 
 @dataclass(frozen=True)
@@ -120,7 +125,7 @@ class NoActivityView(ActivityView):
         return False
 
 
-class ObservedThreadActivity(Widget, ActivityView):
+class ObservedThreadActivity(CoreEventReceiver, Widget, ActivityView):
     """The composed status row; observation never starts or settles an ACP turn."""
 
     row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)
@@ -133,18 +138,18 @@ class ObservedThreadActivity(Widget, ActivityView):
         super().__init__(*args, **kwargs)
 
     def on_mount(self) -> None:
-        self.app.coordination_access.thread_status.rows.subscribe(self.rows_changed)
-
-    def on_unmount(self) -> None:
-        self.app.coordination_access.thread_status.rows.unsubscribe(self.rows_changed)
+        self.thread.observe(self)
+        self.thread.bind(self)
 
     def bind(self, thread: StatusThread) -> None:
         if thread != self.thread:
+            self.retire_core_observations(self.app.coordination_access.events)
             self.thread = thread
+            thread.observe(self)
             thread.bind(self)
 
-    def rows_changed(self, changes: Changes[str]) -> None:
-        self.thread.rows_changed(self, changes)
+    def status_changed(self, event: ThreadRowsChanged) -> None:
+        self.thread.bind(self)
 
     def show(self, row: ThreadStatusModel) -> None:
         self.row = row

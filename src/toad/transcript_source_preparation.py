@@ -14,7 +14,8 @@ from toad.resource_release import ResourceRelease
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
-from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition, PageRequest, OlderEnd, NewerEnd
+from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
+from toad.widgets.presentation_window import PageRequest, OlderEnd, NewerEnd
 
 if TYPE_CHECKING:
     from collections.abc import Callable

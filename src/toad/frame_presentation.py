@@ -15,7 +15,7 @@ from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
 from ui_theme.clock import Animation
-from ui_theme.effects import Effect, Fade, Frame
+from ui_theme.effects import Effect, Fade, Frame, Mix
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
@@ -254,7 +254,7 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
-class Animated[FrameT: Frame](Widget):
+class AnimationEffects[FrameT: Frame]:
     """A native widget whose effect uses the app clock and published visibility."""
 
     text_fades: ClassVar[tuple[Fade, ...]] = ()
@@ -284,6 +284,10 @@ class Animated[FrameT: Frame](Widget):
         animation = self.effects.get(effect)
         return effect.final if animation is None else animation.frame()
 
+    def effect_running(self, effect: Effect[FrameT]) -> bool:
+        animation = self.effects.get(effect)
+        return animation is not None and not animation.finished
+
     def on_unmount(self) -> None:
         self.stop_effect()
 
@@ -298,13 +302,10 @@ class Animated[FrameT: Frame](Widget):
                 self.effects[effect] = self.app.colours.clock.start(effect, self)
         self.refresh()
 
-    def paint_effects(self, strip: Strip) -> Strip:
-        for effect in self.text_fades:
-            strip = self.app.colours.paint_rising(self.effect_frame(effect), strip)
+    def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
+        for frame in (*frames, *(self.effect_frame(effect) for effect in self.text_fades)):
+            strip = self.app.colours.paint_rising(frame, strip)
         return strip
-
-    def render_line(self, y: int, paint: PaintState) -> Strip:
-        return self.paint_effects(super().render_line(y, paint))
 
     @property
     def animation_visible(self) -> bool:
@@ -319,3 +320,10 @@ class Animated[FrameT: Frame](Widget):
 
     def repaint(self) -> None:
         self.refresh()
+
+
+class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget):
+    """A widget whose own rendered rows receive its declared text fades."""
+
+    def render_line(self, y: int, paint: PaintState) -> Strip:
+        return self.paint_effects(super().render_line(y, paint))

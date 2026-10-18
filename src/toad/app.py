@@ -447,11 +447,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             access.write(selected, mark)
 
         async def mark():
-            try:
-                await asyncio.to_thread(acknowledge)
-            except (OSError, ValueError):
-                # Source replacement or deletion is resolved by the next snapshot.
-                return
+            await asyncio.to_thread(acknowledge)
 
         return mark()
 
@@ -481,6 +477,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
+        self.mark_visible()
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:

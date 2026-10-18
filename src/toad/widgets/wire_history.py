@@ -34,9 +34,10 @@ class WireHistory(VisibleReadMarking, LineHistory):
     page_buffer = WirePageBuffer
 
     def __init__(self, prepared: PreparedTranscriptPage | None = None,
-                 loader: WireSource | None = None, *, view) -> None:
+                 loader: WireSource | None = None, *, view, notification_view) -> None:
         self.view = view
-        super().__init__(PreparedWirePage.empty(WirePage.unread()) if prepared is None else prepared, loader)
+        super().__init__(PreparedWirePage.empty(WirePage.unread()) if prepared is None else prepared,
+                         loader, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
 
@@ -123,7 +124,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
     async def accept_extension(self, edge, prepared) -> bool:
         if edge.prepared.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
-        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+        prepared.configure(batch_size=len(prepared.fragments))
+        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+                               arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
 
     @property

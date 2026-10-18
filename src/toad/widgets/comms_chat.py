@@ -88,10 +88,6 @@ class HistoryLoading(ConversationBlock, Static):
     """Channel history loading is an atomic conversation block."""
 
 
-class ChannelActivityTray(ConversationBlock, containers.VerticalGroup):
-    """Channel activity has one declared navigation boundary."""
-
-
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
@@ -115,16 +111,16 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
-        self.message_history = WireHistory(view=self)
+        self.message_contents = Contents(id="contents")
+        self.message_history = WireHistory(view=self, notification_view=self.message_contents)
 
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with Contents(id="contents"):
+                with self.message_contents:
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
-                    yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation_kind.compose_activity(self)
@@ -270,7 +266,7 @@ class CommsChatView(Conversation):
             return
         if not self.query_ancestor(SessionView).is_current:
             return
-        history.check_notifications()
+        history.notification_view.check_notifications()
         return history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:

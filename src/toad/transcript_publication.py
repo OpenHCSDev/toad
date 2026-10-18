@@ -143,26 +143,6 @@ class TranscriptPublication(ABC):
     async def publish_applied(self) -> bool: ...
 
 
-class HandlingPublication(TranscriptPublication):
-    """Render original recipient outcomes on existing original source bodies."""
-
-    async def publish_applied(self) -> bool:
-        from toad.widgets.wire_message_handling import WireMessageHandling
-
-        bodies = WireMessageHandling.within(self.contents)
-        if not self.owner.readable:
-            return True
-        references = WireMessageHandling.references_in(bodies)
-        if not references:
-            return True
-        results = await self.owner.get_message_notifications(references)
-        if self.current():
-            for body in bodies:
-                if body.is_attached:
-                    body.show_notifications(results)
-        return True
-
-
 class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
@@ -225,7 +205,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         self.owner.received(page)
-        return await self.owner.publish(HandlingPublication)
+        return True
 
 
 class ObservedSourcePublication(CanonicalSourcePublication):
@@ -377,6 +357,7 @@ class CommitPublication(CanonicalSourcePublication):
         if prepared.history is None:
             replacement = TranscriptHistory(
                 prepared.page, self.owner.get_transcript_page, committed=False,
+                notification_view=contents,
             )
             await contents.prepare_history(
                 replacement, is_current, window=window,
@@ -505,15 +486,6 @@ class TranscriptPresentation:
         if self.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
-
-    async def get_message_notifications(self, references):
-        scope = self.thread_scope
-        if scope is None:
-            raise ValueError("Notification reads require a bound thread")
-        results = await self.reader.notifications(scope[0], references)
-        if self.thread_scope != scope:
-            raise ValueError("Thread source changed during notification read")
-        return results
 
     @property
     def retained_source_bytes(self) -> int:
@@ -703,6 +675,7 @@ class TranscriptPresentation:
                 return
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
+                contents.check_notifications()
                 view.app.history_displayed()
                 view.settle_user_message()
         view.call_after_refresh(record)
@@ -727,12 +700,6 @@ class TranscriptPresentation:
         self.worker = view.run_worker(partial(self.publish, CommitPublication),
                                       group="transcript-window", exclusive=True)
         return self.worker
-
-    def request_handling(self) -> None:
-        view = self.view
-        if view is not None and view.is_attached:
-            view.run_worker(partial(self.publish, HandlingPublication),
-                            group="transcript-handling", exclusive=True)
 
     def retry(self) -> None:
         if self.source_requests.resume():
@@ -835,9 +802,6 @@ class TranscriptPresentation:
                 # A kept resume can reject an identical snapshot without any
                 # widget replacement; it still publishes main coverage here.
                 view.query_one(SessionDetails)._refresh_summary()
-                if view.thread_presentation is not None:
-                    view.run_worker(partial(self.publish, HandlingPublication),
-                                    group="transcript-handling", exclusive=True)
 
             return AwaitComplete(complete())
         return AwaitComplete.nothing()

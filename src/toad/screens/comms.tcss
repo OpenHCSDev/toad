@@ -11,22 +11,6 @@ CommsScreen {
 
     CommsChatView {
         height: 1fr;
-
-        #comms-activity {
-            height: auto;
-        }
-
-        .comms-activity {
-            background: $primary-muted 20%;
-            color: $text-primary;
-            border-left: tall $primary;
-            padding: 0 1;
-
-            &:ansi {
-                background: ansi_default;
-                border-left: tall ansi_blue;
-            }
-        }
     }
 
 }

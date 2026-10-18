@@ -14,7 +14,7 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
-from toad.widgets.history_anchor import PageEnd, PageRequest
+from toad.widgets.presentation_window import PageEnd, PageRequest
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
@@ -345,7 +345,7 @@ class PreparedPageSource(ABC):
         """Prepare the original runtime resource without delivering another copy."""
 
     async def prepare_next(self, page: TranscriptPage, end: PageEnd) -> None:
-        if not self.closed and end.has_more(self, page):
+        if not self.closed and end.has_more(self.through, page):
             await self.prepare(end.adjacent(page))
 
     def close(self) -> None:
