@@ -102,11 +102,16 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_observation.close()
         # Parked preparation belongs to the logical document. Unmount revokes
         # this publisher, not the source scope transferred with it.
-        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state.retire_preparation(self)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
         self.window.histories.discard(self)
         await self.close_source_reader()
+
+    def close(self) -> None:
+        if self._page_buffer is not None:
+            self._page_buffer.close()
+            self._page_buffer = None
 
     async def close_source_reader(self) -> None:
         """Close source subscriptions without releasing the separately held pages."""
@@ -331,7 +336,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation += 1
         if self.is_attached:
             self.window.histories.discard(self)
-        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state.retire_preparation(self)
         workers = self.workers.cancel_node(self)
 
         async def join():

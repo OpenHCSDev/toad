@@ -259,7 +259,7 @@ class MailboxSessionSources(OperationalSessionSources):
         from toad.conversation_kind import DmConversation
 
         view = owner.view
-        scope = view.transcript.thread_scope
+        scope = view.transcript.binding.thread_scope
         if scope is None:
             view.delivery_refused("CLI transcript is not ready", event.body)
             return
@@ -272,7 +272,7 @@ class MailboxSessionSources(OperationalSessionSources):
 
         await view.submit_comms_message(
             root, DmConversation, target, event.body,
-            lambda: view.is_attached and view.transcript.thread_scope == scope,
+            lambda: view.is_attached and view.transcript.binding.thread_scope == scope,
             presented,
         )
 
@@ -345,16 +345,17 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         The workspace accepts the yielded native tree before operational
         attachment can await or publish its restored presentation.
         """
-        returning = self.widget is not None
-        if not returning:
+        conversation = self.widget
+        returning = conversation is not None
+        if conversation is None:
             slot = screen.query_one(SessionSurfaceSlot)
             content = slot.parent
             assert isinstance(content, Widget)
             with screen._context():
-                self.widget = self.sources.make_conversation(screen)
+                conversation = self.sources.make_conversation(screen)
+            self.widget = conversation
             screen._initial_prompt = None
-            self.widget.display = False
-        conversation = self.widget
+            conversation.display = False
         self.sources.wire(conversation)
         if not returning:
             if self.state is not None:
@@ -364,12 +365,12 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         yield conversation
         if self.state is not None:
             self.state.prepare_transcript(conversation)
-        await self.transcript.restore_documents()
+        await self.transcript.bind(conversation).restore_documents(self.transcript)
         if self.state is not None:
             self.state.restore(conversation)
             self.state = None
         await self.attach_binding(conversation)
-        await conversation.prepare_retained_session()
+        await self.transcript.bind(conversation).restore(self.transcript)
         conversation.display = True
         if returning:
             conversation.start_native_session()
