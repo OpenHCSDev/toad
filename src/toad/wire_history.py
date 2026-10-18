@@ -14,7 +14,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.message_page import MessagePage, PageBounds, PageTraversal
+from agent_comms.message_page import (
+    HistoryCursor, MessagePage, NewerTraversal, OlderTraversal, PageBounds,
+)
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
@@ -29,7 +31,6 @@ from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, 
 from toad.work_preparation import WorkKey, WorkRevision
 
 if TYPE_CHECKING:
-    from agent_comms.historical_views import HistoryCursor
     from agent_comms.read_basis import NamedViewer
     from toad.widgets.transcript_lines import Lines
 
@@ -51,8 +52,10 @@ class BeforeMessage(WireCut):
     bounded = False
     kept = True
 
-    def older(self) -> dict:
-        return {"before": self.cursor}
+    def older(self) -> OlderTraversal:
+        cursor = self.cursor
+        return (OlderTraversal(cursor.sequence, cursor.source)
+                if isinstance(cursor, HistoryCursor) else OlderTraversal(cursor))
 
 
 @dataclass(frozen=True)
@@ -63,8 +66,10 @@ class AfterMessage(WireCut):
     bounded = True
     kept = True
 
-    def newer(self) -> dict:
-        return {"after": self.cursor}
+    def newer(self) -> NewerTraversal:
+        cursor = self.cursor
+        return (NewerTraversal(cursor.sequence, cursor.source)
+                if isinstance(cursor, HistoryCursor) else NewerTraversal(cursor))
 
 
 @dataclass(frozen=True)
@@ -77,9 +82,8 @@ class AfterSequence(AfterMessage):
     cursor: int
     kept = False
 
-    def older(self) -> dict:
-        # Core's `before` excludes the sequence it names.
-        return {"before": self.cursor + 1}
+    def older(self) -> OlderTraversal:
+        return OlderTraversal(self.cursor + 1)
 
 
 @dataclass(frozen=True)
@@ -284,7 +288,7 @@ class WireSource:
         cut = request.before if older else request.after
         newest = older and cut == through
         page = self.kind.page(self, PageBounds(
-            PageTraversal.capture(**(cut.older() if older else cut.newer())),
+            cut.older() if older else cut.newer(),
             self.tail_limit if newest else self.page_limit, self.max_bytes))
         if not older:
             # A later read owns messages that arrived after this bound.
