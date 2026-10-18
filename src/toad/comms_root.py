@@ -53,7 +53,7 @@ class RouteObservation:
         return True
 
     def references_for(self, observed, root):
-        return observed.sidebar.references_for(root) if observed is not None else PendingReferences(root)
+        return observed.sidebar.observation.references_for(root) if observed is not None else PendingReferences(root)
 
     def report(self, app):
         pass
@@ -245,7 +245,7 @@ class CoordinationAccess(MroDispatch):
         if result.request != self.sidebar_interest:
             return  # Read for an interest the views have since changed.
         app = self.app
-        notice = observed.sidebar.read_marker_notice
+        notice = observed.sidebar.observation.read_marker_notice()
         tabs = app.open_tabs
         previous_references = self.reference_context(str(observed.service.root))
         observed.sidebar.apply(result.snapshot, result.derived)
