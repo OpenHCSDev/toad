@@ -623,6 +623,7 @@ class RuntimeBuild:
     runtimes: Path
     thread: str
     start_env: Path | None
+    ui_only: bool = False
 
     def start_acceptance_thread(self, runtime: Path) -> bool:
         if self.start_env is None:
@@ -731,8 +732,10 @@ class RuntimeBuild:
         native_pin = hashlib.sha256(manifest).hexdigest()
         with check_startup(destination, self.scratch / f'startup-{destination.name}',
                            self.baseline, self.thread) as startup:
-            wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
-                                      self.scratch / f'startup-{destination.name}')
+            wake = {'completed': False, 'reason': 'UI-only qualification explicitly requested; no provider input'}
+            if not self.ui_only:
+                wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
+                                          self.scratch / f'startup-{destination.name}')
         record = {
             'baseline': str(self.baseline),
             'toad_commit': toad_commit, 'core_commit': core_commit,
@@ -767,6 +770,7 @@ def main() -> None:
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--qualify-runtime', type=Path, help='Finish gates on an existing unqualified candidate; build nothing')
+    parser.add_argument('--ui-only', action='store_true', help='Qualify UI without a paid wake request')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -784,6 +788,7 @@ def main() -> None:
         args.baseline.resolve(strict=True),
         args.scratch.resolve(), args.runtimes.resolve(), args.thread,
         args.start_env.resolve(strict=True) if args.start_env else None,
+        args.ui_only,
     )
     runtime = build.qualify(args.qualify_runtime.resolve(strict=True)) if args.qualify_runtime else build.build()
     if not args.build_only:
