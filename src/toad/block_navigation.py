@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from collections.abc import Awaitable
 from typing import ClassVar, cast
 from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
@@ -305,10 +304,9 @@ class ConversationBlock(ConversationEntry):
 
     text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
 
-    def on_mount(self) -> Awaitable[None] | None:
+    def on_mount(self) -> None:
         for fade in self.text_fades:
             self.run_effect(fade)
-        return None
 
 
 class ContentNavigation:
