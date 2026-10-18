@@ -548,9 +548,8 @@ class BoundView(ViewBinding):
         generation, window, contents, screen = owner.generation, view.window, view.contents, view.screen
         source_view = view.query_ancestor(SessionView)
         def current():
-            return (owner.binding is self and view.is_attached and not view.is_leaving
+            return (owner.binding is self and self.current(window, contents)
                     and owner.generation == generation
-                    and view.window is window and view.contents is contents
                     and view.screen is screen and screen.is_current
                     and view.app.workspace_sessions.owns(source_view))
         for source in owner.documents:
@@ -584,10 +583,8 @@ class BoundView(ViewBinding):
         generation, window, contents = owner.generation, view.window, view.contents
         position, revision, screen = window.reader_position, window.scroll_revision, view.screen
         def current():
-            return (owner.binding is self and view.is_attached and not view.is_leaving and not owner.closed
+            return (owner.binding is self and self.current(window, contents) and not owner.closed
                     and owner.generation == generation
-                    and view.window is window and view.contents is contents
-                    and window.is_attached and contents.is_attached
                     and window.scroll_revision == revision
                     and view.screen is screen and screen.is_current
                     and view.query_ancestor(SessionView) is source

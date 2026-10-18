@@ -12,7 +12,7 @@ from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
-from toad.transcript_preparation import PageRequest, PageBuffer, NoPageBuffer, PreparedPageSource, PreparedTranscriptPage
+from toad.transcript_preparation import PageRequest, PageBuffer, NoPageBuffer, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
 
