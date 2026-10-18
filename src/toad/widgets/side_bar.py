@@ -351,12 +351,55 @@ class TabHistoryControls(CoreEventReceiver, containers.HorizontalGroup):
             button.sync(app.tab_order)
 
 
-class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
+class CapturedDrag:
+    """One captured pointer gesture; controls own its coordinate mapping."""
+
+    # Screen selection starts before MouseDown reaches the control.
+    ALLOW_SELECT = False
+
+    def __init__(self, *args, **kwargs) -> None:
+        self._dragging = False
+        super().__init__(*args, **kwargs)
+
+    def drag_start(self, event: events.MouseDown) -> None:
+        raise NotImplementedError
+
+    def drag_to(self, screen_x: int) -> None:
+        raise NotImplementedError
+
+    def on_mouse_down(self, event: events.MouseDown) -> None:
+        if event.button == 1:
+            event.stop()
+            self._dragging = True
+            self.capture_mouse()
+            self.drag_start(event)
+
+    def on_mouse_move(self, event: events.MouseMove) -> None:
+        if self._dragging:
+            event.stop()
+            self.drag_to(event.screen_x)
+
+    def can_replace_mouse_move(
+        self, event: events.MouseMove, pending: events.MouseMove
+    ) -> bool:
+        # Both controls map the latest absolute position, not motion deltas.
+        return self._dragging and event.button == pending.button == 1
+
+    def on_mouse_up(self, event: events.MouseUp) -> None:
+        if event.button == 1 and self._dragging:
+            event.stop()
+            self.drag_to(event.screen_x)
+            self._dragging = False
+            self.release_mouse()
+
+    def on_mouse_release(self) -> None:
+        self._dragging = False
+
+
+class SidebarSlider(CapturedDrag, ColourSelection, widgets.Static, can_focus=True):
     """A bottom-row pointer/keyboard slider; no polling or source snapshots."""
 
     highlight_foreground = AccentColour
-
-    ALLOW_SELECT = False
 
     BINDINGS: ClassVar[list[BindingType]] = [
         Binding("left", "step(-1)", "Decrease", show=False),
@@ -377,10 +420,6 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
         self.maximum = maximum
         self.value = value
         self.reversed = False
-        self._dragging = False
-        self._drag_origin_x = 0
-        self._drag_width = 0
-        self._drag_reversed = False
         self.tooltip = "Drag or use ←/→ to resize (15–50% of screen)"
 
     def set_range(self, minimum: int, maximum: int, value: int) -> None:
@@ -398,9 +437,10 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
         line = "".join("●" if index == thumb else "─" for index in range(track))
         return f"{line} {label}" if self.reversed else f"{label} {line}"
 
-    def _choose(self, x: int) -> None:
-        width = self._drag_width if self._dragging else self.size.width
-        reverse = self._drag_reversed if self._dragging else self.reversed
+    def drag_to(self, screen_x: int) -> None:
+        x = screen_x - self._drag_origin_x
+        width = self._drag_width
+        reverse = self._drag_reversed
         label_width = 4
         track = max(1, width - label_width)
         if reverse:
@@ -423,40 +463,12 @@ class SidebarSlider(ColourSelection, widgets.Static, can_focus=True):
             self.refresh()
             self.post_message(self.Changed(self, value))
 
-    def on_mouse_down(self, event: events.MouseDown) -> None:
-        if event.button == 1:
-            event.stop()
-            self._dragging = True
-            # Resizing changes this track's width and, on the right, its origin.
-            # Keep one pointer mapping until release rather than undoing the
-            # chosen value on mouse-up against the newly resized track.
-            self._drag_origin_x = self.region.x
-            self._drag_width = self.size.width
-            self._drag_reversed = self.reversed
-            self.capture_mouse()
-            self._choose(event.screen_x - self._drag_origin_x)
-
-    def on_mouse_move(self, event: events.MouseMove) -> None:
-        if self._dragging:
-            event.stop()
-            self._choose(event.screen_x - self._drag_origin_x)
-
-    def can_replace_mouse_move(
-        self, event: events.MouseMove, pending: events.MouseMove
-    ) -> bool:
-        # The captured track maps the latest absolute point to a width.
-        # Intermediate positions do not represent separate slider actions.
-        return self._dragging and event.button == pending.button == 1
-
-    def on_mouse_up(self, event: events.MouseUp) -> None:
-        if event.button == 1 and self._dragging:
-            event.stop()
-            self._choose(event.screen_x - self._drag_origin_x)
-            self._dragging = False
-            self.release_mouse()
-
-    def on_mouse_release(self) -> None:
-        self._dragging = False
+    def drag_start(self, event: events.MouseDown) -> None:
+        # Keep the pressed track's mapping while its width/origin changes.
+        self._drag_origin_x = self.region.x
+        self._drag_width = self.size.width
+        self._drag_reversed = self.reversed
+        self.drag_to(event.screen_x)
 
 
 class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus=True):
@@ -492,15 +504,10 @@ class SidebarAction(HoverSelection, PrimaryActivation, widgets.Static, can_focus
             self.action_activate()
 
 
-class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
+class SidebarResizeHandle(CapturedDrag, ColourSelection, widgets.Static, can_focus=True):
     """Drag the conversation-facing edge; the placement model owns the width."""
 
     highlight_foreground = ForegroundColour
-
-    # The screen starts text selection before forwarding MouseDown to us.
-    # Capturing/stopping that event alone cannot prevent a competing selection
-    # walk across conversation content as the edge moves under the pointer.
-    ALLOW_SELECT = False
 
     DEFAULT_CSS = """
     SidebarResizeHandle {
@@ -515,14 +522,11 @@ class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
     def __init__(self) -> None:
         super().__init__(id="sidebar-resize-handle")
         self.tooltip = "Drag toward the center to widen the sidebar"
-        self._dragging = False
-        self._start_x = 0
-        self._start_width = 0
 
     def render(self) -> str:
         return "\n".join("│" for _ in range(self.size.height))
 
-    def _resize(self, screen_x: int) -> None:
+    def drag_to(self, screen_x: int) -> None:
         bar = self.query_ancestor(SideBar)
         if bar.id is None or bar.parent is None:
             return
@@ -537,35 +541,9 @@ class SidebarResizeHandle(ColourSelection, widgets.Static, can_focus=True):
         bar = self.query_ancestor(SideBar)
         bar.width_slider.action_step(direction)
 
-    def on_mouse_down(self, event: events.MouseDown) -> None:
-        if event.button == 1:
-            event.stop()
-            self._dragging = True
-            self._start_x = event.screen_x
-            self._start_width = self.query_ancestor(SideBar).size.width
-            self.capture_mouse()
-
-    def on_mouse_move(self, event: events.MouseMove) -> None:
-        if self._dragging:
-            event.stop()
-            self._resize(event.screen_x)
-
-    def can_replace_mouse_move(
-        self, event: events.MouseMove, pending: events.MouseMove
-    ) -> bool:
-        # Width derives from the original press and the latest absolute point.
-        # Intermediate motion has no separate meaning for this captured handle.
-        return self._dragging and event.button == pending.button == 1
-
-    def on_mouse_up(self, event: events.MouseUp) -> None:
-        if event.button == 1 and self._dragging:
-            event.stop()
-            self._resize(event.screen_x)
-            self._dragging = False
-            self.release_mouse()
-
-    def on_mouse_release(self) -> None:
-        self._dragging = False
+    def drag_start(self, event: events.MouseDown) -> None:
+        self._start_x = event.screen_x
+        self._start_width = self.query_ancestor(SideBar).size.width
 
 
 class SidebarSearch(widgets.Input):
