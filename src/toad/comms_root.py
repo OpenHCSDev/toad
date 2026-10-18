@@ -419,6 +419,9 @@ class CoordinationAccess(MroDispatch):
 
     async def stop_observing(self) -> None:
         """End view updates before teardown; outstanding read replies still complete."""
+        # Widgets close after this process is told to stop; their subscriptions
+        # must not start another observer request during that release.
+        self.events.subscriptions_changed = lambda _: None
         if self.timer is not None:
             self.timer.stop()
             self.timer = None
