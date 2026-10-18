@@ -5,7 +5,6 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 import asyncio
 from abc import abstractmethod
-from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
 
@@ -278,13 +277,10 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         with self.changing_identity():
             self._identity = ThreadIdentity(owner, root)
 
-    @contextmanager
-    def changing_identity(self):
-        with super().changing_identity() as previous:
-            yield previous
-            if self.id is not None:
-                self.app.session_navigation.sync_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
-                self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+    def identity_changed(self, previous) -> None:
+        if self.id is not None:
+            self.app.session_navigation.sync_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+            self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
 
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
