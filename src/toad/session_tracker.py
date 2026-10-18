@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from time import time
 from operator import attrgetter
-from typing import Iterable, Sequence
+from typing import TYPE_CHECKING, Iterable, Sequence
 
 from toad.core.events import CoreEventStream, SessionChangedEvent, SessionClosedEvent
 from agent_comms.ui_model.unread import ExactUnread, UnreadPresentation
 from agent_comms.ui_model.sidebar import ThreadRowModel
 from textual.content import Content
-from toad.conversation_kind import ConversationKind
+if TYPE_CHECKING:
+    from toad.conversation_kind import ConversationKind
 
 
 
@@ -68,7 +69,7 @@ class CommsViewKey:
     root: str
     owner_mode: str
     me: str
-    kind: type[ConversationKind]
+    kind: type["ConversationKind"]
     target: str
 
     @property

@@ -63,7 +63,7 @@ class LocalStatusThread(StatusThread):
     def observe(self, activity: ObservedThreadActivity) -> None:
         access = activity.app.coordination_access
         activity.observe_core_callback(
-            access.events, ThreadRowsChanged, partial(self.bind, activity),
+            access.events, ThreadRowsChanged, activity.status_changed,
             factory=partial(ThreadCallbackSubscription,
                             scope=(str(self.root), self.name)))
 
@@ -147,6 +147,9 @@ class ObservedThreadActivity(CoreEventReceiver, Widget, ActivityView):
             self.thread = thread
             thread.observe(self)
             thread.bind(self)
+
+    def status_changed(self, event: ThreadRowsChanged) -> None:
+        self.thread.bind(self)
 
     def show(self, row: ThreadStatusModel) -> None:
         self.row = row

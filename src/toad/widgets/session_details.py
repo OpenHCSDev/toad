@@ -145,4 +145,7 @@ class ConversationSessionDetails(SessionDetails):
     async def _on_collapsible_title_toggle(self, event) -> None:
         event.prevent_default()
         event.stop()
-        await self.app.selected_session.open_sidebar_target(self.target)
+        context = self.app.selected_session.navigation_context
+        await self.app.thread_navigation.open(
+            owner_mode=context.owner_mode, project_path=context.project_path,
+            target=self.target.name)

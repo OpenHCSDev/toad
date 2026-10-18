@@ -15,7 +15,7 @@ from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
-from toad.navigation_target import ThreadTarget
+from agent_comms.channel_targets import ThreadTarget
 
 if TYPE_CHECKING:
     from toad.wire_history import WireSource
