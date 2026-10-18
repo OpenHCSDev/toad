@@ -311,7 +311,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     async def retire_presentation(self) -> None:
         # The departing scene is still committed here. Awaiting source/sidebar
         # retirement can publish a new layout which no longer contains it.
-        self.presentation.capture_reader()
         await super().retire_presentation()
         await self.thread_sidebar.retire_presentation()
         await self.presentation.retire(self)
