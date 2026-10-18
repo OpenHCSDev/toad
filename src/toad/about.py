@@ -89,7 +89,7 @@ def render(app: ToadApp) -> str:
         # Settings are written on first change; until then there is no file.
         config = None
 
-    service = app.coordination_access.service
+    service = app.coordination_access.observation.observed().service
     template_data = {
         "COLORTERM": os.environ.get("COLORTERM", ""),
         "COMMS_AGENT_ARGS": shlex.join(NativeArguments.configured().argv),

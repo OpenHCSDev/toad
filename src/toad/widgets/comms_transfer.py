@@ -132,7 +132,7 @@ class Transfers:
         self.app = app
 
     def open(self, kind: type[TransferRequest]) -> None:
-        selected = RouteSelection.capture(self.app.coordination_access.service.root)
+        selected = RouteSelection.capture(self.app.coordination_access.observation.observed().service.root)
         self.app.push_screen(kind.dialog(selected), callback=partial(self.submitted, selected))
 
     def submitted(self, selected: RouteSelection, request: TransferRequest | None) -> None:
@@ -142,7 +142,7 @@ class Transfers:
 
     async def execute(self, selected: RouteSelection, request: TransferRequest) -> None:
         try:
-            comms = self.app.coordination_access.require(selected)
+            comms = self.app.coordination_access.require(selected).service
             result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
         except (OSError, ValueError) as error:
             self.app.notify(str(error), title=request.failure_title, severity="error")

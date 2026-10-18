@@ -1,5 +1,6 @@
 """One syntax and link resolver for line, inline and Textual Markdown views."""
 from __future__ import annotations
+from functools import partial
 
 import re
 from abc import abstractmethod
@@ -39,7 +40,8 @@ class LinkContext:
     @classmethod
     async def acquire(cls, widget):
         context = cls.containing(widget)
-        references = await context.references.acquire_from(widget.app.coordination_access.current_references)
+        access = widget.app.coordination_access
+        references = await context.references.acquire_from(partial(access.observation.current_references, access))
         return cls(context.root, references)
 
     @classmethod

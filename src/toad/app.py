@@ -394,7 +394,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         """Read peers through the current coordination owner, independent of panels."""
         try:
             registered = await self.preparation.run_thread(
-                lambda: tuple(self.coordination_access.service.registry.active_threads()))
+                lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
         except (OSError, ValueError, RuntimeError) as error:
             self.notify(str(error), title="Peers unavailable", severity="error")
             return []
@@ -409,8 +409,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         screen = self.selected_session
         if not isinstance(screen, MainScreen):
             return
-        observed = self.coordination_access.observed_service
-        observed_root = screen.coordination_root or (observed.root if observed is not None else None)
+        observed_root = screen.coordination_root
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return
@@ -439,7 +438,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             from toad.widgets.comms_chat import resolve_session_thread
 
             selected = RouteSelection.capture(observed_root)
-            comms = access.require(selected)
+            comms = access.require(selected).service
 
             def mark() -> None:
                 resolved = resolve_session_thread(comms, project, name, source_root=source_root)
@@ -461,11 +460,16 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         return mark()
 
 
-    def schedule_from_thread(self, callback: Callable[[], object]) -> None:
-        """Schedule work with this App's context from outside its event loop."""
+    @property
+    def running_loop(self) -> asyncio.AbstractEventLoop:
         loop = self._loop
         if loop is None:
             raise ApplicationNotRunningError("App is not running")
+        return loop
+
+    def schedule_from_thread(self, callback: Callable[[], object]) -> None:
+        """Schedule work with this App's context from outside its event loop."""
+        loop = self.running_loop
 
         def run() -> None:
             with self._context():

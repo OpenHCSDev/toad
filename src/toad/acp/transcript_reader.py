@@ -31,11 +31,12 @@ class CoordinationTranscriptReader:
         self.access = access
 
     async def read(self, request: AwaitedRead):
-        return await self.access.read(request)
+        observed = await self.access.preparation.run_thread(self.access.observation.observed)
+        return await observed.process.read(request)
 
     async def service(self, root):
         return await self.access.preparation.run_thread(
-            lambda: self.access.require(RouteSelection.capture(root)))
+            lambda: self.access.require(RouteSelection.capture(root)).service)
 
     async def thread_presentation(self, root: str, thread: str):
         """Read one thread presentation through this reader's bound service."""

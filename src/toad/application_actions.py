@@ -36,7 +36,7 @@ class NewThreadAction(ApplicationAction, MenuAction):
     async def collect(self, app, mode, project):
         try:
             def prepare():
-                ctx = TargetContext(app, app.coordination_access.service,
+                ctx = TargetContext(app, app.coordination_access.observation.observed().service,
                                     ProjectTarget(str(project)), '', project, mode)
                 definition = next(action for action in ctx.available_actions()
                                   if action.declaration is NewThreadCliCommand)
