@@ -2,12 +2,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar
+from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
 
 class SessionIdentity(ABC):
-    managed: ClassVar[bool] = False
-
     @classmethod
     def for_thread(cls, thread: str, root: str | None):
         """Decode the optional wire binding once when accepting a source."""
@@ -15,7 +13,7 @@ class SessionIdentity(ABC):
             return NoThreadIdentity()
         if root is None:
             return LocalThreadIdentity(thread)
-        return ThreadIdentity(thread, root)
+        return ThreadIdentity(UnrecordedThreadIncarnation(thread), root)
 
     @abstractmethod
     def thread_name(self) -> str: ...
@@ -45,6 +43,18 @@ class SessionIdentity(ABC):
     def root_path(self) -> Path | None:
         return None
 
+    def detached_status(self) -> str:
+        return f"{self.display_thread()} · {self.display_root()}"
+
+    async def inspect_owner(self, read_owner, show_detached) -> None:
+        show_detached(self.detached_status())
+
+    def thread_incarnation(self) -> ThreadIncarnation:
+        raise ValueError("Session has no managed thread incarnation")
+
+    def bind_history(self, histories) -> None:
+        """An unbound session keeps its native input-history scope."""
+
 
 @dataclass(frozen=True)
 class NoThreadIdentity(SessionIdentity):
@@ -57,30 +67,47 @@ class NoThreadIdentity(SessionIdentity):
 
 @dataclass(frozen=True)
 class NamedThreadIdentity(SessionIdentity, ABC):
-    thread: str
-
-    def thread_name(self) -> str:
-        return self.thread
-
     def display_thread(self) -> str:
-        return f"@{self.thread}"
+        return f"@{self.thread_name()}"
 
 
 @dataclass(frozen=True)
 class LocalThreadIdentity(NamedThreadIdentity):
     """A named session without a managed wire."""
+    thread: str
+
+    def thread_name(self) -> str:
+        return self.thread
 
 
 @dataclass(frozen=True)
 class ThreadIdentity(NamedThreadIdentity):
+    owner: ThreadIncarnation
     root: str
-    managed: ClassVar[bool] = True
+
+    def thread_name(self) -> str:
+        return self.owner.name
+
+    def thread_incarnation(self) -> ThreadIncarnation:
+        return self.owner
+
+    def with_thread(self, thread: str):
+        return ThreadIdentity(self.owner.renamed(thread), self.root)
+
+    def with_root(self, root: str | None):
+        return self if root == self.root else super().with_root(root)
+
+    async def inspect_owner(self, read_owner, show_detached) -> None:
+        await read_owner(self)
+
+    def bind_history(self, histories) -> None:
+        histories.bind_scope(f"thread:{self.thread_name()}")
 
     def wire_root(self) -> str:
         return self.root
 
     def transcript_scope(self) -> tuple[str, str]:
-        return self.root, self.thread
+        return self.root, self.thread_name()
 
     def display_root(self) -> str:
         path = self.root_path()

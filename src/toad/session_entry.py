@@ -97,13 +97,17 @@ class NativeSessionEntry(SessionEntry):
 
     def original_threads(self, sessions):
         source = self.source(sessions)
-        fact = sessions.app.coordination_facts.get(source) if source is not None else None
-        if fact is not None:
-            return ((fact.wire_root, fact.thread),)
+        scope = source.thread_identity.transcript_scope() if source is not None else None
+        if scope is not None:
+            return ((scope[0], source.thread_identity.thread_incarnation()),)
         return (self.original,) if self.original is not None else ()
 
     def __call__(self) -> MainScreen:
         source = self.factory()
+        if self.original is not None:
+            from toad.thread_identity import ThreadIdentity
+            root, owner = self.original
+            source._identity = ThreadIdentity(owner, root)
         self.details.bind_initial_identity(source._agent_session_id)
         return source
 

@@ -239,7 +239,7 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
             from toad.thread_identity import ThreadIdentity
             def identity():
                 service = app.coordination_access.service
-                return ThreadIdentity(service.messaging.user_identity(project).name, str(service.root))
+                return ThreadIdentity(service.messaging.user_identity(project).incarnation, str(service.root))
             with self.changing_identity():
                 self._identity = await app.preparation.run_thread(identity)
         except (OSError, ValueError, RuntimeError) as error:

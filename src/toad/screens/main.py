@@ -275,7 +275,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
                     agent: AgentDefinition | None = None) -> "MainScreen":
         screen = cls(project, agent, agent_session_id=target)
         from toad.thread_identity import ThreadIdentity
-        screen._identity = ThreadIdentity(target, root)
+        from agent_comms.thread_identity import UnrecordedThreadIncarnation
+        screen._identity = ThreadIdentity(UnrecordedThreadIncarnation(target), root)
         return screen
 
     @classmethod
@@ -391,9 +392,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         async with self.presentation.transcript.changing_source(self):
             with self.changing_identity():
                 previous_thread, previous_root = self.thread_identity.thread_name(), self.coordination_root
-                from toad.thread_identity import SessionIdentity
-                self.app.coordination_facts[self] = event
-                self._identity = SessionIdentity.for_thread(event.thread.name, event.wire_root)
+                from toad.thread_identity import ThreadIdentity
+                self._identity = ThreadIdentity(event.thread, event.wire_root)
                 if previous_root != self.coordination_root:
                     self.link_context_changed()
                 if event.worktree is not None:

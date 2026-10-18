@@ -21,7 +21,7 @@ from toad.core.context_inspection import (
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.core_event_carrier import CoreEventMessage
 from agent_comms.route_selection import RouteSelection
-from toad.thread_identity import SessionIdentity
+from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.screens.session_view import SessionView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -313,14 +313,15 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
 
     @work(group="context-read", exclusive=True)
     async def _read(self, *, force=False):
+        await self.thread_view.thread_identity.inspect_owner(
+            lambda identity: self._read_owner(identity, force=force),
+            self.query_one(".context-status", Static).update)
+
+    async def _read_owner(self, identity: ThreadIdentity, *, force=False):
         status = self.query_one(".context-status", Static)
         access = self.app.coordination_access
-        identity = self.thread_view.thread_identity
         previous = self.state
         self.state = previous.observe(access.revision)
-        if not identity.managed:
-            status.update(f"{identity.display_thread()} · {self.state.status}")
-            return
         try:
             service = await self.app.preparation.run_thread(
                 lambda: access.require(RouteSelection.capture(identity.root_path())))
@@ -337,7 +338,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
             if self._reading(identity):
-                status.update(f"{identity.thread} · context unavailable: {error}")
+                status.update(f"{identity.thread_name()} · context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
         self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()

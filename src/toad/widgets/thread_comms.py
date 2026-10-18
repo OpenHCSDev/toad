@@ -66,7 +66,7 @@ class RelationshipSort(SortControl[ThreadSort]):
                 return
             try:
                 for group in groups:
-                    await self.app.preparation.run_thread(service.set_order, identity.thread, type(group), order)
+                    await self.app.preparation.run_thread(service.set_order, identity.thread_name(), type(group), order)
             finally:
                 if generation == tree._generation and identity == tree.thread_view.thread_identity:
                     tree.refresh_relationships(force=True)
@@ -319,11 +319,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
             self._revision = None
         if not self.is_mounted or not self._visible():
             return
-        context = self.query_one(".relationship-context", Static)
-        identity = self.thread_view.thread_identity
-        if not identity.managed:
-            context.update(Content(f"{identity.display_thread()} · {identity.display_root()}"), layout=False)
-            return
         if self._refresh_task is not None and not self._refresh_task.done():
             return
         self._refresh_task = asyncio.create_task(self._refresh(self._generation))
@@ -337,12 +332,16 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         return None
 
     async def _refresh(self, generation):
+        await self.thread_view.thread_identity.inspect_owner(
+            lambda identity: self._refresh_owner(identity, generation),
+            lambda text: self.query_one(".relationship-context", Static).update(Content(text), layout=False))
+
+    async def _refresh_owner(self, identity: ThreadIdentity, generation):
         try:
-            identity = self.thread_view.thread_identity
             service = await self.relationship_source(identity)
             if generation != self._generation or not self.is_attached:
                 return
-            owner = identity.thread
+            owner = identity.thread_name()
             revision = await asyncio.to_thread(service.revision)
             if revision == self._revision:
                 return
@@ -440,11 +439,11 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         identity = self.thread_view.thread_identity
         try:
             service = await self.relationship_source(identity)
-            snapshot = await asyncio.to_thread(service.snapshot, identity.thread)
+            snapshot = await asyncio.to_thread(service.snapshot, identity.thread_name())
             if (generation != self._generation or not self.is_attached
                     or not self.screen.is_current):
                 return
-            if snapshot.owner != identity.thread or Path(snapshot.root).resolve() != identity.root_path():
+            if snapshot.owner != identity.thread_name() or Path(snapshot.root).resolve() != identity.root_path():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             current = snapshot.current_entry(group_key, expected)
             if current is None:

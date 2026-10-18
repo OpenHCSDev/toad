@@ -18,9 +18,8 @@ from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING, Callable, TypeVar, cast
-from weakref import WeakKeyDictionary
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
+from agent_comms.acp_extension import TranscriptChangedUpdate
 from textual._time import after_input
 from textual import events, on, work
 from textual.app import App
@@ -190,7 +189,6 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             lambda mode, index: self.select_session(mode, history_index=index),
             home=mode or WELCOME,
         )
-        self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_access = CoordinationAccess(self)
 
         from toad.file_kind import FileKind
