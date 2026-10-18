@@ -16,6 +16,7 @@ from pathlib import Path
 from agent_comms.display_order import ThreadSort
 from agent_comms.route_selection import RouteSelection
 from agent_comms.ui_model.sidebar import ThreadRowModel
+from agent_comms.ui_model.unread import UnobservedUnread
 from textual import on
 from textual.binding import Binding
 from textual.content import Content
@@ -102,7 +103,7 @@ class RelationshipRow(ThreadStatusRow):
             self.tooltip = Content(f"{entry.target}\n{entry.detail}")
 
     async def _present_person(self, entry):
-        model = await self.app.preparation.run_thread(ThreadRowModel.of, entry.person, None)
+        model = await self.app.preparation.run_thread(ThreadRowModel.of, entry.person, UnobservedUnread())
         if self.entry == entry:
             self._show_person(entry, model)
 
