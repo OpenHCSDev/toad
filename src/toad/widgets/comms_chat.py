@@ -32,6 +32,7 @@ from toad.widgets.conversation import (
     CursorContainer,
     Window,
 )
+from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.screens.session_view import SessionView
@@ -255,11 +256,13 @@ class CommsChatView(Conversation):
         """DM/channel history belongs to WireHistory, not a native transcript."""
         return None
 
-    def status_thread(self) -> tuple[str, str] | None:
+    def status_thread(self) -> StatusThread:
         """Peer status does not grant access to the peer's full transcript."""
         name = self.conversation_kind.historical_thread(self.target)
         source = self.message_history.source
-        return (str(source.comms.root), name) if name is not None and source is not None else None
+        if name is None or source is None:
+            return NoStatusThread()
+        return StatusThread.for_root(source.comms.root, name, self.app.coordination_access)
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history

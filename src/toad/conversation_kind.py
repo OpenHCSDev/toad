@@ -134,6 +134,9 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
+        from toad.widgets.observed_thread_activity import NoActivityView
+
+        view.thread_activity = NoActivityView()
         return ()
 
     @classmethod
