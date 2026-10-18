@@ -17,7 +17,6 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRe
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
-from toad.core.events import CoordinationObserved
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -278,9 +277,8 @@ class SourcePublicationRequests:
         if view is None:
             return
         self.observation.close()
-        self.observation.callback(view.retire_core,
-            view.observe_core_callback(view.app.coordination_access.events,
-                                       CoordinationObserved, self.resume))
+        self.observation.enter_context(view.app.coordination_access.observe_thread_changes(
+            view, publication.thread_scope, self.resume))
 
     def resume(self, _event=None) -> bool:
         """Resume kept work only at an existing source/preparation signal."""
