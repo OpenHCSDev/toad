@@ -46,8 +46,6 @@ if TYPE_CHECKING:
 
 T = TypeVar("T")
 
-# The active route file selects which root is observed; the observation
-# process watches one root's stores, so the selection is checked here.
 ROUTE_CHECK_SECONDS = 1.0
 
 
@@ -255,7 +253,7 @@ class CoordinationAccess(MroDispatch):
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
         self.cleanup = ExitStack()
-        self.opening = threading.Lock()
+        self.opening = threading.RLock()
         self.preparation = app.preparation
         self.retiring: set[asyncio.Task[None]] = set()
         # One status row per open thread, whichever service it was read from.
@@ -273,12 +271,13 @@ class CoordinationAccess(MroDispatch):
 
     def open_current(self) -> Observing | FailedObservation:
         """Capture the current route and open its service, or expose the opening error."""
-        selected: RouteSelection | UnselectedRoute = UnselectedRoute()
-        try:
-            selected = RouteSelection.capture()
-            return self.require(selected)
-        except (OSError, ValueError, RuntimeError) as error:
-            return self.observation.failed(error, selected)
+        with self.opening:
+            selected: RouteSelection | UnselectedRoute = UnselectedRoute()
+            try:
+                selected = RouteSelection.capture()
+                return self.require(selected)
+            except (OSError, ValueError, RuntimeError) as error:
+                return self.observation.failed(error, selected)
 
     def require(self, selected: RouteSelection) -> Observing:
         """The service for ``selected``; a new selection opens it and starts its observation."""

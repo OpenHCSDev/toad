@@ -21,6 +21,7 @@ from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
+from textual.widget import Widget
 from textual._activation import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
 from textual._measurement import FLOW_HEIGHT, height_dependency
@@ -462,7 +463,7 @@ class Behind(BoundSidebar):
         return dict(channels=None, threads=None, reorder=True)
 
 
-class SidebarModelView(CoreEventReceiver):
+class SidebarModelView(CoreEventReceiver, Widget):
     """A widget showing the observed service's sidebar model.
 
     Core's model is observed only while a view shows it. Changes that arrive
