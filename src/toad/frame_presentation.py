@@ -254,7 +254,7 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
-class AnimationEffects[FrameT: Frame](Widget):
+class AnimationEffects[FrameT: Frame]:
     """A native widget whose effect uses the app clock and published visibility."""
 
     text_fades: ClassVar[tuple[Fade, ...]] = ()
@@ -322,7 +322,7 @@ class AnimationEffects[FrameT: Frame](Widget):
         self.refresh()
 
 
-class Animated[FrameT: Frame](AnimationEffects[FrameT]):
+class Animated[FrameT: Frame](AnimationEffects[FrameT], Widget):
     """A widget whose own rendered rows receive its declared text fades."""
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
