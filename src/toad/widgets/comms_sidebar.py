@@ -38,7 +38,7 @@ from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
+from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel

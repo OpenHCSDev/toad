@@ -29,7 +29,6 @@ from toad.core.events import SessionSelected, CoordinationObserved, ThreadRowSta
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import SidebarModel
-from toad.navigation_target import ChannelLike
 from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar
 
@@ -335,8 +334,7 @@ class SidebarModelView(CoreEventReceiver):
         return self.service.root if self.service is not None else None
 
     def channel_active(self, row) -> bool:
-        channel = self.model.channels.rows.get(row.target_name) if self.shows_model and isinstance(row.target, ChannelLike) else None
-        return channel is not None and channel.active
+        return self.shows_model and row.target.active_in(self.model.channels)
 
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
@@ -485,9 +483,6 @@ class TargetTree(Vertical):
 
     def row_selected(self, row) -> bool:
         return self.selection_for(row) in self.selection_state.selected_targets
-
-    def channel_active(self, row) -> bool:
-        return False
 
     @contextmanager
     def selection_change(self):
