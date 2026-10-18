@@ -90,12 +90,12 @@ class WelcomeSection(SidebarGroup[CommsRow]):
 
     @property
     def member_keys(self):
-        model = self.query_ancestor(WelcomeEntries).model
-        return self.keys(model)[:self.LIMIT] if model is not None and model.snapshot is not None else ()
+        model = self.query_ancestor(WelcomeEntries).model_state.shown
+        return self.keys(model)[:self.LIMIT]
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
-        model = self.query_ancestor(WelcomeEntries).model
-        if model is None or model.snapshot is None or not self.member_container.is_attached:
+        model = self.query_ancestor(WelcomeEntries).model_state.shown
+        if not self.member_container.is_attached:
             return
         self.display = bool(self.member_keys)
 
