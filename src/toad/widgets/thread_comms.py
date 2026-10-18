@@ -26,7 +26,7 @@ from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
-from toad.widgets.sidebar_tree import SidebarGroup, SearchFollower, TargetTree
+from toad.widgets.sidebar_tree import SidebarGroup, SidebarModelView, SearchFollower, TargetTree
 from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
 from toad.widgets.thread_comms_source import RelationshipSource
 
@@ -144,6 +144,18 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
         return frozenset(entry.target for entry in model.entries) if model is not None else frozenset()
 
+    def present(self, model: RelationshipGroup) -> None:
+        previous, self.model = self.model, model
+        if previous != model:
+            entries = {entry.target: entry for entry in previous.entries}
+            changed = frozenset(entry.target for entry in model.entries
+                                if entries.get(entry.target) != entry)
+            self.sync_members(changed=changed)
+
+    def keys_for_threads(self, names: frozenset[str]) -> frozenset[str]:
+        return frozenset(entry.target for entry in self.model.entries
+                         if entry.person is not None and entry.person.thread.name in names)
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
         if not self.member_container.is_attached or not self.accepts_members():
@@ -165,11 +177,11 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
             entry = entries[key]
             row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
 
-        self.reconcile_rows(create, update)
+        self.reconcile_rows(create, update, changed=changed)
         tree.apply_selection()
 
 
-class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchFollower, TargetTree):
+class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilityObserver, SearchFollower, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -222,13 +234,8 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
     def on_mount(self):
         # Use the left roster's existing observation cadence; no extra timers
         # per group or per mounted thread view.
-        self.observe_core(self.app.coordination_access.events)
-        self.observe_core(self.app.events)
         self._sync_filter_control()
         self.refresh_relationships()
-
-    def sidebar_visibility_changed(self) -> None:
-        """Busy rows repaint from the app's spinner clock; a shown panel refreshes on_show."""
 
     def on_show(self):
         if not self.is_attached or not self.screen.is_current:
@@ -263,12 +270,16 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         for group in self.groups.values():
             group.display = False
 
-    @handles(core_events.ThreadRowStateChanged)
-    async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
-        """Pending actions and session state decorate rows; they are not a relationship read."""
-        if self.is_attached and self.screen.is_current:
-            for group in self.groups.values():
-                group.sync_members()
+    def accepts_observation(self) -> bool:
+        identity = self.thread_view.thread_identity
+        return (self.service is not None
+                and identity.root_path() == self.service.root.resolve())
+
+    def sync(self, *, channels, threads, reorder=False) -> None:
+        for group in self.navigation_groups:
+            changed = None if threads is None else group.keys_for_threads(threads)
+            if changed is None or changed:
+                group.sync_members(changed=changed)
 
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.CoordinationObserved)
     async def _observed(self, event: CoreEventMessage) -> None:
@@ -277,9 +288,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         if not self.query_ancestor(SideBar).presentation_visible:
             return
         self._sync_filter_control()
-        for group in self.groups.values():
-            if group.display:
-                group.sync_members()
         self.refresh_relationships()
 
     def _sync_filter_control(self):
@@ -325,10 +333,10 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
 
     @property
     def thread_rows(self):
-        observed = self.app.coordination_access.observation
         identity = self.thread_view.thread_identity
-        if observed is not None and identity.root_path() == observed.service.root.resolve():
-            return observed.sidebar.threads.rows
+        if (self.model is not None and self.service is not None
+                and identity.root_path() == self.service.root.resolve()):
+            return self.model.threads.rows
         return None
 
     async def _refresh(self, generation):
@@ -381,8 +389,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
                             return
                     group.display = True
                     group.expanded = self.view_state.expanded.get(identity, True)
-                    group.model = model
-                    group.sync_members()
+                    group.present(model)
             if absent:
                 await self.remove_children([self.groups.pop(key) for key in absent])
         except asyncio.CancelledError:
