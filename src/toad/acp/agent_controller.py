@@ -4,11 +4,10 @@ from toad.acp.status import StopReason
 from acp.schema import SessionModeState
 
 import asyncio
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import partial
 
-from agent_comms.declared_family import DeclaredFamily
 from toad import surface_binding
 from toad.plan import PlanItem
 from .terminal_owner import OperationalTerminalOwner
@@ -41,21 +40,21 @@ class SessionBinding:
         return self.session_id is None or self.session_id == session_id
 
 
-class ValidationOwner(DeclaredFamily, affix="ValidationOwner"):
+class TaskRunner(ABC):
     @abstractmethod
-    async def validate(self, task): ...
+    async def run(self, task): ...
 
 
-class HeadlessValidationOwner(ValidationOwner):
-    async def validate(self, task):
-        return await task.complete(asyncio.to_thread(task.execute))
+class ThreadTaskRunner(TaskRunner):
+    async def run(self, task):
+        return await asyncio.to_thread(task.execute)
 
 
-class ApplicationValidationOwner(ValidationOwner):
+class ProcessTaskRunner(TaskRunner):
     def __init__(self, processes):
         self.processes = processes
 
-    async def validate(self, task):
+    async def run(self, task):
         return await self.processes.submit(task)
 
 
@@ -64,7 +63,7 @@ class AgentController(OperationalTerminalOwner):
     def __init__(self, agent, transcripts: CoordinationTranscriptReader):
         super().__init__(agent)
         self.surface: surface_binding.SurfaceBinding = surface_binding.DetachedSurfaceBinding()
-        self.validation: ValidationOwner = HeadlessValidationOwner()
+        self.task_runner: TaskRunner = ThreadTaskRunner()
         self._deferred_submissions: set[asyncio.Task] = set()
         self.prompt_in_flight = 0
         self.transcripts = transcripts

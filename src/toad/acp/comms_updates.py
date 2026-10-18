@@ -54,7 +54,7 @@ class CommsUpdateConsumer(MroDispatch):
         from .sdk_boundary import DecodeCommsMetadataTask
 
         authority = ClientSessionRequest(self.agent, self.session_id)
-        facts = await self.agent.controller.validation.validate(DecodeCommsMetadataTask(metadata))
+        facts = await self.agent.controller.task_runner.run(DecodeCommsMetadataTask(metadata))
         authority.require()
         for fact in facts:
             self.dispatch_sync(fact)
