@@ -93,6 +93,10 @@ class ReaderPosition(ABC):
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
         return self if window.history_change is not None else None
 
+    def preparation_start(self, history) -> tuple[int, int]:
+        """Where preparation begins when no message supplies a more exact place."""
+        return 0, history.pages[0].start
+
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:
         """Give a history about to be mounted the page ranges this position needs."""
         history.set_reader_ranges(self.ranges)
@@ -101,6 +105,9 @@ class ReaderPosition(ABC):
 @dataclass(frozen=True)
 class TailPosition(ReaderPosition):
     """Following the latest message."""
+
+    def preparation_start(self, history) -> tuple[int, int]:
+        return len(history.pages) - 1, len(history.pages[-1].fragments)
 
     def place(self, window: "HistoryWindow") -> bool:
         if not window.follows_tail:
@@ -170,6 +177,11 @@ class FragmentPosition(OffsetPosition):
         # the earlier ones; the layout that change asked for places this.
         return super().laid_out(window) and self.page(window).rows_measured
 
+    def preparation_start(self, history) -> tuple[int, int]:
+        return next(((index, boundary) for index, page in enumerate(history.pages)
+                     for boundary, fragment in enumerate(page.fragments) if fragment is self.fragment),
+                    super().preparation_start(history))
+
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
         first, height, drawn = page.fragment_row(self.fragment)
@@ -219,6 +231,9 @@ class UnreachedPosition(ReaderPosition):
     """
 
     position: ReaderPosition
+
+    def preparation_start(self, history) -> tuple[int, int]:
+        return self.position.preparation_start(history)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return self.position.bodies(window)

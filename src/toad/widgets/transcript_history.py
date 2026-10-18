@@ -11,6 +11,7 @@ from collections import deque
 from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
 from functools import cached_property, partial
+from itertools import islice
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -63,7 +64,7 @@ from toad.widgets.transcript_lines import (
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition, ReaderPosition
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
@@ -548,15 +549,15 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
         """Render against the native destination, including before history is mounted."""
         target = self if target is None else target
         selected = self.selected_categories if selected is None else selected
+        width, theme = target.line_width, self.app.colours.line_theme
+        if width <= 0:
+            return
+        pending = (fragment for fragment in fragments
+                   if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None)
         while current():
-            width, theme = target.line_width, self.app.colours.line_theme
-            if width <= 0:
+            batch = tuple(islice(pending, self.budget.batch_items))
+            if not batch:
                 return
-            todo = [fragment for fragment in fragments
-                    if fragment.shown_in(selected) and fragment.lines_for(width, theme) is None]
-            if not todo:
-                return
-            batch = todo[:self.budget.batch_items]
             ready = await TranscriptLinesBatchRenderTask.render_for(target,
                 (LinePreparation(fragment.line_blocks, theme) for fragment in batch))
             if not current():
@@ -574,28 +575,48 @@ class LineHistory(HistoryNotifications, OpensMessageNames, TranscriptSourcePrepa
                            rows_needed: int) -> None:
         """Prepare the destination before its first native layout can expose raw rows."""
         window.prepare_history(self)
-        if window.follows_tail and target.line_width > 0:
-            _capacity, limit = window.latest_limits(self.budget)
-            # A restored document keeps its original pages and older prefix.
-            # Prepare only the bottom viewport; older rows warm after first paint.
-            for page in reversed(self.pages):
-                rows_needed -= await page.prepared.prepare_rows(
-                    self, current, target=target, selected=selected,
-                    boundary=len(page.fragments), older=True,
-                    rows_needed=rows_needed, limit=limit,
-                )
-                if not current():
-                    return
-                limit -= page.stop - page.start
-                if rows_needed <= 0 or limit <= 0:
-                    break
+        if target.line_width <= 0:
+            return
+        capacity, limit = window.latest_limits(self.budget)
+        position = window.reader_position or ReaderPosition.of(window)
+        start = position.preparation_start(self)
+        if window.follows_tail:
+            rows_needed, limit = await self.prepare_pages(
+                current, target=target, selected=selected, start=start, older=True,
+                rows_needed=rows_needed, limit=limit,
+            )
         else:
-            for page in self.pages:
-                await self.prepare_fragments(page.fragments_in_range, current,
-                                             selected=selected, target=target)
+            rows_needed, limit = await self.prepare_pages(
+                current, target=target, selected=selected, start=start, older=False,
+                rows_needed=rows_needed, limit=limit,
+            )
+            anchor = self.pages[start[0]].prepared
+            forward = anchor.capture_range()
+            await self.prepare_pages(
+                current, target=target, selected=selected, start=start, older=True,
+                rows_needed=capacity, limit=limit,
+            )
+            anchor.set_fragment_range(slice(min(anchor.start, forward.start),
+                                            max(anchor.stop, forward.stop)))
         await self.filter.prepare_rows(
             current, window=window, target=target, rows_needed=max(0, rows_needed),
         )
+
+    async def prepare_pages(self, current, *, target, selected, start: tuple[int, int],
+                            older: bool, rows_needed: int, limit: int) -> tuple[int, int]:
+        """Walk outward from a reader boundary, stopping at either measured budget."""
+        index, boundary = start
+        while current() and rows_needed > 0 and limit > 0 and 0 <= index < len(self.pages):
+            page = self.pages[index].prepared
+            rows_needed -= await page.prepare_rows(
+                self, current, target=target, selected=selected, boundary=boundary,
+                older=older, rows_needed=rows_needed, limit=limit,
+            )
+            limit -= page.stop - page.start
+            index += -1 if older else 1
+            if 0 <= index < len(self.pages):
+                boundary = len(self.pages[index].fragments) if older else 0
+        return rows_needed, limit
 
     @property
     def fragments(self) -> tuple[TranscriptFragment, ...]:
