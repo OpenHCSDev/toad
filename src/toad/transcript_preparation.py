@@ -534,12 +534,6 @@ class ClosedHistory(PreparedPageSource):
     async def change_style(self, history) -> None:
         return
 
-    def observe_notifications(self, view, references) -> None:
-        view.app.coordination_access.stop_notifications(view)
-
-    def notification_read(self, references):
-        raise ValueError("This transcript has no saved-source reader")
-
     async def read_revision(self):
         raise ValueError("This transcript has no saved-source reader")
 

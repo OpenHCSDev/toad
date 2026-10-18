@@ -25,7 +25,7 @@ from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
 from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, TargetTree
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarChange, SidebarGroup, SidebarModelView, TargetTree
 from toad.widgets.splash_text import SplashText
 
 if TYPE_CHECKING:
@@ -87,7 +87,7 @@ class WelcomeSection(SidebarGroup[CommsRow]):
         model = self.query_ancestor(WelcomeEntries).model_state.shown
         return self.keys(model)[:self.LIMIT]
 
-    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         if not self.member_container.is_attached:
             return
         self.display = bool(self.member_keys)
@@ -158,12 +158,9 @@ class WelcomeEntries(SidebarModelView, TargetTree):
         return False
 
     @RowReconciliation.sync
-    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-             reorder: bool = False) -> None:
-        # A channel change can change which threads are listed and their order.
+    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
         channel_list, thread_list = self.navigation_groups
-        channel_list.sync_members(channels)
-        thread_list.sync_members(threads)
+        change.apply_welcome(channel_list, thread_list)
 
     @handles(SessionSelected)
     async def present_selected(self, event: CoreEventMessage) -> None:

@@ -369,16 +369,6 @@ class WirePageBuffer(SavedHistory):
                              for fragment in history.fragments])
         history.window.scroll_end(animate=False)
 
-    def notification_read(self, references):
-        from agent_comms.ui_model.observation import ReadNotifications
-
-        return ReadNotifications(str(self.loader.comms.root), references)
-
-    def observe_notifications(self, view, references) -> None:
-        from toad.widgets.message_notifications import HistoryNotifications
-
-        HistoryNotifications.subscribe_notifications(view, references)
-
     async def read_revision(self):
         return await self.runtime.run_thread(self.loader.comms.views.revision)
 

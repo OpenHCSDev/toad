@@ -27,7 +27,7 @@ from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
 from toad.widgets.message_filter import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
-from toad.widgets.sidebar_tree import SidebarGroup, SidebarModelView, SearchFollower, TargetTree
+from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree
 from agent_comms.relationships import RelationshipEntry, RelationshipGroup, ThreadCommsSnapshot
 from toad.widgets.thread_comms_source import RelationshipSource
 
@@ -169,7 +169,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         threads = self.query_ancestor(ThreadCommsSidebar).model_state.shown.threads.rows
         row.present(entry, threads.get(entry.person.thread.name) if entry.person is not None else None)
 
-    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
         if not self.member_container.is_attached or not self.accepts_members():
             return
@@ -276,11 +276,8 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
         identity = self.thread_view.thread_identity
         return self.model_state.serves(identity.root_path())
 
-    def sync(self, *, channels, threads, reorder=False) -> None:
-        for group in self.navigation_groups:
-            changed = None if threads is None else group.keys_for_threads(threads)
-            if changed is None or changed:
-                group.sync_members(changed=changed)
+    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
+        change.apply_relationships(self.navigation_groups)
 
     @handles(core_events.OpenTabsChanged, core_events.SessionSelected, core_events.CoordinationObserved)
     async def _observed(self, event: CoreEventMessage) -> None:

@@ -127,7 +127,9 @@ class TabHistoryChanged(CoreEvent):
 
 @dataclass(frozen=True)
 class ThreadRowStateChanged(CoreEvent):
-    """Something this app shows on thread rows changed: a pending action or an open session's state."""
+    """The named app-owned thread rows changed; the model did not change membership."""
+
+    names: frozenset[str]
 
 
 @dataclass(frozen=True)
