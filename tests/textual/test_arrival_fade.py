@@ -66,6 +66,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ANSWER}})
         await ui.until(lambda: ANSWER in ui.painted(view.window), why="the live answer")
+        live = view.contents.query_one(AgentResponse)
         # The answer is saved and the turn ends; another sender's message lands in the same append.
         saved.write_text(prompt + json.dumps({"type": "message", "id": "first-assistant", "message": {
             "role": "assistant", "content": [{"type": "text", "text": ANSWER}]}}) + "\n")
@@ -79,7 +80,8 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
             return " ".join(event.text for page in history.pages for fragment in page.prepared.fragments_in_range
                             if not arriving or id(fragment) in page.arrivals for event in fragment.events)
 
-        await ui.until(lambda: PEER in rows(arriving=False), why="the commit's saved rows")
+        # The commit is published once its saved rows replace the live block they cover.
+        await ui.until(lambda: PEER in rows(arriving=False) and not live.display, why="the commit's saved rows")
         assert PEER in rows(arriving=True)
         assert ANSWER not in rows(arriving=True)
         assert ui.painted(view.window).count(ANSWER) == 1
