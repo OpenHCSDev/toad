@@ -144,6 +144,14 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
         return frozenset(entry.target for entry in model.entries) if model is not None else frozenset()
 
+    def present(self, model: RelationshipGroup) -> None:
+        previous, self.model = self.model, model
+        if previous != model:
+            entries = {entry.target: entry for entry in previous.entries}
+            changed = frozenset(entry.target for entry in model.entries
+                                if entries.get(entry.target) != entry)
+            self.sync_members(changed=changed)
+
     def keys_for_threads(self, names: frozenset[str]) -> frozenset[str]:
         return frozenset(entry.target for entry in self.model.entries
                          if entry.person is not None and entry.person.thread.name in names)
@@ -264,9 +272,8 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
 
     def accepts_observation(self) -> bool:
         identity = self.thread_view.thread_identity
-        return (identity.managed and self.service is not None
-                and Path(identity.root).resolve() == self.service.root.resolve()
-                and self._visible())
+        return (self.service is not None
+                and identity.root_path() == self.service.root.resolve())
 
     def sync(self, *, channels, threads, reorder=False) -> None:
         for group in self.navigation_groups:
@@ -332,8 +339,8 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
     @property
     def thread_rows(self):
         identity = self.thread_view.thread_identity
-        if (self.model is not None and self.service is not None and identity.managed
-                and Path(identity.root).resolve() == self.service.root.resolve()):
+        if (self.model is not None and self.service is not None
+                and identity.root_path() == self.service.root.resolve()):
             return self.model.threads.rows
         return None
 
@@ -383,8 +390,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
                             return
                     group.display = True
                     group.expanded = self.view_state.expanded.get(identity, True)
-                    group.model = model
-                    group.sync_members()
+                    group.present(model)
             if absent:
                 await self.remove_children([self.groups.pop(key) for key in absent])
         except asyncio.CancelledError:
