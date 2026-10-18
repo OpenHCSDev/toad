@@ -477,7 +477,7 @@ class TranscriptPresentation:
             view = self.view
             self._thread_observation.enter_context(
                 view.app.coordination_access.observe_thread_changes(
-                    view, scope, view._thread_rows_changed))
+                    view, scope, view.thread_observed))
 
     def _unbind_view(self) -> None:
         self._thread_observation.close()

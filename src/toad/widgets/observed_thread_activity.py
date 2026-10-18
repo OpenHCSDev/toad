@@ -12,6 +12,7 @@ from agent_comms.ui_model.observation import UnreadableHistory
 from textual.message import Message
 from textual.reactive import var
 from textual.widget import Widget
+from toad.core.events import ThreadRowsChanged
 
 
 class ObservedThreadActivity(Widget):
@@ -66,8 +67,8 @@ class ThreadStatusOwner:
     """A view that shows one thread's status line (its ObservedThreadActivity).
 
     A thread on the observed Comms root is observed by Core's observation
-    process: CoordinationAccess delivers its status row through the shared
-    model and its presentation to ``thread_observed``. A thread on any other
+    process: the shared model delivers its status row and its scoped
+    ThreadRowsChanged subscription delivers its presentation to ``thread_observed``. A thread on any other
     root is a foreign thread: the view reads it itself on each coordination
     change, as every view did before the observation service.
     """
@@ -85,7 +86,7 @@ class ThreadStatusOwner:
         """The (wire root, thread name) whose status this view shows, if any."""
         raise NotImplementedError
 
-    def thread_observed(self, presentation: ThreadPresentation | None) -> None:
+    def thread_observed(self, event: ThreadRowsChanged) -> None:
         """Consume the observed thread's presentation, delivered once per store change."""
 
     async def read_foreign_thread(self) -> ThreadPresentation | None:
@@ -108,11 +109,9 @@ class ThreadStatusOwner:
         observed = access.observed_service
         if (thread is not None and observed is not None
                 and Path(thread[0]).resolve() == observed.root.resolve()):
-            access.show_thread(self, thread[1])
             if activity is not None:
                 activity.bind(thread[1])
             return
-        access.show_thread(self, None)
         if activity is not None:
             activity.bind(None)
             if thread is None:

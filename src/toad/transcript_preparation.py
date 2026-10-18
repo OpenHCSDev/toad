@@ -419,11 +419,6 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
     def execute(self) -> PreparedTranscriptPage:
         return PreparedTranscriptPage.prepare(self.page)
 
-    def accept_result(self, result: object) -> PreparedTranscriptPage:
-        if not isinstance(result, PreparedTranscriptPage):
-            raise TypeError("Transcript renderer returned an invalid page")
-        return result
-
 
 @dataclass(frozen=True)
 class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):

@@ -2,17 +2,18 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
+from functools import cached_property
 from pathlib import Path
 from typing import Annotated
-from weakref import WeakMethod, WeakSet, ref
+from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
-from agent_comms.ui_model.changes import Changes
+from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -24,6 +25,10 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
+
+    def subscribers(self, stream: CoreEventStream):
+        for event_type in type(self).__mro__:
+            yield from stream.subscriptions.get(event_type, ())
 
     def can_replace(self, event: CoreEvent) -> bool:
         """Only declared coalescing invalidations replace queued publications."""
@@ -202,11 +207,12 @@ class ThreadRowsChanged(CoreEvent):
     """The observed model's original change set, under its source root."""
 
     root: str
-    changes: Changes[str]
+    presentations: Mapping[str, ThreadPresentation]
 
-    def affects(self, scope: tuple[str, str]) -> bool:
-        root, thread = scope
-        return root == self.root and (thread in self.changes.added or thread in self.changes.changed)
+    def subscribers(self, stream: CoreEventStream):
+        for thread in self.presentations:
+            yield from stream.thread_subscriptions.get((self.root, thread), ())
+        yield from super().subscribers(stream)
 
 
 @dataclass(frozen=True)
@@ -392,29 +398,44 @@ class Subscription:
     _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
 
     def __post_init__(self, listener) -> None:
-        # Python owns these two callable forms. A borrowed bound receiver must
-        # stay weak; a standalone listener belongs to this subscriber resource.
-        try:
-            self._listener = WeakMethod(listener)
-        except TypeError:
-            self._listener = lambda: listener
+        self._listener = self.weak_method(listener)
 
-    def publish(self, event: CoreEvent) -> None:
+    @staticmethod
+    def weak_method(callback):
+        """A subscription borrows a bound receiver; it never owns its caller."""
+        return WeakMethod(callback)
+
+    def bucket_opened(self) -> None:
+        """Ordinary publications require no store observation."""
+
+    def bucket_emptied(self) -> None:
+        """Ordinary publications require no store observation."""
+
+    @cached_property
+    def bucket(self) -> WeakSet[Subscription]:
+        return self.stream.subscriptions.setdefault(self.event_type, WeakSet())
+
+    def listeners(self):
+        """The resource supplies its live receiver; only the stream publishes."""
         listener = self._listener()
         if listener is None:
             self.close()
         elif self.active:
-            listener(event, self)
+            yield listener
 
     @property
     def active(self) -> bool:
-        return self in self.stream.subscriptions[self.event_type]
+        return self in self.bucket
 
     def accepts(self, original: Subscription) -> bool:
         return self is original and self.active
 
     def close(self) -> None:
-        self.stream.subscriptions[self.event_type].discard(self)
+        if not self.active:
+            return
+        self.bucket.discard(self)
+        if not self.bucket:
+            self.bucket_emptied()
 
     def __enter__(self) -> Subscription:
         return self
@@ -423,12 +444,32 @@ class Subscription:
         self.close()
 
 
+@dataclass(eq=False)
+class ThreadChangeSubscription(Subscription):
+    """One live thread scope owns both delivery and observation interest."""
+
+    scope: tuple[str, str] = field(kw_only=True)
+
+    @cached_property
+    def bucket(self) -> WeakSet[Subscription]:
+        return self.stream.thread_subscriptions.setdefault(self.scope, WeakSet())
+
+    def bucket_opened(self) -> None:
+        publisher = self.stream.publisher
+        publisher.app.run_worker(publisher.update_thread_interest(),
+                                 group="thread-interest", exclusive=True)
+
+    def bucket_emptied(self) -> None:
+        self.bucket_opened()
+
+
 class CoreEventStream:
     """Publish original events; neither retain state nor schedule frontend work."""
 
     def __init__(self, publisher: object) -> None:
         self._publisher = ref(publisher)
         self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
+        self.thread_subscriptions: WeakValueDictionary[tuple[str, str], WeakSet[Subscription]] = WeakValueDictionary()
 
     @property
     def publisher(self) -> object:
@@ -438,17 +479,29 @@ class CoreEventStream:
         return publisher
 
     def subscribe(self, event_type: type[CoreEvent],
-                  listener: Callable[[CoreEvent, Subscription], object]) -> Subscription:
-        subscription = Subscription(self, event_type, listener)
-        self.subscriptions.setdefault(event_type, WeakSet()).add(subscription)
+                  listener: Callable[[CoreEvent, Subscription], object], *,
+                  factory: Callable[..., Subscription] = Subscription) -> Subscription:
+        subscription = factory(self, event_type, listener)
+        bucket = subscription.bucket
+        first = not bucket
+        bucket.add(subscription)
+        if first:
+            subscription.bucket_opened()
         return subscription
+
+    def close_threads(self) -> None:
+        """Revoke scoped callbacks before the observer stops accepting interests."""
+        for bucket in tuple(self.thread_subscriptions.values()):
+            for subscription in tuple(bucket):
+                subscription.close()
+
+    def observed_threads(self, root: str) -> frozenset[str]:
+        return frozenset(thread for (source, thread), bucket in self.thread_subscriptions.items()
+                         if source == root and bucket)
 
     def publish(self, event: CoreEvent) -> None:
         # Snapshot matching resources before callbacks can subscribe or close.
-        subscriptions = tuple(
-            subscription
-            for event_type in type(event).__mro__
-            for subscription in self.subscriptions.get(event_type, ())
-        )
+        subscriptions = tuple(event.subscribers(self))
         for subscription in subscriptions:
-            subscription.publish(event)
+            for listener in subscription.listeners():
+                listener(event, subscription)
