@@ -169,10 +169,6 @@ class WireFragment(TranscriptFragment):
         return frozenset({OtherCategory})
 
     @property
-    def source_payload_bytes(self) -> int:
-        return 256 + 4 * len(self.message.body)
-
-    @property
     def timestamp(self) -> float | None:
         return self.message.timestamp
 
