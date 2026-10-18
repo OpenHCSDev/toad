@@ -105,52 +105,73 @@ class HistoryNotifications:
 
     NOTIFICATION_GROUP = "message-notifications"
 
-    def prepare_viewport(self) -> None:
-        super().prepare_viewport()
-        self.check_notifications()
-
     # Core feedback for every visible bus message, native or wire.
 
     def check_notifications(self) -> None:
         access = self.app.coordination_access
-        fragments = self._notified_fragments() if self.can_draw_on_screen else ()
+        fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
         access.show_notifications(self, self.notification_read(references) if references else None)
-
-    def _notified_fragments(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for fragment in self.visible_fragments()
-                     if fragment.checks_notifications)
 
     def notifications_observed(self, results) -> None:
         if not self.can_draw_on_screen:
             self.app.coordination_access.show_notifications(self, None)
             return
-        self.run_worker(self._show([
-            (fragment, replace(fragment.shown, status=CheckedNotifications.for_references(
-                fragment.notification_references, results)))
-            for fragment in self._notified_fragments()
-            if all((reference.seq, reference.message_id) in results
-                   for reference in fragment.notification_references)
-        ]), group=self.NOTIFICATION_GROUP, exclusive=True)
+        self.run_worker(self._show_notifications(results), group=self.NOTIFICATION_GROUP, exclusive=True)
+
+    async def _show_notifications(self, results):
+        for target in self.notification_targets():
+            await target.show_notifications(results)
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:
-            self.run_worker(self._show([
-                (fragment, replace(fragment.shown, status=UnavailableNotifications(str(failure))))
-                for fragment in self._notified_fragments()
-            ]), group=self.NOTIFICATION_GROUP, exclusive=True)
+            self.run_worker(self._show_notification_error(UnavailableNotifications(str(failure))),
+                            group=self.NOTIFICATION_GROUP, exclusive=True)
 
-    def retire_source(self, *, parked: bool = False):
-        self.app.coordination_access.show_notifications(self, None)
-        return super().retire_source(parked=parked)
+    async def _show_notification_error(self, status):
+        for target in self.notification_targets():
+            await target.show_notification_status(status)
 
-    async def close_source_reader(self) -> None:
+    def on_mount(self) -> None:
+        self.call_after_refresh(self.check_notifications)
+
+    def on_unmount(self) -> None:
         self.app.coordination_access.show_notifications(self, None)
-        await super().close_source_reader()
 
     def on_hide(self) -> None:
         self.app.coordination_access.show_notifications(self, None)
 
     def on_show(self) -> None:
         self.call_after_refresh(self.check_notifications)
+
+
+class SourceNotifications:
+    notification_view: HistoryNotifications
+
+    def prepare_viewport(self) -> None:
+        super().prepare_viewport()
+        self.notification_view.check_notifications()
+
+    @property
+    def notification_references(self):
+        return tuple(dict.fromkeys(reference for fragment in self.visible_fragments()
+                                   for reference in fragment.notification_references))
+
+    async def show_notifications(self, results):
+        await self._show([(fragment, replace(fragment.shown,
+            status=CheckedNotifications.for_references(fragment.notification_references, results)))
+            for fragment in self.visible_fragments() if fragment.notification_references])
+
+    async def show_notification_status(self, status):
+        await self._show([(fragment, replace(fragment.shown, status=status))
+                         for fragment in self.visible_fragments() if fragment.notification_references])
+
+    def retire_source(self, *, parked: bool = False):
+        retired = super().retire_source(parked=parked)
+        self.notification_view.check_notifications()
+        return retired
+
+    async def close_source_reader(self) -> None:
+        await super().close_source_reader()
+        self.notification_view.check_notifications()
