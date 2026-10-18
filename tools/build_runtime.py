@@ -430,9 +430,6 @@ print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backe
             stream.write(captured)
         source.chmod(0o600)
         (output / 'saved-source.json').write_text(json.dumps(saved, indent=2))
-        pointer = home / '.local/share/agent-comms/current'
-        pointer.parent.mkdir(parents=True)
-        pointer.symlink_to(runtime)
         environment = {k: v for k, v in os.environ.items()
                        if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
                        and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
@@ -548,7 +545,6 @@ out, startup, runtime=map(Path,sys.argv[1:])
 saved=json.loads((startup/'saved-source.json').read_text())
 source=startup/'project/saved.jsonl'; digest=hashlib.sha256(source.read_bytes()).hexdigest()
 home=out/'home';home.mkdir(mode=0o700)
-pointer=home/'.local/share/agent-comms/current';pointer.parent.mkdir(parents=True);pointer.symlink_to(runtime)
 os.environ.update(HOME=str(home), PI_CODING_AGENT_DIR=str(out/'pi'),
                   AGENT_COMMS_NATIVE_CONFIG_DIR=saved['config'])
 for kind in ('CONFIG','DATA','STATE','CACHE'):os.environ['XDG_'+kind+'_HOME']=str(out/kind.lower())
