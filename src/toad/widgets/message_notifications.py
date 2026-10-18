@@ -12,18 +12,10 @@ from textual.widgets import Collapsible
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
-from toad.line_blocks import SpanColumns
 from toad.widgets.tool_content import ToolContent
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import TranscriptFragment
-
-
-class NotificationDetails(ToolContent):
-    """Use the existing line-block view's width, preparation and link lifecycle."""
-
-    def show(self, disclosure: SpanColumns) -> None:
-        self.update((disclosure,))
 
 
 class MessageNotifications(Collapsible):
@@ -40,7 +32,7 @@ class MessageNotifications(Collapsible):
 
     def __init__(self) -> None:
         self.status: NotificationStatus = UncheckedNotifications()
-        self._details: NotificationDetails | None = None
+        self._details: ToolContent | None = None
         super().__init__(title=self.status.title, collapsed=True)
 
     def compose(self) -> ComposeResult:
@@ -49,13 +41,13 @@ class MessageNotifications(Collapsible):
             yield self.Contents(self._details)
 
     @property
-    def details(self) -> NotificationDetails:
+    def details(self) -> ToolContent:
         """The details body, created only when it is first shown."""
         if self._details is None:
-            self._details = NotificationDetails()
+            self._details = ToolContent()
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
-        self._details.show(self.status.disclosure)
+        self._details.update((self.status.disclosure,))
         return self._details
 
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
@@ -73,9 +65,6 @@ class MessageNotifications(Collapsible):
             _ = self.details
         self.set_class(status.working, "-working")
         self.set_class(status.unavailable, "-unavailable")
-
-    def show_error(self, error: Exception) -> None:
-        self.show(UnavailableNotifications(str(error)))
 
 
 class VisibleReadMarking:
@@ -112,11 +101,14 @@ class HistoryNotifications:
         fragments = self.notification_targets() if self.can_draw_on_screen else ()
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
-        access.show_notifications(self, self.notification_read(references) if references else None)
+        if references:
+            access.show_notifications(self, self.notification_read(references))
+        else:
+            access.stop_notifications(self)
 
     def notifications_observed(self, results) -> None:
         if not self.can_draw_on_screen:
-            self.app.coordination_access.show_notifications(self, None)
+            self.app.coordination_access.stop_notifications(self)
             return
         self.run_worker(self._show_notifications(results), group=self.NOTIFICATION_GROUP, exclusive=True)
 
@@ -137,10 +129,10 @@ class HistoryNotifications:
         self.call_after_refresh(self.check_notifications)
 
     def on_unmount(self) -> None:
-        self.app.coordination_access.show_notifications(self, None)
+        self.app.coordination_access.stop_notifications(self)
 
     def on_hide(self) -> None:
-        self.app.coordination_access.show_notifications(self, None)
+        self.app.coordination_access.stop_notifications(self)
 
     def on_show(self) -> None:
         self.call_after_refresh(self.check_notifications)
