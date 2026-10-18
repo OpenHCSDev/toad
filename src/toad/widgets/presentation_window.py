@@ -168,10 +168,8 @@ class PageEnd(ABC):
         start, stop = self.edge(((edge, cursor), (cursor, edge)))
         return edge.session_file == cursor.session_file and not (
             start.contains(stop) and self.edge((page.has_older, page.has_newer)))
-    def wire_page(self, source, cursor, through):
-        traversal = PageTraversal.capture(**self.edge((cursor.older, cursor.newer))())
-        limit = self.edge((source.tail_limit if cursor == through else source.page_limit, source.page_limit))
-        return source.kind.page(source, PageBounds(traversal, limit, source.max_bytes))
+    @abstractmethod
+    def wire_page(self, source, cursor, through): ...
 
     def entry(self, length):
         return self.edge((length - 1, 0))
@@ -224,6 +222,11 @@ class OlderEnd(PageEnd):
     def loader_keywords(self, cursor):
         return {'before': cursor}
 
+    def wire_page(self, source, cursor, through):
+        return source.kind.page(source, PageBounds(
+            PageTraversal.capture(**cursor.older()),
+            source.tail_limit if cursor == through else source.page_limit, source.max_bytes))
+
     def advance_empty(self, edge, staged):
         edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
 
@@ -256,7 +259,7 @@ class NewerEnd(PageEnd):
         return {'after': cursor}
 
     def wire_page(self, source, cursor, through):
-        page = super().wire_page(source, cursor, through)
+        page = source.kind.page(source, PageBounds(PageTraversal.capture(**cursor.newer()), source.page_limit, source.max_bytes))
         kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor)
         return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
 
