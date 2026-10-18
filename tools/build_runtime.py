@@ -388,6 +388,18 @@ class TerminalApp:
             self.log.close()
 
 
+def compiled_global_extensions(runtime: Path) -> dict[Path, Path]:
+    """Read our global extension paths from the selected package's declaration."""
+    package = Path(run(runtime / 'bin/python', '-I', '-B', '-c',
+                       'from agent_comms.native_package import pinned_native_package; '
+                       'print(pinned_native_package())'))
+    manifest = json.loads((package / 'dist/agent-comms-imports.json').read_text())
+    return {Path(row['sources'][0]['path']).parent: package / row['entry']
+            for row in manifest['extensionEntries'] if row.get('sources')
+            and Path(row['sources'][0]['path']).parent.name in
+            ('agent-comms', 'project-sync', 'web-search')}
+
+
 @contextmanager
 def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> Iterator[dict]:
     """Own the copied history through startup and its caller's private fork/wake."""
@@ -419,6 +431,19 @@ print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backe
 ''', thread))
     project = output / 'project'
     project.mkdir(mode=0o700)
+    agent = output / 'pi'
+    agent.mkdir(mode=0o700)
+    config = Path(saved['config'])
+    settings = json.loads((config / 'settings.json').read_text())
+    compiled = compiled_global_extensions(runtime)
+    settings['extensions'] = [str(path) for path in compiled.values()]
+    (agent / 'settings.json').write_text(json.dumps(settings, indent=2) + '\n')
+    # Keep third-party discovery unchanged; our three globals use compiled files.
+    (agent / 'extensions').mkdir()
+    for extension in (config / 'extensions').iterdir():
+        if extension not in compiled:
+            (agent / 'extensions' / extension.name).symlink_to(extension)
+    saved['agent_directory'] = str(agent)
     with Path(saved['path']).open('rb') as stream:
         captured = stream.read(os.fstat(stream.fileno()).st_size)
     captured = captured[:captured.rfind(b'\n') + 1]
@@ -450,8 +475,8 @@ c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1]
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3]),model=json.loads(sys.argv[5])))
 with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
 print(json.dumps(RestartEnvironment(root=str(c.root),
-    native_config=Path(sys.argv[4]),agent_directory=Path.home()/'pi').encode()))
-''', str(project), str(source), saved['backend'], saved['config'], json.dumps(saved['model'])],
+    native_config=Path(sys.argv[4]),agent_directory=Path(sys.argv[6])).encode()))
+''', str(project), str(source), saved['backend'], saved['config'], json.dumps(saved['model']), str(agent)],
             env=environment, text=True)
         environment.update(json.loads(launch))
         startup.callback(subprocess.run, [runtime / 'bin/agent-comms', '--root', output / 'wire',
@@ -531,6 +556,7 @@ def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
     environment = {k: v for k, v in os.environ.items()
                    if not k.startswith(('AGENT_COMMS_', 'PI_', 'XDG_'))
                    and k not in ('PYTHONPATH', 'PYTHONHOME')}
+    environment['BUILD_WAKE_TOKEN'] = 'BUILD_WAKE_' + str(time.time_ns())
     with (output / 'wake.log').open('w') as log:
         worker = subprocess.Popen([str(runtime / 'bin/python'), '-I', '-B', '-c', '''
 import asyncio,hashlib,json,os,sys,time
@@ -561,12 +587,12 @@ forked=asyncio.run(fork())
 child=c.registry.declare(c.registry.new_thread('build-wake',frozenset(),str(out),parent=parent.name,
     session_file=forked.path,backend=parent.backend,model=parent.model),StoppedThreadStatus())
 c.registry.declare(c.registry.new_thread('build-sender',frozenset(),str(out)),StoppedThreadStatus())
-os.environ['PI_CODING_AGENT_DIR']=saved['config']
+os.environ['PI_CODING_AGENT_DIR']=saved['agent_directory']
 c.owners.start(child.name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
 try:
     print('READY',flush=True)
     if sys.stdin.readline().strip() != 'SEND':raise RuntimeError('UI did not request the fresh message')
-    token='BUILD_WAKE_'+runtime.name.rsplit('-',1)[1]
+    token=os.environ['BUILD_WAKE_TOKEN']
     (out/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=child.name)))
     started=time.monotonic()
     sent=c.messaging.send_message('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
@@ -596,6 +622,7 @@ finally:
             environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'))
             saved = json.loads((startup / 'saved-source.json').read_text())
             environment['AGENT_COMMS_NATIVE_CONFIG_DIR'] = saved['config']
+            environment['PI_CODING_AGENT_DIR'] = saved['agent_directory']
             for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
                 environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
             with BuildDisplay(output) as display:
@@ -608,7 +635,7 @@ finally:
                     app.screenshot('before-send')
                     worker.stdin.write('SEND\n')
                     worker.stdin.flush()
-                    token = 'BUILD_WAKE_' + runtime.name.rsplit('-', 1)[1]
+                    token = environment['BUILD_WAKE_TOKEN']
                     def replied(text):
                         if worker.poll() not in (None, 0):
                             raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
