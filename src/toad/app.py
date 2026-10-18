@@ -3,6 +3,7 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
+from agent_comms.coordination_errors import TranscriptChanged
 from toad.comms_root import CoordinationAccess
 from toad.widgets.message_notifications import VisibleReadMarking
 
@@ -433,7 +434,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         source_root = screen.coordination_root
         worktree = str(self.project_dir)
 
-        def acknowledge() -> None:
+        def acknowledge(cursor) -> None:
             from toad.widgets.comms_chat import resolve_session_thread
 
             selected = RouteSelection.capture(observed_root)
@@ -441,12 +442,17 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
             def mark() -> None:
                 resolved = resolve_session_thread(comms, project, name, source_root=source_root)
-                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=through)
+                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=cursor)
 
             access.write(selected, mark)
 
         async def mark():
-            await asyncio.to_thread(acknowledge)
+            try:
+                await asyncio.to_thread(acknowledge, through)
+            except TranscriptChanged:
+                fresh = await conversation.transcript.refresh_cursor()
+                if self.selected_session is screen:
+                    await asyncio.to_thread(acknowledge, fresh)
 
         return mark()
 
