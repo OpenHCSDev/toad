@@ -621,8 +621,8 @@ finally:
                     app.screenshot('reply')
                     app.keys('C-g')
                     app.wait('reply-channel', lambda text: '#any · all comms' in text and token in text)
-                    app.keys('Escape')
-                    app.wait('reply-return', lambda text: token in text and 'build-wake' in text)
+                    app.click('build-wake')
+                    app.wait('reply-return', lambda text: token in text and 'User messages' in text)
                     app.screenshot('reply-return')
             worker.wait(timeout=30)
             if worker.returncode:
