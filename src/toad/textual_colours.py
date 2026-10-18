@@ -93,8 +93,6 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         self.variables: dict[str, str] = {}
         self._colours: dict[type[ThemeColour], Color] = {}
         self.schemes: dict[str, ColourScheme] = {}
-        # Textual asks for the terminal palette before themes can be registered.
-        self._terminal_themes: dict[str, TerminalTheme] = {}
         for scheme in SCHEMES:
             self._add(scheme)
         self._observer: Observer | None = None
@@ -121,6 +119,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         self._observer.start()
 
     def stop(self) -> None:
+        self.queried_palette.cache_clear()
         if self._observer is not None:
             self._observer.stop()
             self._observer = None
@@ -144,7 +143,6 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def _add(self, scheme: ColourScheme) -> None:
         self.schemes[scheme.name] = scheme
-        self._terminal_themes[scheme.name] = self.palette(scheme.terminal)
 
     def choose(self, name: str) -> None:
         if name not in self.schemes:
@@ -162,7 +160,15 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def terminal_theme(self, name: str) -> TerminalTheme:
         """The palette ANSI colours map to under a theme."""
-        return self._terminal_themes[name]
+        return self.palette(self.schemes[name].palette(self.queried_palette))
+
+    @lru_cache(maxsize=1)
+    def queried_palette(self) -> TerminalPalette:
+        """Read the terminal's colours once, through its existing input driver."""
+        colours = self.app._driver.query_colours(timeout=2.0)
+        foreground = Rgb(*colours["10"])
+        return TerminalPalette(Rgb(*colours["11"]), foreground, foreground,
+                               tuple(Rgb(*colours[f"4;{index}"]) for index in range(16)))
 
     def variables_changed(self, variables: dict[str, str]) -> None:
         terminal = self.app.ansi_theme
