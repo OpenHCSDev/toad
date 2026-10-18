@@ -7,7 +7,6 @@ Nothing here imports a terminal library.
 
 from __future__ import annotations
 
-import asyncio
 from abc import ABC
 from dataclasses import dataclass, replace
 from functools import cached_property, singledispatch
@@ -23,11 +22,11 @@ from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PageRevision, PageLoader, PreparedTranscriptPage, TranscriptPageWork,
+    PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
-from toad.work_preparation import WorkKey
+from toad.work_preparation import WorkKey, WorkRevision
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import HistoryCursor
@@ -245,28 +244,8 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
         return (Gap(), Summary.titled(f"History · {source.original_root} · @{message.sender} "
                                f"created {message.sender_created_at}"), self.row.header)
 
-@dataclass(frozen=True)
-class WirePageWork(TranscriptPageWork):
-    """Read one wire page off the UI thread; the source owns its work type."""
-
-    @property
-    def work_key(self) -> WorkKey:
-        cut = self.request.before or self.request.after
-        return WorkKey(type(self), PageRevision(self.through if cut.bounded else None, self.request), self.scope)
-
-    @property
-    def retain_result(self) -> bool:
-        return (self.request.before or self.request.after).kept
-
-    async def execute(self, runtime, key):
-        prepared = await runtime.run_thread(self.loader.read, self.request, self.through)
-        if self.scope.closed:
-            raise asyncio.CancelledError
-        return await runtime.run_thread(self.finish_result, key, prepared)
-
-
 @dataclass(frozen=True, eq=False)
-class WireSource(PageLoader):
+class WireSource:
     """One conversation as one viewer reads it from Core, and how its messages are styled.
 
     A page read to the newest messages is short so that it is drawn at once;
@@ -282,7 +261,6 @@ class WireSource(PageLoader):
     tail_limit: int = 8
     page_limit: int = 40
     max_bytes: int = 256 * 1024
-    work = WirePageWork
 
     @property
     def viewer(self) -> NamedViewer:
@@ -338,3 +316,42 @@ class WireObservation:
     revision: ConversationRevision
     through: AfterSequence
     replaced: bool
+
+
+@dataclass(frozen=True)
+class WirePageRevision(WorkRevision):
+    through: AfterSequence | None
+    request: PageRequest
+    size: ClassVar[int] = 512
+
+
+@dataclass(frozen=True)
+class WirePageWork(TranscriptPageWork):
+    """Read one wire page off the UI thread; `loader` is the WireSource."""
+
+    @property
+    def work_key(self) -> WorkKey:
+        cut = self.request.before or self.request.after
+        return WorkKey(type(self), WirePageRevision(self.through if cut.bounded else None, self.request), self.scope)
+
+    @property
+    def retain_result(self) -> bool:
+        return (self.request.before or self.request.after).kept
+
+    async def execute(self, runtime, key):
+        import asyncio
+
+        prepared = await runtime.run_thread(self.loader.read, self.request, self.through)
+        if self.scope.closed:
+            raise asyncio.CancelledError
+        return await runtime.run_thread(self.finish_result, key, prepared)
+
+
+class WirePageBuffer(SavedHistory):
+    """The line history's page reader over a wire source."""
+
+    work = WirePageWork
+
+    def accepts(self, loader, through) -> bool:
+        # Earlier wire cuts stay valid while the bus grows.
+        return self.loader is loader

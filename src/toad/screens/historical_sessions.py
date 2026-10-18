@@ -24,14 +24,13 @@ from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
 from toad.widgets.transcript_history import TranscriptHistory
-from toad.transcript_preparation import SavedHistory, TranscriptLoader
 
 
 class RecordedTranscriptHistory(TranscriptHistory):
     """History and handling retain the same selected archive."""
 
-    def __init__(self, prepared, history, *, root: str, source: str, notification_view):
-        super().__init__(prepared, history, notification_view=notification_view)
+    def __init__(self, prepared, loader, *, root: str, source: str, notification_view):
+        super().__init__(prepared, loader, notification_view=notification_view)
         self.root, self.source = root, source
 
     def notification_read(self, references) -> ReadRecordedNotifications:
@@ -149,9 +148,8 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
             prepared = await self.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = RecordedTranscriptHistory(
-                prepared, SavedHistory(TranscriptLoader(load), prepared.page.after, self.app.preparation),
-                root=root, source=item.source.key, notification_view=content)
+            history = RecordedTranscriptHistory(prepared, load, root=root, source=item.source.key,
+                                                notification_view=content)
             window = self.query_one(HistoryWindow)
             window.anchor()
             await content.prepare_history(

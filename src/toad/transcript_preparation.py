@@ -250,28 +250,46 @@ class PageRequest:
 
 
 @dataclass(frozen=True)
-class PageRevision[Through](WorkRevision):
-    through: Through | None
+class PageRevision(WorkRevision):
+    through: TranscriptCursor | None
     request: PageRequest
     size: ClassVar[int] = 512
 
 
 @dataclass(frozen=True)
-class TranscriptFilterWork(ThreadWork[PreparedTranscriptPage]):
+class FilteredTranscriptBatch:
+    prepared: PreparedTranscriptPage
+    stop: int
+
+
+@dataclass(frozen=True)
+class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
     """Select the next bounded presentation batch off-loop from source data."""
 
     page: PreparedTranscriptPage
     fragments: tuple[TranscriptFragment, ...]
     selected: frozenset[type[MessageCategory]]
+    stop: int
+    limit: int
+
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
+        # This is a cursor operation, not a kept copy of the source history.
         return WorkKey(type(self), UniqueRevision())
 
-    def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_source_bytes
+    def result_size(self, result: FilteredTranscriptBatch) -> int:
+        return 64 + result.prepared.retained_source_bytes
 
-    def prepare(self) -> PreparedTranscriptPage:
-        return self.page.project(tuple(fragment for fragment in self.fragments
-                                       if fragment.shown_in(self.selected)))
+    def prepare(self) -> FilteredTranscriptBatch:
+        matches = []
+        stop = self.stop
+        if not self.selected:
+            return FilteredTranscriptBatch(self.page.project(()), 0)
+        while stop and len(matches) < self.limit:
+            stop -= 1
+            fragment = self.fragments[stop]
+            if fragment.shown_in(self.selected):
+                matches.append(fragment)
+        return FilteredTranscriptBatch(self.page.project(tuple(reversed(matches))), stop)
 
 
 class HeldProjection(ABC):
@@ -307,6 +325,7 @@ class PreparedPageSource(ABC):
     runtime: PreparationRuntime
     scope: PreparationScope
     through: TranscriptCursor
+    loader: Callable[..., Awaitable[TranscriptPage]] | None
 
     def __init__(self) -> None:
         # This source holds the resources after their widgets detach. These are the
@@ -339,34 +358,16 @@ class PreparedPageSource(ABC):
     def closed(self) -> bool:
         return self.scope.closed
 
-    def reader_for(self, request: PageRequest, boundary: PreparedPageSource) -> PreparedPageSource:
-        return self
-
-    def has_older(self, page) -> bool:
-        return page.has_older
-
-    def has_newer(self, page) -> bool:
-        return page.has_newer
-
-    async def projected_page(self, request, projection, boundary):
-        initial = await self.get(request)
-        prepared = await projection.project(initial, self.runtime)
-        if not request.older and not prepared.fragments and not prepared.page.has_newer:
-            edge = await boundary.projected_page(request, projection, boundary)
-            return replace(edge, page=replace(edge.page, before=initial.page.before,
-                                             has_older=initial.page.has_older))
-        return replace(prepared, page=replace(prepared.page, has_newer=True))
-
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         if self.closed:
             raise asyncio.CancelledError
-        prepared = await self._read(request)
+        prepared = await self._get(request)
         if self.closed:
             raise asyncio.CancelledError
         return prepared
 
     @abstractmethod
-    async def _read(self, request: PageRequest) -> PreparedTranscriptPage: ...
+    async def _get(self, request: PageRequest) -> PreparedTranscriptPage: ...
 
     async def prepare(self, request: PageRequest) -> None:
         if not self.closed:
@@ -384,23 +385,15 @@ class PreparedPageSource(ABC):
         self.projection_source.close()
         self.release_held()
 
-    def retired(self) -> ClosedHistory:
-        self.close()
-        return ClosedHistory(self.runtime, self.through, self.scope)
 
-
-class HistorySource(PreparedPageSource):
-    """A main history can open a prefix or replace its saved reading."""
-
+class TranscriptPageProjection(ABC):
     @abstractmethod
-    def prefix(self, boundary: PreparedTranscriptPage) -> PreparedPageSource: ...
-
-    @abstractmethod
-    def reset(self, boundary: PreparedTranscriptPage) -> HistorySource: ...
+    async def project(self, page: PreparedTranscriptPage, runtime: PreparationRuntime) -> PreparedTranscriptPage:
+        pass
 
 
 @dataclass(frozen=True)
-class CategoryProjection:
+class CategoryProjection(TranscriptPageProjection):
     selected: frozenset[type[MessageCategory]]
 
     def fragments_for(self, page):
@@ -410,7 +403,10 @@ class CategoryProjection:
         # Filter one source page on the model lane. The same bounded pager
         # used for unfiltered history decides which widgets to show.
         fragments = self.fragments_for(page)
-        return await runtime.submit(TranscriptFilterWork(page, fragments, self.selected))
+        matches = await runtime.submit(TranscriptFilterWork(
+            page, fragments, self.selected, len(fragments), len(fragments),
+        ))
+        return matches.prepared
 
 
 @dataclass(frozen=True)
@@ -434,16 +430,10 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
         return PreparedTranscriptPage.prepare(self.page)
 
 
-class PageLoader(ABC):
-    """A source declares the work that reads and prepares its pages."""
-
-    work: ClassVar[type[TranscriptPageWork]]
-
-
 @dataclass(frozen=True)
 class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
-    loader: PageLoader
+    loader: Callable[..., Awaitable[TranscriptPage]]
     through: TranscriptCursor
     request: PageRequest
     lane = WorkLane.MODEL
@@ -459,31 +449,23 @@ class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[Prepar
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
     ) -> tuple[PreparedValue[PreparedTranscriptPage], int]:
-        page = await self.loader.read(self.request, self.through)
+        request = self.request
+        page = await self.loader(before=request.before, after=request.after, through=self.through)
+        cursor = request.before or request.after
+        if cursor is not None:
+            edge = page.before if request.older else page.after
+            more = page.has_older if request.older else page.has_newer
+            wrong_direction = (edge.contains(cursor) if request.older
+                               else cursor.contains(edge))
+            if edge.session_file != cursor.session_file or (wrong_direction and more):
+                raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
             raise asyncio.CancelledError
         prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
         return await runtime.run_thread(self.finish_prepared, key, prepared)
 
 
-@dataclass(frozen=True)
-class TranscriptLoader(PageLoader):
-    load: Callable[..., Awaitable[TranscriptPage]]
-    work = TranscriptPageWork
-
-    async def read(self, request, through):
-        page = await self.load(before=request.before, after=request.after, through=through)
-        cursor = request.before or request.after
-        if cursor is not None:
-            edge = page.before if request.older else page.after
-            more = page.has_older if request.older else page.has_newer
-            wrong_direction = edge.contains(cursor) if request.older else cursor.contains(edge)
-            if edge.session_file != cursor.session_file or (wrong_direction and more):
-                raise ValueError("Transcript history made no cursor progress")
-        return page
-
-
-class TranscriptPageBuffer(PreparedPageSource):
+class SavedHistory(PreparedPageSource):
     """Prepared pages for a snapshot; storage and work limits belong to the runtime.
 
     The loader retains ownership of transcript/routing semantics and off-loop
@@ -492,115 +474,49 @@ class TranscriptPageBuffer(PreparedPageSource):
     still-running read's slot or publish it into a closed view.
     """
 
+    # The work that reads and prepares one page of this kind of source.
+    work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
+
     def __init__(
-        self, loader: PageLoader, through: TranscriptCursor,
+        self, loader: Callable[..., Awaitable[TranscriptPage]] | None, through: TranscriptCursor,
         runtime: PreparationRuntime,
     ) -> None:
         super().__init__()
-        self.source, self.through, self.runtime = loader, through, runtime
+        self.loader, self.through, self.runtime = loader, through, runtime
         self.scope = PreparationScope()
 
     def read_task(self, request: PageRequest) -> TranscriptPageWork:
-        return self.source.work(self.scope, self.source, self.through, request)
+        if self.loader is None:
+            raise ValueError("This transcript has no saved-source reader")
+        return self.work(self.scope, self.loader, self.through, request)
 
-    async def _read(self, request: PageRequest) -> PreparedTranscriptPage:
+    async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
         result = await self.runtime.submit(self.read_task(request))
         return result.for_view()
 
     async def _prepare(self, request: PageRequest) -> None:
         await self.runtime.prepare(self.read_task(request))
 
-class SavedHistory(TranscriptPageBuffer, HistorySource):
-    """A saved reader, with a separately scoped prefix when filters need one."""
-
-    def prefix(self, boundary):
-        return SavedPrefix(self, boundary.page.before)
-
-    def reset(self, boundary):
-        self.close()
-        return SavedHistory(self.source, boundary.page.after, self.runtime)
-
 
 class SavedPrefix(SavedHistory):
-    """An earlier read uses the original source; forward reads stop at this cut."""
-
-    def __init__(self, earlier: SavedHistory, through):
-        super().__init__(earlier.source, through, earlier.runtime)
+    def __init__(self, earlier, loader, through, runtime):
+        super().__init__(loader, through, runtime)
         self.earlier = earlier
 
-    def reader_for(self, request, boundary):
-        return self.earlier if request.older else self
-
-
-class NoMoreHistory(HistorySource):
-    def has_older(self, page):
-        return False
-
-    def has_newer(self, page):
-        return False
-
-
-class NoSavedHistory(NoMoreHistory):
-    """Only the kept page exists; no read can escape its boundary."""
-
-    def __init__(self, boundary: PreparedTranscriptPage, runtime: PreparationRuntime):
-        super().__init__()
-        self.prepared = boundary
-        self._projected_boundary: PreparedTranscriptPage | None = None
-        self.through, self.runtime = boundary.page.after, runtime
-        self.scope = PreparationScope()
-
-    def reader_for(self, request, boundary):
-        return boundary
-
-    async def _read(self, request):
-        return self.prepared
-
-    async def projected_page(self, request, projection, boundary):
-        if self._projected_boundary is None:
-            prepared = await projection.project(self.prepared, self.runtime)
-            self._projected_boundary = replace(prepared, page=replace(prepared.page, has_newer=False))
-        return self._projected_boundary
+    async def _get(self, request):
+        return await self.earlier.get(request) if request.older else await super()._get(request)
 
     async def _prepare(self, request):
-        pass
-
-    def prefix(self, boundary):
-        return type(self)(boundary, self.runtime)
-
-    def reset(self, boundary):
-        self.close()
-        return self.prefix(boundary)
+        if request.older:
+            await self.earlier.prepare(request)
+        else:
+            await super()._prepare(request)
 
 
-class ClosedHistory(NoMoreHistory):
-    """A retired source never answers or reopens a read."""
-
-    def __init__(self, runtime, through, scope):
-        super().__init__()
-        self.runtime, self.through, self.scope = runtime, through, scope
-
-    @property
-    def closed(self):
-        return True
-
-    async def _read(self, request):
-        raise asyncio.CancelledError
-
-    async def _prepare(self, request):
-        raise asyncio.CancelledError
-
-    def prefix(self, boundary):
-        return self
-
-    def reset(self, boundary):
-        return self
-
-    def close(self):
-        pass
-
-    def retired(self):
-        return self
+class ClosedHistory(SavedHistory):
+    def __init__(self, loader, through, runtime):
+        super().__init__(loader, through, runtime)
+        self.scope.closed = True
 
 
 class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
@@ -617,30 +533,60 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
 
     def __init__(
         self, boundary: PreparedTranscriptPage,
-        history: HistorySource,
-        runtime: PreparationRuntime, projection: CategoryProjection,
+        loader: Callable[..., Awaitable[TranscriptPage]] | None,
+        runtime: PreparationRuntime, projection: TranscriptPageProjection,
+        upstream: PreparedPageSource | None = None,
     ) -> None:
         super().__init__()
-        self.runtime, self.projection = runtime, projection
-        self._history = history.prefix(boundary)
+        self.loader, self.runtime, self.projection = loader, runtime, projection
         self.through = boundary.page.after
-        self.scope = self._history.scope
-        self._boundary = NoSavedHistory(replace(boundary, page=replace(
-            boundary.page, has_older=history.has_older(boundary.page))), runtime)
+        self._raw = (ClosedHistory(loader, boundary.page.before, runtime) if loader is None else
+                     SavedHistory(loader, boundary.page.before, runtime) if upstream is None else
+                     SavedPrefix(upstream, loader, boundary.page.before, runtime))
+        self.scope = self._raw.scope if loader is not None else PreparationScope()
+        self._boundary = boundary
+        self._projected_boundary: PreparedTranscriptPage | None = None
 
-    def _reader_for(self, request: PageRequest) -> PreparedPageSource:
+    async def boundary(self) -> PreparedTranscriptPage:
+        if self._projected_boundary is None:
+            projected = await self.projection.project(self._boundary, self.runtime)
+            self._projected_boundary = replace(projected, page=replace(
+                projected.page, has_newer=False,
+                has_older=projected.page.has_older and self.loader is not None,
+            ))
+        return self._projected_boundary
+
+    def _reader_for(self, request: PageRequest) -> PreparedPageSource | None:
+        """The reader that serves a request; None when the kept boundary answers it."""
         if (request.before == self.through
-                or request.after == self._boundary.prepared.page.before):
-            return self._boundary
-        return self._history.reader_for(request, self._boundary)
+                or request.after == self._boundary.page.before or self.loader is None):
+            return None
+        return self._raw
 
-    async def _read(self, request: PageRequest) -> PreparedTranscriptPage:
-        return await self._reader_for(request).projected_page(request, self.projection, self._boundary)
+    async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
+        if (reader := self._reader_for(request)) is None:
+            return await self.boundary()
+        initial = await reader.get(request)
+        prepared = await self.projection.project(initial, self.runtime)
+        if not request.older and not prepared.fragments and not prepared.page.has_newer:
+            boundary = await self.boundary()
+            return replace(boundary, page=replace(
+                boundary.page, before=initial.page.before,
+                has_older=initial.page.has_older,
+            ))
+        # One requested source page, including an empty matching interval.
+        # Only the viewport or an explicit filter scan may request another;
+        # a projection cannot decode arbitrary older pages behind that request.
+        return replace(prepared, page=replace(prepared.page, has_newer=True))
 
     async def _prepare(self, request: PageRequest) -> None:
-        await self._reader_for(request).prepare(request)
+        if (reader := self._reader_for(request)) is None:
+            await self.boundary()
+        else:
+            await reader.prepare(request)
 
     def close(self) -> None:
         super().close()
-        self._history = self._history.retired()
-        self._boundary.close()
+        self._raw.close()
+        self._projected_boundary = None
+        self.loader = None

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.widgets.message_filter import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
+from toad.transcript_preparation import PageRequest
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -174,7 +175,7 @@ class SeekingFilter(NoFilter):
         owner = self.owner
         source = owner.projected_source(owner.selected_categories)
         try:
-            prepared = await source.boundary()
+            prepared = await source.get(PageRequest(before=source.through))
             if not snapshot.current(owner):
                 return False
             rows, limit = snapshot.window.latest_limits(owner.budget)
