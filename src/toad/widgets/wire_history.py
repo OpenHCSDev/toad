@@ -123,7 +123,8 @@ class WireHistory(VisibleReadMarking, LineHistory):
     async def accept_extension(self, edge, prepared) -> bool:
         if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
-        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+                               arrivals=self.arriving_fragments(False, prepared))
         return False
 
     @property

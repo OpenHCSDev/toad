@@ -15,7 +15,7 @@ from textual.app import ScreenStackError, UnknownModeError
 from textual.widget import Widget
 from textual.strip import Strip
 from ui_theme.clock import Animation
-from ui_theme.effects import Effect, Fade, Frame
+from ui_theme.effects import Effect, Fade, Frame, Mix
 
 if TYPE_CHECKING:
     from toad.screens.workspace import WorkspaceScreen
@@ -298,9 +298,9 @@ class Animated[FrameT: Frame](Widget):
                 self.effects[effect] = self.app.colours.clock.start(effect, self)
         self.refresh()
 
-    def paint_effects(self, strip: Strip) -> Strip:
-        for effect in self.text_fades:
-            strip = self.app.colours.paint_rising(self.effect_frame(effect), strip)
+    def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
+        for frame in (*frames, *(self.effect_frame(effect) for effect in self.text_fades)):
+            strip = self.app.colours.paint_rising(frame, strip)
         return strip
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
