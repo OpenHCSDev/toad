@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.widgets.message_filter import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
+from toad.widgets.history_anchor import OlderEnd
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -203,7 +204,7 @@ class SeekingFilter(NoFilter):
             await prepared.prepare_rows(
                 owner, lambda: snapshot.current(owner), target=owner,
                 selected=owner.selected_categories, boundary=len(prepared.fragments),
-                older=True, rows_needed=rows, limit=limit,
+                end=OlderEnd(), rows_needed=rows, limit=limit,
             )
             if not snapshot.current(owner):
                 return False
@@ -275,17 +276,17 @@ class Filtered(FilterState):
 
     def canonical_moved(self, previous, visible):
         owner = self.owner
-        if visible or previous == (owner.pages[0], owner.pages[0].start):
+        if visible or previous == (owner.pages[0], owner.pages[0].prepared.start):
             return
         self.remove()
         owner.invalidate_projection()
 
     async def advance(self, snapshot):
         previous = self.overlay.pages[0]
-        start, before = previous.start, previous.page.before
+        start, before = previous.prepared.start, previous.prepared.page.before
         await self.overlay.load_older()
         first = self.overlay.pages[0]
-        return first.start < start if first is previous else before.contains(first.page.before)
+        return first.prepared.start < start if first is previous else before.contains(first.prepared.page.before)
 
 
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):

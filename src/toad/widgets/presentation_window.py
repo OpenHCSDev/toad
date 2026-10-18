@@ -193,7 +193,7 @@ class DestinationPreparation(PreparationDemand):
 
     def accepts_result(self, end) -> bool:
         # A newer destination supersedes older work through its source snapshot.
-        return end.accepts_destination()
+        return end.accepts_destination
 
     def read_rows(self, preparation, history, end, runway: Runway) -> int:
         if not self.accepts_result(end):
@@ -244,7 +244,7 @@ class DirectionalPreparation:
     def request_boundary(self, travel: float) -> bool:
         """Measure reader input while its lazy source edge has no native travel."""
         window = self.window
-        from toad.widgets.transcript_history import OlderEnd, NewerEnd
+        from toad.widgets.history_anchor import OlderEnd, NewerEnd
         end = OlderEnd() if travel < 0 else NewerEnd()
         if not end.at_boundary(window) or not any(end.visible_more(h) for h in window.histories):
             return False
@@ -342,9 +342,9 @@ class DirectionalPreparation:
             # Projection scans share the original source's decoded boundary.
             history.filter.check_edges()
         else:
-            from toad.widgets.transcript_history import OlderEnd, NewerEnd
+            from toad.widgets.history_anchor import OlderEnd, NewerEnd
             for end in (OlderEnd(), NewerEnd()):
-                if end.read_rows(window, history):
+                if self.read_rows(history, end):
                     history.request_page(end)
                     return
 

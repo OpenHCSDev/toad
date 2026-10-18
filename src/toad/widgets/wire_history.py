@@ -57,7 +57,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     @property
     def undrawn(self) -> bool:
         """Nothing of the bound source has been drawn yet."""
-        return all(view.page.undrawn for view in self.pages)
+        return all(view.prepared.page.undrawn for view in self.pages)
 
     @property
     def source_identity(self):
@@ -111,7 +111,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
             self.extend_source(observed.through)
         elif not self.undrawn:
             # A recorded observation may still have an unfinished page read.
-            return (self.pages[-1].page.after != self.through
+            return (self.pages[-1].prepared.page.after != self.through
                     and await self.extend(self.through))
         # The existing prepared reader owns this pending page. Retry drawing it,
         # not clearing its source and starting the same read again.
@@ -121,7 +121,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     # What is drawn
 
     async def accept_extension(self, edge, prepared) -> bool:
-        if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
+        if edge.prepared.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
         await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
         return False

@@ -16,6 +16,8 @@ from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
 from toad.transcript_state import LatestViewportRequest
+from agent_comms.transcripts import TranscriptCursor
+from collections import deque
 
 if TYPE_CHECKING:
     from toad.transcript_preparation import PageFragmentRange
@@ -24,46 +26,162 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Contents
 
 
-class PageWalk(ABC):
-    """One outward traversal of prepared pages, with its own boundary."""
+class PageEnd(ABC):
+    """One end owns page traversal, source reads and eviction at that edge."""
 
     step: int
+    accepts_destination = True
 
-    @abstractmethod
-    def boundary(self, page) -> int: ...
+    def fresh(self, history) -> bool:
+        return False
 
-    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit) -> int:
-        return await page.prepare_rows(history, current, target=target, selected=selected,
-                                       boundary=boundary, older=self.older,
-                                       rows_needed=rows_needed, limit=limit)
+    def accepts_velocity(self, velocity: float) -> bool:
+        return velocity * self.step > 0
 
     async def walk(self, history, current, target, selected, start, rows_needed, limit):
         index, boundary = start
         while current() and rows_needed > 0 and limit > 0 and 0 <= index < len(history.pages):
             page = history.pages[index].prepared
-            rows_needed -= await self.prepare(page, history, current, target, selected,
-                                              boundary, rows_needed, limit)
+            rows_needed -= await page.prepare_rows(
+                history, current, target=target, selected=selected, end=self,
+                boundary=boundary, rows_needed=rows_needed, limit=limit)
             limit -= page.stop - page.start
             index += self.step
             if 0 <= index < len(history.pages):
-                boundary = self.boundary(history.pages[index])
+                boundary = self.boundary(history.pages[index].prepared)
         return rows_needed, limit
 
+    def eviction_order(self, history):
+        return OlderEnd(), NewerEnd()
 
-class Older(PageWalk):
+    def can_evict(self, overlay_visible) -> bool:
+        return True
+
+    def leave_tail(self, window) -> None:
+        pass
+
+    def trim(self, view, count) -> None:
+        self.trim_range(view.prepared, count)
+        view.range_changed()
+
+
+class OlderEnd(PageEnd):
     step = -1
-    older = True
+    pop = staticmethod(deque.popleft)
+    append = staticmethod(deque.appendleft)
 
-    def boundary(self, page) -> int:
+    def boundary(self, page):
         return len(page.fragments)
 
+    def indices(self, page, boundary):
+        return range(boundary - 1, -1, -1)
 
-class Newer(PageWalk):
+    def can_extend(self, page):
+        return page.start > 0
+
+    def has_more(self, source, page):
+        return page.has_older
+
+    def adjacent(self, page):
+        return PageRequest(before=page.before)
+
+    def advance_empty(self, edge, staged):
+        edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
+
+    def edge(self, pages):
+        return pages[0]
+
+    def edge_boundary(self, edge, local, staged):
+        return edge.prepared.start if local else len(staged.fragments)
+
+    def before(self, history, edge):
+        return edge
+
+    def eviction_order(self, history):
+        return super().eviction_order(history) if history.follows_source_tail else (NewerEnd(), self)
+
+    def eviction_fragments(self, page):
+        return page.fragments_in_range
+
+    def can_evict(self, overlay_visible):
+        return not overlay_visible
+
+    def trim_range(self, page, count):
+        page.start += count
+
+    def rows_toward(self, runway):
+        return runway.above
+
+    def visible_more(self, history):
+        return history.has_older
+
+    def at_boundary(self, window):
+        return window.scroll_y <= 0 and window.scroll_target_y <= 0
+
+    def leave_tail(self, window):
+        window.release_anchor()
+
+
+class NewerEnd(PageEnd):
     step = 1
-    older = False
+    accepts_destination = False
+    pop = staticmethod(deque.pop)
+    append = staticmethod(deque.append)
 
-    def boundary(self, page) -> int:
+    def boundary(self, page):
         return 0
+
+    def indices(self, page, boundary):
+        return range(boundary, len(page.fragments))
+
+    def can_extend(self, page):
+        return page.stop < len(page.fragments)
+
+    def has_more(self, source, page):
+        return page.has_newer or page.after != source.through
+
+    def adjacent(self, page):
+        return PageRequest(after=page.after)
+
+    def advance_empty(self, edge, staged):
+        edge.page = replace(edge.page, after=staged.page.after, has_newer=staged.page.has_newer)
+
+    def fresh(self, history):
+        return not history.has_newer and history.follows_source_tail
+
+    def edge(self, pages):
+        return pages[-1]
+
+    def edge_boundary(self, edge, local, staged):
+        return edge.prepared.stop if local else 0
+
+    def before(self, history, edge):
+        return history.newer
+
+    def eviction_fragments(self, page):
+        return reversed(page.fragments_in_range)
+
+    def trim_range(self, page, count):
+        page.stop -= count
+
+    def rows_toward(self, runway):
+        return runway.below
+
+    def visible_more(self, history):
+        return history.has_newer
+
+    def at_boundary(self, window):
+        return window.scroll_y >= window.max_scroll_y and window.scroll_target_y >= window.max_scroll_y
+
+
+@dataclass(frozen=True)
+class PageRequest:
+    before: TranscriptCursor | None = None
+    after: TranscriptCursor | None = None
+
+    @property
+    def older(self) -> bool:
+        return self.before is not None
 
 
 class ReaderPosition(ABC):
@@ -138,32 +256,23 @@ class ReaderPosition(ABC):
     def kept(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
 
-    def for_parking(self, window: "HistoryWindow") -> "ReaderPosition":
-        return self.resolve(window)
-
     def resolve(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
 
     def preparation_start(self, history) -> tuple[int, int]:
-        return self.resolve(history.window)._preparation_start(history)
-
-    def _preparation_start(self, history) -> tuple[int, int]:
         """Where preparation begins when no message supplies a more exact place."""
-        return 0, history.pages[0].start
+        return 0, history.pages[0].prepared.start
 
     async def prepare(self, history, current, target, selected, rows_needed, limit):
         """Fill the reader's earlier rows, then the later rows in the remaining budget."""
-        return await self.resolve(history.window)._prepare(history, current, target, selected, rows_needed, limit)
-
-    async def _prepare(self, history, current, target, selected, rows_needed, limit):
-        start = self._preparation_start(history)
+        start = self.preparation_start(history)
         anchor = history.pages[start[0]].prepared
-        _, limit = await Older().walk(
+        _, limit = await OlderEnd().walk(
             history, current, target, selected, start,
             history.window.latest_limits(history.budget)[0], limit,
         )
         earlier = anchor.capture_range()
-        rows_needed, limit = await Newer().walk(
+        rows_needed, limit = await NewerEnd().walk(
             history, current, target, selected, start, rows_needed, limit,
         )
         anchor.set_fragment_range(slice(min(anchor.start, earlier.start),
@@ -213,11 +322,11 @@ class DiscardedOnMotion:
 class TailPosition(ReaderPosition):
     """Following the latest message."""
 
-    def _preparation_start(self, history) -> tuple[int, int]:
-        return len(history.pages) - 1, len(history.pages[-1].fragments)
+    def preparation_start(self, history) -> tuple[int, int]:
+        return len(history.pages) - 1, len(history.pages[-1].prepared.fragments)
 
-    async def _prepare(self, history, current, target, selected, rows_needed, limit):
-        return await Older().walk(history, current, target, selected,
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await OlderEnd().walk(history, current, target, selected,
                                   self.preparation_start(history), rows_needed, limit)
 
     def place(self, window: "HistoryWindow") -> bool:
@@ -288,10 +397,10 @@ class FragmentPosition(OffsetPosition):
         # the earlier ones; the layout that change asked for places this.
         return super().laid_out(window) and self.page(window).rows_measured
 
-    def _preparation_start(self, history) -> tuple[int, int]:
+    def preparation_start(self, history) -> tuple[int, int]:
         return next(((index, boundary) for index, page in enumerate(history.pages)
-                     for boundary, fragment in enumerate(page.fragments) if fragment is self.fragment),
-                    super()._preparation_start(history))
+                     for boundary, fragment in enumerate(page.prepared.fragments) if fragment is self.fragment),
+                    super().preparation_start(history))
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
@@ -639,7 +748,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             # pages stay in the tree: record those page ranges with the place.
             ranges = tuple(page_range for history in contents.line_histories()
                            for page_range in history.capture_reader_ranges())
-            parked = self.reader_position = ParkedPosition(self.reader_position.for_parking(self), ranges)
+            parked = self.reader_position = ParkedPosition(self.reader_position.resolve(self), ranges)
         return parked
 
     def prepare_history(self, history: "TranscriptSourcePreparation") -> None:

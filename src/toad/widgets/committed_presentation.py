@@ -168,7 +168,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
-        return (event for page in self.pages for event in page.page.events)
+        return (event for page in self.pages for event in page.prepared.page.events)
 
     @property
     def outgoing_coverage(self):
