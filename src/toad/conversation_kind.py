@@ -17,6 +17,7 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
 from agent_comms.channel_targets import ThreadTarget
+from toad.widgets.sidebar_tree import UnpaintedChannel
 
 if TYPE_CHECKING:
     from toad.wire_history import WireSource
@@ -89,6 +90,15 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     async def status_text(cls, comms, target, *, read_only: bool) -> str: ...
 
     @classmethod
+    def activity_members(cls, model, target):
+        return (target,)
+
+    @classmethod
+    def active_members(cls, model, target):
+        return tuple(model.threads.rows[name] for name in cls.activity_members(model, target)
+                     if model.threads.rows[name].active)
+
+    @classmethod
     def activity_details(cls, name):
         row = ConversationSessionDetails(
             ThreadTarget(name), history=NativeHistory(), status_source=lambda: row.row)
@@ -118,6 +128,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 class ChannelConversation(ConversationKind):
     history_view = ChannelDisplayHistory
+
+    @classmethod
+    def activity_members(cls, model, target):
+        return model.channels.rows.get(target, UnpaintedChannel(target)).members
 
     @classmethod
     def channels_needed(cls, root, target):
