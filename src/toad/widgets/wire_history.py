@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PreparedTranscriptPage, PreparedPageSource, SavedHistory
+from toad.transcript_preparation import PreparedTranscriptPage, PreparedPageSource, SavedHistory, NoMoreHistory
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
@@ -46,12 +46,12 @@ class WireHistory(VisibleReadMarking, LineHistory):
         self._history = SavedHistory(source, self.through, self.app.preparation)
 
     @property
-    def source(self) -> WireSource | None:
+    def source(self) -> WireSource | NoMoreHistory:
         return self._history.source
 
     @property
     def style(self) -> WireMessageStyle:
-        return self.source.style if self.source is not None else IrcMessageStyle()
+        return self.source.style
 
     @property
     def undrawn(self) -> bool:
@@ -73,15 +73,11 @@ class WireHistory(VisibleReadMarking, LineHistory):
         from agent_comms.route_selection import root_is_current
 
         current = await self.app.preparation.run_thread(root_is_current, comms.root)
-        return current and self.source is not None and self.source.comms is comms
+        return current and self.source.is_current(comms)
 
     async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
         """Whether the route still selects this source's bus and nothing replaced the history."""
-        source = self.source
-        if source is None or not snapshot.current(self):
-            return False
-        return (await self.bus_is_current(source.comms)
-                and source is self.source and snapshot.current(self))
+        return await self.source.current_in(self, snapshot)
 
     @property
     def selected_categories(self):
@@ -136,7 +132,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
-        if self.source is None or not self.can_draw_on_screen:
+        if not self.can_draw_on_screen:
             return
         style = self.style.next()
         self.open(self.source.restyled(style))
@@ -152,7 +148,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     # Read marks
 
     def read_visible(self):
-        if not self.is_attached or self.source is None:
+        if not self.is_attached:
             return None
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
             return None

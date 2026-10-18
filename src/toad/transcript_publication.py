@@ -18,6 +18,7 @@ from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRe
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
+from toad.transcript_preparation import SavedHistory, TranscriptLoader
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -350,7 +351,6 @@ class CommitPublication(CanonicalSourcePublication):
             self.owner.view.notify(str(error), title="Committed history", severity="error")
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
-        from toad.transcript_preparation import SavedHistory, TranscriptLoader
         from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         from toad.widgets.transcript_history import TranscriptHistory
 
@@ -755,7 +755,7 @@ class TranscriptPresentation:
         try:
             async with AsyncResourceRelease() as release:
                 for history in reversed(tuple(self.histories)):
-                    release.callback(history._history.close)
+                    release.callback(history.close)
                 release.callback(self._close_documents)
                 await self.suspend()
         finally:

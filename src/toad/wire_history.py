@@ -23,11 +23,11 @@ from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PageLoader, PreparedTranscriptPage, TranscriptPageWork,
+    PageRequest, PageRevision, PageLoader, PreparedTranscriptPage, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
-from toad.work_preparation import WorkKey, WorkRevision
+from toad.work_preparation import WorkKey
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import HistoryCursor
@@ -241,20 +241,13 @@ class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole,
                                f"created {message.sender_created_at}"), self.row.header)
 
 @dataclass(frozen=True)
-class WirePageRevision(WorkRevision):
-    through: AfterSequence | None
-    request: PageRequest
-    size: ClassVar[int] = 512
-
-
-@dataclass(frozen=True)
 class WirePageWork(TranscriptPageWork):
     """Read one wire page off the UI thread; the source owns its work type."""
 
     @property
     def work_key(self) -> WorkKey:
         cut = self.request.before or self.request.after
-        return WorkKey(type(self), WirePageRevision(self.through if cut.bounded else None, self.request), self.scope)
+        return WorkKey(type(self), PageRevision(self.through if cut.bounded else None, self.request), self.scope)
 
     @property
     def retain_result(self) -> bool:
@@ -285,6 +278,13 @@ class WireSource(PageLoader):
     page_limit: int = 40
     max_bytes: int = 256 * 1024
     work = WirePageWork
+
+    def is_current(self, comms):
+        return self.comms is comms
+
+    async def current_in(self, history, snapshot):
+        return (snapshot.current(history) and await history.bus_is_current(self.comms)
+                and snapshot.current(history))
 
     @property
     def viewer(self) -> NamedViewer:

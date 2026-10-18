@@ -14,6 +14,7 @@ from agent_comms.presentation import ReadThrough
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
+from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
 
 if TYPE_CHECKING:
     from toad.wire_history import WireSource
@@ -47,8 +48,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
-    def historical_thread(cls, target: str) -> str | None:
-        return None
+    def status_thread(cls, root, target, access):
+        return NoStatusThread()
 
     @classmethod
     async def toggle_irc(cls, screen) -> None:
@@ -207,8 +208,8 @@ class DmConversation(ConversationKind):
     history_view = DMDisplayHistory
 
     @classmethod
-    def historical_thread(cls, target: str) -> str:
-        return target
+    def status_thread(cls, root, target, access):
+        return StatusThread.for_root(root, target, access)
 
     @classmethod
     async def toggle_dm(cls, screen) -> None:

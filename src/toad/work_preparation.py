@@ -29,8 +29,8 @@ class WorkLane(Enum):
 class PreparationScope:
     """A snapshot lifetime token; never holds its widget or application owner."""
 
-    def __init__(self, *, closed: bool = False) -> None:
-        self.closed = closed
+    def __init__(self) -> None:
+        self.closed = False
 
 
 class WorkRevision(ABC):

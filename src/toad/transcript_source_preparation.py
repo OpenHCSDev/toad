@@ -53,6 +53,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 
+    def close(self) -> None:
+        self._history = self._history.retired()
+
     @property
     def state(self) -> TranscriptState:
         return self._source_state.observed(self)
