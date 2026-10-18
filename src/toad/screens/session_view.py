@@ -116,7 +116,11 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, Vertical):
             yield previous
         finally:
             if previous != self.thread_identity:
+                self.identity_changed(previous)
                 self.app.events.publish(ThreadIdentityChanged(self))
+
+    def identity_changed(self, previous: SessionIdentity) -> None:
+        """A source may synchronize its dependent sessions after a real change."""
 
     def activate_session(self) -> None:
         """Bind surface-local observers before its selected frame."""
