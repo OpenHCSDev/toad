@@ -217,6 +217,7 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         # Metadata can arrive after compose built the labels. Keep that exact
         # rendered snapshot as the cache, then reconcile the mounted widgets.
         self.observe_core(self.app.events)
+        self.observe_core(self.app.coordination_access.events)
         self.subscribe_core(self.app.session_tracker.events)
         self.call_later(self._sync_tabs)
         self.call_after_refresh(self.show_selected_tab)
@@ -266,7 +267,8 @@ class SessionsTabs(WidgetView, CoreEventReceiver, Widget):
         if self.screen.is_active:
             await self._sync_tabs()
 
-    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged)
+    @handles(core_events.OpenTabsChanged, core_events.ThreadRowStateChanged,
+             core_events.ThreadRowsChanged)
     async def _tabs_changed(self, event: CoreEventMessage) -> None:
         """A thread tab is a thread row: it repaints when an open session's state changes too."""
         if self.screen.is_active:

@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import threading
 from dataclasses import dataclass, field
+from functools import partial
 from collections.abc import Callable
 from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
@@ -30,9 +31,9 @@ from agent_comms.ui_model.observation import (
     StopObserving, StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
-from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, Subscription, ThreadRowsChanged
+from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -42,7 +43,6 @@ if TYPE_CHECKING:
     from agent_comms.comms import Comms
     from agent_comms.presentation import WireRevision
     from toad.app import ToadApp
-    from toad.widgets.observed_thread_activity import ThreadStatusOwner
 
 T = TypeVar("T")
 
@@ -125,9 +125,6 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
         self.sidebar_current: ObserveSidebar | None = None
-        # Views showing an observed thread's status, by thread name.
-        self.thread_owners: WeakKeyDictionary[ThreadStatusOwner, str] = WeakKeyDictionary()
-        self.thread_interest: frozenset[str] = frozenset()
         self.views_interest: ObserveViews | None = None
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
         self.notification_interest = ObserveNotifications(frozenset())
@@ -196,13 +193,12 @@ class CoordinationAccess(MroDispatch):
             if not waiter.done():
                 waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
         self.sidebar_interest = self.sidebar_current = None
-        self.thread_owners.clear()
-        self.thread_interest = frozenset()
         self.thread_status.clear()
         self.views_interest = None
         self.notification_views.clear()
         self.notification_interest = ObserveNotifications(frozenset())
         self.update_sidebar_interest()
+        observed.process.request(ObserveThreads(self.events.observed_threads(str(observed.service.root))))
         self.app.session_navigation.declare_views()
         self.events.publish(ObservedServiceChanged())
 
@@ -289,11 +285,10 @@ class CoordinationAccess(MroDispatch):
     @handles(ThreadsObserved)
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:
         self.thread_status.observed(result)
-        self.events.publish(ThreadRowsChanged(
-            str(observed.service.root), Changes(changed=tuple(result.changed))))
-        for owner, name in tuple(self.thread_owners.items()):
-            if name in result.changed and name in result.presentations:
-                owner.thread_observed(result.presentations[name])
+        self.events.publish(ThreadRowsChanged(str(observed.service.root), {
+            name: self.thread_status.open(name).presentation
+            for name in result.changed
+        }))
 
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: ObservedCommsService) -> None:
@@ -349,12 +344,11 @@ class CoordinationAccess(MroDispatch):
 
     def observe_thread_changes(self, view, scope: tuple[str, str], resume) -> ResourceRelease:
         """Hold the shared model while this native read waits for its own thread."""
-        if scope is None:
-            raise ValueError("A deferred transcript read requires a bound thread")
         release = ResourceRelease()
 
         release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope)))
+            self.events, ThreadRowsChanged, resume,
+            factory=partial(ThreadCallbackSubscription, scope=scope)))
         return release
 
     def show_sidebar(self, view: object, shown: bool) -> None:
@@ -399,19 +393,12 @@ class CoordinationAccess(MroDispatch):
                 self.sidebar_waiters.remove(pending)
                 self.update_sidebar_interest()
 
-    def show_thread(self, owner: ThreadStatusOwner, name: str | None) -> None:
-        """``owner`` shows observed thread ``name``'s status (None: no observed thread)."""
-        previous = self.thread_owners.get(owner)
-        if name is None:
-            self.thread_owners.pop(owner, None)
-        else:
-            self.thread_owners[owner] = name
-        names = frozenset(self.thread_owners.values())
-        joined = name is not None and previous != name
-        if ((names != self.thread_interest or joined)
-                and self.observation is not None and self.loop is not None):
-            self.thread_interest = names
-            self.observation.process.request(ObserveThreads(names))
+    async def update_thread_interest(self) -> None:
+        """Acquire the observer through preparation before sending current-root interest."""
+        await self.preparation.run_thread(self.open_current)
+        observed = self.observation
+        root = str(observed.service.root)
+        observed.process.request(ObserveThreads(self.events.observed_threads(root)))
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
@@ -430,6 +417,8 @@ class CoordinationAccess(MroDispatch):
             self.route_task.cancel()
             await asyncio.gather(self.route_task, return_exceptions=True)
             self.route_task = None
+        self.events.close_threads()
+        self.app.workers.cancel_group(self.app, "thread-interest")
         if self.observation is not None and self.loop is not None:
             process = self.observation.process
             process.request(StopObserving())

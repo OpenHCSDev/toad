@@ -297,24 +297,6 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             request.destination.source_settled(snapshot.window)
             snapshot.window.lookahead.destination_complete()
 
-    def defer_source_work(self, operation: WorkingTranscript, work) -> None:
-        """Keep this read until its own thread changes in the shared model."""
-        from toad.widgets.conversation import Conversation
-
-        snapshot = self.source_snapshot()
-        scope = self.query_ancestor(Conversation).transcript.thread_scope
-
-        def resume(_event) -> None:
-            self._source_observation.close()
-            if snapshot.current(self) and self._source_state is operation:
-                operation.schedule(self, work)
-            else:
-                self.finish_source_work(operation)
-
-        self._source_observation.close()
-        self._source_observation.enter_context(
-            self.app.coordination_access.observe_thread_changes(self, scope, resume))
-
     def supersede_source_work(
         self, operation: WorkingTranscript, request: LatestViewportRequest,
     ) -> None:

@@ -3,10 +3,10 @@
 from agent_comms.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual.message import Message
-from weakref import WeakMethod, ref
 from functools import cached_property, partial
+from dataclasses import InitVar, dataclass, field
 
-from toad.core.events import CoreEvent, CoreEventStream, Subscription
+from toad.core.events import CoreEvent, CoreEventStream, Subscription, ThreadChangeSubscription
 
 
 async def dispatch_publication(receiver, message) -> None:
@@ -33,6 +33,26 @@ class CoreEventMessage(Message):
         return (isinstance(message, CoreEventMessage)
                 and self.subscription is message.subscription
                 and self.event.can_replace(message.event))
+
+
+@dataclass(eq=False)
+class CallbackSubscription(Subscription):
+    callback: InitVar[object] = field(kw_only=True)
+    _callback: object = field(init=False, repr=False)
+
+    def __post_init__(self, listener, callback) -> None:
+        super().__post_init__(listener)
+        self._callback = self.weak_method(callback)
+
+    async def consume(self, receiver, message) -> None:
+        callback = self._callback()
+        if callback is not None:
+            await invoke(callback, message.event)
+
+
+@dataclass(eq=False)
+class ThreadCallbackSubscription(ThreadChangeSubscription, CallbackSubscription):
+    """Compose thread indexing with callback delivery in the native pump."""
 
 
 class CoreEventReceiver(MroDispatch):
@@ -85,33 +105,17 @@ class CoreEventReceiver(MroDispatch):
 
     def observe_core_callback(self, stream: CoreEventStream,
                               event_type: type[CoreEvent], callback, *,
-                              accepts=lambda event: True) -> Subscription:
+                              factory=CallbackSubscription) -> Subscription:
         """An original deferred operation receives relief inside its native pump."""
-        recipient = ref(self)
-        try:
-            borrowed_callback = WeakMethod(callback)
-        except TypeError:
-            borrowed_callback = lambda: callback
-
-        async def consume(receiver, message) -> None:
-            callback = borrowed_callback()
-            if callback is not None:
-                await invoke(callback, message.event)
-
-        def publish(event, subscription) -> None:
-            receiver = recipient()
-            if receiver is None:
-                subscription.close()
-                return
-            if not accepts(event):
-                return
-            message = CoreEventMessage(event, subscription, consume)
-            message.bubble = False
-            receiver.post_message(message)
-
-        subscription = stream.subscribe(event_type, publish)
+        subscription = stream.subscribe(
+            event_type, self.post_core_callback, factory=partial(factory, callback=callback))
         self._core_subscriptions.add(subscription)
         return subscription
+
+    def post_core_callback(self, event: CoreEvent, subscription: CallbackSubscription) -> bool:
+        message = CoreEventMessage(event, subscription, subscription.consume)
+        message.bubble = False
+        return self.post_message(message)
 
     def post_core_event(self, event: CoreEvent, subscription: Subscription) -> bool:
         message = CoreEventMessage(event, subscription)

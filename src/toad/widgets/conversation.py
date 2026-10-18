@@ -391,8 +391,10 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         """Capture turn token and client authority for the next observed presentation."""
         self._thread_read = self.agent.thread_read() if self.agent is not None else None
 
-    def thread_observed(self, presentation) -> None:
-        """Settle the agent's turn from an observed presentation, as its own read would."""
+    def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
+        """Consume this thread's one observation, including handling and presentation."""
+        self.transcript.request_handling()
+        presentation = event.presentations[self.status_thread()[1]]
         read = self._thread_read
         self.arm_thread_read()
         if read is not None:
@@ -439,9 +441,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     @handles(core_events.ObservedServiceChanged)
     async def _thread_route_observed(self, event: CoreEventMessage) -> None:
         self.refresh_thread_status()
-
-    def _thread_rows_changed(self, event: core_events.ThreadRowsChanged) -> None:
-        self.transcript.request_handling()
 
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
@@ -589,7 +588,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._source_resources.callback(self.output.retire)
         self._source_resources.push_async_callback(self.transcript.detach, self)
         self._source_resources.callback(self.goal_controls.close)
-        self._source_resources.callback(self.app.coordination_access.show_thread, self, None)
 
     async def on_unmount(self) -> None:
         async with AsyncResourceRelease() as release:
