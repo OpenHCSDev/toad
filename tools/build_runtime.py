@@ -244,6 +244,14 @@ class TerminalApp:
         return result.stdout if result.returncode == 0 else ''
 
     @staticmethod
+    def message_cells(text):
+        """Decode the middle pane once through the terminal's sidebar boundaries."""
+        for line in text.splitlines():
+            panes = line.split('│')
+            if len(panes) >= 3:
+                yield '│'.join(panes[1:-1])
+
+    @staticmethod
     def message_rows(text):
         """Visible transcript rows between the sidebar separators, without its scrollbar.
 
@@ -252,14 +260,11 @@ class TerminalApp:
         text and any table separators inside it, without copying sidebar state.
         """
         rows = []
-        for line in text.splitlines():
-            panes = line.split('│')
-            if len(panes) >= 3:
-                body = '│'.join(panes[1:-1])
-                if body.startswith('▌'):
-                    # The jump control overlays messages; it is not their text.
-                    control = '↓ Back to bottom · Esc'
-                    rows.append(body[:-2].replace(control, ' ' * len(control)))
+        for body in TerminalApp.message_cells(text):
+            if body.startswith('▌'):
+                # The jump control overlays messages; it is not their text.
+                control = '↓ Back to bottom · Esc'
+                rows.append(body[:-2].replace(control, ' ' * len(control)))
         return tuple(rows)
 
     def reader_place(self, name):
@@ -268,8 +273,16 @@ class TerminalApp:
 
         def settled(text):
             nonlocal previous
+            cells = tuple(self.message_cells(text))
+            last_message = next((i for i in range(len(cells) - 1, -1, -1)
+                                 if cells[i].startswith('▌')), None)
+            # Flash is the one-row sibling directly below AgentWindow. Its
+            # connection notice may remain unchanged for seconds before hiding
+            # and giving that row back. Do not save a viewport with it present.
+            notice = (last_message is not None and last_message + 1 < len(cells)
+                      and bool(cells[last_message + 1].strip()))
             rows = self.message_rows(text)
-            same = bool(rows) and rows == previous
+            same = bool(rows) and not notice and rows == previous
             previous = rows
             return same
 
