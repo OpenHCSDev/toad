@@ -3,7 +3,7 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from agent_comms.route_selection import RouteSelection
-from agent_comms.view_unread import TranscriptChanged
+from agent_comms.coordination_errors import TranscriptChanged
 from toad.comms_root import CoordinationAccess
 from toad.widgets.message_notifications import VisibleReadMarking
 
@@ -450,23 +450,9 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             try:
                 await asyncio.to_thread(acknowledge, through)
             except TranscriptChanged:
-                # Only a newly painted cursor can acknowledge the replaced source.
-                if self.selected_session is not screen or not conversation.is_attached:
-                    return
-                conversation.transcript.require_commit()
-                worker = conversation.transcript.worker
-                if worker is None:
-                    raise TranscriptChanged("Transcript could not refresh its painted cursor")
-                await worker.wait()
-                ready = asyncio.get_running_loop().create_future()
-                conversation.call_after_refresh(
-                    lambda: ready.set_result(conversation.transcript.displayed_cursor))
-                fresh = await ready
-                if self.selected_session is not screen or not conversation.is_attached:
-                    return
-                if fresh is None:
-                    raise TranscriptChanged("Transcript refresh did not paint a cursor")
-                await asyncio.to_thread(acknowledge, fresh)
+                fresh = await conversation.transcript.refresh_cursor()
+                if self.selected_session is screen:
+                    await asyncio.to_thread(acknowledge, fresh)
 
         return mark()
 
