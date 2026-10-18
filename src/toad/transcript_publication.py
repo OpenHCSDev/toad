@@ -11,8 +11,7 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from agent_comms.transcript_events import TranscriptCoverage
-from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
@@ -162,12 +161,12 @@ class HandlingPublication(TranscriptPublication):
         return True
 
 
-class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
+class CanonicalSourcePublication(TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read))
+            partial(self.owner.reader.snapshot, *self.thread_scope))
 
     async def read_past_history(self, read, **whole):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
@@ -182,15 +181,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         if not self.owner.readable:
             return True
         snapshot = await self.read_snapshot()
-        handler, = self.handlers_for(snapshot)
-        return await handler(snapshot)
-
-    @handles(TranscriptDraftUpdate)
-    async def publish_draft(self, snapshot: TranscriptDraftUpdate) -> bool:
-        if self.current():
-            self.show_draft(snapshot.draft)
-            self.owner.current_read = snapshot.identity
-        return True
+        return await self.publish_snapshot(snapshot)
 
     def show_draft(self, draft) -> None:
         widget = self.owner.view.cli_draft
@@ -198,7 +189,6 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
             self.contents.move_child(widget, after=-1)
         widget.show(draft)
 
-    @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
         page = snapshot.page
         # The known native cut and its applied original resources meet here.
@@ -235,7 +225,7 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read),
+            partial(self.owner.reader.snapshot, *self.thread_scope),
             read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
