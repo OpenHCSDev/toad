@@ -42,7 +42,6 @@ from toad.widgets.conversation import Conversation, ThreadLoading
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
-from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.channels_sidebar import ChannelsSidebar
 from toad.navigation_target import FeedTarget, DirectTarget
@@ -257,12 +256,8 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.set_reactive(MainScreen.project_path, project_path)
         self._agent = agent
         self._agent_session_id = agent_session_id
-        self.initial_coordination_root: str | None = None
-        self._comms_thread = (
-            ""
-            if agent is not None and agent.identity == "agent-comms.openhcs.dev"
-            else session_thread_name(project_path)
-        )
+        from toad.thread_identity import SessionIdentity
+        self._identity = SessionIdentity.for_thread(agent_session_id or "", None)
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
         self._thread_sidebar_state = SidebarState()
@@ -271,17 +266,22 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.presentation = OperationalSessionPresentation()
 
     @classmethod
-    def from_thread(cls, project: Path, root: str, target: str,
+    def from_thread(cls, project: Path, root: str, target,
                     agent: AgentDefinition | None = None) -> "MainScreen":
-        screen = cls(project, agent, agent_session_id=target)
-        screen.initial_coordination_root = root
-        screen._comms_thread = target
+        screen = cls(project, agent, agent_session_id=target.name)
+        screen.bind_thread(target, root)
         return screen
+
+    def bind_thread(self, owner, root: str) -> None:
+        from toad.thread_identity import ThreadIdentity
+        with self.changing_identity():
+            self._identity = ThreadIdentity(owner, root)
 
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
-        screen = cls.from_thread(request.project, request.root, request.target,
-                                 origin.source._agent or app.agent_data)
+        # The request has only a name; bind the wire after its metadata read.
+        screen = cls(request.project, origin.source._agent or app.agent_data,
+                     agent_session_id=request.target)
         screen.content = NavigatedOpeningContent()
         return screen
 
@@ -366,18 +366,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.content.close(self)
         await self.presentation.close(self)
 
-    @property
-    def thread_identity(self):
-        from toad.thread_identity import ThreadIdentity, NoThreadIdentity
-        root = self.coordination_root
-        return (ThreadIdentity(self._comms_thread, root)
-                if self._comms_thread and root is not None else NoThreadIdentity())
-
-    @property
-    def coordination_root(self) -> str | None:
-        fact = self.app.coordination_facts.get(self)
-        return fact.wire_root if fact is not None else self.initial_coordination_root
-
     @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
         await ScreenCommsConsumer(self).dispatch(event.event.update)
@@ -402,16 +390,16 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         async with self.presentation.transcript.changing_source(self):
             with self.changing_identity():
-                previous_thread, previous_root = self._comms_thread, self.coordination_root
-                self.app.coordination_facts[self] = event
+                previous_thread, previous_root = self.thread_identity.thread_name(), self.coordination_root
+                from toad.thread_identity import ThreadIdentity
+                self._identity = ThreadIdentity(event.thread, event.wire_root)
                 if previous_root != self.coordination_root:
                     self.link_context_changed()
                 if event.worktree is not None:
                     self.bind_project(Path(event.worktree))
-                self._comms_thread = event.thread.name
                 if self.id is not None:
-                    self.app.session_navigation.sync_identity(self.id, previous_thread, self._comms_thread)
-                    self.app.session_tracker.bind_identity(self.id, previous_thread, self._comms_thread)
+                    self.app.session_navigation.sync_identity(self.id, previous_thread, self.thread_identity.thread_name())
+                    self.app.session_tracker.bind_identity(self.id, previous_thread, self.thread_identity.thread_name())
                     self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
         await self.presentation.apply_coordination(self, event)
 
@@ -428,18 +416,13 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     _last_dm_target: str | None = None
 
     @property
-    def _session_thread(self) -> str:
-        """Project the identity published by this session, without reacquiring it."""
-        return self._comms_thread
-
-    @property
     def navigation_target_name(self) -> str:
-        return self._session_thread
+        return self.thread_identity.thread_name()
 
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
-        return NavigationContext(self.app, self.id, self.project_path, self._comms_thread)
+        return NavigationContext(self.app, self.id, self.project_path, self.thread_identity.thread_name())
 
     def remember_direct_target(self, target: str) -> None:
         self._last_dm_target = target

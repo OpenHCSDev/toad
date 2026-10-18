@@ -1,32 +1,37 @@
-"""The thread and wire named by one logical session view."""
+"""A session's absent, local or wire-bound thread, with its owned behavior."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import ClassVar
+from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
 
 class SessionIdentity(ABC):
-    managed: ClassVar[bool]
+    @classmethod
+    def for_thread(cls, thread: str, root: str | None):
+        """Decode the optional wire binding once when accepting a source."""
+        if not thread:
+            return NoThreadIdentity()
+        if root is None:
+            return LocalThreadIdentity(thread)
+        return ThreadIdentity(UnrecordedThreadIncarnation(thread), root)
+
+    @abstractmethod
+    def thread_name(self) -> str: ...
+
+    def with_thread(self, thread: str):
+        return self.for_thread(thread, self.wire_root())
+
+    def with_root(self, root: str | None):
+        return self.for_thread(self.thread_name(), root)
+
+    def wire_root(self) -> str | None:
+        return None
+
+    def transcript_scope(self) -> tuple[str, str] | None:
+        return None
 
     @abstractmethod
     def display_thread(self) -> str: ...
-
-    @abstractmethod
-    def display_root(self) -> str: ...
-
-    @abstractmethod
-    def inspection_state(self): ...
-
-    @abstractmethod
-    def root_path(self) -> Path | None: ...
-
-
-@dataclass(frozen=True)
-class NoThreadIdentity(SessionIdentity):
-    managed: ClassVar[bool] = False
-
-    def display_thread(self) -> str:
-        return "No thread"
 
     def display_root(self) -> str:
         return "No managed wire"
@@ -35,18 +40,74 @@ class NoThreadIdentity(SessionIdentity):
         from toad.core.context_inspection import DetachedInspection
         return DetachedInspection()
 
-    def root_path(self) -> None:
+    def root_path(self) -> Path | None:
         return None
+
+    def detached_status(self) -> str:
+        return f"{self.display_thread()} · {self.display_root()}"
+
+    async def inspect_owner(self, read_owner, show_detached) -> None:
+        show_detached(self.detached_status())
+
+    def thread_incarnation(self) -> ThreadIncarnation:
+        raise ValueError("Session has no managed thread incarnation")
+
+    def bind_history(self, histories) -> None:
+        """An unbound session keeps its native input-history scope."""
 
 
 @dataclass(frozen=True)
-class ThreadIdentity(SessionIdentity):
-    thread: str
-    root: str
-    managed: ClassVar[bool] = True
+class NoThreadIdentity(SessionIdentity):
+    def thread_name(self) -> str:
+        return ""
 
     def display_thread(self) -> str:
-        return f"@{self.thread}"
+        return "No thread"
+
+
+@dataclass(frozen=True)
+class NamedThreadIdentity(SessionIdentity, ABC):
+    def display_thread(self) -> str:
+        return f"@{self.thread_name()}"
+
+
+@dataclass(frozen=True)
+class LocalThreadIdentity(NamedThreadIdentity):
+    """A named session without a managed wire."""
+    thread: str
+
+    def thread_name(self) -> str:
+        return self.thread
+
+
+@dataclass(frozen=True)
+class ThreadIdentity(NamedThreadIdentity):
+    owner: ThreadIncarnation
+    root: str
+
+    def thread_name(self) -> str:
+        return self.owner.name
+
+    def thread_incarnation(self) -> ThreadIncarnation:
+        return self.owner
+
+    def with_thread(self, thread: str):
+        return ThreadIdentity(self.owner.renamed(thread), self.root)
+
+    def with_root(self, root: str | None):
+        return self if root == self.root else super().with_root(root)
+
+    async def inspect_owner(self, read_owner, show_detached) -> None:
+        await read_owner(self)
+
+    def bind_history(self, histories) -> None:
+        histories.bind_scope(f"thread:{self.thread_name()}")
+
+    def wire_root(self) -> str:
+        return self.root
+
+    def transcript_scope(self) -> tuple[str, str]:
+        return self.root, self.thread_name()
 
     def display_root(self) -> str:
         path = self.root_path()

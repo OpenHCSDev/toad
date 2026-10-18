@@ -97,10 +97,10 @@ class NativeSessionEntry(SessionEntry):
 
     def original_threads(self, sessions):
         source = self.source(sessions)
-        fact = sessions.app.coordination_facts.get(source) if source is not None else None
-        if fact is not None:
-            return ((fact.wire_root, fact.thread),)
-        return (self.original,) if self.original is not None else ()
+        if source is None:
+            return (self.original,) if self.original is not None else ()
+        scope = source.thread_identity.transcript_scope()
+        return ((scope[0], source.thread_identity.thread_incarnation()),) if scope is not None else ()
 
     def __call__(self) -> MainScreen:
         source = self.factory()
@@ -158,7 +158,7 @@ class NativeSessionEntry(SessionEntry):
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
-        name = source._comms_thread if source else ""
+        name = source.thread_identity.thread_name() if source else ""
         snapshot = observed.sidebar.snapshot if observed is not None else None
         if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
             return NamedTab(self.mode, self.details.name.display or "New Session")

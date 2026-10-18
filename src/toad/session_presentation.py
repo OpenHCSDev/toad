@@ -360,8 +360,7 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             if self.state is not None:
                 conversation._initial_prompt = self.state.initial_prompt
             await content.mount(conversation, before=slot)
-            if (fact := screen.app.coordination_facts.get(screen)) is not None:
-                await self.apply_coordination(screen, fact)
+            screen.thread_identity.bind_history(conversation.input_histories)
         yield conversation
         if self.state is not None:
             self.state.prepare_transcript(conversation)
