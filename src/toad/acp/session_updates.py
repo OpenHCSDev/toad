@@ -121,7 +121,7 @@ class SessionNotificationOwner(ClientRequestOwner):
         async with self.lock:
             if authority.retired or not authority.binding.accepts_notification(notification.session_id):
                 return
-            validation = await self.agent.controller.validation.validate(
+            validation = await self.agent.controller.task_runner.run(
                 ValidateSessionUpdateTask(notification, raw_update))
             if authority.retired:
                 return

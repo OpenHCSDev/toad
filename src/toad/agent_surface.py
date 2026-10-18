@@ -6,7 +6,7 @@ from functools import partial
 
 from agent_comms.mro_dispatch import MroDispatch, handles
 from toad.surface_binding import SurfaceBinding
-from toad.acp.agent_controller import ApplicationValidationOwner
+from toad.acp.agent_controller import ProcessTaskRunner
 from toad.permission_presentation import DiffPermissionPresentation, InlinePermissionPresentation
 from toad.shell_output import ShellCommandOutput, ShellTerminalOutput
 
@@ -17,7 +17,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def prepare(self, controller) -> None:
         app = self.target.app
-        controller.validation = ApplicationValidationOwner(app.render_processes)
+        controller.task_runner = ProcessTaskRunner(app.render_processes)
 
     def owns_publication(self, message, target):
         if not self.subscription.accepts(message.subscription):

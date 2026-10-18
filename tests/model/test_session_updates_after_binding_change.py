@@ -44,7 +44,7 @@ async def test_a_pending_update_is_dropped_after_the_session_or_process_is_repla
 async def test_comms_facts_survive_validation_workers_and_reach_the_message_route(tmp_path):
     from agent_comms.acp_extension import TextRouteUpdate, encode_updates
     from agent_comms.routing import MessageRoute
-    from toad.acp.agent_controller import ApplicationValidationOwner, HeadlessValidationOwner
+    from toad.acp.agent_controller import ProcessTaskRunner, ThreadTaskRunner
     from toad.acp.sdk_boundary import (
         AcceptedSessionUpdateValidation, DecodeCommsMetadataTask, RejectedSessionUpdateValidation,
     )
@@ -60,15 +60,15 @@ async def test_comms_facts_survive_validation_workers_and_reach_the_message_rout
     emitted = []
     subscription = agent.events.subscribe(lambda event, source: emitted.append(event))
     try:
-        for owner in (HeadlessValidationOwner(), ApplicationValidationOwner(pool)):
-            accepted = await owner.validate(ValidateSessionUpdateTask('A', raw))
+        for owner in (ThreadTaskRunner(), ProcessTaskRunner(pool)):
+            accepted = await owner.run(ValidateSessionUpdateTask('A', raw))
             assert isinstance(accepted, AcceptedSessionUpdateValidation)
             assert accepted.updates == (TextRouteUpdate(route),)
-            assert await owner.validate(DecodeCommsMetadataTask(metadata)) == accepted.updates
+            assert await owner.run(DecodeCommsMetadataTask(metadata)) == accepted.updates
             malformed = dict(raw, _meta={'agentComms': {'updates': [{'kind': 'unknown'}]}})
-            assert isinstance(await owner.validate(ValidateSessionUpdateTask('A', malformed)),
+            assert isinstance(await owner.run(ValidateSessionUpdateTask('A', malformed)),
                               RejectedSessionUpdateValidation)
-            agent.controller.validation = owner
+            agent.controller.task_runner = owner
             emitted.clear()
             await agent.server.call({'jsonrpc': '2.0', 'method': 'session/update',
                 'params': {'sessionId': 'A', 'update': raw}})
