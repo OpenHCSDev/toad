@@ -13,10 +13,8 @@ import pickle
 from sys import getsizeof
 from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast
 
-from toad.render_backend import Renderer
-
 if TYPE_CHECKING:
-    from toad.render_backend import RenderTask
+    from toad.render_backend import Renderer, RenderTask
 
 ResultT = TypeVar("ResultT")
 
@@ -104,19 +102,21 @@ def serialize_result(result: ResultT) -> SerializedValue[ResultT]:
     return SerializedValue(payload)
 
 
-class PreparationWork(ABC, Generic[ResultT]):
-    """Nominal operation; the runtime does not switch on concrete work types."""
+type PreparedResult[ResultT] = tuple[PreparedValue[ResultT], int, PreparationStorage[ResultT]]
+
+
+class PreparationStorage(ABC, Generic[ResultT]):
+    """The producing operation owns representation, cost and reuse policy."""
 
     retain_result = False
 
-    @abstractmethod
     def result_size(self, result: ResultT) -> int:
-        """Charge this operation's declared result payload, not its object graph."""
+        return 0
 
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
         return CopiedValue(result, self.result_size(result) if self.retain_result else 0)
 
-    def finish_result(self, key: WorkKey, result: ResultT) -> tuple[PreparedValue[ResultT], int]:
+    def finish_result(self, key: WorkKey, result: ResultT) -> PreparedResult[ResultT]:
         """Finish representation and retained cost within the executing worker.
 
         Structured source keys declare their metadata charge alongside the
@@ -127,11 +127,28 @@ class PreparationWork(ABC, Generic[ResultT]):
 
     def finish_prepared(
         self, key: WorkKey, prepared: PreparedValue[ResultT],
-    ) -> tuple[PreparedValue[ResultT], int]:
+    ) -> PreparedResult[ResultT]:
         """Account for the original representation without encoding it again."""
         size = (prepared.size + getsizeof(key) + key.revision.size
                 if self.retain_result else 0)
-        return prepared, size
+        return prepared, size, self
+
+
+class ReusableStorage(PreparationStorage[ResultT]):
+    retain_result = True
+
+    @abstractmethod
+    def result_size(self, result: ResultT) -> int:
+        """Reusable producers declare their payload charge."""
+
+
+class SerializedStorage(ReusableStorage[ResultT]):
+    def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
+        return serialize_result(result)
+
+
+class PreparationWork(ABC, Generic[ResultT]):
+    """Identity and execution; stored results name their actual storage owner."""
 
     @property
     @abstractmethod
@@ -145,22 +162,12 @@ class PreparationWork(ABC, Generic[ResultT]):
     @abstractmethod
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
-    ) -> tuple[PreparedValue[ResultT], int]:
+    ) -> PreparedResult[ResultT]:
         """Complete result storage and accounting through the worker policy."""
 
 
-class ReusableWork(PreparationWork[ResultT]):
+class ReusableWork(ReusableStorage[ResultT], PreparationWork[ResultT]):
     """Mixin for results whose declared identity fully describes their inputs."""
-
-    retain_result = True
-
-
-class SerializedWork(ReusableWork[ResultT]):
-    """Opt in when result data already has a supported process-transfer contract."""
-
-    def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
-        return serialize_result(result)
-
 
 class ContentAddressedWork(PreparationWork[ResultT]):
     @property
@@ -183,7 +190,7 @@ class ScopedWork(PreparationWork[ResultT]):
         return self.work_key
 
 
-class ThreadWork(PreparationWork[ResultT]):
+class ThreadWork(PreparationStorage[ResultT], PreparationWork[ResultT]):
     lane = WorkLane.MODEL
 
     @abstractmethod
@@ -192,23 +199,20 @@ class ThreadWork(PreparationWork[ResultT]):
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
-    ) -> tuple[PreparedValue[ResultT], int]:
+    ) -> PreparedResult[ResultT]:
         return await runtime.run_thread(lambda: self.finish_result(key, self.prepare()))
 
 
 class RendererWork(PreparationWork[ResultT]):
     lane = WorkLane.RENDER
 
-    @property
-    @abstractmethod
-    def render_task(self) -> RenderTask[ResultT]:
-        """A task accepted by the existing local/persistent renderer."""
+    task: RenderTask[ResultT]
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,
-    ) -> tuple[PreparedValue[ResultT], int]:
-        prepared = await runtime.renderer.capture(self.render_task)
-        return await runtime.run_thread(self.finish_prepared, key, prepared)
+    ) -> PreparedResult[ResultT]:
+        prepared = await runtime.renderer.capture(self.task)
+        return await runtime.run_thread(self.task.finish_prepared, key, prepared)
 
 
 @dataclass(frozen=True)
@@ -222,21 +226,6 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     @property
     def inputs(self) -> object:
         return (type(self.task), self.task.preparation_inputs)
-
-    @property
-    def render_task(self) -> RenderTask[ResultT]:
-        return self.task
-
-    @property
-    def retain_result(self) -> bool:
-        return self.task.preparation_storage.retain_result
-
-    def result_size(self, result: ResultT) -> int:
-        return self.task.result_size(result)
-
-    def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
-        return self.task.preparation_storage.store_result(self, result)
-
 
 class PreparationRuntime:
     """Application-owned cache and in-flight work shared across every consumer.
@@ -354,8 +343,8 @@ class PreparationRuntime:
         return copied
 
     async def _execute(self, key: WorkKey, work: PreparationWork[ResultT]) -> PreparedValue[ResultT]:
-        prepared, size = await work.execute(self, key)
-        if work.retain_result:
+        prepared, size, storage = await work.execute(self, key)
+        if storage.retain_result:
             if not self._closed and (key.scope is None or not key.scope.closed) and size <= self.max_bytes:
                 while self._ready and (len(self._ready) >= self.max_entries
                                        or self.retained_bytes + size > self.max_bytes):
@@ -382,25 +371,3 @@ class PreparationRuntime:
         self._ready.clear()
         self.retained_bytes = 0
         await self.renderer.aclose()
-
-
-class PreparedRenderer(Renderer):
-    """Expose the existing renderer API through shared preparation by default."""
-
-    def __init__(self, runtime: PreparationRuntime) -> None:
-        super().__init__()
-        self.runtime = runtime
-
-    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
-        return await task.complete(self.runtime.submit(RenderPreparation(task)))
-
-    async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
-        _, prepared = await self.runtime._prepare(RenderPreparation(task))
-        return prepared
-
-    async def prepare(self, task: RenderTask[ResultT]) -> None:
-        await self.runtime.prepare(RenderPreparation(task))
-
-    async def aclose(self) -> None:
-        await self._close_submissions()
-        await self.runtime.aclose()

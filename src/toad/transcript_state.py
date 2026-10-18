@@ -10,6 +10,7 @@ from typing import ClassVar, TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.lifecycle import LifecycleState
 from textual.widget import Widget
+from toad.widgets.presentation_window import NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -81,7 +82,7 @@ class TranscriptState(DeclaredFamily, LifecycleState, affix="Transcript"):
 
     def for_projection(self, projection, owner) -> "TranscriptState":
         """A view may publish only while its source still owns that projection."""
-        if owner is None or not owner.state.can_draw or not owner.filter.owns_projection(projection):
+        if owner is None or not owner.state.can_draw or not owner.filter.overlay is projection:
             return RetiredProjectionTranscript(self)
         return self
 
@@ -104,7 +105,7 @@ class LiveTranscript(TranscriptState):
     accepts_source_work = True
 
     def blocks_visible_read(self, owner) -> bool:
-        return owner.has_newer or not self.source_ready(owner)
+        return NEWER_END.visible_more(owner) or not self.source_ready(owner)
 
     def reserve(self, owner, operation=None) -> "WorkingTranscript":
         return (operation or WorkingTranscript)(self, owner)
@@ -370,6 +371,6 @@ class CommitTranscript(WorkingTranscript):
         return () if self.live_blocks else super().arriving(prepared, followed_end)
 
     def rows_published(self, owner) -> None:
-        if not owner.has_newer:
+        if not NEWER_END.visible_more(owner):
             for block in self.live_blocks:
                 block.display = False

@@ -10,11 +10,14 @@ import os
 from typing import TypeVar, Generic, TYPE_CHECKING, cast, get_args, get_origin
 
 from agent_comms.declared_family import DeclaredFamily
+from toad.work_preparation import (
+    PreparationStorage, SerializedStorage, PreparationRuntime, RenderPreparation,
+)
 
 ResultT = TypeVar("ResultT", covariant=True)
 
 if TYPE_CHECKING:
-    from toad.work_preparation import PreparationRuntime, RenderPreparation, WorkKey, PreparationWork, PreparedValue
+    from toad.work_preparation import WorkKey, PreparedValue
 
 class RenderExecution(ABC, Generic[ResultT]):
     def __init_subclass__(cls, **kwargs) -> None:
@@ -59,12 +62,8 @@ class RenderExecution(ABC, Generic[ResultT]):
         return cast(ResultT, result)
 
 
-class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
+class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], DeclaredFamily, affix="RenderTask"):
     """A nominal operation with an exact input and result contract."""
-
-    def result_size(self, result: ResultT) -> int:
-        """Uncached ingress results have no preparation-cache charge."""
-        return 0
 
     @property
     def preparation_inputs(self) -> object:
@@ -83,9 +82,7 @@ class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
         by both renderer transports and retained by preparation. No intermediate
         consumer graph is needed merely to encode that same result again.
         """
-        from toad.work_preparation import RenderPreparation
-
-        return RenderPreparation(self).store_result(self.execute())
+        return self.store_result(self.execute())
 
     async def complete_capture(self, execution: Awaitable[object]) -> PreparedValue[ResultT]:
         from toad.work_preparation import PreparedValue
@@ -98,29 +95,12 @@ class RenderTask(RenderExecution[ResultT], DeclaredFamily, affix="RenderTask"):
 
         return WorkKey(type(work), UniqueRevision(), work.scope)
 
-    @property
-    def preparation_storage(self) -> type[PreparationWork]:
-        from toad.work_preparation import PreparationWork
-
-        return PreparationWork
-
-class ReusableRenderTask(RenderTask[ResultT]):
-    @abstractmethod
-    def result_size(self, result: ResultT) -> int:
-        """Each reusable task declares its result's payload charge."""
-
+class ReusableRenderTask(SerializedStorage[ResultT], RenderTask[ResultT]):
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
         from dataclasses import replace
         from toad.work_preparation import ContentAddressedWork
 
         return replace(await ContentAddressedWork.identity(work, runtime), scope=work.scope)
-
-    @property
-    def preparation_storage(self) -> type[PreparationWork]:
-        from toad.work_preparation import SerializedWork
-
-        return SerializedWork
-
 
 class RendererSpawn(ABC):
     @staticmethod
@@ -248,3 +228,25 @@ class Renderer(RendererSpawn):
     @abstractmethod
     async def aclose(self) -> None:
         """Close this client's owned work and transport resources."""
+
+
+class PreparedRenderer(Renderer):
+    """Expose the existing renderer API through shared preparation by default."""
+
+    def __init__(self, runtime: PreparationRuntime) -> None:
+        super().__init__()
+        self.runtime = runtime
+
+    async def submit(self, task: RenderTask[ResultT]) -> ResultT:
+        return await task.complete(self.runtime.submit(RenderPreparation(task)))
+
+    async def capture(self, task: RenderTask[ResultT]) -> PreparedValue[ResultT]:
+        _, prepared = await self.runtime._prepare(RenderPreparation(task))
+        return prepared
+
+    async def prepare(self, task: RenderTask[ResultT]) -> None:
+        await self.runtime.prepare(RenderPreparation(task))
+
+    async def aclose(self) -> None:
+        await self._close_submissions()
+        await self.runtime.aclose()
