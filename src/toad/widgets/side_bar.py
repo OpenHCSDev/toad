@@ -22,6 +22,7 @@ from textual.widget import Widget
 
 from ui_theme.scheme import SidebarToneColour, AccentColour, ForegroundColour
 
+from toad.widget_view import WorkspaceHosted
 from toad.frame_presentation import TonePaint
 from toad.widgets.selection import HoverSelection, ColourSelection
 from toad.session_tracker import SidebarState
@@ -573,7 +574,7 @@ class SidebarSearch(widgets.Input):
         self.value = ""
 
 
-class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
+class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical):
     tone = SidebarToneColour
     BINDING_GROUP_TITLE = "Sidebar"
     BINDINGS: ClassVar[list[BindingType]] = [("escape", "dismiss", "Dismiss sidebar")]
@@ -688,13 +689,7 @@ class SideBar(TonePaint, CoreEventReceiver, containers.Vertical):
 
     def schedule_hydration(self) -> None:
         if not self._panels_loaded and not self._panels_loading:
-            from toad.screens.workspace import WorkspaceScreen
-
-            screen = self.screen
-            if isinstance(screen, WorkspaceScreen):
-                screen.frame_presentation.defer(self, self._start_hydration)
-            else:
-                self.call_after_refresh(self._start_hydration)
+            self.screen.frame_presentation.defer(self, self._start_hydration)
 
     @property
     def presentation_visible(self) -> bool:

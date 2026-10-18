@@ -357,7 +357,7 @@ class AgentWindow(Window):
 
 
 
-class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
+class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.Vertical):
     """Source-bound state and reusable rich-surface lifecycle shared by conversations."""
 
     thread_presentation = None
@@ -651,12 +651,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
 
     def start_native_session(self) -> None:
         if self.agent is None and self._agent_data is not None:
-            from toad.screens.workspace import WorkspaceScreen
-            screen = self.screen
-            if isinstance(screen, WorkspaceScreen):
-                screen.frame_presentation.defer(self, self._start_agent)
-            else:
-                self.call_after_refresh(self._start_agent)
+            self.screen.frame_presentation.defer(self, self._start_agent)
         elif self.agent is None:
             self.agent_info = Content(self.operational_sources.agent_info(self))
             self._session_ready()
@@ -774,6 +769,7 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
             self.update_slash_commands()
 
 
+from toad.widget_view import WorkspaceHosted
 from toad.widget_actions import DeclaredWidgetActions
 from toad.conversation_actions import ConversationAction
 
