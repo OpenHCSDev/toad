@@ -106,19 +106,15 @@ class HistoryNotifications:
         else:
             access.stop_notifications(self)
 
-    def notifications_observed(self, read, results) -> None:
+    def notifications_observed(self, results) -> None:
         if not self.can_draw_on_screen:
             self.app.coordination_access.stop_notifications(self)
             return
-        self.run_worker(self._show_notifications(read, results), group=self.NOTIFICATION_GROUP, exclusive=True)
+        self.run_worker(self._show_notifications(results), group=self.NOTIFICATION_GROUP, exclusive=True)
 
-    async def _show_notifications(self, read, results):
-        loaded = frozenset(read.references)
+    async def _show_notifications(self, results):
         for target in self.notification_targets():
-            # The visible window may have changed while Core read the old one.
-            # Leave newly visible rows for their next read, not this result.
-            if set(target.notification_references) <= loaded:
-                await target.show_notifications(results)
+            await target.show_notifications(results)
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:
@@ -155,9 +151,9 @@ class SourceNotifications:
                                    for reference in fragment.notification_references))
 
     async def show_notifications(self, results):
-        await self._show([(fragment, replace(fragment.shown,
-            status=CheckedNotifications.for_references(fragment.notification_references, results)))
-            for fragment in self.visible_fragments() if fragment.notification_references])
+        await self._show([(fragment, replace(fragment.shown, status=status))
+            for fragment in self.visible_fragments()
+            for status in CheckedNotifications.for_references(fragment.notification_references, results)])
 
     async def show_notification_status(self, status):
         await self._show([(fragment, replace(fragment.shown, status=status))
