@@ -10,6 +10,7 @@ from textual.content import Content
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 from toad.widgets.note import Note
+from toad.widgets.markdown_note import MarkdownNote
 
 
 class ConversationCommsHandlers(CoreEventReceiver):
@@ -161,8 +162,6 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_prompt_cancelled(
         self, update: PromptCancelledUpdate, message: CoreEventMessage
     ) -> None:
-        from toad.widgets.markdown_note import MarkdownNote
-
         await self.post(MarkdownNote(
             f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"))
 
