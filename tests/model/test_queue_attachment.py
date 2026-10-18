@@ -4,7 +4,7 @@ import os
 
 import pytest
 from agent_comms.acp_extension import (
-    AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, QueueScope,
+    AvailableQueueProjection, PendingQueueProjection, QueueChangedUpdate, LiveQueueScope,
 )
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.comms import Comms
@@ -17,9 +17,9 @@ from toad.acp.queue_attachment import QueueAttachment
 def declared_scope(tmp_path):
     comms = Comms(tmp_path / "wire")
     comms.messaging.initialize_private_initial_protocol()
-    comms.registry.declare(Thread("source", frozenset(), str(tmp_path),
+    comms.registry.declare(comms.registry.new_thread("source", frozenset(), str(tmp_path),
                                   process_identity=ProcessIdentity.capture(os.getpid())))
-    return comms, QueueScope("source", comms.registry.snapshot().admission_identity("source"), os.getpid())
+    return comms, LiveQueueScope("source", comms.registry.snapshot().claimed_identity("source"), os.getpid())
 
 
 def test_capture_before_binding_is_refused(tmp_path):
@@ -41,7 +41,7 @@ def test_capture_after_binding_names_the_bound_scope(tmp_path):
     attachment = QueueAttachment()
     token = attachment.begin("source")
     attachment.bind(QueueChangedUpdate(scope, 0, AvailableQueueProjection()), "source", token)
-    assert attachment.capture_human_input(comms, scope) == HumanInputOrigin.capture(comms, scope.admission)
+    assert attachment.capture_human_input(comms, scope) == HumanInputOrigin.capture(comms, scope.claim_scope)
 
 
 def test_capture_after_a_replacement_begins_is_refused(tmp_path):

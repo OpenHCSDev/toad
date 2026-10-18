@@ -19,7 +19,7 @@ from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
 from toad.acp.sdk_boundary import ToolCallWire
 from toad.live_output import OutputStream
-from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, RequestFailedUpdate
+from agent_comms.acp_extension import AgentCommsUpdate, QueueScope, NoQueueScope, RequestFailedUpdate
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
 
 
@@ -62,7 +62,7 @@ class CommsUpdated(CoreEvent):
     session_id: str | None = None
     sequence: int | None = None
     recover_draft: bool = False
-    queue_scope: QueueScope | None = None
+    queue_scope: QueueScope = field(default_factory=NoQueueScope)
 
 
 @dataclass(frozen=True)

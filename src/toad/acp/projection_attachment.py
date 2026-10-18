@@ -141,8 +141,7 @@ class ProjectionAttachment:
         envelope = value
         if (
             envelope is None
-            or envelope.scope is None
-            or envelope.scope.session_id != session_id
+            or not envelope.scope.matches_session(session_id)
         ):
             self._quarantine(uncertain=True)
             return "reject_unavailable_binding"
@@ -203,11 +202,14 @@ class ProjectionAttachment:
         if self.quarantined and not self._pending:
             return "reject_quarantined"
         envelope = value
-        if envelope is None or envelope.scope is None:
+        if envelope is None:
             self._quarantine(uncertain=True)
             return "quarantine_unavailable"
-        if envelope.scope.session_id != session_id:
+        if envelope.scope.foreign_session(session_id):
             return "reject_foreign_session"
+        if not envelope.scope.matches_session(session_id):
+            self._quarantine(uncertain=True)
+            return "quarantine_unavailable"
         if self._pending or self.current is None:
             other = envelope.scope
             if self.current is not None:
