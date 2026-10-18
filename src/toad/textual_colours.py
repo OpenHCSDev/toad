@@ -52,10 +52,6 @@ class _WalFileClosed(FileSystemEventHandler):
             self.colours.app.call_from_thread(self.colours.read_wal)
 
 
-def _element(value: Any, backend: TextualColours) -> str:
-    return value.value if isinstance(value, TextStyle) else value.native(backend)
-
-
 class BlockInk:
     """A native block's occupied edge, independent of its theme colour."""
 
@@ -204,7 +200,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         colours = {colour.name: value.native(self) for colour, value in scheme.colours.items()
                    if issubclass(colour, (CoreColour, LayerColour))}
         theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
-                      variables={name: _element(value, self) for name, value in scheme.elements.items()},
+                      variables={name: value.native(self) for name, value in scheme.elements.items()},
                       **colours)
         return theme
 
@@ -225,6 +221,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def terminal_default(self) -> str:
         return "ansi_default"
+
+    def text_style(self, style: TextStyle) -> str:
+        return style.value
 
     def colour(self, colour: type[ThemeColour]) -> Color:
         """The resolved value for a declared colour in the active theme."""
