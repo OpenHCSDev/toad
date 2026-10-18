@@ -417,6 +417,8 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
 ''', str(project), str(source), saved['backend'], saved['config'], json.dumps(saved['model'])],
             env=environment, text=True)
         environment.update(json.loads(launch))
+        startup.callback(run, runtime / 'bin/agent-comms', '--root', output / 'wire',
+                         'stop', '--name', 'startup-saved')
         with BuildDisplay(output) as display:
             command = [runtime / 'bin/toad']
             with TerminalApp(command, display, output / 'plain', environment, home) as app:
@@ -503,6 +505,7 @@ from agent_comms.agent_backend import AgentBackend
 from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import LaunchRuntime
 from agent_comms.wire_record import WireRecord
+from agent_comms.native_package import pinned_native_package
 out, startup, runtime=map(Path,sys.argv[1:])
 saved=json.loads((startup/'saved-source.json').read_text())
 source=startup/'project/saved.jsonl'; digest=hashlib.sha256(source.read_bytes()).hexdigest()
@@ -512,11 +515,12 @@ os.environ.update(HOME=str(home), PI_CODING_AGENT_DIR=str(out/'pi'),
                   AGENT_COMMS_NATIVE_CONFIG_DIR=saved['config'])
 for kind in ('CONFIG','DATA','STATE','CACHE'):os.environ['XDG_'+kind+'_HOME']=str(out/kind.lower())
 c=Comms(out/'wire');root_id=c.messaging.initialize_private_initial_protocol()
-route=ActiveRoute(c.root,root_id,Path(saved['package']))
+package=str(pinned_native_package())
+route=ActiveRoute(c.root,root_id,Path(package))
 path=active_route_path();path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
 path.write_text(json.dumps(FieldCodec.encode(route)));path.chmod(0o600)
 os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_PRIVATE_NK_WIRE_ROOT_ID=root_id,
-    AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=saved['package'],AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
+    AGENT_COMMS_PRIVATE_NK_NATIVE_PACKAGE=package,AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
 c=wire(route)
 parent=c.registry.declare(c.registry.new_thread('build-parent',frozenset(),str(out),session_file=str(source),
     backend=FieldCodec.decode(type[AgentBackend],saved['backend']),model=saved['model']),StoppedThreadStatus())
