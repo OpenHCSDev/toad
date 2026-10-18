@@ -358,7 +358,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
     @classmethod
     def hold(cls, window: "HistoryWindow") -> "LatestPosition":
         window.anchor()
-        sources = tuple((history, history.through) for history in window.histories)
+        sources = tuple((history, history.page_source.through) for history in window.histories)
         latest = cls(
             window.scroll_revision,
             sources,
@@ -376,7 +376,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
 
     def source_settled(self, window: "HistoryWindow") -> None:
         if (self.awaits_source_advance
-                and all(history.through == through for history, through in self.sources)):
+                and all(history.page_source.through == through for history, through in self.sources)):
             return
         super().source_settled(window)
 

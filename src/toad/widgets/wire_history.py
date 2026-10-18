@@ -17,7 +17,6 @@ from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.message_notifications import VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
-from toad.message_rows import IrcMessageStyle, WireMessageStyle
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
 
 if TYPE_CHECKING:
@@ -35,7 +34,6 @@ class WireHistory(VisibleReadMarking, LineHistory):
     def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
                  *, view, notification_view) -> None:
         self.view = view
-        self.source: WireSource | None = None
         super().__init__(prepared, page_source, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
@@ -50,13 +48,8 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     def open(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
-        self.source = source
-        self._page_buffer.close()
-        self._page_buffer = WirePageBuffer(source, self.through, self.app.preparation)
-
-    @property
-    def style(self) -> WireMessageStyle:
-        return self.source.style if self.source is not None else IrcMessageStyle()
+        self.page_source.close()
+        self.page_source = WirePageBuffer(source, self.page_source.through, self.app.preparation)
 
     @property
     def undrawn(self) -> bool:
@@ -66,7 +59,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     @property
     def source_identity(self):
         # Growth of the bus is not another source: reads ahead stay valid.
-        return self.source, self.selected_categories
+        return self.page_source.reload_key(), self.selected_categories
 
     @property
     def can_draw_on_screen(self) -> bool:
@@ -75,18 +68,16 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     async def bus_is_current(self, comms) -> bool:
         """Whether the route still selects this bus and this history still reads it."""
-        from agent_comms.route_selection import root_is_current
-
-        current = await self.app.preparation.run_thread(root_is_current, comms.root)
-        return current and self.source is not None and self.source.comms is comms
+        source = self.page_source
+        return source.owns_comms(comms) and await source.route_is_current()
 
     async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
         """Whether the route still selects this source's bus and nothing replaced the history."""
-        source = self.source
-        if source is None or not snapshot.current(self):
+        source = self.page_source
+        if not snapshot.current(self):
             return False
-        return (await self.bus_is_current(source.comms)
-                and source is self.source and snapshot.current(self))
+        return (await source.route_is_current()
+                and source is self.page_source and snapshot.current(self))
 
     @property
     def selected_categories(self):
@@ -98,10 +89,10 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     async def read_changes(self) -> bool:
         """Draw what changed in the source; False when the stores are as last drawn."""
-        source = self.source
+        source = self.page_source
         observed = await self.app.preparation.run_thread(
-            source.observe, self.revision)
-        if source is not self.source:
+            source.require_reader().observe, self.revision)
+        if source is not self.page_source:
             return False
         if observed is not None:
             # Record Core's observation before asynchronous drawing. A pending
@@ -115,8 +106,8 @@ class WireHistory(VisibleReadMarking, LineHistory):
             self.extend_source(observed.through)
         elif not self.undrawn:
             # A recorded observation may still have an unfinished page read.
-            return (self.pages[-1].prepared.page.after != self.through
-                    and await self.extend(self.through))
+            return (self.pages[-1].prepared.page.after != source.through
+                    and await self.extend(source.through))
         # The existing prepared reader owns this pending page. Retry drawing it,
         # not clearing its source and starting the same read again.
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
@@ -125,10 +116,10 @@ class WireHistory(VisibleReadMarking, LineHistory):
     # What is drawn
 
     async def accept_extension(self, edge, prepared) -> bool:
-        if edge.prepared.page.accepts(prepared.page.source, self.source.kind.history_view):
+        if edge.prepared.page.accepts(prepared.page.source, self.page_source.require_reader().kind.history_view):
             return True
         prepared.configure(batch_size=len(prepared.fragments))
-        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+        await self.show_newest(self.page_source.through, PreparedWirePage.empty(WirePage.unread()),
                                arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
 
@@ -142,10 +133,10 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
-        if self.source is None or not self.can_draw_on_screen:
+        if not self.can_draw_on_screen or not self.page_source.can_read():
             return
-        style = self.style.next()
-        self.open(self.source.restyled(style))
+        style = self.page_source.wire_style().next()
+        self.open(self.page_source.require_reader().restyled(style))
         await self._show([(fragment, replace(fragment.shown, style=style))
                           for fragment in self.fragments])
         self.window.scroll_end(animate=False)
@@ -153,12 +144,12 @@ class WireHistory(VisibleReadMarking, LineHistory):
     def notification_read(self, references):
         from agent_comms.ui_model.observation import ReadNotifications
 
-        return ReadNotifications(str(self.source.comms.root), references)
+        return ReadNotifications(str(self.page_source.require_reader().comms.root), references)
 
     # Read marks
 
     def read_visible(self):
-        if not self.is_attached or self.source is None:
+        if not self.is_attached or not self.page_source.can_read():
             return None
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
             return None
@@ -178,13 +169,13 @@ class WireHistory(VisibleReadMarking, LineHistory):
             await self._mark_historical(
                 historical, tuple(fragment for fragment in seen if fragment.evidence is historical),
                 snapshot)
-        elif (selected := self.source.kind.seen_page(self, seen)) is not None:
+        elif (selected := self.page_source.require_reader().kind.seen_page(self, seen)) is not None:
             await self._mark_page(*selected, snapshot)
 
     async def _mark_historical(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
         from agent_comms.route_selection import implicit_root, run_selected_write
 
-        comms = self.source.comms
+        comms = self.page_source.require_reader().comms
         displayed = page.historical_display.select({fragment.message.seq for fragment in marked})
         try:
             await asyncio.to_thread(run_selected_write, comms.root,
@@ -198,7 +189,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
                 fragment.evidence = None
 
     async def _mark_page(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
-        source = self.source
+        source = self.page_source.require_reader()
         try:
             await source.kind.mark_read(source.comms, source.target, str(source.project), page)
             if snapshot.current(self):

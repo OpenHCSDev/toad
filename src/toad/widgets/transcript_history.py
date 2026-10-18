@@ -450,18 +450,10 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def window(self) -> HistoryWindow:
         return self.query_ancestor(HistoryWindow)
 
-    @property
-    def through(self):
-        return self._page_buffer.through
-
-    @through.setter
-    def through(self, value):
-        self._page_buffer.through = value
-
     async def park_document(self) -> PreparedPageSource:
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
-        source = self._reader()
+        source = self.page_source
         projected = await self.filter.overlay.park_document()
         pages = tuple(page.prepared for page in self.pages)
         await source.runtime.run_thread(source.measure_held, pages, projected)
@@ -488,7 +480,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def acquire_document(self) -> None:
         """The rebuilt pages are mounted: the reader no longer keeps them for a later rebuild."""
-        self._reader().release_held()
+        self.page_source.release_held()
         self.filter.overlay.acquire_document()
 
     def resume_source(self) -> None:
@@ -677,14 +669,14 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def source_identity(self):
-        return self._reader(), self.through, self.selected_categories
+        return self.page_source.reload_key(), self.page_source.through, self.selected_categories
 
     def paging_window(self):
         # What an edge check decides from: the saved extent, the pages'
         # loaded ranges and the filter. A check that finds a read running is
         # skipped, and the read asks again only when one of these changed
         # under it, so a filter chosen during a read must count.
-        return self.through, self.filter, tuple(
+        return self.page_source.through, self.filter, tuple(
             (page.prepared.page.before, page.prepared.page.after, page.prepared.capture_range()) for page in self.pages)
 
     def capture_reader_ranges(self) -> tuple[PageFragmentRange, ...]:
@@ -737,7 +729,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def projected_source(self, selected) -> ProjectedTranscriptSource:
         page = self.pages[0]
         return ProjectedTranscriptSource(
-            page.prepared, self._reader(), RangeCategoryProjection(
+            page.prepared, self.page_source, RangeCategoryProjection(
                 selected, PageFragmentRange(ref(page.prepared), 0, page.prepared.start,
                                            page.prepared.fragments[:page.prepared.start])),
         )
@@ -781,7 +773,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def extend_source(self, through: TranscriptCursor) -> None:
         """The source now reaches `through`; the drawn pages stay as they are."""
         self._generation += 1
-        self.through = through
+        self.page_source.through = through
         edge = self.pages[-1]
         edge.prepared.page = replace(edge.prepared.page, has_newer=edge.prepared.page.after != through)
         self._update_edges()
@@ -815,8 +807,9 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
-    def _reader(self) -> PreparedPageSource:
-        return self._page_buffer
+    def has_more(self, end: PageEnd) -> bool:
+        page = end.edge(self.pages).prepared
+        return end.can_extend(page) or self.page_source.has_more(end, page.page)
 
     @property
     def drawn_extent(self) -> tuple[int, int]:
@@ -881,14 +874,14 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         async with self.window.history_lock:
             async with self.window.preserve_history(root=self):
                 self._generation += 1
-                self._reader().restart(initial.page.after)
+                self.page_source.restart(initial.page.after)
                 retired = tuple(self.pages)
                 view = TranscriptPageView(initial,
                                           batch_size=self.budget.batch_items)
                 view.visible_categories = self.selected_categories
                 await self.mount(view, before=self.newer)
                 self.pages = deque([view])
-                self.through = view.prepared.page.after
+                self.page_source.through = view.prepared.page.after
                 self.remove_children(retired)
                 self._update_edges()
 
@@ -921,7 +914,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             staged = edge.prepared.for_view() if local else prepared
             if not local:
                 if staged is None:
-                    source = self._reader()
+                    source = self.page_source
                     if not source.has_more(end, edge.prepared.page):
                         return False
                     staged = await source.get(end.adjacent(edge.prepared.page))
@@ -1114,7 +1107,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         return (self,)
 
     def reads(self, source) -> bool:
-        return self._reader() is source
+        return self.page_source is source
 
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:

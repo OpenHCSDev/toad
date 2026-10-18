@@ -178,8 +178,7 @@ class PageEnd(ABC):
         return replace(prepared, page=replace(prepared.page, has_newer=True))
 
     def visible_more(self, history):
-        page = self.edge(history.pages).prepared
-        return self.can_extend(page) or history._reader().has_more(self, page.page)
+        return history.has_more(self)
 
     def fresh(self, history) -> bool:
         return False
@@ -357,7 +356,7 @@ class MovingPreparation(PreparationDemand):
             # The existing runtime owns the single decoded/prepared result.
             # This native worker only waits for that original bounded work;
             # foreground paging shares it, without a page store in the widget.
-            history.run_worker(partial(history._reader().prepare_next, page, end),
+            history.run_worker(partial(history.page_source.prepare_next, page, end),
                                group="transcript-read-ahead", exclusive=True,
                                exit_on_error=False)
 

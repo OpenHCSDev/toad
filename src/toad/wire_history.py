@@ -132,10 +132,6 @@ class WirePage:
 class PreparedWirePage(PreparedTranscriptPage):
     """Wire intervals preserve Core's original display page when advanced empty."""
 
-    @property
-    def source_payload_bytes(self) -> int:
-        return sum(256 + 4 * len(message.body) for message in self.page.events)
-
     def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
         self.page = self.page.advanced(prepared.page, older=older)
 

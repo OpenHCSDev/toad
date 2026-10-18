@@ -182,14 +182,14 @@ class CommsChatView(Conversation):
         """Reconcile an observation which arrived during this source's work."""
         super().on_transcript_source_work_finished(event)
         history = self.message_history
-        source = history.source
+        source = history.page_source
         access = self.app.coordination_access
-        if event.publisher is not history or source is None:
+        if event.publisher is not history:
             return
         self.settle_user_message()
         if (not history.state.accepts_source_work
                 or history.undrawn
-                or not access.observation.observed().uses(source.comms)):
+                or not source.uses_observation(access.observation.observed())):
             return
         if self._refreshed_from != access.revision:
             # The observer announced a change while this work ran. The history
@@ -207,13 +207,13 @@ class CommsChatView(Conversation):
         # itself before reading again, rather than rereading an already
         # current page until the observer's next tick.
         try:
-            revision = await self.app.preparation.run_thread(source.comms.views.revision)
+            revision = await self.app.preparation.run_thread(source.require_reader().comms.views.revision)
         except (OSError, ValueError, RuntimeError):
             # An unavailable or replaced route has no revision to read. Its
             # observer remains responsible for the next observation.
             return
-        if (source is history.source and snapshot.current(history)
-                and access.observation.observed().uses(source.comms)
+        if (source is history.page_source and snapshot.current(history)
+                and source.uses_observation(access.observation.observed())
                 and history.revision.stores != revision):
             await self._refresh()
 
@@ -255,14 +255,14 @@ class CommsChatView(Conversation):
     def status_thread(self) -> StatusThread:
         """Peer status does not grant access to the peer's full transcript."""
         name = self.conversation_kind.historical_thread(self.target)
-        source = self.message_history.source
-        if name is None or source is None:
+        source = self.message_history.page_source
+        if name is None or not source.can_read():
             return NoStatusThread()
-        return StatusThread.for_root(source.comms.root, name, self.app.coordination_access)
+        return StatusThread.for_root(source.require_reader().comms.root, name, self.app.coordination_access)
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history
-        if not self.is_attached or history.source is None:
+        if not self.is_attached or not history.page_source.can_read():
             return
         if not self.query_ancestor(SessionView).is_current:
             return
@@ -283,8 +283,7 @@ class CommsChatView(Conversation):
                 if snapshot.current(history):
                     self.display = False
                 return
-            source = history.source
-            comms = source.comms
+            comms = history.page_source.require_reader().comms
             catalog = await asyncio.to_thread(comms.channels.catalog.read)
             if not await history.source_is_current(snapshot):
                 return
@@ -331,7 +330,7 @@ class CommsChatView(Conversation):
 
         history = self.message_history
         snapshot = history.source_snapshot()
-        source, target = history.source, self.target
+        source, target = history.page_source, self.target
         try:
             # An unchanged history may have read the stores before the observer
             # announced the change; mention completion reads the observer's snapshot.
@@ -342,7 +341,7 @@ class CommsChatView(Conversation):
                     if snapshot.current(history):
                         self.display = False
                     return
-                if (not self.is_attached or source is not history.source
+                if (not self.is_attached or source is not history.page_source
                         or not self.query_ancestor(SessionView).is_current):
                     return
             self.call_after_refresh(history.mark_visible)
@@ -366,9 +365,10 @@ class CommsChatView(Conversation):
 
     async def command_target_context(self):
         from toad.target_commands import TargetContext
-        if self.message_history.source is None:
+        if not self.message_history.page_source.can_read():
             return None
-        return TargetContext(self.app, self.message_history.source.comms, self.target, self._me, self.project_path,
+        return TargetContext(self.app, self.message_history.page_source.require_reader().comms,
+                             self.target, self._me, self.project_path,
                              self.query_ancestor(SessionView).id)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
@@ -377,13 +377,13 @@ class CommsChatView(Conversation):
         if not event.body.strip():
             return
         history = self.message_history
-        source, target = history.source, self.target
-        if source is None:
+        source, target = history.page_source, self.target
+        if not source.can_read():
             self.delivery_refused("Conversation source is not ready", event.body)
             return
-        comms = source.comms
+        comms = source.require_reader().comms
         def current() -> bool:
-            return self.is_attached and source is history.source and target == self.target
+            return self.is_attached and source is history.page_source and target == self.target
 
         await self.submit_comms_message(
             comms.root, self.conversation_kind, target, event.body, current,
