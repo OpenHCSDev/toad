@@ -152,6 +152,10 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
                                 if entries.get(entry.target) != entry)
             self.sync_members(changed=changed)
 
+    def accepts_members(self) -> bool:
+        return (super().accepts_members()
+                and self.query_ancestor(ThreadCommsSidebar).accepts_observation())
+
     def keys_for_threads(self, names: frozenset[str]) -> frozenset[str]:
         return frozenset(entry.target for entry in self.model.entries
                          if entry.person is not None and entry.person.thread.name in names)
@@ -161,7 +165,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         if not self.member_container.is_attached or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
-        rows = tree.thread_rows
+        rows = tree.model.threads.rows
         entries = {entry.target: entry for entry in self.model.entries}
         empty = self.query_one_optional(".relationship-empty")
         if (entries or not self.expanded) and empty is not None:
@@ -175,7 +179,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
 
         def update(key, row):
             entry = entries[key]
-            row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
+            row.present(entry, rows.get(entry.person.thread.name) if entry.person is not None else None)
 
         self.reconcile_rows(create, update, changed=changed)
         tree.apply_selection()
@@ -330,14 +334,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
         if self._refresh_task is not None and not self._refresh_task.done():
             return
         self._refresh_task = asyncio.create_task(self._refresh(self._generation))
-
-    @property
-    def thread_rows(self):
-        identity = self.thread_view.thread_identity
-        if (self.model is not None and self.service is not None
-                and identity.root_path() == self.service.root.resolve()):
-            return self.model.threads.rows
-        return None
 
     async def _refresh(self, generation):
         await self.thread_view.thread_identity.inspect_owner(
