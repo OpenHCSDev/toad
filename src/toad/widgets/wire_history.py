@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
-from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from agent_comms.messages import Message
 from agent_comms.coordination_errors import DMPaintedBoundChanged, DMScopeChanged, HistoricalSourceChanged
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import ClosedHistory, PreparedPageSource, PreparedTranscriptPage
+from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
@@ -31,7 +29,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
     seen, notification states and two styles.
     """
 
-    def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
+    page_source: WirePageBuffer | ClosedHistory
+
+    def __init__(self, prepared: PreparedTranscriptPage, page_source: WirePageBuffer | ClosedHistory,
                  *, view, notification_view) -> None:
         self.view = view
         super().__init__(prepared, page_source, notification_view=notification_view)
@@ -66,11 +66,6 @@ class WireHistory(VisibleReadMarking, LineHistory):
         return (super().can_draw_on_screen
                 and self.view.query_ancestor(SessionView).is_current)
 
-    async def bus_is_current(self, comms) -> bool:
-        """Whether the route still selects this bus and this history still reads it."""
-        source = self.page_source
-        return source.owns_comms(comms) and await source.route_is_current()
-
     async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
         """Whether the route still selects this source's bus and nothing replaced the history."""
         source = self.page_source
@@ -90,8 +85,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     async def read_changes(self) -> bool:
         """Draw what changed in the source; False when the stores are as last drawn."""
         source = self.page_source
-        observed = await self.app.preparation.run_thread(
-            source.require_reader().observe, self.revision)
+        observed = await source.observe_changes(self.revision)
         if source is not self.page_source:
             return False
         if observed is not None:
@@ -116,7 +110,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     # What is drawn
 
     async def accept_extension(self, edge, prepared) -> bool:
-        if edge.prepared.page.accepts(prepared.page.source, self.page_source.require_reader().kind.history_view):
+        if self.page_source.accepts_page(edge.prepared.page, prepared.page):
             return True
         prepared.configure(batch_size=len(prepared.fragments))
         await self.show_newest(self.page_source.through, PreparedWirePage.empty(WirePage.unread()),
@@ -133,27 +127,22 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
-        if not self.can_draw_on_screen or not self.page_source.can_read():
-            return
-        style = self.page_source.wire_style().next()
-        self.open(self.page_source.require_reader().restyled(style))
-        await self._show([(fragment, replace(fragment.shown, style=style))
-                          for fragment in self.fragments])
-        self.window.scroll_end(animate=False)
+        await self.page_source.change_style(self)
 
     def notification_read(self, references):
-        from agent_comms.ui_model.observation import ReadNotifications
+        return self.page_source.notification_read(references)
 
-        return ReadNotifications(str(self.page_source.require_reader().comms.root), references)
+    def subscribe_notifications(self, references) -> None:
+        self.page_source.observe_notifications(self, references)
 
     # Read marks
 
     def read_visible(self):
-        if not self.is_attached or not self.page_source.can_read():
+        if not self.is_attached:
             return None
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
             return None
-        return self._mark_read(self.source_snapshot())
+        return self.page_source.painted_read(self)
 
     async def _mark_read(self, snapshot: HistorySourceSnapshot) -> None:
         if not await self.source_is_current(snapshot):
@@ -169,18 +158,13 @@ class WireHistory(VisibleReadMarking, LineHistory):
             await self._mark_historical(
                 historical, tuple(fragment for fragment in seen if fragment.evidence is historical),
                 snapshot)
-        elif (selected := self.page_source.require_reader().kind.seen_page(self, seen)) is not None:
+        elif (selected := self.page_source.seen_page(self, seen)) is not None:
             await self._mark_page(*selected, snapshot)
 
     async def _mark_historical(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
-        from agent_comms.route_selection import implicit_root, run_selected_write
-
-        comms = self.page_source.require_reader().comms
         displayed = page.historical_display.select({fragment.message.seq for fragment in marked})
         try:
-            await asyncio.to_thread(run_selected_write, comms.root,
-                                    comms.views.mark_historical_view_read, displayed,
-                                    implicit=implicit_root())
+            await self.page_source.mark_historical(displayed)
         except (HistoricalSourceChanged, DMScopeChanged):
             # The attached history changed; this page's evidence marks nothing any more.
             marked = tuple(fragment for fragment in self.fragments if fragment.evidence is page)
@@ -189,9 +173,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
                 fragment.evidence = None
 
     async def _mark_page(self, page, marked, snapshot: HistorySourceSnapshot) -> None:
-        source = self.page_source.require_reader()
+        source = self.page_source
         try:
-            await source.kind.mark_read(source.comms, source.target, str(source.project), page)
+            await source.mark_page(page)
             if snapshot.current(self):
                 for fragment in marked:
                     fragment.evidence = None

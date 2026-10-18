@@ -7,9 +7,10 @@ Nothing here imports a terminal library.
 
 from __future__ import annotations
 
+import asyncio
 from abc import ABC
 from dataclasses import dataclass, field, replace
-from functools import cached_property, singledispatch
+from functools import cached_property, partial, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -320,6 +321,98 @@ class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork
+
+    def uses_observation(self, observation) -> bool:
+        return observation.uses(self.loader.comms)
+
+    async def route_is_current(self) -> bool:
+        from agent_comms.route_selection import root_is_current
+
+        return not self.closed and await self.runtime.run_thread(root_is_current, self.loader.comms.root)
+
+    def status_thread(self, access):
+        from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
+
+        name = self.loader.kind.historical_thread(self.loader.target)
+        return (NoStatusThread() if name is None else
+                StatusThread.for_root(self.loader.comms.root, name, access))
+
+    def command_context(self, view):
+        from toad.target_commands import TargetContext
+        from toad.screens.session_view import SessionView
+
+        return TargetContext(view.app, self.loader.comms, self.loader.target, self.loader.me,
+                             self.loader.project, view.query_ancestor(SessionView).id)
+
+    async def submit_input(self, view, event) -> None:
+        target = self.loader.target
+        current = lambda: (view.is_attached and self is view.message_history.page_source
+                           and target == view.target)
+        await view.submit_comms_message(
+            self.loader.comms.root, self.loader.kind, target, event.body, current,
+            partial(view._show_sent, body=event.body))
+
+    def schedule_refresh(self, view):
+        history = view.message_history
+        history.notification_view.check_notifications()
+        return history.schedule_source_work(view._refresh_source)
+
+    def painted_read(self, history):
+        return history._mark_read(history.source_snapshot())
+
+    async def change_style(self, history) -> None:
+        if not history.can_draw_on_screen:
+            return
+        style = self.loader.style.next()
+        history.open(self.loader.restyled(style))
+        await history._show([(fragment, replace(fragment.shown, style=style))
+                             for fragment in history.fragments])
+        history.window.scroll_end(animate=False)
+
+    def notification_read(self, references):
+        from agent_comms.ui_model.observation import ReadNotifications
+
+        return ReadNotifications(str(self.loader.comms.root), references)
+
+    def observe_notifications(self, view, references) -> None:
+        from toad.widgets.message_notifications import HistoryNotifications
+
+        HistoryNotifications.subscribe_notifications(view, references)
+
+    async def read_revision(self):
+        return await self.runtime.run_thread(self.loader.comms.views.revision)
+
+    async def observe_changes(self, revision):
+        return await self.runtime.run_thread(self.loader.observe, revision)
+
+    def accepts_page(self, current, incoming) -> bool:
+        return current.accepts(incoming.source, self.loader.kind.history_view)
+
+    def seen_page(self, history, seen):
+        return self.loader.kind.seen_page(history, seen)
+
+    async def mark_historical(self, displayed) -> None:
+        from agent_comms.route_selection import implicit_root, run_selected_write
+
+        comms = self.loader.comms
+        await asyncio.to_thread(run_selected_write, comms.root,
+                                comms.views.mark_historical_view_read, displayed,
+                                implicit=implicit_root())
+
+    async def mark_page(self, page) -> None:
+        await self.loader.kind.mark_read(self.loader.comms, self.loader.target,
+                                         str(self.loader.project), page)
+
+    async def read_only(self) -> bool:
+        catalog = await self.runtime.run_thread(self.loader.comms.channels.catalog.read)
+        return self.loader.kind.read_only(catalog, self.loader.target)
+
+    async def update_mentions(self, view) -> None:
+        await self.loader.kind.update_mentions(view, self.loader.comms)
+
+    async def status_text(self, *, read_only):
+        return await self.loader.kind.status_text(self.loader.comms, self.loader.target,
+                                                  read_only=read_only)
 
     def accepts(self, loader, through) -> bool:
         # Earlier wire cuts stay valid while the bus grows.

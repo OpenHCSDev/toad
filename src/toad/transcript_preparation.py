@@ -331,29 +331,8 @@ class PreparedPageSource(ABC):
     @abstractmethod
     async def _prepare(self, request: PageRequest) -> None: ...
 
-    @abstractmethod
-    def require_reader(self): ...
-
-    def can_read(self) -> bool:
-        return not self.closed
-
     def reload_key(self):
         return self.scope
-
-    def wire_style(self):
-        return self.require_reader().style
-
-    def owns_comms(self, comms) -> bool:
-        return self.require_reader().comms is comms
-
-    def uses_observation(self, observation) -> bool:
-        return observation.uses(self.require_reader().comms)
-
-    async def route_is_current(self) -> bool:
-        from agent_comms.route_selection import root_is_current
-
-        return self.can_read() and await self.runtime.run_thread(
-            root_is_current, self.require_reader().comms.root)
 
     def has_more(self, end: PageEnd, page: TranscriptPage) -> bool:
         return end.has_more(self.through, page)
@@ -491,9 +470,6 @@ class SavedHistory(PreparedPageSource):
         self.loader, self.through, self.runtime = loader, through, runtime
         self.scope = PreparationScope()
 
-    def require_reader(self):
-        return self.loader
-
     def prefix(self, through) -> PreparedPageSource:
         return SavedPrefix(self, self.loader, through, self.runtime)
 
@@ -513,10 +489,9 @@ class SavedPrefix(SavedHistory):
         super().__init__(loader, through, runtime)
         self.earlier = earlier
 
-    @property
-    def work(self):
-        # A prefix uses its source's native or wire reader, not the base default.
-        return self.earlier.work
+    def read_task(self, request):
+        # Keep the upstream task's declared native/wire behavior, bounded here.
+        return replace(self.earlier.read_task(request), scope=self.scope, through=self.through)
 
     async def _get(self, request):
         return await request.end.edge((self.earlier.get, super()._get))(request)
@@ -533,25 +508,64 @@ class ClosedHistory(PreparedPageSource):
         self.through, self.runtime = through, runtime
         self.scope = PreparationScope()
 
-    def require_reader(self):
-        raise ValueError("This transcript has no saved-source reader")
-
-    def can_read(self) -> bool:
-        return False
-
-    def wire_style(self):
-        from toad.message_rows import IrcMessageStyle
-
-        return IrcMessageStyle()
-
-    def owns_comms(self, comms) -> bool:
-        return False
-
     def uses_observation(self, observation) -> bool:
         return False
 
     async def route_is_current(self) -> bool:
         return False
+
+    def status_thread(self, access):
+        from toad.widgets.observed_thread_activity import NoStatusThread
+
+        return NoStatusThread()
+
+    def command_context(self, view):
+        return None
+
+    async def submit_input(self, view, event) -> None:
+        view.delivery_refused("Conversation source is not ready", event.body)
+
+    def schedule_refresh(self, view):
+        return None
+
+    def painted_read(self, history):
+        return None
+
+    async def change_style(self, history) -> None:
+        return
+
+    def observe_notifications(self, view, references) -> None:
+        view.app.coordination_access.stop_notifications(view)
+
+    def notification_read(self, references):
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def read_revision(self):
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def observe_changes(self, revision):
+        return None
+
+    def accepts_page(self, current, incoming) -> bool:
+        return False
+
+    def seen_page(self, history, seen):
+        return None
+
+    async def mark_historical(self, displayed) -> None:
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def mark_page(self, page) -> None:
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def read_only(self) -> bool:
+        return True
+
+    async def update_mentions(self, view) -> None:
+        return
+
+    async def status_text(self, *, read_only):
+        return "Conversation source is not ready"
 
     def has_more(self, end, page) -> bool:
         return False
@@ -608,9 +622,6 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
                 has_older=self._raw.has_older(projected.page),
             ))
         return self._projected_boundary
-
-    def require_reader(self):
-        return self._raw.require_reader()
 
     def prefix(self, through) -> PreparedPageSource:
         return self._raw.prefix(through)

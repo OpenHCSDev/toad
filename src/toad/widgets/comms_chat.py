@@ -8,7 +8,6 @@ from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
 from toad.wire_history import WireSource
 
-import asyncio
 import re
 from pathlib import Path
 
@@ -33,7 +32,7 @@ from toad.widgets.conversation import (
     CursorContainer,
     Window,
 )
-from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
+from toad.widgets.observed_thread_activity import StatusThread
 from toad.widgets.flash import Flash
 from toad.widgets.prompt import Prompt
 from toad.screens.session_view import SessionView
@@ -207,7 +206,7 @@ class CommsChatView(Conversation):
         # itself before reading again, rather than rereading an already
         # current page until the observer's next tick.
         try:
-            revision = await self.app.preparation.run_thread(source.require_reader().comms.views.revision)
+            revision = await source.read_revision()
         except (OSError, ValueError, RuntimeError):
             # An unavailable or replaced route has no revision to read. Its
             # observer remains responsible for the next observation.
@@ -254,20 +253,13 @@ class CommsChatView(Conversation):
 
     def status_thread(self) -> StatusThread:
         """Peer status does not grant access to the peer's full transcript."""
-        name = self.conversation_kind.historical_thread(self.target)
-        source = self.message_history.page_source
-        if name is None or not source.can_read():
-            return NoStatusThread()
-        return StatusThread.for_root(source.require_reader().comms.root, name, self.app.coordination_access)
+        return self.message_history.page_source.status_thread(self.app.coordination_access)
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history
-        if not self.is_attached or not history.page_source.can_read():
+        if not self.is_attached or not self.query_ancestor(SessionView).is_current:
             return
-        if not self.query_ancestor(SessionView).is_current:
-            return
-        history.notification_view.check_notifications()
-        return history.schedule_source_work(self._refresh_source)
+        return history.page_source.schedule_refresh(self)
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
@@ -283,11 +275,10 @@ class CommsChatView(Conversation):
                 if snapshot.current(history):
                     self.display = False
                 return
-            comms = history.page_source.require_reader().comms
-            catalog = await asyncio.to_thread(comms.channels.catalog.read)
+            source = history.page_source
+            read_only = await source.read_only()
             if not await history.source_is_current(snapshot):
                 return
-            read_only = self.conversation_kind.read_only(catalog, self.target)
             if read_only:
                 self.prompt.prompt_text_area.disabled = True
                 self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
@@ -313,7 +304,7 @@ class CommsChatView(Conversation):
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
         # and the history can load pages while they wait.
-        self.run_worker(partial(self._refresh_labels, comms, changed, newly_announced, read_only),
+        self.run_worker(partial(self._refresh_labels, source, changed, newly_announced, read_only),
                         group=self.LABELS_GROUP)
 
     LABELS_GROUP = "chat-labels"
@@ -324,18 +315,20 @@ class CommsChatView(Conversation):
             self.flash(message, style="error")
         self.status = message
 
-    async def _refresh_labels(self, comms, changed: bool, newly_announced: bool, read_only: bool) -> None:
+    async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
         history = self.message_history
         snapshot = history.source_snapshot()
-        source, target = history.page_source, self.target
+        target = self.target
+        if source is not history.page_source:
+            return
         try:
             # An unchanged history may have read the stores before the observer
             # announced the change; mention completion reads the observer's snapshot.
             if changed or newly_announced:
-                await self.conversation_kind.update_mentions(self, comms)
+                await source.update_mentions(self)
             if changed:
                 if not await history.source_is_current(snapshot):
                     if snapshot.current(history):
@@ -347,7 +340,7 @@ class CommsChatView(Conversation):
             self.call_after_refresh(history.mark_visible)
             if not changed:
                 return
-            status = await self.conversation_kind.status_text(comms, target, read_only=read_only)
+            status = await source.status_text(read_only=read_only)
         except (CoordinationReadUnavailable, StaleRevision):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
@@ -364,31 +357,14 @@ class CommsChatView(Conversation):
             history.request_preparation()
 
     async def command_target_context(self):
-        from toad.target_commands import TargetContext
-        if not self.message_history.page_source.can_read():
-            return None
-        return TargetContext(self.app, self.message_history.page_source.require_reader().comms,
-                             self.target, self._me, self.project_path,
-                             self.query_ancestor(SessionView).id)
+        return self.message_history.page_source.command_context(self)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
         if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
             return
         if not event.body.strip():
             return
-        history = self.message_history
-        source, target = history.page_source, self.target
-        if not source.can_read():
-            self.delivery_refused("Conversation source is not ready", event.body)
-            return
-        comms = source.require_reader().comms
-        def current() -> bool:
-            return self.is_attached and source is history.page_source and target == self.target
-
-        await self.submit_comms_message(
-            comms.root, self.conversation_kind, target, event.body, current,
-            partial(self._show_sent, body=event.body),
-        )
+        await self.message_history.page_source.submit_input(self, event)
 
     async def _show_sent(self, sent: WireMessage, body: str) -> None:
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""
