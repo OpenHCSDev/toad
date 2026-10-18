@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
-from agent_comms import private_nk_entrypoint
+import agent_comms.private_nk_entrypoint as private_nk_entrypoint
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV

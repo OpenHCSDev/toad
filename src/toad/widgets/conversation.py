@@ -22,7 +22,7 @@ from pathlib import Path
 from time import monotonic, time_ns
 from typing import TYPE_CHECKING, Any, Callable, Literal
 
-from agent_comms import agent_events as comms_events
+import agent_comms.agent_events as comms_events
 from agent_comms.acp_extension import (
     CompactionChangedUpdate,
     CoordinationChangedUpdate,

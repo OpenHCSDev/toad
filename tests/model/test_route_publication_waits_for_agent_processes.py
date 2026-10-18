@@ -8,7 +8,7 @@ import sys
 from unittest.mock import patch
 
 import psutil
-from agent_comms import private_nk_entrypoint
+import agent_comms.private_nk_entrypoint as private_nk_entrypoint
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.route_selection import RouteSelection, current_root
