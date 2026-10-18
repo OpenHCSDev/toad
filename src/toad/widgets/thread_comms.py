@@ -141,14 +141,14 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
 
     @property
     def member_keys(self):
-        return self.model.targets
+        return frozenset(self.model.entries)
 
     def present(self, model: RelationshipGroup) -> None:
         previous, self.model = self.model, model
-        if previous != model or tuple(previous.entries) != tuple(model.entries):
+        if tuple(previous.entries.items()) != tuple(model.entries.items()):
             changed = frozenset(
-                t for t in model.targets
-                if t not in previous.entries or previous.entry(t) != model.entry(t)
+                t for t in model.entries
+                if t not in previous.entries or previous.entries[t] != model.entries[t]
             )
             self.sync_members(changed=changed)
 
@@ -161,11 +161,11 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
                          if entry.person is not None and entry.person.thread.name in names)
 
     def new_row(self, key: str):
-        entry = self.model.entry(key)
+        entry = self.model.entries[key]
         return RelationshipRow(entry_target(entry), entry.target)
 
     def show_member(self, key: str, row: RelationshipRow) -> None:
-        entry = self.model.entry(key)
+        entry = self.model.entries[key]
         threads = self.query_ancestor(ThreadCommsSidebar).model_state.shown.threads.rows
         row.present(entry, threads.get(entry.person.thread.name) if entry.person is not None else None)
 
