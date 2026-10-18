@@ -163,7 +163,7 @@ class OperationalSessionSources:
             line = "Choose a model or connect a provider (click here). Your draft is kept."
         else:
             line = self.activity_row(conversation).presentation.summary
-        return self.activity_row(conversation).status.with_session(
+        return self.activity_row(conversation).status.with_disconnection(
             line, lambda: SessionDisposition.of(agent).present(line, lambda status: status.notice))
 
     def start_agent(self, conversation: Conversation) -> None:
