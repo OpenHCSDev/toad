@@ -1,11 +1,11 @@
 """One coalesced read lifetime; each projection owns its source and reaction."""
-from abc import ABC, abstractmethod
 import asyncio
+from abc import ABC, abstractmethod
 from weakref import ref
 
 from agent_comms.goal_presentation import GoalSnapshot
 from agent_comms.ui_model.delivery import InputDelivery
-from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
+from agent_comms.ui_model.goal import GoalUnavailable
 
 
 class SessionObservation(ABC):
@@ -107,7 +107,7 @@ class GoalObservation(SessionObservation):
         return await agent.get_goal_snapshot()
 
     def publish(self, view, result: GoalSnapshot):
-        view.goal_display = GoalDisplay.current(result.goal)
+        view.goal_display = result.goal.goal_display()
         view.goal_execution = result.execution
 
     def failed(self, view, error):

@@ -1,21 +1,20 @@
 """A full-height, scrollable projection of a persistent goal."""
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
-from agent_comms.mro_dispatch import handles
-
 from datetime import datetime
 
-from agent_comms.field_codec import FieldCodec
-from agent_comms.goals import Goal
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical, VerticalScroll
-from toad.screens.modal import ModalScreen
 from textual.widgets import Button, Static
-
 from toad.core.input_events import SelectTarget
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.goal_interaction import GoalSession
 from toad.project_path_owner import ProjectPathOwner
+from toad.screens.modal import ModalScreen
 from toad.widgets.goal_text import GoalText
+
+from agent_comms.field_codec import FieldCodec
+from agent_comms.goals import Goal
+from agent_comms.mro_dispatch import handles
 
 
 class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
@@ -93,14 +92,14 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         widget = self.query_one_optional("#goal-current-heading", Static)
         if widget is None:
             return
-        goal = self.goal_display.snapshot
+        objective, progress = self.goal_display.snapshot.detail_contents()
         heading = self.goal_display.details_heading(self.execution)
         widget.update(heading)
         self.query_one("#goal-current-objective", GoalText).update_goal_text(
-            f"Objective: {goal.text}" if goal else ""
+            f"Objective: {objective}" if objective else ""
         )
         self.query_one("#goal-current-progress", GoalText).update_goal_text(
-            f"Progress: {goal.progress}" if goal and goal.progress else ""
+            f"Progress: {progress}" if progress else ""
         )
 
     @on(Button.Pressed, "#goal-details-close")
