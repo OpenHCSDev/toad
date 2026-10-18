@@ -122,7 +122,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
 
                         async def saved_history_shown():
                             async with asyncio.timeout(8):
-                                while not any(item.committed_cursor == page.after
+                                while not any(item.page_source.through == page.after
                                               for item in view.transcript.histories):
                                     await asyncio.sleep(.02)
 

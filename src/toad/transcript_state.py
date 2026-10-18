@@ -351,7 +351,7 @@ class ParkedSourceTranscript(SuspendedTranscript):
     def validate_snapshot(self, owner, page) -> None:
         # The publication already holds a certified current source page. Its
         # native/assigned cursor, not rendered content, validates this resource.
-        if page.after.contains(owner.through):
+        if page.after.contains(owner.page_source.through):
             owner.resume_source()
 
 
