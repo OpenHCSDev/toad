@@ -127,9 +127,7 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_current: ObserveSidebar | None = None
         self.views_interest: ObserveViews | None = None
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
-        self.notification_outcomes: dict[
-            ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]
-        ] = {}
+        self.notification_outcomes: dict[ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
 
     @property
