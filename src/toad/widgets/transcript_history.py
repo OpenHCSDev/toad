@@ -375,7 +375,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     @asynccontextmanager
     async def acquire(
         cls, owner: LineHistory, prepared: PreparedTranscriptPage, *,
-        end: PageEnd, current: Callable[[], bool],
+        end: PageEnd, pages: deque[TranscriptPageView], current: Callable[[], bool],
     ) -> AsyncIterator[TranscriptPageView]:
         """Acquire the original prepared range, without selecting it a second time."""
         view = cls(prepared)
@@ -387,7 +387,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             raise _DrawingStopped
         with ExitStack() as acquisition:
             acquisition.callback(owner.remove_children, (view,))
-            await end.mount(owner, view)
+            await end.mount(owner, view, pages)
             if not current():
                 raise _DrawingStopped
             yield view
@@ -528,7 +528,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             return
         _, limit = window.latest_limits(self.budget)
         position = window.reader_position or ReaderPosition.of(window)
-        rows_needed, _ = await position.resolve(window).prepare(
+        rows_needed, _ = await position.prepare(
             self, current, target, selected, rows_needed, limit,
         )
         await self.filter.prepare_rows(
@@ -1000,7 +1000,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             else:
                 page_range = edge.prepared.capture_range()
                 async with TranscriptPageView.acquire(
-                    self, prepared, end=end,
+                    self, prepared, end=end, pages=self.pages,
                     current=lambda: current() and edge.prepared.capture_range() == page_range,
                 ) as view:
                     end.append(self.pages, view)

@@ -93,9 +93,6 @@ class ReaderPosition(ABC):
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
         return self if window.history_change is not None else None
 
-    def resolve(self, window: "HistoryWindow") -> "ReaderPosition":
-        return self
-
     def preparation_start(self, history) -> tuple[int, int]:
         """Where preparation begins when no message supplies a more exact place."""
         return 0, history.pages[0].prepared.start
@@ -255,8 +252,8 @@ class UnreachedPosition(ReaderPosition):
 
     position: ReaderPosition
 
-    def resolve(self, window: "HistoryWindow") -> ReaderPosition:
-        return self.position.resolve(window)
+    async def prepare(self, history, current, target, selected, rows_needed, limit):
+        return await self.position.prepare(history, current, target, selected, rows_needed, limit)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         return self.position.bodies(window)

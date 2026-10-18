@@ -218,14 +218,12 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     views.append(edge)
                 try:
                     async with AsyncExitStack() as acquisition:
-                        before = self.newer
                         for prepared, view in reversed(destination):
                             if view is None:
                                 view = await acquisition.enter_async_context(type(edge).acquire(
-                                    self, prepared, before=before, current=current,
+                                    self, prepared, end=OLDER_END, pages=views, current=current,
                                 ))
                             views.appendleft(view)
-                            before = view
                         # Keep existing fragments, prepared lines and documents.
                         for prepared, view in destination:
                             if view is not None and not await view.prepared.replace_range(

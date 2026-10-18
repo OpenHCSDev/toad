@@ -140,7 +140,7 @@ class PageEnd(ABC):
     def edge_boundary(self, edge, local: bool, staged) -> int:
         return self.edge((edge.prepared.start, edge.prepared.stop)) if local else self.boundary(staged)
     @abstractmethod
-    async def mount(self, history, view) -> None: ...
+    async def mount(self, history, view, pages) -> None: ...
     @abstractmethod
     def append(self, pages, view) -> None: ...
     @abstractmethod
@@ -236,8 +236,8 @@ class OlderEnd(PageEnd):
     def edge(self, pages):
         return pages[0]
 
-    async def mount(self, history, view):
-        await history.mount(view, before=self.edge(history.pages))
+    async def mount(self, history, view, pages):
+        await history.mount(view, before=self.edge(pages) if pages else history.newer)
 
     def eviction_order(self, history):
         return super().eviction_order(history) if history.follows_source_tail else (NEWER_END, self)
@@ -288,7 +288,7 @@ class NewerEnd(PageEnd):
     def edge(self, pages):
         return pages[-1]
 
-    async def mount(self, history, view):
+    async def mount(self, history, view, pages):
         await history.mount(view, before=history.newer)
 
     def trim_range(self, page, count):
