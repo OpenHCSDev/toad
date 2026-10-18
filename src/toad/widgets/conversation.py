@@ -1654,7 +1654,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         from toad.target_commands import TargetContext
         screen = self.query_ancestor(MainScreen)
         nav = screen.navigation_context
-        comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.service)
+        comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.observation.current(self.app.coordination_access))
         if not self.is_attached or screen.navigation_context != nav:
             raise ValueError('Command view changed during discovery')
         return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)

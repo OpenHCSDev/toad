@@ -151,7 +151,7 @@ class WelcomeEntries(SidebarModelView, TargetTree):
     async def on_mount(self) -> None:
         app = self.app
         try:
-            service = await app.preparation.run_thread(lambda: app.coordination_access.service)
+            service = await app.preparation.run_thread(lambda: app.coordination_access.observation.current(app.coordination_access))
         except (OSError, ValueError, RuntimeError) as error:
             self.notify(str(error), title="Comms unavailable", severity="error")
             return
@@ -222,7 +222,7 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
         try:
             from toad.thread_identity import ThreadIdentity
             def identity():
-                service = app.coordination_access.service
+                service = app.coordination_access.observation.current(app.coordination_access)
                 return ThreadIdentity(service.messaging.user_identity(project).incarnation, str(service.root))
             with self.changing_identity():
                 self._identity = await app.preparation.run_thread(identity)

@@ -33,12 +33,10 @@ class SplashText(Animated[TextFrame], Static):
         return self.is_attached
 
     async def _play(self) -> None:
-        from toad.render_tasks import TextEffectRenderTask
-
         scheme = self.app.colours.scheme
         if self.played is None or self._scheme is not scheme:
-            self.played = await self.app.prepare_background(
-                TextEffectRenderTask(loading_splash(self.TEXT), scheme))
+            self.played = await self.app.colours.schemes[self.app.theme].palette.text_effect(
+                self.app.colours, loading_splash(self.TEXT), scheme)
             self._scheme = scheme
         if self.plays:
             self.run_effect(self.played)

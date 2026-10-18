@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from toad.widgets.comms_sidebar import CommsRow
     from agent_comms.comms import Comms
-    from toad.comms_root import ObservedCommsService
+    from toad.comms_root import Observing
 
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -384,7 +384,7 @@ class SidebarModelState:
     def channel_active(self, row) -> bool:
         return False
 
-    def observes(self, observed: ObservedCommsService) -> bool:
+    def observes(self, observed: Observing) -> bool:
         return False
 
     def unsubscribe(self, view) -> None:
@@ -407,7 +407,7 @@ class Detached(SidebarModelState):
 
 @dataclass(frozen=True)
 class BoundSidebar(SidebarModelState):
-    observed: ObservedCommsService
+    observed: Observing
 
     def root(self):
         return self.observed.service.root
@@ -415,7 +415,7 @@ class BoundSidebar(SidebarModelState):
     def serves(self, path) -> bool:
         return self.observed.service.root.resolve() == path
 
-    def observes(self, observed: ObservedCommsService) -> bool:
+    def observes(self, observed: Observing) -> bool:
         return self.observed is observed
 
     def unsubscribe(self, view) -> None:
@@ -467,7 +467,7 @@ class SidebarModelView(CoreEventReceiver):
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        service = self.app.coordination_access.observed_service
+        service = self.app.coordination_access.observation.service
         if service is not None:
             self.attach(service)
 
@@ -536,7 +536,7 @@ class SidebarModelView(CoreEventReceiver):
 
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
-        service = self.app.coordination_access.observed_service
+        service = self.app.coordination_access.observation.service
         if service is not None:
             self.attach(service)
 

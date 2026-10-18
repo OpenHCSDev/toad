@@ -432,7 +432,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     async def on_mount(self) -> None:
         app = self.app
-        service = await app.preparation.run_thread(lambda: app.coordination_access.service)
+        service = await app.preparation.run_thread(lambda: app.coordination_access.observation.current(app.coordination_access))
         screen = self.screen
         if not screen.belongs_to_wire(service.root):
             self.display = False

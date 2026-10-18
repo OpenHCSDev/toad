@@ -31,7 +31,7 @@ class CoordinationTranscriptReader:
         self.access = access
 
     async def read(self, request: AwaitedRead):
-        return await self.access.read(request)
+        return await self.access.observation.read(self.access, request)
 
     async def service(self, root):
         return await self.access.preparation.run_thread(

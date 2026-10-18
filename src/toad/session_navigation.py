@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, cast
 from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.ui_model.observation import ObserveViews
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
                                 PreviewSessionEntry, SessionEntry)
@@ -123,14 +124,14 @@ class SessionNavigation:
     def declare_views(self) -> None:
         """Tell the observation service which views are open on its root."""
         access = self.app.coordination_access
-        if (service := access.observed_service) is None:
+        if (service := access.observation.service) is None:
             return
         root = str(service.root)
         threads, channels = set(), set()
         for member in self.members:
             threads.update(identity for owner, identity in member.original_threads(self) if owner == root)
             channels.update(target for owner, target in member.original_channels() if owner == root)
-        access.show_views(frozenset(threads), frozenset(channels))
+        access.observation.views(access, ObserveViews(frozenset(threads), frozenset(channels)))
 
     def views_retired(self, root, retired) -> None:
         """Close the open views on ``root`` whose sources the observation service found retired."""
@@ -199,7 +200,7 @@ class SessionNavigation:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.service)
+            comms = await app.preparation.run_thread(lambda: app.coordination_access.observation.current(app.coordination_access))
             requested_root = str(comms.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
@@ -298,7 +299,7 @@ class SessionNavigation:
         # Views on the observed root retire through the observation service
         # (views_retired). Views on another root are read here, only when a
         # registration or channel changed.
-        observed = self.app.coordination_access.observed_service
+        observed = self.app.coordination_access.observation.service
         if observed is not None and not any(
                 owner != str(observed.root)
                 for member in self.members
@@ -329,7 +330,7 @@ class SessionNavigation:
                           for member in self.members)
         asked: dict[str, tuple[set, set]] = {}
         # The observation service retires views on its own root.
-        observed_root = (str(service.root) if (service := self.app.coordination_access.observed_service)
+        observed_root = (str(service.root) if (service := self.app.coordination_access.observation.service)
                          is not None else None)
         for _member, threads, channels in originals:
             for root, identity in threads:
@@ -357,7 +358,7 @@ class SessionNavigation:
 
         answers = await self.app.preparation.run_thread(read)
         # A service replaced while the read joined revokes its answer.
-        observed = self.app.coordination_access.observed_service
+        observed = self.app.coordination_access.observation.service
         retired = {root: answer for root, (service, answer) in answers.items() if service is observed}
         removed = tuple(member.mode for member, threads, channels in originals
                         if self.get(member.mode) is member and (
