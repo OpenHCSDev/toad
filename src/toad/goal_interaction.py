@@ -7,6 +7,7 @@ from weakref import ref
 
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.goal_actions import ClearGoalAction, GoalAction
+from agent_comms.goal_presentation import IdleGoalExecution
 
 if TYPE_CHECKING:
     from agent_comms.ui_model.goal import GoalDisplay
@@ -143,7 +144,7 @@ class GoalSession:
 
     @property
     def execution(self):
-        return self.view.goal_execution if self.view is not None else None
+        return self.view.goal_execution if self.view is not None else IdleGoalExecution()
 
     def owns(self, agent) -> bool:
         view = self.view

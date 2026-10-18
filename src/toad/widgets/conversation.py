@@ -35,7 +35,7 @@ from agent_comms.acp_extension import (
     TranscriptSnapshotUpdate,
     TurnChangedUpdate,
 )
-from agent_comms.goal_presentation import GoalExecution
+from agent_comms.goal_presentation import GoalExecution, IdleGoalExecution
 from agent_comms.mro_dispatch import MroDispatch, handles
 from rich.segment import Segment
 from rich.text import Text as RichText
@@ -498,7 +498,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     goal_display: var[GoalDisplay] = var(NoGoal())
 
 
-    goal_execution: var[GoalExecution | None] = var(None)
+    goal_execution: var[GoalExecution | IdleGoalExecution] = var(IdleGoalExecution())
 
 
     status: var[str | Content | RichText] = var("")
