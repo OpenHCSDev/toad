@@ -14,14 +14,14 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from functools import lru_cache
-from typing import Any, ClassVar
+from typing import Any, ClassVar, TYPE_CHECKING
 
 from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment
 from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
-from textual.app import App
+from textual.ansi_palette import AnsiPalette, NativeAnsiPalette, MappedAnsiPalette
 from textual.color import Color
 from textual.content import Content
 from textual.driver import TerminalGaveNoPalette
@@ -46,6 +46,10 @@ from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 from toad.line_blocks import LineRole
 from toad.render_tasks import TextEffectRenderTask
+
+if TYPE_CHECKING:
+    from toad.app import ToadApp
+
 
 class _WalFileClosed(FileSystemEventHandler):
     """pywal rewrites `colors.json` in place; it is whole once the writer closes it."""
@@ -86,7 +90,10 @@ class TopInk(BlockInk):
     GLYPHS = " ▀█"
 
 
-class PaletteState(ABC):
+class PaletteState(AnsiPalette, ABC):
+    def refresh_colours(self, colours: TextualColours) -> None:
+        """Native colours already in the stylesheet need no RGB replacement."""
+
     @abstractmethod
     async def text_effect(self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme) -> PlayedText: ...
 
@@ -100,13 +107,11 @@ class PaletteState(ABC):
     def derived(self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]) -> Color: ...
 
     @abstractmethod
-    def tint(self, style: RichStyle, amount: float) -> RichStyle: ...
-
-    @abstractmethod
-    def terminal_theme(self) -> TerminalTheme | UnknownPalette: ...
+    def tint_style(self, style: RichStyle, amount: float) -> RichStyle: ...
 
 
-class UnknownPalette(PaletteState):
+
+class UnknownPalette(NativeAnsiPalette, PaletteState):
     """Native ANSI styles remain usable when the terminal cannot report RGB."""
 
     async def text_effect(self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme) -> PlayedText:
@@ -124,46 +129,37 @@ class UnknownPalette(PaletteState):
     def derived(self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]) -> Color:
         return colours[BackgroundColour if member.background else ForegroundColour]
 
-    def tint(self, style: RichStyle, amount: float) -> RichStyle:
+    def tint_style(self, style: RichStyle, amount: float) -> RichStyle:
         return style
 
-    def terminal_theme(self) -> UnknownPalette:
-        return self
-
-    @property
-    def foreground_color(self):
-        raise TerminalGaveNoPalette("terminal gave no palette: native ANSI colours have no known RGB")
-
-    background_color = foreground_color
-    ansi_colors = foreground_color
 
 
-class QueriedPalette(PaletteState):
+class KnownPalette(MappedAnsiPalette, PaletteState):
     def __init__(self, colours: TerminalPalette) -> None:
         self.colours = colours
         ansi = [colour.triple for colour in colours.ansi]
-        self.terminal = TerminalTheme(colours.background.triple, colours.foreground.triple,
-                                      ansi[:8], ansi[8:])
+        super().__init__(TerminalTheme(colours.background.triple, colours.foreground.triple,
+                                       ansi[:8], ansi[8:]))
+
+    def refresh_colours(self, colours: TextualColours) -> None:
+        colours.app.refresh_css(animate=False)
 
     async def text_effect(self, colours: TextualColours, effect: TextEffect, scheme: ColourScheme) -> PlayedText:
         return await colours.app.prepare_background(
             TextEffectRenderTask(effect, replace(scheme, terminal=self.colours)))
 
-    def terminal_theme(self) -> TerminalTheme:
-        return self.terminal
-
     def resolved(self, colour: RichColor, *, foreground: bool) -> Color:
-        return Color(*colour.get_truecolor(self.terminal, foreground=foreground))
+        return Color(*colour.get_truecolor(self._terminal_theme, foreground=foreground))
 
     def derived(self, member: type[ThemeColour], colours: dict[type[ThemeColour], Color]) -> Color:
         def read(role: type[ThemeColour]) -> Rgb:
             value = colours[role]
-            return Rgb(*value.rich_color.get_truecolor(self.terminal, foreground=not role.background), value.a)
+            return Rgb(*value.rich_color.get_truecolor(self._terminal_theme, foreground=not role.background), value.a)
         value = member.resolve_rgb(read)
-        return Color(*value.triple, value.alpha)
+        return Color(value.red, value.green, value.blue, value.alpha)
 
-    def tint(self, style: RichStyle, amount: float) -> RichStyle:
-        base = Color(*self.terminal.background_color)
+    def tint_style(self, style: RichStyle, amount: float) -> RichStyle:
+        base = Color(*self._terminal_theme.background_color)
         fill = base.blend(self.resolved(style.color, foreground=True), amount)
         return style + RichStyle(bgcolor=fill.rich_color)
 
@@ -192,7 +188,7 @@ class TextualScheme:
 class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[TerminalTheme]):
     """The app's colour depth, schemes, terminal palettes, line styles and animation clock."""
 
-    def __init__(self, app: App) -> None:
+    def __init__(self, app: ToadApp) -> None:
         self.app = app
         self.depth: type[ColourDepth] = ColourDepth.of_terminal(os.environ)
         self.wal_directory = WalFile.directory(os.environ)
@@ -201,10 +197,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         self.variables: dict[str, str] = {}
         self._colours: dict[type[ThemeColour], Color] = {}
         self.schemes: dict[str, TextualScheme] = {}
-        self.terminal_palette: PaletteState
+        self.terminal_palette: PaletteState = UnknownPalette()
         for scheme in SCHEMES:
-            if not scheme.from_terminal:
-                self._add(scheme)
+            self._add(scheme)
         self._observer: Observer | None = None
         self._timer: Timer | None = None
         self.clock = AnimationClock(self._schedule)
@@ -252,15 +247,16 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def _add(self, scheme: ColourScheme) -> None:
         palette = (self.terminal_palette if scheme.from_terminal else
-                   QueriedPalette(scheme.terminal.resolve(require_terminal_palette)))
+                   KnownPalette(scheme.terminal.resolve(require_terminal_palette)))
         self.schemes[scheme.name] = TextualScheme(scheme, palette)
 
-    def mount(self) -> None:
-        """Read the terminal once before offering its schemes or painting them."""
-        self.terminal_palette = self.queried_palette()
+    async def mount(self) -> None:
+        """Resolve the initial native ANSI state before the first paint."""
+        self.terminal_palette = await self.queried_palette()
         for scheme in SCHEMES:
             if scheme.from_terminal:
-                self.register(scheme)
+                self._add(scheme)
+        self.terminal_palette.refresh_colours(self)
 
     def choose(self, name: str) -> None:
         if name not in self.schemes:
@@ -276,18 +272,20 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def scheme(self) -> ColourScheme:
         return self.schemes[self.app.theme].scheme
 
-    def terminal_theme(self, name: str) -> TerminalTheme | UnknownPalette:
+    def terminal_theme(self, name: str) -> PaletteState:
         """The palette ANSI colours map to under a theme."""
-        return self.schemes[name].palette.terminal_theme()
+        return self.schemes[name].palette
 
-    def queried_palette(self) -> PaletteState:
+    async def queried_palette(self) -> PaletteState:
         """Read the terminal's colours once, through its existing input driver."""
         try:
-            colours = self.app._driver.query_colours(timeout=2.0)
+            driver = self.app._driver
+            assert driver is not None, "Palette query requires the running terminal driver"
+            colours = await driver.query_colours(timeout=0.25)
         except TerminalGaveNoPalette:
             return UnknownPalette()
         foreground = Rgb(*colours["10"])
-        return QueriedPalette(TerminalPalette(Rgb(*colours["11"]), foreground, foreground,
+        return KnownPalette(TerminalPalette(Rgb(*colours["11"]), foreground, foreground,
                                tuple(Rgb(*colours[f"4;{index}"]) for index in range(16))))
 
     def variables_changed(self, variables: dict[str, str]) -> None:
@@ -304,9 +302,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
         for member in ThemeColour.members():
             if not issubclass(member, (CoreColour, LayerColour)):
-                value = palette.derived(member, self._colours)
-                self._colours[member] = value
-                variables[member.name] = value.css
+                derived = palette.derived(member, self._colours)
+                self._colours[member] = derived
+                variables[member.name] = derived.css
         self.variables = variables
         self.refresh_line_renderer()
 
@@ -354,7 +352,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
 
     def style(self, role: type[LineRole]) -> VisualStyle:
         """The same resolved line role for Textual content as for rendered rows."""
-        return VisualStyle.from_rich_style(self.line_theme.style(role), self.app.ansi_theme)
+        return self.schemes[self.app.theme].palette.rich_style(self.line_theme.style(role))
 
     def mixed(self, start: type[ThemeColour], end: type[ThemeColour], amount: float) -> Color:
         first, last = self.colour(start), self.colour(end)
@@ -460,7 +458,7 @@ class ThemedApp:
         return self.colours.variables
 
     @property
-    def ansi_theme(self) -> TerminalTheme:
+    def ansi_theme(self) -> PaletteState:
         return self.colours.terminal_theme(self.theme)  # type: ignore[attr-defined]
 
 

@@ -73,7 +73,7 @@ class LineTheme:
     @staticmethod
     def _style(role: type[LineRole], style: Style, palette: PaletteState) -> Style:
         if role.background_tint:
-            style = palette.tint(style, role.background_tint)
+            style = palette.tint_style(style, role.background_tint)
         return style + Style(italic=role.italic or None, bold=role.bold or None,
                              underline=role.underline or None)
 
