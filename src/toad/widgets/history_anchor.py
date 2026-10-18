@@ -274,9 +274,7 @@ class HeldReaderDestination:
         window.refresh(layout=True)
 
     def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
-        measured = all(
-            page.rows_measured for history in window.histories for page in history.pages
-        )
+        measured = all(page.rows_measured for page in window.drawn_pages())
         if reached and self.source_ready and measured:
             return self.released()
         return self
