@@ -145,10 +145,10 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
 
     def present(self, model: RelationshipGroup) -> None:
         previous, self.model = self.model, model
-        if previous != model:
+        if previous != model or tuple(previous.entries) != tuple(model.entries):
             changed = frozenset(
                 t for t in model.targets
-                if t not in previous.targets or previous.entry(t) != model.entry(t)
+                if t not in previous.entries or previous.entry(t) != model.entry(t)
             )
             self.sync_members(changed=changed)
 
@@ -157,7 +157,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
                 and self.query_ancestor(ThreadCommsSidebar).accepts_observation())
 
     def keys_for_threads(self, names: frozenset[str]) -> frozenset[str]:
-        return frozenset(entry.target for entry in self.model.entries
+        return frozenset(entry.target for entry in self.model.entries.values()
                          if entry.person is not None and entry.person.thread.name in names)
 
     def new_row(self, key: str):
@@ -395,7 +395,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
 
     @property
     def member_keys(self):
-        return (entry.target for model in self._snapshot.groups for entry in model.entries) if self._snapshot is not None else ()
+        return (entry.target for model in self._snapshot.groups for entry in model.entries.values()) if self._snapshot is not None else ()
 
     @property
     def navigation_groups(self):
