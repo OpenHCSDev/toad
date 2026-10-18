@@ -9,6 +9,8 @@ from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible
 
+from agent_comms.ui_model.observation import ReadNotifications
+
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
@@ -101,6 +103,14 @@ class HistoryNotifications:
         references = tuple(dict.fromkeys(
             reference for fragment in fragments for reference in fragment.notification_references))
         self.subscribe_notifications(references)
+
+    def notification_read(self, references) -> ReadNotifications:
+        from toad.screens.session_view import SessionView
+
+        root = self.query_ancestor(SessionView).coordination_root
+        if root is None:
+            raise ValueError("Notification observation requires a bound thread root")
+        return ReadNotifications(root, references)
 
     def subscribe_notifications(self, references) -> None:
         access = self.app.coordination_access
