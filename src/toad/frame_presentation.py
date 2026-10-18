@@ -258,9 +258,11 @@ class EffectPhase:
     def paint(self, owner, effect, strip):
         return owner.paint_effects(strip, owner.effect_frame(effect))
 
-    def keeps_arrivals(self, arrivals): return arrivals
+    def keeps_arrivals(self, arrivals):
+        return arrivals
 
-    def on_new_arrival(self, owner, effect, pages): pass
+    def on_new_arrival(self, owner, effect, pages):
+        pass
 
 
 class EffectUnstarted(EffectPhase):
@@ -270,7 +272,8 @@ class EffectUnstarted(EffectPhase):
 
 
 class EffectFinished(EffectPhase):
-    def keeps_arrivals(self, arrivals): return ()
+    def keeps_arrivals(self, arrivals):
+        return ()
 
     def on_new_arrival(self, owner, effect, pages):
         for page in pages:

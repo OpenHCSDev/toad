@@ -463,7 +463,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
                 return await self.prepared.replace_range(self, selected, current)
 
 class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
-    """A line-drawn source window whose arrived rows share one history fade."""
+    """History drawn as lines, a bounded range of pages at a time.
+
+    It owns paging in both directions, lookahead, trimming, the jump to the
+    newest page and the reader's position. A subclass says what its source is:
+    `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or
+    direct conversation.
+    """
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
