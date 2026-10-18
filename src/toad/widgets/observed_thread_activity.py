@@ -1,7 +1,9 @@
-"""An open thread's status line: a view of its row in Core's open-thread status model."""
+"""An open thread's status line, observed locally or read from its foreign root."""
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
 
 from agent_comms.coordination_errors import CoordinationReadUnavailable
@@ -15,11 +17,111 @@ from textual.widget import Widget
 from toad.core.events import ThreadRowsChanged
 
 
-class ObservedThreadActivity(Widget):
-    """Shared observation capability; its view decides how to display the row.
+class StatusThread(ABC):
+    """The status source selected by a view, independent of ACP turn permissions."""
 
-    Observation never starts/settles an ACP turn or changes permission to send.
-    """
+    name: str
+
+    @classmethod
+    def for_root(cls, root: Path, name: str, access) -> StatusThread:
+        """Both the session binding and Comms service supply absolute wire roots."""
+        observed = access.observed_service
+        if observed is not None and root == observed.root:
+            return LocalStatusThread(name)
+        return ForeignStatusThread(root, name)
+
+    @abstractmethod
+    def bind(self, activity: ObservedThreadActivity) -> None: ...
+
+    def refresh(self, view: ThreadStatusOwner) -> None:
+        view.thread_activity.bind(self)
+
+    def rows_changed(self, activity: ObservedThreadActivity, changes: Changes[str]) -> None:
+        """Only a local source consumes the observed rows."""
+
+
+@dataclass(frozen=True)
+class NoStatusThread(StatusThread):
+    name = ""
+
+    def bind(self, activity: ObservedThreadActivity) -> None:
+        activity.show(ThreadStatusModel.pending(self.name))
+
+    def refresh(self, view: ThreadStatusOwner) -> None:
+        """A conversation without a status source has no row to refresh."""
+
+
+@dataclass(frozen=True)
+class LocalStatusThread(StatusThread):
+    name: str
+
+    def bind(self, activity: ObservedThreadActivity) -> None:
+        activity.show(activity.app.coordination_access.thread_status.open(self.name))
+
+    def rows_changed(self, activity: ObservedThreadActivity, changes: Changes[str]) -> None:
+        if self.name in changes.changed or self.name in changes.added or self.name in changes.removed:
+            self.bind(activity)
+
+
+@dataclass(frozen=True)
+class ForeignStatusThread(StatusThread):
+    root: Path
+    name: str
+
+    def bind(self, activity: ObservedThreadActivity) -> None:
+        activity.show(ThreadStatusModel.pending(self.name))
+
+    def refresh(self, view: ThreadStatusOwner) -> None:
+        super().refresh(view)
+        view.run_worker(self.read_foreign_thread(view), group="foreign-thread-status", exclusive=True)
+
+    async def read_foreign_thread(self, view: ThreadStatusOwner) -> None:
+        try:
+            presentation = await view.app.coordination_access.transcripts.thread_presentation(
+                str(self.root), self.name)
+            row = ThreadStatusModel.known(self.name, presentation)
+        except CoordinationReadUnavailable:
+            return  # The next coordination change retries a busy store.
+        except (OSError, ValueError, RuntimeError) as error:
+            presentation = None
+            row = ThreadStatusModel.unreadable(self.name, UnreadableHistory.capture(error))
+        if view.status_thread() != self:
+            return
+        view.thread_activity.show(row)
+        view.foreign_thread_read(presentation)
+
+
+class ActivityView:
+    """The status display a conversation kind supplies, mounted or absent."""
+
+    def bind(self, thread: StatusThread) -> None:
+        raise NotImplementedError
+
+    def show(self, row: ThreadStatusModel) -> None:
+        raise NotImplementedError
+
+    @property
+    def working(self) -> bool:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class NoActivityView(ActivityView):
+    """No status row, widget lifetime, subscription or paint work."""
+
+    def bind(self, thread: StatusThread) -> None:
+        pass
+
+    def show(self, row: ThreadStatusModel) -> None:
+        pass
+
+    @property
+    def working(self) -> bool:
+        return False
+
+
+class ObservedThreadActivity(Widget, ActivityView):
+    """The composed status row; observation never starts or settles an ACP turn."""
 
     row: var[ThreadStatusModel] = var(lambda: ThreadStatusModel.pending(""), init=False)
 
@@ -27,7 +129,7 @@ class ObservedThreadActivity(Widget):
         """The observed row changed; the view repaints what derives from it."""
 
     def __init__(self, *args, **kwargs) -> None:
-        self.thread: str | None = None
+        self.thread: StatusThread = NoStatusThread()
         super().__init__(*args, **kwargs)
 
     def on_mount(self) -> None:
@@ -36,18 +138,13 @@ class ObservedThreadActivity(Widget):
     def on_unmount(self) -> None:
         self.app.coordination_access.thread_status.rows.unsubscribe(self.rows_changed)
 
-    def bind(self, thread: str | None) -> None:
-        """Show observed ``thread``'s row; None leaves the row to ``show``."""
+    def bind(self, thread: StatusThread) -> None:
         if thread != self.thread:
             self.thread = thread
-            if thread is not None:
-                self.show(self.app.coordination_access.thread_status.open(thread))
+            thread.bind(self)
 
     def rows_changed(self, changes: Changes[str]) -> None:
-        thread = self.thread
-        if thread is not None and (thread in changes.changed or thread in changes.added
-                                   or thread in changes.removed):
-            self.show(self.app.coordination_access.thread_status.open(thread))
+        self.thread.rows_changed(self, changes)
 
     def show(self, row: ThreadStatusModel) -> None:
         self.row = row
@@ -64,75 +161,24 @@ class ObservedThreadActivity(Widget):
 
 
 class ThreadStatusOwner:
-    """A view that shows one thread's status line (its ObservedThreadActivity).
+    """A view with a composed row and a declared status source."""
 
-    A thread on the observed Comms root is observed by Core's observation
-    process: the shared model delivers its status row and its scoped
-    ThreadRowsChanged subscription delivers its presentation to ``thread_observed``. A thread on any other
-    root is a foreign thread: the view reads it itself on each coordination
-    change, as every view did before the observation service.
-    """
-
-    thread_activity: ObservedThreadActivity | None = None
-    """The composed status view; lookup never infers capabilities from CSS ancestry."""
+    # Before compose there is no status view yet; the kind supplies its view.
+    thread_activity: ActivityView = NoActivityView()
 
     @property
     def _observed_working(self) -> bool:
         """Observed work cannot settle an independently owned ACP request."""
-        activity = self.thread_activity
-        return activity is not None and activity.working
+        return self.thread_activity.working
 
-    def status_thread(self) -> tuple[str, str] | None:
-        """The (wire root, thread name) whose status this view shows, if any."""
+    def status_thread(self) -> StatusThread:
         raise NotImplementedError
 
     def thread_observed(self, event: ThreadRowsChanged) -> None:
-        """Consume the observed thread's presentation, delivered once per store change."""
-
-    async def read_foreign_thread(self) -> ThreadPresentation | None:
-        """Read only the status scope this view declares, through the shared reader."""
-        scope = self.status_thread()
-        if scope is None:
-            return None
-        presentation = await self.app.coordination_access.transcripts.thread_presentation(*scope)
-        if self.status_thread() != scope:
-            raise ValueError("Thread status source changed during read")
-        return presentation
+        """Consume the observed thread's presentation once per store change."""
 
     def foreign_thread_read(self, presentation: ThreadPresentation | None) -> None:
         """Consume a foreign thread's presentation after its own read."""
 
     def refresh_thread_status(self) -> None:
-        access = self.app.coordination_access
-        activity = self.thread_activity
-        thread = self.status_thread()
-        observed = access.observed_service
-        if (thread is not None and observed is not None
-                and Path(thread[0]).resolve() == observed.root.resolve()):
-            if activity is not None:
-                activity.bind(thread[1])
-            return
-        if activity is not None:
-            activity.bind(None)
-            if thread is None:
-                activity.show(ThreadStatusModel.pending(""))
-        if thread is not None:
-            if activity is not None:
-                activity.show(ThreadStatusModel.pending(thread[1]))
-            self.run_worker(self._read_foreign_status(thread[1]), group="foreign-thread-status",
-                            exclusive=True)
-
-    async def _read_foreign_status(self, name: str) -> None:
-        try:
-            presentation = await self.read_foreign_thread()
-            row = ThreadStatusModel.known(name, presentation)
-        except CoordinationReadUnavailable:
-            return  # A busy store; the next coordination change reads again.
-        except (OSError, ValueError, RuntimeError) as error:
-            presentation = None
-            row = ThreadStatusModel.unreadable(name, UnreadableHistory.capture(error))
-        if (self.status_thread() or (None, None))[1] != name:
-            return
-        if (activity := self.thread_activity) is not None:
-            activity.show(row)
-        self.foreign_thread_read(presentation)
+        self.status_thread().refresh(self)

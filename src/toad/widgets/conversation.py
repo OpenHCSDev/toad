@@ -86,7 +86,9 @@ from agent_comms.ui_model.goal import GoalDisplay, NoGoal
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.observed_thread_activity import ObservedThreadActivity, ThreadStatusOwner
+from toad.widgets.observed_thread_activity import (
+    NoStatusThread, ObservedThreadActivity, StatusThread, ThreadStatusOwner,
+)
 from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
@@ -384,8 +386,12 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         origin = self.query_ancestor(SessionView).origin
         return origin.transcript_scope() if origin is not None else None
 
-    def status_thread(self) -> tuple[str, str] | None:
-        return self.transcript.thread_scope
+    def status_thread(self) -> StatusThread:
+        scope = self.transcript.thread_scope
+        if scope is None:
+            return NoStatusThread()
+        root, name = scope
+        return StatusThread.for_root(Path(root), name, self.app.coordination_access)
 
     def arm_thread_read(self) -> None:
         """Capture turn token and client authority for the next observed presentation."""
@@ -394,7 +400,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
         """Consume this thread's one observation, including handling and presentation."""
         self.transcript.request_handling()
-        presentation = event.presentations[self.status_thread()[1]]
+        presentation = event.presentations[self.status_thread().name]
         read = self._thread_read
         self.arm_thread_read()
         if read is not None:
