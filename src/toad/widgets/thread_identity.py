@@ -3,7 +3,7 @@ from agent_comms.mro_dispatch import handles
 from textual.widget import Widget
 
 from toad.core.events import ThreadIdentityChanged
-from toad.core_event_carrier import CoreEventReceiver
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import ThreadIdentity
 
 
@@ -23,7 +23,7 @@ class ShowsThreadIdentity(CoreEventReceiver, Widget):
         self.identity_changed(self.thread_identity)
 
     @handles(ThreadIdentityChanged)
-    def thread_identity_changed(self, event: ThreadIdentityChanged) -> None:
+    def thread_identity_changed(self, message: CoreEventMessage) -> None:
         self.identity_changed(self.thread_identity)
 
     def identity_changed(self, identity: ThreadIdentity) -> None:
