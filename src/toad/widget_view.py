@@ -1,6 +1,11 @@
 """Native widget geometry and paint declared by their owning view."""
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toad.screens.workspace import WorkspaceScreen
+
 from textual import events
 from textual._paint_state import PaintLayer
 from textual._styles_cache import FramePaint
@@ -12,6 +17,16 @@ from textual.geometry import Spacing
 
 AUTO = Scalar(1.0, Unit.AUTO, Unit.AUTO)
 FILL = Scalar(1.0, Unit.FRACTION, Unit.WIDTH)
+
+
+class WorkspaceHosted:
+    """A widget whose native screen supplies the workspace frame and histories."""
+
+    @property
+    def screen(self) -> WorkspaceScreen:
+        from toad.screens.workspace import WorkspaceScreen
+
+        return WorkspaceScreen.require(super().screen)
 
 
 class WidgetView(BoxGeometry, PaintLayer, FramePaint):

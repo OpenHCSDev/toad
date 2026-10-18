@@ -109,7 +109,8 @@ class SessionNavigation:
         """Bind the accepted source facts before preparing its native resources."""
         entry = cast(NativeSessionEntry, self.app.workspace_sessions.factories[view.id])
         view.bind_project(project)
-        entry.original = original
+        root, owner = original
+        view.bind_thread(owner, root)
         entry.details.bind_initial_identity(name)
         self.publish()
 

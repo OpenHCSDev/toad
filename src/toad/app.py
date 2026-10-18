@@ -18,9 +18,8 @@ from functools import cached_property, partial
 from pathlib import Path
 from time import monotonic
 from typing import TYPE_CHECKING, Callable, TypeVar, cast
-from weakref import WeakKeyDictionary
 
-from agent_comms.acp_extension import CoordinationChangedUpdate, TranscriptChangedUpdate
+from agent_comms.acp_extension import TranscriptChangedUpdate
 from textual._time import after_input
 from textual import events, on, work
 from textual.app import App
@@ -190,7 +189,6 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             lambda mode, index: self.select_session(mode, history_index=index),
             home=mode or WELCOME,
         )
-        self.coordination_facts: WeakKeyDictionary[object, CoordinationChangedUpdate] = WeakKeyDictionary()
         self.coordination_access = CoordinationAccess(self)
 
         from toad.file_kind import FileKind
@@ -385,7 +383,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         for details in self.session_tracker.ordered_sessions:
             screen = self.session_navigation.source(details.mode_name)
             if screen is not None and screen.coordination_root is not None:
-                threads.add(screen._session_thread)
+                threads.add(screen.thread_identity.thread_name())
         return threads
 
     async def registry_names(self) -> list[str]:
@@ -428,7 +426,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         # original route and registry owners resolve it in the write worker;
         # never consult a mutable widget after that worker has been scheduled.
         access = self.coordination_access
-        name = screen._comms_thread
+        name = screen.thread_identity.thread_name()
         project = screen.project_path
         source_root = screen.coordination_root
         worktree = str(self.project_dir)

@@ -208,9 +208,6 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
     HINTS = ("[b]n[/b] new session   [b]ctrl+g[/b] channel view   [b]ctrl+b[/b] sidebar\n"
              "[b]↑ ↓[/b] choose   [b]enter[/b] open")
 
-    # The bus sender histories opened from here read as; Core names it at each opening.
-    _comms_thread = ""
-
     def __init__(self) -> None:
         super().__init__()
         app = cast("ToadApp", self.app)
@@ -228,14 +225,18 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
     @property
     def navigation_context(self) -> NavigationContext:
         assert self.id is not None
-        return NavigationContext(self.app, self.id, self.project_path, self._comms_thread)
+        return NavigationContext(self.app, self.id, self.project_path, self.thread_identity.thread_name())
 
     async def open_sidebar_target(self, target: NavigationTarget) -> str:
         app = cast("ToadApp", self.app)
         project = str(self.project_path)
         try:
-            self._comms_thread = await app.preparation.run_thread(
-                lambda: app.coordination_access.service.messaging.user_identity(project).name)
+            from toad.thread_identity import ThreadIdentity
+            def identity():
+                service = app.coordination_access.service
+                return ThreadIdentity(service.messaging.user_identity(project).incarnation, str(service.root))
+            with self.changing_identity():
+                self._identity = await app.preparation.run_thread(identity)
         except (OSError, ValueError, RuntimeError) as error:
             self.notify(str(error), title="Comms target unavailable", severity="error")
             return app.selected_mode

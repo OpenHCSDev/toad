@@ -676,7 +676,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
         if str(service.root.resolve()) != identity.root:
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
-            identity.thread, cursor=cursor, previous=self.manifest_sources))
+            identity.thread_name(), cursor=cursor, previous=self.manifest_sources))
         try:
             inspection = await inspection.acquire_core()
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -755,7 +755,7 @@ class HoldingInspection(InspectionState):
 
     @property
     def thread_identity(self) -> ThreadIdentity:
-        return ThreadIdentity(self.inspection.owner.name, str(self.inspection.service.root))
+        return ThreadIdentity(self.inspection.owner.incarnation, str(self.inspection.service.root))
 
     def observed_at(self, revision) -> bool:
         return self.revision == revision
@@ -816,7 +816,7 @@ class HoldingInspection(InspectionState):
 
     @property
     def status(self):
-        return f"{self.thread_identity.thread} · {self.inspection.core.status}\nReading native context…"
+        return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nReading native context…"
 
 
 @dataclass(frozen=True)
@@ -858,7 +858,7 @@ class NativeInspection(HoldingInspection):
 
     @property
     def status(self):
-        return (f"{self.thread_identity.thread} · {self.inspection.core.status}; native base available\n"
+        return (f"{self.thread_identity.thread_name()} · {self.inspection.core.status}; native base available\n"
                 f"Segment counts: estimates ({self.native.counter}) · provider totals unavailable")
 
 
@@ -873,4 +873,4 @@ class UnavailableNativeInspection(HoldingInspection):
 
     @property
     def status(self):
-        return f"{self.thread_identity.thread} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"
+        return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"

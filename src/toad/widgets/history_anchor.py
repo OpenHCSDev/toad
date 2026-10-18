@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from weakref import WeakSet
 
 from textual.widget import Widget
+from toad.widget_view import WorkspaceHosted
 from textual import events
 from textual.containers import VerticalScroll
 from toad.widgets.presentation_window import DirectionalPreparation, PresentationBudget
@@ -392,7 +393,7 @@ class HistoryChange:
         await self.layout_ready.wait()
 
 
-class HistoryWindow(VerticalScroll):
+class HistoryWindow(WorkspaceHosted, VerticalScroll):
     """A document owns reader intent and ends its pointer-scroll route.
 
     Nested controls receive the native event first. Once it reaches this
@@ -521,6 +522,8 @@ class HistoryWindow(VerticalScroll):
 
     def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
+        self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
+        self.scroll_target_y = self.scroll_y
         if not isinstance(parked := self.reader_position, ParkedPosition):
             # Parked pagers stop reading and leave window.histories while their
             # pages stay in the tree: record those page ranges with the place.
@@ -610,19 +613,13 @@ class HistoryWindow(VerticalScroll):
             change.release()
 
     def on_mount(self) -> None:
-        from toad.screens.workspace import WorkspaceScreen
-
-        if isinstance(screen := self.screen, WorkspaceScreen):
-            screen.history_windows.add(self)
+        self.screen.history_windows.add(self)
         self.request_preparation()
 
     def on_unmount(self) -> None:
-        from toad.screens.workspace import WorkspaceScreen
-
         self.retire_presentation_wait()
         self.settle_preparation()
-        if isinstance(screen := self.screen, WorkspaceScreen):
-            screen.history_windows.discard(self)
+        self.screen.history_windows.discard(self)
 
     def prepare_viewport(self) -> None:
         """Window subclasses publish work that depends on committed geometry."""
