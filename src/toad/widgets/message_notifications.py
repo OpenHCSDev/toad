@@ -95,6 +95,7 @@ class HistoryNotifications:
     """Visible history rows subscribe to Core; paging never decides when outcomes changed."""
 
     NOTIFICATION_GROUP = "message-notifications"
+    notification_request = ReadNotifications
 
     # Core feedback for every visible bus message, native or wire.
 
@@ -105,12 +106,12 @@ class HistoryNotifications:
         self.subscribe_notifications(references)
 
     def notification_read(self, references) -> ReadNotifications:
-        from toad.screens.session_view import SessionView
+        from toad.project_path_owner import ProjectPathOwner
 
-        root = self.query_ancestor(SessionView).coordination_root
+        root = ProjectPathOwner.containing(self).coordination_root
         if root is None:
             raise ValueError("Notification observation requires a bound thread root")
-        return ReadNotifications(root, references)
+        return self.notification_request(root, references)
 
     def subscribe_notifications(self, references) -> None:
         access = self.app.coordination_access
