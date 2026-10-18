@@ -93,14 +93,14 @@ class GoalDetails(CoreEventReceiver, ProjectPathOwner, ModalScreen[None]):
         widget = self.query_one_optional("#goal-current-heading", Static)
         if widget is None:
             return
-        goal = self.goal_display.snapshot
+        objective, progress = self.goal_display.snapshot.detail_contents()
         heading = self.goal_display.details_heading(self.execution)
         widget.update(heading)
         self.query_one("#goal-current-objective", GoalText).update_goal_text(
-            f"Objective: {goal.text}" if goal else ""
+            f"Objective: {objective}" if objective else ""
         )
         self.query_one("#goal-current-progress", GoalText).update_goal_text(
-            f"Progress: {goal.progress}" if goal and goal.progress else ""
+            f"Progress: {progress}" if progress else ""
         )
 
     @on(Button.Pressed, "#goal-details-close")

@@ -84,7 +84,8 @@ from toad.widgets.throbber import AboveThrobber, BelowThrobber
 from toad.frame_presentation import Animated
 from ui_theme.effects import CURSOR_BLINK, Mix
 from agent_comms.ui_model.delivery import InputDelivery
-from agent_comms.ui_model.goal import GoalDisplay, NoGoal
+from agent_comms.goals import NoGoal
+from agent_comms.ui_model.goal import GoalDisplay
 from toad.session_observation import GoalObservation, InputDeliveryObservation, SessionObservation
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.native_history import NativeHistory

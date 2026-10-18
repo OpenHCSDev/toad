@@ -158,15 +158,15 @@ class GoalBar(VerticalGroup):
             self._update_goal_text()
 
     def watch_goal_display(self) -> None:
-        goal = self.goal_display.snapshot
-        if goal is None:
-            self._end_resize()
+        _, progress_text = self.goal_display.snapshot.detail_contents()
         self.display = self.goal_display.visible
+        if not self.display:
+            self._end_resize()
         self._update_goal_text()
-        if goal is not None and self.is_attached:
+        if self.is_attached:
             progress = self.query_one(".goal-progress", GoalText)
-            progress.update_goal_text(f"Progress: {goal.progress}" if goal.progress else "")
-            progress.display = bool(goal.progress)
+            progress.update_goal_text(f"Progress: {progress_text}" if progress_text else "")
+            progress.display = bool(progress_text)
             self._update_control_layout()
 
     def watch_execution(self) -> None:
@@ -177,7 +177,7 @@ class GoalBar(VerticalGroup):
             return
         header = self.query_one(".goal-header", Static)
         state = self.goal_display
-        goal = state.snapshot
+        objective, _ = state.snapshot.detail_contents()
         execution = self.execution
         header.update(state.heading(execution))
         for action in GoalInteraction.members_with(GoalInteraction):
@@ -185,9 +185,9 @@ class GoalBar(VerticalGroup):
             control.disabled = not action.enabled(state)
             control.display = action.visible(state)
             control.update(action.caption(state, self.collapsed))
-        self.query_one(".goal-document").display = goal is not None and not self.collapsed
-        if goal is not None:
-            self.query_one(".goal-summary", GoalText).update_goal_text(f"Objective: {goal.text}")
+        self.query_one(".goal-document").display = bool(objective) and not self.collapsed
+        self.query_one(".goal-summary", GoalText).update_goal_text(
+            f"Objective: {objective}" if objective else "")
         standby = state.standby(execution)
         self.query_one(".goal-execution-row").display = standby and not self.collapsed
         self.query_one(StandbyPulse).active = standby and not self.collapsed
@@ -203,7 +203,7 @@ class GoalBar(VerticalGroup):
         self.call_after_refresh(self.update_document_height)
 
     def begin_separator_resize(self, event: events.MouseDown) -> None:
-        if event.button != 1 or self.collapsed or self.goal_display.snapshot is None or not self.display:
+        if event.button != 1 or self.collapsed or not self.display or not self.query_one(".goal-document").display:
             return
         throbber = self._throbber
         own_edge = bool(self.styles.border_top[0]) and event.screen_y == self.region.y
@@ -231,7 +231,7 @@ class GoalBar(VerticalGroup):
             self._drag_resize(event.screen_y)
         else:
             self.set_class(
-                not self.collapsed and self.goal_display.snapshot is not None
+                not self.collapsed and self.query_one(".goal-document").display
                 and bool(self.styles.border_top[0]) and event.screen_y == self.region.y,
                 "-resize-hover",
             )
@@ -286,7 +286,7 @@ class GoalBar(VerticalGroup):
         # Conversation resize also reaches an absent goal or an outage header
         # without a document. Querying that hidden document's geometry forces
         # a full compositor map after the visible viewport was already laid out.
-        if self.is_attached and self.display and self.goal_display.snapshot is not None and not self.collapsed:
+        if self.is_attached and self.display and self.query_one(".goal-document").display and not self.collapsed:
             document = self.query_one(".goal-document", VerticalScroll)
             width = document.content_size.width
             height = (
