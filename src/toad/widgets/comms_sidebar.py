@@ -20,7 +20,9 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
+from agent_comms.display_order import ThreadSort
 from agent_comms.ui_model.sidebar import ChannelRowModel
+from agent_comms.ui_model.unread import UnreadPresentation
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
@@ -55,6 +57,17 @@ if TYPE_CHECKING:
 
 
 
+class UnpaintedUnread(UnreadPresentation):
+    label = " "
+
+
+class UnpaintedChannel(ChannelRowModel):
+    """The header has no painted values until its first real row arrives."""
+
+    def __init__(self, name: str):
+        super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
+
+
 class ChannelDisclosure(SidebarDisclosure):
     pass
 
@@ -87,7 +100,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
 
     def __init__(self, row: CommsRow, *, expanded: bool):
         row.add_class("channel-header")
-        self.channel: ChannelRowModel | None = None
+        self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
         self.unread_badge.display = False
@@ -103,14 +116,14 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         """Paint the channel header from its model row."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous is None or previous.label != channel.label:
+        if previous.label != channel.label:
             row.set_label(channel.label)
         row.tooltip = channel.tooltip
         row.refresh_paint()
-        if previous is None or previous.unread != channel.unread:
+        if previous.unread != channel.unread:
             label = channel.unread.label
             # Equal-width badges need paint only; visibility owns its layout.
-            width_changed = previous is None or cell_len(label) != cell_len(previous.unread.label)
+            width_changed = cell_len(label) != cell_len(previous.unread.label)
             self.unread_badge.update(label, layout=width_changed)
             self.unread_badge.display = bool(label)
         self.sort_control.update_order(channel.order)
@@ -140,7 +153,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         return channel.members if channel is not None else ()
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
-        if self.channel is None or not self.member_container.is_attached:
+        if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
         self.reconcile_rows(
             lambda name: ThreadRow(ThreadTarget(name), name), self.show_member, changed=changed)
@@ -151,7 +164,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         Membership is the channel row's fact: added and removed threads change
         its ``members`` and reach ``sync_members`` as a channel change.
         """
-        if self.channel is None or not self.accepts_members():
+        if not self.accepts_members():
             return
         threads = self.sidebar.model_state.shown.threads.rows
         shown = [(name, view) for name in names
