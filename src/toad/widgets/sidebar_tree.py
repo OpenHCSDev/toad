@@ -355,9 +355,11 @@ class SidebarModelView(CoreEventReceiver):
         return self.model is not None and self.model.snapshot is not None and not self.stale
 
     def unsubscribe(self) -> None:
-        if self.model is not None:
-            self.model.channels.unsubscribe(self.channels_changed)
-            self.model.threads.unsubscribe(self.threads_changed)
+        model, self.model = self.model, None
+        self.service = None
+        if model is not None:
+            model.channels.unsubscribe(self.channels_changed)
+            model.threads.unsubscribe(self.threads_changed)
 
     def stop_showing(self) -> None:
         self.app.coordination_access.show_sidebar(self, False)
@@ -403,7 +405,7 @@ class SidebarModelView(CoreEventReceiver):
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
         service = self.app.coordination_access.observed_service
-        if service is not None and service is not self.service:
+        if service is not None:
             self.attach(service)
 
     @handles(ThreadRowStateChanged)
