@@ -30,6 +30,7 @@ from agent_comms.ui_model.observation import (
     StopObserving, StopSidebar, ThreadsObserved,
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
+from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.status import OpenThreadStatus
 from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
 from toad.resource_release import ResourceRelease
@@ -95,16 +96,6 @@ class ObservedCommsService:
     service: Comms
     sidebar: SidebarModel
     process: ObservationProcess = field(compare=False)
-    events: CoreEventStream = field(compare=False)
-
-    def __post_init__(self) -> None:
-        self.sidebar.threads.subscribe(self.threads_changed)
-
-    def threads_changed(self, changes) -> None:
-        self.events.publish(ThreadRowsChanged(str(self.service.root), changes))
-
-    def retire(self) -> None:
-        self.sidebar.threads.unsubscribe(self.threads_changed)
 
 
 class CoordinationAccess(MroDispatch):
@@ -184,7 +175,7 @@ class CoordinationAccess(MroDispatch):
             # Textual runs the models' flushes after the current message,
             # before the next frame is composed.
             self.observation = ObservedCommsService(
-                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route), self.events)
+                selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route))
             self.revision = None
             self.route_observation = WaitingRoute()
         if self.loop is not None:
@@ -216,7 +207,6 @@ class CoordinationAccess(MroDispatch):
         self.events.publish(ObservedServiceChanged())
 
     def retire(self, observed: ObservedCommsService) -> None:
-        observed.retire()
         self.loop.remove_reader(observed.process.fileno())
         observed.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
         # Joining the child may wait; it outlives the preparation runtime at app close.
@@ -299,6 +289,8 @@ class CoordinationAccess(MroDispatch):
     @handles(ThreadsObserved)
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:
         self.thread_status.observed(result)
+        self.events.publish(ThreadRowsChanged(
+            str(observed.service.root), Changes(changed=tuple(result.changed))))
         for owner, name in tuple(self.thread_owners.items()):
             if name in result.changed and name in result.presentations:
                 owner.thread_observed(result.presentations[name])
@@ -363,8 +355,6 @@ class CoordinationAccess(MroDispatch):
 
         release.callback(view.retire_core, view.observe_core_callback(
             self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope)))
-        release.callback(self.show_sidebar, release, False)
-        self.show_sidebar(release, True)
         return release
 
     def show_sidebar(self, view: object, shown: bool) -> None:
