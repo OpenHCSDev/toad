@@ -652,14 +652,16 @@ class TranscriptPresentation:
         from toad.core.events import CoreEventStream
         self.events = CoreEventStream(self)
 
-    def bind(self, view: Conversation) -> None:
+    def bind(self, view: Conversation) -> BoundView:
         if self.closed:
             raise ValueError("Transcript lifetime has ended")
         binding = self.binding.bound_to(view)
-        self.invalidate_publications()
-        self.current_read = NotPublished()
-        self.binding = binding
-        self.bind_thread_observation()
+        if binding is not self.binding:
+            self.invalidate_publications()
+            self.current_read = NotPublished()
+            self.binding = binding
+            self.bind_thread_observation()
+        return binding
 
     def bind_thread_observation(self) -> None:
         """Replace the observation when the owning session changes history source."""
@@ -739,9 +741,6 @@ class TranscriptPresentation:
             return await publication.publish()
         return True
 
-    async def snapshot(self, page: TranscriptPage) -> None:
-        self.received(page)
-
 
     def changed(self, cursor: TranscriptCursor | None) -> None:
         self.invalidate_publications()
@@ -759,15 +758,15 @@ class TranscriptPresentation:
 
     async def refresh_cursor(self) -> TranscriptCursor:
         """Commit and return the cursor from the resulting painted transcript."""
-        frame = self.binding.capture(self, BoundFrame)
+        self.require_commit()
+        frame: BoundFrame | None = self.binding.capture(self, BoundFrame)
         if frame is None:
             raise TranscriptChanged()
-        self.require_commit()
         worker = self.worker
         if worker is None:
             raise TranscriptChanged()
         await worker.wait()
-        if self.binding is not frame.binding or not frame.binding.current():
+        if not frame.current():
             raise TranscriptChanged()
         ready = asyncio.get_running_loop().create_future()
         frame.binding.view.call_after_refresh(lambda: ready.set_result(self.displayed_cursor))

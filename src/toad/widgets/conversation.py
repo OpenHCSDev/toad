@@ -655,7 +655,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             await self._release_source_resources()
 
     async def prepare_retained_session(self) -> None:
-        await self.transcript.binding.restore(self.transcript)
+        await self.transcript.bind(self).restore(self.transcript)
 
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
@@ -2238,7 +2238,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(TranscriptSnapshotUpdate)
     async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
-        await self.conversation.transcript.snapshot(update.page)
+        self.conversation.transcript.received(update.page)
 
     @handles(McpClientAcknowledgementUpdate)
     async def mcp_status(self, update: McpClientAcknowledgementUpdate):

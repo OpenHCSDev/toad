@@ -487,7 +487,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                   *, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
                   source_state: TranscriptState | None = None):
         self.notification_view = notification_view
-        self._page_buffer: PreparedPageSource | None = None
         super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, prepared.page.after
         self.budget = budget or PresentationBudget(
@@ -906,11 +905,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             self._page_buffer = self.page_buffer(self.loader, self.through, self.app.preparation)
         self._page_buffer.through = self.through
         return self._page_buffer
-
-    def close(self) -> None:
-        if self._page_buffer is not None:
-            self._page_buffer.close()
-            self._page_buffer = None
 
     @property
     def drawn_extent(self) -> tuple[int, int]:
