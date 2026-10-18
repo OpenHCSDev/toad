@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 
+from agent_comms.presentation import NoRevision, ReadState
 from agent_comms.route_selection import root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
 from toad.navigation_preparation import CommsNavigationRequest
@@ -32,7 +33,7 @@ class SessionNavigation:
         self._retire_task: asyncio.Task[None] | None = None
         self._retire_requested = False
         # The Core revision the last retirement pass started from.
-        self._retired_at = None
+        self._retired_at: ReadState = NoRevision()
         self._closing_retired: set[asyncio.Future] = set()
 
     def direct_messages(self, target: str | None = None):
@@ -304,8 +305,7 @@ class SessionNavigation:
                 for owner, _ in (*member.original_threads(self), *member.original_channels())):
             return
         revision = event.revision
-        if (revision is not None and self._retired_at is not None
-                and not revision.registrations_changed_since(self._retired_at)):
+        if not revision.registrations_changed_since(self._retired_at):
             return
         self._retired_at = revision
         # The registry read takes hundreds of milliseconds; awaiting it here held
