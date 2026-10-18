@@ -14,9 +14,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.message_page import (
-    HistoryCursor, MessagePage, NewerTraversal, OlderTraversal, PageBounds,
-)
+from agent_comms.message_page import MessagePage, PageBounds
+from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
@@ -48,28 +47,24 @@ class WireCut(ABC):
 class BeforeMessage(WireCut):
     """Just before the message Core's cursor names; earlier messages never change."""
 
-    cursor: int | HistoryCursor
+    cursor: PageCursor
     bounded = False
     kept = True
 
     def older(self) -> OlderTraversal:
-        cursor = self.cursor
-        return (OlderTraversal(cursor.sequence, cursor.source)
-                if isinstance(cursor, HistoryCursor) else OlderTraversal(cursor))
+        return self.cursor.older()
 
 
 @dataclass(frozen=True)
 class AfterMessage(WireCut):
     """Just after the message Core's cursor names."""
 
-    cursor: int | HistoryCursor
+    cursor: PageCursor
     bounded = True
     kept = True
 
     def newer(self) -> NewerTraversal:
-        cursor = self.cursor
-        return (NewerTraversal(cursor.sequence, cursor.source)
-                if isinstance(cursor, HistoryCursor) else NewerTraversal(cursor))
+        return self.cursor.newer()
 
 
 @dataclass(frozen=True)
@@ -79,11 +74,11 @@ class AfterSequence(AfterMessage):
     The end of the conversation is read from here: each read is a new answer.
     """
 
-    cursor: int
+    cursor: LiveCursor
     kept = False
 
     def older(self) -> OlderTraversal:
-        return OlderTraversal(self.cursor + 1)
+        return OlderTraversal(self.cursor.sequence + 1)
 
 
 @dataclass(frozen=True)
@@ -276,7 +271,7 @@ class WireSource:
             self.comms.views, self.target, worktree=str(self.project))
         if revision == seen:
             return None
-        high = AfterSequence(self.comms.views.latest_sequence())
+        high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
         replaced = seen is None or revision.display_changed_since(seen)
@@ -293,7 +288,7 @@ class WireSource:
         if not older:
             # A later read owns messages that arrived after this bound.
             kept = tuple(message for message in page.messages
-                         if message.view_key[0] or message.seq <= through.cursor)
+                         if message.view_key[0] or message.seq <= through.cursor.sequence)
             if len(kept) < len(page.messages):
                 page = replace(page, messages=kept, has_newer=False)
         evidence = page if self.kind.history_view.has_display_evidence(page) else None
@@ -303,8 +298,8 @@ class WireSource:
             for message in page.messages)
         wire = WirePage(
             page.messages,
-            BeforeMessage(page.oldest_cursor) if page.messages else None,
-            AfterMessage(page.newest_cursor) if page.has_newer and page.messages else through,
+            BeforeMessage(page.messages[0].view_cursor) if page.messages else None,
+            AfterMessage(page.messages[-1].view_cursor) if page.has_newer and page.messages else through,
             page.has_older and bool(page.messages), page.has_newer and bool(page.messages), page,
         )
         return PreparedWirePage.measured(wire, fragments)
