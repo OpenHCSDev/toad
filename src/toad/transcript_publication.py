@@ -350,6 +350,7 @@ class CommitPublication(CanonicalSourcePublication):
             self.owner.view.notify(str(error), title="Committed history", severity="error")
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
+        from toad.transcript_preparation import SavedHistory
         from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         from toad.widgets.transcript_history import TranscriptHistory
 
@@ -376,7 +377,8 @@ class CommitPublication(CanonicalSourcePublication):
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                prepared.page, self.owner.get_transcript_page, committed=False,
+                prepared.page, SavedHistory(self.owner.get_transcript_page,
+                                            prepared.page.page.after, view.app.preparation), committed=False,
             )
             await contents.prepare_history(
                 replacement, is_current, window=window,
@@ -753,8 +755,7 @@ class TranscriptPresentation:
         try:
             async with AsyncResourceRelease() as release:
                 for history in reversed(tuple(self.histories)):
-                    if history._page_buffer is not None:
-                        release.callback(history._page_buffer.close)
+                    release.callback(history._history.close)
                 release.callback(self._close_documents)
                 await self.suspend()
         finally:

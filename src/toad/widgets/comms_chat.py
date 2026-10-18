@@ -5,7 +5,8 @@ from toad.core import input_events
 from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
-from toad.wire_history import WireSource
+from toad.wire_history import WireSource, PreparedWirePage, WirePage
+from toad.transcript_preparation import NoSavedHistory
 
 import asyncio
 import re
@@ -115,7 +116,9 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
-        self.message_history = WireHistory(view=self)
+        prepared = PreparedWirePage.empty(WirePage.unread())
+        self.message_history = WireHistory(
+            prepared, NoSavedHistory(prepared, self.app.preparation), view=self)
 
     def compose(self) -> ComposeResult:
         with Window():

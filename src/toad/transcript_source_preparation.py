@@ -46,10 +46,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
 
-    def __init__(self, *args, source_state: TranscriptState, **kwargs):
+    def __init__(self, *args, source_state: TranscriptState, history: PreparedPageSource, **kwargs):
         self._source_state = source_state
         self._generation = 0
-        self._page_buffer: PreparedPageSource | None = None
+        self._history = history
         self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 
@@ -101,7 +101,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._source_observation.close()
         # Parked preparation belongs to the logical document. Unmount revokes
         # this publisher, not the source scope transferred with it.
-        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state.retire_preparation(self._history)
         self._source_state = RetiredSourceTranscript(self._source_state.retirement_source())
         self._generation += 1
         self.window.histories.discard(self)
@@ -171,7 +171,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
-        if self.loader is None or edge.page.after == self.through:
+        if edge.page.after == self.through:
             prepared = edge.prepared.for_view()
         else:
             prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
@@ -195,9 +195,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             if take:
                 destination.insert(0, (prepared, existing))
             limit -= take
-            if rows <= 0 or self.loader is None:
+            if rows <= 0:
                 break
-            if (not prepared.page.has_older or limit <= 0
+            if (not self._history.has_older(prepared.page) or limit <= 0
                     or not window.presentation_budget.can_read_destination(pages_read)):
                 break
             prepared = (await self._reader().get(PageRequest.adjacent(prepared.page, True))).for_view()
@@ -332,7 +332,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation += 1
         if self.is_attached:
             self.window.histories.discard(self)
-        self._source_state.retire_preparation(self._page_buffer)
+        self._source_state.retire_preparation(self._history)
         workers = self.workers.cancel_node(self)
 
         async def join():
