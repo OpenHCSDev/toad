@@ -159,7 +159,6 @@ class KnownPalette(MappedAnsiPalette, PaletteState):
         return Color(value.red, value.green, value.blue, value.alpha)
 
     def tint_style(self, style: RichStyle, amount: float) -> RichStyle:
-        assert style.color is not None, "A tinted line role must declare its foreground"
         base = Color(*self._terminal_theme.background_color)
         fill = base.blend(self.resolved(style.color, foreground=True), amount)
         return style + RichStyle(bgcolor=fill.rich_color)
@@ -285,9 +284,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             colours = await driver.query_colours(timeout=0.25)
         except TerminalGaveNoPalette:
             return UnknownPalette()
-        foreground = Rgb(*colours["10"])
-        return KnownPalette(TerminalPalette(Rgb(*colours["11"]), foreground, foreground,
-                               tuple(Rgb(*colours[f"4;{index}"]) for index in range(16))))
+        foreground = Rgb(*colours.foreground)
+        return KnownPalette(TerminalPalette(Rgb(*colours.background), foreground, foreground,
+                               tuple(Rgb(*colour) for colour in colours.ansi)))
 
     def variables_changed(self, variables: dict[str, str]) -> None:
         palette = self.schemes[self.app.theme].palette
