@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
+from acp import RequestError
 from acp.schema import (
     AgentErrorMessage, AgentNotification, AgentRequest, AgentResponseMessage,
     ContentChunk, SessionNotification, TextContentBlock,
@@ -163,7 +164,7 @@ class RecordFragment(LogRecord):
 class ErrorLogMessage(AgentErrorMessage):
     def log_record(self, raw: str, source: type[LogSource]) -> LogRecord:
         return FailureLogRecord(raw, source, str(self.id), ACPFailure.from_error(
-            self.error.code, self.error.message, self.error.data,
+            RequestError(**self.error.model_dump()),
         ))
 
 
@@ -214,7 +215,7 @@ class SessionContentLog:
         if content.text.startswith("[agent error] "):
             return FailureLogRecord(
                 self.record.raw, self.record.source, self.record.identity,
-                ACPFailure.from_error(None, content.text.removeprefix("[agent error] ")),
+                ACPFailure.from_detail(None, content.text.removeprefix("[agent error] ")),
             )
         return self.record
 

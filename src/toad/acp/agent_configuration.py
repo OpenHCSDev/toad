@@ -70,7 +70,7 @@ class ConfigurationSetting(DeclaredFamily, affix="ConfigurationSetting"):
             result = await agent.process.rpc.set_config_option(self.option.id, agent.session_id, value)
             authority.require()
         except RequestError as error:
-            return ACPFailure.from_error(error.code, error.message, error.data).feedback
+            return ACPFailure.from_error(error).feedback
         agent.configuration.receive(result.config_options)
         return None
 
