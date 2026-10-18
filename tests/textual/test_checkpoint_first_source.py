@@ -69,6 +69,6 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         assert not list(view.contents.query(AgentResponse)), "the covered live response is still mounted"
         await ui.until(lambda: ui.painted(view.window).count("FIRST_SAVED_NATIVE_RESPONSE") == 1,
                        why="the saved response drawn exactly once")
-        assert replacement.committed_cursor == page.after
+        assert replacement.page_source.through == page.after
         assert replacement.loader == agent.get_transcript_page
         assert replacement.covers_incoming(notice.seq)

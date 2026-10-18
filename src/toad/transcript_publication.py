@@ -72,7 +72,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """The mounted main history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
-        return cursor.over_native(tuple(history.committed_cursor for history in self.binding.histories()
+        return cursor.over_native(tuple(history.page_source.through for history in self.binding.histories()
                                         if history in self.captured and history.state.reports_coverage))
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
@@ -166,7 +166,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
         if self.history is not None:
             try:
-                return await read(after=self.history.committed_cursor)
+                return await read(after=self.history.page_source.through)
             except TranscriptChanged:
                 pass  # Another source file replaced the history's.
         return await read(**whole)
@@ -576,7 +576,7 @@ class BoundView(ViewBinding):
         view = self.view
         if not view.is_attached:
             return
-        self.painted(owner, history.committed_cursor)
+        self.painted(owner, history.page_source.through)
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
             await loading.remove()
         view.query_one(SessionDetails)._refresh_summary()
@@ -697,7 +697,7 @@ class TranscriptPresentation:
         for history in self.binding.histories():
             history.state.validate_snapshot(history, page)
         history = next(iter(self.binding.histories()), None)
-        if history is None or not history.committed_cursor.contains(page.after):
+        if history is None or not history.page_source.through.contains(page.after):
             self.require_commit()
 
     @property
