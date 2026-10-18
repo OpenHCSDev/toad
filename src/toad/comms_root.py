@@ -124,7 +124,6 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_waiters: list[tuple[ObserveSidebar, asyncio.Future[SidebarObservation]]] = []
         self.sidebar_interest: ObserveSidebar | None = None
         self.sidebar_current: ObserveSidebar | None = None
-        self.thread_interest: frozenset[str] = frozenset()
         self.views_interest: ObserveViews | None = None
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
         self.notification_interest = ObserveNotifications(frozenset())
@@ -193,13 +192,12 @@ class CoordinationAccess(MroDispatch):
             if not waiter.done():
                 waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
         self.sidebar_interest = self.sidebar_current = None
-        self.thread_interest = frozenset()
         self.thread_status.clear()
         self.views_interest = None
         self.notification_views.clear()
         self.notification_interest = ObserveNotifications(frozenset())
         self.update_sidebar_interest()
-        self.update_thread_interest()
+        observed.process.request(ObserveThreads(self.events.observed_threads(str(observed.service.root))))
         self.app.session_navigation.declare_views()
         self.events.publish(ObservedServiceChanged())
 
@@ -287,8 +285,8 @@ class CoordinationAccess(MroDispatch):
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:
         self.thread_status.observed(result)
         self.events.publish(ThreadRowsChanged(str(observed.service.root), {
-            name: self.thread_status.rows.rows[name].presentation
-            for name in result.presentations if name in result.changed
+            name: presentation
+            for name, presentation in result.presentations.items() if name in result.changed
         }))
 
     @handles(ViewsRetired)
@@ -396,18 +394,14 @@ class CoordinationAccess(MroDispatch):
                 self.sidebar_waiters.remove(pending)
                 self.update_sidebar_interest()
 
-    def update_thread_interest(self, subscription: Subscription | None = None) -> None:
-        """Derive the observer's request from the scopes of its live subscriptions."""
+    def update_thread_interest(self, subscription: Subscription) -> None:
+        """The live scoped resources supply the observer's complete interest."""
         observed = self.observation
         if observed is None or self.loop is None:
             return
         root = str(observed.service.root)
-        names = self.events.observed_threads(root)
-        joined = (subscription is not None and subscription.active
-                  and subscription.observed_threads(root))
-        if names != self.thread_interest or joined:
-            self.thread_interest = names
-            observed.process.request(ObserveThreads(names))
+        if subscription.observes_root(root):
+            observed.process.request(ObserveThreads(self.events.observed_threads(root)))
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
