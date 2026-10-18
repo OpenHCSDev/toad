@@ -3,13 +3,14 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from typing import ClassVar
+from collections.abc import Awaitable
+from typing import ClassVar, cast
 from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
 from textual.widget import Widget
 from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
-from ui_theme.effects import NEW_TEXT, Fade, Mix
+from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
 
 
@@ -288,13 +289,14 @@ class ConversationBlock(AnimationEffects[Mix], BlockContent):
     conversation_order: ClassVar[int] = 1
     text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
 
-    def on_mount(self) -> None:
+    def on_mount(self) -> Awaitable[None] | None:
         for fade in self.text_fades:
             self.run_effect(fade)
+        return None
 
     def repaint(self) -> None:
         # The widgets inside the entry draw its rows.
-        for widget in self.walk_children(with_self=True):
+        for widget in cast(Widget, self).walk_children(with_self=True):
             widget.refresh()
 
     def notification_targets(self):

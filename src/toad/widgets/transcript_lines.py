@@ -12,7 +12,7 @@ from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
 from itertools import count
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from toad.textual_colours import PaletteState, TextualColours
@@ -286,7 +286,7 @@ class LinkedRows(OpensLinks):
         applied to it, so a repaint reuses the same drawn row. The conversation
         entry the row belongs to paints its arrival fade over it.
         """
-        for entry in self.ancestors_with_self:
+        for entry in cast(Widget, self).ancestors_with_self:
             if isinstance(entry, ConversationBlock):
                 strip = entry.paint_effects(strip)
                 break
