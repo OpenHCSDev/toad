@@ -85,7 +85,6 @@ class Observation:
     def failed(self, error, selected):
         failed = FailedObservation(error, selected, access=self.access)
         self.access.observation = failed
-        self.access.revision = NoRevision()
         self.access.app.running_loop.call_soon_threadsafe(failed.attach, self.access, self)
         return failed
 
@@ -98,6 +97,7 @@ class Observation:
         for _, waiter in waiters:
             if not waiter.done():
                 waiter.set_exception(RouteChanged("Comms service changed before the sidebar was read"))
+        access.revision = NoRevision()
         access.sidebar_interest = access.sidebar_current = None
         access.thread_status.clear()
         access.views_interest = None
@@ -302,7 +302,6 @@ class CoordinationAccess(MroDispatch):
             self.cleanup.enter_context(acquisition.pop_all())
         observed.subscriptions.callback(observed.retire, self)
         self.observation = observed
-        self.revision = NoRevision()
         observed.loop.call_soon_threadsafe(observed.attach, self, previous)
         return observed
 

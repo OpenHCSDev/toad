@@ -362,13 +362,9 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
 EMPTY = SidebarModel(lambda callback: None)
 
 
-class SidebarDetached(RuntimeError):
-    """Navigation needs an observed sidebar service."""
-
-
 class SidebarModelState:
     def root(self):
-        raise SidebarDetached("The sidebar has no observed service.")
+        raise RuntimeError("The sidebar has no observed service.")
 
     @property
     def shown(self) -> SidebarModel:
