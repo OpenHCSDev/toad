@@ -106,15 +106,19 @@ class HistoryNotifications:
         else:
             access.stop_notifications(self)
 
-    def notifications_observed(self, results) -> None:
+    def notifications_observed(self, read, results) -> None:
         if not self.can_draw_on_screen:
             self.app.coordination_access.stop_notifications(self)
             return
-        self.run_worker(self._show_notifications(results), group=self.NOTIFICATION_GROUP, exclusive=True)
+        self.run_worker(self._show_notifications(read, results), group=self.NOTIFICATION_GROUP, exclusive=True)
 
-    async def _show_notifications(self, results):
+    async def _show_notifications(self, read, results):
+        loaded = frozenset(read.references)
         for target in self.notification_targets():
-            await target.show_notifications(results)
+            # The visible window may have changed while Core read the old one.
+            # Leave newly visible rows for their next read, not this result.
+            if set(target.notification_references) <= loaded:
+                await target.show_notifications(results)
 
     def notifications_failed(self, failure: Exception) -> None:
         if self.can_draw_on_screen:

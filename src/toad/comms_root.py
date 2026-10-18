@@ -293,7 +293,7 @@ class CoordinationAccess(MroDispatch):
     def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> None:
         self.notification_views[view] = read
         if read in self.notification_outcomes:
-            view.notifications_observed(self.notification_outcomes[read])
+            view.notifications_observed(read, self.notification_outcomes[read])
         self._request_interest()
 
     def stop_notifications(self, view: HistoryNotifications) -> None:
@@ -315,7 +315,7 @@ class CoordinationAccess(MroDispatch):
         self.notification_outcomes[result.request] = result.outcomes
         for view, request in tuple(self.notification_views.items()):
             if result.request == request:
-                view.notifications_observed(result.outcomes)
+                view.notifications_observed(request, result.outcomes)
 
     @handles(NotificationsUnreadable)
     def notifications_unreadable(self, result: NotificationsUnreadable, observed: ObservedCommsService) -> None:
