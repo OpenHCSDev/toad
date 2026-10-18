@@ -14,7 +14,7 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         self.view = view
         self._members = VerticalGroup()
         self.details = widgets.Collapsible(self._members, title="0 active", collapsed=True)
-        self.details.styles.border = None
+        self.details.styles.border = "none"
         self.details.styles.padding = 0
         self.details.styles.overflow_y = "auto"
         self.details.styles.max_height = "33%"
