@@ -132,11 +132,8 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     def draws(self, message: Message) -> bool:
         """Whether the drawn rows include this message, checking the newest first."""
-        for page in reversed(self.pages):
-            for fragment in reversed(page.fragments_in_range):
-                if fragment.message.view_key == message.view_key:
-                    return True
-        return False
+        return any(fragment.message.view_key == message.view_key
+                   for fragment in reversed(self.fragments_in_range))
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""

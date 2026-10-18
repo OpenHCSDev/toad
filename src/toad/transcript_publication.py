@@ -786,6 +786,7 @@ class TranscriptPresentation:
     def source_work_finished(self, history) -> None:
         if history in self.binding.histories():
             self.retry()
+            self.binding.view.call_after_refresh(self.binding.view.app.mark_visible)
 
     async def close(self) -> None:
         self.closed = True
