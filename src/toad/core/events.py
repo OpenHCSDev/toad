@@ -398,12 +398,18 @@ class Subscription:
     _listener: Callable[[], Callable[[CoreEvent, Subscription], object] | None] = field(init=False, repr=False)
 
     def __post_init__(self, listener) -> None:
-        # Python owns these two callable forms. A borrowed bound receiver must
-        # stay weak; a standalone listener belongs to this subscriber resource.
-        try:
-            self._listener = WeakMethod(listener)
-        except TypeError:
-            self._listener = lambda: listener
+        self._listener = self.weak_method(listener)
+
+    @staticmethod
+    def weak_method(callback):
+        """A subscription borrows a bound receiver; it never owns its caller."""
+        return WeakMethod(callback)
+
+    def bucket_opened(self) -> None:
+        """Ordinary publications require no store observation."""
+
+    def bucket_emptied(self) -> None:
+        """Ordinary publications require no store observation."""
 
     @cached_property
     def bucket(self) -> WeakSet[Subscription]:
@@ -424,15 +430,12 @@ class Subscription:
     def accepts(self, original: Subscription) -> bool:
         return self is original and self.active
 
-    def observes_root(self, root: str) -> bool:
-        return False
-
     def close(self) -> None:
         if not self.active:
             return
         self.bucket.discard(self)
         if not self.bucket:
-            self.stream.subscriptions_changed(self)
+            self.bucket_emptied()
 
     def __enter__(self) -> Subscription:
         return self
@@ -451,17 +454,20 @@ class ThreadChangeSubscription(Subscription):
     def bucket(self) -> WeakSet[Subscription]:
         return self.stream.thread_subscriptions.setdefault(self.scope, WeakSet())
 
-    def observes_root(self, root: str) -> bool:
-        return root == self.scope[0]
+    def bucket_opened(self) -> None:
+        publisher = self.stream.publisher
+        publisher.app.run_worker(publisher.update_thread_interest(),
+                                 group="thread-interest", exclusive=True)
+
+    def bucket_emptied(self) -> None:
+        self.bucket_opened()
 
 
 class CoreEventStream:
     """Publish original events; neither retain state nor schedule frontend work."""
 
-    def __init__(self, publisher: object, *,
-                 subscriptions_changed: Callable[[Subscription], None] = lambda _: None) -> None:
+    def __init__(self, publisher: object) -> None:
         self._publisher = ref(publisher)
-        self.subscriptions_changed = subscriptions_changed
         self.subscriptions: dict[type[CoreEvent], WeakSet[Subscription]] = {}
         self.thread_subscriptions: WeakValueDictionary[tuple[str, str], WeakSet[Subscription]] = WeakValueDictionary()
 
@@ -480,8 +486,14 @@ class CoreEventStream:
         first = not bucket
         bucket.add(subscription)
         if first:
-            self.subscriptions_changed(subscription)
+            subscription.bucket_opened()
         return subscription
+
+    def close_threads(self) -> None:
+        """Revoke scoped callbacks before the observer stops accepting interests."""
+        for bucket in tuple(self.thread_subscriptions.values()):
+            for subscription in tuple(bucket):
+                subscription.close()
 
     def observed_threads(self, root: str) -> frozenset[str]:
         return frozenset(thread for (source, thread), bucket in self.thread_subscriptions.items()

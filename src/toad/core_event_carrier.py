@@ -3,7 +3,6 @@
 from agent_comms.mro_dispatch import MroDispatch
 from textual._callback import invoke
 from textual.message import Message
-from weakref import WeakMethod
 from functools import cached_property, partial
 from dataclasses import InitVar, dataclass, field
 
@@ -43,10 +42,7 @@ class CallbackSubscription(Subscription):
 
     def __post_init__(self, listener, callback) -> None:
         super().__post_init__(listener)
-        try:
-            self._callback = WeakMethod(callback)
-        except TypeError:
-            self._callback = lambda: callback
+        self._callback = self.weak_method(callback)
 
     async def consume(self, receiver, message) -> None:
         callback = self._callback()

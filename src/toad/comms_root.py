@@ -107,7 +107,7 @@ class CoordinationAccess(MroDispatch):
 
         self.transcripts = CoordinationTranscriptReader(self)
         self.observation: ObservedCommsService | None = None
-        self.events = CoreEventStream(self, subscriptions_changed=self.update_thread_interest)
+        self.events = CoreEventStream(self)
         self.revision: WireRevision | None = None
         self.route_observation: RouteObservation = WaitingRoute()
         self.route_task: asyncio.Task[None] | None = None
@@ -393,14 +393,12 @@ class CoordinationAccess(MroDispatch):
                 self.sidebar_waiters.remove(pending)
                 self.update_sidebar_interest()
 
-    def update_thread_interest(self, subscription: Subscription) -> None:
-        """The live scoped resources supply the observer's complete interest."""
+    async def update_thread_interest(self) -> None:
+        """Acquire the observer through preparation before sending current-root interest."""
+        await self.preparation.run_thread(self.open_current)
         observed = self.observation
-        if observed is None or self.loop is None:
-            return
         root = str(observed.service.root)
-        if subscription.observes_root(root):
-            observed.process.request(ObserveThreads(self.events.observed_threads(root)))
+        observed.process.request(ObserveThreads(self.events.observed_threads(root)))
 
     def start(self) -> None:
         """Open the selected service and check the route selection once a second."""
@@ -419,6 +417,8 @@ class CoordinationAccess(MroDispatch):
             self.route_task.cancel()
             await asyncio.gather(self.route_task, return_exceptions=True)
             self.route_task = None
+        self.events.close_threads()
+        self.app.workers.cancel_group(self.app, "thread-interest")
         if self.observation is not None and self.loop is not None:
             process = self.observation.process
             process.request(StopObserving())

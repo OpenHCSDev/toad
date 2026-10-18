@@ -5,6 +5,7 @@ from contextlib import ExitStack
 from dataclasses import dataclass
 from functools import partial
 from time import monotonic
+from weakref import ref
 from typing import ClassVar, TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
@@ -218,6 +219,28 @@ class WorkingTranscript(SuspendedTranscript):
         return (LiveTranscript, ProvisionalTranscript, RetiredSourceTranscript,
                 ClosingTranscript, DetachedTranscript)
 
+    def defer_source_work(self, owner, work) -> None:
+        """This operation owns its paused work and its weak native receiver."""
+        from toad.widgets.conversation import Conversation
+
+        self.waiting_owner = ref(owner)
+        self.waiting_snapshot = owner.source_snapshot()
+        self.waiting_work = work
+        scope = owner.query_ancestor(Conversation).transcript.thread_scope
+        owner._source_observation.close()
+        owner._source_observation.enter_context(
+            owner.app.coordination_access.observe_thread_changes(owner, scope, self.resume_source_work))
+
+    def resume_source_work(self, _event) -> None:
+        owner = self.waiting_owner()
+        if owner is None:
+            return
+        owner._source_observation.close()
+        if self.waiting_snapshot.current(owner) and owner._source_state is self:
+            self.schedule(owner, self.waiting_work)
+        else:
+            owner.finish_source_work(self)
+
     async def execute(self, owner, work):
         from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision
 
@@ -235,7 +258,7 @@ class WorkingTranscript(SuspendedTranscript):
                 # The same operation stays paused until the existing
                 # observer resumes it. Settling it here would schedule another
                 # edge read on the next frame before storage is available.
-                owner.defer_source_work(self, work)
+                self.defer_source_work(owner, work)
                 completion.pop_all()
                 return False
             except StaleRevision:
