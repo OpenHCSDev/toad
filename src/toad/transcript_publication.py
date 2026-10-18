@@ -741,6 +741,20 @@ class TranscriptPresentation:
         self.commit_required = self.dirty = True
         self.binding.request(self)
 
+    async def mark_read(self, through, acknowledge, selected) -> None:
+        """A replaced source gets one fresh painted cursor, never a fatal read worker."""
+        try:
+            await asyncio.to_thread(acknowledge, through)
+        except TranscriptChanged:
+            try:
+                fresh = await self.refresh_cursor()
+                if selected():
+                    await asyncio.to_thread(acknowledge, fresh)
+            except TranscriptChanged as error:
+                if selected():
+                    self.require_commit()
+                    self.binding.view.notify(str(error), title="Saved history reloading", severity="warning")
+
     async def refresh_cursor(self) -> TranscriptCursor:
         """Commit and return the cursor from the resulting painted transcript."""
         self.require_commit()
