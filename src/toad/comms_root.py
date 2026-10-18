@@ -361,12 +361,8 @@ class CoordinationAccess(MroDispatch):
             raise ValueError("A deferred transcript read requires a bound thread")
         release = ResourceRelease()
 
-        def changed(event: ThreadRowsChanged) -> None:
-            if event.affects(scope):
-                resume(event)
-
         release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, changed))
+            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope)))
         release.callback(self.show_sidebar, release, False)
         self.show_sidebar(release, True)
         return release

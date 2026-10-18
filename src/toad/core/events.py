@@ -196,7 +196,7 @@ class ThreadRowsChanged(CoreEvent):
 
     def affects(self, scope: tuple[str, str]) -> bool:
         root, thread = scope
-        return root == self.root and thread in (*self.changes.added, *self.changes.changed)
+        return root == self.root and (thread in self.changes.added or thread in self.changes.changed)
 
 
 @dataclass(frozen=True)
