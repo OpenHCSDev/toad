@@ -11,7 +11,7 @@ from typing import cast
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
 from agent_comms.declared_family import DeclaredFamily
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.mro_dispatch import handles
 from textual import containers, getters, on
 from textual.app import ComposeResult
 from textual.binding import Binding
@@ -371,7 +371,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
     @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
-        await ScreenCommsConsumer(self).dispatch(event.event.update)
+        await self.dispatch(event.event.update)
 
     @handles(core_events.ExternalTranscriptChanged, core_events.SessionSelected)
     def external_transcript_changed(self, message: CoreEventMessage) -> None:
@@ -551,13 +551,3 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         message.stop()
         if conversation := self.query_one_optional(Conversation):
             conversation.focus_prompt(scroll_end=False)
-
-
-
-class ScreenCommsConsumer(MroDispatch):
-    def __init__(self, screen):
-        self.screen = screen
-
-    @handles(CoordinationChangedUpdate)
-    async def coordination_changed(self, update: CoordinationChangedUpdate):
-        await self.screen.on_coordination_update(update)

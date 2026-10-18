@@ -36,7 +36,7 @@ from agent_comms.acp_extension import (
     TurnChangedUpdate,
 )
 from agent_comms.goal_presentation import ThreadGoalExecution, IdleGoalExecution
-from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.mro_dispatch import handles
 from toad.widgets.message_notifications import HistoryNotifications
 from rich.segment import Segment
 from rich.text import Text as RichText
@@ -1390,8 +1390,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             await self._mcp_live_note.remove()
             self._mcp_live_note = None
 
+    @handles(CursorPresentation)
     def on_private_native_cursor_update(
-        self, message: CoreEventMessage
+        self, update: CursorPresentation, message: CoreEventMessage
     ) -> None:
         message.stop()
         if (
@@ -1402,7 +1403,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         ):
             return
         self._private_cursor_sequence = message.event.sequence
-        self.native_history_status = message.event.update.status
+        self.native_history_status = update.status
 
     @handles(core_events.McpClientStopped)
     async def on_mcp_client_stopped(
@@ -1410,7 +1411,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     ) -> None:
         await self._clear_mcp_live()
 
-    async def on_mcp_client_status(self, message: CoreEventMessage) -> None:
+    @handles(McpClientAcknowledgementUpdate)
+    async def on_mcp_client_status(
+        self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
+    ) -> None:
         """Show the MCP server summary only within the active turn it describes."""
         # The message carries the validated turn identity; a delayed or queued
         # message from an older agent cannot attach to a successor turn here.
@@ -1418,9 +1422,9 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if (
             message.publisher is not self.agent
             or (self.agent.current_turn.managed_id if self.agent else None)
-            != message.event.update.turn_id
+            != update.turn_id
             or self.turns.managed_id is None
-            or message.event.update.turn_id != self.turns.managed_id
+            or update.turn_id != self.turns.managed_id
             or (agent_session is not None and message.event.session_id != agent_session)
         ):
             # Late or forged: the projection dies with its turn and is never
@@ -1428,7 +1432,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             return
         if self._mcp_live_note is not None:
             return  # The package emits at most one server summary per turn.
-        rows = message.event.update.acknowledgement.servers
+        rows = update.acknowledgement.servers
         summary = (
             "; ".join(
                 f"{row.id}[{row.scope}] {row.state.declared_name} calls={row.calls.declared_name}"
@@ -1454,7 +1458,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.turns.describe("Writing response…")
         await self.output.append(message.event.stream, message.event.text)
 
-    async def on_turn_changed(self, message: CoreEventMessage) -> None:
+    @handles(TurnChangedUpdate)
+    async def on_turn_changed(
+        self, update: TurnChangedUpdate, message: CoreEventMessage
+    ) -> None:
         if not self.turns.changed(message):
             return
         self.app.events.publish(core_events.OpenTabsChanged())
@@ -1466,7 +1473,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         await self.output.settle()
         self.transcript.retry()
 
-    async def on_queue_view_update(self, message: CoreEventMessage) -> None:
+    @handles(QueuePresentation)
+    async def on_queue_view_update(
+        self, update: QueuePresentation, message: CoreEventMessage
+    ) -> None:
         if (
             self.agent is None
             or message.publisher is not self.agent
@@ -1474,7 +1484,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         ):
             return
         async with self.window.preserve_history(root=self.contents):
-            for started in message.event.update.starts:
+            for started in update.starts:
                 if (
                     message.publisher is not self.agent
                     or message.event.session_id != self.agent.session_id
@@ -1483,16 +1493,19 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 await self.present_started_input(started)
             self.submissions.publish_pending()
 
-    async def on_input_started(self, message: CoreEventMessage):
+    @handles(InputStartedUpdate)
+    async def on_input_started(
+        self, update: InputStartedUpdate, message: CoreEventMessage
+    ) -> None:
         if (
             self.agent is None
             or message.publisher is not self.agent
             or message.event.session_id != self.agent.session_id
         ):
             return
-        if message.event.update.text is not None:
+        if update.text is not None:
             async with self.window.preserve_history(root=self.contents):
-                await self.present_started_input(message.event.update)
+                await self.present_started_input(update)
                 self.submissions.publish_pending()
 
     async def present_started_input(self, started) -> None:
@@ -1503,7 +1516,10 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
         self.submissions.native_input_presented(started)
 
-    def on_input_failed(self, message: CoreEventMessage) -> None:
+    @handles(InputFailedUpdate)
+    def on_input_failed(
+        self, update: InputFailedUpdate, message: CoreEventMessage
+    ) -> None:
         """Only a locally failed request may recover its own draft text."""
         if not self.submissions.accepts_failure(message):
             return
@@ -1760,7 +1776,57 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
                 or event.event.session_id != self.agent.session_id):
             event.stop()
             return
-        await ConversationCommsConsumer(self, event).dispatch(event.event.update)
+        await self.dispatch(event.event.update, event)
+
+    @handles(CoordinationChangedUpdate)
+    def on_coordination_changed(
+        self, update: CoordinationChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        # Source binding is published independently of registry/activity changes:
+        # a newly bound thread joins the observed threads (or reads as foreign).
+        self.arm_thread_read()
+        self.refresh_thread_status()
+        self.prompt.sync_session()
+        self.prompt.sync_queue()
+
+    @handles(PromptCancelledUpdate)
+    async def on_prompt_cancelled(
+        self, update: PromptCancelledUpdate, message: CoreEventMessage
+    ) -> None:
+        from toad.widgets.markdown_note import MarkdownNote
+
+        await self.post(MarkdownNote(
+            f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"))
+
+    @handles(TranscriptChangedUpdate)
+    def on_transcript_changed(
+        self, update: TranscriptChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.changed(update.cursor)
+
+    @handles(GoalChangedUpdate)
+    def on_goal_changed(
+        self, update: GoalChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        self.goal_observation.receive(message.publisher, update)
+
+    @handles(CompactionChangedUpdate)
+    async def on_compaction_changed(
+        self, update: CompactionChangedUpdate, message: CoreEventMessage
+    ) -> None:
+        await self.dispatch(update.event, message)
+
+    @handles(comms_events.CompactionEnd)
+    def on_compaction_end(self, event: comms_events.CompactionEnd,
+                          message: CoreEventMessage) -> None:
+        # Pi's saved compaction entry owns the notice; re-read the transcript.
+        self.transcript.require_commit()
+
+    @handles(TranscriptSnapshotUpdate)
+    def on_transcript_snapshot(
+        self, update: TranscriptSnapshotUpdate, message: CoreEventMessage
+    ) -> None:
+        self.transcript.received(update.page)
 
     @handles(input_events.GoalControlActivated)
     async def on_goal_control(self, event: CoreEventMessage):
@@ -2173,74 +2239,3 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             show(cursor)
             self.cursor.refresh()
             self.refresh_bindings()
-
-class ConversationCommsConsumer(MroDispatch):
-    def __init__(self, conversation, message):
-        self.conversation = conversation
-        self.message = message
-
-    @handles(CoordinationChangedUpdate)
-    async def coordination_changed(self, update: CoordinationChangedUpdate):
-        # Source binding is published independently of registry/activity changes:
-        # a newly bound thread joins the observed threads (or reads as foreign).
-        self.conversation.arm_thread_read()
-        self.conversation.refresh_thread_status()
-        self.conversation.prompt.sync_session()
-        self.conversation.prompt.sync_queue()
-
-    @handles(CursorPresentation)
-    async def cursor_presentation(self, update):
-        self.conversation.on_private_native_cursor_update(self.message)
-
-    @handles(QueuePresentation)
-    async def queue_presentation(self, update):
-        await self.conversation.on_queue_view_update(self.message)
-
-    @handles(InputStartedUpdate)
-    async def input_started(self, update):
-        await self.conversation.on_input_started(self.message)
-
-    @handles(InputFailedUpdate)
-    async def input_failed(self, update):
-        self.conversation.on_input_failed(self.message)
-
-    @handles(PromptCancelledUpdate)
-    async def prompt_cancelled(self, update):
-        from toad.widgets.markdown_note import MarkdownNote
-        await self.conversation.post(MarkdownNote(
-            f"## Turn cancelled\n\n{update.feedback}", classes="-stop-reason"))
-
-    @handles(TranscriptChangedUpdate)
-    async def transcript_changed(self, update):
-        self.conversation.transcript.changed(update.cursor)
-
-    @handles(TurnChangedUpdate)
-    async def turn_changed(self, update):
-        await self.conversation.on_turn_changed(self.message)
-
-    @handles(GoalChangedUpdate)
-    async def goal_changed(self, update: GoalChangedUpdate):
-        self.conversation.goal_observation.receive(self.message.publisher, update)
-
-    @handles(CompactionChangedUpdate)
-    async def compaction_changed(self, update: CompactionChangedUpdate):
-        await CompactionRenderer(self.conversation).dispatch(update.event)
-
-    @handles(TranscriptSnapshotUpdate)
-    async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
-        self.conversation.transcript.received(update.page)
-
-    @handles(McpClientAcknowledgementUpdate)
-    async def mcp_status(self, update: McpClientAcknowledgementUpdate):
-        await self.conversation.on_mcp_client_status(self.message)
-
-
-
-class CompactionRenderer(MroDispatch):
-    def __init__(self, conversation):
-        self.conversation = conversation
-
-    @handles(comms_events.CompactionEnd)
-    async def end(self, event):
-        # Pi's saved compaction entry owns the notice; re-read the transcript.
-        self.conversation.transcript.require_commit()
