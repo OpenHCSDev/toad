@@ -436,7 +436,7 @@ class BusMessageFragment(TranscriptFragment):
         return shown.style.body(self.row, self.body_text)
 
     def trailing(self, shown):
-        return self.part_position.status_blocks(shown)
+        return self.part_position.status_blocks(shown) if self.notification_references else ()
 
     def blocks(self, shown):
         return (*self.leading, *self.text(shown), *self.trailing(shown))
