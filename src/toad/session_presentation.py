@@ -345,16 +345,17 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
         The workspace accepts the yielded native tree before operational
         attachment can await or publish its restored presentation.
         """
-        returning = self.widget is not None
-        if not returning:
+        conversation = self.widget
+        returning = conversation is not None
+        if conversation is None:
             slot = screen.query_one(SessionSurfaceSlot)
             content = slot.parent
             assert isinstance(content, Widget)
             with screen._context():
-                self.widget = self.sources.make_conversation(screen)
+                conversation = self.sources.make_conversation(screen)
+            self.widget = conversation
             screen._initial_prompt = None
-            self.widget.display = False
-        conversation = self.widget
+            conversation.display = False
         self.sources.wire(conversation)
         if not returning:
             if self.state is not None:
