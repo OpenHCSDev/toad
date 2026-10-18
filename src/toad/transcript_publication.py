@@ -710,6 +710,7 @@ class TranscriptPresentation:
         self.invalidate_publications()
         self.current_read = NotPublished()
         self.binding = binding
+        self.bind_thread_observation()
 
     @property
     def thread_scope(self) -> tuple[str, str] | None:

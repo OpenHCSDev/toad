@@ -1725,7 +1725,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.observe_core(self.app.saved_settings.events)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        self.transcript.bind_thread_observation()
         self.refresh_thread_status()
 
         self.input_histories.shell.complete.add_words(
