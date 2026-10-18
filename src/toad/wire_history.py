@@ -8,13 +8,14 @@ Nothing here imports a terminal library.
 from __future__ import annotations
 
 from abc import ABC
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from functools import cached_property, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
@@ -28,13 +29,21 @@ from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
 
 if TYPE_CHECKING:
-    from agent_comms.historical_views import HistoryCursor
     from agent_comms.read_basis import NamedViewer
     from toad.widgets.transcript_lines import Lines
 
 
+@dataclass(frozen=True)
 class WireCut(ABC):
     """A place between two wire messages, where a page begins or ends."""
+
+    cursor: PageCursor
+
+    def older(self) -> OlderTraversal:
+        return self.cursor.older()
+
+    def newer(self) -> NewerTraversal:
+        return self.cursor.newer()
 
     # Whether a page read from this cut depends on how far the bus has grown.
     bounded: ClassVar[bool]
@@ -46,24 +55,16 @@ class WireCut(ABC):
 class BeforeMessage(WireCut):
     """Just before the message Core's cursor names; earlier messages never change."""
 
-    cursor: int | HistoryCursor
     bounded = False
     kept = True
-
-    def older(self) -> dict:
-        return {"before": self.cursor}
 
 
 @dataclass(frozen=True)
 class AfterMessage(WireCut):
     """Just after the message Core's cursor names."""
 
-    cursor: int | HistoryCursor
     bounded = True
     kept = True
-
-    def newer(self) -> dict:
-        return {"after": self.cursor}
 
 
 @dataclass(frozen=True)
@@ -73,12 +74,11 @@ class AfterSequence(AfterMessage):
     The end of the conversation is read from here: each read is a new answer.
     """
 
-    cursor: int
+    cursor: LiveCursor
     kept = False
 
-    def older(self) -> dict:
-        # Core's `before` excludes the sequence it names.
-        return {"before": self.cursor + 1}
+    def older(self) -> OlderTraversal:
+        return OlderTraversal(self.cursor.sequence + 1)
 
 
 @dataclass(frozen=True)
@@ -89,7 +89,7 @@ class NothingRead(AfterSequence):
     so even an empty bus is read once instead of taken as already drawn.
     """
 
-    cursor: int = 0
+    cursor: LiveCursor = field(default_factory=lambda: LiveCursor(0))
 
 
 @dataclass(frozen=True)
@@ -271,7 +271,7 @@ class WireSource:
             self.comms.views, self.target, worktree=str(self.project))
         if revision == seen:
             return None
-        high = AfterSequence(self.comms.views.latest_sequence())
+        high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
         replaced = seen is None or revision.display_changed_since(seen)
@@ -287,8 +287,8 @@ class WireSource:
             for message in page.messages)
         wire = WirePage(
             page.messages,
-            BeforeMessage(page.oldest_cursor) if page.messages else None,
-            AfterMessage(page.newest_cursor) if page.has_newer and page.messages else through,
+            BeforeMessage(page.messages[0].view_cursor) if page.messages else None,
+            AfterMessage(page.messages[-1].view_cursor) if page.has_newer and page.messages else through,
             page.has_older and bool(page.messages), page.has_newer and bool(page.messages), page,
         )
         return PreparedWirePage.measured(wire, fragments)

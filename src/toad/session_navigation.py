@@ -30,6 +30,7 @@ class SessionNavigation:
         self.app = app
         self.events = CoreEventStream(self)
         self.identities = count(1)
+        self.entries: dict[str, dict[str, SessionEntry]] = {}
         self._retire_task: asyncio.Task[None] | None = None
         self._retire_requested = False
         # The Core revision the last retirement pass started from.
@@ -71,7 +72,7 @@ class SessionNavigation:
 
     @property
     def members(self) -> tuple[SessionEntry, ...]:
-        return tuple(cast(SessionEntry, factory) for factory in self.app.workspace_sessions.factories.values())
+        return tuple(entry for group in self.entries.values() for entry in group.values())
 
     @property
     def processes(self):
@@ -81,7 +82,7 @@ class SessionNavigation:
                      and (agent := source.presentation.operational_agent) is not None)
 
     def get(self, mode: str) -> SessionEntry | None:
-        return cast(SessionEntry | None, self.app.workspace_sessions.factories.get(mode))
+        return next((group[mode] for group in self.entries.values() if mode in group), None)
 
     def find(self, address: object) -> SessionEntry | None:
         return next((entry for entry in self.members if entry.address == address), None)
@@ -108,7 +109,7 @@ class SessionNavigation:
     def bind_opened(self, view: MainScreen, *, original: tuple[str, ThreadIncarnation],
                     name: str, project: Path) -> None:
         """Bind the accepted source facts before preparing its native resources."""
-        entry = cast(NativeSessionEntry, self.app.workspace_sessions.factories[view.id])
+        entry = cast(NativeSessionEntry, self.get(view.id))
         view.bind_project(project)
         root, owner = original
         view.bind_thread(owner, root)
@@ -132,7 +133,9 @@ class SessionNavigation:
 
     async def open(self, entry: SessionEntry, *, after: str | None = None) -> str:
         app = self.app
-        app.workspace_sessions.register(entry.mode, entry)
+        if self.get(entry.mode) is not None:
+            raise ValueError(f"Logical session already registered: {entry.mode}")
+        self.entries.setdefault(entry.owner_mode, {})[entry.mode] = entry
         app.tab_order.open(entry.mode, after=after)
         self.publish()
         await app.select_session(entry.mode)
@@ -208,7 +211,7 @@ class SessionNavigation:
         entry = self.find(kind.view_identity(prepared.key))
         if entry is None:
             entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key, kind,
-                                                project_path, prepared.owner_root, prepared.participants)
+                                                project_path, prepared.owner_root, prepared.participants, source)
             await self.open(entry)
         else:
             await app.select_session(entry.mode)
@@ -241,16 +244,12 @@ class SessionNavigation:
         observed = self.app.coordination_access.observation
         return self.app.tab_order.project(observed.tabs(self))
 
-    def sync_identity(self, owner: str, previous: str, current: str) -> None:
-        for entry in self.members:
-            entry.sync_identity(self, owner, previous, current)
-
     def sync_owner_root(self, owner: str, root: str | None) -> None:
-        for entry in self.members:
+        for entry in self.entries.get(owner, {}).values():
             entry.sync_owner_root(self, owner, root)
 
     def sync_project(self, owner: str, project: Path) -> None:
-        for entry in self.members:
+        for entry in self.entries.get(owner, {}).values():
             entry.sync_project(self, owner, project)
 
     async def close(self, mode: str) -> None:
@@ -269,7 +268,10 @@ class SessionNavigation:
         # Retire membership before publication and slow widget exits. Delayed
         # opening metadata cannot revive a closed owner during teardown.
         for member in closing:
-            self.app.workspace_sessions.factories.pop(member.mode)
+            group = self.entries[member.owner_mode]
+            del group[member.mode]
+            if not group:
+                del self.entries[member.owner_mode]
         self.publish()
         try:
             # Closed entries cannot reopen. Show the surviving workspace
