@@ -133,7 +133,7 @@ class PageEnd(ABC):
     def has_more(self, through, page) -> bool:
         return self.edge((page.has_older, page.has_newer))
 
-    def adjacent(self, page) -> "PageRequest":
+    def adjacent(self, page) -> PageRequest:
         return PageRequest(self, self.edge((page.before, page.after)))
     @abstractmethod
     def advance_empty(self, edge, staged) -> None: ...
@@ -143,10 +143,12 @@ class PageEnd(ABC):
         return self.edge((edge.prepared.start, edge.prepared.stop)) if local else self.boundary(staged)
     @abstractmethod
     async def mount(self, history, view, pages) -> None: ...
+    @staticmethod
     @abstractmethod
-    def append(self, pages, view) -> None: ...
+    def append[Item](pages: deque[Item], view: Item, /) -> None: ...
+    @staticmethod
     @abstractmethod
-    def pop(self, pages): ...
+    def pop[Item](pages: deque[Item], /) -> Item: ...
 
     def eviction_fragments(self, page):
         return page.fragments_in_range[:: -self.step]
@@ -294,7 +296,7 @@ class PageRequest[Cursor = TranscriptCursor | None]:
     end: PageEnd
     cursor: Cursor
 
-    def progressed(self: "PageRequest[TranscriptCursor | None]", page: "TranscriptPage") -> bool:
+    def progressed(self: PageRequest[TranscriptCursor | None], page: TranscriptPage) -> bool:
         return self.cursor is None or self.end.progressed(page, self.cursor)
 
 

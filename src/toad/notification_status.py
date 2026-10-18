@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import ClassVar, TYPE_CHECKING
 
@@ -67,9 +67,11 @@ class CheckedNotifications(NotificationStatus):
 
     @classmethod
     def for_references(cls, references: Iterable[MessageReference],
-                       results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> CheckedNotifications:
-        return cls(tuple(item for reference in references
-                         for item in results[(reference.seq, reference.message_id)]))
+                       results: Mapping[tuple[int, str], tuple[MessageNotification, ...]]) -> Iterator[CheckedNotifications]:
+        """Yield nothing when this answer has no matching reference."""
+        loaded = results.keys() & {(reference.seq, reference.message_id) for reference in references}
+        if loaded:
+            yield cls(tuple(item for reference in loaded for item in results[reference]))
 
     @property
     def working(self) -> bool:
