@@ -11,12 +11,7 @@ from toad.block_content import BlockContent
 from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
 
 
-
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
-    @property
-    @abstractmethod
-    def step(self) -> int: ...
-
     @property
     @abstractmethod
     def enters_from_prompt(self) -> bool: ...

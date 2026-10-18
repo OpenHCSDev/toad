@@ -881,8 +881,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 from toad.widgets.conversation import Window
                 view = self.view
                 if view is not None and (window := view.query_one_optional(Window)) is not None:
-                    from toad.widgets.history_anchor import UnheldPosition
-                    window.reader_position = UnheldPosition()
+                    window.reader_position = None
                 await retirement
 
     async def detach(self, view: Conversation) -> None:

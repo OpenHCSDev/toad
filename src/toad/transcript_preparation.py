@@ -38,17 +38,9 @@ if TYPE_CHECKING:
     from toad.widgets.transcript_history import LineHistory
 
 
-
-
-
-
-
-
 @dataclass
 class PreparedTranscriptPage:
     """One transcript page's immutable fragments and the range a view draws."""
-
-    BATCH: ClassVar[int] = 4
 
     page: TranscriptPage
     fragments: tuple[TranscriptFragment, ...]
@@ -155,10 +147,6 @@ class PreparedTranscriptPage:
             raise RuntimeError("Original transcript suppliers do not cover their range")
         self.set_fragment_range(slice(fragment_range.start, fragment_range.stop))
 
-    @property
-    def retained_source_bytes(self):
-        return self.retained_bytes
-
     # A page draws its selected fragments as lines: drawing moves a range,
     # it never mounts or removes native members.
     async def extend(self, view, prepared: PreparedTranscriptPage, current) -> bool:
@@ -217,8 +205,6 @@ class PageFragmentRange:
                 and self.start == other.start and self.stop == other.stop)
 
 
-
-
 @dataclass(frozen=True)
 class PageRevision[Cursor = TranscriptCursor | None](WorkRevision):
     through: Cursor | None
@@ -247,7 +233,7 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
         return WorkKey(type(self), UniqueRevision())
 
     def result_size(self, result: FilteredTranscriptBatch) -> int:
-        return 64 + result.prepared.retained_source_bytes
+        return 64 + result.prepared.retained_bytes
 
     def prepare(self) -> FilteredTranscriptBatch:
         matches = []
@@ -384,7 +370,7 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_source_bytes
+        return result.retained_bytes
 
     def execute(self) -> PreparedTranscriptPage:
         return PreparedTranscriptPage.prepare(self.page)
@@ -404,7 +390,7 @@ class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[Prepared
         return WorkKey(type(self), PageRevision(self.request.end.work_cursor(self.through), self.request), self.scope)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
-        return result.retained_source_bytes
+        return result.retained_bytes
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,

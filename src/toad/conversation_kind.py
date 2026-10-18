@@ -1,7 +1,7 @@
 """One declared conversation family owns history reads and route preparation."""
 
 from __future__ import annotations
-from toad.widgets.presentation_window import NewerEnd
+from toad.widgets.presentation_window import NEWER_END
 
 import asyncio
 from dataclasses import replace
@@ -259,7 +259,7 @@ class DmConversation(ConversationKind):
         # whole: its newest message and every message from the peer were seen.
         newest = history.pages[-1]
         page = newest.prepared.page.source
-        if NewerEnd().visible_more(history) or page is None:
+        if NEWER_END.visible_more(history) or page is None:
             return None
         painted = {fragment.message.seq for fragment in seen if fragment.evidence is page}
         if page.newest_seq not in painted:

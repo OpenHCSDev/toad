@@ -15,7 +15,7 @@ from toad.transcript_state import TranscriptState, RetiredSourceTranscript, Park
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
-from toad.widgets.presentation_window import PageRequest, OlderEnd, NewerEnd
+from toad.widgets.presentation_window import PageRequest, OLDER_END, NEWER_END
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -175,7 +175,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.loader is None or edge.prepared.page.after == self.through:
             prepared = edge.prepared.for_view()
         else:
-            prepared = (await self._reader().get(PageRequest(OlderEnd(), self.through))).for_view()
+            prepared = (await self._reader().get(PageRequest(OLDER_END, self.through))).for_view()
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -187,7 +187,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 prepared = existing.prepared.for_view()
             rows -= await prepared.prepare_rows(
                 self, current, target=self, selected=self.selected_categories,
-                boundary=len(prepared.fragments), end=OlderEnd(),
+                boundary=len(prepared.fragments), end=OLDER_END,
                 rows_needed=rows, limit=limit,
             )
             if not current():
@@ -201,7 +201,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             if (not prepared.page.has_older or limit <= 0
                     or not window.presentation_budget.can_read_destination(pages_read)):
                 break
-            prepared = (await self._reader().get(OlderEnd().adjacent(prepared.page))).for_view()
+            prepared = (await self._reader().get(OLDER_END.adjacent(prepared.page))).for_view()
             pages_read += 1
         async with window.history_lock:
             if not current() or self.pages[-1] is not edge:
@@ -248,7 +248,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         edge = self.pages[-1]
         if edge.prepared.page.after == self.through:
             return True
-        if NewerEnd().visible_more(self):
+        if NEWER_END.visible_more(self):
             destination = HeldReaderDestination.held(self.window)
             if destination is not None and await destination.source_arrived(self):
                 return True
@@ -256,20 +256,20 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 edge.prepared.page = replace(edge.prepared.page, has_newer=True)
             return True
         snapshot = self.source_snapshot()
-        prepared = await self._reader().get(NewerEnd().adjacent(edge.prepared.page))
+        prepared = await self._reader().get(NEWER_END.adjacent(edge.prepared.page))
         if not await self.source_is_current(snapshot) or not publication_current():
             return False
-        if self.pages[-1] is not edge or NewerEnd().visible_more(self):
+        if self.pages[-1] is not edge or NEWER_END.visible_more(self):
             return False
         if not await self.accept_extension(edge, prepared):
             return False
         if not prepared.fragments:
-            NewerEnd().advance_empty(edge.prepared, prepared)
+            NEWER_END.advance_empty(edge.prepared, prepared)
         elif not self.window.follows_tail:
             edge.prepared.page = replace(edge.prepared.page, has_newer=True)
             self._update_edges()
         else:
-            await self._load_page(NewerEnd(), prepared, publication_current)
+            await self._load_page(NEWER_END, prepared, publication_current)
             if not snapshot.current(self) or not publication_current():
                 return False
             tail = self.pages[-1]

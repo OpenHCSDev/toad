@@ -1,7 +1,7 @@
 """Source evidence and viewport intent govern retirement of live presentation."""
 
 from __future__ import annotations
-from toad.widgets.presentation_window import NewerEnd
+from toad.widgets.presentation_window import NEWER_END
 
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Iterable, Iterator
@@ -225,7 +225,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     ) -> bool:
         if not is_current() or not self.state.can_draw:
             return False
-        if not NewerEnd().visible_more(self):
+        if not NEWER_END.visible_more(self):
             return await self.extend(through, is_current)
         self.retain_committed(through)
         request = LatestViewportRequest(LatestPosition.hold(self.window))

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.widgets.message_filter import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.widgets.presentation_window import OlderEnd
+from toad.widgets.presentation_window import OLDER_END
 
 if TYPE_CHECKING:
     from textual.worker import Worker
@@ -39,7 +39,7 @@ class NoProjectionOverlay:
     async def restore_reader_ranges(self, ranges, current) -> bool:
         return True
 
-    def children(self):
+    def projection_widgets(self):
         return ()
 
     def reads(self, source) -> bool:
@@ -168,7 +168,7 @@ class NoFilter(FilterState):
 
     @property
     def has_older(self):
-        return OlderEnd().visible_more(self.owner)
+        return OLDER_END.visible_more(self.owner)
 
 
 class EmptyFilter(NoFilter):
@@ -184,7 +184,7 @@ class SeekingFilter(NoFilter):
 
     @property
     def scan_available(self):
-        return OlderEnd().visible_more(self.owner)
+        return OLDER_END.visible_more(self.owner)
 
     def scan_needed(self):
         owner = self.owner
@@ -204,7 +204,7 @@ class SeekingFilter(NoFilter):
             await prepared.prepare_rows(
                 owner, lambda: snapshot.current(owner), target=owner,
                 selected=owner.selected_categories, boundary=len(prepared.fragments),
-                end=OlderEnd(), rows_needed=rows, limit=limit,
+                end=OLDER_END, rows_needed=rows, limit=limit,
             )
             if not snapshot.current(owner):
                 return False
@@ -245,7 +245,7 @@ class Filtered(FilterState):
 
     @property
     def has_older(self):
-        return OlderEnd().visible_more(self.overlay)
+        return OLDER_END.visible_more(self.overlay)
 
     @property
     def scan_available(self):

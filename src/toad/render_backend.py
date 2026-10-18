@@ -65,10 +65,6 @@ class RenderExecution(ABC, Generic[ResultT]):
 class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], DeclaredFamily, affix="RenderTask"):
     """A nominal operation with an exact input and result contract."""
 
-    def result_size(self, result: ResultT) -> int:
-        """Uncached ingress results have no preparation-cache charge."""
-        return 0
-
     @property
     def preparation_inputs(self) -> object:
         """The task's captured inputs, independent of transport and storage.
@@ -100,10 +96,6 @@ class RenderTask(RenderExecution[ResultT], PreparationStorage[ResultT], Declared
         return WorkKey(type(work), UniqueRevision(), work.scope)
 
 class ReusableRenderTask(SerializedStorage[ResultT], RenderTask[ResultT]):
-    @abstractmethod
-    def result_size(self, result: ResultT) -> int:
-        """Each reusable task declares its result's payload charge."""
-
     async def preparation_identity(self, work: RenderPreparation, runtime: PreparationRuntime) -> WorkKey:
         from dataclasses import replace
         from toad.work_preparation import ContentAddressedWork

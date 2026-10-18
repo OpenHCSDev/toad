@@ -46,7 +46,7 @@ from toad.frame_presentation import AnimationEffects
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
 from ui_theme.effects import NEW_TEXT, Mix
-from toad.widgets.presentation_window import PresentationBudget, PageEnd, OlderEnd, NewerEnd
+from toad.widgets.presentation_window import PresentationBudget, PageEnd, OLDER_END, NEWER_END
 from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
 from toad.markdown_links import ReferenceRendering
@@ -56,7 +56,7 @@ from toad.widgets.transcript_lines import (
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
-from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
+from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition, ReaderPosition
 from toad.widgets.message_filter import (
     all_categories, CategorizedBlock, MessageCategory, apply_block_filter,
 )
@@ -107,7 +107,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     RENDER_BATCH = 8
 
     def __init__(self, prepared: PreparedTranscriptPage, *,
-                 batch_size: int = PreparedTranscriptPage.BATCH):
+                 batch_size: int = PresentationBudget.batch_items):
         self.arrivals: set[int] = set()
         self.prepared = prepared
         self.visible_categories = all_categories()
@@ -437,7 +437,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         super().__init__(source_state=source_state or LiveTranscript())
         self.loader, self.through = loader, prepared.page.after
         self.budget = budget or PresentationBudget(
-            max_items=self.MAX_FRAGMENTS, batch_items=PreparedTranscriptPage.BATCH,
+            max_items=self.MAX_FRAGMENTS,
         )
         self.pages = deque([TranscriptPageView(
             prepared, batch_size=self.budget.batch_items,
@@ -527,7 +527,8 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         if target.line_width <= 0:
             return
         _, limit = window.latest_limits(self.budget)
-        rows_needed, _ = await window.reader_position.resolve(window).prepare(
+        position = window.reader_position or ReaderPosition.of(window)
+        rows_needed, _ = await position.resolve(window).prepare(
             self, current, target, selected, rows_needed, limit,
         )
         await self.filter.prepare_rows(
@@ -765,7 +766,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def compose(self) -> ComposeResult:
         yield self.older
-        yield from self.filter.overlay.children()
+        yield from self.filter.overlay.projection_widgets()
         for page in self.pages:
             page.visible_categories = self.selected_categories
             yield page
@@ -792,7 +793,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def _update_edges(self) -> None:
         shown = bool(self.selected_categories)
-        older, newer = shown and self.filter.older_visible, shown and NewerEnd().visible_more(self)
+        older, newer = shown and self.filter.older_visible, shown and NEWER_END.visible_more(self)
         if (older, newer) != (self.older.display, self.newer.display):
             # The edge rows are above and below the reader's.
             self.window.keep_reader()
@@ -849,7 +850,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def drawn_tail_followed(self) -> bool:
-        return not NewerEnd().visible_more(self) and self.follows_source_tail
+        return not NEWER_END.visible_more(self) and self.follows_source_tail
 
     def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Bind the arrived source range to its current pages, on one history clock."""
@@ -1116,15 +1117,15 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     @property
     def older_page_available(self) -> bool:
-        return self.source_ready and OlderEnd().visible_more(self)
+        return self.source_ready and OLDER_END.visible_more(self)
 
     def request_older(self) -> None:
         if self.older_page_available:
-            self.request_page(OlderEnd())
+            self.request_page(OLDER_END)
 
     async def load_older(self) -> None:
         if self.older_page_available:
-            await self.reserve_source_work().execute(self, partial(self._prepare_edge, OlderEnd()))
+            await self.reserve_source_work().execute(self, partial(self._prepare_edge, OLDER_END))
 
     @property
     def state(self) -> TranscriptState:
@@ -1144,7 +1145,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
         assert self._page_buffer is not None
         return self._page_buffer
 
-    def children(self):
+    def projection_widgets(self):
         return (self,)
 
     def reads(self, source) -> bool:

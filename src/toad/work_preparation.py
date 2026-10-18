@@ -110,9 +110,8 @@ class PreparationStorage(ABC, Generic[ResultT]):
 
     retain_result = False
 
-    @abstractmethod
     def result_size(self, result: ResultT) -> int:
-        """Charge this operation's declared result payload, not its object graph."""
+        return 0
 
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
         return CopiedValue(result, self.result_size(result) if self.retain_result else 0)
@@ -137,6 +136,10 @@ class PreparationStorage(ABC, Generic[ResultT]):
 
 class ReusableStorage(PreparationStorage[ResultT]):
     retain_result = True
+
+    @abstractmethod
+    def result_size(self, result: ResultT) -> int:
+        """Reusable producers declare their payload charge."""
 
 
 class SerializedStorage(ReusableStorage[ResultT]):
