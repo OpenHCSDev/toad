@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.widgets.comms_sidebar import CommsRow
-    from agent_comms.comms import Comms
     from toad.comms_root import Observing
 
 from textual.app import ComposeResult

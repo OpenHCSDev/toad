@@ -284,7 +284,7 @@ class SessionNavigation:
         # Views on the observed root retire through the observation service
         # (views_retired). Views on another root are read here, only when a
         # registration or channel changed.
-        observed = self.app.coordination_access.observation
+        observed = self.app.coordination_access.observation.observed()
         if not any(
                 not observed.observes(owner)
                 for member in self.members
@@ -315,7 +315,7 @@ class SessionNavigation:
                           for member in self.members)
         asked: dict[str, tuple[set, set]] = {}
         # The observation service retires views on its own root.
-        observed = self.app.coordination_access.observation
+        observed = self.app.coordination_access.observation.observed()
         for _member, threads, channels in originals:
             for root, identity in threads:
                 if not observed.observes(root):
@@ -342,7 +342,7 @@ class SessionNavigation:
 
         answers = await self.app.preparation.run_thread(read)
         # A service replaced while the read joined revokes its answer.
-        observed = self.app.coordination_access.observation
+        observed = self.app.coordination_access.observation.observed()
         retired = {root: answer for root, (service, answer) in answers.items() if observed.uses(service)}
         removed = tuple(member.mode for member, threads, channels in originals
                         if self.get(member.mode) is member and (
