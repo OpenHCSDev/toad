@@ -165,9 +165,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         if not self.member_container.is_attached or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
-        if not tree.model_state.shows_model():
-            return
-        rows = tree.model_state.model.threads.rows
+        rows = tree.model_state.thread_rows()
         entries = {entry.target: entry for entry in self.model.entries}
         empty = self.query_one_optional(".relationship-empty")
         if (entries or not self.expanded) and empty is not None:

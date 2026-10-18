@@ -38,7 +38,7 @@ from toad.core.events import ThreadRowStateChanged, CoordinationObserved
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
-from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
+from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
 from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
@@ -512,30 +512,24 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         own; built together, every group would be built in the same turn.
         The mounted groups are ordered once per pass, not after each mount.
         """
-        observed = self.model_state.observed
-        while (self.is_attached and self.model_state.shows_model()
-               and self.model_state.observes(observed)):
-            missing = [key for key in observed.sidebar.channels.rows if key not in self.groups]
+        while self.is_attached:
+            missing = [key for key in self.model_state.mount_source() if key not in self.groups]
             if not missing:
-                self._order_groups()
+                self.model_state.order_groups(self)
                 return
             for key in missing:
-                if not self.model_state.observes(observed):
-                    return
-                rows = observed.sidebar.channels.rows
-                if key not in rows or key in self.groups or not self.is_attached:
+                channel = self.model_state.channel_row(key)
+                if channel is None or key in self.groups or not self.is_attached:
                     continue  # Removed or mounted while the previous group mounted.
                 row = CommsRow(channel_target(key), key)
                 group = self.groups[key] = ChannelGroup(row, expanded=self.navigation.state.expanded.get(
                     key, row.target.expanded_by_default))
-                group.present(rows[key])  # Its members sync once it is mounted.
+                group.present(channel)  # Its members sync once it is mounted.
                 await self.mount(group)
 
     @property
     def member_keys(self):
-        if not self.model_state.shows_model():
-            return ()
-        return (key for channel in self.model_state.model.channels.rows.values() for key in channel.members)
+        return self.model_state.member_keys()
 
     def _order_groups(self) -> None:
         """Order current groups, retiring old groups after their rows can move."""
@@ -553,12 +547,14 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     def find_open_views(self) -> dict[str, str]:
         """Which open tab shows each thread of this service; the first tab claims it."""
+        return self.model_state.open_views(self)
+
+    def _find_open_views(self, threads, root) -> dict[str, str]:
         app = self.app
-        threads = self.model_state.model.threads.rows
         views: dict[str, str] = {}
         for details in app.session_tracker.ordered_sessions:
             screen = app.session_navigation.source(details.mode_name)
-            if screen is None or not screen.belongs_to_wire(self.model_state.service.root):
+            if screen is None or not screen.belongs_to_wire(root):
                 continue  # A same-named thread on another wire is not this open view.
             name = screen.thread_identity.thread_name()
             if name not in threads and screen._agent_session_id in threads:
@@ -569,9 +565,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     @handles(SessionChangedEvent)
     async def session_changed(self, event: CoreEventMessage) -> None:
-        if not self.model_state.shows_model():
-            return
-        self.open_views = self.find_open_views()
+        self.model_state.update_open_views(self)
 
     @property
     def navigation_groups(self):

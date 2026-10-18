@@ -31,7 +31,6 @@ from toad.core.events import SessionSelected, CoordinationObserved, ThreadRowSta
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.ui_model.changes import Changes
 from agent_comms.ui_model.sidebar import SidebarModel
-from toad.navigation_target import ChannelLike
 from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar
 
@@ -318,11 +317,42 @@ class SidebarModelState:
     def unsubscribe(self, view) -> None:
         pass
 
-    def changed(self, view, **changes) -> None:
-        self.present(view)
+    def changes(self, changes):
+        return changes
 
-    def present(self, view) -> None:
+    def apply(self, view, changes) -> None:
+        pass
+
+    def member_keys(self):
+        return ()
+
+    def mount_source(self):
+        return ()
+
+    def channel_row(self, key):
+        return None
+
+    def thread_rows(self):
+        return {}
+
+    def order_groups(self, view):
+        pass
+
+    def update_open_views(self, view):
+        pass
+
+    def open_views(self, view):
+        return {}
+
+    def welcome_keys(self, section):
+        return ()
+
+    def sync_welcome(self, section, changed):
+        pass
+
+    def present(self, view):
         view.app.coordination_access.show_sidebar(view, False)
+        return self
 
 
 class Detached(SidebarModelState):
@@ -352,32 +382,59 @@ class BoundSidebar(SidebarModelState):
         self.model.channels.unsubscribe(view.channels_changed)
         self.model.threads.unsubscribe(view.threads_changed)
 
-    def present(self, view) -> None:
+    def present(self, view):
         shown = view.accepts_observation()
         view.app.coordination_access.show_sidebar(view, shown)
         if not shown or self.model.snapshot is None:
-            view.model_state = Behind(self.observed)
-        else:
-            self.present_current(view)
+            return Behind(self.observed)
+        return self.present_current()
 
-    def present_current(self, view) -> None:
-        """A current view needs no full reconciliation."""
+    def present_current(self):
+        return self
 
 
 class Current(BoundSidebar):
     def shows_model(self) -> bool:
         return True
 
-    def changed(self, view, **changes) -> None:
-        self.present(view)
-        if view.model_state is self:
+    def apply(self, view, changes) -> None:
+        if changes:
             view.sync(**changes)
+
+    def member_keys(self):
+        return (key for channel in self.model.channels.rows.values() for key in channel.members)
+
+    def mount_source(self):
+        return tuple(self.model.channels.rows)
+
+    def channel_row(self, key):
+        return self.model.channels.rows.get(key)
+
+    def thread_rows(self):
+        return self.model.threads.rows
+
+    def order_groups(self, view):
+        view._order_groups()
+
+    def update_open_views(self, view):
+        view.open_views = self.open_views(view)
+
+    def open_views(self, view):
+        return view._find_open_views(self.model.threads.rows, self.service.root)
+
+    def welcome_keys(self, section):
+        return section.keys(self.model)[:section.LIMIT]
+
+    def sync_welcome(self, section, changed):
+        section._sync_members(self.model, changed)
 
 
 class Behind(BoundSidebar):
-    def present_current(self, view) -> None:
-        view.model_state = Current(self.observed)
-        view.sync(channels=None, threads=None, reorder=True)
+    def present_current(self):
+        return Current(self.observed)
+
+    def changes(self, changes):
+        return dict(channels=None, threads=None, reorder=True)
 
 
 class SidebarModelView(CoreEventReceiver):
@@ -410,8 +467,7 @@ class SidebarModelView(CoreEventReceiver):
         return self.model_state.navigation_root
 
     def channel_active(self, row) -> bool:
-        channel = self.model.channels.rows.get(row.target_name) if self.shows_model and isinstance(row.target, ChannelLike) else None
-        return channel is not None and channel.active
+        return self.model_state.shows_model() and row.target.active_in(self.model_state.model.channels)
 
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
@@ -446,18 +502,20 @@ class SidebarModelView(CoreEventReceiver):
         self.present()
 
     def channels_changed(self, changes: Changes[str]) -> None:
-        self.model_state.changed(
-            self, channels=frozenset((*changes.added, *changes.changed)), threads=frozenset(),
+        self.present(
+            channels=frozenset((*changes.added, *changes.changed)), threads=frozenset(),
             reorder=bool(changes.added or changes.removed or changes.order is not None))
 
     def threads_changed(self, changes: Changes[str]) -> None:
-        self.model_state.changed(
-            self, channels=frozenset(),
+        self.present(
+            channels=frozenset(),
             threads=frozenset((*changes.added, *changes.removed, *changes.changed)))
 
-    def present(self) -> None:
-        """Reconcile everything with the model once this view shows it again."""
-        self.model_state.present(self)
+    def present(self, **changes) -> None:
+        """Publish the next state before it applies pending model changes."""
+        previous = self.model_state
+        self.model_state = previous.present(self)
+        self.model_state.apply(self, previous.changes(changes))
 
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
@@ -468,7 +526,7 @@ class SidebarModelView(CoreEventReceiver):
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
         """This app's own row state changed: every thread row repaints now, or when shown again."""
-        self.model_state.changed(self, channels=frozenset(), threads=None)
+        self.present(channels=frozenset(), threads=None)
 
 
 class SearchFollower:
@@ -538,9 +596,6 @@ class TargetTree(Vertical):
 
     def row_selected(self, row) -> bool:
         return self.selection_for(row) in self.selection_state.selected_targets
-
-    def channel_active(self, row) -> bool:
-        return False
 
     @contextmanager
     def selection_change(self):
