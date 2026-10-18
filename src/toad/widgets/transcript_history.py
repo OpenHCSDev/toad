@@ -252,7 +252,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         strip = lines.strips_at(fragment.link_place)[row]
         if id(fragment) in self.arrivals:
             history = self.history
-            strip = history.paint_arrival(strip)
+            strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, int, bool] | None:
@@ -852,37 +852,17 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def drawn_tail_followed(self) -> bool:
         return not NEWER_END.visible_more(self) and self.follows_source_tail
 
-    def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        """Bind the arrived source range to its current pages, on one history clock."""
-        if not fragments:
-            return
-        if NEW_TEXT in self.effects and not self.effect_running(NEW_TEXT):
-            for page in self.pages:
-                page.arrivals.clear()
-            self.stop_effect(NEW_TEXT)
-        self._place_arrivals(fragments)
-
-    def paint_arrival(self, strip: Strip) -> Strip:
-        # Publication can precede the first visible frame by a whole fade.
-        # Start on the first arrived row actually painted, never while preparing it.
-        if NEW_TEXT not in self.effects:
-            self.run_effect(NEW_TEXT)
-        return self.paint_effects(strip, self.effect_frame(NEW_TEXT))
-
-    def _place_arrivals(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        positions = {fragment.arrival_position for fragment in fragments}
+    def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
+        phase = self.effect_phase(NEW_TEXT)
+        if fragments:
+            phase.on_new_arrival(self, NEW_TEXT, self.pages)
+        positions = {fragment.arrival_position for fragment in (*fragments, *phase.keeps_arrivals(continuing))}
         for page in self.pages:
+            previous = bool(page.arrivals)
+            page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
             page.arrivals.update(id(fragment) for fragment in page.prepared.fragments_in_range
                                  if fragment.arrival_position in positions)
-            if page.arrivals:
-                page.refresh()
-
-    def repaint(self) -> None:
-        finished = not self.effect_running(NEW_TEXT)
-        for page in self.pages:
-            if page.arrivals:
-                if finished:
-                    page.arrivals.clear()
+            if previous or page.arrivals:
                 page.refresh()
 
     def on_hide(self) -> None:
@@ -898,9 +878,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         await self._clear(initial)
         self.extend_source(through)
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        if NEW_TEXT not in self.effects or self.effect_running(NEW_TEXT):
-            self._place_arrivals(retained)
-        self._arrive(arrivals)
+        self.repaint(arrivals, continuing=retained)
 
     async def _clear(self, initial: PreparedTranscriptPage) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
@@ -977,7 +955,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
                     self._require_can_draw()
-                    self._arrive(arrivals)
+                    self.repaint(arrivals)
                     self._source_state.rows_published(self)
             self.state.delivered(self)
             advanced = end.edge(self.pages)

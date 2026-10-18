@@ -129,14 +129,13 @@ class WireHistory(VisibleReadMarking, LineHistory):
                                arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
 
-    @property
-    def messages(self) -> tuple[Message, ...]:
-        """The messages the drawn rows show, oldest first."""
-        return tuple(fragment.message for fragment in self.fragments_in_range)
-
     def draws(self, message: Message) -> bool:
-        """Whether the drawn rows include this message."""
-        return any(drawn.view_key == message.view_key for drawn in self.messages)
+        """Whether the drawn rows include this message, checking the newest first."""
+        for page in reversed(self.pages):
+            for fragment in reversed(page.fragments_in_range):
+                if fragment.message.view_key == message.view_key:
+                    return True
+        return False
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
