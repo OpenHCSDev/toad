@@ -123,7 +123,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
         access, root = self.app.coordination_access, str(self.comms.root)
 
         async def load(**kwargs):
-            snapshot = await access.read(ReadTranscript(
+            snapshot = await access.transcripts.read(ReadTranscript(
                 root, item.thread.name, historical_source=item.source.key, **kwargs))
             return snapshot.page
 

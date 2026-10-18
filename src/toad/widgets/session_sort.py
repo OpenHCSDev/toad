@@ -8,7 +8,7 @@ from ui_theme.scheme import ForegroundColour
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from pathlib import Path
+from functools import partial
 from typing import Annotated, ClassVar
 
 from agent_comms.display_order import (
@@ -142,13 +142,13 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
     def primary_activation(self):
         return self.action_choose_sort
 
-    def action_choose_sort(self):
+    async def action_choose_sort(self):
         form = self.form
         if form is None:
             self.notify("Ordering is not available yet", title="Sort", severity="warning")
             return
         try:
-            write = self.order_writer()
+            write = await self.order_writer()
         except (OSError, ValueError) as error:
             self.notify(str(error), title="Sort", severity="error")
             return
@@ -170,12 +170,12 @@ class SortControl[Order: DisplayOrder](InlineSelection, PrimaryActivation, Stati
             self.notify(str(error), title="Sort", severity="error")
 
     @abstractmethod
-    def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
+    async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]: ...
 
-    def on_click(self, event: events.Click):
+    async def on_click(self, event: events.Click):
         event.stop()
         if event.button == 1:
-            self.action_choose_sort()
+            await self.action_choose_sort()
 
 
 class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
@@ -185,20 +185,10 @@ class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
         self.channel = channel
         super().__init__(form_type, scope)
 
-    def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
+    async def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         access = self.app.coordination_access
-        observed = access.observation
-        if observed is None:
-            raise ValueError("Comms ordering is not available yet")
-        source_root = self.screen.coordination_root
-        if source_root is not None and observed.selection.root != Path(source_root).resolve():
-            raise ValueError("Comms route changed before sorting")
-        async def write(order):
-            return await self.app.preparation.run_thread(
-                access.write, observed.selection, order.store_channel_order, observed.service.channels, self.channel,
-            )
-
-        return write
+        observed = await access.preparation.run_thread(access.observation.observed)
+        return partial(observed.write_order, access, self.screen.coordination_root, self.channel)
 
 
 class SessionSort(CommsSortControl[ThreadSort]):

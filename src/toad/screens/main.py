@@ -37,6 +37,7 @@ from toad.screens.session_view import SessionOrigin, SessionView
 from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_tracker import SidebarState
+from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.conversation import Conversation, ThreadLoading
@@ -257,7 +258,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.set_reactive(MainScreen.project_path, project_path)
         self._agent = agent
         self._agent_session_id = agent_session_id
-        from toad.thread_identity import SessionIdentity
         self._identity = SessionIdentity.for_thread(agent_session_id or "", None)
         self._session_pk = session_pk
         self._initial_prompt = initial_prompt
@@ -274,13 +274,11 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         return screen
 
     def bind_thread(self, owner, root: str) -> None:
-        from toad.thread_identity import ThreadIdentity
         with self.changing_identity():
             self._identity = ThreadIdentity(owner, root)
 
     def identity_changed(self, previous) -> None:
         if self.id is not None:
-            self.app.session_navigation.sync_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
             self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
 
     @classmethod
@@ -397,7 +395,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         async with self.presentation.transcript.changing_source(self):
             with self.changing_identity():
                 previous_root = self.coordination_root
-                from toad.thread_identity import ThreadIdentity
                 self._identity = ThreadIdentity(event.thread, event.wire_root)
                 if previous_root != self.coordination_root:
                     self.link_context_changed()

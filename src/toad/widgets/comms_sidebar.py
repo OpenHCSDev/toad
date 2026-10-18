@@ -433,15 +433,15 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
 
     async def on_mount(self) -> None:
         app = self.app
-        service = await app.preparation.run_thread(lambda: app.coordination_access.service)
-        screen = self.screen
-        if not screen.belongs_to_wire(service.root):
-            self.display = False
-            return
         self.subscribe_core(app.session_tracker.events)
         await self.navigation.prepare()
-        screen.start_sidebar_navigation(self)
-        self.attach(service)
+        self.screen.start_sidebar_navigation(self)
+
+    def bind_observation(self, observed) -> None:
+        if not self.screen.belongs_to_wire(observed.service.root):
+            self.display = False
+            return
+        super().bind_observation(observed)
 
     def stop_mounting(self) -> None:
         self.workers.cancel_group(self, self.GROUP_MOUNT)

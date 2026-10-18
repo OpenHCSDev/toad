@@ -131,23 +131,17 @@ class ParkedWorkspaceSource(BoundWorkspaceSource):
 class WorkspaceSessions:
     def __init__(self, app: "ToadApp") -> None:
         self.app = app
-        self.factories: dict[str, Callable[[], SessionView]] = {}
         # Views the workspace always has; they are not tabs and never close.
         self.resident: dict[str, Callable[[], SessionView]] = {WELCOME: welcome_view}
         self.views: dict[str, SessionView] = {}
         self.source: WorkspaceSource = DetachedWorkspaceSource()
-
-    def register(self, identity: str, factory: "Callable[[], SessionView]") -> None:
-        if identity in self.factories:
-            raise ValueError(f"Logical session already registered: {identity}")
-        self.factories[identity] = factory
 
     def require(self, identity: str) -> "SessionView":
         return self.views[identity]
 
     def origin(self, identity: str) -> "SessionOrigin | None":
         """What sessions and histories requested from ``identity`` start from; None once it closed."""
-        if identity in self.factories or identity in self.resident:
+        if self.app.session_navigation.get(identity) is not None or identity in self.resident:
             if view := self.views.get(identity):
                 return view.origin
         return None
@@ -155,7 +149,7 @@ class WorkspaceSessions:
     async def prepare(self, identity: str) -> "SessionView":
         if view := self.views.get(identity):
             return view
-        view = (self.factories.get(identity) or self.resident[identity])()
+        view = (self.app.session_navigation.get(identity) or self.resident[identity])()
         view.id = identity
         view.display = False
         self.views[identity] = view
@@ -219,7 +213,6 @@ class WorkspaceSessions:
         return True
 
     async def close(self, identity: str) -> None:
-        self.factories.pop(identity, None)
         if view := self.views.pop(identity, None):
             if self.source.matches(view):
                 self.source = DetachedWorkspaceSource()

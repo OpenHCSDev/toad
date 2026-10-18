@@ -14,14 +14,14 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.widgets.comms_sidebar import CommsRow
-    from agent_comms.comms import Comms
-    from toad.comms_root import ObservedCommsService
+    from toad.comms_root import Observing, FailedObservation
 
 from textual.app import ComposeResult
 from textual.binding import Binding
 from textual.reactive import reactive
 from textual.containers import Vertical, VerticalGroup
 from textual.widgets import Static
+from textual.widget import Widget
 from textual._activation import PrimaryActivation
 from textual.layouts.vertical import VerticalLayout
 from textual._measurement import FLOW_HEIGHT, height_dependency
@@ -363,13 +363,9 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
 EMPTY = SidebarModel(lambda callback: None)
 
 
-class SidebarDetached(RuntimeError):
-    """Navigation needs an observed sidebar service."""
-
-
 class SidebarModelState:
     def root(self):
-        raise SidebarDetached("The sidebar has no observed service.")
+        raise RuntimeError("The sidebar has no observed service.")
 
     @property
     def shown(self) -> SidebarModel:
@@ -384,7 +380,7 @@ class SidebarModelState:
     def channel_active(self, row) -> bool:
         return False
 
-    def observes(self, observed: ObservedCommsService) -> bool:
+    def observes(self, observed: Observing) -> bool:
         return False
 
     def unsubscribe(self, view) -> None:
@@ -406,8 +402,18 @@ class Detached(SidebarModelState):
 
 
 @dataclass(frozen=True)
+class FailedSidebarState(SidebarModelState):
+    observed: FailedObservation
+
+    def present(self, view):
+        view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
+        view.app.coordination_access.show_sidebar(view, view.accepts_observation())
+        return self
+
+
+@dataclass(frozen=True)
 class BoundSidebar(SidebarModelState):
-    observed: ObservedCommsService
+    observed: Observing
 
     def root(self):
         return self.observed.service.root
@@ -415,7 +421,7 @@ class BoundSidebar(SidebarModelState):
     def serves(self, path) -> bool:
         return self.observed.service.root.resolve() == path
 
-    def observes(self, observed: ObservedCommsService) -> bool:
+    def observes(self, observed: Observing) -> bool:
         return self.observed is observed
 
     def unsubscribe(self, view) -> None:
@@ -457,19 +463,25 @@ class Behind(BoundSidebar):
         return dict(channels=None, threads=None, reorder=True)
 
 
-class SidebarModelView(CoreEventReceiver):
+class SidebarModelView(CoreEventReceiver, Widget):
     """A widget showing the observed service's sidebar model.
 
     Core's model is observed only while a view shows it. Changes that arrive
     while this one is hidden are applied in one pass when it shows again.
     """
 
-    def on_mount(self) -> None:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.unavailable = Static("", markup=False)
+        self.unavailable.display = False
+
+    async def on_mount(self) -> None:
+        await self.mount(self.unavailable)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        service = self.app.coordination_access.observed_service
-        if service is not None:
-            self.attach(service)
+        observed = await self.app.preparation.run_thread(
+            self.app.coordination_access.observation.observed)
+        observed.show_sidebar(self)
 
     def on_unmount(self) -> None:
         self.stop_showing()
@@ -506,13 +518,23 @@ class SidebarModelView(CoreEventReceiver):
         self.app.coordination_access.show_sidebar(self, False)
         self.unsubscribe()
 
-    def attach(self, service: Comms) -> None:
-        """Render ``service``'s shared model; another service's rows are retired first."""
-        observed = self.app.coordination_access.observation
-        if observed is None or observed.service is not service or self.model_state.observes(observed):
-            return  # A newer observed service attaches on its CoordinationObserved.
+    def bind_failed_observation(self, observed: FailedObservation) -> None:
+        self.unsubscribe()
+        self.model_state = FailedSidebarState(observed)
+        self.model_replaced()
+        for child in self.children:
+            child.set_display_constraint("comms-available", child is self.unavailable)
+        self.unavailable.display = self.display = True
+        self.present()
+
+    def bind_observation(self, observed: Observing) -> None:
+        if self.model_state.observes(observed):
+            return
         self.unsubscribe()
         self.model_state = Behind(observed)
+        self.unavailable.display = False
+        for child in self.children:
+            child.set_display_constraint("comms-available", True)
         observed.sidebar.channels.subscribe(self.channels_changed)
         observed.sidebar.threads.subscribe(self.threads_changed)
         self.model_replaced()
@@ -536,9 +558,7 @@ class SidebarModelView(CoreEventReceiver):
 
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
-        service = self.app.coordination_access.observed_service
-        if service is not None:
-            self.attach(service)
+        self.app.coordination_access.observation.observed().show_sidebar(self)
 
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
@@ -686,6 +706,8 @@ class TargetTree(Vertical):
 
     @handles(SessionSelected)
     def session_selected(self, event) -> None:
+        if not self.rows:
+            return
         workspace = self.app.workspace_sessions
         previous = workspace.target_for_mode(event.event.previous_mode, self.navigation_root)
         current = workspace.visible_target(self.navigation_root)

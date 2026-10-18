@@ -7,11 +7,9 @@ from toad.widgets.inline_message import inline_message
 from toad.widgets.transcript_lines import OpensLinks
 
 
-def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
-    sidebar = app.coordination_access.sidebar
-    if sidebar is None:
-        return ()
-    return tuple(MentionCandidate(row.name, row.title) for row in sidebar.threads.rows.values())
+def goal_mention_candidates(observed) -> tuple[MentionCandidate, ...]:
+    return tuple(MentionCandidate(row.name, row.title)
+                 for row in observed.sidebar.threads.rows.values())
 
 
 class GoalText(ReferenceRendering, OpensLinks, ChangingText):

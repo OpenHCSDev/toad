@@ -30,6 +30,7 @@ class SessionNavigation:
         self.app = app
         self.events = CoreEventStream(self)
         self.identities = count(1)
+        self.entries: dict[str, dict[str, SessionEntry]] = {}
         self._retire_task: asyncio.Task[None] | None = None
         self._retire_requested = False
         # The Core revision the last retirement pass started from.
@@ -71,7 +72,7 @@ class SessionNavigation:
 
     @property
     def members(self) -> tuple[SessionEntry, ...]:
-        return tuple(cast(SessionEntry, factory) for factory in self.app.workspace_sessions.factories.values())
+        return tuple(entry for group in self.entries.values() for entry in group.values())
 
     @property
     def processes(self):
@@ -81,7 +82,7 @@ class SessionNavigation:
                      and (agent := source.presentation.operational_agent) is not None)
 
     def get(self, mode: str) -> SessionEntry | None:
-        return cast(SessionEntry | None, self.app.workspace_sessions.factories.get(mode))
+        return next((group[mode] for group in self.entries.values() if mode in group), None)
 
     def find(self, address: object) -> SessionEntry | None:
         return next((entry for entry in self.members if entry.address == address), None)
@@ -101,14 +102,14 @@ class SessionNavigation:
             return
         originals = self.members
         snapshot = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.require(selected).registry.snapshot())
+            lambda: self.app.coordination_access.require(selected).service.registry.snapshot())
         for member in originals:
             await member.reconnect(self, selected, snapshot, targets)
 
     def bind_opened(self, view: MainScreen, *, original: tuple[str, ThreadIncarnation],
                     name: str, project: Path) -> None:
         """Bind the accepted source facts before preparing its native resources."""
-        entry = cast(NativeSessionEntry, self.app.workspace_sessions.factories[view.id])
+        entry = cast(NativeSessionEntry, self.get(view.id))
         view.bind_project(project)
         root, owner = original
         view.bind_thread(owner, root)
@@ -118,19 +119,6 @@ class SessionNavigation:
     def publish(self) -> None:
         self.app.events.publish(core_events.OpenTabsChanged())
         self.app.update_show_sessions()
-        self.declare_views()
-
-    def declare_views(self) -> None:
-        """Tell the observation service which views are open on its root."""
-        access = self.app.coordination_access
-        if (service := access.observed_service) is None:
-            return
-        root = str(service.root)
-        threads, channels = set(), set()
-        for member in self.members:
-            threads.update(identity for owner, identity in member.original_threads(self) if owner == root)
-            channels.update(target for owner, target in member.original_channels() if owner == root)
-        access.show_views(frozenset(threads), frozenset(channels))
 
     def views_retired(self, root, retired) -> None:
         """Close the open views on ``root`` whose sources the observation service found retired."""
@@ -145,7 +133,9 @@ class SessionNavigation:
 
     async def open(self, entry: SessionEntry, *, after: str | None = None) -> str:
         app = self.app
-        app.workspace_sessions.register(entry.mode, entry)
+        if self.get(entry.mode) is not None:
+            raise ValueError(f"Logical session already registered: {entry.mode}")
+        self.entries.setdefault(entry.owner_mode, {})[entry.mode] = entry
         app.tab_order.open(entry.mode, after=after)
         self.publish()
         await app.select_session(entry.mode)
@@ -199,7 +189,7 @@ class SessionNavigation:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
         try:
-            comms = await app.preparation.run_thread(lambda: app.coordination_access.service)
+            comms = await app.preparation.run_thread(lambda: app.coordination_access.observation.observed().service)
             requested_root = str(comms.root)
             if not origin.current(app.thread_navigation, owner_mode):
                 return app.selected_mode
@@ -221,7 +211,7 @@ class SessionNavigation:
         entry = self.find(kind.view_identity(prepared.key))
         if entry is None:
             entry = HistorySessionEntry(f"comms-{next(self.identities)}", prepared.key, kind,
-                                                project_path, prepared.owner_root, prepared.participants)
+                                                project_path, prepared.owner_root, prepared.participants, source)
             await self.open(entry)
         else:
             await app.select_session(entry.mode)
@@ -252,19 +242,14 @@ class SessionNavigation:
     @property
     def tabs(self) -> tuple[OpenTab, ...]:
         observed = self.app.coordination_access.observation
-        return self.app.tab_order.project({entry.mode: entry.tab(self, observed)
-                                          for entry in self.members})
-
-    def sync_identity(self, owner: str, previous: str, current: str) -> None:
-        for entry in self.members:
-            entry.sync_identity(self, owner, previous, current)
+        return self.app.tab_order.project(observed.tabs(self))
 
     def sync_owner_root(self, owner: str, root: str | None) -> None:
-        for entry in self.members:
+        for entry in self.entries.get(owner, {}).values():
             entry.sync_owner_root(self, owner, root)
 
     def sync_project(self, owner: str, project: Path) -> None:
-        for entry in self.members:
+        for entry in self.entries.get(owner, {}).values():
             entry.sync_project(self, owner, project)
 
     async def close(self, mode: str) -> None:
@@ -283,7 +268,10 @@ class SessionNavigation:
         # Retire membership before publication and slow widget exits. Delayed
         # opening metadata cannot revive a closed owner during teardown.
         for member in closing:
-            self.app.workspace_sessions.factories.pop(member.mode)
+            group = self.entries[member.owner_mode]
+            del group[member.mode]
+            if not group:
+                del self.entries[member.owner_mode]
         self.publish()
         try:
             # Closed entries cannot reopen. Show the surviving workspace
@@ -298,9 +286,9 @@ class SessionNavigation:
         # Views on the observed root retire through the observation service
         # (views_retired). Views on another root are read here, only when a
         # registration or channel changed.
-        observed = self.app.coordination_access.observed_service
-        if observed is not None and not any(
-                owner != str(observed.root)
+        observed = self.app.coordination_access.observation.observed()
+        if not any(
+                not observed.observes(owner)
                 for member in self.members
                 for owner, _ in (*member.original_threads(self), *member.original_channels())):
             return
@@ -329,14 +317,13 @@ class SessionNavigation:
                           for member in self.members)
         asked: dict[str, tuple[set, set]] = {}
         # The observation service retires views on its own root.
-        observed_root = (str(service.root) if (service := self.app.coordination_access.observed_service)
-                         is not None else None)
+        observed = self.app.coordination_access.observation.observed()
         for _member, threads, channels in originals:
             for root, identity in threads:
-                if root != observed_root:
+                if not observed.observes(root):
                     asked.setdefault(root, (set(), set()))[0].add(identity)
             for root, target in channels:
-                if root != observed_root:
+                if not observed.observes(root):
                     asked.setdefault(root, (set(), set()))[1].add(target)
         if not asked:
             return
@@ -346,7 +333,7 @@ class SessionNavigation:
             for root, (threads, channels) in asked.items():
                 try:
                     selected = RouteSelection.capture(root)
-                    service = self.app.coordination_access.require(selected)
+                    service = self.app.coordination_access.require(selected).service
                     retired = service.views.retired_views(threads, channels)
                     if RouteSelection.capture(root) != selected:
                         continue  # Replaced while reading; the next observation reads it.
@@ -357,8 +344,8 @@ class SessionNavigation:
 
         answers = await self.app.preparation.run_thread(read)
         # A service replaced while the read joined revokes its answer.
-        observed = self.app.coordination_access.observed_service
-        retired = {root: answer for root, (service, answer) in answers.items() if service is observed}
+        observed = self.app.coordination_access.observation.observed()
+        retired = {root: answer for root, (service, answer) in answers.items() if observed.uses(service)}
         removed = tuple(member.mode for member, threads, channels in originals
                         if self.get(member.mode) is member and (
                             any(root in retired and identity in retired[root].threads for root, identity in threads)

@@ -66,7 +66,7 @@ class ThreadActionExecution:
 
     def apply(self):
         access = self.owner.app.coordination_access
-        comms = access.require(self.selected)
+        comms = access.require(self.selected).service
         return access.write(self.selected, self.action.request.apply, comms)
 
     async def run(self):

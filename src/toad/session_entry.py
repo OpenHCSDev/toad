@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from collections.abc import Callable
-from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -17,27 +16,34 @@ from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
-from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
 from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
+from agent_comms.ui_model.unread import UnobservedUnread
 
 if TYPE_CHECKING:
     from toad.session_navigation import SessionNavigation
     from toad.screens.main import MainScreen
     from toad.screens.session_view import SessionView
-    from toad.comms_root import ObservedCommsService
+    from toad.comms_root import Observing
 
 
 class SessionEntry(DeclaredFamily, affix="Entry"):
     def __init__(self, mode: str) -> None:
         self.mode = mode
 
+    @property
+    def owner_mode(self) -> str:
+        return self.mode
+
     @abstractmethod
     def __call__(self) -> SessionView: ...
 
+    def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
+        return self.unobserved_tab()
+
     @abstractmethod
-    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab: ...
+    def unobserved_tab(self) -> OpenTab: ...
 
     @property
     @abstractmethod
@@ -76,9 +82,6 @@ class SessionEntry(DeclaredFamily, affix="Entry"):
 
     def forget(self, sessions: SessionNavigation) -> None:
         """Release any domain membership beyond the workspace factory itself."""
-
-    def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
-        pass
 
     def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
         pass
@@ -154,22 +157,24 @@ class NativeSessionEntry(SessionEntry):
             return True
         root = source.coordination_root
         return root is not None and sessions.app.coordination_access.require(
-            RouteSelection.capture(root)).registry.canonical_name(session_id) == source.resolve_thread()
+            RouteSelection.capture(root)).service.registry.canonical_name(session_id) == source.resolve_thread()
 
-    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
+    def unobserved_tab(self) -> OpenTab:
+        return NamedTab(self.mode, self.details.name.display or "New Session")
+
+    def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
         source = self.source(sessions)
-        name = source.thread_identity.thread_name() if source else ""
-        if observed is None or source is None or not source.belongs_to_wire(observed.service.root):
-            return NamedTab(self.mode, self.details.name.display or "New Session")
-        row = observed.sidebar.threads.rows.get(name)
+        if source is None or not source.belongs_to_wire(observed.service.root):
+            return self.unobserved_tab()
+        row = observed.sidebar.threads.rows.get(source.thread_identity.thread_name())
         originals = self.original_threads(sessions)
         if row is not None and originals and not any(
-                Path(root).resolve() == observed.service.root and identity == row.incarnation
+                observed.observes(root) and identity == row.incarnation
                 for root, identity in originals):
-            return NamedTab(self.mode, self.details.name.display or "New Session")
+            return self.unobserved_tab()
         if row is not None:
             return ThreadTab(self.mode, source.session_disposition.present(row, row.disconnected))
-        return NamedTab(self.mode, self.details.name.display or "New Session")
+        return self.unobserved_tab()
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
@@ -184,10 +189,14 @@ class NativeSessionEntry(SessionEntry):
 
 class HistorySessionEntry(SessionEntry):
     def __init__(self, mode: str, key: CommsViewKey, kind: type[ConversationKind], project: Path,
-                 owner_root: str | None, participants: tuple[ThreadIncarnation, ...]) -> None:
+                 owner_root: str | None, participants: tuple[ThreadIncarnation, ...], owner) -> None:
         super().__init__(mode)
         self.key, self.kind, self.project, self.owner_root = key, kind, project, owner_root
-        self.participants = participants
+        self.participants, self.owner = participants, owner
+
+    @property
+    def owner_mode(self) -> str:
+        return self.key.owner_mode
 
     def original_threads(self, sessions):
         return tuple((self.key.root, participant) for participant in self.participants)
@@ -198,7 +207,8 @@ class HistorySessionEntry(SessionEntry):
     def __call__(self):
         from toad.screens.comms import CommsScreen
         key = self.key
-        return CommsScreen(project_path=self.project, owner_mode=key.owner_mode, me=key.me,
+        return CommsScreen(project_path=self.project, owner_mode=key.owner_mode,
+                           me=self.owner.thread_identity.thread_name(),
                            target=key.target, kind=self.kind,
                            owner_root=self.owner_root, wire_root=key.root)
 
@@ -212,10 +222,12 @@ class HistorySessionEntry(SessionEntry):
     def source(self, sessions: SessionNavigation) -> MainScreen | None:
         return sessions.source(self.key.owner_mode)
 
-    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
-        unread: UnreadPresentation = UnobservedUnread()
-        if observed is not None and Path(self.key.root).resolve() == observed.service.root:
-            unread = self.kind.unread(observed.sidebar.observation, self.key.target)
+    def unobserved_tab(self) -> OpenTab:
+        return NamedTab(self.mode, self.key.title)
+
+    def tab(self, sessions: SessionNavigation, observed: Observing) -> OpenTab:
+        unread = (self.kind.unread(observed.sidebar.observation, self.key.target)
+                  if observed.observes(self.key.root) else UnobservedUnread())
         return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
@@ -223,29 +235,16 @@ class HistorySessionEntry(SessionEntry):
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app, owner = sessions.app, self.key.owner_mode
-        await app.select_session(owner if owner in app.workspace_sessions.factories
+        await app.select_session(owner if sessions.get(owner) is not None
                                  else app.tab_order.previous(self.mode))
 
-    def sync_identity(self, sessions: SessionNavigation, owner: str, previous: str, current: str) -> None:
-        if self.key.owner_mode != owner:
-            return
-        if self.key.me != previous and sessions.app.coordination_access.require(
-                RouteSelection.capture(self.key.root)).registry.canonical_name(self.key.me) != current:
-            return
-        self.key = replace(self.key, me=current)
-        if view := sessions.app.workspace_sessions.views.get(self.mode):
-            view.rebind_identity(current)
-
     def sync_owner_root(self, sessions: SessionNavigation, owner: str, root: str | None) -> None:
-        if self.key.owner_mode != owner:
-            return
         self.owner_root = root if root is not None and Path(root).expanduser().resolve() == Path(self.key.root) else None
         if view := sessions.app.workspace_sessions.views.get(self.mode):
+            view.rebind_identity(self.owner.thread_identity.thread_name())
             view.rebind_owner_root(self.owner_root)
 
     def sync_project(self, sessions: SessionNavigation, owner: str, project: Path) -> None:
-        if self.key.owner_mode != owner:
-            return
         self.project = project
         if view := sessions.app.workspace_sessions.views.get(self.mode):
             view.rebind_project(project)
@@ -280,7 +279,7 @@ class PreviewSessionEntry(SessionEntry):
     def address(self) -> Path:
         return self.path
 
-    def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
+    def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.mode, self.title)
 
     def entered(self, previous: str) -> None:
@@ -289,7 +288,7 @@ class PreviewSessionEntry(SessionEntry):
 
     async def return_to(self, sessions: SessionNavigation) -> None:
         app = sessions.app
-        target = self.origin if self.origin in app.workspace_sessions.factories else app.tab_order.previous(self.mode)
+        target = self.origin if sessions.get(self.origin) is not None else app.tab_order.previous(self.mode)
         await app.select_session(target)
 
 

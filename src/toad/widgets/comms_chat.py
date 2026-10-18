@@ -146,7 +146,7 @@ class CommsChatView(Conversation):
             self.display = False
             return
         shared = await self.app.preparation.run_thread(
-            lambda: self.app.coordination_access.service)
+            lambda: self.app.coordination_access.observation.observed().service)
         if shared.root != root:
             self.display = False
             return
@@ -189,8 +189,7 @@ class CommsChatView(Conversation):
         self.settle_user_message()
         if (not history.state.accepts_source_work
                 or history.undrawn
-                or source.comms is not access.observed_service
-                or access.revision is None):
+                or not access.observation.observed().uses(source.comms)):
             return
         if self._refreshed_from != access.revision:
             # The observer announced a change while this work ran. The history
@@ -214,7 +213,7 @@ class CommsChatView(Conversation):
             # observer remains responsible for the next observation.
             return
         if (source is history.source and snapshot.current(history)
-                and source.comms is access.observed_service
+                and access.observation.observed().uses(source.comms)
                 and history.revision.stores != revision):
             await self._refresh()
 

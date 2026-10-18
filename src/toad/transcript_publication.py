@@ -120,8 +120,9 @@ class TranscriptPublication(BoundFrame, ABC):
         return True
 
     def report_failure(self, error: Exception) -> None:
-        """Keep genuine read/preparation failures distinct from retirement."""
-        raise error
+        """Report this view's read failure without killing unrelated views."""
+        if self.current():
+            self.binding.view.notify(str(error), title="Saved history", severity="error")
 
     async def capture_application(self) -> bool:
         """Capture the original applied cohort once its source cut is known."""
@@ -327,10 +328,6 @@ class CommitPublication(CanonicalSourcePublication):
         if self.ready_to_commit():
             return await super().publish_applied()
         return True
-
-    def report_failure(self, error: Exception) -> None:
-        if self.current():
-            self.binding.view.notify(str(error), title="Committed history", severity="error")
 
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
