@@ -3,7 +3,6 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.core import session_requests, events as core_events
 from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
-from toad.core_event_carrier import CoreEventReceiver
 import asyncio
 from abc import abstractmethod
 from functools import partial
@@ -38,13 +37,11 @@ from toad.screens.mcp_inventory import MCPInventoryScreen
 from toad.session_presentation import OperationalSessionPresentation
 from toad.session_tracker import SidebarState
 from toad.core.input_events import SelectTarget
-from toad.widgets.comms_sidebar import CommsSidebar, CoordinationStatus
+from toad.widgets.comms_sidebar import CommsSidebar
 from toad.widgets.conversation import Conversation, ThreadLoading
-from toad.widgets.context_explorer import ContextExplorer
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton
-from toad.widgets.thread_comms import ThreadCommsSidebar
 from toad.widgets.comms_chat import session_thread_name
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
 from toad.widgets.channels_sidebar import ChannelsSidebar
@@ -206,7 +203,7 @@ class FailedContent(ScreenContent):
             await screen.prepare_presentation()
 
 
-class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner, can_focus=False):
+class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     footer_compact = True
 
     AUTO_FOCUS = "Conversation Prompt TextArea"
@@ -380,18 +377,8 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
         if self.id is not None:
             self.app.session_navigation.sync_identity(self.id, previous, thread_name)
             self.app.session_tracker.bind_identity(self.id, previous, thread_name)
-        self._sync_thread_sidebar()
         if self.id is not None:
             self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
-
-    def _sync_thread_sidebar(self) -> None:
-        """Bind a newly mounted right panel to the current session identity."""
-        if status := self.query_one_optional(CoordinationStatus):
-            status.set_thread(self._comms_thread)
-        if comms_tree := self.query_one_optional(ThreadCommsSidebar):
-            comms_tree.set_identity(self._comms_thread, self.coordination_root)
-        if context := self.query_one_optional(ContextExplorer):
-            context.set_identity(self._comms_thread, self.coordination_root)
 
     @property
     def coordination_root(self) -> str | None:
@@ -421,13 +408,15 @@ class MainScreen(CoreEventReceiver, SessionOrigin, SessionView, NavigationOwner,
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         async with self.presentation.transcript.changing_source(self):
-            previous_root = self.coordination_root
+            previous_identity = self.thread_identity
             self.app.coordination_facts[self] = event
-            if previous_root != self.coordination_root:
+            if previous_identity.root != self.coordination_root:
                 self.link_context_changed()
             if event.worktree is not None:
                 self.bind_project(Path(event.worktree))
             self.on_comms_session_named(event.thread.name)
+            if previous_identity != self.thread_identity:
+                self.publish_core(core_events.ThreadIdentityChanged())
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)

@@ -5,6 +5,8 @@ from textual.reactive import reactive
 from toad.widgets.side_bar import SidebarFocusOwner
 from pathlib import Path
 from typing import TYPE_CHECKING
+from toad.core_event_carrier import CoreEventReceiver
+from toad.thread_identity import ThreadIdentity
 from toad.project_path_owner import ProjectPathOwner
 
 if TYPE_CHECKING:
@@ -50,7 +52,7 @@ class SessionOrigin:
     def has_agent(self) -> bool:
         return self._agent is not None
 
-class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
+class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertical):
     title = reactive("")
     sub_title = reactive("")
 
@@ -104,6 +106,10 @@ class SessionView(ProjectPathOwner, SidebarFocusOwner, Vertical):
 
     def relationship_context(self) -> tuple[str, str | None]:
         return self.channels_context()[0], self.coordination_root
+
+    @property
+    def thread_identity(self) -> ThreadIdentity:
+        return ThreadIdentity(*self.relationship_context())
 
     def activate_session(self) -> None:
         """Bind surface-local observers before its selected frame."""

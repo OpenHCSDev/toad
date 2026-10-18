@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 from agent_comms.mro_dispatch import handles
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core_event_carrier import CoreEventMessage
+from toad.thread_identity import ThreadIdentity
+from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core import events as core_events
 
 from toad.navigation_target import NavigationTarget, ThreadTarget
@@ -52,18 +54,21 @@ class RelationshipSort(SortControl[ThreadSort]):
 
     def order_writer(self):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
-        service, owner = tree.service, tree.owner
+        identity, generation = tree.thread_identity, tree._generation
         snapshot = tree._snapshot
         if snapshot is None:
             raise ValueError("Relationship ordering is not available yet")
         groups = snapshot.sortable_groups
 
         async def write(order: type[ThreadSort]):
+            service = await tree.relationship_source(identity)
+            if generation != tree._generation or identity != tree.thread_identity:
+                return
             try:
                 for group in groups:
-                    await self.app.preparation.run_thread(service.set_order, owner, type(group), order)
+                    await self.app.preparation.run_thread(service.set_order, identity.thread, type(group), order)
             finally:
-                if tree.service is service and tree.owner == owner:
+                if generation == tree._generation and identity == tree.thread_identity:
                     tree.refresh_relationships(force=True)
 
         return write
@@ -164,7 +169,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         tree.apply_selection()
 
 
-class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFollower, TargetTree):
+class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchFollower, TargetTree):
     DEFAULT_CSS = """
     ThreadCommsSidebar { height: auto; }
     ThreadCommsSidebar .relationship-context { height: auto; text-wrap: nowrap; text-overflow: clip; color: $text-muted; }
@@ -174,34 +179,39 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
     BINDINGS = [("up", "cursor_up", "Previous"), ("down", "cursor_down", "Next"),
                 ("enter", "open_selected", "Open")]
 
-    def __init__(self, owner: str, *, wire_root: str | None = None,
-                 source: RelationshipSource | None = None, live: bool = False):
+    def __init__(self, *, source: RelationshipSource | None = None,
+                 states: dict[ThreadIdentity, RelationshipTreeState] | None = None):
         super().__init__()
-        self.owner = owner
-        self.wire_root = wire_root
         self._generation = 0
         self._refresh_task = None
         self._revision = None
-        self._source = source
-        self._live = live
+        self._source = None
         self._filter_view = None
         self._filter_controls: dict[Checkbox, type[MessageCategory]] = {}
         self._snapshot: ThreadCommsSnapshot | None = None
-        self._states: dict[tuple[str | None, str], RelationshipTreeState] = {}
+        self._states = states if states is not None else {}
         self.groups: dict[type[RelationshipGroup], RelationshipRows] = {}
+        if source is not None:
+            self.use_source(source)
 
     @property
     def view_state(self):
-        return self._states.setdefault((self.wire_root, self.owner), RelationshipTreeState())
+        return self._states.setdefault(self.thread_identity, RelationshipTreeState())
 
-    @property
-    def service(self):
-        if self._source is None:
-            raise ValueError("Relationship source is not connected")
-        return self._source
+    async def relationship_source(self, identity: ThreadIdentity) -> RelationshipSource:
+        if self._source is not None:
+            return self._source
+        access = self.app.coordination_access
+        return await self.app.preparation.run_thread(
+            lambda: access.require(RouteSelection.capture(identity.root)).relationships)
+
+    def use_source(self, source: RelationshipSource) -> None:
+        self._source = source
+        self._reset_relationships()
+        self.refresh_relationships(force=True)
 
     def compose(self):
-        yield Static("Connecting…", classes="relationship-context", markup=False)
+        yield Static(f"For @{self.thread_identity.thread}", classes="relationship-context", markup=False)
         self._filter_controls.clear()
         for category in MessageCategory.members_with(MessageCategory):
             checkbox = Checkbox(category.label, id=f"filter-{category.declared_name}",
@@ -214,8 +224,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
         # per group or per mounted thread view.
         self.observe_core(self.app.coordination_access.events)
         self.observe_core(self.app.events)
-        if self._live:
-            self._bind_screen_identity()
         self._sync_filter_control()
         self.refresh_relationships()
 
@@ -228,8 +236,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
         # Background tabs retain their source and per-view filter state. Apply
         # the latest owner/selection once they become visible rather than doing
         # seven checkbox queries on every global update in every hidden tab.
-        if self._live:
-            self._bind_screen_identity()
         self._sync_filter_control()
         self.refresh_relationships()
 
@@ -238,21 +244,24 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
-    def set_identity(self, owner: str, wire_root: str | None, *,
-                     source: RelationshipSource | None = None):
-        if self._live and source is None and (owner, wire_root) == (self.owner, self.wire_root):
-            return
-        if (owner, wire_root) == (self.owner, self.wire_root) and source is self._source:
-            return
+    def identity_changed(self, identity: ThreadIdentity) -> None:
+        self._reset_relationships()
+        selected = self.view_state.selected
+        self.selected = selected[1] if selected is not None else None
+        self.query_one(".relationship-context", Static).update(
+            Content(f"For @{identity.thread}"), layout=False)
+        self.refresh_relationships(force=True)
+
+    def _reset_relationships(self) -> None:
         self._generation += 1
-        self.owner, self.wire_root = owner, wire_root
+        if self._refresh_task is not None:
+            self._refresh_task.cancel()
+            self._refresh_task = None
         self._revision = None
-        self._source = source
         self._snapshot = None
         # Old-root rows are hidden immediately, before a new query can finish.
         for group in self.groups.values():
             group.display = False
-        self.refresh_relationships(force=True)
 
     @handles(core_events.ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
@@ -267,8 +276,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
             return
         if not self.query_ancestor(SideBar).presentation_visible:
             return
-        if self._live:
-            self._bind_screen_identity()
         self._sync_filter_control()
         for group in self.groups.values():
             if group.display:
@@ -302,10 +309,6 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
                     selected | {category} if event.value else selected - {category}
                 )
 
-    def _bind_screen_identity(self):
-        from toad.screens.session_view import SessionView
-        self.set_identity(*self.query_ancestor(SessionView).relationship_context())
-
     def _visible(self):
         return (self.is_attached and self.screen.is_current
                 and self in self.screen._compositor.visible_widgets
@@ -317,11 +320,8 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
         if not self.is_mounted or not self._visible():
             return
         context = self.query_one(".relationship-context", Static)
-        if not self.owner or not self.wire_root:
-            context.update(Content("Waiting for thread identity"), layout=False)
-            return
-        if self._source is None and not self._live:
-            context.update(Content("Relationship source not connected"), layout=False)
+        if not self.thread_identity.managed:
+            context.update(Content(f"For @{self.thread_identity.thread} · no managed wire"), layout=False)
             return
         if self._refresh_task is not None and not self._refresh_task.done():
             return
@@ -330,21 +330,18 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
     @property
     def thread_rows(self):
         observed = self.app.coordination_access.observation
-        if observed is not None and Path(self.wire_root).resolve() == observed.service.root.resolve():
+        identity = self.thread_identity
+        if identity.managed and observed is not None and Path(identity.root).resolve() == observed.service.root.resolve():
             return observed.sidebar.threads.rows
         return None
 
     async def _refresh(self, generation):
         try:
-            if self._source is None:
-                root = self.wire_root
-                access = self.app.coordination_access
-                source = await self.app.preparation.run_thread(
-                    lambda: access.require(RouteSelection.capture(root)).relationships)
-                if generation != self._generation or not self.is_attached:
-                    return
-                self._source = source
-            service, owner = self.service, self.owner
+            identity = self.thread_identity
+            service = await self.relationship_source(identity)
+            if generation != self._generation or not self.is_attached:
+                return
+            owner = identity.thread
             revision = await asyncio.to_thread(service.revision)
             if revision == self._revision:
                 return
@@ -353,7 +350,7 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
                 return
-            if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
+            if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(identity.root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             if self._snapshot is None and self.groups:
                 # Owner/root replacement is a new source lifetime. Do not
@@ -418,10 +415,12 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
 
     @property
     def navigation_root(self):
-        return Path(self.wire_root).expanduser().resolve() if self.wire_root is not None else None
+        identity = self.thread_identity
+        return Path(identity.root).expanduser().resolve() if identity.managed else None
 
     def open_target(self, target: NavigationTarget):
-        if self.wire_root is None or Path(self.wire_root).resolve() != self.app.coordination_access.service.root.resolve():
+        identity = self.thread_identity
+        if not identity.managed or Path(identity.root).resolve() != self.app.coordination_access.service.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return
@@ -438,13 +437,14 @@ class ThreadCommsSidebar(CoreEventReceiver, SidebarVisibilityObserver, SearchFol
     async def _navigate_current(self, group_key, expected, generation):
         if generation != self._generation or not expected.available:
             return
-        owner, service = self.owner, self.service
+        identity = self.thread_identity
         try:
-            snapshot = await asyncio.to_thread(service.snapshot, owner)
+            service = await self.relationship_source(identity)
+            snapshot = await asyncio.to_thread(service.snapshot, identity.thread)
             if (generation != self._generation or not self.is_attached
                     or not self.screen.is_current):
                 return
-            if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(self.wire_root).resolve():
+            if snapshot.owner != identity.thread or Path(snapshot.root).resolve() != Path(identity.root).resolve():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             current = snapshot.current_entry(group_key, expected)
             if current is None:

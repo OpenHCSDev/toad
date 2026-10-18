@@ -36,6 +36,8 @@ from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
 from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionChangedEvent
 from toad.core.events import ThreadRowStateChanged, CoordinationObserved
+from toad.thread_identity import ThreadIdentity
+from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget, ChannelLike
 from toad.session_tracker import SidebarSelection
@@ -369,7 +371,7 @@ class NewSessionButton(HoverSelection, TargetTreeMember, Static):
             await self.action_create()
 
 
-class CoordinationStatus(Static):
+class CoordinationStatus(ShowsThreadIdentity, Static):
     """Compact diagnostics for the persistent coordination wire."""
 
     DEFAULT_CSS = """
@@ -380,26 +382,15 @@ class CoordinationStatus(Static):
     }
     """
 
-    def __init__(self, service: Comms, thread: str = "") -> None:
-        super().__init__()
-        self.service = service
-        self.thread = thread
-        self.refresh_status()
-
-    def set_thread(self, thread: str) -> None:
-        self.thread = thread
-        self.refresh_status()
-
-    def refresh_status(self) -> None:
-        root = self.service.root
+    def identity_changed(self, identity: ThreadIdentity) -> None:
+        root = _display_path(Path(identity.root)) if identity.managed else "No managed wire"
         backend = NativeArguments.configured_binary()
-        thread = self.thread or "connecting..."
         self.update(
             Content.assemble(
                 "Wire: ",
-                (_display_path(root), "$text"),
+                (root, "$text"),
                 (" · persistent", "$success"),
-                f"\nThread: {thread}",
+                f"\nThread: {identity.thread}",
                 f"\nACP/session · {Path(backend).name}",
             )
         )
@@ -407,7 +398,7 @@ class CoordinationStatus(Static):
         self.tooltip = (
             "Coordination state persists in the shared wire; the stdio ACP transport "
             "is scoped to this Toad session.\n\n"
-            f"AGENT_COMMS_ROOT={root.resolve()}\n"
+            f"AGENT_COMMS_ROOT={identity.root}\n"
             f"AGENT_COMMS_AGENT_BIN={backend}\n"
             f"AGENT_COMMS_AGENT_ARGS={args}"
         )

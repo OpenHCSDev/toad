@@ -19,7 +19,10 @@ from toad.core.context_inspection import (
     ContextNode, DetachedInspection, HoldingInspection, InspectionState,
 )
 from toad.core.events import CoordinationObserved, SessionSelected
-from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
+from toad.core_event_carrier import CoreEventMessage
+from agent_comms.route_selection import RouteSelection
+from toad.thread_identity import ThreadIdentity
+from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.screens.session_view import SessionView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 
@@ -42,10 +45,6 @@ class ContextTreeIntent:
         self.selected = None
         return True
 
-    def reset_pages(self):
-        self.cursor = None
-        self.selected = None
-
     def search_current(self, query, selected):
         return self.query == query and self.selected is selected
 
@@ -67,14 +66,17 @@ class ContextTreeIntent:
 class ContextTree(Tree[ContextNode]):
     """Native nodes, disclosure and cursor share the Tree's mounted lifetime."""
 
-    def __init__(self, intent, show_detail, show_placeholder):
-        self.intent = intent
+    def __init__(self, show_detail, show_placeholder):
         self.show_detail = show_detail
         self.show_placeholder = show_placeholder
         self.context_nodes = {}
         super().__init__("Context", id="context-tree")
         with self.prevent(Tree.NodeExpanded):
             self.root.expand()
+
+    @property
+    def intent(self):
+        return self.query_ancestor(ContextExplorer).intent
 
     def clear(self):
         self.context_nodes.clear()
@@ -207,7 +209,7 @@ class ContextTree(Tree[ContextNode]):
                 and self.intent.selected is model)
 
 
-class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
+class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     DEFAULT_CSS = """
     ContextExplorer { height: auto; }
     ContextExplorer > .context-status { height: auto; color: $text-muted; }
@@ -219,16 +221,22 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     ContextExplorer > TextArea.-maximized { height: 1fr; width: 1fr; }
     """
     BINDINGS = [("r", "refresh", "Refresh context")]
-    def __init__(self, owner: str, root: str | None, *, intent: ContextTreeIntent):
+    def __init__(self, *, intents: dict[ThreadIdentity, ContextTreeIntent]):
         super().__init__()
-        self.state = InspectionState.for_owner(owner, root)
-        self.intent = intent
+        self.state = DetachedInspection()
+        self._intents = intents
+        self.search_field = Input(placeholder="Search current context or selected recorded request · Enter",
+                                  id="context-search")
+
+    @property
+    def intent(self) -> ContextTreeIntent:
+        return self._intents.setdefault(self.thread_identity, ContextTreeIntent())
 
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
                      classes="context-status")
-        yield Input(self.intent.query, placeholder="Search current context or selected recorded request · Enter",
-                    id="context-search")
+        self.search_field.value = self.intent.query
+        yield self.search_field
         with Horizontal(classes="context-controls"):
             yield Button("Search", id="context-find")
             yield Button("Read full", id="context-read-full")
@@ -237,7 +245,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         with Horizontal(classes="context-controls"):
             yield Button("Newer requests", id="context-newer", disabled=True)
             yield Button("Older requests", id="context-older", disabled=True)
-        yield ContextTree(self.intent, self._show_detail, self._show_placeholder)
+        yield ContextTree(self._show_detail, self._show_placeholder)
         yield ProcessTextArea("No context selected.", soft_wrap=True,
                        show_line_numbers=False, id="context-detail")
         yield Input(placeholder="Export to a new text file · path", id="context-export-path")
@@ -282,13 +290,12 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     def on_unmount(self):
         self.state = DetachedInspection()
 
-    def set_identity(self, owner, root):
-        if self.state.bound_to(owner, root):
-            return
+    def identity_changed(self, identity: ThreadIdentity) -> None:
         self.workers.cancel_node(self)
-        self.state = InspectionState.for_owner(owner, root)
-        self.intent.reset_pages()
+        self.state = InspectionState.for_identity(identity)
+        self.search_field.value = self.intent.query
         self.query_one(ContextTree).clear()
+        self.query_one(".context-status", Static).update(f"Context · {identity.thread}")
         self._show_placeholder("No context selected.")
         self.action_refresh()
 
@@ -296,9 +303,9 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         if self.presentation_visible():
             self._read(force=True)
 
-    def _reading(self, captured):
+    def _reading(self, identity: ThreadIdentity):
         return (self.is_attached and not get_current_worker().is_cancelled
-                and self.state.bound_to(captured.name, captured.root))
+                and self.thread_identity == identity)
 
     def _working(self, group):
         return any(worker.node is self and worker.group == group
@@ -308,15 +315,20 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
     async def _read(self, *, force=False):
         status = self.query_one(".context-status", Static)
         access = self.app.coordination_access
+        identity = self.thread_identity
         previous = self.state
         self.state = previous.observe(access.revision)
+        if not identity.managed:
+            status.update(self.state.status)
+            return
         try:
-            service = await self.app.preparation.run_thread(lambda: access.service)
-            if not self._reading(previous):
+            service = await self.app.preparation.run_thread(
+                lambda: access.require(RouteSelection.capture(identity.root)))
+            if not self._reading(identity):
                 return
-            acquired = await self.state.acquire(service, access.revision,
+            acquired = await self.state.acquire(service, access.revision, identity,
                 cursor=self.intent.cursor)
-            if not self._reading(previous):
+            if not self._reading(identity):
                 return
             self.state = self.state.receive_inspection(acquired)
             status.update(self.state.status)
@@ -324,8 +336,8 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if self._reading(previous):
-                status.update(f"Context unavailable: {error}")
+            if self._reading(identity):
+                status.update(f"{identity.thread} · context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
         self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()
@@ -347,10 +359,10 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if self._reading(captured):
+            if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.native_failed(captured.inspection, error))
         else:
-            if self._reading(captured):
+            if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.with_native(captured.inspection, native))
 
     def _native_acquired(self, updated):
@@ -410,7 +422,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         # Parking retains this tree and its workers. Publish valid preparation
         # into that original tree even while hidden; unmount/identity changes
         # and new source/native resources still revoke the captured content.
-        if (self._reading(captured) and self.state.presentation_current(captured)
+        if (self._reading(captured.thread_identity) and self.state.presentation_current(captured)
                 and not self.intent.query):
             self.query_one(ContextTree).present(groups)
 
@@ -436,7 +448,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         # Destination selection ends the acquired page's lifetime now, not
         # when the replacement read finishes. Unacquired inspection states
         # cannot publish old groups, searches or native results.
-        self.state = InspectionState.for_owner(self.state.name, self.state.root)
+        self.state = InspectionState.for_identity(self.thread_identity)
         self.workers.cancel_group(self, "context-presentation")
         self.workers.cancel_group(self, "context-native")
         self.workers.cancel_group(self, "context-search")
@@ -475,7 +487,7 @@ class ContextExplorer(CoreEventReceiver, SidebarVisibilityObserver, Vertical):
         status.update(f"{len(matches)} matching sources · first 100 shown · {description}")
 
     def _searching(self, captured, query, selected):
-        return (self._reading(captured) and self.state.presentation_current(captured)
+        return (self._reading(captured.thread_identity) and self.state.presentation_current(captured)
                 and self.intent.search_current(query, selected))
 
     @on(Button.Pressed, "#context-read-full")
