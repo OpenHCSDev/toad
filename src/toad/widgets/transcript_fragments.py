@@ -9,7 +9,7 @@ from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
 from agent_comms.message_reference import MessageReference
 from agent_comms.sent_message import PublishedSentMessage
-from agent_comms.transcript_receipts import AssignedTranscriptSource
+from agent_comms.transcript_sources import AssignedTranscriptSource
 from agent_comms.transcript_events import (
     AgentTextTranscript, ContextTranscript, IncomingTranscript, MarkdownTranscript, SentTranscript,
     TextTranscript, ThinkingTranscript, ToolTranscript, TranscriptEvent, UserTranscript,
