@@ -144,6 +144,25 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         model = snapshot.groups_by_type.get(type(self.model)) if snapshot is not None else None
         return frozenset(entry.target for entry in model.entries) if model is not None else frozenset()
 
+    def on_mount(self) -> None:
+        tree = self.query_ancestor(ThreadCommsSidebar)
+        observed = self.app.coordination_access.observation
+        self._thread_model = (observed.sidebar.threads if observed is not None
+                              and tree.thread_rows is observed.sidebar.threads.rows else None)
+        if self._thread_model is not None:
+            self._thread_model.subscribe(self.threads_changed)
+
+    def on_unmount(self) -> None:
+        if self._thread_model is not None:
+            self._thread_model.unsubscribe(self.threads_changed)
+
+    def threads_changed(self, changes) -> None:
+        names = frozenset((*changes.added, *changes.removed, *changes.changed))
+        changed = frozenset(entry.target for entry in self.model.entries
+                            if entry.person is not None and entry.person.thread.name in names)
+        if changed:
+            self.sync_members(changed=changed)
+
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         """Reconcile member rows from this group's entries and the tree's derived thread rows."""
         if not self.member_container.is_attached or not self.accepts_members():
@@ -165,7 +184,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
             entry = entries[key]
             row.present(entry, rows.get(entry.person.thread.name) if rows is not None and entry.person is not None else None)
 
-        self.reconcile_rows(create, update)
+        self.reconcile_rows(create, update, changed=changed)
         tree.apply_selection()
 
 
@@ -277,9 +296,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         if not self.query_ancestor(SideBar).presentation_visible:
             return
         self._sync_filter_control()
-        for group in self.groups.values():
-            if group.display:
-                group.sync_members()
         self.refresh_relationships()
 
     def _sync_filter_control(self):
