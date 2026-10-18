@@ -429,6 +429,11 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         # never consult a mutable widget after that worker has been scheduled.
         access = self.coordination_access
         name = screen._comms_thread
+        sidebar = access.sidebar
+        snapshot = sidebar.snapshot if sidebar is not None else None
+        row = snapshot.threads.get(name) if snapshot is not None else None
+        if row is not None and row.thread.runtime.read_key == through.session_file and row.read_through >= through.offset:
+            return
         project = screen.project_path
         source_root = screen.coordination_root
         worktree = str(self.project_dir)
