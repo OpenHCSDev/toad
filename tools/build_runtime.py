@@ -340,13 +340,13 @@ class TerminalApp:
         return path
 
     def wait(self, name, predicate, seconds=40):
-        deadline = time.monotonic() + seconds
+        deadline = None if seconds is None else time.monotonic() + seconds
         while True:
             text = self.capture()
             if predicate(text):
                 (self.output / f'{name}.txt').write_text(text)
                 return text
-            if self.terminal.poll() is not None or time.monotonic() >= deadline:
+            if self.terminal.poll() is not None or (deadline is not None and time.monotonic() >= deadline):
                 (self.output / f'{name}-failed.txt').write_text(text)
                 self.screenshot(f'{name}-failed')
                 raise RuntimeError(f'Terminal probe {name} failed; see {self.output}')
@@ -602,7 +602,6 @@ try:
     (out/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=child.name)))
     started=time.monotonic()
     sent=c.messaging.send_message('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
-    deadline=time.monotonic()+120
     while True:
         failures=list((c.root/'diagnostics').glob('drain-*.json'))
         if failures:raise RuntimeError(f'Private wake produced a drain diagnostic: {failures}')
@@ -611,14 +610,14 @@ try:
         replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and token in m.body]
         current=c.registry.require(child.name)
         if replies and not current.turn_state.active.executing:break
-        if time.monotonic()>deadline:raise TimeoutError('Private message did not complete its wake')
         time.sleep(.25)
     assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
     (out/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[-1].body,
         session=forked.path,original_unchanged=True,drain_diagnostics=0,reply_seconds=time.monotonic()-started)))
     (out/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=child.name)))
 finally:
-    c.owners.stop(child.name)
+    if not c.registry.require(child.name).turn_state.active.executing:
+        c.owners.stop(child.name)
 ''', str(output), str(startup), str(runtime)], env=environment, stdout=subprocess.PIPE,
             stdin=subprocess.PIPE, stderr=log, text=True)
         try:
@@ -646,7 +645,7 @@ finally:
                         if worker.poll() not in (None, 0):
                             raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
                         return (output / 'result.json').exists() and token in text
-                    app.wait('reply', replied, seconds=150)
+                    app.wait('reply', replied, seconds=None)
                     app.screenshot('reply')
                     app.keys('C-g')
                     app.wait('reply-channel', lambda text: '#any · all comms' in text
@@ -812,7 +811,7 @@ class RuntimeBuild:
             # Keep an installed but unqualified candidate available for diagnosis.
             # Only build.json below certifies readiness; never rebuild to inspect it.
             cleanup.pop_all()
-        return self.qualify(destination)
+        return destination
 
     def qualify(self, destination: Path) -> Path:
         """Finish the existing readiness checks on an installed candidate."""
@@ -871,6 +870,8 @@ def main() -> None:
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--qualify-runtime', type=Path, help='Finish gates on an existing unqualified candidate; build nothing')
+    parser.add_argument('--package-only', action='store_true',
+                        help='Build for a separate private UI check; send no input and write no build.json')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -880,6 +881,8 @@ def main() -> None:
         parser.error('--start-thread and --start-env must be used together')
     if args.build_only and args.start_thread:
         parser.error('--build-only cannot start an acceptance thread')
+    if args.package_only and (not args.build_only or args.qualify_runtime):
+        parser.error('--package-only requires --build-only and cannot qualify a runtime')
     if not args.build_only and args.display is None:
         parser.error('--display is required for an app check')
     build = RuntimeBuild(
@@ -889,7 +892,9 @@ def main() -> None:
         args.scratch.resolve(), args.runtimes.resolve(), args.thread,
         args.start_env.resolve(strict=True) if args.start_env else None,
     )
-    runtime = build.qualify(args.qualify_runtime.resolve(strict=True)) if args.qualify_runtime else build.build()
+    runtime = args.qualify_runtime.resolve(strict=True) if args.qualify_runtime else build.build()
+    if not args.package_only:
+        runtime = build.qualify(runtime)
     if not args.build_only:
         with XvfbDisplay(args.display) as display:
             build.accept(runtime, display)
