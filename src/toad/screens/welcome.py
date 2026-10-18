@@ -23,9 +23,9 @@ from toad.format_path import format_path
 from toad.navigation_target import FeedTarget, NavigationContext, NavigationOwner, NavigationTarget
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.screens.session_view import SessionOrigin, SessionView
-from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow, SidebarModelView
+from toad.widgets.comms_sidebar import CommsRow, NewSessionButton, ThreadStatusRow
 from toad.application_actions import NewThreadAction
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, TargetTree
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, TargetTree
 from toad.widgets.splash_text import SplashText
 
 if TYPE_CHECKING:
@@ -161,17 +161,12 @@ class WelcomeEntries(SidebarModelView, TargetTree):
 
     async def on_mount(self) -> None:
         app = self.app
-        self.observe_core(app.events)
-        self.observe_core(app.coordination_access.events)
         try:
             service = await app.preparation.run_thread(lambda: app.coordination_access.service)
         except (OSError, ValueError, RuntimeError) as error:
             self.notify(str(error), title="Comms unavailable", severity="error")
             return
         self.attach(service)
-
-    def on_unmount(self) -> None:
-        self.stop_showing()
 
     def accepts_observation(self) -> bool:
         return self.is_attached and self.query_ancestor(WelcomeScreen).is_current
