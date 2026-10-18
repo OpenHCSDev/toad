@@ -309,7 +309,7 @@ print(json.dumps(names))
     home = output / 'home'
     home.mkdir(mode=0o700)
     saved = json.loads(run(baseline / 'bin/python', '-I', '-B', '-c', '''
-import json,sys
+import json,sys,os
 from agent_comms.active_route import read_active_route
 from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
@@ -317,7 +317,7 @@ from agent_comms.launch_runtime import RestartEnvironment
 c=wire(read_active_route());t=c.registry.require(sys.argv[1])
 print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backend),model=t.model,
                      package=str(read_active_route().native_package),
-                     config=str(RestartEnvironment.inherit().native_config))))
+                     config=str(RestartEnvironment.inherit(os.environ).native_config))))
 ''', thread))
     project = output / 'project'
     project.mkdir(mode=0o700)
