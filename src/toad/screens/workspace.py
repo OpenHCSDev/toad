@@ -68,6 +68,13 @@ class WorkspaceScreen(WidgetView, SidebarFocusOwner, Screen):
         Binding("escape", "back_to_bottom", "Back to bottom", priority=True, show=False),
     ]
 
+    @classmethod
+    def require(cls, screen: Screen) -> "WorkspaceScreen":
+        """Resolve the native widget screen at the workspace boundary."""
+        if not isinstance(screen, cls):
+            raise TypeError(f"{type(screen).__name__} is not a {cls.__name__}")
+        return screen
+
     @property
     def COMMANDS(self):
         return self.app.workspace_sessions.source.commands()
