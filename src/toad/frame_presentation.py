@@ -254,6 +254,36 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
+class EffectPhase:
+    def paint(self, owner, effect, strip):
+        return owner.paint_effects(strip, owner.effect_frame(effect))
+
+    def keeps_arrivals(self, arrivals):
+        return arrivals
+
+    def on_new_arrival(self, owner, effect, pages):
+        pass
+
+
+class EffectUnstarted(EffectPhase):
+    def paint(self, owner, effect, strip):
+        owner.run_effect(effect)
+        return super().paint(owner, effect, strip)
+
+
+class EffectFinished(EffectPhase):
+    def keeps_arrivals(self, arrivals):
+        return ()
+
+    def on_new_arrival(self, owner, effect, pages):
+        for page in pages:
+            page.arrivals.clear()
+        owner.stop_effect(effect)
+
+
+EFFECT_UNSTARTED, EFFECT_RUNNING, EFFECT_FINISHED = EffectUnstarted(), EffectPhase(), EffectFinished()
+
+
 class AnimationEffects[FrameT: Frame]:
     """A native widget whose effect uses the app clock and published visibility."""
 
@@ -284,9 +314,10 @@ class AnimationEffects[FrameT: Frame]:
         animation = self.effects.get(effect)
         return effect.final if animation is None else animation.frame()
 
-    def effect_running(self, effect: Effect[FrameT]) -> bool:
+    def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         animation = self.effects.get(effect)
-        return animation is not None and not animation.finished
+        return (EFFECT_UNSTARTED if animation is None else
+                EFFECT_FINISHED if animation.finished else EFFECT_RUNNING)
 
     def on_unmount(self) -> None:
         self.stop_effect()
