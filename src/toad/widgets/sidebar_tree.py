@@ -303,16 +303,25 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
             self.sync_members(frozenset())
 
 
+EMPTY = SidebarModel(lambda callback: None)
+
+
 class SidebarModelState:
+    @property
+    def shown(self) -> SidebarModel:
+        return EMPTY
+
     def shows_model(self) -> bool:
+        return False
+
+    def serves(self, path) -> bool:
+        return False
+
+    def channel_active(self, row) -> bool:
         return False
 
     def observes(self, observed: ObservedCommsService) -> bool:
         return False
-
-    @property
-    def navigation_root(self):
-        return None
 
     def unsubscribe(self, view) -> None:
         pass
@@ -321,33 +330,6 @@ class SidebarModelState:
         return changes
 
     def apply(self, view, changes) -> None:
-        pass
-
-    def member_keys(self):
-        return ()
-
-    def mount_source(self):
-        return ()
-
-    def channel_row(self, key):
-        return None
-
-    def thread_rows(self):
-        return {}
-
-    def order_groups(self, view):
-        pass
-
-    def update_open_views(self, view):
-        pass
-
-    def open_views(self, view):
-        return {}
-
-    def welcome_keys(self, section):
-        return ()
-
-    def sync_welcome(self, section, changed):
         pass
 
     def present(self, view):
@@ -371,9 +353,8 @@ class BoundSidebar(SidebarModelState):
     def service(self) -> Comms:
         return self.observed.service
 
-    @property
-    def navigation_root(self):
-        return self.service.root
+    def serves(self, path) -> bool:
+        return self.service.root.resolve() == path
 
     def observes(self, observed: ObservedCommsService) -> bool:
         return self.observed is observed
@@ -401,32 +382,12 @@ class Current(BoundSidebar):
         if changes:
             view.sync(**changes)
 
-    def member_keys(self):
-        return (key for channel in self.model.channels.rows.values() for key in channel.members)
+    @property
+    def shown(self) -> SidebarModel:
+        return self.model
 
-    def mount_source(self):
-        return tuple(self.model.channels.rows)
-
-    def channel_row(self, key):
-        return self.model.channels.rows.get(key)
-
-    def thread_rows(self):
-        return self.model.threads.rows
-
-    def order_groups(self, view):
-        view._order_groups()
-
-    def update_open_views(self, view):
-        view.open_views = self.open_views(view)
-
-    def open_views(self, view):
-        return view._find_open_views(self.model.threads.rows, self.service.root)
-
-    def welcome_keys(self, section):
-        return section.keys(self.model)[:section.LIMIT]
-
-    def sync_welcome(self, section, changed):
-        section._sync_members(self.model, changed)
+    def channel_active(self, row) -> bool:
+        return row.target.active_in(self.model.channels)
 
 
 class Behind(BoundSidebar):
@@ -464,10 +425,10 @@ class SidebarModelView(CoreEventReceiver):
 
     @property
     def navigation_root(self):
-        return self.model_state.navigation_root
+        return self.model_state.service.root
 
     def channel_active(self, row) -> bool:
-        return self.model_state.shows_model() and row.target.active_in(self.model_state.model.channels)
+        return self.model_state.channel_active(row)
 
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
