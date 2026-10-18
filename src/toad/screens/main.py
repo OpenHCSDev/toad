@@ -113,8 +113,8 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         """The opening line this content state shows; empty hides it."""
 
     def render(self, screen: "MainScreen") -> Static:
-        """The opening line: the session's disposition decides whether a failure replaces it."""
-        line = screen.session_disposition.present(self.line(), lambda status: status.notice)
+        """Describe content preparation; connection state belongs to its status row."""
+        line = self.line()
         return self.label(screen, line, visible=bool(line))
 
     @abstractmethod
@@ -131,7 +131,7 @@ class ScreenContent(DeclaredFamily, affix="Content"):
         """Terminal content has no unfinished waiters to release."""
 
     async def attached(self, screen: "MainScreen") -> None:
-        """Refresh connection feedback from the session that just became ready."""
+        """Repaint the current content state when its session becomes ready."""
         self.render(screen)
 
     def label(self, screen: "MainScreen", text: str, *, visible: bool) -> Static:
@@ -409,12 +409,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         with self.changing_identity() as previous:
             self._identity = previous.with_session(event.session_id)
         await self.content.attached(self)
-
-    @handles(core_events.AgentFail)
-    def on_session_failure(self, message: CoreEventMessage) -> None:
-        # A disconnected session is not a failed history-opening operation.
-        # Its reason stays on the session; the opening line reads it there.
-        self.content.render(self)
 
     _last_dm_target: str | None = None
 
