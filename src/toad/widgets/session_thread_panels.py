@@ -8,7 +8,7 @@ from toad.plan import PlanItem
 from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
-from toad.widgets.side_bar import SideBar, SideBarCollapsible
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget
 from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_comms import RelationshipSort, RelationshipTreeState, ThreadCommsSidebar
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 
 
-class SessionPanel[W: Widget](DeclaredFamily, affix="SessionPanel"):
+class SessionPanel[W: SidebarPanelWidget](DeclaredFamily, affix="SessionPanel"):
     """Only small reader intent survives; the panel is a view of Core state."""
     collapsed: ClassVar[bool] = False
     flex: ClassVar[bool] = False

@@ -43,11 +43,6 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
     """A captured output value; each case owns its semantic detail blocks."""
 
     @property
-    @abstractmethod
-    def retained_bytes(self) -> int:
-        """The captured presentation payload, without preparing its details."""
-
-    @property
     def has_details(self) -> bool:
         return True
 
@@ -74,10 +69,6 @@ class ToolOutputPart(ToolDetails, DeclaredFamily, affix="ToolOutputPart"):
 @dataclass(frozen=True)
 class TextToolOutputPart(ToolOutputPart):
     text: str
-
-    @property
-    def retained_bytes(self) -> int:
-        return 64 + 4 * len(self.text)
 
     def permission_preview(self) -> ToolOutputPart:
         # Permission questions interpret all text as Markdown, independent of
@@ -168,10 +159,6 @@ class ReadToolOutputPart(SpecificTextToolOutputPart):
 class PatchToolOutputPart(ToolOutputPart):
     source: str
 
-    @property
-    def retained_bytes(self) -> int:
-        return 64 + 4 * len(self.source)
-
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return (parse_patch(self.source),)
@@ -187,10 +174,6 @@ class NumberedPatchToolOutputPart(ToolOutputPart):
 
     source: str
 
-    @property
-    def retained_bytes(self) -> int:
-        return 64 + 4 * len(self.source)
-
     @cached_property
     def line_blocks(self) -> tuple[LineBlock, ...]:
         return (parse_numbered_patch(self.source),)
@@ -202,10 +185,6 @@ class SentMessageToolOutputPart(ToolOutputPart):
 
     message: SentTranscript
     literal: str
-
-    @property
-    def retained_bytes(self) -> int:
-        return 128 + 4 * (len(self.literal) + self.message.text_size)
 
     @classmethod
     def capture(cls, message, literal=None):
@@ -239,10 +218,6 @@ class PublishedSentMessageToolOutputPart(ToolOutputPart):
     row: MessageRow
 
     @property
-    def retained_bytes(self) -> int:
-        return 128 + 4 * len(self.literal)
-
-    @property
     def standalone_messages(self):
         return (self,)
 
@@ -257,10 +232,6 @@ class FileDiffToolOutputPart(ToolOutputPart):
     old_text: str | None
     new_text: str
 
-    @property
-    def retained_bytes(self) -> int:
-        return 128 + 4 * (len(self.path) + len(self.old_text or "") + len(self.new_text))
-
     def permission_preview(self) -> ToolOutputPart:
         return self
 
@@ -274,10 +245,6 @@ class FileDiffToolOutputPart(ToolOutputPart):
 
 class OmittedToolOutputPart(ToolOutputPart):
     """Content with no details in this view, including externally owned terminals."""
-
-    @property
-    def retained_bytes(self) -> int:
-        return 64
 
     @property
     def has_details(self) -> bool:

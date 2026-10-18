@@ -26,10 +26,10 @@ from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
 from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPresentation
 from toad.widgets.message_filter import MessageCategory, event_category
+from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
     from toad.tool_output import ToolOutputPart
-    from toad.widgets.transcript_lines import PlainLines
 
 
 @dataclass(frozen=True)
@@ -207,8 +207,8 @@ class TranscriptFragment:
     # Whether the fragment has details a reader can show and hide.
     has_details: ClassVar[bool] = False
     checks_notifications: ClassVar[bool] = False
-    _lines: ClassVar[tuple | None] = None
-    _plain: ClassVar["PlainLines | None"] = None
+    _lines: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
+    _plain: RowAcquisition = field(default_factory=NoRows, init=False, repr=False, compare=False)
 
     @property
     def notification_references(self) -> tuple[MessageReference, ...]:
@@ -252,7 +252,7 @@ class TranscriptFragment:
         self.shown = shown
         self.__dict__.pop("line_blocks", None)
         self.invalidate_lines()
-        self._plain = None
+        self._plain = NoRows()
 
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
@@ -288,12 +288,7 @@ class TranscriptFragment:
 
     def lines_for(self, width: int, theme):
         """Cached lookup is geometry-only; source changes use declared invalidation."""
-        held = self._lines
-        if held is not None and held[0].preparation.theme is theme:
-            lines = held[1].rewrap(width)
-            self._lines = held[0], lines
-            return lines
-        return None
+        return self._lines.for_view(width, theme)
 
     def retains_lines(self, lines, theme) -> bool:
         """Whether measured rows still belong to this source and palette.
@@ -301,43 +296,27 @@ class TranscriptFragment:
         Their width belongs to the rows themselves. Offscreen geometry may
         retain that measured width until the viewport asks for another one.
         """
-        held, plain = self._lines, self._plain
-        return (held is not None and held[0].preparation.theme is theme
-                and held[1].preparation is lines.preparation
-                or plain is not None and plain.preparation.theme is theme
-                and plain.preparation.blocks is lines.preparation.blocks)
+        return self._lines.retains(lines, theme) or self._plain.retains(lines, theme)
 
     def invalidate_lines(self):
-        self._lines = None
+        self._lines = NoRows()
 
     def hold_lines(self, request, lines) -> bool:
         """Report whether these rows were retained for the fragment's source."""
         if request.blocks is self.line_blocks:
-            self._lines = request, lines
+            self._lines = AcquiredRows(request.preparation, lines)
             return True
         return False
 
     def plain_lines(self, width: int, renderer):
         """Plain wrapped lines drawn until styled lines arrive; one per width."""
-        from toad.widgets.transcript_lines import PlainLines
-
-        held = self._plain
-        if held is None or held.preparation.theme is not renderer.theme:
-            held = PlainLines(width, renderer, self.line_blocks)
-        self._plain = held.rewrap(width)
-        return self._plain
-
-
-    @property
-    def source_payload_bytes(self) -> int:
-        return sum(256 + 4 * event.text_size for event in self.events)
+        self._plain = acquired = self._plain.plain(width, renderer, self.line_blocks)
+        return acquired.lines
 
     @property
     def retained_bytes(self) -> int:
-        """Declared source payload plus rows actually acquired by this view."""
-        return (256 + self.source_payload_bytes
-                + (self._lines.preparation.retained_bytes if self._lines is not None else 0)
-                + (self._plain.preparation.retained_bytes if self._plain is not None else 0))
+        """Only this fragment's record and acquired rows; the page owns events."""
+        return 256 + self._lines.preparation.retained_bytes + self._plain.preparation.retained_bytes
 
 
 @dataclass(kw_only=True)
@@ -346,10 +325,6 @@ class ToolTranscriptFragment(TranscriptFragment):
 
     tool_call: ToolCallStatus
     output_parts: "tuple[ToolOutputPart, ...]"
-
-    @property
-    def retained_bytes(self) -> int:
-        return super().retained_bytes + sum(part.retained_bytes for part in self.output_parts)
 
     @property
     def has_details(self) -> bool:
@@ -374,10 +349,6 @@ class BusMessageFragment(TranscriptFragment):
     shown: MessageShown = field(default_factory=MessageShown)
     text_part: str
     row: MessageRow
-
-    @property
-    def retained_bytes(self) -> int:
-        return super().retained_bytes + 4 * len(self.text_part)
 
     @classmethod
     def capture_part(cls, event, text, **kwargs):
