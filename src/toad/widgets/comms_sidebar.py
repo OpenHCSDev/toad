@@ -125,7 +125,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         channel = self.sidebar.model_state.shown.channels.rows.get(self.row.target_name)
         return channel.members if channel is not None else ()
 
-    def sync_members(self, changed: frozenset[str] | None = None) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
         self.reconcile_rows(changed=changed)
