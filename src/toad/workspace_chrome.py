@@ -91,8 +91,6 @@ class WorkspaceChrome(VerticalLayout):
         # Route changes are the access owner's once-a-second check.
         if (service := view.app.coordination_access.observed_service) is not None:
             roster.attach(service)
-        actor, _ = view.channels_context()
-        roster.session_thread = actor
         roster.set_enabled(view.shows_channels)
         self.channels.display = view.shows_channels
         self.footer.compact = view.footer_compact

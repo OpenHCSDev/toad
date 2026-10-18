@@ -662,10 +662,6 @@ class ContextInspection:
 class InspectionState(DeclaredFamily, affix="Inspection"):
     """One inspection lifetime; Textual owns workers and Tree resources separately."""
 
-    @classmethod
-    def for_identity(cls, identity: ThreadIdentity) -> InspectionState:
-        return ReadingOwnerInspection() if identity.managed else DetachedInspection()
-
     def observed_at(self, revision) -> bool:
         return True
 

@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from toad.core.events import ThreadIdentityChanged
 from typing import TYPE_CHECKING
 from toad.core_event_carrier import CoreEventReceiver
-from toad.thread_identity import ThreadIdentity
+from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.project_path_owner import ProjectPathOwner
 
 if TYPE_CHECKING:
@@ -104,8 +104,8 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertic
         return None
 
     @property
-    def thread_identity(self) -> ThreadIdentity:
-        raise NotImplementedError
+    def thread_identity(self) -> SessionIdentity:
+        return NoThreadIdentity()
 
     @contextmanager
     def changing_identity(self):

@@ -1,7 +1,6 @@
 from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventMessage
 from toad.core import events as core_events
-from toad.core.events import ThreadIdentityChanged
 from toad.core import session_requests
 from toad.screens.session_view import SessionView
 import asyncio
@@ -93,24 +92,21 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def navigation_target_name(self) -> str:
         return self.target
 
-    def relationship_context(self) -> tuple[str, str | None]:
-        return self.me, self.owner_root
+    @property
+    def thread_identity(self):
+        from toad.thread_identity import ThreadIdentity, NoThreadIdentity
+        return (ThreadIdentity(self.me, self.owner_root)
+                if self.me and self.owner_root is not None else NoThreadIdentity())
 
     def rebind_identity(self, identity: str) -> None:
-        previous = self.thread_identity
-        self.me = identity
-        if chat := self.query_one_optional(CommsChatView):
-            chat._me = identity
-        if sidebar := self.query_one_optional(CommsSidebar):
-            sidebar.session_thread = identity
-        if previous != self.thread_identity:
-            self.publish_core(ThreadIdentityChanged())
+        with self.changing_identity():
+            self.me = identity
+            if chat := self.query_one_optional(CommsChatView):
+                chat._me = identity
 
     def rebind_owner_root(self, root: str | None) -> None:
-        previous = self.thread_identity
-        self.owner_root = root
-        if previous != self.thread_identity:
-            self.publish_core(ThreadIdentityChanged())
+        with self.changing_identity():
+            self.owner_root = root
 
     def rebind_project(self, project: Path) -> None:
         changed = project != self.project_path
@@ -120,9 +116,6 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         if chat := self.query_one_optional(CommsChatView):
             chat.project_path = project
             chat.working_directory = str(project)
-
-    def channels_context(self) -> tuple[str, str]:
-        return self.me, self.target
 
     def sidebars(self):
         sidebar = self.query_one_optional(ThreadSidebar)

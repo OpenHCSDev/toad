@@ -3,7 +3,7 @@
 from __future__ import annotations
 from agent_comms.mro_dispatch import handles
 from toad.core_event_carrier import CoreEventMessage
-from toad.thread_identity import ThreadIdentity
+from toad.thread_identity import ThreadIdentity, SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core import events as core_events
 
@@ -54,7 +54,7 @@ class RelationshipSort(SortControl[ThreadSort]):
 
     def order_writer(self):
         tree = self.query_ancestor(SideBarCollapsible).query_one(ThreadCommsSidebar)
-        identity, generation = tree.thread_identity, tree._generation
+        identity, generation = tree.thread_view.thread_identity, tree._generation
         snapshot = tree._snapshot
         if snapshot is None:
             raise ValueError("Relationship ordering is not available yet")
@@ -62,13 +62,13 @@ class RelationshipSort(SortControl[ThreadSort]):
 
         async def write(order: type[ThreadSort]):
             service = await tree.relationship_source(identity)
-            if generation != tree._generation or identity != tree.thread_identity:
+            if generation != tree._generation or identity != tree.thread_view.thread_identity:
                 return
             try:
                 for group in groups:
                     await self.app.preparation.run_thread(service.set_order, identity.thread, type(group), order)
             finally:
-                if generation == tree._generation and identity == tree.thread_identity:
+                if generation == tree._generation and identity == tree.thread_view.thread_identity:
                     tree.refresh_relationships(force=True)
 
         return write
@@ -180,7 +180,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
                 ("enter", "open_selected", "Open")]
 
     def __init__(self, *, source: RelationshipSource | None = None,
-                 states: dict[ThreadIdentity, RelationshipTreeState] | None = None):
+                 states: dict[SessionIdentity, RelationshipTreeState] | None = None):
         super().__init__()
         self._generation = 0
         self._refresh_task = None
@@ -196,7 +196,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
 
     @property
     def view_state(self):
-        return self._states.setdefault(self.thread_identity, RelationshipTreeState())
+        return self._states.setdefault(self.thread_view.thread_identity, RelationshipTreeState())
 
     async def relationship_source(self, identity: ThreadIdentity) -> RelationshipSource:
         if self._source is not None:
@@ -211,7 +211,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         self.refresh_relationships(force=True)
 
     def compose(self):
-        yield Static(f"For @{self.thread_identity.thread}", classes="relationship-context", markup=False)
+        yield Static(self.thread_view.thread_identity.display_thread(), classes="relationship-context", markup=False)
         self._filter_controls.clear()
         for category in MessageCategory.members_with(MessageCategory):
             checkbox = Checkbox(category.label, id=f"filter-{category.declared_name}",
@@ -244,12 +244,12 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         if self._refresh_task is not None:
             self._refresh_task.cancel()
 
-    def identity_changed(self, identity: ThreadIdentity) -> None:
+    def identity_changed(self, identity: SessionIdentity) -> None:
         self._reset_relationships()
         selected = self.view_state.selected
         self.selected = selected[1] if selected is not None else None
         self.query_one(".relationship-context", Static).update(
-            Content(f"For @{identity.thread}"), layout=False)
+            Content(f"For {identity.display_thread()}"), layout=False)
         self.refresh_relationships(force=True)
 
     def _reset_relationships(self) -> None:
@@ -320,8 +320,9 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
         if not self.is_mounted or not self._visible():
             return
         context = self.query_one(".relationship-context", Static)
-        if not self.thread_identity.managed:
-            context.update(Content(f"For @{self.thread_identity.thread} · no managed wire"), layout=False)
+        identity = self.thread_view.thread_identity
+        if not identity.managed:
+            context.update(Content(f"{identity.display_thread()} · {identity.display_root()}"), layout=False)
             return
         if self._refresh_task is not None and not self._refresh_task.done():
             return
@@ -330,14 +331,14 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
     @property
     def thread_rows(self):
         observed = self.app.coordination_access.observation
-        identity = self.thread_identity
+        identity = self.thread_view.thread_identity
         if identity.managed and observed is not None and Path(identity.root).resolve() == observed.service.root.resolve():
             return observed.sidebar.threads.rows
         return None
 
     async def _refresh(self, generation):
         try:
-            identity = self.thread_identity
+            identity = self.thread_view.thread_identity
             service = await self.relationship_source(identity)
             if generation != self._generation or not self.is_attached:
                 return
@@ -415,11 +416,10 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
 
     @property
     def navigation_root(self):
-        identity = self.thread_identity
-        return Path(identity.root).expanduser().resolve() if identity.managed else None
+        return self.thread_view.thread_identity.root_path()
 
     def open_target(self, target: NavigationTarget):
-        identity = self.thread_identity
+        identity = self.thread_view.thread_identity
         if not identity.managed or Path(identity.root).resolve() != self.app.coordination_access.service.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
@@ -437,7 +437,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
     async def _navigate_current(self, group_key, expected, generation):
         if generation != self._generation or not expected.available:
             return
-        identity = self.thread_identity
+        identity = self.thread_view.thread_identity
         try:
             service = await self.relationship_source(identity)
             snapshot = await asyncio.to_thread(service.snapshot, identity.thread)

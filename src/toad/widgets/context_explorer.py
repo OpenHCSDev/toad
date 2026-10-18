@@ -21,7 +21,7 @@ from toad.core.context_inspection import (
 from toad.core.events import CoordinationObserved, SessionSelected
 from toad.core_event_carrier import CoreEventMessage
 from agent_comms.route_selection import RouteSelection
-from toad.thread_identity import ThreadIdentity
+from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.screens.session_view import SessionView
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
@@ -221,7 +221,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     ContextExplorer > TextArea.-maximized { height: 1fr; width: 1fr; }
     """
     BINDINGS = [("r", "refresh", "Refresh context")]
-    def __init__(self, *, intents: dict[ThreadIdentity, ContextTreeIntent]):
+    def __init__(self, *, intents: dict[SessionIdentity, ContextTreeIntent]):
         super().__init__()
         self.state = DetachedInspection()
         self._intents = intents
@@ -230,7 +230,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
 
     @property
     def intent(self) -> ContextTreeIntent:
-        return self._intents.setdefault(self.thread_identity, ContextTreeIntent())
+        return self._intents.setdefault(self.thread_view.thread_identity, ContextTreeIntent())
 
     def compose(self):
         yield Static("Context · select a segment to inspect", markup=False,
@@ -290,12 +290,12 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     def on_unmount(self):
         self.state = DetachedInspection()
 
-    def identity_changed(self, identity: ThreadIdentity) -> None:
+    def identity_changed(self, identity: SessionIdentity) -> None:
         self.workers.cancel_node(self)
-        self.state = InspectionState.for_identity(identity)
+        self.state = identity.inspection_state()
         self.search_field.value = self.intent.query
         self.query_one(ContextTree).clear()
-        self.query_one(".context-status", Static).update(f"Context · {identity.thread}")
+        self.query_one(".context-status", Static).update(f"Context · {identity.display_thread()}")
         self._show_placeholder("No context selected.")
         self.action_refresh()
 
@@ -303,9 +303,9 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         if self.presentation_visible():
             self._read(force=True)
 
-    def _reading(self, identity: ThreadIdentity):
+    def _reading(self, identity: SessionIdentity):
         return (self.is_attached and not get_current_worker().is_cancelled
-                and self.thread_identity == identity)
+                and self.thread_view.thread_identity == identity)
 
     def _working(self, group):
         return any(worker.node is self and worker.group == group
@@ -315,7 +315,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     async def _read(self, *, force=False):
         status = self.query_one(".context-status", Static)
         access = self.app.coordination_access
-        identity = self.thread_identity
+        identity = self.thread_view.thread_identity
         previous = self.state
         self.state = previous.observe(access.revision)
         if not identity.managed:
@@ -448,7 +448,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         # Destination selection ends the acquired page's lifetime now, not
         # when the replacement read finishes. Unacquired inspection states
         # cannot publish old groups, searches or native results.
-        self.state = InspectionState.for_identity(self.thread_identity)
+        self.state = self.thread_view.thread_identity.inspection_state()
         self.workers.cancel_group(self, "context-presentation")
         self.workers.cancel_group(self, "context-native")
         self.workers.cancel_group(self, "context-search")

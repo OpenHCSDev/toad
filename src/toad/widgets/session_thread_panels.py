@@ -9,7 +9,7 @@ from toad.widgets.plan import Plan
 from toad.widgets.project_panel import ProjectPanel, RestorableProjectPanel
 from toad.widgets.project_tree_intent import ProjectTreeIntent
 from toad.widgets.side_bar import SideBar, SideBarCollapsible
-from toad.thread_identity import ThreadIdentity
+from toad.thread_identity import SessionIdentity
 from toad.widgets.thread_comms import RelationshipSort, RelationshipTreeState, ThreadCommsSidebar
 
 if TYPE_CHECKING:
@@ -48,7 +48,7 @@ class ThreadSessionPanel(SessionPanel[CoordinationStatus]):
 
 class CommsSessionPanel(SessionPanel[ThreadCommsSidebar]):
     def __init__(self) -> None:
-        self.states: dict[ThreadIdentity, RelationshipTreeState] = {}
+        self.states: dict[SessionIdentity, RelationshipTreeState] = {}
 
     def make_widget(self, screen: "MainScreen") -> ThreadCommsSidebar:
         return ThreadCommsSidebar(states=self.states)

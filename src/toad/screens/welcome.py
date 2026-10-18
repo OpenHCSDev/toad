@@ -235,9 +235,6 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
         assert self.id is not None
         return NavigationContext(self.app, self.id, self.project_path, self._comms_thread)
 
-    def channels_context(self) -> tuple[str, str]:
-        return self._comms_thread, ""
-
     async def open_sidebar_target(self, target: NavigationTarget) -> str:
         app = cast("ToadApp", self.app)
         project = str(self.project_path)

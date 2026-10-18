@@ -338,8 +338,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         # The identity is updated by ACP's coordination notification and
         # cached on this screen. Resolving it through the wire here can
         # block the first frame of every navigation on store I/O.
-        if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
-            sidebar.session_thread = self._comms_thread
         if self._project_panel is not None:
             self.call_after_refresh(self._project_panel.refresh_if_visible)
 
@@ -369,6 +367,13 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         await self.presentation.close(self)
 
     @property
+    def thread_identity(self):
+        from toad.thread_identity import ThreadIdentity, NoThreadIdentity
+        root = self.coordination_root
+        return (ThreadIdentity(self._comms_thread, root)
+                if self._comms_thread and root is not None else NoThreadIdentity())
+
+    @property
     def coordination_root(self) -> str | None:
         fact = self.app.coordination_facts.get(self)
         return fact.wire_root if fact is not None else self.initial_coordination_root
@@ -396,21 +401,18 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     @handles(CoordinationChangedUpdate)
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         async with self.presentation.transcript.changing_source(self):
-            previous_identity = self.thread_identity
-            self.app.coordination_facts[self] = event
-            if previous_identity.root != self.coordination_root:
-                self.link_context_changed()
-            if event.worktree is not None:
-                self.bind_project(Path(event.worktree))
-            self._comms_thread = event.thread.name
-            if (sidebar := self.query_one_optional(CommsSidebar)) is not None:
-                sidebar.session_thread = self._comms_thread
-            if self.id is not None:
-                self.app.session_navigation.sync_identity(self.id, previous_identity.thread, self._comms_thread)
-                self.app.session_tracker.bind_identity(self.id, previous_identity.thread, self._comms_thread)
-                self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
-            if previous_identity != self.thread_identity:
-                self.publish_core(core_events.ThreadIdentityChanged())
+            with self.changing_identity():
+                previous_thread, previous_root = self._comms_thread, self.coordination_root
+                self.app.coordination_facts[self] = event
+                if previous_root != self.coordination_root:
+                    self.link_context_changed()
+                if event.worktree is not None:
+                    self.bind_project(Path(event.worktree))
+                self._comms_thread = event.thread.name
+                if self.id is not None:
+                    self.app.session_navigation.sync_identity(self.id, previous_thread, self._comms_thread)
+                    self.app.session_tracker.bind_identity(self.id, previous_thread, self._comms_thread)
+                    self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
@@ -533,13 +535,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
 
     def on_mount(self) -> None:
-        # Route discovery already resolved new wire-thread identities off-loop.
-        if sidebar := self.query_one_optional(CommsSidebar):
-            sidebar.session_thread = (
-                self._comms_thread
-                if self.coordination_root is not None
-                else self.resolve_thread()
-            )
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
@@ -549,9 +544,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         for tree in self.query(DirectoryTree):
             tree.guide_depth = 3
         self.update_title()
-
-    def channels_context(self) -> tuple[str, str]:
-        return self._comms_thread, ""
 
     @on(OptionList.OptionHighlighted)
     def on_option_list_option_highlighted(
