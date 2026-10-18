@@ -5,6 +5,7 @@ from toad.core.events import SessionChangedEvent
 from toad.format_path import format_path
 import asyncio
 from abc import abstractmethod
+from contextlib import contextmanager
 from functools import partial
 from pathlib import Path
 
@@ -277,6 +278,14 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         with self.changing_identity():
             self._identity = ThreadIdentity(owner, root)
 
+    @contextmanager
+    def changing_identity(self):
+        with super().changing_identity() as previous:
+            yield previous
+            if self.id is not None:
+                self.app.session_navigation.sync_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+                self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+
     @classmethod
     def opening(cls, request, origin, app) -> "MainScreen":
         # The request has only a name; bind the wire after its metadata read.
@@ -390,7 +399,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     async def on_coordination_update(self, event: CoordinationChangedUpdate) -> None:
         async with self.presentation.transcript.changing_source(self):
             with self.changing_identity():
-                previous_thread, previous_root = self.thread_identity.thread_name(), self.coordination_root
+                previous_root = self.coordination_root
                 from toad.thread_identity import ThreadIdentity
                 self._identity = ThreadIdentity(event.thread, event.wire_root)
                 if previous_root != self.coordination_root:
@@ -398,20 +407,13 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
                 if event.worktree is not None:
                     self.bind_project(Path(event.worktree))
                 if self.id is not None:
-                    self.app.session_navigation.sync_identity(self.id, previous_thread, self.thread_identity.thread_name())
-                    self.app.session_tracker.bind_identity(self.id, previous_thread, self.thread_identity.thread_name())
                     self.app.session_navigation.sync_owner_root(self.id, self.coordination_root)
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
     async def on_session_attached(self, message: CoreEventMessage) -> None:
-        agent = self.presentation.operational_agent
-        if agent is not None and agent.session_id is not None:
-            with self.changing_identity() as previous:
-                self._identity = previous.with_session(agent.session_id)
-            if self.id is not None:
-                self.app.session_navigation.sync_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
-                self.app.session_tracker.bind_identity(self.id, previous.thread_name(), self.thread_identity.thread_name())
+        with self.changing_identity() as previous:
+            self._identity = previous.with_session(message.event.session_id)
         await self.content.attached(self)
 
     @handles(core_events.AgentFail)
