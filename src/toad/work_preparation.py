@@ -105,7 +105,7 @@ def serialize_result(result: ResultT) -> SerializedValue[ResultT]:
 type PreparedResult[ResultT] = tuple[PreparedValue[ResultT], int, PreparationStorage[ResultT]]
 
 
-class PreparationStorage(ABC, Generic[ResultT]):
+class PreparationStorage[ResultT](ABC):
     """The producing operation owns representation, cost and reuse policy."""
 
     retain_result = False

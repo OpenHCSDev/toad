@@ -217,7 +217,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         if self._background_render_tasks:
             await asyncio.gather(*tuple(self._background_render_tasks), return_exceptions=True)
 
-    async def prepare_background(self, task: "RenderTask[RenderResultT]") -> RenderResultT:
+    async def prepare_background(self, task: RenderTask[RenderResultT]) -> RenderResultT:
         """Keep the background work slot occupied until the renderer really finishes."""
         await self.background_render_slots.acquire()
         try:

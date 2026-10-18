@@ -15,7 +15,6 @@ from toad.transcript_preparation import NoProjection
 
 if TYPE_CHECKING:
     from textual.worker import Worker
-    from toad.transcript_preparation import PreparedPageSource
     from toad.widgets.transcript_history import LineHistory, ProjectedTranscriptHistory
 
 
