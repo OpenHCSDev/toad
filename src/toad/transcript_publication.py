@@ -23,7 +23,6 @@ from toad.widgets.history_anchor import HeldReaderDestination
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin, SessionView
     from toad.widgets.conversation import Conversation
-    from toad.widgets.transcript_history import TranscriptHistory
     from toad.transcript_preparation import PreparedPageSource
 
 
@@ -416,7 +415,7 @@ class CommitPublication(CanonicalSourcePublication):
 
 
 
-class ViewBinding(ABC):
+class ViewBinding:
     """The native view's binding and its view-dependent operations."""
 
     def matches(self, view):
