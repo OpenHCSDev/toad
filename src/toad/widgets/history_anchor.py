@@ -202,6 +202,16 @@ class UnheldPosition(ReaderPosition):
         pass
 
 
+class DiscardedOnMotion:
+    """A position waiting for source or layout is lost when the reader moves."""
+
+    def moved(self, rows: float) -> ReaderPosition:
+        return UnheldPosition()
+
+    def left_tail(self, window: "HistoryWindow") -> ReaderPosition:
+        return UnheldPosition()
+
+
 @dataclass(frozen=True)
 class TailPosition(ReaderPosition):
     """Following the latest message."""
@@ -327,7 +337,7 @@ class BlockPosition(OffsetPosition):
 
 
 @dataclass(frozen=True)
-class UnreachedPosition(ReaderPosition):
+class UnreachedPosition(DiscardedOnMotion, ReaderPosition):
     """A position no layout has reached yet: the history is still too short, or is not drawn.
 
     Layout places it until it is reached. The reader moving first chooses a
@@ -348,18 +358,12 @@ class UnreachedPosition(ReaderPosition):
     def place(self, window: "HistoryWindow") -> bool:
         return self.position.place(window)
 
-    def moved(self, rows: float) -> ReaderPosition:
-        return UnheldPosition()
-
-    def left_tail(self, window: "HistoryWindow") -> ReaderPosition:
-        return UnheldPosition()
-
     def placed(self, window: "HistoryWindow", reached: bool) -> ReaderPosition:
         return self.position.placed(window, reached) if reached else self
 
 
 
-class HeldReaderDestination:
+class HeldReaderDestination(DiscardedOnMotion):
     """A reader destination retained through intermediate source layouts."""
 
     source_settlement_scheduled = False
@@ -395,9 +399,6 @@ class HeldReaderDestination:
         if reached and self.source_ready and measured:
             return self.released()
         return self
-
-    def moved(self, rows: float) -> ReaderPosition:
-        return UnheldPosition()
 
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
         return False
@@ -465,9 +466,6 @@ class LatestPosition(HeldReaderDestination, TailPosition):
 
     async def source_arrived(self, history: "TranscriptSourcePreparation") -> bool:
         return await history._jump_latest(LatestViewportRequest(self))
-
-    def left_tail(self, window: "HistoryWindow") -> ReaderPosition:
-        return UnheldPosition()
 
     def released(self) -> ReaderPosition:
         return TailPosition()
