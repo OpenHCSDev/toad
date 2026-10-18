@@ -130,7 +130,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
                 ),
                 SideBar.Panel("Comms", ThreadCommsSidebar(),
                     id="thread-comms-panel", header_control=RelationshipSort()),
-                right=True, hide=True, navigation=self._thread_sidebar_state,
+                state=self._thread_sidebar_state,
             ),
             containers.Vertical(*content, id="comms-content"),
         ).set_styles(layout=self.app.workspace_chrome)
