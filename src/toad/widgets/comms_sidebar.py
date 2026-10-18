@@ -20,9 +20,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.display_order import ThreadSort
 from agent_comms.ui_model.sidebar import ChannelRowModel
-from agent_comms.ui_model.unread import UnreadPresentation
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
@@ -46,7 +44,7 @@ from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -55,17 +53,6 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-
-
-class UnpaintedUnread(UnreadPresentation):
-    label = " "
-
-
-class UnpaintedChannel(ChannelRowModel):
-    """The header has no painted values until its first real row arrives."""
-
-    def __init__(self, name: str):
-        super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
 
 
 class ChannelUnread(PrimaryActivation, ChangingText):
@@ -124,6 +111,9 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def rows_changed(self) -> None:
         self.sidebar.navigation.apply()
 
+    def new_row(self, name: str) -> ThreadRow:
+        return ThreadRow(ThreadTarget(name), name)
+
     def show_member(self, name: str, view: ThreadRow) -> None:
         """Paint one member row from its current model row."""
         sidebar = self.sidebar
@@ -139,8 +129,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
         if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
-        self.reconcile_rows(
-            lambda name: ThreadRow(ThreadTarget(name), name), self.show_member, changed=changed)
+        self.reconcile_rows(changed=changed)
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint this group's shown rows among the changed threads ``names``.
