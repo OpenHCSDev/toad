@@ -169,7 +169,11 @@ class PreparedTranscriptPage:
     def same_source(self, other: PreparedTranscriptPage) -> bool:
         """Keep a view only when its bounded read came from the same source snapshot."""
         page, incoming = self.page, other.page
-        return (page.before == incoming.before
+        # A filtered page can share the Core read but draw different members.
+        # The retained worker result shares this immutable tuple with its views;
+        # another projection cannot borrow that view's prepared rows.
+        return (self.fragments is other.fragments
+                and page.before == incoming.before
                 and page.after == incoming.after
                 and page.snapshot is not None
                 and page.snapshot == incoming.snapshot)
