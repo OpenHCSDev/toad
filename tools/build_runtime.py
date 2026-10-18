@@ -173,6 +173,31 @@ def read_inventory(python: Path) -> dict:
     return json.loads(run(python, Path(__file__).resolve(), '--inventory'))
 
 
+class BuildDisplay(XvfbDisplay):
+    """Own the isolated display created for qualification."""
+
+    def __init__(self, output):
+        self.log = (output / 'xvfb.log').open('w')
+        self.server = subprocess.Popen(
+            ['Xvfb', '-displayfd', '1', '-screen', '0', '1600x1000x24', '-nolisten', 'tcp'],
+            stdout=subprocess.PIPE, stderr=self.log)
+        try:
+            super().__init__(':' + self.server.stdout.readline().decode().strip())
+        except BaseException:
+            self.server.terminate()
+            self.server.wait(timeout=5)
+            self.log.close()
+            raise
+
+    def __exit__(self, *exception):
+        try:
+            return super().__exit__(*exception)
+        finally:
+            self.server.terminate()
+            self.server.wait(timeout=5)
+            self.log.close()
+
+
 class TerminalApp:
     """Own one isolated st/tmux lifetime, terminal observations and physical input."""
 
@@ -238,7 +263,9 @@ class TerminalApp:
     def click(self, label):
         text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
         row, line = next((row, line) for row, line in enumerate(text.splitlines()) if label in line)
-        column = line.index(label) + len(label) // 2
+        self.click_cell(line.index(label) + len(label) // 2, row)
+
+    def click_cell(self, column, row):
         geometry = subprocess.check_output(
             ['xdotool', 'getwindowgeometry', '--shell', str(self.window)],
             env=self.environment, text=True)
@@ -251,7 +278,7 @@ class TerminalApp:
     def __exit__(self, *exception):
         try:
             if self.terminal.poll() is None:
-                self.keys('C-q')
+                self.mux('send-keys', '-t', 'qualify:0.0', 'C-q')
                 try:
                     self.terminal.wait(timeout=5)
                 except subprocess.TimeoutExpired:
@@ -320,31 +347,23 @@ c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1]
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3])))
 with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
 ''', str(project), str(source), saved['backend']], env=environment, check=True)
-    with (output / 'xvfb.log').open('w') as log:
-        server = subprocess.Popen(['Xvfb', '-displayfd', '1', '-screen', '0',
-                                   '1600x1000x24', '-nolisten', 'tcp'],
-                                  stdout=subprocess.PIPE, stderr=log)
-        try:
-            with XvfbDisplay(':' + server.stdout.readline().decode().strip()) as display:
-                command = [runtime / 'bin/toad']
-                with TerminalApp(command, display, output / 'plain', environment, home) as app:
-                    app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
-                    app.screenshot('store')
-                command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
-                with TerminalApp(command, display, output / 'welcome', environment, home) as app:
-                    app.wait('welcome', lambda text: 'startup-saved' in text)
-                    app.screenshot('welcome')
-                    app.click('startup-saved')
-                    app.wait('saved', lambda text: 'User messages' in text and 'startup-saved' in text)
-                    app.screenshot('saved')
-                    app.click('Channels')
-                    app.click('#any')
-                    app.wait('any', lambda text: '#any' in text and 'Message' in text)
-                    app.screenshot('any')
-                    check_filtered_return(app)
-        finally:
-            server.terminate()
-            server.wait(timeout=5)
+    with BuildDisplay(output) as display:
+        command = [runtime / 'bin/toad']
+        with TerminalApp(command, display, output / 'plain', environment, home) as app:
+            app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
+            app.screenshot('store')
+        command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
+        with TerminalApp(command, display, output / 'welcome', environment, home) as app:
+            app.wait('welcome', lambda text: 'startup-saved' in text)
+            app.screenshot('welcome')
+            app.click('startup-saved')
+            app.wait('saved', lambda text: 'User messages' in text and 'startup-saved' in text)
+            app.screenshot('saved')
+            app.click('Channels')
+            app.click('#any')
+            app.wait('any', lambda text: 'Message #any' in text)
+            app.screenshot('any')
+            check_filtered_return(app)
     result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
                   channel='passed', filtered_return='passed', evidence=str(output))
     (output / 'result.json').write_text(json.dumps(result, indent=2))
@@ -357,7 +376,10 @@ def check_filtered_return(app: TerminalApp) -> None:
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.click(label)
-    app.keys('Escape', 'PPage', 'PPage', 'PPage')
+    app.click_cell(app.columns // 2, app.rows - 5)
+    initial = app.capture().splitlines()[4:-8]
+    app.keys('PPage', 'PPage', 'PPage')
+    app.wait('page-up-moved', lambda text: text.splitlines()[4:-8] != initial)
     before = app.wait('filtered-before', lambda text: 'User messages' in text)
     time.sleep(.5)
     before = app.capture()
@@ -365,7 +387,7 @@ def check_filtered_return(app: TerminalApp) -> None:
     app.screenshot('filtered-before')
     app.click('Channels')
     app.click('#any')
-    app.wait('filtered-away', lambda text: '#any' in text and 'Message' in text)
+    app.wait('filtered-away', lambda text: 'Message #any' in text)
     app.keys('Escape')
     # Ignore the tab bar and animated footer; compare the actual message rows.
     expected = before.splitlines()[4:-4]
@@ -430,7 +452,7 @@ c.registry.declare(c.registry.new_thread('build-sender',frozenset(),str(out)),St
 os.environ['PI_CODING_AGENT_DIR']='/home/ts/.pi/agent'
 c.owners.start(child.name,agent_bin=str(runtime/'bin/pi-comms-native'),agent_args=())
 try:
-    sent=c.messaging.send_message('build-sender',child.name,'Reply exactly BUILD_WAKE_OK. Do not use tools.')
+    sent=c.messaging.send_message('build-sender',child.name,'Reply with BUILD_WAKE followed immediately by _OK. Do not use tools.')
     deadline=time.monotonic()+120
     while True:
         failures=list((c.root/'diagnostics').glob('drain-*.json'))
@@ -448,7 +470,21 @@ try:
 finally:
     c.owners.stop(child.name)
 ''', str(output), str(startup), str(runtime)], env=environment, stdout=log, stderr=log, check=True)
-    return json.loads((output / 'result.json').read_text())
+    result = json.loads((output / 'result.json').read_text())
+    environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'))
+    for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
+        environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
+    with BuildDisplay(output) as display:
+        command = [runtime / 'bin/toad', 'acp',
+                   f'{runtime / "bin/python"} -I -B -m agent_comms.acp',
+                   str(output), '--session', 'build-parent']
+        with TerminalApp(command, display, output / 'reply', environment, output) as app:
+            app.wait('parent', lambda text: 'User messages' in text)
+            app.click('Channels')
+            app.click('#any')
+            app.wait('reply', lambda text: 'Message #any' in text and 'BUILD_WAKE_OK' in text)
+            app.screenshot('reply')
+    return result
 
 
 
