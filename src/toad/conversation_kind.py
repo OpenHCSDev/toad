@@ -258,7 +258,8 @@ class DmConversation(ConversationKind):
         # Only the newest page marks a direct conversation read, and only as a
         # whole: its newest message and every message from the peer were seen.
         newest = history.pages[-1]
-        page = newest.prepared.page.source
+        source = newest.prepared.page.source
+        page = source.newest_evidence if source is not None else None
         if NEWER_END.visible_more(history) or page is None:
             return None
         painted = {fragment.message.seq for fragment in seen if fragment.evidence is page}

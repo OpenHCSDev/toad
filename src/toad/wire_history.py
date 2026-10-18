@@ -280,10 +280,9 @@ class WireSource:
     def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
         """Read the page a request names, never past `through`, as fragments to draw."""
         page = request.end.wire_page(self, request.cursor, through)
-        evidence = page if self.kind.history_view.has_display_evidence(page) else None
         shown = MessageShown(style=self.style)
         fragments = tuple(
-            WireFragment.of(message, shown=shown, evidence=evidence, reader=self.me)
+            WireFragment.of(message, shown=shown, evidence=page.evidence_for(message), reader=self.me)
             for message in page.messages)
         wire = WirePage(
             page.messages,
