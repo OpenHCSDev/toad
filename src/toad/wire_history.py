@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.message_page import MessagePage
+from agent_comms.message_page import MessagePage, PageBounds, PageTraversal
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
@@ -22,7 +22,7 @@ from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
-    PageRequest, PreparedTranscriptPage, TranscriptPageBuffer, TranscriptPageWork,
+    PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
@@ -266,9 +266,6 @@ class WireSource:
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(str(self.project))
 
-    def page(self, **bounds) -> MessagePage:
-        return self.kind.page(self, max_bytes=self.max_bytes, **bounds)
-
     def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
         revision = self.kind.history_view.revision(
@@ -286,8 +283,9 @@ class WireSource:
         older = request.after is None
         cut = request.before if older else request.after
         newest = older and cut == through
-        page = self.page(limit=self.tail_limit if newest else self.page_limit,
-                         **(cut.older() if older else cut.newer()))
+        page = self.kind.page(self, PageBounds(
+            PageTraversal.capture(**(cut.older() if older else cut.newer())),
+            self.tail_limit if newest else self.page_limit, self.max_bytes))
         if not older:
             # A later read owns messages that arrived after this bound.
             kept = tuple(message for message in page.messages
@@ -347,7 +345,7 @@ class WirePageWork(TranscriptPageWork):
         return await runtime.run_thread(self.finish_result, key, prepared)
 
 
-class WirePageBuffer(TranscriptPageBuffer):
+class WirePageBuffer(SavedHistory):
     """The line history's page reader over a wire source."""
 
     work = WirePageWork

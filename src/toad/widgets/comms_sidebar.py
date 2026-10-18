@@ -24,7 +24,6 @@ from agent_comms.ui_model.sidebar import ChannelRowModel
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
-from textual.dom import DOMNode
 from textual.reactive import reactive, var
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 from textual.widgets import Static
@@ -255,7 +254,9 @@ class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, Alternati
 
     def on_click(self, event) -> None:
         if event.button == 3:
-            return  # right click handled by context menu in CommsSidebar
+            event.stop()
+            self.show_menu(self.navigation_tree, event.screen_offset)
+            return
         if event.ctrl or event.shift:
             event.stop()
             self.navigation_tree.pointer_select(self, control=event.ctrl, shift=event.shift)
@@ -581,20 +582,3 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         if group is None or not group.accepts_navigation():
             return None
         return group.row if selection.target == selection.channel else group.rows.get(selection.target) if group.members_visible else None
-
-    def on_click(self, event) -> None:
-        """Right click anywhere -> menu on the row under the mouse."""
-        if event.button != 3:
-            return
-        event.stop()
-        widget, _ = self.screen.get_widget_at(event.screen_x, event.screen_y)
-        row = None
-        node: DOMNode | None = widget
-        while node is not None:
-            if isinstance(node, CommsRow):
-                row = node
-                break
-            node = node.parent
-        if row is None:
-            return
-        row.show_menu(self, event.screen_offset)

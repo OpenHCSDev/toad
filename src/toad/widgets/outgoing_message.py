@@ -43,7 +43,8 @@ class OutgoingMessage(MessageRowBlock, CommitParticipant, ConversationBlock, Cat
         return (self.message_reference,)
 
     async def show_notifications(self, results):
-        await self.show_notification_status(CheckedNotifications.for_references(self.notification_references, results))
+        for status in CheckedNotifications.for_references(self.notification_references, results):
+            await self.show_notification_status(status)
 
     async def show_notification_status(self, status: NotificationStatus):
         if self.is_attached:
