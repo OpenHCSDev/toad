@@ -24,6 +24,8 @@ import tempfile
 import time
 import zipfile
 
+# Isolated Python omits the script directory; this tool owns its sibling imports.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 from performance.capture_live import XvfbDisplay
 
 
@@ -116,7 +118,7 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool) -> dict:
 
 
 def publish_runtime(publication_tools: Path, root: Path) -> None:
-    """Use Core's publication owner, then retire older unused installations.
+    """Use Core's publication owner and report the runtime it replaced.
 
     Run with the qualified target Python inside the reviewed publication window.
     Native stopping/restarting remains with Core's existing cutover owner.
@@ -134,9 +136,8 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
         raise ValueError('Runtime is already current; do not repeat publication')
     publication.publish(root)
     print(f'Linked {publication.runtime}', flush=True)
-    # Pass the actual prior pointer, not a build baseline or a persistent list.
-    print(run(sys.executable, Path(__file__).resolve(), '--prune-runtimes',
-              '--current', publication.current, '--previous', previous, '--delete'))
+    # Report the actual prior pointer, not a build baseline or a persistent list.
+    print(f'Previous {previous}', flush=True)
 
 
 def installation_main() -> None:

@@ -16,6 +16,7 @@ from agent_comms.working_memory_annotations import WorkingMemoryAnnotations
 from agent_comms.importing import ImportedSessionMetadata
 from agent_comms.mro_dispatch import handles
 from toad.core.projection import MroProjection
+from toad.thread_identity import ThreadIdentity
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.session_revision import SessionRevision, SessionObservation
@@ -661,17 +662,6 @@ class ContextInspection:
 class InspectionState(DeclaredFamily, affix="Inspection"):
     """One inspection lifetime; Textual owns workers and Tree resources separately."""
 
-    name = ""
-    root = None
-
-    @classmethod
-    def for_owner(cls, name: str, root: str | None) -> InspectionState:
-        # Decode the original optional managed route once, at attachment.
-        return ReadingOwnerInspection(name, root) if name and root is not None else DetachedInspection()
-
-    def bound_to(self, name, root) -> bool:
-        return (self.name, self.root) == (name, root)
-
     def observed_at(self, revision) -> bool:
         return True
 
@@ -682,11 +672,11 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
     def manifest_sources(self):
         return ()
 
-    async def acquire(self, service, revision, *, cursor=None) -> InspectionState:
-        if str(service.root.resolve()) != self.root:
+    async def acquire(self, service, revision, identity: ThreadIdentity, *, cursor=None) -> InspectionState:
+        if str(service.root.resolve()) != identity.root:
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
-            self.name, cursor=cursor, previous=self.manifest_sources))
+            identity.thread, cursor=cursor, previous=self.manifest_sources))
         try:
             inspection = await inspection.acquire_core()
         except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
@@ -734,20 +724,16 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
 
 
 class DetachedInspection(InspectionState):
-    async def acquire(self, service, revision, *, cursor=None) -> InspectionState:
+    async def acquire(self, service, revision, identity: ThreadIdentity, *, cursor=None) -> InspectionState:
         return self
 
 
-@dataclass(frozen=True)
 class ReadingOwnerInspection(InspectionState):
-    name: str = field()
-    root: str = field()
-
     def observed_at(self, revision) -> bool:
         return False
 
     def observe(self, revision) -> InspectionState:
-        return ObservedOwnerInspection(self.name, self.root, revision)
+        return ObservedOwnerInspection(revision)
 
 
 @dataclass(frozen=True)
@@ -768,12 +754,8 @@ class HoldingInspection(InspectionState):
         return self.inspection.page.resources
 
     @property
-    def name(self):
-        return self.inspection.owner.name
-
-    @property
-    def root(self):
-        return str(self.inspection.service.root)
+    def thread_identity(self) -> ThreadIdentity:
+        return ThreadIdentity(self.inspection.owner.name, str(self.inspection.service.root))
 
     def observed_at(self, revision) -> bool:
         return self.revision == revision
@@ -828,13 +810,13 @@ class HoldingInspection(InspectionState):
 
     def presentation_current(self, captured) -> bool:
         """Prepared content survives observations, not source/resource changes."""
-        return (self.bound_to(captured.name, captured.root)
+        return (self.thread_identity == captured.thread_identity
                 and not self.inspection_differs(captured.inspection)
                 and captured.native_matches(self))
 
     @property
     def status(self):
-        return f"{self.name} · {self.inspection.core.status}\nReading native context…"
+        return f"{self.thread_identity.thread} · {self.inspection.core.status}\nReading native context…"
 
 
 @dataclass(frozen=True)
@@ -876,7 +858,7 @@ class NativeInspection(HoldingInspection):
 
     @property
     def status(self):
-        return (f"{self.name} · {self.inspection.core.status}; native base available\n"
+        return (f"{self.thread_identity.thread} · {self.inspection.core.status}; native base available\n"
                 f"Segment counts: estimates ({self.native.counter}) · provider totals unavailable")
 
 
@@ -891,4 +873,4 @@ class UnavailableNativeInspection(HoldingInspection):
 
     @property
     def status(self):
-        return f"{self.name} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"
+        return f"{self.thread_identity.thread} · {self.inspection.core.status}\nNative detail unavailable: {self.error}"
