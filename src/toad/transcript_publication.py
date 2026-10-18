@@ -11,7 +11,9 @@ from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
 from agent_comms.transcript_events import TranscriptCoverage
-from agent_comms.acp_extension import TranscriptSnapshotUpdate
+from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
+from agent_comms.mro_dispatch import MroDispatch, handles
+from agent_comms.ui_model.observation import NotPublished, Published, TranscriptPublicationState
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
@@ -161,12 +163,12 @@ class HandlingPublication(TranscriptPublication):
         return True
 
 
-class CanonicalSourcePublication(TranscriptPublication):
+class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     """An observed source change refreshes source pages, never appends a notice."""
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.owner.reader.snapshot, *self.thread_scope))
+            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read))
 
     async def read_past_history(self, read, **whole):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
@@ -181,7 +183,15 @@ class CanonicalSourcePublication(TranscriptPublication):
         if not self.owner.readable:
             return True
         snapshot = await self.read_snapshot()
-        return await self.publish_snapshot(snapshot)
+        handler, = self.handlers_for(snapshot)
+        return await handler(snapshot)
+
+    @handles(TranscriptDraftUpdate)
+    async def publish_draft(self, snapshot: TranscriptDraftUpdate) -> bool:
+        if self.current():
+            self.show_draft(snapshot.draft)
+            self.owner.current_read = Published(snapshot.identity)
+        return True
 
     def show_draft(self, draft) -> None:
         widget = self.owner.view.cli_draft
@@ -189,6 +199,7 @@ class CanonicalSourcePublication(TranscriptPublication):
             self.contents.move_child(widget, after=-1)
         widget.show(draft)
 
+    @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
         page = snapshot.page
         # The known native cut and its applied original resources meet here.
@@ -207,7 +218,7 @@ class CanonicalSourcePublication(TranscriptPublication):
         if self.current():
             self.show_draft(snapshot.draft)
             if published and bound == snapshot.page.after:
-                self.owner.current_read = snapshot.identity
+                self.owner.current_read = Published(snapshot.identity)
         if published and self.current() and self.destination is not None:
             self.destination.source_settled(self.window)
         return published
@@ -225,7 +236,7 @@ class ObservedSourcePublication(CanonicalSourcePublication):
 
     async def read_snapshot(self):
         return await self.read_past_history(
-            partial(self.owner.reader.snapshot, *self.thread_scope),
+            partial(self.owner.reader.updates, *self.thread_scope, self.owner.current_read),
             read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
@@ -433,7 +444,7 @@ class TranscriptPresentation:
         self.dirty = False
         self.commit_required = False
         self.displayed_cursor: TranscriptCursor | None = None
-        self.current_read: TranscriptReadIdentity | None = None
+        self.current_read: TranscriptPublicationState = NotPublished()
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
         self._thread_observation = ResourceRelease()
@@ -450,7 +461,7 @@ class TranscriptPresentation:
         if self.view is not None and self.view is not view:
             raise ValueError("Transcript already has a native publisher")
         self.invalidate_publications()
-        self.current_read = None
+        self.current_read = NotPublished()
         self._view = weakref.ref(view)
 
     @property
@@ -893,7 +904,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                 self.bind_thread_observation()
                 self.source_requests.cancel()
                 self.invalidate_publications()
-                self.current_read = None
+                self.current_read = NotPublished()
                 self._close_documents()
                 self.dirty = self.commit_required = False
                 self.displayed_cursor = None
