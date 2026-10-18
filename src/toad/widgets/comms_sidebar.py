@@ -46,7 +46,7 @@ from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -68,45 +68,29 @@ class UnpaintedChannel(ChannelRowModel):
         super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
 
 
-class ChannelDisclosure(SidebarDisclosure):
-    pass
-
-
 class ChannelUnread(PrimaryActivation, ChangingText):
     DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
         if event.button == 1:
             event.stop()
-            self.action_open_selected()
+            self.primary_activation()
 
     @property
     def primary_activation(self):
-        return self.action_open_selected
-
-    def action_open_selected(self):
-        self.query_ancestor(ChannelGroup).row.action_open_selected()
+        return self.query_ancestor(ChannelGroup).row.action_open_selected
 
 
 class ChannelGroup(SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
-    DEFAULT_CSS = """
-    ChannelGroup { height: auto; }
-    ChannelGroup > HorizontalGroup { height: 1; }
-    ChannelGroup .channel-header { height: 1; width: 1fr; text-wrap: nowrap; text-overflow: ellipsis; }
-    ChannelGroup .channel-members { height: auto; margin-left: 2; }
-    """
-
     def __init__(self, row: CommsRow, *, expanded: bool):
-        row.add_class("channel-header")
         self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
         self.unread_badge.display = False
         super().__init__(row, expanded=expanded,
-                         controls=(self.unread_badge, self.sort_control),
-                         disclosure_type=ChannelDisclosure)
+                         controls=(self.unread_badge, self.sort_control))
 
     @property
     def sidebar(self) -> CommsSidebar:
