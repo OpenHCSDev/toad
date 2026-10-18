@@ -44,7 +44,7 @@ from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -55,45 +55,29 @@ if TYPE_CHECKING:
 
 
 
-class ChannelDisclosure(SidebarDisclosure):
-    pass
-
-
 class ChannelUnread(PrimaryActivation, ChangingText):
     DEFAULT_CSS = "ChannelUnread { width: auto; height: 1; color: $accent; pointer: pointer; }"
 
     def on_click(self, event) -> None:
         if event.button == 1:
             event.stop()
-            self.action_open_selected()
+            self.primary_activation()
 
     @property
     def primary_activation(self):
-        return self.action_open_selected
-
-    def action_open_selected(self):
-        self.query_ancestor(ChannelGroup).row.action_open_selected()
+        return self.query_ancestor(ChannelGroup).row.action_open_selected
 
 
 class ChannelGroup(SidebarGroup["ThreadRow"]):
     """A view of one channel row of the sidebar model and the thread rows it lists."""
     navigation_header = True
-    DEFAULT_CSS = """
-    ChannelGroup { height: auto; }
-    ChannelGroup > HorizontalGroup { height: 1; }
-    ChannelGroup .channel-header { height: 1; width: 1fr; text-wrap: nowrap; text-overflow: ellipsis; }
-    ChannelGroup .channel-members { height: auto; margin-left: 2; }
-    """
-
     def __init__(self, row: CommsRow, *, expanded: bool):
-        row.add_class("channel-header")
-        self.channel: ChannelRowModel | None = None
+        self.channel: ChannelRowModel = UnpaintedChannel(row.target_name)
         self.sort_control = SessionSort(channel=row.target_name)
         self.unread_badge = ChannelUnread(markup=False)
         self.unread_badge.display = False
         super().__init__(row, expanded=expanded,
-                         controls=(self.unread_badge, self.sort_control),
-                         disclosure_type=ChannelDisclosure)
+                         controls=(self.unread_badge, self.sort_control))
 
     @property
     def sidebar(self) -> CommsSidebar:
@@ -103,14 +87,14 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         """Paint the channel header from its model row."""
         previous, self.channel = self.channel, channel
         row = self.row
-        if previous is None or previous.label != channel.label:
+        if previous.label != channel.label:
             row.set_label(channel.label)
         row.tooltip = channel.tooltip
         row.refresh_paint()
-        if previous is None or previous.unread != channel.unread:
+        if previous.unread != channel.unread:
             label = channel.unread.label
             # Equal-width badges need paint only; visibility owns its layout.
-            width_changed = previous is None or cell_len(label) != cell_len(previous.unread.label)
+            width_changed = cell_len(label) != cell_len(previous.unread.label)
             self.unread_badge.update(label, layout=width_changed)
             self.unread_badge.display = bool(label)
         self.sort_control.update_order(channel.order)
@@ -127,6 +111,9 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
     def rows_changed(self) -> None:
         self.sidebar.navigation.apply()
 
+    def new_row(self, name: str) -> ThreadRow:
+        return ThreadRow(ThreadTarget(name), name)
+
     def show_member(self, name: str, view: ThreadRow) -> None:
         """Paint one member row from its current model row."""
         sidebar = self.sidebar
@@ -140,10 +127,9 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         return channel.members if channel is not None else ()
 
     def sync_members(self, changed: frozenset[str] | None = None) -> None:
-        if self.channel is None or not self.member_container.is_attached:
+        if not self.member_container.is_attached:
             return  # A new group syncs once composed (on_mount).
-        self.reconcile_rows(
-            lambda name: ThreadRow(ThreadTarget(name), name), self.show_member, changed=changed)
+        self.reconcile_rows(changed=changed)
 
     def repaint_members(self, names: frozenset[str]) -> None:
         """Repaint this group's shown rows among the changed threads ``names``.
@@ -151,7 +137,7 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
         Membership is the channel row's fact: added and removed threads change
         its ``members`` and reach ``sync_members`` as a channel change.
         """
-        if self.channel is None or not self.accepts_members():
+        if not self.accepts_members():
             return
         threads = self.sidebar.model_state.shown.threads.rows
         shown = [(name, view) for name in names
@@ -509,7 +495,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
         panel = self.query_ancestor(SideBarCollapsible)
         control = panel.header_control
         assert isinstance(control, ChannelListSort)
-        control.update_order(model.channel_order)
+        control.update_order(model.observation.channel_order())
         self.navigation.apply()
         self.display = True
         if not self.navigation.ready.is_set() and self.screen.is_current:

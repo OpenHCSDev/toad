@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PreparedTranscriptPage, PreparedPageSource, SavedHistory, NoMoreHistory
+from toad.transcript_preparation import PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
@@ -17,7 +17,7 @@ from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.message_notifications import VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
 from toad.message_rows import IrcMessageStyle, WireMessageStyle
-from toad.wire_history import PreparedWirePage, WirePage, WireSource
+from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import ConversationRevision
@@ -31,10 +31,13 @@ class WireHistory(VisibleReadMarking, LineHistory):
     seen, notification states and two styles.
     """
 
-    def __init__(self, prepared: PreparedTranscriptPage,
-                 history: PreparedPageSource, *, view) -> None:
+    page_buffer = WirePageBuffer
+
+    def __init__(self, prepared: PreparedTranscriptPage | None = None,
+                 loader: WireSource | None = None, *, view, notification_view) -> None:
         self.view = view
-        super().__init__(prepared, history)
+        super().__init__(PreparedWirePage.empty(WirePage.unread()) if prepared is None else prepared,
+                         loader, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
 
@@ -42,16 +45,15 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     def open(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
-        self._history.close()
-        self._history = SavedHistory(source, self.through, self.app.preparation)
+        self.loader = source
 
     @property
-    def source(self) -> WireSource | NoMoreHistory:
-        return self._history.source
+    def source(self) -> WireSource | None:
+        return self.loader
 
     @property
     def style(self) -> WireMessageStyle:
-        return self.source.style
+        return self.source.style if self.source is not None else IrcMessageStyle()
 
     @property
     def undrawn(self) -> bool:
@@ -61,7 +63,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     @property
     def source_identity(self):
         # Growth of the bus is not another source: reads ahead stay valid.
-        return self.source, self.selected_categories
+        return self.loader, self.selected_categories
 
     @property
     def can_draw_on_screen(self) -> bool:
@@ -73,11 +75,15 @@ class WireHistory(VisibleReadMarking, LineHistory):
         from agent_comms.route_selection import root_is_current
 
         current = await self.app.preparation.run_thread(root_is_current, comms.root)
-        return current and self.source.is_current(comms)
+        return current and self.source is not None and self.source.comms is comms
 
     async def source_is_current(self, snapshot: HistorySourceSnapshot) -> bool:
         """Whether the route still selects this source's bus and nothing replaced the history."""
-        return await self.source.current_in(self, snapshot)
+        source = self.source
+        if source is None or not snapshot.current(self):
+            return False
+        return (await self.bus_is_current(source.comms)
+                and source is self.source and snapshot.current(self))
 
     @property
     def selected_categories(self):
@@ -118,7 +124,9 @@ class WireHistory(VisibleReadMarking, LineHistory):
     async def accept_extension(self, edge, prepared) -> bool:
         if edge.page.accepts(prepared.page.source, self.source.kind.history_view):
             return True
-        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()))
+        prepared.configure(batch_size=len(prepared.fragments), newest=False)
+        await self.show_newest(self.through, PreparedWirePage.empty(WirePage.unread()),
+                               arrivals=self._source_state.arriving(prepared, self.drawn_tail_followed))
         return False
 
     @property
@@ -132,7 +140,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     async def toggle_style(self) -> None:
         """Draw every message in the other style, here and in pages read from now on."""
-        if not self.can_draw_on_screen:
+        if self.source is None or not self.can_draw_on_screen:
             return
         style = self.style.next()
         self.open(self.source.restyled(style))
@@ -148,7 +156,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     # Read marks
 
     def read_visible(self):
-        if not self.is_attached:
+        if not self.is_attached or self.source is None:
             return None
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
             return None

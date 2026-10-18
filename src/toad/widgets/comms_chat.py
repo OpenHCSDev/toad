@@ -5,8 +5,7 @@ from toad.core import input_events
 from functools import partial
 from toad.widgets.wire_history import WireHistory
 from toad.message_rows import IrcMessageStyle
-from toad.wire_history import WireSource, PreparedWirePage, WirePage
-from toad.transcript_preparation import NoSavedHistory
+from toad.wire_history import WireSource
 
 import asyncio
 import re
@@ -89,10 +88,6 @@ class HistoryLoading(ConversationBlock, Static):
     """Channel history loading is an atomic conversation block."""
 
 
-class ChannelActivityTray(ConversationBlock, containers.VerticalGroup):
-    """Channel activity has one declared navigation boundary."""
-
-
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
@@ -116,18 +111,16 @@ class CommsChatView(Conversation):
         self._refreshed_from = None
         self._bound_root = Path(wire_root).resolve() if wire_root is not None else None
         self.input_histories.bind_scope(f"comms:{FieldCodec.encode(kind)}:{target}")
-        prepared = PreparedWirePage.empty(WirePage.unread())
-        self.message_history = WireHistory(
-            prepared, NoSavedHistory(prepared, self.app.preparation), view=self)
+        self.message_contents = Contents(id="contents")
+        self.message_history = WireHistory(view=self, notification_view=self.message_contents)
 
     def compose(self) -> ComposeResult:
         with Window():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
-                with Contents(id="contents"):
+                with self.message_contents:
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
-                    yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation_kind.compose_activity(self)
@@ -190,12 +183,12 @@ class CommsChatView(Conversation):
         history = self.message_history
         source = history.source
         access = self.app.coordination_access
-        if event.publisher is not history:
+        if event.publisher is not history or source is None:
             return
         self.settle_user_message()
         if (not history.state.accepts_source_work
                 or history.undrawn
-                or not source.is_current(access.observed_service)
+                or source.comms is not access.observed_service
                 or access.revision is None):
             return
         if self._refreshed_from != access.revision:
@@ -261,25 +254,20 @@ class CommsChatView(Conversation):
 
     def status_thread(self) -> StatusThread:
         """Peer status does not grant access to the peer's full transcript."""
-        return self.message_history.source.use(
-            lambda source: self.conversation_kind.status_thread(source.comms.root, self.target,
-                                                               self.app.coordination_access),
-            NoStatusThread)
+        name = self.conversation_kind.historical_thread(self.target)
+        source = self.message_history.source
+        if name is None or source is None:
+            return NoStatusThread()
+        return StatusThread.for_root(source.comms.root, name, self.app.coordination_access)
 
     async def _refresh(self) -> Worker | None:
         history = self.message_history
-        if not self.is_attached:
+        if not self.is_attached or history.source is None:
             return
         if not self.query_ancestor(SessionView).is_current:
             return
-        return history.source.use(self._refresh_bound_source, self._source_unavailable)
-
-    def _source_unavailable(self):
-        return None
-
-    def _refresh_bound_source(self, source):
-        self.message_history.check_notifications()
-        return self.message_history.schedule_source_work(self._refresh_source)
+        history.notification_view.check_notifications()
+        return history.schedule_source_work(self._refresh_source)
 
     async def _refresh_source(self) -> None:
         """Read what changed in the conversation and draw it: the history's source work."""
@@ -378,28 +366,29 @@ class CommsChatView(Conversation):
 
     async def command_target_context(self):
         from toad.target_commands import TargetContext
-        return self.message_history.source.use(
-            lambda source: TargetContext(self.app, source.comms, self.target, self._me,
-                                          self.project_path, self.query_ancestor(SessionView).id),
-            self._source_unavailable)
+        if self.message_history.source is None:
+            return None
+        return TargetContext(self.app, self.message_history.source.comms, self.target, self._me, self.project_path,
+                             self.query_ancestor(SessionView).id)
 
     async def submit_input(self, event: input_events.UserInputSubmitted) -> None:
         if event.body.strip().startswith("/") and await CommandCatalog.execute(event.body.strip(), self):
             return
         if not event.body.strip():
             return
-        await self.message_history.source.use(partial(self._submit_bound_source, body=event.body),
-                                               partial(self._submit_unavailable, body=event.body))
-
-    async def _submit_unavailable(self, body):
-        self.delivery_refused("Conversation source is not ready", body)
-
-    async def _submit_bound_source(self, source, body):
-        history, target = self.message_history, self.target
-        def current():
+        history = self.message_history
+        source, target = history.source, self.target
+        if source is None:
+            self.delivery_refused("Conversation source is not ready", event.body)
+            return
+        comms = source.comms
+        def current() -> bool:
             return self.is_attached and source is history.source and target == self.target
-        await self.submit_comms_message(source.comms.root, self.conversation_kind, target, body,
-                                       current, partial(self._show_sent, body=body))
+
+        await self.submit_comms_message(
+            comms.root, self.conversation_kind, target, event.body, current,
+            partial(self._show_sent, body=event.body),
+        )
 
     async def _show_sent(self, sent: WireMessage, body: str) -> None:
         """Follow the conversation's end and read it now; composing resumes once `sent` is drawn."""

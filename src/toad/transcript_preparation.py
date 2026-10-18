@@ -17,7 +17,6 @@ from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
 from toad.widgets.message_filter import MessageCategory
-from toad.message_rows import IrcMessageStyle
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedValue,
@@ -377,7 +376,7 @@ class PreparedPageSource(ABC):
     async def _prepare(self, request: PageRequest) -> None: ...
 
     async def prepare_next(self, page: TranscriptPage, older: bool) -> None:
-        if not self.closed and (page.has_older if older else page.has_newer):
+        if (page.has_older if older else page.has_newer):
             await self.prepare(PageRequest.adjacent(page, older))
 
     def close(self) -> None:
@@ -435,12 +434,7 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
         return PreparedTranscriptPage.prepare(self.page)
 
 
-class SourceActions:
-    def use(self, operation, unbound):
-        return operation(self)
-
-
-class PageLoader(SourceActions, ABC):
+class PageLoader(ABC):
     """A source declares the work that reads and prepares its pages."""
 
     work: ClassVar[type[TranscriptPageWork]]
@@ -538,24 +532,7 @@ class SavedPrefix(SavedHistory):
         return self.earlier if request.older else self
 
 
-class NoMoreHistory(HistorySource, SourceActions):
-    @property
-    def source(self):
-        return self
-
-    def use(self, operation, unbound):
-        return unbound()
-
-    @property
-    def style(self):
-        return IrcMessageStyle()
-
-    def is_current(self, comms):
-        return False
-
-    async def current_in(self, history, snapshot):
-        return False
-
+class NoMoreHistory(HistorySource):
     def has_older(self, page):
         return False
 

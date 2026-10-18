@@ -176,6 +176,11 @@ class WireFragment(TranscriptFragment):
     def message(self) -> Message:
         return self.events[0]
 
+    @property
+    def arrival_position(self) -> int:
+        """A new read preserves the message's original bus position."""
+        return self.message.seq
+
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
         return frozenset({OtherCategory})
@@ -278,13 +283,6 @@ class WireSource(PageLoader):
     page_limit: int = 40
     max_bytes: int = 256 * 1024
     work = WirePageWork
-
-    def is_current(self, comms):
-        return self.comms is comms
-
-    async def current_in(self, history, snapshot):
-        return (snapshot.current(history) and await history.bus_is_current(self.comms)
-                and snapshot.current(history))
 
     @property
     def viewer(self) -> NamedViewer:

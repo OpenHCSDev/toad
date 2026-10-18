@@ -9,6 +9,7 @@ from toad.widgets.message_notifications import VisibleReadMarking
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
 import asyncio
+import signal
 import gc
 import sys
 import json
@@ -259,6 +260,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
 
     async def on_load(self) -> None:
+        asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, self.exit)
         self.preparation.renderer.start()
         self._prewarm_conversation_css()
         db = await self.get_db()
@@ -444,11 +446,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             access.write(selected, mark)
 
         async def mark():
-            try:
-                await asyncio.to_thread(acknowledge)
-            except (OSError, ValueError):
-                # Source replacement or deletion is resolved by the next snapshot.
-                return
+            await asyncio.to_thread(acknowledge)
 
         return mark()
 
@@ -466,6 +464,8 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         loop.call_soon_threadsafe(run)
 
     async def on_mount(self) -> None:
+        # The terminal driver is running now, so ANSI themes can query its colours.
+        await self.colours.mount()
         self.coordination_access.start()
         await self.application.start()
         # Background threads (Core reads, preparation) give the GIL back to
@@ -478,6 +478,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
+        self.mark_visible()
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:

@@ -11,7 +11,6 @@ from agent_comms.comms import Comms
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
 from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
-from toad.core.source_events import MessageHandlingRequested
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from agent_comms import HistoricalThread
 from textual import on, work
@@ -26,14 +25,13 @@ from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.conversation import Contents
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.transcript_preparation import SavedHistory, TranscriptLoader
-from toad.widgets.wire_message_handling import WireMessageHandling
 
 
 class RecordedTranscriptHistory(TranscriptHistory):
     """History and handling retain the same selected archive."""
 
-    def __init__(self, prepared, history, *, root: str, source: str):
-        super().__init__(prepared, history)
+    def __init__(self, prepared, history, *, root: str, source: str, notification_view):
+        super().__init__(prepared, history, notification_view=notification_view)
         self.root, self.source = root, source
 
     def notification_read(self, references) -> ReadRecordedNotifications:
@@ -153,7 +151,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
                 return
             history = RecordedTranscriptHistory(
                 prepared, SavedHistory(TranscriptLoader(load), prepared.page.after, self.app.preparation),
-                root=root, source=item.source.key)
+                root=root, source=item.source.key, notification_view=content)
             window = self.query_one(HistoryWindow)
             window.anchor()
             await content.prepare_history(
@@ -167,41 +165,6 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
 
     def action_focus_prompt(self) -> None:
         self.query_one(HistoryWindow).jump_to_latest()
-
-    @handles(MessageHandlingRequested)
-    def request_message_handling(self, message: CoreEventMessage) -> None:
-        message.stop()
-        index = self.query_one("#saved-identity", Select).value
-        self.run_worker(partial(self.publish_handling, self.threads[index],
-                                self._selection_generation),
-                        group="historical-handling", exclusive=True)
-
-    async def publish_handling(self, item: HistoricalThread, generation: int) -> None:
-        """Read the selected archive, never today's-name live notification."""
-        if generation != self._selection_generation or not self.is_attached:
-            return
-        content = self.query_one("#saved-content", Contents)
-        bodies = WireMessageHandling.within(content)
-        references = WireMessageHandling.references_in(bodies)
-        if not references:
-            return
-
-        def read():
-            with self.comms.bus.history.read_sources() as sources:
-                return item.source.notification_references(sources, references)
-
-        try:
-            results = await asyncio.to_thread(read)
-        except (OSError, ValueError) as error:
-            if generation == self._selection_generation and self.is_attached:
-                for body in bodies:
-                    if body.is_attached:
-                        body.show_notification_error(error)
-            return
-        if generation == self._selection_generation and self.is_attached:
-            for body in bodies:
-                if body.is_attached:
-                    body.show_notifications(results)
 
     def action_close(self) -> None:
         self.dismiss()

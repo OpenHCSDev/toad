@@ -13,8 +13,9 @@ from agent_comms.message_page import MessagePage
 from agent_comms.presentation import ReadThrough
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
-from toad.widgets.session_details import SessionDetails
-from toad.widgets.observed_thread_activity import NoStatusThread, StatusThread
+from toad.widgets.session_details import ConversationSessionDetails
+from toad.widgets.channel_activity import ChannelActivity
+from agent_comms.channel_targets import ThreadTarget
 
 if TYPE_CHECKING:
     from toad.wire_history import WireSource
@@ -48,8 +49,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
-    def status_thread(cls, root, target, access):
-        return NoStatusThread()
+    def historical_thread(cls, target: str) -> str | None:
+        return None
 
     @classmethod
     async def toggle_irc(cls, screen) -> None:
@@ -63,9 +64,8 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         screen.app.session_navigation.direct_messages()
 
     @classmethod
-    def unread(cls, snapshot, target):
-        from agent_comms.ui_model.unread import UnreadPresentation
-        return UnreadPresentation.for_channel(snapshot, target)
+    def unread(cls, observation, target):
+        return observation.channel_unread(target)
 
     @classmethod
     def placeholder(cls, target):
@@ -88,10 +88,15 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     async def status_text(cls, comms, target, *, read_only: bool) -> str: ...
 
     @classmethod
-    @abstractmethod
+    def activity_details(cls, name):
+        row = ConversationSessionDetails(
+            ThreadTarget(name), history=NativeHistory(), status_source=lambda: row.row)
+        return row
+
+    @classmethod
     def compose_activity(cls, view) -> ComposeResult:
-        """Compose this kind's activity using the existing view state."""
-        ...
+        view.thread_activity = cls.activity_details(view.target)
+        yield view.thread_activity
 
     @classmethod
     @abstractmethod
@@ -135,10 +140,7 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
-        from toad.widgets.observed_thread_activity import NoActivityView
-
-        view.thread_activity = NoActivityView()
-        return ()
+        yield ChannelActivity(view)
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:
@@ -208,8 +210,8 @@ class DmConversation(ConversationKind):
     history_view = DMDisplayHistory
 
     @classmethod
-    def status_thread(cls, root, target, access):
-        return StatusThread.for_root(root, target, access)
+    def historical_thread(cls, target: str) -> str:
+        return target
 
     @classmethod
     async def toggle_dm(cls, screen) -> None:
@@ -220,9 +222,8 @@ class DmConversation(ConversationKind):
         return (snapshot.require(me).incarnation, snapshot.require(target).incarnation)
 
     @classmethod
-    def unread(cls, snapshot, target):
-        from agent_comms.ui_model.unread import UnreadPresentation
-        return UnreadPresentation.for_bus(snapshot, target)
+    def unread(cls, observation, target):
+        return observation.bus_unread(target)
 
     @classmethod
     def page(cls, source: WireSource, **bounds) -> MessagePage:
@@ -236,14 +237,6 @@ class DmConversation(ConversationKind):
     @classmethod
     def label(cls, target: str) -> str:
         return f"@{target}"
-
-    @classmethod
-    def compose_activity(cls, view) -> ComposeResult:
-        view.thread_activity = SessionDetails(
-            history=NativeHistory(),
-            status_source=lambda: view.thread_activity.row,
-        )
-        yield view.thread_activity
 
     @classmethod
     async def update_mentions(cls, view, comms) -> None:
