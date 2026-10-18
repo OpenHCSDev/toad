@@ -137,8 +137,7 @@ class OlderEnd(Older, PageEnd):
         return window.scroll_y <= 0 and window.scroll_target_y <= 0
 
     def leave_tail(self, window) -> None:
-        if window.follows_tail:
-            window.release_anchor()
+        window.release_anchor()
 
 
 class NewerEnd(Newer, PageEnd):

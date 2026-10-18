@@ -819,12 +819,11 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             self.tail_follow_changed()
 
     def release_anchor(self) -> None:
-        changed = self.follows_tail
-        if not self._restoring and changed:
+        if not self.follows_tail:
+            return
+        if not self._restoring:
             self.scroll_revision += 1
         super().release_anchor()
-        if not changed:
-            return
         if not self._restoring and self.shown:
             self.reader_position = self.reader_position.left_tail(self)
         self.tail_follow_changed()
