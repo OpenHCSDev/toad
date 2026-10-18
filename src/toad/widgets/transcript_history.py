@@ -943,11 +943,17 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self._place_arrivals(fragments)
 
     def paint_arrival(self, strip: Strip) -> Strip:
-        # Publication can precede the first visible frame by a whole fade.
-        # Start on the first arrived row actually painted, never while preparing it.
+        # A prepared frame is not yet a terminal frame. Keep its first paint dark
+        # and start the existing clock only after that frame has been written.
         if NEW_TEXT not in self.effects:
-            self.run_effect(NEW_TEXT)
+            self.screen.frame_presentation.defer(self, self._start_arrival_fade)
+            return self.paint_effects(strip, NEW_TEXT.frame(0))
         return self.paint_effects(strip, self.effect_frame(NEW_TEXT))
+
+    def _start_arrival_fade(self) -> None:
+        if any(page.arrivals for page in self.pages) and NEW_TEXT not in self.effects:
+            self.run_effect(NEW_TEXT)
+            self.repaint()
 
     def _place_arrivals(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         positions = {fragment.arrival_position for fragment in fragments}
