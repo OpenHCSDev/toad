@@ -2,9 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from abc import ABC
 from collections.abc import Callable
-from dataclasses import dataclass
 from functools import partial
 from weakref import ref
 from typing import TYPE_CHECKING, ClassVar
@@ -256,38 +254,31 @@ class FramePresentation:
         return self.ready and screen.is_attached and screen.is_current
 
 
-@dataclass(frozen=True)
-class EffectPhase(ABC):
-    effect: Effect
+class EffectPhase:
+    def paint(self, owner, effect, strip):
+        return owner.paint_effects(strip, owner.effect_frame(effect))
 
-    def paint(self, owner, strip):
-        return owner.paint_effects(strip, owner.effect_frame(self.effect))
+    def keeps_arrivals(self, arrivals): return arrivals
 
-    def keeps_arrivals(self, arrivals):
-        return arrivals
-
-    def on_new_arrival(self, owner, pages):
-        pass
+    def on_new_arrival(self, owner, effect, pages): pass
 
 
 class EffectUnstarted(EffectPhase):
-    def paint(self, owner, strip):
-        owner.run_effect(self.effect)
-        return super().paint(owner, strip)
-
-
-class EffectRunning(EffectPhase):
-    pass
+    def paint(self, owner, effect, strip):
+        owner.run_effect(effect)
+        return super().paint(owner, effect, strip)
 
 
 class EffectFinished(EffectPhase):
-    def keeps_arrivals(self, arrivals):
-        return ()
+    def keeps_arrivals(self, arrivals): return ()
 
-    def on_new_arrival(self, owner, pages):
+    def on_new_arrival(self, owner, effect, pages):
         for page in pages:
             page.arrivals.clear()
-        owner.stop_effect(self.effect)
+        owner.stop_effect(effect)
+
+
+EFFECT_UNSTARTED, EFFECT_RUNNING, EFFECT_FINISHED = EffectUnstarted(), EffectPhase(), EffectFinished()
 
 
 class AnimationEffects[FrameT: Frame]:
@@ -322,8 +313,8 @@ class AnimationEffects[FrameT: Frame]:
 
     def effect_phase(self, effect: Effect[FrameT]) -> EffectPhase:
         animation = self.effects.get(effect)
-        return (EffectUnstarted(effect) if animation is None else
-                EffectFinished(effect) if animation.finished else EffectRunning(effect))
+        return (EFFECT_UNSTARTED if animation is None else
+                EFFECT_FINISHED if animation.finished else EFFECT_RUNNING)
 
     def on_unmount(self) -> None:
         self.stop_effect()

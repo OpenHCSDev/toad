@@ -302,7 +302,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         strip = lines.strips_at(fragment.link_place)[row]
         if id(fragment) in self.arrivals:
             history = self.history
-            strip = history.effect_phase(NEW_TEXT).paint(history, strip)
+            strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
     def fragment_row(self, fragment: TranscriptFragment) -> tuple[int, int, bool] | None:
@@ -463,13 +463,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
                 return await self.prepared.replace_range(self, selected, current)
 
 class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, AnimationEffects[Mix], VerticalGroup):
-    """History drawn as lines, a bounded range of pages at a time.
-
-    It owns paging in both directions, lookahead, trimming, the jump to the
-    newest page and the reader's position. A subclass says what its source is:
-    `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or
-    direct conversation.
-    """
+    """A line-drawn source window whose arrived rows share one history fade."""
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
@@ -937,26 +931,17 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def drawn_tail_followed(self) -> bool:
         return not self.has_newer and self.follows_source_tail
 
-    def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        """Bind the arrived source range to its current pages, on one history clock."""
-        if not fragments:
-            return
-        self.effect_phase(NEW_TEXT).on_new_arrival(self, self.pages)
-        self._place_arrivals(fragments)
-
-    def _place_arrivals(self, fragments: tuple[TranscriptFragment, ...]) -> None:
-        positions = {fragment.arrival_position for fragment in fragments}
+    def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
+        phase = self.effect_phase(NEW_TEXT)
+        if fragments:
+            phase.on_new_arrival(self, NEW_TEXT, self.pages)
+        positions = {fragment.arrival_position for fragment in (*fragments, *phase.keeps_arrivals(continuing))}
         for page in self.pages:
+            previous = bool(page.arrivals)
+            page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
             page.arrivals.update(id(fragment) for fragment in page.fragments_in_range
                                  if fragment.arrival_position in positions)
-            if page.arrivals:
-                page.refresh()
-
-    def repaint(self) -> None:
-        phase = self.effect_phase(NEW_TEXT)
-        for page in self.pages:
-            if page.arrivals:
-                page.arrivals.intersection_update(phase.keeps_arrivals(page.arrivals))
+            if previous or page.arrivals:
                 page.refresh()
 
     def on_hide(self) -> None:
@@ -972,8 +957,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         await self._clear(initial)
         self.extend_source(through)
         await self._jump_latest(LatestViewportRequest(LatestPosition.hold(self.window)))
-        self._place_arrivals(self.effect_phase(NEW_TEXT).keeps_arrivals(retained))
-        self._arrive(arrivals)
+        self.repaint(arrivals, continuing=retained)
 
     async def _clear(self, initial: PreparedTranscriptPage) -> None:
         """Forget every drawn page and everything prepared: they belong to another reading."""
@@ -1051,7 +1035,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     arrivals = self._source_state.arriving(staged, followed_end)
                     await self._extend_and_trim(edge, older, local, protected, staged, current=current)
                     self._require_can_draw()
-                    self._arrive(arrivals)
+                    self.repaint(arrivals)
                     self._source_state.rows_published(self)
             self.state.delivered(self)
             advanced = self.pages[0] if older else self.pages[-1]
