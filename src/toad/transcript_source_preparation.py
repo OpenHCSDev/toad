@@ -12,7 +12,7 @@ from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
 from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
-from toad.transcript_preparation import PageRequest, PreparedPageSource, PreparedTranscriptPage
+from toad.transcript_preparation import PageRequest, PageBuffer, NoPageBuffer, PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
 
@@ -49,7 +49,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def __init__(self, *args, source_state: TranscriptState, **kwargs):
         self._source_state = source_state
         self._generation = 0
-        self._page_buffer: PreparedPageSource | None = None
+        self._page_buffer: PageBuffer = NoPageBuffer()
         self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 

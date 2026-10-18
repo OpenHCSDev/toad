@@ -319,13 +319,39 @@ class NoProjection(HeldProjection):
         pass
 
 
-class PreparedPageSource(ABC):
+class PageBuffer(ABC):
+    @abstractmethod
+    def opened(self, history: LineHistory) -> PreparedPageSource: ...
+
+    @abstractmethod
+    def release_held(self) -> None: ...
+
+    @abstractmethod
+    def close(self) -> None: ...
+
+
+class NoPageBuffer(PageBuffer):
+    def opened(self, history: LineHistory) -> PreparedPageSource:
+        return history.page_buffer(history.loader, history.through, history.app.preparation)
+
+    def release_held(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+class PreparedPageSource(PageBuffer):
     """One lifetime-owned source of prepared pages, independent of widget paging."""
 
     runtime: PreparationRuntime
     scope: PreparationScope
     through: TranscriptCursor
     loader: Callable[..., Awaitable[TranscriptPage]] | None
+
+    def opened(self, history: LineHistory) -> PreparedPageSource:
+        self.through = history.through
+        return self
 
     def __init__(self) -> None:
         # This source holds the resources after their widgets detach. These are the
@@ -499,6 +525,9 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
     kept boundary rather than overlapping the main mounted tail.
     Only the boundary and the caller's bounded pages remain strongly kept.
     """
+
+    def opened(self, history: LineHistory) -> PreparedPageSource:
+        return self
 
     def measure_projection(self) -> None:
         self.measure_held(self.held_pages, self.projection_source)
