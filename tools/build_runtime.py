@@ -485,6 +485,8 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
         environment.update(json.loads(launch))
         startup.callback(subprocess.run, [runtime / 'bin/agent-comms', '--root', output / 'wire',
                          'stop', '--name', 'startup-saved'], env=environment, check=True)
+        subprocess.run([runtime / 'bin/agent-comms', '--root', output / 'wire',
+                        'start', '--name', 'startup-saved'], env=environment, check=True)
         with BuildDisplay(output) as display:
             command = [runtime / 'bin/toad']
             with TerminalApp(command, display, output / 'plain', environment, home) as app:
