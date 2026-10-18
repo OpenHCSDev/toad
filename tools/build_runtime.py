@@ -263,6 +263,13 @@ class TerminalApp:
     def keys(self, *keys):
         self.mux('send-keys', '-t', 'qualify:0.0', *keys).check_returncode()
 
+    def show_saved_thread(self, thread):
+        self.wait('saved-ready', lambda text: thread in text
+                  and '▶ Ready' in '\n'.join(text.splitlines()[-8:]))
+        # The thread sidebar starts collapsed; expand its visible right gutter.
+        self.click_cell(self.columns - 1, self.rows // 2)
+        return self.wait('saved', lambda text: 'User messages' in text)
+
     def click(self, label):
         text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
         row, line = next((row, line) for row, line in enumerate(text.splitlines()) if label in line)
@@ -369,10 +376,9 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
             app.wait('welcome', lambda text: 'startup-saved' in text)
             app.screenshot('welcome')
             app.click('startup-saved')
-            app.wait('saved', lambda text: 'User messages' in text and 'startup-saved' in text)
+            app.show_saved_thread('startup-saved')
             app.screenshot('saved')
-            app.click('Channels')
-            app.click('#any')
+            app.keys('C-g')
             app.wait('any', lambda text: 'Message #any' in text)
             app.screenshot('any')
             check_filtered_return(app)
@@ -397,8 +403,7 @@ def check_filtered_return(app: TerminalApp) -> None:
     before = app.capture()
     (app.output / 'filtered-before.txt').write_text(before)
     app.screenshot('filtered-before')
-    app.click('Channels')
-    app.click('#any')
+    app.keys('C-g')
     app.wait('filtered-away', lambda text: 'Message #any' in text)
     app.keys('Escape')
     # Ignore the tab bar and animated footer; compare the actual message rows.
@@ -414,7 +419,7 @@ def open_saved_thread(runtime: Path, thread: str, display: XvfbDisplay, output: 
     for name in ('NO_COLOR', 'TOAD_VALIDATION'):
         environment.pop(name, None)
     with TerminalApp(['toad-comms', thread], display, output / 'saved', environment, Path.home()) as app:
-        app.wait('saved-thread', lambda text: thread in text and 'User messages' in text)
+        app.show_saved_thread(thread)
         return app.screenshot('saved-thread')
 
 
@@ -489,11 +494,10 @@ finally:
     with BuildDisplay(output) as display:
         command = [runtime / 'bin/toad', 'acp',
                    f'{runtime / "bin/python"} -I -B -m agent_comms.acp',
-                   str(output), '--session', 'build-parent']
+                   str(output)]
         with TerminalApp(command, display, output / 'reply', environment, output) as app:
-            app.wait('parent', lambda text: 'User messages' in text)
-            app.click('Channels')
-            app.click('#any')
+            app.wait('welcome', lambda text: 'build-parent' in text)
+            app.keys('C-g')
             app.wait('reply', lambda text: 'Message #any' in text and 'BUILD_WAKE_OK' in text)
             app.screenshot('reply')
     return result
