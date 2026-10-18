@@ -570,9 +570,7 @@ class BoundView(ViewBinding):
 
     def histories(self):
         from toad.widgets.transcript_history import TranscriptHistory
-        from toad.widgets.conversation import Contents
-        contents = self.view.query_one_optional(Contents)
-        return tuple(contents.query_children(TranscriptHistory)) if contents is not None else ()
+        return tuple(self.view.contents.query_children(TranscriptHistory))
 
     def observe_thread(self, owner):
         scope = self.thread_scope
@@ -681,14 +679,13 @@ class BoundView(ViewBinding):
                      for worker in view.workers.cancel_group(view, group))
 
     def covered(self, owner, coverage, history):
-        from toad.widgets.conversation import Contents
         from toad.widgets.session_details import SessionDetails
         from toad.widgets.committed_presentation import (
             CommitEvidence, CommitParticipant, protected_blocks, retirement_candidates,
         )
         view = self.view
-        contents = view.query_one_optional(Contents)
-        if contents is not None and history.is_attached and history.parent is contents:
+        contents = view.contents
+        if history.is_attached and history.parent is contents:
             owner.events.publish(coverage)
             candidates = retirement_candidates(contents.children, CommitEvidence(
                 frozenset(),
@@ -707,9 +704,7 @@ class BoundView(ViewBinding):
         return AwaitComplete.nothing()
 
     def reset_reader(self):
-        from toad.widgets.conversation import Window
-        if (window := self.view.query_one_optional(Window)) is not None:
-            window.reader_position = None
+        self.view.window.reader_position = None
 
 
 class TranscriptPresentation:
