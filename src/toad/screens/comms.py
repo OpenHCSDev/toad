@@ -147,7 +147,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     async def select_historical_identity(self, event: CoreEventMessage) -> None:
         event.stop()
         from toad.screens.historical_sessions import HistoricalSessions
-        comms = self.app.coordination_access.observation.current(self.app.coordination_access)
+        comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.open_current().service)
         threads = await asyncio.to_thread(comms.views.historical_threads, event.event.name)
         if not threads:
             self.notify("This sender has no preserved identity declaration.")
@@ -156,7 +156,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     async def action_historical_sessions(self) -> None:
         from toad.screens.historical_sessions import HistoricalSessions
-        comms = self.app.coordination_access.observation.current(self.app.coordination_access)
+        comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.open_current().service)
         threads = await asyncio.to_thread(comms.views.historical_threads)
         if not threads:
             self.notify("No preserved history sources are attached yet.")

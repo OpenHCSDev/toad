@@ -62,11 +62,6 @@ class RouteObservation:
 
 
 @dataclass(frozen=True)
-class WaitingRoute(RouteObservation):
-    pass
-
-
-@dataclass(frozen=True)
 class ObservedRoute(RouteObservation):
     stamp: tuple[FileRevision | None, ...] = field()
 
@@ -91,6 +86,12 @@ ROUTE_CHECK_SECONDS = 1.0
 
 
 class NotObserving:
+    def show_sidebar(self, view) -> None:
+        pass
+
+    def uses(self, service) -> bool:
+        return False
+
     def observes(self, root) -> bool:
         return False
     def tabs(self, sessions):
@@ -131,6 +132,12 @@ class Observing:
 
     def tabs(self, sessions):
         return {entry.mode: entry.tab(sessions, self) for entry in sessions.members}
+
+    def show_sidebar(self, view) -> None:
+        view.bind_observation(self)
+
+    def uses(self, service) -> bool:
+        return self.service is service
 
     async def write_order(self, access, root, channel, order):
         if root is not None and not self.observes(root):
@@ -178,7 +185,7 @@ class Observing:
         self.thread_interest(access)
         self.subscriptions.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
         self.views_changed()
-        access.events.publish(ObservedServiceChanged(self))
+        access.events.publish(ObservedServiceChanged())
 
     def retire(self, access):
         self.subscriptions.close()
@@ -254,7 +261,7 @@ class CoordinationAccess(MroDispatch):
         self.observation: Observation = NotObserving()
         self.events = CoreEventStream(self)
         self.revision: ReadState = NoRevision()
-        self.route_observation: RouteObservation = WaitingRoute()
+        self.route_observation: RouteObservation = RouteObservation()
         self.route_task: asyncio.Task[None] | None = None
         self.timer = None
         self.cleanup = ExitStack()
@@ -300,7 +307,7 @@ class CoordinationAccess(MroDispatch):
             self.app.running_loop, self)
         self.observation = observed
         self.revision = NoRevision()
-        self.route_observation = WaitingRoute()
+        self.route_observation = RouteObservation()
         observed.loop.call_soon_threadsafe(observed.attach, self, previous)
         return observed
 
