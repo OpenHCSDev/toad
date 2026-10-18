@@ -245,7 +245,7 @@ class TerminalApp:
 
     @staticmethod
     def message_cells(text):
-        """Decode the middle pane once through the terminal's sidebar boundaries."""
+        """Decode the middle pane through the terminal's sidebar boundaries."""
         for line in text.splitlines():
             panes = line.split('│')
             if len(panes) >= 3:
