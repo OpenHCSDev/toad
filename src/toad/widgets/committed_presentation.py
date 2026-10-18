@@ -18,7 +18,7 @@ from agent_comms.sent_message import PublishedSentMessage, OutgoingMessageRefere
 from toad.core.source_events import TranscriptCoverage
 from agent_comms.acp_extension import InputStartedUpdate
 
-from toad.block_navigation import ConversationBlock
+from toad.block_navigation import ConversationEntry
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.presentation_window import protected_presentations
 
@@ -155,7 +155,7 @@ class CommitBarrier:
 CAPTURED_CLAIM = CapturedClaim()
 RETAINED_SOURCE_CLAIM = RetainedSourceClaim()
 
-class CommittedHistory(ConversationBlock, SnapshotPresentation):
+class CommittedHistory(ConversationEntry, SnapshotPresentation):
     """A saved source block that precedes the conversation's live tail."""
 
     conversation_order = 0
