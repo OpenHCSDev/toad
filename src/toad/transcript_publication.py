@@ -446,6 +446,7 @@ class TranscriptPresentation:
         self.current_read: TranscriptReadIdentity | None = None
         self.worker: Worker[None] | None = None
         self.source_requests = SourcePublicationRequests(self)
+        self._thread_observation = ResourceRelease()
         from toad.core.events import CoreEventStream
         self.events = CoreEventStream(self)
 
@@ -467,6 +468,20 @@ class TranscriptPresentation:
         """The view declares the thread whose main history it presents."""
         view = self.view
         return view.transcript_scope() if view is not None and view.is_attached else None
+
+    def bind_thread_observation(self) -> None:
+        """Replace the observation when the owning session changes history source."""
+        self._thread_observation.close()
+        scope = self.thread_scope
+        if scope is not None:
+            view = self.view
+            self._thread_observation.enter_context(
+                view.app.coordination_access.observe_thread_changes(
+                    view, scope, view._thread_rows_changed))
+
+    def _unbind_view(self) -> None:
+        self._thread_observation.close()
+        self._view = lambda: None
 
     @property
     def readable(self) -> bool:
@@ -742,7 +757,7 @@ class TranscriptPresentation:
                 release.callback(self._close_documents)
                 await self.suspend()
         finally:
-            self._view = lambda: None
+            self._unbind_view()
             self.displayed_cursor = None
 
     def _close_documents(self) -> None:
@@ -885,6 +900,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
             yield
         finally:
             if origin.transcript_scope() != previous:
+                self.bind_thread_observation()
                 self.source_requests.cancel()
                 self.invalidate_publications()
                 self.current_read = None
@@ -907,6 +923,7 @@ class SessionTranscriptPresentation(TranscriptPresentation):
     async def detach(self, view: Conversation) -> None:
         if self.view is not view:
             return
+        self._thread_observation.close()
         await self.suspend()
         if self.closed or self.view is not view:
             return
@@ -921,5 +938,5 @@ class SessionTranscriptPresentation(TranscriptPresentation):
                     return
         self._close_documents()
         self.documents = tuple(documents)
-        self._view = lambda: None
+        self._unbind_view()
         self.displayed_cursor = None
