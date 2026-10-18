@@ -165,7 +165,9 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
         if not self.member_container.is_attached or not self.accepts_members():
             return
         tree = self.query_ancestor(ThreadCommsSidebar)
-        rows = tree.model.threads.rows
+        if not tree.model_state.shows_model():
+            return
+        rows = tree.model_state.model.threads.rows
         entries = {entry.target: entry for entry in self.model.entries}
         empty = self.query_one_optional(".relationship-empty")
         if (entries or not self.expanded) and empty is not None:
@@ -276,8 +278,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
 
     def accepts_observation(self) -> bool:
         identity = self.thread_view.thread_identity
-        return (self.service is not None
-                and identity.root_path() == self.service.root.resolve())
+        return identity.root_path() == self.model_state.navigation_root
 
     def sync(self, *, channels, threads, reorder=False) -> None:
         for group in self.navigation_groups:
