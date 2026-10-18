@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from agent_comms.messages import Message
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PreparedTranscriptPage, PreparedPageSource
+from toad.transcript_preparation import PreparedTranscriptPage, PreparedPageSource, SavedHistory
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
@@ -17,7 +17,7 @@ from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.message_notifications import VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
 from toad.message_rows import IrcMessageStyle, WireMessageStyle
-from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
+from toad.wire_history import PreparedWirePage, WirePage, WireSource
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import ConversationRevision
@@ -34,7 +34,6 @@ class WireHistory(VisibleReadMarking, LineHistory):
     def __init__(self, prepared: PreparedTranscriptPage,
                  history: PreparedPageSource, *, view) -> None:
         self.view = view
-        self._source: WireSource | None = None
         super().__init__(prepared, history)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
@@ -43,13 +42,12 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     def open(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
-        self._source = source
         self._history.close()
-        self._history = WirePageBuffer(source, self.through, self.app.preparation)
+        self._history = SavedHistory(source, self.through, self.app.preparation)
 
     @property
     def source(self) -> WireSource | None:
-        return self._source
+        return self._history.source
 
     @property
     def style(self) -> WireMessageStyle:
