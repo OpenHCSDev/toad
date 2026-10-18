@@ -840,7 +840,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def drawn_tail_followed(self) -> bool:
-        return not NEWER_END.visible_more(self) and self.follows_source_tail
+        return not self.drawn_end_more and self.follows_source_tail
 
     def repaint(self, fragments: tuple[TranscriptFragment, ...] = (), *, continuing=()) -> None:
         phase = self.effect_phase(NEW_TEXT)
