@@ -138,17 +138,9 @@ class PreparedTranscriptPage:
     def start(self):
         return self.fragment_range[0]
 
-    @start.setter
-    def start(self, start):
-        self.fragment_range = start, self.fragment_range[1] if self.fragment_range is not None else start
-
     @property
     def stop(self):
         return self.fragment_range[1]
-
-    @stop.setter
-    def stop(self, stop):
-        self.fragment_range = self.start, stop
 
     def set_fragment_range(self, selected: slice) -> None:
         self.fragment_range = selected.start, selected.stop
@@ -452,10 +444,6 @@ class TranscriptPageBuffer(PreparedPageSource):
         super().__init__()
         self.loader, self.through, self.runtime = loader, through, runtime
         self.scope = PreparationScope()
-
-    @property
-    def closed(self) -> bool:
-        return self.scope.closed
 
     def read_task(self, request: PageRequest) -> TranscriptPageWork:
         if self.loader is None:

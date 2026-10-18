@@ -248,7 +248,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         edge = self.pages[-1]
         if edge.prepared.page.after == self.through:
             return True
-        if self.has_newer:
+        if NewerEnd().visible_more(self):
             destination = HeldReaderDestination.held(self.window)
             if destination is not None and await destination.source_arrived(self):
                 return True
@@ -259,7 +259,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         prepared = await self._reader().get(NewerEnd().adjacent(edge.prepared.page))
         if not await self.source_is_current(snapshot) or not publication_current():
             return False
-        if self.pages[-1] is not edge or self.has_newer:
+        if self.pages[-1] is not edge or NewerEnd().visible_more(self):
             return False
         if not await self.accept_extension(edge, prepared):
             return False

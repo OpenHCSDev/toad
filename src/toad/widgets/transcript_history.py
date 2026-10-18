@@ -18,11 +18,8 @@ from weakref import ref
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.ui_model.observation import ReadNotifications
-from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.transcript_events import (
-    TranscriptEvent, ContextTranscript, UserTranscript, IncomingTranscript, AgentTextTranscript, SentTranscript,
-    ThinkingTranscript,
-)
+from agent_comms.mro_dispatch import handles
+from agent_comms.transcript_events import TranscriptEvent
 from textual import events, on
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from textual.app import ComposeResult
@@ -32,7 +29,6 @@ from textual.message import Message
 from textual.selection import Selection
 from textual._activation import PrimaryActivation
 from textual.widget import Widget
-from textual.walk import walk_depth_first
 from textual._paint_state import PaintState
 from textual.strip import Strip
 from textual.widgets import Static
@@ -45,11 +41,7 @@ from toad.transcript_preparation import (
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
-from toad.widgets.agent_response import AgentResponse
-from toad.widgets.agent_thought import AgentThought
-from toad.widgets.tool_call import ToolCall
-from toad.widgets.user_input import UserInput
-from toad.widgets.message_divider import AgentActivityDivider, MessageClock
+from toad.widgets.message_divider import MessageClock
 from toad.frame_presentation import AnimationEffects
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
@@ -78,41 +70,30 @@ if TYPE_CHECKING:
 
 class HistoryEdge(PrimaryActivation, Static, can_focus=True):
     DEFAULT_CSS = "HistoryEdge { height: 1; color: $text-muted; pointer: pointer; }"
-    BINDINGS = [("enter,space", "earlier", "Earlier history")]
+    BINDINGS = [("enter,space", "requested", "Earlier history")]
 
     class Requested(Message):
         pass
 
     @property
     def primary_activation(self):
-        return self.action_earlier
+        return self.action_requested
 
-    def action_earlier(self) -> None:
+    def action_requested(self) -> None:
         self.post_message(self.Requested())
 
     def on_click(self, event) -> None:
         if event.button == 1:
             event.stop()
-            self.action_earlier()
+            self.action_requested()
 
-class JumpToLatest(HoverSelection, PrimaryActivation, Static, can_focus=True):
+class JumpToLatest(HoverSelection, HistoryEdge):
     highlighted_text_style = RichStyle(bold=True)
-    BINDINGS = [("enter,space", "jump", "Jump to latest")]
-    DEFAULT_CSS = "JumpToLatest { height: 1; color: $text-secondary; pointer: pointer; }"
+    BINDINGS = [("enter,space", "requested", "Jump to latest")]
+    DEFAULT_CSS = "JumpToLatest { color: $text-secondary; }"
 
     class Requested(Message):
         pass
-
-    @property
-    def primary_activation(self):
-        return self.action_jump
-
-    def action_jump(self) -> None:
-        self.post_message(self.Requested())
-
-    def on_click(self, event: events.Click) -> None:
-        event.stop()
-        self.action_jump()
 
 class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     """One transcript page, drawn as its loaded fragments' prepared lines.
@@ -760,21 +741,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         return self.window.follows_tail
 
     @property
-    def has_older(self) -> bool:
-        page = self.pages[0]
-        return OlderEnd().can_extend(page.prepared) or page.prepared.page.has_older
-
-    @property
-    def has_newer(self) -> bool:
-        page = self.pages[-1]
-        return NewerEnd().can_extend(page.prepared) or page.prepared.page.has_newer
-
-    @property
-    def needs_latest_publication(self) -> bool:
-        """Whether the newest source is outside the drawn range."""
-        return self.has_newer
-
-    @property
     def fragment_limit(self) -> int:
         # Screen rows are not fragment counts: one prepared fragment may contain
         # a dozen lines or a whole indivisible Markdown block. Grow with the
@@ -821,7 +787,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     def _update_edges(self) -> None:
         shown = bool(self.selected_categories)
-        older, newer = shown and self.filter.older_visible, shown and self.has_newer
+        older, newer = shown and self.filter.older_visible, shown and NewerEnd().visible_more(self)
         if (older, newer) != (self.older.display, self.newer.display):
             # The edge rows are above and below the reader's.
             self.window.keep_reader()
@@ -878,7 +844,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def drawn_tail_followed(self) -> bool:
-        return not self.has_newer and self.follows_source_tail
+        return not NewerEnd().visible_more(self) and self.follows_source_tail
 
     def _arrive(self, fragments: tuple[TranscriptFragment, ...]) -> None:
         """Bind the arrived source range to its current pages, on one history clock."""
@@ -1145,7 +1111,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     @property
     def older_page_available(self) -> bool:
-        return self.source_ready and self.has_older
+        return self.source_ready and OlderEnd().visible_more(self)
 
     def request_older(self) -> None:
         if self.older_page_available:

@@ -24,14 +24,6 @@ if TYPE_CHECKING:
     from toad.widgets.conversation import Contents
 
 
-
-
-
-
-
-
-
-
 class ReaderPosition(ABC):
     """Where the reader is in a history window, named by what they read.
 
@@ -400,7 +392,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
         latest = cls(
             window.scroll_revision,
             sources,
-            not any(history.has_newer for history, _through in sources),
+            not any(NewerEnd().visible_more(history) for history, _through in sources),
         )
         window.reader_position = latest
         return latest
@@ -527,7 +519,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         latest = LatestPosition.hold(self)
         self.destination()
         for history in tuple(self.histories):
-            if history.needs_latest_publication:
+            if NewerEnd().visible_more(history):
                 history.request_latest(latest)
 
     def tail_follow_changed(self) -> None:
@@ -798,7 +790,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         # keyboard, wheel and scrollbar input. Compensation uses the existing
         # restoration transaction and cannot choose a different reader policy.
         if (new_value > old_value and not self._restoring
-                and all(not history.has_newer for history in self.histories)):
+                and all(not NewerEnd().visible_more(history) for history in self.histories)):
             # A lazy pager's mounted edge is not the source tail. Explicit End
             # still chooses follow through jump_to_latest; ordinary travel only
             # rejoins it once the current source has no unpublished newer rows.

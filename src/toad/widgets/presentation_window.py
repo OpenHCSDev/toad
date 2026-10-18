@@ -120,6 +120,9 @@ class PageEnd(ABC):
     step: int
     accepts_destination = True
 
+    def entry(self, length):
+        return self.edge(range(length - 1, -1, -1))
+
     def visible_more(self, history):
         page = self.edge(history.pages).prepared
         return self.can_extend(page) or self.has_more(page.page.after, page.page)
@@ -199,7 +202,7 @@ class OlderEnd(PageEnd):
         return not overlay_visible
 
     def trim_range(self, page, count):
-        page.start += count
+        page.set_fragment_range(slice(page.start + count, page.stop))
 
     def rows_toward(self, runway):
         return runway.above
@@ -251,7 +254,7 @@ class NewerEnd(PageEnd):
         return reversed(page.fragments_in_range)
 
     def trim_range(self, page, count):
-        page.stop -= count
+        page.set_fragment_range(slice(page.start, page.stop - count))
 
     def rows_toward(self, runway):
         return runway.below
@@ -493,7 +496,7 @@ class DirectionalPreparation:
         if (not window.screen.is_active or not history.selected_categories
                 or self.runway(history) is None):
             return
-        if history.follows_source_tail and history.has_newer:
+        if history.follows_source_tail and NewerEnd().visible_more(history):
             window.jump_to_latest()
         elif history.filter.active:
             # Projection scans share the original source's decoded boundary.

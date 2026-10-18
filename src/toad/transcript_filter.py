@@ -164,11 +164,11 @@ class FilterState(DeclaredFamily, affix="Filter"):
 class NoFilter(FilterState):
     @property
     def older_visible(self):
-        return self.owner.has_older
+        return self.has_older
 
     @property
     def has_older(self):
-        return self.owner.has_older
+        return OlderEnd().visible_more(self.owner)
 
 
 class EmptyFilter(NoFilter):
@@ -184,7 +184,7 @@ class SeekingFilter(NoFilter):
 
     @property
     def scan_available(self):
-        return self.owner.has_older
+        return OlderEnd().visible_more(self.owner)
 
     def scan_needed(self):
         owner = self.owner
@@ -245,7 +245,7 @@ class Filtered(FilterState):
 
     @property
     def has_older(self):
-        return self.overlay.has_older
+        return OlderEnd().visible_more(self.overlay)
 
     @property
     def scan_available(self):
