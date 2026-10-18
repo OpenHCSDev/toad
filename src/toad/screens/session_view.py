@@ -2,7 +2,6 @@
 from textual.containers import Vertical
 from textual.widget import Widget
 from textual.reactive import reactive
-from toad.widgets.side_bar import SidebarFocusOwner
 from pathlib import Path
 from contextlib import contextmanager
 from toad.core.events import ThreadIdentityChanged
@@ -52,7 +51,7 @@ class SessionOrigin:
     def has_agent(self) -> bool:
         return self._agent is not None
 
-class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertical):
+class SessionView(CoreEventReceiver, ProjectPathOwner, Vertical):
     title = reactive("")
     sub_title = reactive("")
 
