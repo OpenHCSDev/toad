@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from collections import Counter
 from collections.abc import Iterable
@@ -360,10 +361,104 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
             self.sync_members(frozenset())
 
 
+class SidebarChange:
+    """The changed model rows choose which native rows need work."""
+
+    def apply_comms(self, sidebar, rows) -> None:
+        raise NotImplementedError
+
+    def apply_welcome(self, channel_list, thread_list) -> None:
+        raise NotImplementedError
+
+    def apply_relationships(self, groups) -> None:
+        raise NotImplementedError
+
+    def apply_activity(self, view) -> None:
+        raise NotImplementedError
+
+    def apply_navigation(self, sidebar) -> None:
+        sidebar.navigation.apply()
+
+
+class AllSidebarRows(SidebarChange):
+    def apply_comms(self, sidebar, rows) -> None:
+        sidebar.open_views = sidebar.find_open_views()
+        with sidebar.reconcile_members():
+            for name, group in sidebar.groups.items():
+                if (channel := rows.get(name)) is not None:
+                    group.present(channel)
+                    group.sync_members()
+
+    def apply_welcome(self, channel_list, thread_list) -> None:
+        channel_list.sync_members()
+        thread_list.sync_members()
+
+    def apply_relationships(self, groups) -> None:
+        for group in groups:
+            group.sync_members()
+
+    def apply_activity(self, view) -> None:
+        view.call_next(view.sync_members)
+
+
+@dataclass(frozen=True)
+class ChangedChannels(SidebarChange):
+    names: frozenset[str]
+
+    def apply_comms(self, sidebar, rows) -> None:
+        with sidebar.reconcile_members():
+            for name in self.names:
+                group, channel = sidebar.groups.get(name), rows.get(name)
+                if group is not None and channel is not None:
+                    group.present(channel)
+                    group.sync_members()
+
+    def apply_welcome(self, channel_list, thread_list) -> None:
+        channel_list.sync_members(self.names)
+        # A changed channel can change the welcome thread list's order.
+        thread_list.sync_members(frozenset())
+
+    def apply_relationships(self, groups) -> None:
+        pass
+
+    def apply_activity(self, view) -> None:
+        if view.view.target in self.names:
+            view.call_next(view.sync_members)
+
+
+@dataclass(frozen=True)
+class ChangedThreads(SidebarChange):
+    names: frozenset[str]
+
+    def apply_comms(self, sidebar, rows) -> None:
+        for group in sidebar.groups.values():
+            group.repaint_members(self.names)
+
+    def apply_welcome(self, channel_list, thread_list) -> None:
+        thread_list.sync_members(self.names)
+
+    def apply_relationships(self, groups) -> None:
+        for group in groups:
+            changed = group.keys_for_threads(self.names)
+            if changed:
+                group.sync_members(changed=changed)
+
+    def apply_activity(self, view) -> None:
+        if self.names.intersection(view.member_keys) or self.names.intersection(view.rows):
+            view.call_next(view.sync_members)
+
+    def apply_navigation(self, sidebar) -> None:
+        pass
+
+
 EMPTY = SidebarModel(lambda callback: None)
 
 
-class SidebarModelState:
+class SidebarModelState(ABC):
+    @abstractmethod
+    def shows_child(self, view, child: Widget) -> bool:
+        """Whether this state's sidebar displays this direct child."""
+
     def root(self):
         raise RuntimeError("The sidebar has no observed service.")
 
@@ -400,10 +495,16 @@ class SidebarModelState:
 class Detached(SidebarModelState):
     """No opened service or model belongs to this view."""
 
+    def shows_child(self, view, child: Widget) -> bool:
+        return False
+
 
 @dataclass(frozen=True)
 class FailedSidebarState(SidebarModelState):
     observed: FailedObservation
+
+    def shows_child(self, view, child: Widget) -> bool:
+        return child is view.unavailable
 
     def present(self, view):
         view.unavailable.update(f"Comms unavailable\n{self.observed.error}")
@@ -414,6 +515,9 @@ class FailedSidebarState(SidebarModelState):
 @dataclass(frozen=True)
 class BoundSidebar(SidebarModelState):
     observed: Observing
+
+    def shows_child(self, view, child: Widget) -> bool:
+        return child is not view.unavailable
 
     def root(self):
         return self.observed.service.root
@@ -460,7 +564,7 @@ class Behind(BoundSidebar):
         return Current(self.observed)
 
     def changes(self, changes):
-        return dict(channels=None, threads=None, reorder=True)
+        return dict(change=AllSidebarRows(), reorder=True)
 
 
 class SidebarModelView(CoreEventReceiver, Widget):
@@ -473,10 +577,10 @@ class SidebarModelView(CoreEventReceiver, Widget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.unavailable = Static("", markup=False)
-        self.unavailable.display = False
 
     async def on_mount(self) -> None:
         await self.mount(self.unavailable)
+        self.watch_model_state(self.model_state)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
         observed = await self.app.preparation.run_thread(
@@ -492,7 +596,11 @@ class SidebarModelView(CoreEventReceiver, Widget):
     def sidebar_visibility_changed(self) -> None:
         self.present()
 
-    model_state: SidebarModelState = Detached()
+    model_state: reactive[SidebarModelState] = reactive(Detached, repaint=False)
+
+    def watch_model_state(self, state: SidebarModelState) -> None:
+        for child in self.children:
+            child.display = state.shows_child(self, child)
 
     @property
     def navigation_root(self):
@@ -505,9 +613,8 @@ class SidebarModelView(CoreEventReceiver, Widget):
     def model_replaced(self) -> None:
         """Retire what showed the previous service's rows."""
 
-    def sync(self, *, channels: frozenset[str] | None, threads: frozenset[str] | None,
-             reorder: bool = False) -> None:
-        """Apply model changes; ``None`` means every channel or thread changed."""
+    def sync(self, *, change: SidebarChange, reorder: bool = False) -> None:
+        """Apply the model's declared row change."""
         raise NotImplementedError
 
     def unsubscribe(self) -> None:
@@ -522,9 +629,7 @@ class SidebarModelView(CoreEventReceiver, Widget):
         self.unsubscribe()
         self.model_state = FailedSidebarState(observed)
         self.model_replaced()
-        for child in self.children:
-            child.set_display_constraint("comms-available", child is self.unavailable)
-        self.unavailable.display = self.display = True
+        self.display = True
         self.present()
 
     def bind_observation(self, observed: Observing) -> None:
@@ -532,9 +637,6 @@ class SidebarModelView(CoreEventReceiver, Widget):
             return
         self.unsubscribe()
         self.model_state = Behind(observed)
-        self.unavailable.display = False
-        for child in self.children:
-            child.set_display_constraint("comms-available", True)
         observed.sidebar.channels.subscribe(self.channels_changed)
         observed.sidebar.threads.subscribe(self.threads_changed)
         self.model_replaced()
@@ -542,13 +644,12 @@ class SidebarModelView(CoreEventReceiver, Widget):
 
     def channels_changed(self, changes: Changes[str]) -> None:
         self.present(
-            channels=frozenset((*changes.added, *changes.changed)), threads=frozenset(),
+            change=ChangedChannels(frozenset((*changes.added, *changes.changed))),
             reorder=bool(changes.added or changes.removed or changes.order is not None))
 
     def threads_changed(self, changes: Changes[str]) -> None:
-        self.present(
-            channels=frozenset(),
-            threads=frozenset((*changes.added, *changes.removed, *changes.changed)))
+        self.present(change=ChangedThreads(frozenset(
+            (*changes.added, *changes.removed, *changes.changed))))
 
     def present(self, **changes) -> None:
         """Publish the next state before it applies pending model changes."""
@@ -562,8 +663,8 @@ class SidebarModelView(CoreEventReceiver, Widget):
 
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: CoreEventMessage) -> None:
-        """This app's own row state changed: every thread row repaints now, or when shown again."""
-        self.present(channels=frozenset(), threads=None)
+        """Repaint only the thread rows named by the app event."""
+        self.present(change=ChangedThreads(event.event.names))
 
 
 class SearchFollower:

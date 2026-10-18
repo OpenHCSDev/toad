@@ -138,7 +138,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         return RETAINED_SOURCE_CLAIM
 
     def accepts_commit(self, cursor: TranscriptCursor) -> bool:
-        return cursor.contains(self.committed_cursor)
+        return cursor.contains(self.page_source.through)
 
     def covered_sequences(self, sequences: frozenset[int]) -> frozenset[int]:
         return frozenset(sequence for sequence in sequences if self.covers_incoming(sequence))
@@ -183,7 +183,7 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
     def covers_incoming(self, sequence: int) -> bool:
         if not self._source_state.reports_coverage:
             return False
-        if self.committed_cursor.covers_incoming(sequence):
+        if self.page_source.through.covers_incoming(sequence):
             return True
         if sequence in TranscriptCoverage(tuple(self.coverage_events)).sequences:
             return True
@@ -193,10 +193,6 @@ class CommittedHistory(ConversationBlock, SnapshotPresentation):
         """Whether the loaded saved pages hold the input Core started under this identity."""
         return (self._source_state.reports_coverage
                 and native_id in TranscriptCoverage(tuple(self.coverage_events)).native_inputs)
-
-    @property
-    def committed_cursor(self) -> TranscriptCursor:
-        return self.through
 
     def retain_committed(self, through: TranscriptCursor) -> None:
         """Extend access to saved source without moving the displayed page window."""

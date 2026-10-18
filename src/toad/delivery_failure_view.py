@@ -125,19 +125,7 @@ class DeliveryFailureView:
         sent = await self.commit_user_message(comms, target, body)
         if sent is None:
             return
-        try:
-            await require_route()
-            await present(sent)
-        except asyncio.CancelledError:
-            self.delivery_blocked(
-                f"Committed {root}/{sent.seq}/{sent.message_id}; drawing was interrupted. "
-                "Inspect before composing", body,
-            )
-        except Exception as error:
-            self.delivery_blocked(
-                f"Committed {root}/{sent.seq}/{sent.message_id}; history unavailable: {error}. "
-                "Inspect before composing", body,
-            )
+        await present(sent)
 
     async def commit_user_message(self, comms, target, body):
         from agent_comms.route_selection import implicit_root, run_selected_write

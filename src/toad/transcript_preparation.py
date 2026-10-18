@@ -14,7 +14,7 @@ from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
-from toad.widgets.presentation_window import PageEnd, PageRequest
+from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
@@ -281,7 +281,6 @@ class PreparedPageSource(ABC):
     runtime: PreparationRuntime
     scope: PreparationScope
     through: TranscriptCursor
-    loader: Callable[..., Awaitable[TranscriptPage]] | None
 
     def __init__(self) -> None:
         # This source holds the resources after their widgets detach. These are the
@@ -332,14 +331,50 @@ class PreparedPageSource(ABC):
     @abstractmethod
     async def _prepare(self, request: PageRequest) -> None: ...
 
+    def reload_key(self):
+        return self.scope
+
+    def has_more(self, end: PageEnd, page: TranscriptPage) -> bool:
+        return end.has_more(self.through, page)
+
+    def has_older(self, page: TranscriptPage) -> bool:
+        return page.has_older
+
+    def edge_reached(self, request: PageRequest, boundary) -> bool:
+        return request.cursor == boundary
+
+    async def latest(self, prepared: PreparedTranscriptPage) -> PreparedTranscriptPage:
+        if prepared.page.after == self.through:
+            return prepared.for_view()
+        return (await self.get(PageRequest(OLDER_END, self.through))).for_view()
+
+    @abstractmethod
+    def prefix(self, through) -> PreparedPageSource: ...
+
     async def prepare_next(self, page: TranscriptPage, end: PageEnd) -> None:
-        if end.has_more(self.through, page):
+        if self.has_more(end, page):
             await self.prepare(end.adjacent(page))
 
-    def close(self) -> None:
+    def restart(self, through) -> None:
+        """Discard the old reading without discarding its storage binding."""
+        self._restart_reader()
+        self.through = through
+        self._release_ranges()
+
+    def _restart_reader(self) -> None:
+        self._close_reader()
+        self.scope = PreparationScope()
+
+    def _close_reader(self) -> None:
         self.runtime.discard_scope(self.scope)
+
+    def _release_ranges(self) -> None:
         self.projection_source.close()
         self.release_held()
+
+    def close(self) -> None:
+        self._close_reader()
+        self._release_ranges()
 
 
 class TranscriptPageProjection(ABC):
@@ -428,16 +463,17 @@ class SavedHistory(PreparedPageSource):
     work: ClassVar[type[TranscriptPageWork]] = TranscriptPageWork
 
     def __init__(
-        self, loader: Callable[..., Awaitable[TranscriptPage]] | None, through: TranscriptCursor,
+        self, loader: Callable[..., Awaitable[TranscriptPage]], through: TranscriptCursor,
         runtime: PreparationRuntime,
     ) -> None:
         super().__init__()
         self.loader, self.through, self.runtime = loader, through, runtime
         self.scope = PreparationScope()
 
+    def prefix(self, through) -> PreparedPageSource:
+        return SavedPrefix(self, self.loader, through, self.runtime)
+
     def read_task(self, request: PageRequest) -> TranscriptPageWork:
-        if self.loader is None:
-            raise ValueError("This transcript has no saved-source reader")
         return self.work(self.scope, self.loader, self.through, request)
 
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
@@ -453,6 +489,10 @@ class SavedPrefix(SavedHistory):
         super().__init__(loader, through, runtime)
         self.earlier = earlier
 
+    def read_task(self, request):
+        # Keep the upstream task's declared native/wire behavior, bounded here.
+        return replace(self.earlier.read_task(request), scope=self.scope, through=self.through)
+
     async def _get(self, request):
         return await request.end.edge((self.earlier.get, super()._get))(request)
 
@@ -460,10 +500,94 @@ class SavedPrefix(SavedHistory):
         await request.end.edge((self.earlier.prepare, super()._prepare))(request)
 
 
-class ClosedHistory(SavedHistory):
-    def __init__(self, loader, through, runtime):
-        super().__init__(loader, through, runtime)
-        self.scope.closed = True
+class ClosedHistory(PreparedPageSource):
+    """A retained range without a saved reader; its pages remain usable."""
+
+    def __init__(self, through, runtime):
+        super().__init__()
+        self.through, self.runtime = through, runtime
+        self.scope = PreparationScope()
+
+    def uses_observation(self, observation) -> bool:
+        return False
+
+    async def route_is_current(self) -> bool:
+        return False
+
+    def status_thread(self, access):
+        from toad.widgets.observed_thread_activity import NoStatusThread
+
+        return NoStatusThread()
+
+    def command_context(self, view):
+        return None
+
+    async def submit_input(self, view, event) -> None:
+        view.delivery_refused("Conversation source is not ready", event.body)
+
+    def schedule_refresh(self, view):
+        return None
+
+    def painted_read(self, history):
+        return None
+
+    async def change_style(self, history) -> None:
+        return
+
+    def observe_notifications(self, view, references) -> None:
+        view.app.coordination_access.stop_notifications(view)
+
+    def notification_read(self, references):
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def read_revision(self):
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def observe_changes(self, revision):
+        return None
+
+    def accepts_page(self, current, incoming) -> bool:
+        return False
+
+    def seen_page(self, history, seen):
+        return None
+
+    async def mark_historical(self, displayed) -> None:
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def mark_page(self, page) -> None:
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def read_only(self) -> bool:
+        return True
+
+    async def update_mentions(self, view) -> None:
+        return
+
+    async def status_text(self, *, read_only):
+        return "Conversation source is not ready"
+
+    def has_more(self, end, page) -> bool:
+        return False
+
+    def has_older(self, page) -> bool:
+        return False
+
+    def edge_reached(self, request, boundary) -> bool:
+        return True
+
+    async def latest(self, prepared):
+        return prepared.for_view()
+
+    def prefix(self, through):
+        return ClosedHistory(through, self.runtime)
+
+    async def _get(self, request):
+        raise ValueError("This transcript has no saved-source reader")
+
+    async def _prepare(self, request):
+        # No saved read can be speculated for a retained-only range.
+        return
 
 
 class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
@@ -479,18 +603,14 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
         self.measure_held(self.held_pages, self.projection_source)
 
     def __init__(
-        self, boundary: PreparedTranscriptPage,
-        loader: Callable[..., Awaitable[TranscriptPage]] | None,
-        runtime: PreparationRuntime, projection: TranscriptPageProjection,
-        upstream: PreparedPageSource | None = None,
+        self, boundary: PreparedTranscriptPage, source: PreparedPageSource,
+        projection: TranscriptPageProjection,
     ) -> None:
         super().__init__()
-        self.loader, self.runtime, self.projection = loader, runtime, projection
+        self.runtime, self.projection = source.runtime, projection
         self.through = boundary.page.after
-        self._raw = (ClosedHistory(loader, boundary.page.before, runtime) if loader is None else
-                     SavedHistory(loader, boundary.page.before, runtime) if upstream is None else
-                     SavedPrefix(upstream, loader, boundary.page.before, runtime))
-        self.scope = self._raw.scope if loader is not None else PreparationScope()
+        self._raw = source.prefix(boundary.page.before)
+        self.scope = self._raw.scope
         self._boundary = boundary
         self._projected_boundary: PreparedTranscriptPage | None = None
 
@@ -499,33 +619,36 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
             projected = await self.projection.project(self._boundary, self.runtime)
             self._projected_boundary = replace(projected, page=replace(
                 projected.page, has_newer=False,
-                has_older=projected.page.has_older and self.loader is not None,
+                has_older=self._raw.has_older(projected.page),
             ))
         return self._projected_boundary
 
-    def _reader_for(self, request: PageRequest) -> PreparedPageSource | None:
-        """The source owns reader availability and its fixed boundary."""
+    def prefix(self, through) -> PreparedPageSource:
+        return self._raw.prefix(through)
+
+    def _at_boundary(self, request: PageRequest) -> bool:
         boundary = request.end.edge((self.through, self._boundary.page.before))
-        if request.cursor == boundary or self.loader is None:
-            return None
-        return self._raw
+        return self._raw.edge_reached(request, boundary)
 
     async def _get(self, request: PageRequest) -> PreparedTranscriptPage:
-        if (reader := self._reader_for(request)) is None:
+        if self._at_boundary(request):
             return await self.boundary()
-        initial = await reader.get(request)
+        initial = await self._raw.get(request)
         prepared = await self.projection.project(initial, self.runtime)
         return await request.end.project(self, initial, prepared)
 
     async def _prepare(self, request: PageRequest) -> None:
-        if (reader := self._reader_for(request)) is None:
+        if self._at_boundary(request):
             await self.boundary()
         else:
-            await reader.prepare(request)
+            await self._raw.prepare(request)
 
-    def close(self) -> None:
-        super().close()
-        self._raw.close()
-        self._raw = ClosedHistory(None, self.through, self.runtime)
+    def _restart_reader(self) -> None:
+        self._raw.restart(self._boundary.page.before)
+        self.scope = self._raw.scope
         self._projected_boundary = None
-        self.loader = None
+
+    def _close_reader(self) -> None:
+        self._raw.close()
+        self._raw = ClosedHistory(self.through, self.runtime)
+        self._projected_boundary = None

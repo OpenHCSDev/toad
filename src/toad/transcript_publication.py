@@ -18,7 +18,7 @@ from agent_comms.ui_model.observation import NotPublished, Published, Transcript
 from agent_comms.coordination_errors import CoordinationReadUnavailable, StaleRevision, TranscriptChanged
 from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
-from toad.widgets.history_anchor import HeldReaderDestination
+from toad.widgets.history_anchor import HeldReaderDestination, TailPosition
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin, SessionView
@@ -72,7 +72,7 @@ class TranscriptPublication(BoundFrame, ABC):
         """The mounted main history retains the native prefix the wire cursor lacks."""
         if self.native_current():
             return cursor
-        return cursor.over_native(tuple(history.committed_cursor for history in self.binding.histories()
+        return cursor.over_native(tuple(history.page_source.through for history in self.binding.histories()
                                         if history in self.captured and history.state.reports_coverage))
 
     def source_current(self, cursor: TranscriptCursor) -> bool:
@@ -166,7 +166,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
         if self.history is not None:
             try:
-                return await read(after=self.history.committed_cursor)
+                return await read(after=self.history.page_source.through)
             except TranscriptChanged:
                 pass  # Another source file replaced the history's.
         return await read(**whole)
@@ -332,6 +332,7 @@ class CommitPublication(CanonicalSourcePublication):
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         from toad.widgets.transcript_history import TranscriptHistory
+        from toad.transcript_preparation import SavedHistory
 
         if not self.ready_to_commit():
             return True
@@ -354,7 +355,9 @@ class CommitPublication(CanonicalSourcePublication):
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                prepared.page, self.owner.get_transcript_page, committed=False,
+                prepared.page, SavedHistory(self.owner.get_transcript_page,
+                                            prepared.page.page.after, view.app.preparation),
+                committed=False,
                 notification_view=contents,
             )
             await contents.prepare_history(
@@ -555,10 +558,9 @@ class BoundView(ViewBinding):
         first_history = next(iter(self.histories()), None)
         moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
         position = self.window.reader_position
-        if position is not None:
-            for history in self.histories():
-                if not await history.restore_reader_ranges(position.ranges, moment.current):
-                    return
+        for history in self.histories():
+            if not await history.restore_reader_ranges(position.ranges, moment.current):
+                return
         if not moment.current():
             return
         if first_history is not None:
@@ -573,7 +575,7 @@ class BoundView(ViewBinding):
         view = self.view
         if not view.is_attached:
             return
-        self.painted(owner, history.committed_cursor)
+        self.painted(owner, history.page_source.through)
         if (loading := view.query_one_optional(ThreadLoading)) is not None:
             await loading.remove()
         view.query_one(SessionDetails)._refresh_summary()
@@ -627,7 +629,7 @@ class BoundView(ViewBinding):
         return AwaitComplete.nothing()
 
     def reset_reader(self):
-        self.window.reader_position = None
+        self.window.reader_position = TailPosition()
 
 
 class TranscriptPresentation:
@@ -694,7 +696,7 @@ class TranscriptPresentation:
         for history in self.binding.histories():
             history.state.validate_snapshot(history, page)
         history = next(iter(self.binding.histories()), None)
-        if history is None or not history.committed_cursor.contains(page.after):
+        if history is None or not history.page_source.through.contains(page.after):
             self.require_commit()
 
     @property
@@ -740,6 +742,20 @@ class TranscriptPresentation:
         self.invalidate_publications()
         self.commit_required = self.dirty = True
         self.binding.request(self)
+
+    async def mark_read(self, through, acknowledge, selected) -> None:
+        """A replaced source gets one fresh painted cursor, never a fatal read worker."""
+        try:
+            await asyncio.to_thread(acknowledge, through)
+        except TranscriptChanged:
+            try:
+                fresh = await self.refresh_cursor()
+                if selected():
+                    await asyncio.to_thread(acknowledge, fresh)
+            except TranscriptChanged as error:
+                if selected():
+                    self.require_commit()
+                    self.binding.view.notify(str(error), title="Saved history reloading", severity="warning")
 
     async def refresh_cursor(self) -> TranscriptCursor:
         """Commit and return the cursor from the resulting painted transcript."""

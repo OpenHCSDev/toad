@@ -20,7 +20,7 @@ async def test_equal_answers_are_each_drawn_once_before_and_after_reconnect(work
             await ui.until(lambda: BODY in ui.painted(view.window), seconds=30, why="the answer")
             page = await agent.get_transcript_page()
             await ui.until(lambda: not view.window.history_lock.locked() and any(
-                history.committed_cursor == page.after for history in view.window.histories
+                history.page_source.through == page.after for history in view.window.histories
                 if history.is_attached and history.state.reports_coverage), seconds=20,
                 why="saved history up to the end of the session file")
             await ui.until(lambda: ui.painted(view.window).count(BODY) == expected, seconds=10,

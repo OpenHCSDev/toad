@@ -12,7 +12,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import handles
 from agent_comms.ui_model.observation import ReadTranscript, ReadRecordedNotifications
 from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
-from agent_comms import HistoricalThread
+from agent_comms.historical_views import HistoricalThread
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -29,8 +29,8 @@ from toad.widgets.transcript_history import TranscriptHistory
 class RecordedTranscriptHistory(TranscriptHistory):
     """History and handling retain the same selected archive."""
 
-    def __init__(self, prepared, loader, *, root: str, source: str, notification_view):
-        super().__init__(prepared, loader, notification_view=notification_view)
+    def __init__(self, prepared, page_source, *, root: str, source: str, notification_view):
+        super().__init__(prepared, page_source, notification_view=notification_view)
         self.root, self.source = root, source
 
     def notification_read(self, references) -> ReadRecordedNotifications:
@@ -142,13 +142,14 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
                 Static("No saved conversation records are available for this identity.")
             )
         else:
-            from toad.transcript_preparation import TranscriptPageRenderTask
+            from toad.transcript_preparation import SavedHistory, TranscriptPageRenderTask
             from toad.work_preparation import RenderPreparation
 
             prepared = await self.app.preparation.submit(RenderPreparation(TranscriptPageRenderTask(page)))
             if generation != self._selection_generation or not self.is_attached:
                 return
-            history = RecordedTranscriptHistory(prepared, load, root=root, source=item.source.key,
+            history = RecordedTranscriptHistory(prepared, SavedHistory(load, page.after, self.app.preparation),
+                                                root=root, source=item.source.key,
                                                 notification_view=content)
             window = self.query_one(HistoryWindow)
             window.anchor()
