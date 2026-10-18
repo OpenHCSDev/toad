@@ -152,8 +152,6 @@ class PageEnd(ABC):
 
     def eviction_fragments(self, page):
         return page.fragments_in_range[:: -self.step]
-    @abstractmethod
-    def trim_range(self, page, count: int) -> None: ...
     def rows_toward(self, runway: Runway) -> int:
         return self.edge((runway.above, runway.below))
     def at_boundary(self, window) -> bool:
@@ -213,7 +211,8 @@ class PageEnd(ABC):
         pass
 
     def trim(self, view, count) -> None:
-        self.trim_range(view.prepared, count)
+        page = view.prepared
+        page.set_fragment_range(slice(page.start + self.edge((count, 0)), page.stop - self.edge((0, count))))
         view.range_changed()
 
 
@@ -239,9 +238,6 @@ class OlderEnd(PageEnd):
 
     def can_evict(self, overlay_visible):
         return not overlay_visible
-
-    def trim_range(self, page, count):
-        page.set_fragment_range(slice(page.start + count, page.stop))
 
     def leave_tail(self, window):
         window.release_anchor()
@@ -282,9 +278,6 @@ class NewerEnd(PageEnd):
 
     async def mount(self, history, view, pages):
         await history.mount(view, before=history.newer)
-
-    def trim_range(self, page, count):
-        page.set_fragment_range(slice(page.start, page.stop - count))
 
 
 OLDER_END = OlderEnd()

@@ -66,10 +66,14 @@ class PreparedTranscriptPage:
         prepared.measure_sources()
         return prepared
 
+    @property
+    def source_payload_bytes(self) -> int:
+        return sum(256 + 4 * event.text_size for event in self.page.events)
+
     def measure_sources(self):
         """The page owns its events; each fragment owns only its acquired rows."""
         self.retained_bytes = (256 + 64 * len(self.outgoing_coverage)
-                               + sum(256 + 4 * event.text_size for event in self.page.events)
+                               + self.source_payload_bytes
                                + sum(fragment.retained_bytes for fragment in self.fragments))
 
     @classmethod
