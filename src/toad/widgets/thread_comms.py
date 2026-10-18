@@ -141,7 +141,7 @@ class RelationshipRows(SidebarGroup[RelationshipRow]):
 
     @property
     def member_keys(self):
-        return frozenset(self.model.entries)
+        return self.model.entries
 
     def present(self, model: RelationshipGroup) -> None:
         previous, self.model = self.model, model
