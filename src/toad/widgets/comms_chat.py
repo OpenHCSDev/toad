@@ -39,12 +39,6 @@ from toad.screens.session_view import SessionView
 from toad.command_catalog import CommandCatalog
 
 
-def _comms_root() -> Path:
-    from agent_comms.route_selection import current_root
-
-    return current_root()
-
-
 def session_thread_name(project_path) -> str:
     """The wire thread name for a Toad project directory (ACP naming)."""
     return (
@@ -136,19 +130,12 @@ class CommsChatView(Conversation):
     async def initialize_view(self) -> None:
         # Reuse the canonical core service already shared by tab sidebars and
         # transcript readers. Its revision-aware caches remain model-owned.
-        try:
-            root = await self.app.preparation.run_thread(_comms_root)
-        except (OSError, ValueError, RuntimeError):
-            self.display = False
-            return
-        if self._bound_root is not None and root != self._bound_root:
-            self.display = False
-            return
         shared = await self.app.preparation.run_thread(
             lambda: self.app.coordination_access.observation.observed().service)
-        if shared.root != root:
-            self.display = False
-            return
+        if self._bound_root is not None and self._bound_root != shared.root:
+            raise ValueError(
+                f"Conversation root {self._bound_root} differs from observed root {shared.root}"
+            )
         comms = shared
         self.message_history.open(WireSource(
             comms, self.conversation_kind, self.target, Path(self.project_path), self._me,
