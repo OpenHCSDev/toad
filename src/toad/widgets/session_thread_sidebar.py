@@ -4,7 +4,7 @@ from weakref import ref
 from textual.app import ComposeResult
 from textual.worker import WorkerCancelled
 from toad.plan import PlanItem
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
+from toad.widgets.side_bar import SideBar
 from toad.widgets.session_thread_panels import PlanSessionPanel, SessionPanel
 
 if TYPE_CHECKING:
@@ -61,15 +61,12 @@ class SessionThreadSidebar(SideBar):
             return
         await self._cancel_panel_workers()
         for panel in self.panels:
-            if isinstance(panel.widget, SidebarVisibilityObserver):
-                panel.widget.sidebar_visibility_changed()
+            panel.widget.sidebar_visibility_changed()
 
     async def evict(self) -> None:
         """Release panels on eviction or close, preserving their reader position."""
         await self._cancel_panel_workers()
         self.navigation.panel_scroll_y = self.panels_viewport.scroll_y
-        for panel in self.query(SideBarCollapsible):
-            self.navigation.panels_collapsed[str(panel.title)] = panel.collapsed
         self.capture_panels()
         await self.panels_viewport.remove_children()
         if controls := self.query_one_optional("#sidebar-controls"):

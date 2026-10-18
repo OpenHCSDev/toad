@@ -45,7 +45,7 @@ from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
 from toad.widgets.sidebar_tree import RowReconciliation, SidebarDisclosure, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember
-from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
+from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
 if TYPE_CHECKING:
@@ -370,7 +370,7 @@ class NewSessionButton(HoverSelection, TargetTreeMember, Static):
             await self.action_create()
 
 
-class CoordinationStatus(ShowsThreadIdentity, Static):
+class CoordinationStatus(ShowsThreadIdentity, SidebarPanelWidget, Static):
     """Compact diagnostics for the persistent coordination wire."""
 
     DEFAULT_CSS = """

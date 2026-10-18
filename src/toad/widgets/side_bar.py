@@ -60,7 +60,14 @@ class PresentedBar:
     width_percent: int
 
 
-class SidebarVisibilityObserver:
+class SidebarPanelWidget(Widget):
+    """Every sidebar panel accepts visibility changes; passive panels do nothing."""
+
+    def sidebar_visibility_changed(self) -> None:
+        pass
+
+
+class SidebarVisibilityObserver(SidebarPanelWidget):
     """A panel whose viewport and active presentation belong to its enclosing sidebar."""
 
     @property
@@ -69,16 +76,6 @@ class SidebarVisibilityObserver:
 
     def preserve_reader(self, placements) -> None:
         self.scroll_container.preserve_reader(placements)
-
-    def sidebar_visibility_changed(self) -> None:
-        raise NotImplementedError
-
-
-class SidebarFocusOwner:
-    """A screen declares its return target before a focused pane is hidden."""
-
-    def sidebar_focus_target(self) -> Widget | None:
-        raise NotImplementedError
 
 
 class SideBarCollapsible(widgets.Collapsible, inherit_css=False):
@@ -142,6 +139,10 @@ The Sidebar contains additonal information associated with the conversation.
     ):
         super().__init__(*children, **kwargs)
         self.header_control = header_control
+
+    def watch_collapsed(self, collapsed: bool) -> None:
+        if self.is_attached:
+            self.query_ancestor(SideBar).navigation.panels_collapsed[str(self.title)] = collapsed
 
     def compose(self) -> ComposeResult:
         if self.header_control is None:
@@ -628,7 +629,7 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
     @dataclass(frozen=True)
     class Panel:
         title: str
-        widget: Widget
+        widget: SidebarPanelWidget
         flex: bool = False
         collapsed: bool = False
         id: str | None = None
@@ -849,13 +850,6 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
             bar._present_controls()
         app.workspace_chrome.refresh_layout()
 
-    @on(widgets.Collapsible.Collapsed)
-    @on(widgets.Collapsible.Expanded)
-    def panel_toggled(self, event: widgets.Collapsible.Toggled) -> None:
-        panel = event.collapsible
-        if isinstance(panel, SideBarCollapsible):
-            self.navigation.panels_collapsed[str(panel.title)] = panel.collapsed
-
     def restore_navigation(self) -> bool:
         changed = self._presented_collapsed != self.collapsed
         if changed:
@@ -889,8 +883,7 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
             toggle.set_collapsed(collapsed)
             toggle.refresh_paint()
         for panel in self.panels:
-            if isinstance(panel.widget, SidebarVisibilityObserver):
-                panel.widget.sidebar_visibility_changed()
+            panel.widget.sidebar_visibility_changed()
         self._presented_layout = None
         if self.is_mounted:
             self._present_controls()
@@ -924,8 +917,8 @@ class SideBar(WorkspaceHosted, TonePaint, CoreEventReceiver, containers.Vertical
         return_focus = collapsed and (focus or self.has_focus_within)
         if return_focus and self.is_mounted and self.screen.is_current:
             screen = self.screen
-            if isinstance(screen, SidebarFocusOwner):
-                target = screen.sidebar_focus_target()
+            target = screen.sidebar_focus_target()
+            if target is not None:
                 # Native Hide otherwise reconstructs a full geometry-sorted
                 # focus chain before the queued Dismiss can return to input.
                 screen.set_focus(target, scroll_visible=False)

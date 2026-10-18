@@ -3,6 +3,7 @@ from __future__ import annotations
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.reactive import reactive
+from toad.widgets.side_bar import SidebarPanelWidget
 from textual import containers
 from textual.widgets import Static
 
@@ -15,7 +16,7 @@ class NonSelectableStatic(Static):
     ALLOW_SELECT = False
 
 
-class Plan(ConversationBlock, containers.Grid):
+class Plan(ConversationBlock, SidebarPanelWidget, containers.Grid):
     DEFAULT_CLASSES = "block"
     DEFAULT_CSS = """
 
