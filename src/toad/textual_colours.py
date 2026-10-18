@@ -14,6 +14,7 @@ import os
 from functools import lru_cache
 from typing import Any, ClassVar
 
+from rich.color import Color as RichColor
 from rich.console import RenderableType
 from rich.segment import Segment
 from rich.style import Style as RichStyle
@@ -240,6 +241,10 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             return first if amount < 0.5 else last
         return first.blend(last, amount)
 
+    def resolved(self, colour: RichColor, *, foreground: bool) -> Color:
+        """Resolve palette ink or background against the active terminal theme."""
+        return Color(*colour.get_truecolor(self.app.ansi_theme, foreground=foreground))
+
     def paint_gradient(self, frame: Gradient, target: Strip,
                        *, edge: type[BlockInk] = BottomInk) -> Strip:
         """Sample shared colour/shape into truecolour cells; never change row geometry."""
@@ -248,13 +253,12 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
             return target
         first = next(iter(target))
         style = first.style or RichStyle()
-        terminal = self.app.ansi_theme
         colours = {
-            role: Color(*self.colour(role).rich_color.get_truecolor(
-                terminal, foreground=not role.background)) for role in dict.fromkeys(frame.stops)
+            role: self.resolved(self.colour(role).rich_color, foreground=not role.background)
+            for role in dict.fromkeys(frame.stops)
         }
-        background = style.bgcolor or self.colour(BackgroundColour).rich_color
-        background = Color(*background.get_truecolor(terminal, foreground=False))
+        background = self.resolved(
+            style.bgcolor or self.colour(BackgroundColour).rich_color, foreground=False)
         segments = []
         for cell in range(width):
             start, end, amount, height = frame.sample((cell + 0.5) / width)
@@ -284,20 +288,21 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return Strip.join((before, band, after))
 
     def paint_rising(self, frame: Mix, target: Strip) -> Strip:
-        """Each run's own colour `amount` of the way up from the fade's start.
+        """Rise from the terminal's real background to each run's own ink.
 
-        Unlike `paint_mix`, the runs keep their colours: a run with none rises
-        to the fade's end. Terminal colours cannot be blended; they step.
+        ANSI default is the *foreground* when used as text colour, even when
+        it names the theme background. Resolve both palette roles through the
+        terminal before blending; the final frame keeps native ANSI styles.
         """
-        start = self.colour(frame.start)
-        if start.ansi is not None or frame.amount >= 1.0:
-            return target if frame.amount >= 0.5 else self.paint_mix(frame, target)
-        end = self.colour(frame.end)
+        if frame.amount >= 1.0:
+            return target
+        start = self.resolved(self.colour(frame.start).rich_color, foreground=False)
+        end = self.resolved(self.colour(frame.end).rich_color, foreground=True)
 
         def risen(segment: Segment) -> Segment:
             text, style, control = segment
-            own = (Color.from_rich_color(style.color) if style is not None and style.color is not None
-                   and not style.color.is_default else end)
+            own = (self.resolved(style.color, foreground=True)
+                   if style is not None and style.color is not None else end)
             colour = start.blend(own, frame.amount).rich_color
             return Segment(text, (style or RichStyle()) + RichStyle(color=colour), control)
 
