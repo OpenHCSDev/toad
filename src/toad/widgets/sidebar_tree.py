@@ -306,7 +306,14 @@ class SidebarGroup[RowT: "CommsRow"](VerticalGroup):
 EMPTY = SidebarModel(lambda callback: None)
 
 
+class SidebarDetached(RuntimeError):
+    """Navigation needs an observed sidebar service."""
+
+
 class SidebarModelState:
+    def root(self):
+        raise SidebarDetached("The sidebar has no observed service.")
+
     @property
     def shown(self) -> SidebarModel:
         return EMPTY
@@ -345,28 +352,23 @@ class Detached(SidebarModelState):
 class BoundSidebar(SidebarModelState):
     observed: ObservedCommsService
 
-    @property
-    def model(self) -> SidebarModel:
-        return self.observed.sidebar
-
-    @property
-    def service(self) -> Comms:
-        return self.observed.service
+    def root(self):
+        return self.observed.service.root
 
     def serves(self, path) -> bool:
-        return self.service.root.resolve() == path
+        return self.observed.service.root.resolve() == path
 
     def observes(self, observed: ObservedCommsService) -> bool:
         return self.observed is observed
 
     def unsubscribe(self, view) -> None:
-        self.model.channels.unsubscribe(view.channels_changed)
-        self.model.threads.unsubscribe(view.threads_changed)
+        self.observed.sidebar.channels.unsubscribe(view.channels_changed)
+        self.observed.sidebar.threads.unsubscribe(view.threads_changed)
 
     def present(self, view):
         shown = view.accepts_observation()
         view.app.coordination_access.show_sidebar(view, shown)
-        if not shown or self.model.snapshot is None:
+        if not shown or self.observed.sidebar.snapshot is None:
             return Behind(self.observed)
         return self.present_current()
 
@@ -384,10 +386,10 @@ class Current(BoundSidebar):
 
     @property
     def shown(self) -> SidebarModel:
-        return self.model
+        return self.observed.sidebar
 
     def channel_active(self, row) -> bool:
-        return row.target.active_in(self.model.channels)
+        return row.target.active_in(self.observed.sidebar.channels)
 
 
 class Behind(BoundSidebar):
@@ -425,7 +427,7 @@ class SidebarModelView(CoreEventReceiver):
 
     @property
     def navigation_root(self):
-        return self.model_state.service.root
+        return self.model_state.root()
 
     def accepts_observation(self) -> bool:
         """Whether this view shows the model now."""
