@@ -285,10 +285,7 @@ class CoordinationAccess(MroDispatch):
     @handles(ThreadsObserved)
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:
         self.thread_status.observed(result)
-        self.events.publish(ThreadRowsChanged(str(observed.service.root), {
-            name: self.thread_status.open(name).presentation
-            for name in result.changed
-        }))
+        self.events.publish(ThreadRowsChanged(str(observed.service.root), result.changed))
 
     @handles(ViewsRetired)
     def views_retired(self, result: ViewsRetired, observed: ObservedCommsService) -> None:

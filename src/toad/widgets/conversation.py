@@ -394,7 +394,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     def thread_observed(self, event: core_events.ThreadRowsChanged) -> None:
         """Consume this thread's one observation, including handling and presentation."""
         self.transcript.request_handling()
-        presentation = event.presentations[self.status_thread()[1]]
+        presentation = self.app.coordination_access.thread_status.open(self.status_thread()[1]).presentation
         read = self._thread_read
         self.arm_thread_read()
         if read is not None:

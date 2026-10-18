@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
@@ -13,7 +13,6 @@ from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.field_codec import PathText
 from agent_comms.presentation import WireRevision
-from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.transcript_sources import AssignedSourceIdentity
 from toad.plan import PlanItem
 from toad.acp.status import ToolCallStatus
@@ -207,10 +206,10 @@ class ThreadRowsChanged(CoreEvent):
     """The observed model's original change set, under its source root."""
 
     root: str
-    presentations: Mapping[str, ThreadPresentation]
+    changed: frozenset[str]
 
     def subscribers(self, stream: CoreEventStream):
-        for thread in self.presentations:
+        for thread in self.changed:
             yield from stream.thread_subscriptions.get((self.root, thread), ())
         yield from super().subscribers(stream)
 
