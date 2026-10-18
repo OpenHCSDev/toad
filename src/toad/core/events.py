@@ -268,6 +268,7 @@ class McpClientStopped(CoreEvent):
 class AgentReady(CoreEvent):
     """The original ACP session handshake completed."""
 
+    session_id: str
     reconnected: bool = False
 
 

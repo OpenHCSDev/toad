@@ -266,7 +266,7 @@ class ConversationContents(CategorizedMount, Contents):
                  for target in child.notification_targets()))
 
     def notification_read(self, references):
-        root, _name = self.query_ancestor(Conversation).transcript.thread_scope
+        root, _name = self.query_ancestor(Conversation).transcript.binding.thread_scope
         return ReadNotifications(root, references)
 
     @property
@@ -408,7 +408,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         return origin.transcript_scope() if origin is not None else None
 
     def status_thread(self) -> StatusThread:
-        scope = self.transcript.thread_scope
+        scope = self.transcript.binding.thread_scope
         if scope is None:
             return NoStatusThread()
         root, name = scope
@@ -603,7 +603,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self.delivery_observation = InputDeliveryObservation(self)
         self.transcript = transcript if transcript is not None else TranscriptPresentation()
         self.cli_draft = CliDraft()
-        self.transcript.bind(self)
         self.tool_expansions: dict[str, bool] = {}
         # Both explicit eviction and Textual unmount consume this same lifetime.
         # The stack removes callbacks before calling them and continues on error.
@@ -655,9 +654,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
             release.callback(self.set_reactive, Conversation.agent, None)
             await self._release_source_resources()
 
-    async def prepare_retained_session(self) -> None:
-        await self.transcript.restore()
-
     def resume_retained_history(self) -> None:
         """The selected view restores its existing non-native pager resources."""
         for history in self.contents.line_histories():
@@ -691,10 +687,10 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
     async def _session_ready(self) -> None:
         """The agent (or the shell) can take input: drop loading, then post start content."""
         presentation = self.transcript
-        if presentation.view is not self:
+        if not presentation.binding.matches(self):
             return
         await self.query(ThreadLoading).remove()
-        if self.transcript is not presentation or presentation.view is not self:
+        if self.transcript is not presentation or not presentation.binding.matches(self):
             return
         if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
@@ -702,7 +698,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
                 from toad.widgets.markdown_note import MarkdownNote
 
                 await self.post(MarkdownNote(welcome))
-                if self.transcript is not presentation or presentation.view is not self:
+                if self.transcript is not presentation or not presentation.binding.matches(self):
                     return
         self._native_agent_started_here = False
         if self.agent is not None and self.agent.configuration.model.requires_selection:
@@ -761,7 +757,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self.refresh_thread_status()
         self.call_later(self.goal_observation.invalidate)
         self.call_later(self.delivery_observation.invalidate)
-        self.transcript.request()
+        self.transcript.binding.request(self.transcript)
 
     def watch_agent(self, agent: AgentBase | None) -> None:
         # A presentation remount is not a fresh attachment. Start at the
@@ -1109,7 +1105,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
         reference = MessageReference(sent.seq, sent.message_id)
         return any(reference in fragment.notification_references
-                   for history in self.transcript.histories
+                   for history in self.transcript.binding.histories()
                    for fragment in history.visible_fragments())
 
     async def _apply_session_name(self, name: str) -> None:
@@ -1536,7 +1532,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     @handles(TranscriptCoverage)
     async def on_transcript_coverage(self, message: CoreEventMessage) -> None:
         message.stop()
-        await self.transcript.covered(message.event, message.publisher)
+        await self.transcript.binding.covered(self.transcript, message.event, message.publisher)
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
@@ -1704,6 +1700,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.update_slash_commands()
 
     async def on_mount(self) -> None:
+        self.transcript.bind(self)
         await self.initialize_view()
 
     def apply_layout_preferences(self) -> None:
@@ -1725,7 +1722,6 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.observe_core(self.app.saved_settings.events)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        self.transcript.bind_thread_observation()
         self.refresh_thread_status()
 
         self.input_histories.shell.complete.add_words(
@@ -2083,7 +2079,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def jump_to_latest(self) -> None:
         self.window.jump_to_latest()
-        self.transcript.request()
+        self.transcript.binding.request(self.transcript)
 
     async def action_select_block(self) -> None:
         cursor = self.navigation.cursor
@@ -2239,7 +2235,7 @@ class ConversationCommsConsumer(MroDispatch):
 
     @handles(TranscriptSnapshotUpdate)
     async def transcript_snapshot(self, update: TranscriptSnapshotUpdate):
-        await self.conversation.transcript.snapshot(update.page)
+        self.conversation.transcript.received(update.page)
 
     @handles(McpClientAcknowledgementUpdate)
     async def mcp_status(self, update: McpClientAcknowledgementUpdate):

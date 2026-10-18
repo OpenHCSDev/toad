@@ -315,7 +315,7 @@ class AgentSession:
                 return
         self.settled.set()
         self.app_events.publish(core_events.ThreadRowStateChanged())
-        self.agent.events.publish(AgentReady(reconnected=self.reconnecting))
+        self.agent.events.publish(AgentReady(session_id=self.agent.session_id, reconnected=self.reconnecting))
 
 
     async def observe_owner(self, presentation) -> None:
