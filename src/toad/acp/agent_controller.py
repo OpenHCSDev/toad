@@ -270,7 +270,7 @@ class AgentController(OperationalTerminalOwner):
         except RequestError as error:
             if authority.retired:
                 return None
-            request_failure = RequestFailure.from_error(error.code, error.message, error.data)
+            request_failure = RequestFailure.from_error(error)
             failure = request_failure.failure
             self._prompt_failed(command, authority, queue_scope, failure,
                 failure.title, failure.feedback, published=request_failure.notification_published)
@@ -317,7 +317,7 @@ class AgentController(OperationalTerminalOwner):
             response = await agent.process.prompt(agent, [{'type': 'text', 'text': ' '}],
                 encode_request(CompactRequest(instructions)), authority.require)
         except RequestError as error:
-            failure = ACPFailure.from_error(error.code, error.message, error.data)
+            failure = ACPFailure.from_error(error)
             raise ValueError(f'{failure.title}: {failure.detail}\n{failure.input_disposition}\n{failure.action}') from error
         authority.require()
         if response is None:

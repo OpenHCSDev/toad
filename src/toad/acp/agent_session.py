@@ -309,7 +309,7 @@ class AgentSession:
             except RequestError as error:
                 # The handshake has not accepted a prompt, regardless of the
                 # server's reason for refusing this attachment.
-                failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
+                failure = replace(ACPFailure.from_error(error),
                                   input_state=NotSentInput)
                 self.session_failed(failure)
                 return
@@ -535,7 +535,7 @@ class AgentSession:
             await self.agent.process.rpc.set_session_mode(self.agent.session_id, mode_id)
             authority.require()
         except RequestError as error:
-            return ACPFailure.from_error(error.code, error.message, error.data).feedback
+            return ACPFailure.from_error(error).feedback
         else:
             self.agent.controller.update_mode(mode_id)
             return None
