@@ -10,6 +10,7 @@ from agent_comms.historical_views import ChannelDisplayHistory, ConversationHist
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from agent_comms.presentation import ReadThrough
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
@@ -194,8 +195,7 @@ class ChannelConversation(ConversationKind):
             comms.views.mark_channel_view_read,
             target,
             worktree=project,
-            through=page.newest_seq,
-            expected_scope=page.display_scope,
+            mark=ReadThrough(page.newest_seq, page.display_scope),
             implicit=implicit_root(),
         )
 
