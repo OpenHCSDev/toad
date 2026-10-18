@@ -12,18 +12,10 @@ from textual.widgets import Collapsible
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
-from toad.line_blocks import SpanColumns
 from toad.widgets.tool_content import ToolContent
 
 if TYPE_CHECKING:
     from toad.widgets.transcript_fragments import TranscriptFragment
-
-
-class NotificationDetails(ToolContent):
-    """Use the existing line-block view's width, preparation and link lifecycle."""
-
-    def show(self, disclosure: SpanColumns) -> None:
-        self.update((disclosure,))
 
 
 class MessageNotifications(Collapsible):
@@ -40,7 +32,7 @@ class MessageNotifications(Collapsible):
 
     def __init__(self) -> None:
         self.status: NotificationStatus = UncheckedNotifications()
-        self._details: NotificationDetails | None = None
+        self._details: ToolContent | None = None
         super().__init__(title=self.status.title, collapsed=True)
 
     def compose(self) -> ComposeResult:
@@ -49,13 +41,13 @@ class MessageNotifications(Collapsible):
             yield self.Contents(self._details)
 
     @property
-    def details(self) -> NotificationDetails:
+    def details(self) -> ToolContent:
         """The details body, created only when it is first shown."""
         if self._details is None:
-            self._details = NotificationDetails()
+            self._details = ToolContent()
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
-        self._details.show(self.status.disclosure)
+        self._details.update((self.status.disclosure,))
         return self._details
 
     def on_collapsible_expanded(self, event: Collapsible.Expanded) -> None:
@@ -73,9 +65,6 @@ class MessageNotifications(Collapsible):
             _ = self.details
         self.set_class(status.working, "-working")
         self.set_class(status.unavailable, "-unavailable")
-
-    def show_error(self, error: Exception) -> None:
-        self.show(UnavailableNotifications(str(error)))
 
 
 class VisibleReadMarking:
