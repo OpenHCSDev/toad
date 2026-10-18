@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
-from agent_comms.message_page import MessagePage, PageBounds, PageTraversal
+from agent_comms.message_page import MessagePage
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
@@ -26,7 +26,6 @@ from toad.transcript_preparation import (
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
-from toad.work_preparation import WorkKey, WorkRevision
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import HistoryCursor
@@ -278,20 +277,9 @@ class WireSource:
         replaced = seen is None or revision.display_changed_since(seen)
         return WireObservation(revision, high, replaced)
 
-    def read(self, request: PageRequest, through: AfterSequence) -> PreparedTranscriptPage:
+    def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
         """Read the page a request names, never past `through`, as fragments to draw."""
-        older = request.after is None
-        cut = request.before if older else request.after
-        newest = older and cut == through
-        page = self.kind.page(self, PageBounds(
-            PageTraversal.capture(**(cut.older() if older else cut.newer())),
-            self.tail_limit if newest else self.page_limit, self.max_bytes))
-        if not older:
-            # A later read owns messages that arrived after this bound.
-            kept = tuple(message for message in page.messages
-                         if message.view_key[0] or message.seq <= through.cursor)
-            if len(kept) < len(page.messages):
-                page = replace(page, messages=kept, has_newer=False)
+        page = request.end.wire_page(self, request.cursor, through)
         evidence = page if self.kind.history_view.has_display_evidence(page) else None
         shown = MessageShown(style=self.style)
         fragments = tuple(
@@ -317,24 +305,12 @@ class WireObservation:
 
 
 @dataclass(frozen=True)
-class WirePageRevision(WorkRevision):
-    through: AfterSequence | None
-    request: PageRequest
-    size: ClassVar[int] = 512
-
-
-@dataclass(frozen=True)
-class WirePageWork(TranscriptPageWork):
+class WirePageWork(TranscriptPageWork[WireCut]):
     """Read one wire page off the UI thread; `loader` is the WireSource."""
 
     @property
-    def work_key(self) -> WorkKey:
-        cut = self.request.before or self.request.after
-        return WorkKey(type(self), WirePageRevision(self.through if cut.bounded else None, self.request), self.scope)
-
-    @property
     def retain_result(self) -> bool:
-        return (self.request.before or self.request.after).kept
+        return self.request.cursor.kept
 
     async def execute(self, runtime, key):
         import asyncio

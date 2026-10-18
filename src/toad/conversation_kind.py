@@ -1,6 +1,7 @@
 """One declared conversation family owns history reads and route preparation."""
 
 from __future__ import annotations
+from toad.widgets.presentation_window import NEWER_END
 
 import asyncio
 from dataclasses import replace
@@ -257,8 +258,8 @@ class DmConversation(ConversationKind):
         # Only the newest page marks a direct conversation read, and only as a
         # whole: its newest message and every message from the peer were seen.
         newest = history.pages[-1]
-        page = newest.page.source
-        if history.has_newer or page is None:
+        page = newest.prepared.page.source
+        if NEWER_END.visible_more(history) or page is None:
             return None
         painted = {fragment.message.seq for fragment in seen if fragment.evidence is page}
         if page.newest_seq not in painted:
@@ -273,7 +274,7 @@ class DmConversation(ConversationKind):
             page,
             messages=tuple(message for message in page.messages if message.seq in painted),
             display_basis=replace(basis, displayed=basis.displayed.select(painted)),
-        ), tuple(fragment for fragment in newest.fragments if fragment.evidence is page)
+        ), tuple(fragment for fragment in newest.prepared.fragments if fragment.evidence is page)
 
     @classmethod
     async def mark_read(cls, comms, target, project, page):

@@ -10,23 +10,56 @@ from typing import TYPE_CHECKING
 from agent_comms.declared_family import DeclaredFamily
 from toad.widgets.message_filter import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
-from toad.transcript_preparation import PageRequest
+from toad.widgets.presentation_window import OLDER_END, PageRequest
+from toad.transcript_preparation import NoProjection
 
 if TYPE_CHECKING:
     from textual.worker import Worker
-    from toad.transcript_preparation import PreparedPageSource
     from toad.widgets.transcript_history import LineHistory, ProjectedTranscriptHistory
+
+
+class NoProjectionOverlay:
+    """The absent projection answers the same work as a mounted projection."""
+
+    outgoing_coverage = frozenset()
+
+    async def park_document(self):
+        return NoProjection()
+
+    def acquire_document(self) -> None:
+        pass
+
+    def resume_source(self) -> None:
+        pass
+
+    def set_reader_ranges(self, ranges) -> None:
+        pass
+
+    async def restore_reader_ranges(self, ranges, current) -> bool:
+        return True
+
+    def projection_widgets(self):
+        return ()
+
+    def reads(self, source) -> bool:
+        return False
+
+    def covers_incoming(self, sequence: int) -> bool:
+        return False
+
+    def visible_fragments(self):
+        return ()
 
 
 class FilterState(DeclaredFamily, affix="Filter"):
     active = False
-    overlay = None
     older_visible = False
     has_older = False
     scan_available = False
 
     def __init__(self, owner: LineHistory):
         self.owner = owner
+        self.overlay: NoProjectionOverlay | ProjectedTranscriptHistory = NoProjectionOverlay()
         self.demand: ScanDemand = AutomaticScanDemand()
         self.worker: Worker | None = None
 
@@ -48,18 +81,6 @@ class FilterState(DeclaredFamily, affix="Filter"):
     @property
     def idle(self):
         return not self.scanning
-
-    def owns_projection(self, projection) -> bool:
-        return False
-
-    def owns_source(self, source: PreparedPageSource) -> bool:
-        return False
-
-    def covers_incoming(self, sequence: int) -> bool:
-        return False
-
-    def projection_visible(self) -> bool:
-        return False
 
     async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
         """Only a retained projection has additional rows to prepare."""
@@ -109,7 +130,7 @@ class FilterState(DeclaredFamily, affix="Filter"):
     def require_projection(self, snapshot, projection) -> None:
         from toad.widgets.transcript_history import _DrawingStopped
         if (not snapshot.current(self.owner) or self.owner.filter is not self
-                or not self.owns_projection(projection)):
+                or self.overlay is not projection):
             raise _DrawingStopped
 
     def transfer_scan(self, successor: FilterState) -> None:
@@ -142,11 +163,11 @@ class FilterState(DeclaredFamily, affix="Filter"):
 class NoFilter(FilterState):
     @property
     def older_visible(self):
-        return self.owner.has_older
+        return self.has_older
 
     @property
     def has_older(self):
-        return self.owner.has_older
+        return OLDER_END.visible_more(self.owner)
 
 
 class EmptyFilter(NoFilter):
@@ -162,7 +183,7 @@ class SeekingFilter(NoFilter):
 
     @property
     def scan_available(self):
-        return self.owner.has_older
+        return OLDER_END.visible_more(self.owner)
 
     def scan_needed(self):
         owner = self.owner
@@ -175,14 +196,14 @@ class SeekingFilter(NoFilter):
         owner = self.owner
         source = owner.projected_source(owner.selected_categories)
         try:
-            prepared = await source.get(PageRequest(before=source.through))
+            prepared = await source.get(PageRequest(OLDER_END, source.through))
             if not snapshot.current(owner):
                 return False
             rows, limit = snapshot.window.latest_limits(owner.budget)
             await prepared.prepare_rows(
                 owner, lambda: snapshot.current(owner), target=owner,
                 selected=owner.selected_categories, boundary=len(prepared.fragments),
-                older=True, rows_needed=rows, limit=limit,
+                end=OLDER_END, rows_needed=rows, limit=limit,
             )
             if not snapshot.current(owner):
                 return False
@@ -206,7 +227,7 @@ class SeekingFilter(NoFilter):
         except _DrawingStopped:
             return False
         finally:
-            if not owner.filter.owns_source(source):
+            if not owner.filter.overlay.reads(source):
                 source.close()
 
 
@@ -221,25 +242,13 @@ class Filtered(FilterState):
     def idle(self):
         return super().idle and self.overlay.source_ready
 
-    def owns_projection(self, projection):
-        return self.overlay is projection
-
-    def owns_source(self, source):
-        return self.overlay._reader() is source
-
     @property
     def has_older(self):
-        return self.overlay.has_older
+        return OLDER_END.visible_more(self.overlay)
 
     @property
     def scan_available(self):
         return self.overlay.older_page_available
-
-    def covers_incoming(self, sequence):
-        return self.overlay.covers_incoming(sequence)
-
-    def projection_visible(self):
-        return bool(self.overlay.visible_fragments())
 
     async def prepare_rows(self, current, *, window, target, rows_needed: int) -> None:
         if rows_needed:
@@ -266,17 +275,17 @@ class Filtered(FilterState):
 
     def canonical_moved(self, previous, visible):
         owner = self.owner
-        if visible or previous == (owner.pages[0], owner.pages[0].start):
+        if visible or previous == (owner.pages[0], owner.pages[0].prepared.start):
             return
         self.remove()
         owner.invalidate_projection()
 
     async def advance(self, snapshot):
         previous = self.overlay.pages[0]
-        start, before = previous.start, previous.page.before
+        start, before = previous.prepared.start, previous.prepared.page.before
         await self.overlay.load_older()
         first = self.overlay.pages[0]
-        return first.start < start if first is previous else before.contains(first.page.before)
+        return first.prepared.start < start if first is previous else before.contains(first.prepared.page.before)
 
 
 class ScanDemand(DeclaredFamily, affix="ScanDemand"):
