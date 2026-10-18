@@ -30,6 +30,7 @@ from toad.work_preparation import WorkKey
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import HistoryCursor
+    from agent_comms.read_basis import NamedViewer
     from toad.widgets.transcript_lines import Lines
 
 
@@ -241,9 +242,12 @@ class WireSource:
     page_limit: int = 40
     max_bytes: int = 256 * 1024
 
+    @property
+    def viewer(self) -> NamedViewer:
+        return self.comms.views.display_viewer(str(self.project))
+
     def page(self, **bounds) -> MessagePage:
-        return self.kind.page(self.comms, self.target, worktree=str(self.project),
-                              max_bytes=self.max_bytes, **bounds)
+        return self.kind.page(self, max_bytes=self.max_bytes, **bounds)
 
     def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
