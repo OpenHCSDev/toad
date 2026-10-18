@@ -372,6 +372,11 @@ class PreparedLines(Lines, LineBlock):
     width: int
     rows: tuple[Row, ...]
 
+    @property
+    def retained_bytes(self) -> int:
+        return 64 + sum(64 + sum(64 + 4 * len(segment.text) for segment in row)
+                        for row in self.rows)
+
     def prepared_rows(self, width, draw) -> PreparedLines:
         if width != self.width:
             raise ValueError("Prepared rows belong to a different width")
@@ -600,6 +605,10 @@ class LinePreparation:
     blocks: tuple[LineBlock, ...]
     theme: LineTheme
 
+    @property
+    def retained_bytes(self) -> int:
+        return 256 + sum(block.retained_bytes for block in self.blocks)
+
     def wrap(self, width: int, renderer: RichLineRenderer) -> BlockLines:
         return BlockLines(width, self, renderer)
 
@@ -635,6 +644,9 @@ class PlainLines(BlockLines):
 
 @dataclass(frozen=True)
 class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]):
+    def result_size(self, result: LinePreparation) -> int:
+        return result.retained_bytes
+
     """Style one source once; width never enters the worker contract."""
 
     preparation: LinePreparation
@@ -714,6 +726,9 @@ class TranscriptLinesRenderTask(MroDispatch, ReusableRenderTask[LinePreparation]
 
 @dataclass(frozen=True)
 class TranscriptLinesBatchRenderTask(ReusableRenderTask[tuple[LinePreparation, ...]]):
+    def result_size(self, result: tuple[LinePreparation, ...]) -> int:
+        return 64 + sum(preparation.retained_bytes for preparation in result)
+
     """Style several newly acquired sources in one worker round trip."""
 
     items: tuple[TranscriptLinesRenderTask, ...]

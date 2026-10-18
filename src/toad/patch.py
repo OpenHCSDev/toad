@@ -28,6 +28,13 @@ class Patch(LineBlock):
     groups: list[list[tuple[str, int, int, int, int]]]
 
     @property
+    def retained_bytes(self) -> int:
+        return (128 + 4 * (len(self.before_path) + len(self.after_path))
+                + sum(64 + 4 * len(text) for text in self.before.values())
+                + sum(64 + 4 * len(text) for text in self.after.values())
+                + sum(64 + 64 * len(group) for group in self.groups))
+
+    @property
     def before_text(self) -> dict[int, Text]:
         return {number: Text(text.expandtabs(4)) for number, text in self.before.items()}
 

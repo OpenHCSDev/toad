@@ -26,7 +26,7 @@ from toad.transcript_preparation import (
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
-from toad.work_preparation import WorkKey
+from toad.work_preparation import WorkKey, WorkRevision
 
 if TYPE_CHECKING:
     from agent_comms.historical_views import HistoryCursor
@@ -133,6 +133,10 @@ class WirePage:
 class PreparedWirePage(PreparedTranscriptPage):
     """Wire intervals preserve Core's original display page when advanced empty."""
 
+    @property
+    def source_payload_bytes(self) -> int:
+        return sum(256 + 4 * len(message.body) for message in self.page.events)
+
     def advance_empty(self, prepared: PreparedTranscriptPage, older: bool) -> None:
         self.page = self.page.advanced(prepared.page, older=older)
 
@@ -164,9 +168,9 @@ class WireFragment(TranscriptFragment):
     def categories(self) -> frozenset[type[MessageCategory]]:
         return frozenset({OtherCategory})
 
-    @cached_property
-    def retained_bytes(self) -> int:
-        return len(self.message.body) + 256
+    @property
+    def source_payload_bytes(self) -> int:
+        return 256 + 4 * len(self.message.body)
 
     @property
     def timestamp(self) -> float | None:
@@ -299,13 +303,20 @@ class WireObservation:
 
 
 @dataclass(frozen=True)
+class WirePageRevision(WorkRevision):
+    through: AfterSequence | None
+    request: PageRequest
+    size: ClassVar[int] = 512
+
+
+@dataclass(frozen=True)
 class WirePageWork(TranscriptPageWork):
     """Read one wire page off the UI thread; `loader` is the WireSource."""
 
     @property
     def work_key(self) -> WorkKey:
         cut = self.request.before or self.request.after
-        return WorkKey(type(self), (self.through if cut.bounded else None, self.request), self.scope)
+        return WorkKey(type(self), WirePageRevision(self.through if cut.bounded else None, self.request), self.scope)
 
     @property
     def retain_result(self) -> bool:
