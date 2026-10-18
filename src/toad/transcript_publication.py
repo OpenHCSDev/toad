@@ -332,6 +332,7 @@ class CommitPublication(CanonicalSourcePublication):
     async def publish_source_page(self, page: TranscriptPage) -> bool:
         from toad.widgets.committed_presentation import CommitEvidence, retirement_candidates
         from toad.widgets.transcript_history import TranscriptHistory
+        from toad.transcript_preparation import SavedHistory
 
         if not self.ready_to_commit():
             return True
@@ -354,7 +355,9 @@ class CommitPublication(CanonicalSourcePublication):
         replacement = None
         if prepared.history is None:
             replacement = TranscriptHistory(
-                prepared.page, self.owner.get_transcript_page, committed=False,
+                prepared.page, SavedHistory(self.owner.get_transcript_page,
+                                            prepared.page.page.after, view.app.preparation),
+                committed=False,
                 notification_view=contents,
             )
             await contents.prepare_history(

@@ -12,7 +12,7 @@ from contextlib import ExitStack, asynccontextmanager
 from dataclasses import replace
 from functools import cached_property, partial
 from itertools import islice
-from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
+from collections.abc import AsyncIterator, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
 
@@ -37,7 +37,7 @@ from toad.transcript_filter import FilterState
 from toad.transcript_state import TranscriptState, LiveTranscript, ProvisionalTranscript, ParkedSourceTranscript, LatestViewportRequest
 from toad.transcript_source_preparation import TranscriptSourcePreparation, _DrawingStopped
 from toad.transcript_preparation import (
-    RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange, SavedHistory,
+    RangeCategoryProjection, PreparedPageSource, PreparedTranscriptPage, PageFragmentRange,
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
@@ -420,7 +420,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
-    page_buffer = SavedHistory
 
     @property
     def message_category(self) -> None:
@@ -430,12 +429,11 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def block_cursor(self):
         return FragmentBlockCursor(self)
 
-    def __init__(self, prepared: PreparedTranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
+    def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
                   *, notification_view: HistoryNotifications, budget: PresentationBudget | None = None,
                   source_state: TranscriptState | None = None):
         self.notification_view = notification_view
-        super().__init__(source_state=source_state or LiveTranscript())
-        self.loader, self.through = loader, prepared.page.after
+        super().__init__(source_state=source_state or LiveTranscript(), page_source=page_source)
         self.budget = budget or PresentationBudget(
             max_items=self.MAX_FRAGMENTS,
         )
@@ -451,6 +449,14 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     @property
     def window(self) -> HistoryWindow:
         return self.query_ancestor(HistoryWindow)
+
+    @property
+    def through(self):
+        return self._page_buffer.through
+
+    @through.setter
+    def through(self, value):
+        self._page_buffer.through = value
 
     async def park_document(self) -> PreparedPageSource:
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
@@ -468,9 +474,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         pages = source.held_pages
         if not pages or source.closed:
             raise ValueError("No kept transcript range")
-        history = cls(pages[0], source.loader, **source_fields)
-        history.through = source.through
-        history._page_buffer = source
+        history = cls(pages[0], source, **source_fields)
         history._source_state = ParkedSourceTranscript(LiveTranscript())
         history.pages.extend(TranscriptPageView(
             page, batch_size=history.budget.batch_items,
@@ -673,7 +677,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def source_identity(self):
-        return self.loader, self.through, self.selected_categories
+        return self._reader(), self.through, self.selected_categories
 
     def paging_window(self):
         # What an edge check decides from: the saved extent, the pages'
@@ -733,12 +737,9 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     def projected_source(self, selected) -> ProjectedTranscriptSource:
         page = self.pages[0]
         return ProjectedTranscriptSource(
-            page.prepared,
-            self.loader, self.app.preparation, RangeCategoryProjection(
+            page.prepared, self._reader(), RangeCategoryProjection(
                 selected, PageFragmentRange(ref(page.prepared), 0, page.prepared.start,
                                            page.prepared.fragments[:page.prepared.start])),
-
-            upstream=self._reader() if self.loader is not None else None,
         )
 
     @property
@@ -815,10 +816,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
 
     def _reader(self) -> PreparedPageSource:
-        # The source only grows under one reader; replacing the source clears it (_clear).
-        if self._page_buffer is None:
-            self._page_buffer = self.page_buffer(self.loader, self.through, self.app.preparation)
-        self._page_buffer.through = self.through
         return self._page_buffer
 
     @property
@@ -884,7 +881,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         async with self.window.history_lock:
             async with self.window.preserve_history(root=self):
                 self._generation += 1
-                self.close()
+                self._reader().restart(initial.page.after)
                 retired = tuple(self.pages)
                 view = TranscriptPageView(initial,
                                           batch_size=self.budget.batch_items)
@@ -901,7 +898,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
     ) -> bool:
         """Publish one readable range; report whether its edge still needs rows."""
         snapshot = self.source_snapshot()
-        window, loader = snapshot.window, self.loader
+        window = snapshot.window
         # Only an append beyond the fully drawn, followed end is an arrival.
         # Local range growth, older paging and destination restoration are not.
         followed_end = end.fresh(self)
@@ -923,11 +920,9 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
             local = end.can_extend(edge.prepared)
             staged = edge.prepared.for_view() if local else prepared
             if not local:
-                if loader is None:
-                    return False
                 if staged is None:
                     source = self._reader()
-                    if not end.has_more(source.through, edge.prepared.page):
+                    if not source.has_more(end, edge.prepared.page):
                         return False
                     staged = await source.get(end.adjacent(edge.prepared.page))
                     demand.source_read()
@@ -1060,9 +1055,9 @@ class TranscriptHistory(CommittedHistory, LineHistory):
             raise ValueError("Notification observation requires a bound thread")
         return ReadNotifications(scope[0], references)
 
-    def __init__(self, prepared: PreparedTranscriptPage, loader: Callable[..., Awaitable[TranscriptPage]] | None = None,
+    def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
                  *, committed: bool = True, **kwargs):
-        super().__init__(prepared, loader, **kwargs,
+        super().__init__(prepared, page_source, **kwargs,
                          source_state=LiveTranscript() if committed else ProvisionalTranscript())
 
 class ProjectedTranscriptHistory(TranscriptHistory):
@@ -1074,9 +1069,8 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def __init__(self, owner: TranscriptHistory, source: ProjectedTranscriptSource,
                  prepared: PreparedTranscriptPage) -> None:
         self._projection_owner = ref(owner)
-        super().__init__(prepared, source.loader, budget=owner.budget,
+        super().__init__(prepared, source, budget=owner.budget,
                          notification_view=owner.notification_view)
-        self._page_buffer = source
         self.add_class("filtered-history-results")
 
     @classmethod
@@ -1115,10 +1109,6 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def follows_source_tail(self) -> bool:
         # This window is a historical prefix, not the live main tail.
         return False
-
-    def _reader(self) -> PreparedPageSource:
-        assert self._page_buffer is not None
-        return self._page_buffer
 
     def projection_widgets(self):
         return (self,)

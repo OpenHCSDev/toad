@@ -179,7 +179,7 @@ class PageEnd(ABC):
 
     def visible_more(self, history):
         page = self.edge(history.pages).prepared
-        return self.can_extend(page) or self.has_more(page.page.after, page.page)
+        return self.can_extend(page) or history._reader().has_more(self, page.page)
 
     def fresh(self, history) -> bool:
         return False

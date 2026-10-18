@@ -10,7 +10,7 @@ from agent_comms.messages import Message
 from agent_comms.coordination_errors import DMPaintedBoundChanged, DMScopeChanged, HistoricalSourceChanged
 
 from toad.screens.session_view import SessionView
-from toad.transcript_preparation import PreparedTranscriptPage
+from toad.transcript_preparation import ClosedHistory, PreparedPageSource, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
@@ -32,25 +32,27 @@ class WireHistory(VisibleReadMarking, LineHistory):
     seen, notification states and two styles.
     """
 
-    page_buffer = WirePageBuffer
-
-    def __init__(self, prepared: PreparedTranscriptPage | None = None,
-                 loader: WireSource | None = None, *, view, notification_view) -> None:
+    def __init__(self, prepared: PreparedTranscriptPage, page_source: PreparedPageSource,
+                 *, view, notification_view) -> None:
         self.view = view
-        super().__init__(PreparedWirePage.empty(WirePage.unread()) if prepared is None else prepared,
-                         loader, notification_view=notification_view)
+        self.source: WireSource | None = None
+        super().__init__(prepared, page_source, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
         self.revision: ConversationRevision | None = None
+
+    @classmethod
+    def empty(cls, *, view, notification_view):
+        prepared = PreparedWirePage.empty(WirePage.unread())
+        return cls(prepared, ClosedHistory(prepared.page.after, view.app.preparation),
+                   view=view, notification_view=notification_view)
 
     # The source
 
     def open(self, source: WireSource) -> None:
         """Bind the conversation to read; the first refresh draws its newest page."""
-        self.loader = source
-
-    @property
-    def source(self) -> WireSource | None:
-        return self.loader
+        self.source = source
+        self._page_buffer.close()
+        self._page_buffer = WirePageBuffer(source, self.through, self.app.preparation)
 
     @property
     def style(self) -> WireMessageStyle:
@@ -64,7 +66,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
     @property
     def source_identity(self):
         # Growth of the bus is not another source: reads ahead stay valid.
-        return self.loader, self.selected_categories
+        return self.source, self.selected_categories
 
     @property
     def can_draw_on_screen(self) -> bool:

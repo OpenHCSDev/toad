@@ -47,10 +47,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     """Shared source preparation; native widget and operational session stay separate."""
 
 
-    def __init__(self, *args, source_state: TranscriptState, **kwargs):
+    def __init__(self, *args, source_state: TranscriptState, page_source: PreparedPageSource, **kwargs):
         self._source_state = source_state
         self._generation = 0
-        self._page_buffer: PreparedPageSource | None = None
+        self._page_buffer = page_source
         self._source_observation = ResourceRelease()
         super().__init__(*args, **kwargs)
 
@@ -109,9 +109,11 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         await self.close_source_reader()
 
     def close(self) -> None:
-        if self._page_buffer is not None:
-            self._page_buffer.close()
-            self._page_buffer = None
+        from toad.transcript_preparation import ClosedHistory
+
+        source = self._page_buffer
+        source.close()
+        self._page_buffer = ClosedHistory(source.through, source.runtime)
 
     async def close_source_reader(self) -> None:
         """Close source subscriptions without releasing the separately held pages."""
@@ -177,10 +179,8 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Prepare the bottom destination, keeping views of unchanged source pages."""
         window = self.window
         edge = self.pages[-1]
-        if self.loader is None or edge.prepared.page.after == self.through:
-            prepared = edge.prepared.for_view()
-        else:
-            prepared = (await self._reader().get(PageRequest(OLDER_END, self.through))).for_view()
+        source = self._reader()
+        prepared = await source.latest(edge.prepared)
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
@@ -201,9 +201,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             if take:
                 destination.insert(0, (prepared, existing))
             limit -= take
-            if rows <= 0 or self.loader is None:
+            if rows <= 0:
                 break
-            if (not prepared.page.has_older or limit <= 0
+            if (not source.has_older(prepared.page) or limit <= 0
                     or not window.presentation_budget.can_read_destination(pages_read)):
                 break
             prepared = (await self._reader().get(OLDER_END.adjacent(prepared.page))).for_view()
