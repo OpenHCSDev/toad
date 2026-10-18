@@ -20,6 +20,7 @@ from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotU
 from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
     AwaitedRead, ReadNotifications, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
+    TranscriptPublicationState,
 )
 
 
@@ -71,7 +72,7 @@ class CoordinationTranscriptReader:
             read_identity=read_identity, historical_source=historical_source))
 
     async def updates(
-        self, root: str, thread: str, previous: TranscriptReadIdentity | None,
+        self, root: str, thread: str, previous: TranscriptPublicationState,
         *, after=None, read_identity: TranscriptReadIdentity | None = None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
         return await self.read(ReadTranscriptUpdate(
