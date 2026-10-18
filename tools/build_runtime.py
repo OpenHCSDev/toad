@@ -7,7 +7,8 @@ Native package verification belongs to Core's native_package module.
 from __future__ import annotations
 
 import argparse
-from contextlib import ExitStack
+from contextlib import ExitStack, contextmanager
+from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from email import message_from_bytes
@@ -242,6 +243,38 @@ class TerminalApp:
         result = self.mux('capture-pane', '-p', '-t', 'qualify:0.0')
         return result.stdout if result.returncode == 0 else ''
 
+    @staticmethod
+    def message_rows(text):
+        """Visible transcript rows between the sidebar separators, without its scrollbar.
+
+        The conversation's CursorContainer paints the leading gutter on every
+        message row. Splitting the outer separators preserves Unicode message
+        text and any table separators inside it, without copying sidebar state.
+        """
+        rows = []
+        for line in text.splitlines():
+            panes = line.split('│')
+            if len(panes) >= 3:
+                body = '│'.join(panes[1:-1])
+                if body.startswith('▌'):
+                    # The jump control overlays messages; it is not their text.
+                    control = '↓ Back to bottom · Esc'
+                    rows.append(body[:-2].replace(control, ' ' * len(control)))
+        return tuple(rows)
+
+    def reader_place(self, name):
+        """Observe a settled message viewport after one navigation action."""
+        previous = ()
+
+        def settled(text):
+            nonlocal previous
+            rows = self.message_rows(text)
+            same = bool(rows) and rows == previous
+            previous = rows
+            return same
+
+        return self.message_rows(self.wait(name, settled))
+
     def screenshot(self, name):
         path = self.output / f'{name}.png'
         run('import', '-display', self.display.name, '-window', 'root', path)
@@ -268,7 +301,8 @@ class TerminalApp:
                   and '▶ Ready' in '\n'.join(text.splitlines()[-8:]))
         # The thread sidebar starts collapsed; expand its visible right gutter.
         self.click_cell(self.columns - 1, self.rows // 2)
-        return self.wait('saved', lambda text: 'User messages' in text)
+        return self.wait('saved', lambda text: 'User messages' in text and all(
+            'Indexing' not in line.split('│', 1)[0] for line in text.splitlines()))
 
     def click(self, label):
         text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
@@ -299,8 +333,9 @@ class TerminalApp:
             self.log.close()
 
 
-def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> dict:
-    """Import the built family, then read welcome, history and channels as a user."""
+@contextmanager
+def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> Iterator[dict]:
+    """Own the copied history through startup and its caller's private fork/wake."""
     output.mkdir()
     python = runtime / 'bin/python'
     modules = json.loads(run(python, '-I', '-B', '-c', '''
@@ -381,17 +416,22 @@ print(json.dumps(RestartEnvironment(root=str(c.root),root_id=root_id,package=str
                 app.click('startup-saved')
                 app.show_saved_thread('startup-saved')
                 app.screenshot('saved')
-                plain_before = app.capture().splitlines()[4:-4]
+                initial = app.reader_place('plain-initial')
+                app.click_cell(app.columns // 2, app.rows // 2)
+                app.keys('PPage', 'PPage', 'PPage')
+                app.wait('plain-page-up-moved', lambda text: bool(app.message_rows(text))
+                         and app.message_rows(text) != initial)
+                plain_before = app.reader_place('plain-before')
                 app.keys('C-g')
                 app.wait('any', lambda text: '#any · all comms' in text)
                 app.screenshot('any')
                 app.keys('Escape')
-                app.wait('plain-return', lambda text: text.splitlines()[4:-4] == plain_before)
+                app.wait('plain-return', lambda text: app.message_rows(text) == plain_before)
                 check_filtered_return(app)
         result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
                       channel='passed', filtered_return='passed', evidence=str(output))
         (output / 'result.json').write_text(json.dumps(result, indent=2))
-        return result
+        yield result
 
 
 def check_filtered_return(app: TerminalApp) -> None:
@@ -400,24 +440,21 @@ def check_filtered_return(app: TerminalApp) -> None:
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.click(label)
     app.click_cell(app.columns // 2, app.rows - 5)
-    initial = app.capture().splitlines()[4:-8]
+    initial = app.reader_place('filtered-initial')
     app.keys('PPage', 'PPage', 'PPage')
-    app.wait('page-up-moved', lambda text: text.splitlines()[4:-8] != initial)
-    before = app.wait('filtered-before', lambda text: 'User messages' in text)
-    before = app.capture()
-    (app.output / 'filtered-before.txt').write_text(before)
+    app.wait('page-up-moved', lambda text: bool(app.message_rows(text))
+             and app.message_rows(text) != initial)
+    expected = app.reader_place('filtered-before')
     app.screenshot('filtered-before')
     app.keys('C-g')
     app.wait('filtered-away', lambda text: '#any · all comms' in text)
     app.keys('Escape')
-    # Ignore the tab bar and animated footer; compare the actual message rows.
-    expected = before.splitlines()[4:-4]
-    app.wait('filtered-return', lambda text: text.splitlines()[4:-4] == expected)
+    app.wait('filtered-return', lambda text: app.message_rows(text) == expected)
     app.screenshot('filtered-return')
     app.keys('C-g')
     app.wait('filtered-click-away', lambda text: '#any · all comms' in text)
     app.click('startup-saved')
-    app.wait('filtered-click-return', lambda text: text.splitlines()[4:-4] == expected)
+    app.wait('filtered-click-return', lambda text: app.message_rows(text) == expected)
     app.screenshot('filtered-click-return')
 
 
@@ -680,9 +717,10 @@ class RuntimeBuild:
             'from agent_comms.native_package import pinned_native_package, verify_native_package; '
             'verify_native_package(pinned_native_package())')
         native_pin = hashlib.sha256(manifest).hexdigest()
-        startup = check_startup(destination, self.scratch / f'startup-{destination.name}', self.baseline, self.thread)
-        wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
-                                  self.scratch / f'startup-{destination.name}')
+        with check_startup(destination, self.scratch / f'startup-{destination.name}',
+                           self.baseline, self.thread) as startup:
+            wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
+                                      self.scratch / f'startup-{destination.name}')
         record = {
             'baseline': str(self.baseline),
             'toad_commit': toad_commit, 'core_commit': core_commit,
