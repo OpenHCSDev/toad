@@ -134,7 +134,11 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
-        return ()
+        from toad.widgets.observed_thread_activity import ObservedThreadActivity
+
+        view.thread_activity = ObservedThreadActivity()
+        view.thread_activity.display = False
+        return (view.thread_activity,)
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:
