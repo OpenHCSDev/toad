@@ -676,6 +676,7 @@ class TranscriptPresentation:
                 return
             if window.is_attached and contents.is_attached:
                 self.displayed_cursor = cursor
+                contents.check_notifications()
                 view.app.history_displayed()
                 view.settle_user_message()
         view.call_after_refresh(record)

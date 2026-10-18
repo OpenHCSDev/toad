@@ -474,6 +474,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
+        self.mark_visible()
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:

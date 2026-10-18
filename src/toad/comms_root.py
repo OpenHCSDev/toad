@@ -236,9 +236,6 @@ class CoordinationAccess(MroDispatch):
             self.events.publish(CoordinationObserved(result.revision))
         if previous is None or result.revision.external_transcripts_changed_since(previous):
             self.events.publish(ExternalTranscriptChanged())
-        if self.sidebar_views:
-            # The painted view owns read work, not this source observer.
-            self.app.mark_visible()
 
     @handles(SidebarObserved)
     def sidebar_observed(self, result: SidebarObserved, observed: ObservedCommsService) -> None:
