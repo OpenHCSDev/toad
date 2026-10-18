@@ -88,10 +88,6 @@ class HistoryLoading(ConversationBlock, Static):
     """Channel history loading is an atomic conversation block."""
 
 
-class ChannelActivityTray(ConversationBlock, containers.VerticalGroup):
-    """Channel activity has one declared navigation boundary."""
-
-
 class CommsChatView(Conversation):
     """A wire-backed conversation using Toad's normal transcript primitives."""
 
@@ -124,7 +120,6 @@ class CommsChatView(Conversation):
                 with Contents(id="contents"):
                     yield HistoryLoading("Loading messages…", id="history-loading")
                     yield self.message_history
-                    yield ChannelActivityTray(id="comms-activity")
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
             yield from self.conversation_kind.compose_activity(self)
