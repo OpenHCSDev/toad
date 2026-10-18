@@ -10,6 +10,7 @@ from agent_comms.historical_views import ChannelDisplayHistory, ConversationHist
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
+from agent_comms.read_basis import AnonymousViewer, NamedViewer
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
@@ -119,7 +120,10 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def page(cls, comms: Comms, target: str, **bounds) -> MessagePage:
-        return comms.views.channel_display_page(target, **bounds)
+        worktree = bounds.pop("worktree", None)
+        viewer = (AnonymousViewer() if worktree is None else NamedViewer(
+            comms.messaging.user_identity(worktree).name, comms.registry.snapshot()))
+        return comms.views.channel_display_page(target, viewer=viewer, **bounds)
 
     @classmethod
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
