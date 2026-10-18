@@ -151,9 +151,9 @@ class SourceNotifications:
                                    for reference in fragment.notification_references))
 
     async def show_notifications(self, results):
-        await self._show([(fragment, replace(fragment.shown,
-            status=CheckedNotifications.for_references(fragment.notification_references, results)))
-            for fragment in self.visible_fragments() if fragment.notification_references])
+        await self._show([(fragment, replace(fragment.shown, status=status))
+            for fragment in self.visible_fragments()
+            for status in CheckedNotifications.for_references(fragment.notification_references, results)])
 
     async def show_notification_status(self, status):
         await self._show([(fragment, replace(fragment.shown, status=status))
