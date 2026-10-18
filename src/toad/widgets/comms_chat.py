@@ -188,7 +188,7 @@ class CommsChatView(Conversation):
         self.settle_user_message()
         if (not history.state.accepts_source_work
                 or history.undrawn
-                or source.comms is not access.observation.service
+                or not access.observation.uses(source.comms)
                 or access.revision is None):
             return
         if self._refreshed_from != access.revision:
@@ -213,7 +213,7 @@ class CommsChatView(Conversation):
             # observer remains responsible for the next observation.
             return
         if (source is history.source and snapshot.current(history)
-                and source.comms is access.observation.service
+                and access.observation.uses(source.comms)
                 and history.revision.stores != revision):
             await self._refresh()
 

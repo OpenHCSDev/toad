@@ -8,10 +8,8 @@ from toad.widgets.transcript_lines import OpensLinks
 
 
 def goal_mention_candidates(app) -> tuple[MentionCandidate, ...]:
-    sidebar = app.coordination_access.observation.sidebar
-    if sidebar is None:
-        return ()
-    return tuple(MentionCandidate(row.name, row.title) for row in sidebar.threads.rows.values())
+    return tuple(MentionCandidate(row.name, row.title)
+                 for row in app.coordination_access.observation.thread_rows())
 
 
 class GoalText(ReferenceRendering, OpensLinks, ChangingText):

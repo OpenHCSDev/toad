@@ -408,8 +408,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         screen = self.selected_session
         if not isinstance(screen, MainScreen):
             return
-        observed = self.coordination_access.observation.service
-        observed_root = screen.coordination_root or (observed.root if observed is not None else None)
+        observed_root = self.coordination_access.observation.selected_root(screen.coordination_root)
         conversation = screen.query_one_optional(Conversation)
         if conversation is None or not conversation.is_mounted:
             return

@@ -45,10 +45,8 @@ class ThreadNavigator:
         if source is None:
             return app.selected_mode
         origin = ThreadOrigin.capture(app, source)
-        comms = app.coordination_access.observation.service
-        if comms is None:
-            app.notify("The bus is not available", title="Thread unavailable", severity="error")
-            return app.selected_mode
+        access = app.coordination_access
+        comms = await app.preparation.run_thread(lambda: access.observation.current(access))
         requested_root = str(comms.root)
         if not origin.current(self, owner_mode):
             return app.selected_mode

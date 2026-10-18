@@ -19,6 +19,7 @@ from collections.abc import Callable, Mapping
 from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
 from abc import ABC
+from pathlib import Path
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
@@ -28,13 +29,14 @@ from agent_comms.private_path import FileRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
-    AwaitedRead, ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
+    ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
     SidebarObserved, SidebarUnreadable, ViewsRetired,
     StopObserving, StopSidebar, ThreadsObserved,
 )
-from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
+from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation, ThreadRowModel
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, Subscription, ThreadRowsChanged
+from agent_comms.ui_model.unread import UnobservedUnread
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, ThreadRowsChanged
 from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
@@ -90,7 +92,44 @@ ROUTE_CHECK_SECONDS = 1.0
 
 
 class Observation(ABC):
-    service = sidebar = None
+    def observes(self, root) -> bool:
+        return False
+
+    def observes_view(self, view) -> bool:
+        return False
+
+    def thread_rows(self) -> tuple:
+        return ()
+
+    def thread_row(self, name) -> ThreadRowModel | None:
+        return None
+
+    def unread(self, kind, root, target):
+        return UnobservedUnread()
+
+    async def write_order(self, access, root, channel, order):
+        raise ValueError("Comms ordering is not available yet")
+
+    def uses(self, service) -> bool:
+        return False
+
+    def attach_sidebar(self, view, service) -> None:
+        pass
+
+    def show_sidebar(self, view) -> None:
+        pass
+
+    def bus_revision(self) -> FileRevision | None:
+        return None
+
+    def reference_root(self) -> str:
+        return ""
+
+    def selected_root(self, root):
+        return root
+
+    def sidebar_snapshot(self):
+        raise RouteChanged("The sidebar has not been observed")
 
     def current(self, access):
         return access.open_current()
@@ -141,6 +180,49 @@ class Observing(Observation):
     sidebar: SidebarModel = field()
     process: ObservationProcess = field(compare=False)
     loop: asyncio.AbstractEventLoop
+
+    def observes(self, root) -> bool:
+        return self.service.root == Path(root).resolve()
+
+    def observes_view(self, view) -> bool:
+        return view.belongs_to_wire(self.service.root)
+
+    def thread_rows(self) -> tuple:
+        return tuple(self.sidebar.threads.rows.values())
+
+    def thread_row(self, name):
+        return self.sidebar.threads.rows.get(name)
+
+    def unread(self, kind, root, target):
+        return kind.unread(self.sidebar.observation, target) if self.observes(root) else super().unread(kind, root, target)
+
+    async def write_order(self, access, root, channel, order):
+        if root is not None and not self.observes(root):
+            raise ValueError("Comms route changed before sorting")
+        return await access.preparation.run_thread(
+            access.write, self.selection, order.store_channel_order, self.service.channels, channel)
+
+    def uses(self, service) -> bool:
+        return self.service is service
+
+    def attach_sidebar(self, view, service) -> None:
+        if self.uses(service):
+            view.bind_observation(self)
+
+    def show_sidebar(self, view) -> None:
+        view.bind_observation(self)
+
+    def bus_revision(self):
+        return FileRevision.capture(self.service.root / "bus_meta.json")
+
+    def reference_root(self) -> str:
+        return str(self.service.root)
+
+    def selected_root(self, root):
+        return root or self.service.root
+
+    def sidebar_snapshot(self):
+        return self.sidebar.observation
 
     def current(self, access):
         return self.service
@@ -417,7 +499,7 @@ class CoordinationAccess(MroDispatch):
         """Return the source's current answer, including a failed observation."""
         request = self.sidebar_request()
         if self.sidebar_interest == request and self.sidebar_current == request:
-            return self.observation.sidebar.observation
+            return self.observation.sidebar_snapshot()
         waiter = asyncio.get_running_loop().create_future()
         pending = request, waiter
         self.sidebar_waiters.append(pending)
@@ -463,9 +545,7 @@ class CoordinationAccess(MroDispatch):
     def current_route_stamp(self) -> tuple[FileRevision | None, ...]:
         from agent_comms.active_route import active_route_path
 
-        service = self.observation.service
-        return (FileRevision.capture(active_route_path()),
-                FileRevision.capture(service.root / "bus_meta.json") if service else None)
+        return (FileRevision.capture(active_route_path()), self.observation.bus_revision())
 
     async def route_changed(self) -> bool:
         stamp = await self.preparation.run_thread(self.current_route_stamp)
@@ -477,8 +557,7 @@ class CoordinationAccess(MroDispatch):
 
     async def observe_route(self) -> None:
         """A changed route selection opens (and observes) the newly selected service."""
-        service = self.observation.service
-        root = str(service.root) if service is not None else ""
+        root = self.observation.reference_root()
         previous_references = self.reference_context(root)
         try:
             stamp = await self.preparation.run_thread(self.current_route_stamp)

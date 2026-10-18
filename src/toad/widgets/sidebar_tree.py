@@ -467,9 +467,7 @@ class SidebarModelView(CoreEventReceiver):
     def on_mount(self) -> None:
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        service = self.app.coordination_access.observation.service
-        if service is not None:
-            self.attach(service)
+        self.app.coordination_access.observation.show_sidebar(self)
 
     def on_unmount(self) -> None:
         self.stop_showing()
@@ -508,9 +506,11 @@ class SidebarModelView(CoreEventReceiver):
 
     def attach(self, service: Comms) -> None:
         """Render ``service``'s shared model; another service's rows are retired first."""
-        observed = self.app.coordination_access.observation
-        if observed is None or observed.service is not service or self.model_state.observes(observed):
-            return  # A newer observed service attaches on its CoordinationObserved.
+        self.app.coordination_access.observation.attach_sidebar(self, service)
+
+    def bind_observation(self, observed: Observing) -> None:
+        if self.model_state.observes(observed):
+            return
         self.unsubscribe()
         self.model_state = Behind(observed)
         observed.sidebar.channels.subscribe(self.channels_changed)
@@ -536,9 +536,7 @@ class SidebarModelView(CoreEventReceiver):
 
     @handles(CoordinationObserved)
     async def coordination_observed(self, event: CoreEventMessage) -> None:
-        service = self.app.coordination_access.observation.service
-        if service is not None:
-            self.attach(service)
+        self.app.coordination_access.observation.show_sidebar(self)
 
     @handles(ThreadRowStateChanged)
     async def thread_row_state_changed(self, event: CoreEventMessage) -> None:

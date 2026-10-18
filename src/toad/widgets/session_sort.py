@@ -8,7 +8,7 @@ from ui_theme.scheme import ForegroundColour
 from abc import abstractmethod
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from pathlib import Path
+from functools import partial
 from typing import Annotated, ClassVar
 
 from agent_comms.display_order import (
@@ -187,18 +187,7 @@ class CommsSortControl[Order: DisplayOrder](SortControl[Order]):
 
     def order_writer(self) -> Callable[[type[Order]], Awaitable[object]]:
         access = self.app.coordination_access
-        observed = access.observation
-        if observed is None:
-            raise ValueError("Comms ordering is not available yet")
-        source_root = self.screen.coordination_root
-        if source_root is not None and observed.selection.root != Path(source_root).resolve():
-            raise ValueError("Comms route changed before sorting")
-        async def write(order):
-            return await self.app.preparation.run_thread(
-                access.write, observed.selection, order.store_channel_order, observed.service.channels, self.channel,
-            )
-
-        return write
+        return partial(access.observation.write_order, access, self.screen.coordination_root, self.channel)
 
 
 class SessionSort(CommsSortControl[ThreadSort]):

@@ -169,7 +169,7 @@ class ChannelConversation(ConversationKind):
         answer = await access.current_sidebar()
         snapshot = answer.require_snapshot()
         observed = access.observation
-        if observed is None or observed.service is not comms:
+        if not observed.uses(comms):
             raise ValueError("Channel mentions belong to another Comms service")
         mentions = await view.app.preparation.run_thread(snapshot.mention_candidates, target)
         if not await history.source_is_current(source) or view.target != target:

@@ -124,9 +124,7 @@ class SessionNavigation:
     def declare_views(self) -> None:
         """Tell the observation service which views are open on its root."""
         access = self.app.coordination_access
-        if (service := access.observation.service) is None:
-            return
-        root = str(service.root)
+        root = str(access.observation.current(access).root)
         threads, channels = set(), set()
         for member in self.members:
             threads.update(identity for owner, identity in member.original_threads(self) if owner == root)
@@ -299,9 +297,9 @@ class SessionNavigation:
         # Views on the observed root retire through the observation service
         # (views_retired). Views on another root are read here, only when a
         # registration or channel changed.
-        observed = self.app.coordination_access.observation.service
-        if observed is not None and not any(
-                owner != str(observed.root)
+        observed = self.app.coordination_access.observation
+        if not any(
+                not observed.observes(owner)
                 for member in self.members
                 for owner, _ in (*member.original_threads(self), *member.original_channels())):
             return
@@ -330,14 +328,13 @@ class SessionNavigation:
                           for member in self.members)
         asked: dict[str, tuple[set, set]] = {}
         # The observation service retires views on its own root.
-        observed_root = (str(service.root) if (service := self.app.coordination_access.observation.service)
-                         is not None else None)
+        observed = self.app.coordination_access.observation
         for _member, threads, channels in originals:
             for root, identity in threads:
-                if root != observed_root:
+                if not observed.observes(root):
                     asked.setdefault(root, (set(), set()))[0].add(identity)
             for root, target in channels:
-                if root != observed_root:
+                if not observed.observes(root):
                     asked.setdefault(root, (set(), set()))[1].add(target)
         if not asked:
             return
@@ -358,8 +355,8 @@ class SessionNavigation:
 
         answers = await self.app.preparation.run_thread(read)
         # A service replaced while the read joined revokes its answer.
-        observed = self.app.coordination_access.observation.service
-        retired = {root: answer for root, (service, answer) in answers.items() if service is observed}
+        observed = self.app.coordination_access.observation
+        retired = {root: answer for root, (service, answer) in answers.items() if observed.uses(service)}
         removed = tuple(member.mode for member, threads, channels in originals
                         if self.get(member.mode) is member and (
                             any(root in retired and identity in retired[root].threads for root, identity in threads)

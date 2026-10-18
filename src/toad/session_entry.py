@@ -17,7 +17,6 @@ from toad.owner_preparation import ExistingOwnerPlan
 from agent_comms.thread_identity import ThreadIncarnation
 
 from agent_comms.ui_model.sidebar import ThreadRowModel
-from agent_comms.ui_model.unread import UnobservedUnread, UnreadPresentation
 
 from toad.conversation_kind import ConversationKind
 from toad.session_tracker import CommsViewKey, OpenTab, NamedTab, ThreadTab, SessionDetails
@@ -159,12 +158,12 @@ class NativeSessionEntry(SessionEntry):
     def tab(self, sessions: SessionNavigation, observed: Observation) -> OpenTab:
         source = self.source(sessions)
         name = source.thread_identity.thread_name() if source else ""
-        if source is None or observed.service is None or not source.belongs_to_wire(observed.service.root):
+        if source is None or not observed.observes_view(source):
             return NamedTab(self.mode, self.details.name.display or "New Session")
-        row = observed.sidebar.threads.rows.get(name)
+        row = observed.thread_row(name)
         originals = self.original_threads(sessions)
         if row is not None and originals and not any(
-                Path(root).resolve() == observed.service.root and identity == row.incarnation
+                observed.observes(root) and identity == row.incarnation
                 for root, identity in originals):
             return NamedTab(self.mode, self.details.name.display or "New Session")
         if row is not None:
@@ -213,9 +212,7 @@ class HistorySessionEntry(SessionEntry):
         return sessions.source(self.key.owner_mode)
 
     def tab(self, sessions: SessionNavigation, observed: Observation) -> OpenTab:
-        unread: UnreadPresentation = UnobservedUnread()
-        if observed.service is not None and Path(self.key.root).resolve() == observed.service.root:
-            unread = self.kind.unread(observed.sidebar.observation, self.key.target)
+        unread = observed.unread(self.kind, self.key.root, self.key.target)
         return NamedTab(self.mode, self.key.title, unread)
 
     def depends_on(self, mode: str) -> bool:
