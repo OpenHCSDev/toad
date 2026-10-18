@@ -1168,6 +1168,9 @@ class ProjectedTranscriptHistory(TranscriptHistory):
     def children(self):
         return (self,)
 
+    def reads(self, source) -> bool:
+        return self._reader() is source
+
     @property
     def coverage_events(self) -> Iterator[TranscriptEvent]:
         return (event for page in self.pages for fragment in page.fragments for event in fragment.events)

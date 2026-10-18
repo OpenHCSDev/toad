@@ -41,8 +41,8 @@ class NoProjectionOverlay:
     def children(self):
         return ()
 
-    def _reader(self):
-        return None
+    def reads(self, source) -> bool:
+        return False
 
     def covers_incoming(self, sequence: int) -> bool:
         return False
@@ -227,7 +227,7 @@ class SeekingFilter(NoFilter):
         except _DrawingStopped:
             return False
         finally:
-            if owner.filter.overlay._reader() is not source:
+            if not owner.filter.overlay.reads(source):
                 source.close()
 
 

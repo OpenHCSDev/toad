@@ -32,8 +32,10 @@ class PageWalk(ABC):
     @abstractmethod
     def boundary(self, page) -> int: ...
 
-    @abstractmethod
-    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit) -> int: ...
+    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit) -> int:
+        return await page.prepare_rows(history, current, target=target, selected=selected,
+                                       boundary=boundary, older=self.older,
+                                       rows_needed=rows_needed, limit=limit)
 
     async def walk(self, history, current, target, selected, start, rows_needed, limit):
         index, boundary = start
@@ -50,24 +52,18 @@ class PageWalk(ABC):
 
 class Older(PageWalk):
     step = -1
+    older = True
 
     def boundary(self, page) -> int:
         return len(page.fragments)
 
-    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit):
-        return await page.prepare_rows(history, current, target=target, selected=selected,
-                                       boundary=boundary, older=True, rows_needed=rows_needed, limit=limit)
-
 
 class Newer(PageWalk):
     step = 1
+    older = False
 
     def boundary(self, page) -> int:
         return 0
-
-    async def prepare(self, page, history, current, target, selected, boundary, rows_needed, limit):
-        return await page.prepare_rows(history, current, target=target, selected=selected,
-                                       boundary=boundary, older=False, rows_needed=rows_needed, limit=limit)
 
 
 class ReaderPosition(ABC):
@@ -139,6 +135,9 @@ class ReaderPosition(ABC):
         """What the window keeps when nothing drawn holds this position: itself while a change may bring it back."""
         return self if window.history_change is not None else UnheldPosition()
 
+    def kept(self, window: "HistoryWindow") -> "ReaderPosition":
+        return self
+
     def for_parking(self, window: "HistoryWindow") -> "ReaderPosition":
         return self
 
@@ -176,6 +175,10 @@ class UnheldPosition(ReaderPosition):
 
     def place(self, window: "HistoryWindow") -> bool:
         return True
+
+    def kept(self, window: "HistoryWindow") -> ReaderPosition:
+        window.screen.reader_kept()
+        return ReaderPosition.of(window)
 
     def for_parking(self, window: "HistoryWindow") -> ReaderPosition:
         return ReaderPosition.of(window)
@@ -433,6 +436,7 @@ class LatestPosition(HeldReaderDestination, TailPosition):
     revision: int
     sources: tuple[tuple["TranscriptSourcePreparation", object], ...]
     awaits_source_advance: bool
+    source_ready: bool = False
 
     @classmethod
     def hold(cls, window: "HistoryWindow") -> "LatestPosition":
@@ -558,9 +562,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
     """The reader's held place, or an unheld place sampled only when work needs it."""
 
     def __init__(self, *args, **kwargs):
-        initial = LatestPosition(0, (), False)
-        object.__setattr__(initial, "source_ready", True)
-        self.reader_position = initial
+        self.reader_position = LatestPosition(0, (), False, source_ready=True)
         super().__init__(*args, **kwargs)
     history_change: HistoryChange | None = None
     _history_mutation_root: Widget | None = None
@@ -627,11 +629,11 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
                  if isinstance(widget, TranscriptPageView))
         return (page for page in self.visible_history_items(pages) if self.displays(page))
 
-    def keep_reader(self) -> None:
+    def keep_reader(self) -> bool:
         """What this window draws is about to change: layout keeps the reader where they are now."""
-        if isinstance(self.reader_position, UnheldPosition):
-            self.reader_position = ReaderPosition.of(self)
-            self.screen.reader_kept()
+        previous = self.reader_position
+        self.reader_position = previous.kept(self)
+        return self.reader_position is not previous
 
     def park_reader(self, contents: Contents) -> ParkedPosition:
         """The reader's tab is being left: keep their place until its history is drawn again."""
@@ -947,8 +949,7 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             yield
             return
         screen = self.screen
-        kept = isinstance(self.reader_position, UnheldPosition)
-        self.keep_reader()
+        kept = self.keep_reader()
         change = self.history_change = HistoryChange()
         geometry = self._geometry_revision
         drawn = False
