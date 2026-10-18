@@ -159,6 +159,7 @@ class KnownPalette(MappedAnsiPalette, PaletteState):
         return Color(value.red, value.green, value.blue, value.alpha)
 
     def tint_style(self, style: RichStyle, amount: float) -> RichStyle:
+        assert style.color is not None, "A tinted line role must declare its foreground"
         base = Color(*self._terminal_theme.background_color)
         fill = base.blend(self.resolved(style.color, foreground=True), amount)
         return style + RichStyle(bgcolor=fill.rich_color)
