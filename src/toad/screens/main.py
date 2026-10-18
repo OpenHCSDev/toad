@@ -411,9 +411,9 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         await self.presentation.apply_coordination(self, event)
 
     @handles(core_events.AgentReady)
-    async def on_session_attached(self, message: CoreEventMessage) -> None:
+    async def on_session_attached(self, event: core_events.AgentReady) -> None:
         with self.changing_identity() as previous:
-            self._identity = previous.with_session(message.event.session_id)
+            self._identity = previous.with_session(event.session_id)
         await self.content.attached(self)
 
     @handles(core_events.AgentFail)
