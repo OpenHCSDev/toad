@@ -440,7 +440,6 @@ class ConversationSessionBinding(ThreadStatusOwner, containers.Vertical):
 
     def _thread_rows_changed(self, event: core_events.ThreadRowsChanged) -> None:
         self.transcript.request_handling()
-        self.prompt.slash_complete.refresh_commands()
 
     def bind_agent(self, agent: AgentBase) -> None:
         from toad.agent_surface import AttachedSurfaceBinding
@@ -1710,9 +1709,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         self.observe_core(self.app.saved_settings.events)
         self.observe_core(self.app.events)
         self.observe_core(self.app.coordination_access.events)
-        self._source_resources.enter_context(
-            self.app.coordination_access.observe_thread_changes(
-                self, lambda: self.transcript.thread_scope, self._thread_rows_changed))
+        self.transcript.bind_thread_observation()
         self.refresh_thread_status()
 
         self.input_histories.shell.complete.add_words(

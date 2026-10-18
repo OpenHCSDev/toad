@@ -204,9 +204,7 @@ class ThreadRowsChanged(CoreEvent):
     root: str
     changes: Changes[str]
 
-    def affects(self, scope: tuple[str, str] | None) -> bool:
-        if scope is None:
-            return False
+    def affects(self, scope: tuple[str, str]) -> bool:
         root, thread = scope
         return root == self.root and (thread in self.changes.added or thread in self.changes.changed)
 

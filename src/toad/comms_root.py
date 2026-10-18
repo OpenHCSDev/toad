@@ -355,13 +355,14 @@ class CoordinationAccess(MroDispatch):
             self.sidebar_interest = wanted
             observed.process.request(wanted if wanted is not None else StopSidebar())
 
-    def observe_thread_changes(self, view, scope: Callable[[], tuple[str, str] | None],
-                               resume) -> ResourceRelease:
-        """Hold the shared model and match the consumer's original current scope."""
+    def observe_thread_changes(self, view, scope: tuple[str, str], resume) -> ResourceRelease:
+        """Hold the shared model while this native read waits for its own thread."""
+        if scope is None:
+            raise ValueError("A deferred transcript read requires a bound thread")
         release = ResourceRelease()
 
         release.callback(view.retire_core, view.observe_core_callback(
-            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope())))
+            self.events, ThreadRowsChanged, resume, accepts=lambda event: event.affects(scope)))
         release.callback(self.show_sidebar, release, False)
         self.show_sidebar(release, True)
         return release
