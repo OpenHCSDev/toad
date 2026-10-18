@@ -537,7 +537,7 @@ def check_message_wake(runtime: Path, output: Path, startup: Path) -> dict:
         worker = subprocess.Popen([str(runtime / 'bin/python'), '-I', '-B', '-c', '''
 import asyncio,hashlib,json,os,sys,time
 from pathlib import Path
-from agent_comms.active_route import ActiveRoute,active_route_path
+from agent_comms.active_route import ActiveRoute,publish_active_route
 from agent_comms.comms import wire,Comms
 from agent_comms.thread_status import StoppedThreadStatus
 from agent_comms.agent_backend import AgentBackend
@@ -554,8 +554,7 @@ os.environ.update(HOME=str(home), PI_CODING_AGENT_DIR=str(out/'pi'),
 for kind in ('CONFIG','DATA','STATE','CACHE'):os.environ['XDG_'+kind+'_HOME']=str(out/kind.lower())
 c=Comms(out/'wire');root_id=c.messaging.initialize_private_initial_protocol()
 route=ActiveRoute(c.root,root_id)
-path=active_route_path();path.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
-path.write_text(json.dumps(FieldCodec.encode(route)));path.chmod(0o600)
+publish_active_route(route)
 os.environ.update(AGENT_COMMS_ROOT=str(c.root),AGENT_COMMS_AGENT_BIN=str(runtime/'bin/pi-comms-native'))
 c=wire(route)
 parent=c.registry.declare(c.registry.new_thread('build-parent',frozenset(),str(out),session_file=str(source),
