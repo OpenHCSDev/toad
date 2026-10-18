@@ -5,14 +5,13 @@ from __future__ import annotations
 import asyncio
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from collections.abc import Hashable, Mapping
 from copy import deepcopy
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass
 from enum import Enum
 from hashlib import sha256
 import pickle
 from sys import getsizeof
-from typing import TYPE_CHECKING, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, ClassVar, Generic, TypeVar, cast
 
 from toad.render_backend import Renderer
 
@@ -34,10 +33,28 @@ class PreparationScope:
         self.closed = False
 
 
+class WorkRevision(ABC):
+    """A key's declared, bounded metadata charge; never a source graph."""
+
+    @property
+    @abstractmethod
+    def size(self) -> int: ...
+
+
+class UniqueRevision(WorkRevision):
+    size: ClassVar[int] = 32
+
+
+@dataclass(frozen=True)
+class ContentRevision(WorkRevision):
+    digest: bytes
+    size: ClassVar[int] = 96
+
+
 @dataclass(frozen=True)
 class WorkKey:
     kind: type
-    revision: Hashable
+    revision: WorkRevision
     scope: PreparationScope | None = None
 
 
@@ -92,8 +109,9 @@ class PreparationWork(ABC, Generic[ResultT]):
 
     retain_result = False
 
+    @abstractmethod
     def result_size(self, result: ResultT) -> int:
-        return retained_bytes(result)
+        """Charge this operation's declared result payload, not its object graph."""
 
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
         return CopiedValue(result, self.result_size(result) if self.retain_result else 0)
@@ -101,8 +119,8 @@ class PreparationWork(ABC, Generic[ResultT]):
     def finish_result(self, key: WorkKey, result: ResultT) -> tuple[PreparedValue[ResultT], int]:
         """Finish representation and retained cost within the executing worker.
 
-        Structured source keys retain their immutable metadata too. Measure
-        them with the result, before returning to the runtime's cache owner.
+        Structured source keys declare their metadata charge alongside the
+        result, before returning to the runtime's cache owner.
         Unretained work still owns independent delivery, without retained cost.
         """
         return self.finish_prepared(key, self.store_result(result))
@@ -111,7 +129,7 @@ class PreparationWork(ABC, Generic[ResultT]):
         self, key: WorkKey, prepared: PreparedValue[ResultT],
     ) -> tuple[PreparedValue[ResultT], int]:
         """Account for the original representation without encoding it again."""
-        size = (prepared.size + getsizeof(key) + retained_bytes(key.revision)
+        size = (prepared.size + getsizeof(key) + key.revision.size
                 if self.retain_result else 0)
         return prepared, size
 
@@ -152,7 +170,7 @@ class ContentAddressedWork(PreparationWork[ResultT]):
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
         digest = await runtime.run_thread(lambda: sha256(pickle.dumps(self.inputs, protocol=5)).digest())
-        return WorkKey(type(self), digest)
+        return WorkKey(type(self), ContentRevision(digest))
 
 
 class ScopedWork(PreparationWork[ResultT]):
@@ -213,44 +231,11 @@ class RenderPreparation(ContentAddressedWork[ResultT], RendererWork[ResultT]):
     def retain_result(self) -> bool:
         return self.task.preparation_storage.retain_result
 
+    def result_size(self, result: ResultT) -> int:
+        return self.task.result_size(result)
+
     def store_result(self, result: ResultT) -> PreparedValue[ResultT]:
         return self.task.preparation_storage.store_result(self, result)
-
-
-def retained_bytes(value: object, *, seen: set[int] | None = None) -> int:
-    """Measure retained graphs off-loop, counting shared resources once per traversal.
-
-    Related resource owners can partition their original graphs with the same
-    local visited set. Shared source data is then charged once, without keeping
-    another cache or walking those objects again for each resource.
-    """
-    pending = [value]
-    if seen is None:
-        seen = set()
-    total = 0
-    while pending:
-        item = pending.pop()
-        if id(item) in seen:
-            continue
-        seen.add(id(item))
-        total += getsizeof(item)
-        if is_dataclass(item) and not isinstance(item, type):
-            pending.extend(getattr(item, field.name) for field in fields(item))
-        elif isinstance(item, Mapping):
-            pending.extend(item.keys())
-            pending.extend(item.values())
-        elif isinstance(item, (tuple, list, set, frozenset)):
-            pending.extend(item)
-        elif not isinstance(item, (str, bytes, int, float, bool, type(None), type)):
-            # Rich/Textual prepared values may use slots rather than dataclasses.
-            if hasattr(item, "__dict__"):
-                pending.append(vars(item))
-            for base in type(item).__mro__:
-                slots = base.__dict__.get("__slots__", ())
-                for name in (slots,) if isinstance(slots, str) else slots:
-                    if name not in {"__dict__", "__weakref__"} and hasattr(item, name):
-                        pending.append(getattr(item, name))
-    return total
 
 
 class PreparationRuntime:

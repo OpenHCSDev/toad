@@ -26,7 +26,8 @@ from toad.work_preparation import (
     ThreadWork,
     WorkKey,
     WorkLane,
-    retained_bytes,
+    WorkRevision,
+    UniqueRevision,
 )
 
 
@@ -65,10 +66,17 @@ class PreparedTranscriptPage:
         prepared.measure_sources()
         return prepared
 
-    def measure_sources(self, readers=(), *, seen=None):
-        self.retained_bytes = retained_bytes(
-            (self.page, self.fragments, self.outgoing_coverage, *readers), seen=seen,
-        )
+    @property
+    def source_payload_bytes(self) -> int:
+        return sum(256 + 4 * event.text_size for event in self.page.events)
+
+    def measure_sources(self, readers=()):
+        # Charge declared payloads, including view-acquired rows. Shared inputs
+        # may be charged twice: eviction must not need a global graph census.
+        self.retained_bytes = (256 + 64 * len(self.outgoing_coverage)
+                               + self.source_payload_bytes
+                               + sum(fragment.retained_bytes for fragment in self.fragments)
+                               + sum(fragment.retained_bytes for reader in readers for fragment in reader))
 
     @classmethod
     def empty(cls, page):
@@ -244,6 +252,13 @@ class PageRequest:
 
 
 @dataclass(frozen=True)
+class PageRevision(WorkRevision):
+    through: TranscriptCursor | None
+    request: PageRequest
+    size: ClassVar[int] = 512
+
+
+@dataclass(frozen=True)
 class FilteredTranscriptBatch:
     prepared: PreparedTranscriptPage
     stop: int
@@ -261,7 +276,10 @@ class TranscriptFilterWork(ThreadWork[FilteredTranscriptBatch]):
 
     async def identity(self, runtime: PreparationRuntime) -> WorkKey:
         # This is a cursor operation, not a kept copy of the source history.
-        return WorkKey(type(self), object())
+        return WorkKey(type(self), UniqueRevision())
+
+    def result_size(self, result: FilteredTranscriptBatch) -> int:
+        return 64 + result.prepared.retained_source_bytes
 
     def prepare(self) -> FilteredTranscriptBatch:
         matches = []
@@ -298,24 +316,14 @@ class PreparedPageSource(ABC):
 
     def measure_held(self, pages: tuple[PreparedTranscriptPage, ...],
                           projection: ProjectedTranscriptSource | None = None,
-                          ranges: tuple[PageFragmentRange, ...] = (),
-                          *, seen: set[int] | None = None) -> None:
-        """Measure kept resources by owner in the existing preparation worker.
-
-        A tool's mutable acquisition need not be a field of its immutable
-        dataclass input. Include each owner's declared suppliers, rather than
-        assuming a graph walk of transport fields reaches every document.
-        Main and projected pages share immutable inputs; their independent
-        acquisitions remain distinct while this one traversal counts sharing.
-        """
-        if seen is None:
-            seen = set()
+                          ranges: tuple[PageFragmentRange, ...] = ()) -> None:
+        """Charge page payloads and their actual view acquisitions off-loop."""
         for page in pages:
             readers = tuple(page_range.members for page_range in ranges if page_range.page() is page)
-            page.measure_sources(readers, seen=seen)
+            page.measure_sources(readers)
         if projection is not None:
             projection.measure_held(projection.held_pages, projection.projection_source,
-                                         ranges, seen=seen)
+                                         ranges)
 
     def park(self, pages: tuple[PreparedTranscriptPage, ...],
              projection: ProjectedTranscriptSource | None = None) -> None:
@@ -387,6 +395,9 @@ class RangeCategoryProjection(CategoryProjection):
 class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
     page: TranscriptPage
 
+    def result_size(self, result: PreparedTranscriptPage) -> int:
+        return result.retained_source_bytes
+
     def execute(self) -> PreparedTranscriptPage:
         return PreparedTranscriptPage.prepare(self.page)
 
@@ -407,7 +418,10 @@ class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[Prepar
     @property
     def work_key(self) -> WorkKey:
         # An older page is immutable as its source grows; a newer read ends at the source end.
-        return WorkKey(type(self), self.request if self.request.older else (self.through, self.request), self.scope)
+        return WorkKey(type(self), PageRevision(None if self.request.older else self.through, self.request), self.scope)
+
+    def result_size(self, result: PreparedTranscriptPage) -> int:
+        return result.retained_source_bytes
 
     async def execute(
         self, runtime: PreparationRuntime, key: WorkKey,

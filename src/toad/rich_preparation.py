@@ -245,6 +245,10 @@ class PreparedRichContent:
     lines: tuple[Strip, ...]
 
     @property
+    def retained_bytes(self) -> int:
+        return 64 + sum(64 + 16 * line.cell_length for line in self.lines)
+
+    @property
     def text(self) -> str:
         return "\n".join(line.text for line in self.lines)
 
@@ -276,6 +280,10 @@ class PreparedNativeContent(PreparedRichContent):
     """Native strips and copy text share the worker-acquired source coordinates."""
 
     original_text: str
+
+    @property
+    def retained_bytes(self) -> int:
+        return super().retained_bytes + 4 * len(self.original_text)
 
     @property
     def selection_text(self) -> str:
