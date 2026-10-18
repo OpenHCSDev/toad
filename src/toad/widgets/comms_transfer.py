@@ -25,7 +25,8 @@ from agent_comms.exporting import (
     WireExportLimit,
     WireExportScope,
 )
-from agent_comms.importing import ImportFormat
+from agent_comms.cli_bridges.history import OfflineHistory
+from agent_comms.harness_install import Harness
 from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -78,7 +79,7 @@ class WireExportRequest(TransferRequest):
 @dataclass(frozen=True)
 class ThreadImportRequest(TransferRequest):
     source: Path
-    format: ImportFormat
+    harness: type[Harness]
     name: str
     session_id: str | None
     worktree: str | None
@@ -92,8 +93,8 @@ class ThreadImportRequest(TransferRequest):
         return ThreadImportDialog()
 
     def apply(self, comms):
-        return comms.threads.import_thread(self.source, self.format, name=self.name,
-                                          session_id=self.session_id, worktree=self.worktree)
+        return comms.threads.import_thread(OfflineHistory.of(self.harness, self.source, self.session_id),
+                                          name=self.name, worktree=self.worktree)
 
     def completed(self, app, result) -> None:
         app.events.publish(core_events.ThreadRowStateChanged())
@@ -246,10 +247,11 @@ class ThreadImportDialog(TransferDialog):
 
     def compose(self) -> ComposeResult:
         with Vertical(id="transfer-box"):
-            yield Static("Thread Import: OpenCode export/database or Codex rollout")
+            yield Static("Thread Import: a stored harness session")
+            harnesses = Harness.members_with(Harness)
             yield Select(
-                [("OpenCode", "opencode"), ("Codex", "codex")],
-                value="opencode", id="import-format", allow_blank=False,
+                [(harness.declared_name, harness) for harness in harnesses],
+                value=harnesses[0], id="import-harness", allow_blank=False,
             )
             yield Input(id="import-source", placeholder="Source JSON, database or rollout JSONL")
             yield Input(id="import-name", placeholder="New thread name")
@@ -271,7 +273,7 @@ class ThreadImportDialog(TransferDialog):
             return
         self.dismiss(ThreadImportRequest(
             Path(source).expanduser(),
-            ImportFormat(self.query_one("#import-format", Select).value),
+            self.query_one("#import-harness", Select).value,
             name,
             self.query_one("#import-session-id", Input).value.strip() or None,
             self.query_one("#import-worktree", Input).value.strip() or None,
