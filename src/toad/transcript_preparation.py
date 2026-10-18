@@ -391,17 +391,17 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
     through: TranscriptCursor
-    request: PageRequest
+    request: PageRequest[Cursor]
     lane = WorkLane.MODEL
 
     @property
     def work_key(self) -> WorkKey:
         # An older page is immutable as its source grows; a newer read ends at the source end.
-        return WorkKey(type(self), PageRevision(None if self.request.older else self.through, self.request), self.scope)
+        return WorkKey(type(self), self.request.end.revision(PageRevision, self.request, self.through), self.scope)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_source_bytes
@@ -410,15 +410,9 @@ class TranscriptPageWork(ReusableWork[PreparedTranscriptPage], ScopedWork[Prepar
         self, runtime: PreparationRuntime, key: WorkKey,
     ) -> PreparedResult[PreparedTranscriptPage]:
         request = self.request
-        page = await self.loader(before=request.before, after=request.after, through=self.through)
-        cursor = request.before or request.after
-        if cursor is not None:
-            edge = page.before if request.older else page.after
-            more = page.has_older if request.older else page.has_newer
-            wrong_direction = (edge.contains(cursor) if request.older
-                               else cursor.contains(edge))
-            if edge.session_file != cursor.session_file or (wrong_direction and more):
-                raise ValueError("Transcript history made no cursor progress")
+        page = await self.loader(through=self.through, **request.end.loader_keywords(request.cursor))
+        if request.cursor is not None and not request.end.progressed(page, request.cursor):
+            raise ValueError("Transcript history made no cursor progress")
         if self.scope.closed:
             raise asyncio.CancelledError
         prepared = await runtime.renderer.capture(TranscriptPageRenderTask(page))
@@ -504,37 +498,19 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
             ))
         return self._projected_boundary
 
-    def _reader_for(self, request: PageRequest) -> PreparedPageSource | None:
-        """The reader that serves a request; None when the kept boundary answers it."""
-        if (request.before == self.through
-                or request.after == self._boundary.page.before or self._raw is None):
-            return None
-        if request.older and self._upstream is not None and not self._upstream.closed:
-            return self._upstream
-        return self._raw
-
     async def get(self, request: PageRequest) -> PreparedTranscriptPage:
         if self.closed:
             raise asyncio.CancelledError
-        if (reader := self._reader_for(request)) is None:
+        if (reader := request.end.reader(self, request.cursor)) is None:
             return await self.boundary()
         initial = await reader.get(request)
         prepared = await self._project(initial)
-        if not request.older and not prepared.fragments and not prepared.page.has_newer:
-            boundary = await self.boundary()
-            return replace(boundary, page=replace(
-                boundary.page, before=initial.page.before,
-                has_older=initial.page.has_older,
-            ))
-        # One requested source page, including an empty matching interval.
-        # Only the viewport or an explicit filter scan may request another;
-        # a projection cannot decode arbitrary older pages behind that request.
-        return replace(prepared, page=replace(prepared.page, has_newer=True))
+        return await request.end.project(self, initial, prepared)
 
     async def prepare(self, request: PageRequest) -> None:
         if self.closed:
             return
-        if (reader := self._reader_for(request)) is None:
+        if (reader := request.end.reader(self, request.cursor)) is None:
             await self.boundary()
         else:
             await reader.prepare(request)

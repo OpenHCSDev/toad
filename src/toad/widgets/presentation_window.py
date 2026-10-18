@@ -10,7 +10,7 @@ from functools import partial
 from math import ceil
 from operator import gt, ge
 from time import monotonic, get_clock_info
-from typing import Annotated, TYPE_CHECKING, get_args
+from typing import Annotated, ClassVar, Protocol, TYPE_CHECKING, get_args
 
 if TYPE_CHECKING:
     from textual.widget import Widget
@@ -114,14 +114,39 @@ class Runway:
 
 
 
-class PageEnd(ABC):
+@dataclass(frozen=True)
+class PageEnd(Protocol):
     """One end owns page traversal, source reads and eviction at that edge."""
 
-    step: int
+    step: ClassVar[int]
     accepts_destination = True
+
+    def boundary(self, page): ...
+    def indices(self, page, boundary): ...
+    def can_extend(self, page): ...
+    def has_more(self, through, page): ...
+    def adjacent(self, page): ...
+    def advance_empty(self, edge, staged): ...
+    def edge(self, pages): ...
+    def edge_boundary(self, edge, local, staged): ...
+    async def mount(self, history, view): ...
+    def append(self, pages, view): ...
+    def pop(self, pages): ...
+    def eviction_fragments(self, page): ...
+    def trim_range(self, page, count): ...
+    def rows_toward(self, runway): ...
+    def at_boundary(self, window): ...
+    def revision(self, revision, request, through): ...
+    def loader_keywords(self, cursor): ...
+    def progressed(self, page, cursor): ...
+    def reader(self, source, cursor): ...
+    def wire_page(self, source, cursor, through): ...
 
     def entry(self, length):
         return self.edge(range(length - 1, -1, -1))
+
+    async def project(self, source, initial, prepared):
+        return replace(prepared, page=replace(prepared.page, has_newer=True))
 
     def visible_more(self, history):
         page = self.edge(history.pages).prepared
@@ -178,7 +203,26 @@ class OlderEnd(PageEnd):
         return page.has_older
 
     def adjacent(self, page):
-        return PageRequest(before=page.before)
+        return PageRequest(self, page.before)
+
+    def revision(self, revision, request, through):
+        return revision(None, request)
+
+    def loader_keywords(self, cursor):
+        return {'before': cursor}
+
+    def progressed(self, page, cursor):
+        edge = page.before
+        return edge.session_file == cursor.session_file and not (edge.contains(cursor) and page.has_older)
+
+    def reader(self, source, cursor):
+        if cursor == source.through or source._raw is None:
+            return None
+        upstream = source._upstream
+        return upstream if upstream is not None and not upstream.closed else source._raw
+
+    def wire_page(self, source, cursor, through):
+        return source.page(limit=source.tail_limit if cursor == through else source.page_limit, **cursor.older())
 
     def advance_empty(self, edge, staged):
         edge.page = replace(edge.page, before=staged.page.before, has_older=staged.page.has_older)
@@ -189,8 +233,8 @@ class OlderEnd(PageEnd):
     def edge_boundary(self, edge, local, staged):
         return edge.prepared.start if local else len(staged.fragments)
 
-    def before(self, history, edge):
-        return edge
+    async def mount(self, history, view):
+        await history.mount(view, before=self.edge(history.pages))
 
     def eviction_order(self, history):
         return super().eviction_order(history) if history.follows_source_tail else (NewerEnd(), self)
@@ -233,7 +277,32 @@ class NewerEnd(PageEnd):
         return page.has_newer or page.after != through
 
     def adjacent(self, page):
-        return PageRequest(after=page.after)
+        return PageRequest(self, page.after)
+
+    def revision(self, revision, request, through):
+        return revision(through, request)
+
+    def loader_keywords(self, cursor):
+        return {'after': cursor}
+
+    def progressed(self, page, cursor):
+        edge = page.after
+        return edge.session_file == cursor.session_file and not (cursor.contains(edge) and page.has_newer)
+
+    def reader(self, source, cursor):
+        return None if cursor == source._boundary.page.before else source._raw
+
+    def wire_page(self, source, cursor, through):
+        page = source.page(limit=source.page_limit, **cursor.newer())
+        kept = tuple(message for message in page.messages if message.view_key[0] or message.seq <= through.cursor)
+        return replace(page, messages=kept, has_newer=False) if len(kept) < len(page.messages) else page
+
+    async def project(self, source, initial, prepared):
+        if not prepared.fragments and not prepared.page.has_newer:
+            boundary = await source.boundary()
+            return replace(boundary, page=replace(boundary.page, before=initial.page.before,
+                                                 has_older=initial.page.has_older))
+        return await super().project(source, initial, prepared)
 
     def advance_empty(self, edge, staged):
         edge.page = replace(edge.page, after=staged.page.after, has_newer=staged.page.has_newer)
@@ -247,8 +316,8 @@ class NewerEnd(PageEnd):
     def edge_boundary(self, edge, local, staged):
         return edge.prepared.stop if local else 0
 
-    def before(self, history, edge):
-        return history.newer
+    async def mount(self, history, view):
+        await history.mount(view, before=history.newer)
 
     def eviction_fragments(self, page):
         return reversed(page.fragments_in_range)
@@ -264,13 +333,9 @@ class NewerEnd(PageEnd):
 
 
 @dataclass(frozen=True)
-class PageRequest:
-    before: TranscriptCursor | None = None
-    after: TranscriptCursor | None = None
-
-    @property
-    def older(self) -> bool:
-        return self.before is not None
+class PageRequest[Cursor = TranscriptCursor | None]:
+    end: PageEnd
+    cursor: Cursor
 
 
 class PreparationDemand(ABC):

@@ -175,7 +175,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.loader is None or edge.prepared.page.after == self.through:
             prepared = edge.prepared.for_view()
         else:
-            prepared = (await self._reader().get(PageRequest(before=self.through))).for_view()
+            prepared = (await self._reader().get(PageRequest(OlderEnd(), self.through))).for_view()
         latest = prepared
         rows, limit = window.latest_limits(self.budget)
         pages_read = 1
