@@ -451,11 +451,16 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         return mark()
 
 
-    def schedule_from_thread(self, callback: Callable[[], object]) -> None:
-        """Schedule work with this App's context from outside its event loop."""
+    @property
+    def running_loop(self) -> asyncio.AbstractEventLoop:
         loop = self._loop
         if loop is None:
             raise ApplicationNotRunningError("App is not running")
+        return loop
+
+    def schedule_from_thread(self, callback: Callable[[], object]) -> None:
+        """Schedule work with this App's context from outside its event loop."""
+        loop = self.running_loop
 
         def run() -> None:
             with self._context():
