@@ -52,9 +52,9 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
             self.model_state.root(), name, self.app.coordination_access)
         return row
 
-    def sync_members(self) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         if self.is_attached and not self.is_leaving:
             members = self.view.conversation_kind.active_members(self.model_state.shown, self.view.target)
             self.details.title = Content(f"{len(members)} active · " + ", ".join(
                 f"{row.name} {row.summary}" for row in members))
-            self.reconcile_keys(tuple(row.name for row in members), changed=frozenset())
+            self.reconcile_keys(tuple(row.name for row in members), changed=changed)

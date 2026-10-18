@@ -398,7 +398,7 @@ class AllSidebarRows(SidebarChange):
             group.sync_members(frozenset(group.member_keys))
 
     def apply_activity(self, view) -> None:
-        view.call_next(view.sync_members)
+        view.call_next(view.sync_members, frozenset(view.member_keys))
 
 
 @dataclass(frozen=True)
@@ -423,7 +423,7 @@ class ChangedChannels(SidebarChange):
 
     def apply_activity(self, view) -> None:
         if view.view.target in self.names:
-            view.call_next(view.sync_members)
+            view.call_next(view.sync_members, frozenset(view.member_keys))
 
 
 @dataclass(frozen=True)
@@ -444,8 +444,9 @@ class ChangedThreads(SidebarChange):
                 group.sync_members(changed=changed)
 
     def apply_activity(self, view) -> None:
-        if self.names.intersection(view.member_keys) or self.names.intersection(view.rows):
-            view.call_next(view.sync_members)
+        changed = self.names.intersection((*view.member_keys, *view.rows))
+        if changed:
+            view.call_next(view.sync_members, changed)
 
     def apply_navigation(self, sidebar) -> None:
         pass
