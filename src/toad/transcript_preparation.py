@@ -220,9 +220,9 @@ class PageFragmentRange:
 
 
 @dataclass(frozen=True)
-class PageRevision(WorkRevision):
-    through: TranscriptCursor | None
-    request: PageRequest
+class PageRevision[Cursor = TranscriptCursor | None](WorkRevision):
+    through: Cursor | None
+    request: PageRequest[Cursor]
     size: ClassVar[int] = 512
 
 
@@ -394,14 +394,14 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
 class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
-    through: TranscriptCursor
+    through: Cursor
     request: PageRequest[Cursor]
     lane = WorkLane.MODEL
 
     @property
     def work_key(self) -> WorkKey:
         # An older page is immutable as its source grows; a newer read ends at the source end.
-        return WorkKey(type(self), self.request.end.revision(PageRevision, self.request, self.through), self.scope)
+        return WorkKey(type(self), PageRevision(self.request.end.work_cursor(self.through), self.request), self.scope)
 
     def result_size(self, result: PreparedTranscriptPage) -> int:
         return result.retained_source_bytes
