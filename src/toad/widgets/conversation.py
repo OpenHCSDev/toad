@@ -54,7 +54,8 @@ from textual.strip import Strip
 from textual.widget import Widget
 from textual.widgets import Static
 
-from toad import jsonrpc, messages, paths
+from toad import messages, paths
+from acp.exceptions import RequestError
 from toad.widgets.splash_text import SplashText
 
 from toad.core import events as core_events
@@ -1222,7 +1223,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.flash(
                 "Provider login finished; model catalogue refreshed", style="success"
             )
-        except (ValueError, OSError, TimeoutError, jsonrpc.JSONRPCError) as error:
+        except (ValueError, OSError, TimeoutError, RequestError) as error:
             self.notify(str(error), title="Provider login", severity="error")
         finally:
             if (prompt := self.query_one_optional(Prompt)) is not None:
@@ -1766,7 +1767,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.flash("Compaction requested")
             await self.agent.controller.compact_context(instructions)
             self.flash("Context compacted", style="success")
-        except (OSError, ValueError, jsonrpc.JSONRPCError) as error:
+        except (OSError, ValueError, RequestError) as error:
             self.notify(str(error), title="Compaction request", severity="error")
             self.transcript.require_commit()
 

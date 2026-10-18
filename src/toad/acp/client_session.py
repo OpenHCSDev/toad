@@ -6,8 +6,7 @@ if TYPE_CHECKING:
     from .agent import Agent
     from .agent_session import SessionDisposition
     from .agent_controller import SessionBinding
-from agent_comms.declared_family import DeclaredFamily
-from toad.jsonrpc import InvalidParams
+from acp.exceptions import RequestError
 
 
 @dataclass(frozen=True)
@@ -33,16 +32,12 @@ class ClientSessionRequest:
 
     def require(self):
         if not self.current:
-            raise InvalidParams('ACP client request belongs to a retired session')
+            raise RequestError.invalid_params({'details': 'ACP client request belongs to a retired session'})
 
 
-class ClientRequestOwner(DeclaredFamily, affix='ClientRequestOwner'):
+class ClientRequestOwner:
     def __init__(self, agent):
         self.agent = agent
-
-    @classmethod
-    def resolve(cls, agent):
-        return cls(agent)
 
     def session_request(self, session_id):
         request = ClientSessionRequest(self.agent, session_id)

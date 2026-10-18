@@ -9,7 +9,8 @@ from typing import ClassVar
 
 from agent_comms.acp_extension import InputStartedUpdate, QueuePromptRequest, SteerPromptRequest
 from agent_comms.declared_family import DeclaredFamily
-from toad import jsonrpc, messages
+from toad import messages
+from acp.exceptions import RequestError
 from toad.acp.client_session import ClientSessionRequest
 from agent_comms.acp_extension import PendingQueueProjection
 from toad.widgets.prompt import Prompt
@@ -188,7 +189,7 @@ class SubmissionExecution:
                 reason = await self.agent.send_prompt(self.submission.text, request=self.request)
             else:
                 reason = await self.agent.send_prompt(self.submission.text)
-        except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
+        except (RequestError, OSError, ValueError) as error:
             if self.current:
                 from toad.widgets.conversation import INTERNAL_EROR
                 from toad.widgets.markdown_note import MarkdownNote
@@ -298,7 +299,7 @@ class ConversationSubmissions:
         try:
             if await agent.controller.send_now():
                 return
-        except (jsonrpc.APIError, jsonrpc.JSONRPCError, OSError, ValueError) as error:
+        except (RequestError, OSError, ValueError) as error:
             if self.view.agent is agent and agent.session_id == session:
                 self.view.flash(f'Send now failed: {error}', style='error')
         if self.view.agent is agent and agent.queue_attachment.accepts_request(scope):

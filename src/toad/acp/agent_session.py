@@ -12,9 +12,9 @@ from agent_comms.errors import RelationViolationError
 from agent_comms.route_selection import RouteChanged, RouteSelection
 from agent_comms.thread_presentation import SessionDisconnected
 import toad
-from toad import constants, jsonrpc
+from toad import constants
+from acp.exceptions import RequestError
 from toad.core import events as core_events
-from toad.acp import api
 from acp import schema
 from toad.acp.client_session import ClientSessionRequest
 from toad.core.events import AgentFail, AgentReady, UnsupportedResumeAgentFail, LogAgentFail
@@ -306,7 +306,7 @@ class AgentSession:
                 else:
                     await self.new()
                 self.connected = True
-            except jsonrpc.APIError as error:
+            except RequestError as error:
                 # The handshake has not accepted a prompt, regardless of the
                 # server's reason for refusing this attachment.
                 failure = replace(ACPFailure.from_error(error.code, error.message, error.data),
@@ -361,7 +361,7 @@ class AgentSession:
                     f"Reconnect timed out after {self.reconnect_timeout_seconds} seconds "
                     "waiting for the session handshake to settle."
                 )
-        except (OSError, jsonrpc.APIError) as error:
+        except (OSError, RequestError) as error:
             self.startup_failed(f"Reconnect failed: {type(error).__name__}: {error}")
         finally:
             self.reconnecting = False
@@ -376,9 +376,7 @@ class AgentSession:
     async def authenticate(self, method_id: str) -> None:
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        with self.agent.request():
-            response = api.authenticate(method_id)
-        await response.wait()
+        await self.agent.process.rpc.authenticate(method_id)
         authority.require()
         await self.initialize(force=True)
         authority.require()
@@ -390,15 +388,13 @@ class AgentSession:
         authority.require()
         response = self.agent.process.initialization
         if response is None or force:
-            with self.agent.request():
-                initialize_response = api.initialize(
-                    PROTOCOL_VERSION,
-                    schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
-                        read_text_file=True, write_text_file=True), terminal=True,
-                        auth=schema.AuthCapabilities(terminal=os.name != "nt")),
-                    schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
-                )
-            response = await initialize_response.wait()
+            response = await self.agent.process.rpc.initialize(
+                PROTOCOL_VERSION,
+                schema.ClientCapabilities(fs=schema.FileSystemCapabilities(
+                    read_text_file=True, write_text_file=True), terminal=True,
+                    auth=schema.AuthCapabilities(terminal=os.name != "nt")),
+                schema.Implementation(name=toad.NAME, title=toad.TITLE, version=toad.get_version()),
+            )
             authority.require()
             assert response is not None
             self.agent.process.initialization = response
@@ -413,12 +409,8 @@ class AgentSession:
         queue_token = self.agent.queue_attachment.begin(None)
         self.agent._post_private_cursor()
         self.agent._post_queue_view()
-        with self.agent.request():
-            session_new_response = api.session_new(
-                str(self.agent.project_root_path),
-                [],
-            )
-        response = await session_new_response.wait()
+        response = await self.agent.process.rpc.new_session(
+            str(self.agent.project_root_path), mcp_servers=[])
         authority.require()
         if not self.agent._private_cursor.is_current_request(cursor_token):
             return
@@ -481,12 +473,10 @@ class AgentSession:
                     self.agent.definition = agent_data
 
         plan, self.load_plan = self.load_plan, EnsuringSessionLoadPlan()
-        with self.agent.request():
-            session_load_response = api.session_load(cwd, [], request_session_id,
-                                                     plan.metadata())
         try:
-            response = await session_load_response.wait()
-        except jsonrpc.APIError as error:
+            response = await self.agent.process.rpc.load_session(
+                cwd, request_session_id, mcp_servers=[], **(plan.metadata() or {}))
+        except RequestError as error:
             authority.require()
             if self.agent.queue_attachment.is_current_request(queue_token):
                 if failed_command := FailedSessionLoadPlan.from_failure(error.data):
@@ -541,12 +531,10 @@ class AgentSession:
         """Update the current mode with the agent."""
         authority = ClientSessionRequest(self.agent, self.agent.session_id)
         authority.require()
-        with self.agent.request():
-            response = api.session_set_mode(self.agent.session_id, mode_id)
         try:
-            await response.wait()
+            await self.agent.process.rpc.set_session_mode(self.agent.session_id, mode_id)
             authority.require()
-        except jsonrpc.APIError as error:
+        except RequestError as error:
             return ACPFailure.from_error(error.code, error.message, error.data).feedback
         else:
             self.agent.controller.update_mode(mode_id)

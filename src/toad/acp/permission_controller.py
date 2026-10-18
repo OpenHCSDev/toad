@@ -4,7 +4,6 @@ from __future__ import annotations
 import asyncio
 from abc import abstractmethod
 from agent_comms.declared_family import DeclaredFamily
-from toad import jsonrpc
 from acp import schema as protocol
 from .client_session import ClientRequestOwner, ClientSessionRequest
 from toad.answer import Answer
@@ -138,11 +137,6 @@ class PermissionController(ClientRequestOwner):
         for request in self.pending:
             request.cancel()
 
-    @classmethod
-    def resolve(cls, agent):
-        return agent.permissions
-
-    @jsonrpc.expose("session/request_permission")
     async def request_permission(self, sessionId: str,
                                  options: list[protocol.PermissionOption],
                                  toolCall: protocol.ToolCallUpdate,
