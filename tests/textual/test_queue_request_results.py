@@ -10,7 +10,7 @@ from agent_comms.acp_extension import (
     AvailableQueueProjection, QueueChangedUpdate, QueueItem, LiveQueueScope, NoQueueScope, UnavailableQueueProjection,
     encode_updates,
 )
-from agent_comms.thread_identity import AdmissionIdentity, RecordedThreadIncarnation
+from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 
 from support.agents import deliver, detached
 from toad.conversation_submission import DeferredInputSubmission
@@ -20,7 +20,7 @@ from toad.jsonrpc import InvalidParams
 
 def response(session, next_owner=False):
     generation = 2 if next_owner else 1
-    scope = LiveQueueScope(session, AdmissionIdentity(RecordedThreadIncarnation(session, 1000.0), generation), 1234)
+    scope = LiveQueueScope(session, ClaimedIdentity(RecordedThreadIncarnation(session, 1000.0), generation), 1234)
     items = (QueueItem("a" * 32, "same text"), QueueItem("b" * 32, "same text"))
     return NewSessionResponse(
         sessionId=session, _meta=encode_updates(QueueChangedUpdate(scope, generation, AvailableQueueProjection(items))))
