@@ -15,14 +15,14 @@ import asyncio
 import threading
 from dataclasses import dataclass, field
 from functools import partial
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from contextlib import ExitStack
 from typing import TYPE_CHECKING, TypeVar
 from weakref import WeakKeyDictionary, WeakSet
 
 from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
-from agent_comms.presentation import NoRevision, ReadState
+from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.private_path import FileRevision
 from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
 from agent_comms.ui_model.observation import (
@@ -127,6 +127,7 @@ class CoordinationAccess(MroDispatch):
         self.sidebar_current: ObserveSidebar | None = None
         self.views_interest: ObserveViews | None = None
         self.notification_views: WeakKeyDictionary[HistoryNotifications, ReadNotifications] = WeakKeyDictionary()
+        self.notification_outcomes: dict[ReadNotifications, Mapping[tuple[int, str], tuple[MessageNotification, ...]]] = {}
         self.notification_interest = ObserveNotifications(frozenset())
 
     @property
@@ -196,6 +197,7 @@ class CoordinationAccess(MroDispatch):
         self.thread_status.clear()
         self.views_interest = None
         self.notification_views.clear()
+        self.notification_outcomes.clear()
         self.notification_interest = ObserveNotifications(frozenset())
         self.update_sidebar_interest()
         observed.process.request(ObserveThreads(self.events.observed_threads(str(observed.service.root))))
@@ -290,6 +292,8 @@ class CoordinationAccess(MroDispatch):
 
     def show_notifications(self, view: HistoryNotifications, read: ReadNotifications) -> None:
         self.notification_views[view] = read
+        if read in self.notification_outcomes:
+            view.notifications_observed(self.notification_outcomes[read])
         self._request_interest()
 
     def stop_notifications(self, view: HistoryNotifications) -> None:
@@ -298,18 +302,24 @@ class CoordinationAccess(MroDispatch):
 
     def _request_interest(self) -> None:
         wanted = ObserveNotifications(frozenset(self.notification_views.values()))
+        for previous in self.notification_outcomes.keys() - wanted.reads:
+            self.notification_outcomes.pop(previous)
         if wanted != self.notification_interest and self.observation is not None:
             self.notification_interest = wanted
             self.observation.process.request(wanted)
 
     @handles(NotificationsObserved)
     def notifications_observed(self, result: NotificationsObserved, observed: ObservedCommsService) -> None:
+        if result.request not in self.notification_views.values():
+            return
+        self.notification_outcomes[result.request] = result.outcomes
         for view, request in tuple(self.notification_views.items()):
             if result.request == request:
                 view.notifications_observed(result.outcomes)
 
     @handles(NotificationsUnreadable)
     def notifications_unreadable(self, result: NotificationsUnreadable, observed: ObservedCommsService) -> None:
+        self.notification_outcomes.pop(result.request, None)
         for view, request in tuple(self.notification_views.items()):
             if result.request == request:
                 view.notifications_failed(result.error)
