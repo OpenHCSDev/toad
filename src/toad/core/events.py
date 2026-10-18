@@ -428,8 +428,11 @@ class Subscription:
         return False
 
     def close(self) -> None:
+        if not self.active:
+            return
         self.bucket.discard(self)
-        self.stream.subscriptions_changed(self)
+        if not self.bucket:
+            self.stream.subscriptions_changed(self)
 
     def __enter__(self) -> Subscription:
         return self
@@ -473,8 +476,11 @@ class CoreEventStream:
                   listener: Callable[[CoreEvent, Subscription], object], *,
                   factory: Callable[..., Subscription] = Subscription) -> Subscription:
         subscription = factory(self, event_type, listener)
-        subscription.bucket.add(subscription)
-        self.subscriptions_changed(subscription)
+        bucket = subscription.bucket
+        first = not bucket
+        bucket.add(subscription)
+        if first:
+            self.subscriptions_changed(subscription)
         return subscription
 
     def observed_threads(self, root: str) -> frozenset[str]:

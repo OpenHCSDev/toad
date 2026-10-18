@@ -32,7 +32,8 @@ from agent_comms.ui_model.observation import (
 )
 from agent_comms.ui_model.sidebar import SidebarModel, SidebarObservation
 from agent_comms.ui_model.status import OpenThreadStatus
-from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, Subscription, ThreadChangeSubscription, ThreadRowsChanged
+from toad.core.events import CoreEventStream, CoordinationObserved, ExternalTranscriptChanged, OpenTabsChanged, LinkContextChanged, ObservedServiceChanged, Subscription, ThreadRowsChanged
+from toad.core_event_carrier import ThreadCallbackSubscription
 from toad.resource_release import ResourceRelease
 from toad.preferences import SETTINGS
 from agent_comms.display_references import PendingReferences, UnavailableReferences
@@ -285,8 +286,8 @@ class CoordinationAccess(MroDispatch):
     def threads_observed(self, result: ThreadsObserved, observed: ObservedCommsService) -> None:
         self.thread_status.observed(result)
         self.events.publish(ThreadRowsChanged(str(observed.service.root), {
-            name: presentation
-            for name, presentation in result.presentations.items() if name in result.changed
+            name: self.thread_status.open(name).presentation
+            for name in result.changed
         }))
 
     @handles(ViewsRetired)
@@ -343,13 +344,11 @@ class CoordinationAccess(MroDispatch):
 
     def observe_thread_changes(self, view, scope: tuple[str, str], resume) -> ResourceRelease:
         """Hold the shared model while this native read waits for its own thread."""
-        if scope is None:
-            raise ValueError("A deferred transcript read requires a bound thread")
         release = ResourceRelease()
 
         release.callback(view.retire_core, view.observe_core_callback(
             self.events, ThreadRowsChanged, resume,
-            factory=partial(ThreadChangeSubscription, scope=scope)))
+            factory=partial(ThreadCallbackSubscription, scope=scope)))
         return release
 
     def show_sidebar(self, view: object, shown: bool) -> None:
