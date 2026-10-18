@@ -9,13 +9,13 @@ from __future__ import annotations
 
 from abc import ABC
 from dataclasses import dataclass, replace
-from functools import cached_property
+from functools import cached_property, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage
-from agent_comms.messages import Message
+from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
 from toad.conversation_kind import ConversationKind
@@ -153,12 +153,23 @@ class WireFragment(TranscriptFragment):
     evidence: MessagePage | None
     checks_notifications: ClassVar[bool] = False
 
+    def _unhandled_message(message, **fields):
+        raise TypeError(f"No fragment declared for {type(message.role).__name__}")
+
+    _roles = singledispatch(_unhandled_message)
+
+    def __init_subclass__(cls, *, roles=(), **kwargs):
+        super().__init_subclass__(**kwargs)
+        for role in roles:
+            WireFragment._roles.register(role, cls.from_message)
+
     @classmethod
     def of(cls, message: Message, *, reader: str, **fields) -> WireFragment:
-        kind = MembershipFragment if message.membership is not None else MessageFragment
-        if message.membership is None:
-            fields.update(text_part=message.body, row=MessageRow(message, reader))
-        return kind((message,), **fields)
+        return cls._roles.dispatch(type(message.role))(message, reader=reader, **fields)
+
+    @classmethod
+    def from_message(cls, message, *, reader, **fields):
+        return cls((message,), **fields)
 
     @property
     def message(self) -> Message:
@@ -200,7 +211,7 @@ class WireFragment(TranscriptFragment):
                      lines.height - sum(block.height for block in prepared[-trailing:] if trailing))
 
 
-class MembershipFragment(WireFragment):
+class MembershipFragment(WireFragment, roles=(Membership,)):
     """Someone joined or left: one muted line."""
 
     def text(self, shown):
@@ -208,12 +219,16 @@ class MembershipFragment(WireFragment):
 
 
 @dataclass(kw_only=True)
-class MessageFragment(BusMessageFragment, WireFragment):
+class MessageFragment(BusMessageFragment, WireFragment, roles=(ConversationRole, NoticeRole)):
     """A sent message: its header, text and the state of its notifications."""
+
+    @classmethod
+    def from_message(cls, message, *, reader, **fields):
+        return cls((message,), text_part=message.body, row=MessageRow(message, reader), **fields)
 
     @property
     def notification_references(self):
-        return self.message.notification_references()
+        return self.message.role.notification_references(self.message)
 
     @property
     def leading(self):
