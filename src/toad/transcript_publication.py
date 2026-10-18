@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from contextlib import AsyncExitStack, asynccontextmanager
 from toad.resource_release import AsyncResourceRelease, ResourceRelease
 from functools import partial
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
@@ -20,22 +21,47 @@ from textual.await_complete import AwaitComplete
 from toad.widgets.history_anchor import HeldReaderDestination
 
 if TYPE_CHECKING:
-    from toad.screens.session_view import SessionOrigin
+    from toad.screens.session_view import SessionOrigin, SessionView
+    from textual.screen import Screen
     from toad.widgets.conversation import Conversation, Window, Contents
     from toad.widgets.transcript_history import TranscriptHistory
     from toad.transcript_preparation import PreparedPageSource
 
 
-class TranscriptPublication(ABC):
+@dataclass(frozen=True)
+class BoundFrame:
+    binding: BoundView
+    owner: TranscriptPresentation
+    generation: int
+    window: Window
+    contents: Contents
+
+    @classmethod
+    def capture(cls, binding, owner, **extra):
+        view = binding.view
+        return cls(binding, owner, owner.generation, view.window, view.contents, **extra)
+
+    def current(self):
+        return (self.owner.binding is self.binding
+                and self.owner.generation == self.generation
+                and self.binding.current(self.window, self.contents))
+
+    def painted(self, cursor):
+        if self.current():
+            self.owner.displayed_cursor = cursor
+            self.contents.check_notifications()
+            view = self.binding.view
+            view.app.history_displayed()
+            view.settle_user_message()
+
+
+class TranscriptPublication(BoundFrame, ABC):
     """Holds the source, resources and generation for one read and publication."""
 
     def __init__(self, owner: TranscriptPresentation, view: Conversation,
                  window: Window, contents: Contents) -> None:
-        self.owner = owner
-        self.binding = owner.binding
-        self.generation = owner.generation
+        super().__init__(owner.binding, owner, owner.generation, window, contents)
         self.thread_scope = owner.thread_scope
-        self.window, self.contents = window, contents
         self.destination = HeldReaderDestination.held(window)
         self.history = next(iter(owner.histories), None)
         self.captured = view.turns.owner.captured_snapshot(tuple(contents.children))
@@ -60,10 +86,7 @@ class TranscriptPublication(ABC):
         return self.current() and self.source_bound(cursor) == cursor
 
     def current(self) -> bool:
-        return (self.binding is self.owner.binding
-                and self.binding.current(self.window, self.contents)
-                and self.generation == self.owner.generation
-                and self.thread_scope == self.owner.thread_scope)
+        return super().current() and self.thread_scope == self.owner.thread_scope
 
     async def publish(self) -> bool:
         """Wait for the UI to apply queued messages before acquiring their resources.
@@ -470,6 +493,43 @@ class NoView(ViewBinding):
 
 
 class BoundView(ViewBinding):
+    @dataclass(frozen=True)
+    class Moment(BoundFrame):
+        screen: Screen
+        source: SessionView
+
+        @classmethod
+        def capture(cls, binding, owner, **extra):
+            from toad.screens.session_view import SessionView
+            view = binding.view
+            return super().capture(binding, owner, screen=view.screen,
+                                   source=view.query_ancestor(SessionView), **extra)
+
+        def current(self):
+            if not super().current():
+                return False
+            from toad.screens.session_view import SessionView
+            view = self.binding.view
+            return (view.screen is self.screen and self.source.is_current
+                    and view.query_ancestor(SessionView) is self.source)
+
+    @dataclass(frozen=True)
+    class Restoration(Moment):
+        revision: int
+
+        def current(self):
+            return (super().current() and not self.owner.closed
+                    and self.window.scroll_revision == self.revision)
+
+        def refresh(self, publication):
+            if not self.current():
+                return
+            if publication is None:
+                if (destination := HeldReaderDestination.held(self.window)) is not None:
+                    destination.release(self.window)
+            else:
+                self.owner.source_requests.submit(publication)
+
     def __init__(self, reference):
         self.reference = reference
 
@@ -541,28 +601,22 @@ class BoundView(ViewBinding):
 
     async def restore_documents(self, owner):
         from toad.widgets.transcript_history import TranscriptHistory
-        from toad.screens.session_view import SessionView
         view = self.view
         if not view.is_attached:
             return
-        generation, window, contents, screen = owner.generation, view.window, view.contents, view.screen
-        source_view = view.query_ancestor(SessionView)
-        def current():
-            return (owner.binding is self and self.current(window, contents)
-                    and owner.generation == generation
-                    and view.screen is screen and screen.is_current
-                    and view.app.workspace_sessions.owns(source_view))
+        moment = self.Moment.capture(self, owner)
+        contents = moment.contents
         for source in owner.documents:
-            if not current() or source.closed:
+            if not moment.current() or source.closed:
                 return
             history = TranscriptHistory.from_source(source, notification_view=contents)
-            await contents.prepare_history(history, current, window=window)
-            if not current():
+            await contents.prepare_history(history, moment.current, window=moment.window)
+            if not moment.current():
                 return
             accepted = False
             try:
                 await contents.mount(history)
-                if not current():
+                if not moment.current():
                     return
                 history.acquire_document()
                 owner.documents = tuple(document for document in owner.documents if document is not source)
@@ -572,42 +626,25 @@ class BoundView(ViewBinding):
                     await history.remove()
 
     async def restore(self, owner):
-        from toad.screens.session_view import SessionView
         view = self.view
         view.resume_retained_history()
         if not owner.readable:
             return
         await self.restore_documents(owner)
         first_history = next(iter(owner.histories), None)
-        source = view.query_ancestor(SessionView)
-        generation, window, contents = owner.generation, view.window, view.contents
-        position, revision, screen = window.reader_position, window.scroll_revision, view.screen
-        def current():
-            return (owner.binding is self and self.current(window, contents) and not owner.closed
-                    and owner.generation == generation
-                    and window.scroll_revision == revision
-                    and view.screen is screen and screen.is_current
-                    and view.query_ancestor(SessionView) is source
-                    and view.app.workspace_sessions.owns(source))
+        moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
+        position = moment.window.reader_position
         if position is not None:
             for history in owner.histories:
-                if not await history.restore_reader_ranges(position.ranges, current):
+                if not await history.restore_reader_ranges(position.ranges, moment.current):
                     return
-        if not current():
+        if not moment.current():
             return
         if first_history is not None:
             await self.reveal_retained(owner, first_history)
         view.refresh_native_projection()
         publication = self.capture(owner, CanonicalSourcePublication)
-        def refresh_after_paint():
-            if not current():
-                return
-            if publication is None:
-                if (destination := HeldReaderDestination.held(window)) is not None:
-                    destination.release(window)
-                return
-            owner.source_requests.submit(publication)
-        view.call_after_refresh(refresh_after_paint)
+        view.call_after_refresh(partial(moment.refresh, publication))
 
     async def reveal_retained(self, owner, history):
         from toad.widgets.conversation import ThreadLoading
@@ -621,33 +658,14 @@ class BoundView(ViewBinding):
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, owner, kind, *args):
-        from toad.widgets.conversation import Window, Contents
         view = self.view
-        if not view.is_attached:
+        if not view.is_attached or view.is_leaving:
             return None
-        window, contents = view.query_one_optional(Window), view.query_one_optional(Contents)
-        if window is None or contents is None:
-            return None
-        return kind(owner, view, window, contents, *args)
+        return kind(owner, view, view.window, view.contents, *args)
 
     def painted(self, owner, cursor):
-        from toad.widgets.conversation import Window, Contents
-        view = self.view
-        generation = owner.generation
-        window, contents = view.query_one_optional(Window), view.query_one_optional(Contents)
-        def record():
-            if owner.binding is not self or not view.is_attached:
-                return
-            if owner.generation != generation:
-                return
-            if window is None or contents is None:
-                return
-            if window.is_attached and contents.is_attached:
-                owner.displayed_cursor = cursor
-                contents.check_notifications()
-                view.app.history_displayed()
-                view.settle_user_message()
-        view.call_after_refresh(record)
+        frame = BoundFrame.capture(self, owner)
+        self.view.call_after_refresh(partial(frame.painted, cursor))
 
     def request(self, owner):
         view = self.view
