@@ -28,7 +28,7 @@ class StatusThread(ABC):
         """Both the session binding and Comms service supply absolute wire roots."""
         observed = access.observed_service
         if observed is not None and root == observed.root:
-            return LocalStatusThread(name)
+            return LocalStatusThread(root, name)
         return ForeignStatusThread(root, name)
 
     @abstractmethod
@@ -54,6 +54,7 @@ class NoStatusThread(StatusThread):
 
 @dataclass(frozen=True)
 class LocalStatusThread(StatusThread):
+    root: Path
     name: str
 
     def bind(self, activity: ObservedThreadActivity) -> None:
@@ -64,7 +65,7 @@ class LocalStatusThread(StatusThread):
         activity.observe_core_callback(
             access.events, ThreadRowsChanged, partial(self.bind, activity),
             factory=partial(ThreadCallbackSubscription,
-                            scope=(str(access.observed_service.root), self.name)))
+                            scope=(str(self.root), self.name)))
 
 
 @dataclass(frozen=True)

@@ -39,6 +39,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     tone = TurnBandColour
     DETAIL_ROWS = 8
+    DEFAULT_ID = "session-details"
     overview_text: var[str] = var("")
 
     DEFAULT_CSS = """
@@ -57,7 +58,6 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         history: NativeHistory, delivery: InputDeliveryBar | None = None,
         transcript: TranscriptPresentation | None = None,
         status_source: Callable[[], ThreadStatusModel],
-        id: str | None = "session-details",
     ) -> None:
         self.status_source = status_source
         self.history = history
@@ -67,7 +67,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
             self.notifications, *(item for item in (history, delivery) if item is not None),
-            title="", collapsed=True, id=id,
+            title="", collapsed=True, id=self.DEFAULT_ID,
         )
 
     @handles(ThreadPresentationStatus)
@@ -133,9 +133,11 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 class ConversationSessionDetails(SessionDetails):
     """The same observed status row opens its thread from a conversation."""
 
+    DEFAULT_ID = None
+
     def __init__(self, target, **kwargs) -> None:
         self.target = target
-        super().__init__(**kwargs, id=None)
+        super().__init__(**kwargs)
 
     def summary_title(self, row: ThreadStatusModel) -> str:
         return f"{self.target.name} · {super().summary_title(row)}"

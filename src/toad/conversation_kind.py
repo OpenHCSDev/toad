@@ -14,6 +14,8 @@ from agent_comms.presentation import ReadThrough
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
+from toad.widgets.channel_activity import ChannelActivity
+from toad.navigation_target import ThreadTarget
 
 if TYPE_CHECKING:
     from toad.wire_history import WireSource
@@ -87,8 +89,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
     @classmethod
     def activity_details(cls, name):
-        from toad.navigation_target import ThreadTarget
-
         row = ConversationSessionDetails(
             ThreadTarget(name), history=NativeHistory(), status_source=lambda: row.row)
         return row
@@ -140,8 +140,6 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
-        from toad.widgets.channel_activity import ChannelActivity
-
         yield ChannelActivity(view)
 
     @classmethod

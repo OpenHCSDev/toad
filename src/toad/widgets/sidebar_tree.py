@@ -30,9 +30,22 @@ from agent_comms.mro_dispatch import handles
 from toad.core.events import SessionSelected, CoordinationObserved, ThreadRowStateChanged
 from toad.core_event_carrier import CoreEventReceiver, CoreEventMessage
 from agent_comms.ui_model.changes import Changes
-from agent_comms.ui_model.sidebar import SidebarModel
+from agent_comms.ui_model.sidebar import ChannelRowModel, SidebarModel
+from agent_comms.ui_model.unread import UnreadPresentation
+from agent_comms.display_order import ThreadSort
 from toad.widgets.sidebar_viewport import SidebarHeader
 from toad.widgets.side_bar import SideBar
+
+
+class UnpaintedUnread(UnreadPresentation):
+    label = " "
+
+
+class UnpaintedChannel(ChannelRowModel):
+    """An unobserved channel has no painted fields or known members."""
+
+    def __init__(self, name: str):
+        super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
 
 
 class TargetTreeMember:

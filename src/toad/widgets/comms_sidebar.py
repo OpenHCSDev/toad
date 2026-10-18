@@ -20,9 +20,7 @@ from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from agent_comms.display_order import ThreadSort
 from agent_comms.ui_model.sidebar import ChannelRowModel
-from agent_comms.ui_model.unread import UnreadPresentation
 from textual.binding import Binding
 from textual._cells import cell_len
 from textual.content import Content
@@ -46,7 +44,7 @@ from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
-from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember
+from toad.widgets.sidebar_tree import RowReconciliation, SidebarGroup, SidebarModelView, SearchFollower, TargetTree, TargetTreeMember, UnpaintedChannel
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarPanelWidget, SidebarVisibilityObserver
 from toad.navigation_target import NavigationTarget
 
@@ -55,17 +53,6 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-
-
-class UnpaintedUnread(UnreadPresentation):
-    label = " "
-
-
-class UnpaintedChannel(ChannelRowModel):
-    """The header has no painted values until its first real row arrives."""
-
-    def __init__(self, name: str):
-        super().__init__(name, "", "", UnpaintedUnread(), False, (), frozenset(), ThreadSort)
 
 
 class ChannelUnread(PrimaryActivation, ChangingText):
