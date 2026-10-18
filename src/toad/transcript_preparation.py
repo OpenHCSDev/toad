@@ -588,5 +588,6 @@ class ProjectedTranscriptSource(PreparedPageSource, HeldProjection):
     def close(self) -> None:
         super().close()
         self._raw.close()
+        self._raw = ClosedHistory(None, self.through, self.runtime)
         self._projected_boundary = None
         self.loader = None
