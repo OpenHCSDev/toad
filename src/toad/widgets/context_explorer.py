@@ -319,11 +319,11 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         previous = self.state
         self.state = previous.observe(access.revision)
         if not identity.managed:
-            status.update(self.state.status)
+            status.update(f"{identity.display_thread()} · {self.state.status}")
             return
         try:
             service = await self.app.preparation.run_thread(
-                lambda: access.require(RouteSelection.capture(identity.root)))
+                lambda: access.require(RouteSelection.capture(identity.root_path())))
             if not self._reading(identity):
                 return
             acquired = await self.state.acquire(service, access.revision, identity,

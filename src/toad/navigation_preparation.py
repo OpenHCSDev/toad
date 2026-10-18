@@ -114,7 +114,7 @@ class ExistingThreadNavigation(ThreadNavigation):
         navigator = opening.navigator
         source = navigator.app.session_navigation.source(self.existing.mode)
         if source is not None:
-            if (source.coordination_root, source._comms_thread) == (self.existing.root, self.existing.name):
+            if (source.coordination_root, source.thread_identity.thread_name()) == (self.existing.root, self.existing.name):
                 await navigator.app.session_navigation.close_many((opening.view.id,))
                 await navigator.app.select_session(self.existing.mode)
         # An obsolete open-view identity must never manufacture a duplicate.

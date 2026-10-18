@@ -19,7 +19,6 @@ class SessionOrigin:
     """A view sessions and histories are opened from: it names their agent, project and bus sender."""
 
     _agent: "AgentDefinition | None"
-    _comms_thread: str
 
     @property
     def origin(self) -> "SessionOrigin":
@@ -27,8 +26,7 @@ class SessionOrigin:
 
     def transcript_scope(self) -> tuple[str, str] | None:
         """The canonical history source, independent of an ACP connection."""
-        root = self.coordination_root
-        return (root, self._comms_thread) if root is not None and self._comms_thread else None
+        return self.thread_identity.transcript_scope()
 
     def resolve_thread(self) -> str:
         """Resolve a navigation name without rebinding this displayed source."""
@@ -44,12 +42,12 @@ class SessionOrigin:
             if service is None or service.root.resolve() != root:
                 service = self.app.coordination_access.service
             resolved = resolve_session_thread(
-                service, self.project_path, self._comms_thread, source_root=source_root,
+                service, self.project_path, self.thread_identity.thread_name(), source_root=source_root,
             )
         except (OSError, ValueError, RuntimeError):
             # An unavailable route does not change this origin's retained name.
             resolved = None
-        return resolved if resolved is not None else self._comms_thread
+        return resolved if resolved is not None else self.thread_identity.thread_name()
 
     def has_agent(self) -> bool:
         return self._agent is not None
@@ -64,6 +62,10 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertic
     footer_compact = False
     shows_channels = True
 
+    def __init__(self, *args, **kwargs):
+        self._identity: SessionIdentity = NoThreadIdentity()
+        super().__init__(*args, **kwargs)
+
     @property
     def project_root(self) -> Path:
         return Path(self.project_path)
@@ -74,7 +76,7 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertic
 
     @property
     def coordination_root(self) -> str | None:
-        return None
+        return self._identity.wire_root()
 
     @property
     def origin(self) -> SessionOrigin | None:
@@ -105,7 +107,7 @@ class SessionView(CoreEventReceiver, ProjectPathOwner, SidebarFocusOwner, Vertic
 
     @property
     def thread_identity(self) -> SessionIdentity:
-        return NoThreadIdentity()
+        return self._identity
 
     @contextmanager
     def changing_identity(self):

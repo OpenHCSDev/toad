@@ -24,7 +24,7 @@ class ThreadOrigin:
 
     @classmethod
     def capture(cls, app: ToadApp, source: SessionOrigin) -> ThreadOrigin:
-        return cls(source, app.selected_mode, source.coordination_root, source._comms_thread)
+        return cls(source, app.selected_mode, source.coordination_root, source.thread_identity.thread_name())
 
     def current(self, navigator: ThreadNavigator, owner_mode: str) -> bool:
         app = navigator.app
@@ -58,7 +58,7 @@ class ThreadNavigator:
             view = app.session_navigation.source(details.mode_name)
             if view is None:
                 continue
-            root, name = view.coordination_root, view._comms_thread
+            root, name = view.coordination_root, view.thread_identity.thread_name()
             if (root, name) == (mounted_root, target):
                 await app.select_session(details.mode_name)
                 return details.mode_name

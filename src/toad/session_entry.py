@@ -158,7 +158,7 @@ class NativeSessionEntry(SessionEntry):
 
     def tab(self, sessions: SessionNavigation, observed: ObservedCommsService | None) -> OpenTab:
         source = self.source(sessions)
-        name = source._comms_thread if source else ""
+        name = source.thread_identity.thread_name() if source else ""
         snapshot = observed.sidebar.snapshot if observed is not None else None
         if snapshot is None or source is None or not source.belongs_to_wire(observed.service.root):
             return NamedTab(self.mode, self.details.name.display or "New Session")

@@ -68,10 +68,10 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
         super().__init__()
         self.project_path = project_path
         self.owner_mode = owner_mode
-        self.me = me
+        from toad.thread_identity import SessionIdentity
+        self._identity = SessionIdentity.for_thread(me, owner_root)
         self.target = target
         self.kind = kind
-        self.owner_root = owner_root
         self.wire_root = wire_root
         self._thread_sidebar_state = SidebarState()
         self._content_ready = asyncio.Event()
@@ -92,21 +92,15 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def navigation_target_name(self) -> str:
         return self.target
 
-    @property
-    def thread_identity(self):
-        from toad.thread_identity import ThreadIdentity, NoThreadIdentity
-        return (ThreadIdentity(self.me, self.owner_root)
-                if self.me and self.owner_root is not None else NoThreadIdentity())
-
     def rebind_identity(self, identity: str) -> None:
         with self.changing_identity():
-            self.me = identity
+            self._identity = self.thread_identity.with_thread(identity)
             if chat := self.query_one_optional(CommsChatView):
                 chat._me = identity
 
     def rebind_owner_root(self, root: str | None) -> None:
         with self.changing_identity():
-            self.owner_root = root
+            self._identity = self.thread_identity.with_root(root)
 
     def rebind_project(self, project: Path) -> None:
         changed = project != self.project_path
@@ -144,7 +138,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def create_chat(self) -> CommsChatView:
         """One route-bound conversation factory for compose and lazy hydration."""
         return CommsChatView(
-            self.project_path, me=self.me, target=self.target, kind=self.kind,
+            self.project_path, me=self.thread_identity.thread_name(), target=self.target, kind=self.kind,
             wire_root=self.wire_root,
         )
 
@@ -184,7 +178,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
     def _prepare_content(self) -> None:
         self.observe_core(self.app.events)
         chat = self.query_one(CommsChatView)
-        chat._me = self.me
+        chat._me = self.thread_identity.thread_name()
         chat.project_path = self.project_path
         # Shared navigation may already belong to another tab when hydration
         # finishes. Its actor/target are bound by the mode transition owner.
@@ -256,7 +250,7 @@ class CommsScreen(SessionView, NavigationOwner, can_focus=False):
 
     @property
     def navigation_context(self) -> NavigationContext:
-        return NavigationContext(self.app, self.owner_mode, self.project_path, self.me)
+        return NavigationContext(self.app, self.owner_mode, self.project_path, self.thread_identity.thread_name())
 
     @handles(SelectTarget)
     async def on_select_target(self, event: CoreEventMessage) -> None:

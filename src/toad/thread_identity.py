@@ -1,4 +1,4 @@
-"""The thread and wire named by one logical session view."""
+"""A session's absent, local or wire-bound thread, with its owned behavior."""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -6,27 +6,34 @@ from typing import ClassVar
 
 
 class SessionIdentity(ABC):
-    managed: ClassVar[bool]
+    managed: ClassVar[bool] = False
+
+    @classmethod
+    def for_thread(cls, thread: str, root: str | None):
+        """Decode the optional wire binding once when accepting a source."""
+        if not thread:
+            return NoThreadIdentity()
+        if root is None:
+            return LocalThreadIdentity(thread)
+        return ThreadIdentity(thread, root)
+
+    @abstractmethod
+    def thread_name(self) -> str: ...
+
+    def with_thread(self, thread: str):
+        return self.for_thread(thread, self.wire_root())
+
+    def with_root(self, root: str | None):
+        return self.for_thread(self.thread_name(), root)
+
+    def wire_root(self) -> str | None:
+        return None
+
+    def transcript_scope(self) -> tuple[str, str] | None:
+        return None
 
     @abstractmethod
     def display_thread(self) -> str: ...
-
-    @abstractmethod
-    def display_root(self) -> str: ...
-
-    @abstractmethod
-    def inspection_state(self): ...
-
-    @abstractmethod
-    def root_path(self) -> Path | None: ...
-
-
-@dataclass(frozen=True)
-class NoThreadIdentity(SessionIdentity):
-    managed: ClassVar[bool] = False
-
-    def display_thread(self) -> str:
-        return "No thread"
 
     def display_root(self) -> str:
         return "No managed wire"
@@ -35,18 +42,45 @@ class NoThreadIdentity(SessionIdentity):
         from toad.core.context_inspection import DetachedInspection
         return DetachedInspection()
 
-    def root_path(self) -> None:
+    def root_path(self) -> Path | None:
         return None
 
 
 @dataclass(frozen=True)
-class ThreadIdentity(SessionIdentity):
+class NoThreadIdentity(SessionIdentity):
+    def thread_name(self) -> str:
+        return ""
+
+    def display_thread(self) -> str:
+        return "No thread"
+
+
+@dataclass(frozen=True)
+class NamedThreadIdentity(SessionIdentity, ABC):
     thread: str
-    root: str
-    managed: ClassVar[bool] = True
+
+    def thread_name(self) -> str:
+        return self.thread
 
     def display_thread(self) -> str:
         return f"@{self.thread}"
+
+
+@dataclass(frozen=True)
+class LocalThreadIdentity(NamedThreadIdentity):
+    """A named session without a managed wire."""
+
+
+@dataclass(frozen=True)
+class ThreadIdentity(NamedThreadIdentity):
+    root: str
+    managed: ClassVar[bool] = True
+
+    def wire_root(self) -> str:
+        return self.root
+
+    def transcript_scope(self) -> tuple[str, str]:
+        return self.root, self.thread
 
     def display_root(self) -> str:
         path = self.root_path()

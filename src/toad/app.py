@@ -385,7 +385,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         for details in self.session_tracker.ordered_sessions:
             screen = self.session_navigation.source(details.mode_name)
             if screen is not None and screen.coordination_root is not None:
-                threads.add(screen._session_thread)
+                threads.add(screen.thread_identity.thread_name())
         return threads
 
     async def registry_names(self) -> list[str]:
@@ -428,7 +428,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         # original route and registry owners resolve it in the write worker;
         # never consult a mutable widget after that worker has been scheduled.
         access = self.coordination_access
-        name = screen._comms_thread
+        name = screen.thread_identity.thread_name()
         project = screen.project_path
         source_root = screen.coordination_root
         worktree = str(self.project_dir)

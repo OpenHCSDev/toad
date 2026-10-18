@@ -657,7 +657,7 @@ class CommsSidebar(SidebarModelView, SidebarVisibilityObserver, SearchFollower, 
             screen = app.session_navigation.source(details.mode_name)
             if screen is None or not screen.belongs_to_wire(self.service.root):
                 continue  # A same-named thread on another wire is not this open view.
-            name = screen._comms_thread
+            name = screen.thread_identity.thread_name()
             if name not in threads and screen._agent_session_id in threads:
                 name = screen._agent_session_id
             if name in threads and name not in views:

@@ -203,7 +203,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
             return self._source
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
-            lambda: access.require(RouteSelection.capture(identity.root)).relationships)
+            lambda: access.require(RouteSelection.capture(identity.root_path())).relationships)
 
     def use_source(self, source: RelationshipSource) -> None:
         self._source = source
@@ -332,7 +332,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
     def thread_rows(self):
         observed = self.app.coordination_access.observation
         identity = self.thread_view.thread_identity
-        if identity.managed and observed is not None and Path(identity.root).resolve() == observed.service.root.resolve():
+        if observed is not None and identity.root_path() == observed.service.root.resolve():
             return observed.sidebar.threads.rows
         return None
 
@@ -351,7 +351,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
                 return
-            if snapshot.owner != owner or Path(snapshot.root).resolve() != Path(identity.root).resolve():
+            if snapshot.owner != owner or Path(snapshot.root).resolve() != identity.root_path():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             if self._snapshot is None and self.groups:
                 # Owner/root replacement is a new source lifetime. Do not
@@ -420,7 +420,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
 
     def open_target(self, target: NavigationTarget):
         identity = self.thread_view.thread_identity
-        if not identity.managed or Path(identity.root).resolve() != self.app.coordination_access.service.root.resolve():
+        if identity.root_path() != self.app.coordination_access.service.root.resolve():
             self.notify("This view uses a different wire; open its matching connection to navigate.",
                         title="Comms", severity="warning")
             return
@@ -444,7 +444,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarVisibilityObserver, SearchF
             if (generation != self._generation or not self.is_attached
                     or not self.screen.is_current):
                 return
-            if snapshot.owner != identity.thread or Path(snapshot.root).resolve() != Path(identity.root).resolve():
+            if snapshot.owner != identity.thread or Path(snapshot.root).resolve() != identity.root_path():
                 raise ValueError("Relationship snapshot does not match this thread and wire")
             current = snapshot.current_entry(group_key, expected)
             if current is None:
