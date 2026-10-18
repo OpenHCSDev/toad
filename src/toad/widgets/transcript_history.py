@@ -1,7 +1,7 @@
 """Bounded, cursor-paged saved history; all transcript interpretation is model-owned."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationBlock, FragmentBlockCursor
+from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 
 from toad.widgets.message_filter import OtherCategory
 
@@ -408,17 +408,16 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             async with window.preserve_history(root=self):
                 return await self.prepared.replace_range(self, selected, current)
 
-class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationBlock, CategorizedBlock, VerticalGroup):
+class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePreparation, ConversationEntry, CategorizedBlock, VerticalGroup):
     """History drawn as lines, a bounded range of pages at a time.
 
     It owns paging in both directions, lookahead, trimming, the jump to the newest page and the reader's position.
-    Its saved rows fade as each fragment arrives (`repaint`), not on mount. A subclass says what its source is:
+    Its saved rows fade as each fragment arrives (`repaint`). A subclass says what its source is:
     `TranscriptHistory` for a saved transcript, `WireHistory` for a channel or direct conversation.
     """
 
     CACHE_SUBTREE_GEOMETRY = True
     MAX_FRAGMENTS = 240
-    text_fades = ()
 
     @property
     def message_category(self) -> None:

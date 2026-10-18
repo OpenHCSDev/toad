@@ -278,21 +278,14 @@ class ChildBlockCursor(BlockCursor):
         self._child = None
 
 
-class ConversationBlock(AnimationEffects[Mix], BlockContent):
+class ConversationEntry(AnimationEffects[Mix], BlockContent):
     """Conversation content, with an owned atomic cursor by default.
 
-    A new entry fades into its own colours as it appears: the rows drawn
-    inside it paint its fades (`LinkedRows.on_background`).
+    The rows drawn inside an entry paint its fades (`LinkedRows.arrival`).
     """
 
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1
-    text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
-
-    def on_mount(self) -> Awaitable[None] | None:
-        for fade in self.text_fades:
-            self.run_effect(fade)
-        return None
 
     def repaint(self) -> None:
         # The widgets inside the entry draw its rows.
@@ -307,6 +300,17 @@ class ConversationBlock(AnimationEffects[Mix], BlockContent):
         return AtomicBlockCursor(self)
 
 
+class ConversationBlock(ConversationEntry):
+    """A live entry: it fades into its own colours as it appears."""
+
+    text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
+
+    def on_mount(self) -> Awaitable[None] | None:
+        for fade in self.text_fades:
+            self.run_effect(fade)
+        return None
+
+
 class ContentNavigation:
     def __init__(self, contents):
         self.contents = contents
@@ -317,7 +321,7 @@ class ContentNavigation:
         return self.contents.displayed_children
 
     @property
-    def current(self) -> ConversationBlock | None:
+    def current(self) -> ConversationEntry | None:
         return self._current if self._current in self.blocks else None
 
     def clear(self) -> None:
@@ -371,6 +375,6 @@ class ContentNavigation:
 def require_blocks(widgets):
     """Decode the Textual mount boundary once before category consumers."""
     for widget in widgets:
-        if not isinstance(widget, ConversationBlock):
+        if not isinstance(widget, ConversationEntry):
             raise TypeError("Conversation contents require nominal blocks")
     return widgets

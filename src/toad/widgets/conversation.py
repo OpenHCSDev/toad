@@ -95,7 +95,7 @@ from toad.widgets.cli_draft import CliDraft
 from toad.widgets.transcript_history import JumpToLatest
 from toad.widgets.session_details import SessionDetails
 from toad.private_native_cursor import CursorStatus, HiddenCursorStatus
-from toad.block_navigation import require_blocks, ConversationBlock, ContentNavigation, UpCursor, DownCursor
+from toad.block_navigation import require_blocks, ConversationBlock, ConversationEntry, ContentNavigation, UpCursor, DownCursor
 from functools import cached_property
 from toad.agent_presentation import AgentAttachmentView
 from toad.conversation_turn import TurnOwner, ConversationTurn
@@ -1092,7 +1092,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         return ContentNavigation(self.contents)
 
     @property
-    def cursor_block(self) -> ConversationBlock | None:
+    def cursor_block(self) -> ConversationEntry | None:
         return self.navigation.current
 
     @property
