@@ -14,9 +14,8 @@ from agent_comms.ui_model.observation import ReadNotifications
 from toad.notification_status import (
     CheckedNotifications, NotificationStatus, UnavailableNotifications, UncheckedNotifications,
 )
-from toad.widgets.tool_content import ToolContent
-
 if TYPE_CHECKING:
+    from toad.widgets.tool_content import ToolContent
     from toad.widgets.transcript_fragments import TranscriptFragment
 
 
@@ -46,6 +45,8 @@ class MessageNotifications(Collapsible):
     def details(self) -> ToolContent:
         """The details body, created only when it is first shown."""
         if self._details is None:
+            from toad.widgets.tool_content import ToolContent
+
             self._details = ToolContent()
             if self.is_mounted:
                 self.mount(self.Contents(self._details))
@@ -81,14 +82,6 @@ class VisibleReadMarking:
             return
         if (work := self.read_visible()) is not None:
             self._read_worker = self.run_worker(work, group="painted-read")
-
-    def prepare_viewport(self) -> None:
-        super().prepare_viewport()
-        if self.can_draw_on_screen:
-            self.mark_visible()
-
-    def source_resumed(self) -> None:
-        self.mark_visible()
 
 
 class HistoryNotifications:
