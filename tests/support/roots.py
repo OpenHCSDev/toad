@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 import os
 from pathlib import Path
-import shutil
 import tempfile
 
 ATTEMPT = "TOAD_TEST_ATTEMPT"
@@ -53,19 +52,3 @@ class Roots:
             "FORCE_COLOR": "1",
         })
         return env
-
-
-def _fixture_snapshot():
-    """Capture one genuine Core read witness shared by fabricated test pages."""
-    from agent_comms.comms import wire
-
-    roots = Roots.create()
-    try:
-        source = wire(roots.wire)
-        source.registry.declare(source.registry.new_thread("fixture", frozenset(), str(roots.project)))
-        return source.transcripts.capture_page_read("fixture").identity
-    finally:
-        shutil.rmtree(roots.attempt)
-
-
-FIXTURE_SNAPSHOT = _fixture_snapshot()
