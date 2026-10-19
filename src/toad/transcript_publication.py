@@ -236,10 +236,6 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         self.presentation = presentation
         self.agent = binding.view.agent
 
-    async def read_snapshot(self):
-        return await self.binding.reader.observed_updates(
-            self.presentation.read_identity, self.owner.current_read)
-
     async def publish_applied(self) -> bool:
         if self.current() and self.agent is not None and self.binding.view.agent is self.agent:
             await self.agent.observe_thread_presentation(self.presentation)

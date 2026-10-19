@@ -17,7 +17,6 @@ from contextlib import asynccontextmanager
 
 from agent_comms.route_selection import RouteSelection
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
-from agent_comms.transcripts import TranscriptReadIdentity
 from agent_comms.ui_model.observation import (
     AwaitedRead, ReadTranscript, ReadTranscriptUpdate, RefreshTranscript,
     TranscriptPublicationState,
@@ -71,14 +70,3 @@ class CoordinationTranscriptReader:
         self, root: str, thread: str, previous: TranscriptPublicationState, *, after=None,
     ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
         return await self.read(ReadTranscriptUpdate(root, thread, after=after, previous=previous))
-
-    async def observed_updates(
-        self, identity: TranscriptReadIdentity, previous: TranscriptPublicationState,
-    ) -> TranscriptSnapshotUpdate | TranscriptDraftUpdate:
-        """An observed read owns its source, revision and page range together."""
-        if identity is None:
-            raise ValueError("Core supplied no transcript read for the observed thread")
-        return await self.read(ReadTranscriptUpdate(
-            identity.root, identity.requested_name,
-            before=identity.before, after=identity.after, through=identity.through,
-            read_identity=identity, previous=previous))
