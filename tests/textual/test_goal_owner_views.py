@@ -3,8 +3,9 @@
 from dataclasses import replace
 
 from agent_comms.acp_extension import GoalChangedUpdate
-from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
+from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget, IdleGoalExecution
 from agent_comms.goal_states import PausedGoal
+from agent_comms.goals import NoGoal
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Button, Static
 
@@ -146,8 +147,8 @@ async def test_owner_pushes_replace_and_then_remove_the_goal(workspace):
         await ui.until(lambda: view.goal_display.snapshot == pushed, why="the pushed goal")
         await ui.until(lambda: "Backend edited the same goal" in str(bar.query_one(".goal-summary", Static).render()),
                        why="the pushed text in the bar")
-        owner.goal, owner.execution = None, None
-        owner.events.publish(CommsUpdated(GoalChangedUpdate(None, None), owner.session_id))
-        await ui.until(lambda: view.goal_display.snapshot is None and view.goal_execution is None,
+        owner.goal, owner.execution = NoGoal(), IdleGoalExecution()
+        owner.events.publish(CommsUpdated(GoalChangedUpdate(NoGoal(), IdleGoalExecution()), owner.session_id))
+        await ui.until(lambda: view.goal_display.snapshot == NoGoal() and view.goal_execution == IdleGoalExecution(),
                        why="the goal removed")
         await ui.until(lambda: not bar.display, why="the bar hidden")

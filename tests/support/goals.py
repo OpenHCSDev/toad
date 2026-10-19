@@ -6,9 +6,9 @@ from dataclasses import replace
 from pathlib import Path
 
 from agent_comms.goal_actions import GoalAction
-from agent_comms.goal_presentation import GoalExecution, GoalSnapshot
+from agent_comms.goal_presentation import GoalSnapshot, IdleGoalExecution, ThreadGoalExecution
 from agent_comms.goal_states import ActiveGoal
-from agent_comms.goals import Goal
+from agent_comms.goals import Goal, GoalDeclaration
 
 from toad.acp.agent import Agent
 from toad.app import ToadApp
@@ -29,7 +29,8 @@ class ScriptedGoalOwner(Agent):
     (Retry, Pause, ...) leaves the goal active.
     """
 
-    def __init__(self, app: ToadApp, goal: Goal | None, execution: GoalExecution | None = None, *,
+    def __init__(self, app: ToadApp, goal: GoalDeclaration,
+                 execution: ThreadGoalExecution = IdleGoalExecution(), *,
                  history: list[dict] | None = None):
         super().__init__(Path(app.project_dir), AgentDefinition("goal-owner", "goal-owner", {"*": "true"}),
                          "goal-owner", app_events=app.events, transcripts=app.coordination_access.transcripts)

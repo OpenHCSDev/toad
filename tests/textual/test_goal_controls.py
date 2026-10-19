@@ -53,4 +53,5 @@ async def test_a_replaced_goal_session_refuses_the_old_binding(workspace):
         else:
             raise AssertionError("A retired binding may not control the replacement source")
         old.close()
-        assert old.view is None and old.modal is None
+        # The session stays bound to its conversation (dde3b616); closing retires its modal.
+        assert old.modal is None
