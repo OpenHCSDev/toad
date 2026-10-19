@@ -291,10 +291,10 @@ class InstallWatchers:
                     children = process.children()
                     bridges = [(child, ProcessIdentity.capture(child.pid)) for child in children if any(
                         Path(arg).name == 'agent-comms-claude-bridge' for arg in child.cmdline())]
-                    for child, _ in bridges:
-                        if not child.is_running():
-                            raise ProcessLookupError('Selected bridge exited before publication')
                     if bridges and any('agent-comms-claude-bridge watch' in arg for arg in command):
+                        for child, _ in bridges:
+                            if not child.is_running():
+                                raise ProcessLookupError('Selected bridge exited before publication')
                         identity = ProcessIdentity.capture(process.pid)
                         if not process.is_running():
                             raise ProcessLookupError('Selected bridge shell exited before publication')
