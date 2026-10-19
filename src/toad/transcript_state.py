@@ -149,15 +149,15 @@ class SuspendedTranscript(TranscriptState):
 
 class LatestViewportState(ABC):
     @abstractmethod
-    def resume(self, owner) -> bool: ...
+    def resume(self, owner) -> "LatestViewportState": ...
 
     def prepare(self, owner) -> None:
         """No pending destination needs another preparation frame."""
 
 
 class NoLatestRequest(LatestViewportState):
-    def resume(self, owner) -> bool:
-        return True
+    def resume(self, owner) -> LatestViewportState:
+        return self
 
 
 @dataclass(frozen=True)
@@ -174,21 +174,19 @@ class LatestViewportRequest(LatestViewportState):
         if self.current(owner.window):
             owner.state.request_latest(owner, self)
 
-    def defer(self, owner) -> None:
-        """Keep this destination until its history can admit drawing again."""
-        if self.current(owner.window):
-            owner.keep_latest(self)
+    def defer(self, owner) -> LatestViewportState:
+        """Keep only the reader's still-current destination for another draw."""
+        return self if self.current(owner.window) else NoLatestRequest()
 
     def prepare(self, owner) -> None:
         owner.request_preparation()
 
-    def resume(self, owner) -> bool:
-        """Consume a superseded destination or admit its next source read."""
+    def resume(self, owner) -> LatestViewportState:
+        """Return the request state after this draw's source-work admission."""
         if (not self.current(owner.window)
                 or owner.schedule_source_work(partial(owner._jump_latest, self)) is not None):
-            owner.keep_latest(NoLatestRequest())
-            return True
-        return False
+            return NoLatestRequest()
+        return self
 
 
 @dataclass(frozen=True, eq=False)

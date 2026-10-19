@@ -129,13 +129,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.can_draw_on_screen:
             self.screen.frame_presentation.defer(self, self.prepare_viewport)
 
-    def keep_latest(self, request: LatestViewportState) -> None:
-        self.latest = request
-
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
-            self.latest.resume(self)
+            self.latest = self.latest.resume(self)
             for page in self.pages:
                 page.prepare_viewport(self.window)
             self.state.check_edges(self)
@@ -171,7 +168,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if not request.current(self.window):
             return False
         if not self.can_draw_on_screen:
-            request.defer(self)
+            self.latest = request.defer(self)
             return False
         request.restore(self.window)
         snapshot = self.source_snapshot()
@@ -181,7 +178,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             # published source, rather than the request that acceptance replaced.
             self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
             return True
-        request.defer(self)
+        self.latest = request.defer(self)
         return False
 
     async def _publish_latest(self, current: Callable[[], bool]) -> bool:
