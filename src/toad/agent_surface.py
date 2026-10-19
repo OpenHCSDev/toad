@@ -114,8 +114,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
 
     def shell_failed(self, error) -> None:
         if (target := self.target) is not None:
-            target.app.notify(f"Unable to start shell: {error}\n\nCheck your settings.",
-                              title="Shell", severity="error")
+            target.app.show_error(error, "Unable to start shell; check your settings")
 
     async def present_permission(self, request, view) -> None:
         await self.dispatch(request.presentation, view, request)

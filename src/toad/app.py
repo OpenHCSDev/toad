@@ -257,9 +257,10 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     def on_notify(self, event: Notify) -> None:
         self.terminal_attention.notification(event.notification)
 
-    def show_error(self, error: Exception, title: str, severity: SeverityLevel = "error") -> None:
+    def show_error(self, error: Exception | str, title: str, severity: SeverityLevel = "error") -> None:
         """Every error Toad shows: its text verbatim, never parsed as markup."""
-        self.notify(str(error), title=title, severity=severity, markup=False)
+        text = str(error)
+        self.notify(text, title=title, severity=severity, markup=False)
 
 
     async def on_load(self) -> None:
@@ -397,7 +398,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
             registered = await self.preparation.run_thread(
                 lambda: tuple(self.coordination_access.observation.observed().service.registry.active_threads()))
         except (OSError, ValueError, RuntimeError) as error:
-            self.notify(str(error), title="Peers unavailable", severity="error")
+            self.show_error(error, "Peers unavailable")
             return []
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
@@ -453,7 +454,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
                     through, acknowledge, lambda: self.selected_session is screen,
                 )
             except DMScopeChanged as error:
-                self.notify(str(error), title="DM read not marked", severity="error")
+                self.show_error(error, "DM read not marked")
 
         return mark()
 

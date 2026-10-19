@@ -92,7 +92,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             return self.reserve_source_work().schedule(self, work)
 
     def source_failed(self, error) -> None:
-        self.notify(str(error), title="History", severity="error")
+        self.app.show_error(error, "History")
 
     def observe_source(self) -> None:
         self.window.histories.add(self)

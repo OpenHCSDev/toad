@@ -145,7 +145,7 @@ class Transfers:
             comms = self.app.coordination_access.require(selected).service
             result = await asyncio.to_thread(self.app.coordination_access.write, selected, request.apply, comms)
         except (OSError, ValueError) as error:
-            self.app.notify(str(error), title=request.failure_title, severity="error", markup=False)
+            self.app.show_error(error, request.failure_title)
         else:
             request.completed(self.app, result)
 

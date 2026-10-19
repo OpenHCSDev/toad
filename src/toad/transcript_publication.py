@@ -138,7 +138,7 @@ class TranscriptPublication(BoundFrame, ABC):
     def report_failure(self, error: Exception) -> None:
         """Report this view's read failure without killing unrelated views."""
         if self.current():
-            self.binding.view.notify(str(error), title="Saved history", severity="error")
+            self.binding.view.app.show_error(error, "Saved history")
 
     async def capture_application(self) -> bool:
         """Capture the original applied cohort once its source cut is known."""
@@ -759,7 +759,7 @@ class TranscriptPresentation:
             except TranscriptChanged as error:
                 if selected():
                     self.require_commit()
-                    self.binding.view.notify(str(error), title="Saved history reloading", severity="warning")
+                    self.binding.view.app.show_error(error, "Saved history reloading", severity="warning")
 
     async def refresh_cursor(self) -> TranscriptCursor:
         """Commit and return the cursor from the resulting painted transcript."""
