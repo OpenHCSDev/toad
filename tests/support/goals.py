@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from pathlib import Path
 
 from agent_comms.goal_actions import GoalAction
 from agent_comms.goal_mentions import bind_goal_mentions
@@ -14,6 +13,7 @@ from agent_comms.registry_document import RegistrySnapshot
 from agent_comms.threads import Thread
 
 from toad.acp.agent import Agent
+from support.agents import AppAgents
 from toad.app import ToadApp
 from toad.agent_schema import AgentDefinition
 
@@ -37,14 +37,20 @@ class ScriptedGoalOwner(Agent):
     (Retry, Pause, ...) leaves the goal active.
     """
 
-    def __init__(self, app: ToadApp, goal: GoalDeclaration,
-                 execution: ThreadGoalExecution = IdleGoalExecution(), *,
-                 history: list[dict] | None = None):
-        super().__init__(Path(app.project_dir), AgentDefinition("goal-owner", "goal-owner", {"*": "true"}),
-                         "goal-owner", app_events=app.events, transcripts=app.coordination_access.transcripts)
-        self.goal, self.execution, self.history = goal, execution, history or []
+    def __init__(self, *args, goal: GoalDeclaration, execution: ThreadGoalExecution, history: list[dict],
+                 **kwargs):
+        super().__init__(*args, **kwargs)
+        self.goal, self.execution, self.history = goal, execution, history
         self.requests: list[tuple[str, object]] = []
         self.reject = False
+
+    @classmethod
+    def owning(cls, app: ToadApp, goal: GoalDeclaration,
+               execution: ThreadGoalExecution = IdleGoalExecution(), *,
+               history: tuple[dict, ...] = ()) -> ScriptedGoalOwner:
+        """The goal owner of ``app``, built through the app's own Agent constructor."""
+        return AppAgents(app).agent(cls, AgentDefinition("goal-owner", "goal-owner", {"*": "true"}), "goal-owner",
+                                    goal=goal, execution=execution, history=list(history))
 
     async def get_goal_snapshot(self):
         return GoalSnapshot(self.goal, self.execution)

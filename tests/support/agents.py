@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from toad.acp.agent import Agent
+    from toad.agent_schema import AgentDefinition
     from toad.app import ToadApp
 
 PEERS = Path(__file__).with_name("peers")
@@ -47,13 +48,18 @@ class AppAgents:
 
         return cls(ToadApp(project_dir=str(project)))
 
+    def agent[A: Agent](self, kind: type[A], definition: AgentDefinition, session_id: str | None = None,
+                        **fields: object) -> A:
+        """An agent of ``kind`` built through the app's own Agent constructor; ``fields`` are the subclass's own."""
+        return kind(Path(self.app.project_dir), definition, session_id, app_events=self.app.events,
+                    transcripts=self.app.coordination_access.transcripts, **fields)
+
     def detached_agent(self, session_id: str | None = None, *, identity: str = "test-agent") -> Agent:
         """A Toad agent object with no process behind it; the test delivers its updates by hand."""
         from toad.acp.agent import Agent
         from toad.agent_schema import AgentDefinition
 
-        return Agent(Path(self.app.project_dir), AgentDefinition(identity, identity, {"*": "true"}), session_id,
-                     app_events=self.app.events, transcripts=self.app.coordination_access.transcripts)
+        return self.agent(Agent, AgentDefinition(identity, identity, {"*": "true"}), session_id)
 
 
 async def deliver(agent, update: dict, *, session_id: str | None = None):

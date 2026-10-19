@@ -138,8 +138,7 @@ async def test_a_pending_request_does_not_paint_a_replacement_source(workspace):
 
 async def test_a_certified_read_that_expired_acquires_no_application(workspace):
     journal = write_journal(workspace.project / "source.jsonl", assistant_entry("Certified source", id="source"))
-    from agent_comms.threads import Thread
-    workspace.comms.registry.declare(Thread("journal-source", frozenset(), str(workspace.project), session_file=str(journal)))
+    workspace.comms.registry.declare(workspace.comms.registry.new_thread("journal-source", frozenset(), str(workspace.project), session_file=str(journal)))
     async with workspace.app() as ui:
         await settle_ready(ui)
         view = ui.conversation

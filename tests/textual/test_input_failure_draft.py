@@ -8,7 +8,7 @@ from acp.exceptions import RequestError
 from agent_comms.acp_extension import InputFailedUpdate, QueuePromptRequest, encode_updates
 from agent_comms.acp_failure import BackendDeliveryFailure
 
-from support.agents import deliver
+from support.agents import AppAgents, deliver
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
 from toad.conversation_submission import ImmediateInputSubmission
@@ -55,9 +55,8 @@ async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspac
 async def test_a_prompt_the_agent_cannot_be_reached_for_is_restored_to_the_composer(workspace):
     async with workspace.app(size=(110, 32)) as ui:
         conversation = ui.conversation
-        conversation.set_reactive(Conversation.agent, FailingAgent(
-            workspace.project, AgentDefinition("failing", "Failing fixture", {"*": "true"}), "fixture",
-            app_events=ui.app.events, transcripts=ui.app.coordination_access.transcripts))
+        conversation.set_reactive(Conversation.agent, AppAgents(ui.app).agent(
+            FailingAgent, AgentDefinition("failing", "Failing fixture", {"*": "true"}), "fixture"))
         await ui.write_draft("")
         worker = await ImmediateInputSubmission("the local failure prompt").execute(conversation.submissions)
         await worker.wait()

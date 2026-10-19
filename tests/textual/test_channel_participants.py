@@ -8,7 +8,6 @@ from threading import get_ident
 
 from agent_comms.child_process import ProcessIdentity
 from agent_comms.thread_execution import ExternalThreadExecution
-from agent_comms.threads import Thread
 
 PARTICIPANTS = 24
 
@@ -20,7 +19,7 @@ async def test_private_channel_update_changes_participants_without_blocking_the_
     service.messaging.initialize_private_initial_protocol()
     leases = []
     for index in range(PARTICIPANTS):
-        owner = service.registry.declare(Thread(
+        owner = service.registry.declare(service.registry.new_thread(
             f"participant-{index:02}", frozenset({"team"}), str(workspace.project),
             process_identity=ProcessIdentity.capture(os.getpid()), execution=ExternalThreadExecution))
         leased, _ = service.registry.lease_local_turn(owner.name, f"private-turn-{index}")

@@ -7,7 +7,6 @@ from unittest.mock import patch
 import pytest
 from agent_comms.comms import wire
 from agent_comms.runtime import RuntimeProxy
-from agent_comms.threads import Thread
 
 from support.coordination import registered_coordination_fact
 
@@ -16,7 +15,7 @@ def two_wires_with_an_owner(workspace):
     roots = [workspace.roots.wire, workspace.roots.wire.parent / "second"]
     owners = [wire(root) for root in roots]
     for comms in owners:
-        comms.registry.declare(Thread("owner", frozenset(), str(workspace.project)))
+        comms.registry.declare(comms.registry.new_thread("owner", frozenset(), str(workspace.project)))
     return owners
 
 
