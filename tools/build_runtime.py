@@ -410,6 +410,8 @@ class TerminalApp:
             self.window = int(subprocess.check_output(
                 ['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(self.terminal.pid)],
                 env=self.environment, text=True, timeout=10).splitlines()[0])
+            # -o enables st's raw printer too; Ctrl+Print leaves only explicit dumps.
+            self.keys('ctrl+Print')
             self.wait('terminal', lambda text: bool(text.strip()))
             (self.output / 'process-tree.txt').write_text(subprocess.check_output(
                 ['ps', '--forest', '-o', 'pid,ppid,args', '-p', str(self.owner.pid),
