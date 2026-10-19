@@ -2,7 +2,7 @@
 
 from agent_comms.acp_extension import ContextUsage
 
-from support.agents import deliver, detached, peer, script
+from support.agents import deliver, peer, script
 from support.coordination import carrying, coordination_fact
 
 
@@ -12,7 +12,7 @@ def usage(used, **more):
 
 async def test_usage_updates_reach_the_status_line(workspace):
     async with workspace.app(size=(100, 35)) as ui:
-        agent = detached(workspace.project, "fixture")
+        agent = ui.detached_agent("fixture")
         ui.attach_agent(agent)
         await deliver(agent, usage(120000, cost={"amount": .5, "currency": "USD"}))
         await ui.until(lambda: "120.0K" in ui.status(), why="reported usage in the status line")

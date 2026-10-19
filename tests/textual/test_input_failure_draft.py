@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 from agent_comms.acp_extension import InputFailedUpdate, QueuePromptRequest, encode_updates
 from agent_comms.acp_failure import BackendDeliveryFailure
 
-from support.agents import deliver, detached
+from support.agents import deliver
 from toad import jsonrpc
 from toad.acp.agent import Agent
 from toad.agent_schema import AgentDefinition
@@ -24,7 +24,7 @@ class FailingAgent(Agent):
 
 async def test_a_failure_reported_by_the_remote_side_never_overwrites_the_draft(workspace):
     async with workspace.app(size=(110, 32)) as ui:
-        receiver = detached(workspace.project, "fixture")
+        receiver = ui.detached_agent("fixture")
         ui.attach_agent(receiver)
         await ui.write_draft("new draft")
         for _ in range(2):
@@ -38,7 +38,7 @@ async def test_a_failure_reported_by_the_remote_side_never_overwrites_the_draft(
 
 async def test_a_prompt_whose_request_fails_is_restored_to_the_composer(workspace):
     async with workspace.app(size=(110, 32)) as ui:
-        receiver = detached(workspace.project, "fixture")
+        receiver = ui.detached_agent("fixture")
         ui.attach_agent(receiver)
         for error in (jsonrpc.APIError(-32602, "Invalid params", {"reason": "owner unavailable"}),
                       jsonrpc.JSONRPCError("socket disconnected")):

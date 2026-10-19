@@ -5,7 +5,6 @@ import asyncio
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 
-from support.agents import detached
 from support.stylesheets import INSTALLED
 from toad.app import ToadApp
 from toad.widgets.agent_response import AgentResponse
@@ -113,7 +112,7 @@ async def test_a_snapshot_published_into_a_conversation_paints_at_the_latest_act
     async with workspace.app(size=(100, 30), application=FrameApp) as ui:
         app, _ = ui.textual
         conversation = ui.conversation
-        agent = detached(workspace.project, "snapshot-session")
+        agent = ui.detached_agent("snapshot-session")
         ui.attach_agent(agent)
         await conversation.contents.remove_children()
         cursor = TranscriptCursor("test", 100)

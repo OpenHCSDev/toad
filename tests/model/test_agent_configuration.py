@@ -1,13 +1,12 @@
 """Typed grouped advertisements, retained state and declaration-owned new cases."""
 from acp.schema import SetSessionConfigOptionResponse
-from support.agents import detached
 from toad.acp.agent_configuration import (AgentConfiguration, ConfigurationSetting,
                                          ModelConfigurationSetting)
 from toad.core.events import ConfigurationChanged
 
 
-def test_configuration_owns_typed_groups_replacement_and_new_case(tmp_path):
-    agent = detached(tmp_path)
+def test_configuration_owns_typed_groups_replacement_and_new_case(app_agents, tmp_path):
+    agent = app_agents.detached_agent()
     changes = []
     subscription = agent.events.subscribe(
         lambda event, source: changes.append((event, source.stream.publisher)))

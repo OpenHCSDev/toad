@@ -10,7 +10,6 @@ import re
 from agent_comms.transcript_events import AssistantTranscript
 from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 
-from support import agents
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -27,7 +26,7 @@ async def test_saved_history_is_available_for_every_native_status_and_the_page_i
     page = saved_page()
     async with workspace.app(size=(140, 42)) as ui:
         view = ui.conversation
-        agent = agents.detached(workspace.project)
+        agent = ui.detached_agent()
         ui.attach_agent(agent)
         details = view.query_one(SessionDetails)
         view.native_history_status = "unavailable"

@@ -13,7 +13,7 @@ import pytest
 from textual.await_complete import AwaitComplete
 from textual.worker import WorkerCancelled
 
-from support import agents, journals
+from support import journals
 from toad.live_output import ResponseStream
 from toad.transcript_publication import SnapshotPublication
 from toad.widgets.transcript_history import TranscriptHistory
@@ -39,7 +39,7 @@ async def test_cancelling_before_the_new_history_is_accepted_removes_it_and_keep
     old_page, new_page = saved_page(workspace, "old"), saved_page(workspace, "replacement")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        ui.attach_agent(agents.detached(workspace.project))
+        ui.attach_agent(ui.detached_agent())
         old = TranscriptHistory(old_page)
         await view.contents.mount(old)
         await ui.until(lambda: old in view.window.histories and old.state.reports_coverage, why="the old history")
@@ -77,7 +77,7 @@ async def test_cancelling_after_acceptance_still_finishes_retiring_the_old_histo
     old_page, new_page = saved_page(workspace, "old"), saved_page(workspace, "replacement")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        ui.attach_agent(agents.detached(workspace.project))
+        ui.attach_agent(ui.detached_agent())
         old = TranscriptHistory(old_page)
         await view.contents.mount(old)
         await ui.until(lambda: old in view.window.histories, why="the old history")
@@ -121,7 +121,7 @@ async def retire_while_output_is_busy(workspace, *, checkpoint):
     old_page, new_page = saved_page(workspace, "old"), saved_page(workspace, "replacement")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        agent = agents.detached(workspace.project)
+        agent = ui.detached_agent()
         ui.attach_agent(agent)
         old = TranscriptHistory(old_page)
         await view.contents.mount(old)

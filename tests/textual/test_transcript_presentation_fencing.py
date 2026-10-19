@@ -2,7 +2,6 @@
 
 import asyncio
 
-from support.agents import detached
 from support.coordination import registered_coordination_fact
 from support.journals import assistant_entry, write_journal
 from toad.transcript_publication import CanonicalSourcePublication, TranscriptPublication
@@ -144,7 +143,7 @@ async def test_a_certified_read_that_expired_acquires_no_application(workspace):
     async with workspace.app() as ui:
         await settle_ready(ui)
         view = ui.conversation
-        agent = detached(workspace.project, "journal-source")
+        agent = ui.detached_agent("journal-source")
         agent.coordination = registered_coordination_fact(workspace.comms, "journal-source", worktree=str(workspace.project))
         view.agent = agent
         entered, release = asyncio.Event(), asyncio.Event()

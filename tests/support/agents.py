@@ -5,6 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 import shlex
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from toad.acp.agent import Agent
+    from toad.app import ToadApp
 
 PEERS = Path(__file__).with_name("peers")
 
@@ -29,13 +34,26 @@ def command(*argv: str, name: str = "Test command", identity: str = "test-comman
     })
 
 
-def detached(project: Path, session_id: str | None = None, *, app, identity: str = "test-agent"):
-    """A Toad agent object with no process behind it; the test delivers its updates by hand."""
-    from toad.acp.agent import Agent
-    from toad.agent_schema import AgentDefinition
+class AppAgents:
+    """Agents attached to the app that owns them: its project, events and transcripts."""
 
-    return Agent(project, AgentDefinition(identity, identity, {"*": "true"}), session_id,
-                 app_events=app.events, transcripts=app.coordination_access.transcripts)
+    def __init__(self, app: ToadApp) -> None:
+        self.app = app
+
+    @classmethod
+    def unrun(cls, project: Path) -> AppAgents:
+        """For a test with no app running: agents of an app built on ``project`` and never run."""
+        from toad.app import ToadApp
+
+        return cls(ToadApp(project_dir=str(project)))
+
+    def detached_agent(self, session_id: str | None = None, *, identity: str = "test-agent") -> Agent:
+        """A Toad agent object with no process behind it; the test delivers its updates by hand."""
+        from toad.acp.agent import Agent
+        from toad.agent_schema import AgentDefinition
+
+        return Agent(Path(self.app.project_dir), AgentDefinition(identity, identity, {"*": "true"}), session_id,
+                     app_events=self.app.events, transcripts=self.app.coordination_access.transcripts)
 
 
 async def deliver(agent, update: dict, *, session_id: str | None = None):
