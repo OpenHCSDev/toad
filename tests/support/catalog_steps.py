@@ -65,7 +65,7 @@ async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool =
     pane = runner.command_pane
     if typed is not None:
         await ui.until_shows("CMD_INPUT_READY")
-        assert not pane.execution.outcome.finished
+        assert not pane.execution.operation.outcome().finished
         pane.focus()
         await ui.press(*list(typed), "enter")
     if cancel:
@@ -77,8 +77,8 @@ async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool =
         assert await pilot.click(runner.ok_button)
     await ui.until(lambda: app.screen is modal, why="the agent dialog again")
     execution = pane.execution
-    process = await execution.custody()
-    assert execution.outcome.finished, "The command is still running after its dialog closed"
+    process = await execution.operation.process()
+    assert execution.operation.outcome().finished, "The command is still running after its dialog closed"
     assert process.child.returncode is not None and process.master.closed
     assert process.child.retired, "The command's process outlived its dialog"
     return pane

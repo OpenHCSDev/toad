@@ -1,6 +1,7 @@
 """Textual-facing: the session details disclosure (a Textual Collapsible) takes one row when closed, a bounded height when open, and sits above the composer without moving the draft."""
 
 import pytest
+from textual.content import Content
 from textual.screen import Screen
 from textual.widgets import Input
 
@@ -9,6 +10,7 @@ from agent_comms.presentation import MessageNotification
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.status import ThreadStatusModel
+from toad.line_blocks import NoticeRole
 from toad.widgets.input_delivery import InputDeliveryBar
 from toad.private_native_cursor import NoneCursorStatus
 from toad.widgets.native_history import NativeHistory
@@ -27,7 +29,7 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
     delivery = InputDeliveryBar()
     delivery.delivery = InputDelivery(dismissed_historical_count=5)
     details = SessionDetails(history=history, delivery=delivery,
-                             status_source=lambda: ThreadStatusModel.known("owner", state))
+                             status_source=lambda: ThreadStatusModel.known("owner", state).with_delivery(delivery.delivery))
 
     class Example(Screen):
         def compose(self):
@@ -56,9 +58,10 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert history in app.screen._compositor.visible_widgets
         assert "no verified input" in str(history.render())
         details.collapsed = True
-        delivery.error = "Could not read delivery state"
+        delivery.delivery = delivery.delivery.failed(OSError("Could not read delivery state"))
         await ui.step()
-        assert details.size.height == 1 and details.has_class("-attention")
+        assert details.size.height == 1
+        assert details.title.is_same(Content.styled(details.title.plain, app.colours.style(NoticeRole)))
         assert "Delivery unavailable" in str(details.title)
         assert composer.value == "Untouched draft"
         assert history.status is NoneCursorStatus
