@@ -161,7 +161,7 @@ class OperationalSessionSources:
         agent = conversation.agent_binding
         if (conversation.transcript.readable and presentation is not None
                 and ExistingOwnerPlan.from_binding(presentation.binding) is None):
-            line = "Thread is stopped. Choose Start thread from its menu; your draft is kept."
+            line = self.activity_row(conversation).presentation.summary
         elif agent.configuration.model.requires_selection:
             line = "Choose a model or connect a provider (click here). Your draft is kept."
         else:

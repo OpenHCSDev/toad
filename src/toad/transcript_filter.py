@@ -151,9 +151,6 @@ class FilterState(DeclaredFamily, affix="Filter"):
         try:
             if snapshot.current(owner):
                 drew = await self.advance(snapshot)
-        except (OSError, ValueError) as error:
-            if snapshot.current(owner):
-                owner.app.show_error(error, "Filtered history")
         finally:
             if snapshot.current(owner):
                 # advance may have promoted SeekingFilter to Filtered.

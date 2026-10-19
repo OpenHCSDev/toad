@@ -35,13 +35,9 @@ class SidebarNavigation:
         # already-rendered roster while the canonical refresh runs afterward.
         if self.sidebar.enabled and self.sidebar.model_state.shows_model():
             observed = self.sidebar.model_state.observed
-            try:
-                if (await self.sidebar.app.coordination_access.route_changed()
-                        and self.revision == revision and self.sidebar.model_state.observes(observed)):
-                    self.sidebar.display = False
-            except (OSError, ValueError):
-                if self.revision == revision and self.sidebar.model_state.observes(observed):
-                    self.sidebar.display = False
+            if (await self.sidebar.app.coordination_access.route_changed()
+                    and self.revision == revision and self.sidebar.model_state.observes(observed)):
+                self.sidebar.display = False
 
     def start(self) -> None:
         """Rebuild native rows only after the selected shell has been painted."""

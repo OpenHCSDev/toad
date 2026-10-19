@@ -240,6 +240,17 @@ class CommandVisitor(ast.nodevisitor):
         self.command: str | None = None
         self.level: DangerLevel = Unknown()
 
+    def analyze(self, command_line: str) -> tuple[CommandAtom, ...]:
+        """An unsupported shell form is dangerous, never an empty analysis."""
+        try:
+            nodes = bashlex.parse(command_line)
+        except bashlex.errors.ParsingError, NotImplementedError:
+            self.atoms.append(CommandAtom(Dangerous(), (0, len(command_line))))
+        else:
+            for node in nodes:
+                self.visit(node)
+        return tuple(self.atoms)
+
     def visitcommand(self, node, parts):
         outer_command, outer_level = self.command, self.level
         self.command, self.level = None, Unknown()
@@ -288,16 +299,6 @@ def analyze(
     project_directory: str, current_working_directory: str, command_line: str
 ) -> tuple[CommandAtom, ...]:
     """Retain bounded analysis data; frontends own its native presentation."""
-    try:
-        visitor = CommandVisitor(
-            Path(project_directory).resolve(), Path(current_working_directory).resolve()
-        )
-        try:
-            nodes = bashlex.parse(command_line)
-        except bashlex.errors.ParsingError, NotImplementedError:
-            return ()
-        for node in nodes:
-            visitor.visit(node)
-    except OSError:
-        return ()
-    return tuple(visitor.atoms)
+    return CommandVisitor(
+        Path(project_directory).resolve(), Path(current_working_directory).resolve()
+    ).analyze(command_line)

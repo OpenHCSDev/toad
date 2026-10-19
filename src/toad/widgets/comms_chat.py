@@ -163,12 +163,7 @@ class CommsChatView(Conversation):
         # file revisions are identities, not an ordering: ask the service
         # itself before reading again, rather than rereading an already
         # current page until the observer's next tick.
-        try:
-            revision = await source.read_revision()
-        except (OSError, ValueError, RuntimeError):
-            # An unavailable or replaced route has no revision to read. Its
-            # observer remains responsible for the next observation.
-            return
+        revision = await source.read_revision()
         if (source is history.page_source and snapshot.current(history)
                 and source.uses_observation(access.observation.observed())
                 and history.revision.stores != revision):
@@ -250,9 +245,6 @@ class CommsChatView(Conversation):
             self.settle_user_message()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
-        except (OSError, ValueError, RuntimeError) as error:
-            self._show_wire_error(error)
-            return
         # Composer mentions and DM status read the observer's snapshot
         # and the agent records, which can take seconds on a busy bus. They are
         # not this conversation's messages, so they run after this work ends
@@ -261,12 +253,6 @@ class CommsChatView(Conversation):
                         group=self.LABELS_GROUP)
 
     LABELS_GROUP = "chat-labels"
-
-    def _show_wire_error(self, error: Exception) -> None:
-        message = f"Wire error: {error}"
-        if message != self.status:
-            self.flash(message, style="error")
-        self.status = message
 
     async def _refresh_labels(self, source, changed: bool, newly_announced: bool, read_only: bool) -> None:
         """Refresh composer mentions and status for the history as it is drawn now."""
@@ -295,9 +281,6 @@ class CommsChatView(Conversation):
         except (CoordinationReadUnavailable, StaleRevision):
             # The coordination store is busy or moved on: the observer's next
             # announcement refreshes this view and reads the labels again.
-            return
-        except (OSError, ValueError, RuntimeError) as error:
-            self._show_wire_error(error)
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return

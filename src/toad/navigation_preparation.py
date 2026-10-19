@@ -1,6 +1,7 @@
 """Bounded route discovery without accessing widgets from a reader thread."""
 
 from __future__ import annotations
+from acp.exceptions import RequestError
 
 import asyncio
 from abc import ABC, abstractmethod
@@ -196,7 +197,7 @@ class ThreadOpening:
             if not await navigator.app.preparation.run_thread(root_is_current, self.request.root):
                 raise RuntimeError("The thread's bus route changed while opening")
             return await prepared.open(self)
-        except (OSError, ValueError, RuntimeError) as error:
+        except RequestError as error:
             self.view.opening_failed(error)
             return navigator.app.selected_mode
         finally:

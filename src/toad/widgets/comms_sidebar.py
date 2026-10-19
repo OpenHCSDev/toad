@@ -144,13 +144,6 @@ class ChannelGroup(SidebarGroup["ThreadRow"]):
             self.show_member(name, view)
 
 
-def _display_path(path: Path) -> str:
-    try:
-        return f"~/{path.resolve().relative_to(Path.home())}"
-    except ValueError:
-        return str(path.resolve())
-
-
 class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
 

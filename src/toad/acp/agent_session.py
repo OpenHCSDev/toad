@@ -361,7 +361,7 @@ class AgentSession:
                     f"Reconnect timed out after {self.reconnect_timeout_seconds} seconds "
                     "waiting for the session handshake to settle."
                 )
-        except (OSError, RequestError) as error:
+        except RequestError as error:
             self.startup_failed(f"Reconnect failed: {type(error).__name__}: {error}")
         finally:
             self.reconnecting = False

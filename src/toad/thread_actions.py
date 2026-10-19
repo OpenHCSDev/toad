@@ -31,11 +31,7 @@ class ThreadActions:
 
     def invoke(self, action: ThreadAction, subject: str, *, source_root: Path) -> None:
         app = self.app
-        try:
-            selected = RouteSelection.capture(source_root)
-        except (OSError, ValueError, RuntimeError) as error:
-            app.show_error(error, "Session action")
-            return
+        selected = RouteSelection.capture(source_root)
         if any(target in self.requests for target in action.resources):
             app.notify(f"An action for {subject} is already in progress", title="Session action")
             return
@@ -77,8 +73,6 @@ class ThreadActionExecution:
             # Original start result owns whether a connection changed. This is
             # native connection resource refresh, never backend status mutation.
             await self.action.completed(app, self.selected, result)
-        except (OSError, ValueError, RuntimeError) as error:
-            app.show_error(error, f"Session action: {self.subject}")
         finally:
             # The action's store writes reach views through Core's observation.
             self.owner.finished(self)
@@ -127,18 +121,15 @@ class ThreadAction:
         async def accepted(arguments):
             if arguments is None:
                 return
-            try:
-                def prepare():
-                    ctx.current()
-                    return TargetEdit(declaration=definition.declaration,
-                        target=definition.declaration.selected_targets(definition.targets if ctx.targets else ctx.subject),
-                        arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
-                        channel=definition.channels, project=str(ctx.project))
-                request = await ctx.app.preparation.run_thread(prepare)
-                ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
-                                             source_root=ctx.comms.root)
-            except (OSError, ValueError) as error:
-                ctx.app.show_error(error, definition.label)
+            def prepare():
+                ctx.current()
+                return TargetEdit(declaration=definition.declaration,
+                    target=definition.declaration.selected_targets(definition.targets if ctx.targets else ctx.subject),
+                    arguments=arguments, confirmed=bool(definition.edited(arguments).confirmation),
+                    channel=definition.channels, project=str(ctx.project))
+            request = await ctx.app.preparation.run_thread(prepare)
+            ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
+                                         source_root=ctx.comms.root)
 
         async def prepare():
             if definition.editable_fields or definition.confirmation:

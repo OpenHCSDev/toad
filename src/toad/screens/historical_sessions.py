@@ -129,7 +129,7 @@ class HistoricalSessions(CoreEventReceiver, ProjectPathOwner, WorkspaceScreen, M
 
         try:
             page = await load()
-        except (OSError, ValueError, StaleRevision) as error:
+        except StaleRevision as error:
             if generation == self._selection_generation:
                 await content.mount(
                     Static(f"Could not read this saved session: {error}", markup=False)

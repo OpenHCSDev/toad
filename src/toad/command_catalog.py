@@ -60,14 +60,10 @@ class CommandCatalog:
 
     @classmethod
     async def execute(cls, text: str, conversation: Conversation) -> bool:
-        try:
-            catalog = await conversation.read_command_catalog()
-            name, _, arguments = text.partition(" ")
-            command = next((command for command in catalog.commands
-                            if command.command == name), None)
-            if command is None:
-                return False
-            return await command.parse_arguments(arguments).apply(conversation)
-        except (OSError, ValueError) as error:
-            conversation.flash(str(error), style="error")
-            return True
+        catalog = await conversation.read_command_catalog()
+        name, _, arguments = text.partition(" ")
+        command = next((command for command in catalog.commands
+                        if command.command == name), None)
+        if command is None:
+            return False
+        return await command.parse_arguments(arguments).apply(conversation)

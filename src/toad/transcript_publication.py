@@ -124,7 +124,7 @@ class TranscriptPublication(BoundFrame, ABC):
             if self.current():
                 self.owner.source_requests.defer(self)
                 return False
-        except (StaleRevision, OSError, ValueError) as error:
+        except StaleRevision as error:
             self.report_failure(error)
         return True
 
