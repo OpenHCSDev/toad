@@ -1,5 +1,5 @@
 from __future__ import annotations
-from toad.block_navigation import ConversationBlock, ChildBlockCursor
+from toad.block_navigation import CategorizedBlock, ConversationBlock, ChildBlockCursor
 from functools import cached_property
 
 from textual.app import ComposeResult
@@ -10,7 +10,6 @@ from toad.widgets.line_markdown import LineMarkdown
 from toad.widgets.message_divider import MessageClock, LiveMessageClock, MessageDivider
 from toad import response_delivery
 from toad.widgets.message_filter import (
-    CategorizedBlock,
     MessageCategory,
 )
 
