@@ -466,10 +466,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         self.filter: FilterState = FilterState.for_selection(self)
         self._fragment_budget = self.budget.max_items
 
-    @property
-    def window(self) -> HistoryWindow:
-        return self.query_ancestor(HistoryWindow)
-
     async def park_document(self) -> PreparedPageSource:
         """Stop reading and hand the drawn pages to their reader, to be rebuilt when the tab returns."""
         await self.retire_source(parked=True)
@@ -563,11 +559,18 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         if not self.is_attached or not self.can_draw_on_screen:
             return ()
         return tuple(
-            fragment for page in self.pages for fragment, rows, lines in page.visible_rows(self.window)
+            fragment for page in self.visible_pages() for fragment, rows, lines in page.visible_rows(self.window)
             if (text := fragment.text_rows(lines)) and rows.start < text.stop and text.start < rows.stop)
 
+    def visible_pages(self) -> list[TranscriptPageView]:
+        """This history's laid-out pages, in row order, without visiting retained pages."""
+        visible = self.screen._compositor.visible_widgets
+        return sorted((page for page in visible
+                       if isinstance(page, TranscriptPageView) and page.parent is self),
+                      key=lambda page: visible[page][0].y)
+
     def visible_fragments(self) -> tuple[TranscriptFragment, ...]:
-        return tuple(fragment for page in self.pages for fragment in page.visible_fragments(self.window))
+        return tuple(fragment for page in self.visible_pages() for fragment in page.visible_fragments(self.window))
 
     # What a fragment shows
 
@@ -756,10 +759,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         )
 
     @property
-    def follows_source_tail(self) -> bool:
-        return self.window.follows_tail
-
-    @property
     def fragment_limit(self) -> int:
         # Screen rows are not fragment counts: one prepared fragment may contain
         # a dozen lines or a whole indivisible Markdown block. Grow with the
@@ -827,10 +826,6 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         # outer message's category, not the synthetic Markdown fragment role.
         return (self.parent.selected_categories
                 if self.is_attached and isinstance(self.parent, Contents) else all_categories())
-
-    def has_more(self, end: PageEnd) -> bool:
-        page = end.edge(self.pages).prepared
-        return end.can_extend(page) or self.page_source.has_more(end, page.page)
 
     @property
     def drawn_extent(self) -> tuple[int, int]:
