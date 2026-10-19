@@ -733,21 +733,18 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             if self.shown:
                 self.reader_position = self.reader_position.joined_tail()
         super().anchor(anchor)
+        if not anchor and self.shown and not self._restoring:
+            self.reader_position = self.reader_position.left_tail(self)
         if changed:
             self.tail_follow_changed()
 
     def release_anchor(self) -> None:
         if not self.follows_tail:
             return
-        if not self._restoring:
-            self.scroll_revision += 1
-        super().release_anchor()
-        if not self._restoring and self.shown:
-            self.reader_position = self.reader_position.left_tail(self)
-        self.tail_follow_changed()
-
-    def _check_anchor(self) -> None:
-        """Native geometry checks cannot turn an offset reader into a tail reader."""
+        self.scroll_target_y = self.scroll_y
+        # Stop native following, rather than leaving a released native anchor
+        # which can silently rejoin at a mounted page edge.
+        self.anchor(False)
 
     def watch_scroll_y(self, old_value: float, new_value: float) -> None:
         super().watch_scroll_y(old_value, new_value)
@@ -760,15 +757,12 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
             if self.lookahead.observe(new_value):
                 self._schedule_settle()
             self.request_preparation()
-        # Rejoin at the bottom after actual downward movement, including
-        # keyboard, wheel and scrollbar input. Compensation uses the existing
-        # restoration transaction and cannot choose a different reader policy.
-        if (new_value > old_value and not self._restoring
+        # The source tail, not a mounted page edge, rejoins the same owner
+        # used by explicit tail selection. Native geometry only paints motion.
+        if (not self._restoring and not self.follows_tail
+                and new_value >= self.max_scroll_y
                 and all(not NEWER_END.visible_more(history) for history in self.histories)):
-            # A lazy pager's mounted edge is not the source tail. Explicit End
-            # still chooses follow through jump_to_latest; ordinary travel only
-            # rejoins it once the current source has no unpublished newer rows.
-            super()._check_anchor()
+            self.anchor(True)
         self.tail_follow_changed()
 
     def _size_updated(self, size, virtual_size, container_size, layout=True) -> bool:
