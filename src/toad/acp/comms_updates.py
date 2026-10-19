@@ -244,8 +244,22 @@ class SettledThreadRead(ThreadReadOutcome):
         consumer(self.presentation)
 
 
-@dataclass(frozen=True)
 class ThreadRead:
+    """A presentation read, with settlement owned by its captured source."""
+
+    def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
+        return SettledThreadRead(presentation)
+
+    async def reconcile(self, transcripts) -> None:
+        """An uncaptured read has no owner snapshot to reconcile."""
+
+
+class NoPendingThreadRead(ThreadRead):
+    """No captured client authority; present the current observation directly."""
+
+
+@dataclass(frozen=True)
+class PendingThreadRead(ThreadRead):
     """One presentation read of an agent's thread, captured before the read.
 
     Whether the read ran here or in Core's observation process, its result
@@ -266,3 +280,6 @@ class ThreadRead:
         if presentation is not None:
             self.snapshot.dispatch_sync(presentation)
         return SettledThreadRead(presentation)
+
+    async def reconcile(self, transcripts) -> None:
+        self.settle(await transcripts.thread_presentation(*self.thread))
