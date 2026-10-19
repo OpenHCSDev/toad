@@ -374,12 +374,14 @@ class WirePageBuffer(SavedHistory):
         return self.loader.kind.seen_page(history, seen)
 
     async def mark_page(self, page) -> None:
-        from agent_comms.route_selection import RouteSelection, run_selected_write
+        from agent_comms.route_selection import RouteSelection
+        from toad.comms_root import CoordinationAccess
 
         comms = self.loader.comms
+        selected = RouteSelection.capture_for(comms.root)
         await asyncio.to_thread(
-            run_selected_write, comms.root, comms.views.mark_page_read, page,
-            worktree=str(self.loader.project), root_selection=RouteSelection.capture(comms.root).root_selection)
+            CoordinationAccess.write, selected, comms.views.mark_page_read, page,
+            worktree=str(self.loader.project))
 
     async def read_only(self) -> bool:
         return await self.runtime.run_thread(

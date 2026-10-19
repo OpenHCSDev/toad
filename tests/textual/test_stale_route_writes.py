@@ -13,7 +13,7 @@ from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.launch_runtime import CurrentLaunchRoot
 from agent_comms.cli_commands import StartCliCommand
 from agent_comms.comms import Comms
-from agent_comms.route_selection import current_root, run_selected_write
+from agent_comms.route_selection import current_root
 from agent_comms.thread_identity import ThreadRole
 
 from support.routes import private_root, select_root_by_default_route
@@ -56,26 +56,26 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
         entered_ack, entered_action = asyncio.Event(), threading.Event()
         release = threading.Event()
         original_to_thread = asyncio.to_thread
-        real_write = comms_root.run_selected_write
+        real_write = comms_root.CoordinationAccess.write
         invoked = []
 
         async def delayed_dispatch(operation, *args, **kwargs):
-            if operation is run_selected_write and getattr(args[1], "__name__", "") == "mark_channel_view_read":
+            if operation is comms_root.CoordinationAccess.write and getattr(args[1], "__name__", "") == "mark_channel_view_read":
                 entered_ack.set()
                 await original_to_thread(release.wait, 20)
             return await original_to_thread(operation, *args, **kwargs)
 
-        def delayed_write(root, operation, *args, **kwargs):
+        def delayed_write(selected, operation, *args, **kwargs):
             entered_action.set()
             release.wait(20)
-            return real_write(root, operation, *args, **kwargs)
+            return real_write(selected, operation, *args, **kwargs)
 
         def safe_spy(command, comms):
             invoked.append(command.name)
             return {"thread": command.name, "pid": 0, "launched": False}
 
         with (patch("asyncio.to_thread", delayed_dispatch),
-              patch.object(comms_root, "run_selected_write", delayed_write),
+              patch.object(comms_root.CoordinationAccess, "write", staticmethod(delayed_write)),
               patch.object(StartCliCommand, "apply", safe_spy),
               patch.object(private_nk_entrypoint, "_trusted_package", lambda _: None)):
             history = view.message_history
@@ -115,4 +115,5 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
         assert not invoked, "stale old-root start reached its core operation"
         assert (marker.read_bytes() if marker.exists() else b"") == before
         with pytest.raises(ValueError):
-            run_selected_write(legacy, safe_spy, None, None, root_selection=CurrentLaunchRoot(legacy))
+            with CurrentLaunchRoot(legacy).write_scope():
+                pytest.fail("stale route write was accepted")

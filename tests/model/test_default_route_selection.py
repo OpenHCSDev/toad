@@ -8,7 +8,7 @@ from agent_comms.acp_ingress import AcpIngress
 from agent_comms.launch_runtime import ExplicitLaunchRoot
 from agent_comms.comms import wire
 from agent_comms.route_selection import (
-    RouteSelection, child_root, current_root, root_is_current, run_selected_write,
+    RouteSelection, child_root, current_root, root_is_current,
 )
 
 from support.routes import private_root, publish_route, select_root_by_default_route
@@ -94,5 +94,5 @@ def test_an_explicit_root_bypasses_a_broken_route(home, roots, monkeypatch):
     publish_route(home, second, second_id).write_text("{")
     assert wire(second).root == second
     monkeypatch.setenv("AGENT_COMMS_ROOT", str(second))
-    assert run_selected_write(second, lambda: "explicit-root-operation",
-                              root_selection=ExplicitLaunchRoot(second)) == "explicit-root-operation"
+    with ExplicitLaunchRoot(second).write_scope():
+        assert wire(second).root == second

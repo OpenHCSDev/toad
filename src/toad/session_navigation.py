@@ -334,10 +334,10 @@ class SessionNavigation:
             answers = {}
             for root, (threads, channels) in asked.items():
                 try:
-                    selected = RouteSelection.capture(root)
+                    selected = RouteSelection.capture_for(root)
                     service = self.app.coordination_access.require(selected).service
                     retired = service.views.retired_views(threads, channels)
-                    if RouteSelection.capture(root) != selected:
+                    if RouteSelection.capture_for(root) != selected:
                         continue  # Replaced while reading; the next observation reads it.
                 except RouteChanged:
                     continue  # The next observation reads the replacement route.

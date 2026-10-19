@@ -35,7 +35,7 @@ class SessionOrigin:
         from agent_comms.route_selection import RouteSelection
 
         identity = self.thread_identity
-        selected = RouteSelection.capture(identity.wire_root())
+        selected = RouteSelection.capture_for(identity.wire_root())
         service = self.app.coordination_access.require(selected).service
         return identity.resolve_thread(service.registry, self.project_path)
 

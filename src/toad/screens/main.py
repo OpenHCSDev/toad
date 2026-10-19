@@ -282,7 +282,7 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         worktree = str(app.project_dir)
 
         def acknowledge(cursor) -> None:
-            selected = RouteSelection.capture(source_root)
+            selected = RouteSelection.capture_for(source_root)
             comms = access.require(selected).service
 
             def mark() -> None:

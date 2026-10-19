@@ -9,7 +9,7 @@ import agent_comms.private_nk_entrypoint as private_nk_entrypoint
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.launch_runtime import CurrentLaunchRoot
-from agent_comms.route_selection import RouteSelection, current_root, run_selected_write
+from agent_comms.route_selection import RouteSelection, current_root
 
 from support.routes import private_root, select_root_by_default_route
 
@@ -69,5 +69,6 @@ async def test_an_explicit_prompt_holds_the_published_route_while_it_runs(publis
 def test_a_write_selected_before_the_flip_is_refused_after_it(published):
     invoked = []
     with pytest.raises(ValueError):
-        run_selected_write(published.legacy, invoked.append, None, root_selection=CurrentLaunchRoot(published.legacy))
+        with CurrentLaunchRoot(published.legacy).write_scope():
+            invoked.append(None)
     assert not invoked

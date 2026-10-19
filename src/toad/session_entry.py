@@ -131,7 +131,7 @@ class NativeSessionEntry(SessionEntry):
         if source is None:
             return
         original = next((identity for root, identity in self.original_threads(sessions)
-                         if Path(root).resolve() == selected.root
+                         if Path(root).resolve() == selected.root_selection.path
                          and any(identity.matches_recorded_name(target, snapshot)
                                  for target in targets)), None)
         if original is None:
@@ -154,7 +154,7 @@ class NativeSessionEntry(SessionEntry):
             return True
         root = source.coordination_root
         return root is not None and sessions.app.coordination_access.require(
-            RouteSelection.capture(root)).service.registry.canonical_name(session_id) == source.resolve_thread()
+            RouteSelection.capture_for(root)).service.registry.canonical_name(session_id) == source.resolve_thread()
 
     def unobserved_tab(self) -> OpenTab:
         return NamedTab(self.mode, self.details.name.display or "New Session")

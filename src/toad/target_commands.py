@@ -48,12 +48,12 @@ class TargetContext:
 
     def available_actions(self):
         from agent_comms.route_selection import RouteSelection
-        selected = RouteSelection.capture(self.comms.root)
+        selected = RouteSelection.capture_for(self.comms.root)
         self.current()
         actions = CliCommand.target_catalog(self.comms,
             CliCommand.selected_targets(self.targets or self.subject),
             ChannelSelection.decode(self.channel), project=str(self.project))
-        if RouteSelection.capture(self.comms.root) != selected:
+        if RouteSelection.capture_for(self.comms.root) != selected:
             raise ValueError('Comms route changed during command discovery')
         return actions
 

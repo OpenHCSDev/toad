@@ -25,7 +25,7 @@ from agent_comms.coordination_errors import StaleRevision
 from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.presentation import MessageNotification, NoRevision, ReadState
 from agent_comms.revision_views import ExternalTranscriptsView, StatusView
-from agent_comms.route_selection import RouteChanged, RouteSelection, run_selected_write
+from agent_comms.route_selection import RouteChanged, RouteSelection
 from agent_comms.ui_model.observation import (
     ObserveNotifications, NotificationsObserved, NotificationsUnreadable, ReadNotifications,
     ObservationProcess, ObserveSidebar, ObserveThreads, ObserveViews, RevisionObserved,
@@ -303,7 +303,7 @@ class CoordinationAccess(MroDispatch):
         with ExitStack() as acquisition:
             acquisition.enter_context(selected.route.hold_client_route())
             service = wire(selected.route)
-            if service.root.resolve() != selected.root or RouteSelection.capture() != selected:
+            if service.root.resolve() != selected.root_selection.path or RouteSelection.capture() != selected:
                 raise RouteChanged("Comms route changed while opening the service")
             observed = Observing(
                 selected, service, SidebarModel(self.app.call_next), ObservationProcess(service.route),
@@ -514,8 +514,10 @@ class CoordinationAccess(MroDispatch):
         if await self.route_changed():
             self.events.publish(CoordinationObserved(self.revision))
 
-    def write(self, selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
+    @staticmethod
+    def write(selected: RouteSelection, operation: Callable[..., T], *args: object, **kwargs: object) -> T:
         # This method runs in the same worker as the actual sink. The existing
         # core route lock is held through the operation; no second lock/store.
-        return run_selected_write(selected.root, operation, *args, root_selection=selected.root_selection, **kwargs)
+        with selected.root_selection.write_scope():
+            return operation(*args, **kwargs)
 

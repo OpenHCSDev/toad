@@ -216,7 +216,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
             return self._source
         access = self.app.coordination_access
         return await self.app.preparation.run_thread(
-            lambda: access.require(RouteSelection.capture(identity.root_path())).service.relationships)
+            lambda: access.require(RouteSelection.capture_for(identity.root_path())).service.relationships)
 
     def use_source(self, source: RelationshipSource) -> None:
         self._source = source
