@@ -2,7 +2,10 @@
 
 from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
+from agent_comms.message_page import PageBounds
 from toad.conversation_kind import ChannelConversation, ConversationKind
+from toad.message_rows import IrcMessageStyle
+from toad.wire_history import WireSource
 
 
 def test_declared_kinds_read_history_and_a_new_kind_joins_the_family(tmp_path):
@@ -18,7 +21,7 @@ def test_declared_kinds_read_history_and_a_new_kind_joins_the_family(tmp_path):
         assert FieldCodec.decode(type[ConversationKind], FieldCodec.encode(kind)) is kind
         target = "peer" if kind.declared_name == "dm" else "#team"
         assert kind.resolve(comms, viewer, target) == (viewer, target)
-        page = kind.page(comms, target, worktree=str(tmp_path), limit=8)
+        page = kind.page(WireSource(comms, kind, target, tmp_path, viewer, IrcMessageStyle()), PageBounds(limit=8))
         assert page.messages
         assert kind.display_identity(page) is not None
     assert ConversationKind.member_named("team").label("#team") == "#team"
