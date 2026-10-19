@@ -1388,8 +1388,11 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
+        from toad.screens.session_view import SessionView
+
         message.stop()
         self.transcript.source_work_finished(message.publisher)
+        self.query_ancestor(SessionView).mark_visible()
 
     def on_worker_state_changed(self, message) -> None:
         if message.worker is self.transcript.worker and message.worker.is_finished:
