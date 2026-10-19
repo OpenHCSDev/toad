@@ -23,6 +23,7 @@ from rich.style import Style as RichStyle
 from rich.terminal_theme import TerminalTheme
 from textual.ansi_palette import AnsiPalette, NativeAnsiPalette, MappedAnsiPalette
 from textual.color import Color
+from textual.design import ColorSystem
 from textual.content import Content
 from textual.driver import TerminalGaveNoPalette
 from textual.style import Style as VisualStyle
@@ -286,15 +287,12 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         return KnownPalette(TerminalPalette(Rgb(*colours.background), foreground, foreground,
                                tuple(Rgb(*colour) for colour in colours.ansi)))
 
-    def variables_changed(self, variables: dict[str, str]) -> None:
+    def variables_changed(self, variables: dict[str, str], system: ColorSystem) -> None:
         palette = self.schemes[self.app.theme].palette
         variables = dict(variables)
         self._colours = {member: value.native(self)
                          for member, value in self.scheme.resolved_colours.items()}
-        # Unstated layers belong to Textual's ColorSystem, which currently
-        # exports only CSS. Do not copy its surface/panel/boost derivation here.
-        self._colours.update({member: Color.parse(variables[member.name])
-                              for member in LayerColour.members() if member not in self._colours})
+        self._colours.update({member: system.color(member.name) for member in LayerColour.members()})
 
         for member in BlendColour.members():
             derived = palette.derived(member, self._colours)
@@ -459,7 +457,7 @@ class ThemedApp:
 
     def get_css_variables(self) -> dict[str, str]:
         variables = super().get_css_variables()  # type: ignore[misc]
-        self.colours.variables_changed(variables)
+        self.colours.variables_changed(variables, self.color_system)
         return self.colours.variables
 
     @property
