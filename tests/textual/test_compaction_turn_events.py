@@ -8,7 +8,7 @@ from agent_comms.acp_extension import CompactionChangedUpdate, GoalChangedUpdate
 from agent_comms.child_process import ParentedProcess
 from agent_comms.coordinator import Coordination
 
-from support.agents import deliver, detached
+from support.agents import deliver
 
 PRODUCER = Path(__file__).resolve().parents[1] / "support/peers/typed_turn_events.py"
 
@@ -26,7 +26,7 @@ async def test_phase_events_from_core_owners_reach_the_turn_activity_and_a_finis
     requests = iter(json.loads(line) for line in stdout.splitlines())
 
     async with workspace.app(size=(90, 30)) as ui:
-        agent = detached(workspace.project, "pilot")
+        agent = ui.detached_agent("pilot")
         try:
             ui.attach_agent(agent)
             view = ui.conversation

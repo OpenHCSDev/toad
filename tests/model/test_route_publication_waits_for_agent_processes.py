@@ -13,7 +13,6 @@ from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
 from agent_comms.route_selection import RouteSelection, current_root
 
-from support.agents import detached
 from support.routes import private_root, select_root_by_default_route
 
 
@@ -28,7 +27,7 @@ def live_members(group: int) -> list[int]:
     return found
 
 
-async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_published(tmp_path, monkeypatch):
+async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_published(app_agents, tmp_path, monkeypatch):
     from toad.acp.shell_command import ShellCommand
 
     tmp_path.chmod(0o700)
@@ -54,7 +53,7 @@ async def test_stopping_an_agent_ends_its_process_group_before_the_new_route_is_
         assert os.getpgid(group) == group
         assert os.getpgid(child_pid) == group
         assert {group, child_pid} <= set(live_members(group))
-        agent = detached(tmp_path)
+        agent = app_agents.detached_agent()
         agent.process.process = process
         agent.session.task = None
         agent.process.runner = None

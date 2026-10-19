@@ -14,6 +14,8 @@ from dataclasses import dataclass
 import inspect
 from typing import TYPE_CHECKING
 
+from support.agents import AppAgents
+
 if TYPE_CHECKING:
     from textual.pilot import Pilot
     from toad.app import ToadApp
@@ -61,7 +63,7 @@ class Ui(ABC):
 
     @abstractmethod
     def attach_agent(self, agent) -> None:
-        """Show `agent` (see ``support.agents.detached``) in the selected conversation."""
+        """Show `agent` (see ``AppAgents.detached_agent``) in the selected conversation."""
 
     @abstractmethod
     def status(self) -> str:
@@ -182,11 +184,11 @@ class Ui(ABC):
         await self.until(lambda: self.shows(text), seconds=seconds, why=f"{text!r} on screen")
 
 
-class TextualUi(Ui):
-    """Toad drawn by Textual, driven headless through Textual's pilot."""
+class TextualUi(AppAgents, Ui):
+    """Toad drawn by Textual, driven headless through Textual's pilot; its agents attach to that app."""
 
     def __init__(self, app: ToadApp, pilot: Pilot) -> None:
-        self.app = app
+        super().__init__(app)
         self.pilot = pilot
 
     @property
