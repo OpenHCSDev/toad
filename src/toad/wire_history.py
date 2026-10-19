@@ -21,6 +21,7 @@ from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversa
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
 from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
 
+from toad.comms_root import CoordinationAccess
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
 from toad.message_rows import MessageRow, WireMessageStyle
@@ -375,7 +376,6 @@ class WirePageBuffer(SavedHistory):
 
     async def mark_page(self, page) -> None:
         from agent_comms.route_selection import RouteSelection
-        from toad.comms_root import CoordinationAccess
 
         comms = self.loader.comms
         selected = RouteSelection.capture_for(comms.root)
