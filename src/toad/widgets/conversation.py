@@ -169,16 +169,14 @@ class CategorizedMount:
     """Mount blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter
-
-        selected = self.selected_categories
-        for widget in require_blocks(widgets):
-            apply_block_filter(widget, selected)
-        mounted = super().mount(*widgets, **kwargs)
-        # Registration is synchronous: establish document order before any
-        # new widget's mount task or paint can run. The stable sort preserves
-        # order within saved sources and within live output.
+        blocks = require_blocks(widgets)
+        mounted = super().mount(*blocks, **kwargs)
+        # Registration supplies the history's real parent before its filter
+        # prepares a projection; both still happen before first mount/paint.
         self.sort_children(key=lambda block: block.conversation_order)
+        selected = self.selected_categories
+        for widget in blocks:
+            widget.apply_message_filter(selected)
         self.call_after_refresh(self.check_notifications)
         return mounted
 
@@ -813,23 +811,19 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     def watch_visible_categories(
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
-        from toad.widgets.message_filter import apply_block_filter
-
         # The reader stays on the message they are reading; when the new
         # selection hides it, on the next message still shown.
         window = self.window
         window.keep_reader()
         self.navigation.clear()
         for block in self.contents.children:
-            apply_block_filter(block, selected)
+            block.apply_message_filter(selected)
         screen = self.screen
         screen.selections = {
             widget: selection
             for widget, selection in screen.selections.items()
             if all(node.display for node in widget.walk_ancestors(with_self=True))
         }
-        for history in tuple(window.histories):
-            history.projection_changed()
 
     def remember_tool_expansion(self, tool_id: str, expanded: bool) -> None:
         """Retain bounded manual disclosure state across canonical transcript remounts."""
@@ -1859,12 +1853,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if not self.contents.is_attached:
             return widget
         from toad.widgets.message_divider import AgentActivityDivider
-        from toad.widgets.message_filter import block_category
-
-        category = block_category(widget)
-        if self._agent_activity_boundary.observe(category):
-            assert category is not None
-            await self.contents.mount(AgentActivityDivider(category), widget)
+        if widget.starts_agent_activity(self._agent_activity_boundary):
+            await self.contents.mount(AgentActivityDivider(widget.message_category), widget)
         else:
             await self.contents.mount(widget)
 
