@@ -289,14 +289,14 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def variables_changed(self, variables: dict[str, str]) -> None:
         palette = self.schemes[self.app.theme].palette
         variables = dict(variables)
-        self._colours = {member: Color.parse(value) for member in ThemeColour.members()
-                         if (value := variables.get(member.name)) is not None}
+        members = (*CoreColour.members(), *LayerColour.members(),
+                   *(member for member in self.scheme.resolved_elements if issubclass(member, ThemeColour)))
+        self._colours = {member: Color.parse(variables[member.name]) for member in members}
 
-        for member in ThemeColour.members():
-            if issubclass(member, BlendColour):
-                derived = palette.derived(member, self._colours)
-                self._colours[member] = derived
-                variables[member.name] = derived.css
+        for member in BlendColour.members():
+            derived = palette.derived(member, self._colours)
+            self._colours[member] = derived
+            variables[member.name] = derived.css
         self.variables = variables
         self.refresh_line_renderer()
 
