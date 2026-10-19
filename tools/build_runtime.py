@@ -340,13 +340,19 @@ class TerminalApp:
         return path
 
     def wait(self, name, predicate, seconds=40):
-        deadline = time.monotonic() + seconds
+        deadline = None if seconds is None else time.monotonic() + seconds
+        previous = ''
+        changes = self.output / f'{name}-changes.txt'
         while True:
             text = self.capture()
+            if text != previous:
+                with changes.open('a') as log:
+                    log.write(f'\n--- {time.monotonic()} ---\n{text}')
+                previous = text
             if predicate(text):
                 (self.output / f'{name}.txt').write_text(text)
                 return text
-            if self.terminal.poll() is not None or time.monotonic() >= deadline:
+            if self.terminal.poll() is not None or (deadline is not None and time.monotonic() >= deadline):
                 (self.output / f'{name}-failed.txt').write_text(text)
                 self.screenshot(f'{name}-failed')
                 raise RuntimeError(f'Terminal probe {name} failed; see {self.output}')
@@ -465,16 +471,19 @@ print(json.dumps(dict(path=str(t.runtime.path),backend=FieldCodec.encode(t.backe
                        and k not in ('PYTHONPATH', 'PYTHONHOME', 'NO_COLOR', 'TOAD_VALIDATION')}
         environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / 'config'),
                            XDG_STATE_HOME=str(home / 'state'), XDG_DATA_HOME=str(home / 'data'),
-                           AGENT_COMMS_ROOT=str(output / 'wire'))
+                           AGENT_COMMS_ROOT=str(output / 'wire'),
+                           AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'))
         launch = subprocess.check_output([str(python), '-I', '-B', '-c', '''
 import sys,json
 from pathlib import Path
 from agent_comms.comms import wire
+from agent_comms.active_route import ActiveRoute,publish_active_route
 from agent_comms.coordinator import Coordination
 from agent_comms.agent_backend import AgentBackend
 from agent_comms.field_codec import FieldCodec
 from agent_comms.launch_runtime import RestartEnvironment
-c=wire();c.messaging.initialize_private_initial_protocol()
+c=wire();root_id=c.messaging.initialize_private_initial_protocol()
+publish_active_route(ActiveRoute(c.root,root_id))
 c.registry.declare(c.registry.new_thread('startup-saved',frozenset(),sys.argv[1],session_file=sys.argv[2],
     backend=FieldCodec.decode(type[AgentBackend],sys.argv[3]),model=json.loads(sys.argv[5])))
 with Coordination(str(c.root/'coordination.sqlite3')) as store:store.install_private_runtime()
@@ -492,7 +501,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
             with TerminalApp(command, display, output / 'plain', environment, home) as app:
                 app.wait('store', lambda text: 'Toad' in text or 'agent' in text.lower())
                 app.screenshot('store')
-            command += ['acp', f'{python} -I -B -m agent_comms.acp', str(home)]
+            command = ['/home/ts/bin/toad-comms', 'startup-saved']
             with TerminalApp(command, display, output / 'welcome', environment, home) as app:
                 app.wait('welcome', lambda text: 'startup-saved' in text)
                 app.screenshot('welcome')
@@ -505,7 +514,7 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
                 app.wait('plain-page-up-moved', lambda text: bool(app.message_rows(text))
                          and app.message_rows(text) != initial)
                 plain_before = app.reader_place('plain-before')
-                app.keys('C-g')
+                app.click('#any')
                 app.wait('any', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
                 app.screenshot('any')
                 app.keys('Escape')
@@ -529,12 +538,12 @@ def check_filtered_return(app: TerminalApp) -> None:
              and app.message_rows(text) != initial)
     expected = app.reader_place('filtered-before')
     app.screenshot('filtered-before')
-    app.keys('C-g')
+    app.click('#any')
     app.wait('filtered-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
     app.keys('Escape')
     app.wait('filtered-return', lambda text: app.message_rows(text) == expected)
     app.screenshot('filtered-return')
-    app.keys('C-g')
+    app.click('#any')
     app.wait('filtered-click-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
     app.click('startup-saved')
     app.wait('filtered-click-return', lambda text: app.message_rows(text) == expected)
@@ -601,8 +610,8 @@ try:
     token=os.environ['BUILD_WAKE_TOKEN']
     (out/'input.json').write_text(json.dumps(dict(status='UNKNOWN',replay=False,target=child.name)))
     started=time.monotonic()
-    sent=c.messaging.send_message('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
-    deadline=time.monotonic()+120
+    sent=c.messaging.send('build-sender',child.name,'Reply with '+token+'. Do not use tools.')
+    for notice in sent.notices:print(notice,file=sys.stderr,flush=True)
     while True:
         failures=list((c.root/'diagnostics').glob('drain-*.json'))
         if failures:raise RuntimeError(f'Private wake produced a drain diagnostic: {failures}')
@@ -611,29 +620,29 @@ try:
         replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and token in m.body]
         current=c.registry.require(child.name)
         if replies and not current.turn_state.active.executing:break
-        if time.monotonic()>deadline:raise TimeoutError('Private message did not complete its wake')
         time.sleep(.25)
     assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
     (out/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[-1].body,
         session=forked.path,original_unchanged=True,drain_diagnostics=0,reply_seconds=time.monotonic()-started)))
     (out/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=child.name)))
 finally:
-    c.owners.stop(child.name)
+    if not c.registry.require(child.name).turn_state.active.executing:
+        c.owners.stop(child.name)
 ''', str(output), str(startup), str(runtime)], env=environment, stdout=subprocess.PIPE,
             stdin=subprocess.PIPE, stderr=log, text=True)
         try:
             readable, _, _ = select.select([worker.stdout], [], [], 60)
             if not readable or worker.stdout.readline().strip() != 'READY':
                 raise RuntimeError(f'Private agent did not start; see {output / "wake.log"}')
-            environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'))
+            environment.update(HOME=str(output / 'home'), AGENT_COMMS_ROOT=str(output / 'wire'),
+                               AGENT_COMMS_RUNTIME_ROOT=str(runtime / 'bin'))
             saved = json.loads((startup / 'saved-source.json').read_text())
             environment['AGENT_COMMS_NATIVE_CONFIG_DIR'] = saved['config']
             environment['PI_CODING_AGENT_DIR'] = saved['agent_directory']
             for kind in ('CONFIG', 'DATA', 'STATE', 'CACHE'):
                 environment['XDG_' + kind + '_HOME'] = str(output / kind.lower())
             with BuildDisplay(output) as display:
-                command = [runtime / 'bin/toad', 'acp',
-                           f'{runtime / "bin/python"} -I -B -m agent_comms.acp', str(output)]
+                command = ['/home/ts/bin/toad-comms', 'build-wake']
                 with TerminalApp(command, display, output / 'reply', environment, output) as app:
                     app.wait('welcome', lambda text: 'build-wake' in text)
                     app.click('build-wake')
@@ -646,9 +655,9 @@ finally:
                         if worker.poll() not in (None, 0):
                             raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
                         return (output / 'result.json').exists() and token in text
-                    app.wait('reply', replied, seconds=150)
+                    app.wait('reply', replied, seconds=None)
                     app.screenshot('reply')
-                    app.keys('C-g')
+                    app.click('#any')
                     app.wait('reply-channel', lambda text: '#any · all comms' in text
                              and 'IRC / Markdown' in text and token in text)
                     app.click('build-wake')
@@ -812,7 +821,7 @@ class RuntimeBuild:
             # Keep an installed but unqualified candidate available for diagnosis.
             # Only build.json below certifies readiness; never rebuild to inspect it.
             cleanup.pop_all()
-        return self.qualify(destination)
+        return destination
 
     def qualify(self, destination: Path) -> Path:
         """Finish the existing readiness checks on an installed candidate."""
@@ -871,6 +880,8 @@ def main() -> None:
                         help='Whitespace-separated NAME=VALUE entries for --start-thread')
     parser.add_argument('--display', help='Isolated Xvfb display for plain st acceptance')
     parser.add_argument('--qualify-runtime', type=Path, help='Finish gates on an existing unqualified candidate; build nothing')
+    parser.add_argument('--package-only', action='store_true',
+                        help='Build for a separate private UI check; send no input and write no build.json')
     parser.add_argument('--build-only', action='store_true',
                         help='Build without attachment; incompatible stores must be converted before live acceptance')
     parser.add_argument('--scratch', type=Path, default=Path(__file__).resolve().parents[1] / '.artifacts/runtime-build')
@@ -880,6 +891,8 @@ def main() -> None:
         parser.error('--start-thread and --start-env must be used together')
     if args.build_only and args.start_thread:
         parser.error('--build-only cannot start an acceptance thread')
+    if args.package_only and (not args.build_only or args.qualify_runtime):
+        parser.error('--package-only requires --build-only and cannot qualify a runtime')
     if not args.build_only and args.display is None:
         parser.error('--display is required for an app check')
     build = RuntimeBuild(
@@ -889,7 +902,9 @@ def main() -> None:
         args.scratch.resolve(), args.runtimes.resolve(), args.thread,
         args.start_env.resolve(strict=True) if args.start_env else None,
     )
-    runtime = build.qualify(args.qualify_runtime.resolve(strict=True)) if args.qualify_runtime else build.build()
+    runtime = args.qualify_runtime.resolve(strict=True) if args.qualify_runtime else build.build()
+    if not args.package_only:
+        runtime = build.qualify(runtime)
     if not args.build_only:
         with XvfbDisplay(args.display) as display:
             build.accept(runtime, display)

@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING, cast
 
 
 from agent_comms.presentation import NoRevision, ReadState
-from agent_comms.route_selection import root_is_current
+from agent_comms.errors import UnknownChannelError, UnregisteredThreadError
+from agent_comms.route_selection import RouteChanged, root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
 from toad.navigation_preparation import CommsNavigationRequest
 from toad.session_entry import (HistorySessionEntry, NativeSessionEntry,
@@ -195,7 +196,7 @@ class SessionNavigation:
                 return app.selected_mode
             prepared = await app.navigation_reader.read(CommsNavigationRequest(
                 comms, owner_mode, me, target, kind, source.coordination_root))
-        except Exception as error:
+        except (UnknownChannelError, UnregisteredThreadError, RouteChanged) as error:
             app.notify(str(error), title="Comms target unavailable", severity="error")
             return app.selected_mode
         if prepared is None:
