@@ -910,8 +910,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
                 status=Conversation.status,
             )
             yield self.throbber
-            self.goal_bar: GoalBar = GoalBar(self, throbber=self.throbber, prompt=prompt)
-            yield self.goal_bar
+            yield GoalBar(self, throbber=self.throbber, prompt=prompt)
             yield prompt
 
     @property
@@ -1622,11 +1621,13 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     def on_resize(self) -> None:
         # A goal can retain its own size while the surrounding viewport changes.
         # Reapply its user-selected height against the new viewport bound.
-        self.goal_bar.update_document_height()
+        for goal_bar in self.query(GoalBar):
+            goal_bar.update_document_height()
 
     def on_mouse_down(self, event: events.MouseDown) -> None:
         self._mouse_down_offset = event.screen_offset
-        self.goal_bar.begin_separator_resize(event)
+        for goal_bar in self.query(GoalBar):
+            goal_bar.begin_separator_resize(event)
 
     def on_click(self, event: events.Click) -> None:
         from toad.screens.session_view import SessionView
