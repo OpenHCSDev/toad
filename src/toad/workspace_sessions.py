@@ -35,6 +35,9 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     async def retire(self) -> "WorkspaceSource": ...
 
     @abstractmethod
+    def hide(self) -> None: ...
+
+    @abstractmethod
     def commands(self) -> set: ...
 
     @abstractmethod
@@ -58,6 +61,9 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
     async def retire(self):
         return self
+
+    def hide(self) -> None:
+        pass
 
     def commands(self):
         return set()
@@ -92,6 +98,9 @@ class BoundWorkspaceSource(WorkspaceSource):
         # discards the document's source placement before its owner can take it.
         await self.view.retire_presentation()
         return ParkedWorkspaceSource(self.view)
+
+    def hide(self) -> None:
+        self.view.display = False
 
     def commands(self):
         return self.view.COMMANDS
@@ -160,7 +169,7 @@ class WorkspaceSessions:
         destination = await self.prepare(identity)
         if self.source.shown(destination):
             return destination
-        departing = self.source.view
+        departing = self.source
         await self.retire()
         # The loop runs due input and timers between the steps (the switch holds the frames).
         await after_input()
@@ -171,8 +180,7 @@ class WorkspaceSessions:
         await destination.prepare_presentation()
         # Preparation joins the arriving tree's existing rows. The workspace
         # alone swaps the two mounted trees, without a frame between them.
-        if departing is not None:
-            departing.display = False
+        departing.hide()
         destination.display = True
         await self.app.workspace_chrome.select(destination)
         await after_input()
