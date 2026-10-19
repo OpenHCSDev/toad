@@ -385,7 +385,7 @@ class BuildDisplay(XvfbDisplay):
 
 
 class TerminalApp:
-    """Own one isolated st/tmux lifetime, terminal observations and physical input."""
+    """Own one isolated st window, its screen and physical X input."""
 
     columns, rows = 140, 40
 
@@ -393,42 +393,48 @@ class TerminalApp:
         self.command, self.display, self.output = command, display, output
         self.environment = dict(environment, DISPLAY=display.name)
         self.cwd = cwd
-        self.socket = output.parents[1] / f'mux-{os.getpid()}-{output.name}.sock'
-
-    def mux(self, *arguments):
-        return subprocess.run(['tmux', '-S', str(self.socket), *arguments],
-                              env=self.environment, capture_output=True, text=True, timeout=5)
 
     def __enter__(self):
         import psutil
         self.output.mkdir(parents=True, exist_ok=True)
+        self.dump = self.output / 'st-screen.txt'
         self.log = (self.output / 'st.log').open('w')
         self.terminal = subprocess.Popen(
-            ['st', '-g', f'{self.columns}x{self.rows}', '-e',
-             'env', f'HOME={self.environment["HOME"]}', 'tmux', '-S', str(self.socket),
-             'new-session', '-s', 'qualify', '-x', str(self.columns), '-y', str(self.rows),
-             shlex.join(list(map(str, self.command)))],
+            ['st', '-f', 'DejaVu Sans Mono:pixelsize=16', '-g', f'{self.columns}x{self.rows}',
+             '-o', str(self.dump), '-e', 'env', f'HOME={self.environment["HOME"]}',
+             *map(str, self.command)],
             cwd=self.cwd, env=self.environment, stdout=self.log, stderr=self.log)
         self.owner = psutil.Process(self.terminal.pid)
         self.created = self.owner.create_time()
         try:
-            self.wait('terminal', lambda text: bool(text.strip()))
-            self.mux('set-option', '-t', 'qualify', 'status', 'off').check_returncode()
             self.window = int(subprocess.check_output(
                 ['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(self.terminal.pid)],
                 env=self.environment, text=True, timeout=10).splitlines()[0])
-            geometry = self.mux('display-message', '-p', '-t', 'qualify:0.0',
-                                '#{pane_width} #{pane_height}')
-            geometry.check_returncode()
-            self.columns, self.rows = map(int, geometry.stdout.split())
+            # -o enables st's raw printer too; Ctrl+Print leaves only explicit dumps.
+            self.keys('ctrl+Print')
+            self.wait('terminal', lambda text: bool(text.strip()))
+            (self.output / 'process-tree.txt').write_text(subprocess.check_output(
+                ['ps', '--forest', '-o', 'pid,ppid,args', '-p', str(self.owner.pid),
+                 '--ppid', str(self.owner.pid)], text=True))
             return self
         except BaseException:
             self.__exit__(*sys.exc_info())
             raise
 
     def capture(self):
-        result = self.mux('capture-pane', '-p', '-t', 'qualify:0.0')
-        return result.stdout if result.returncode == 0 else ''
+        """Read st's own print-screen output; screenshots record the visible window."""
+        offset = self.dump.stat().st_size
+        self.keys('shift+Print')
+        deadline = time.monotonic() + 2
+        while True:
+            with self.dump.open('rb') as stream:
+                stream.seek(offset)
+                data = stream.read()
+            if data.count(b'\n') >= self.rows - 1:
+                return data.decode('utf-8')
+            if self.terminal.poll() is not None or time.monotonic() >= deadline:
+                raise RuntimeError('st did not finish its screen dump')
+            time.sleep(.02)
 
     @staticmethod
     def message_cells(text):
@@ -483,7 +489,7 @@ class TerminalApp:
 
     def screenshot(self, name):
         path = self.output / f'{name}.png'
-        run('import', '-display', self.display.name, '-window', 'root', path)
+        run('import', '-display', self.display.name, '-window', str(self.window), path)
         return path
 
     def wait(self, name, predicate, seconds=40):
@@ -506,7 +512,11 @@ class TerminalApp:
             time.sleep(.2)
 
     def keys(self, *keys):
-        self.mux('send-keys', '-t', 'qualify:0.0', *keys).check_returncode()
+        XvfbDisplay.input(self.owner, self.created, self.window, 'key', '--clearmodifiers', *keys)
+
+    def text(self, text):
+        XvfbDisplay.input(self.owner, self.created, self.window, 'type', '--clearmodifiers',
+                          '--delay', '10', text)
 
     def show_saved_thread(self, thread):
         self.wait('saved-ready', lambda text: thread in text
@@ -546,14 +556,13 @@ class TerminalApp:
     def __exit__(self, *exception):
         try:
             if self.terminal.poll() is None:
-                self.mux('send-keys', '-t', 'qualify:0.0', 'C-q')
+                self.keys('ctrl+q')
                 try:
                     self.terminal.wait(timeout=5)
                 except subprocess.TimeoutExpired:
                     self.terminal.terminate()
                     self.terminal.wait(timeout=5)
         finally:
-            self.mux('kill-server')
             self.log.close()
 
 
@@ -683,8 +692,8 @@ with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
                     app.show_saved_thread(thread)
                     app.screenshot('saved')
                     initial = app.reader_place('plain-initial')
-                    app.click_cell(app.columns // 2, app.rows // 2)
-                    app.keys('PPage', 'PPage', 'PPage')
+                    app.click_cell(app.columns // 2, app.rows - 4)
+                    app.keys('Page_Up', 'Page_Up', 'Page_Up')
                     app.wait('plain-page-up-moved', lambda text: bool(app.reader_position(text))
                              and app.reader_position(text) != initial)
                     plain_before = app.reader_place('plain-before')
@@ -715,9 +724,9 @@ def check_filtered_return(app: TerminalApp, thread: str) -> None:
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.hide_category(label)
-    app.click_cell(app.columns // 2, app.rows // 2)
+    app.click_cell(app.columns // 2, app.rows - 4)
     initial = app.reader_place('filtered-initial')
-    app.keys('PPage', 'PPage', 'PPage')
+    app.keys('Page_Up', 'Page_Up', 'Page_Up')
     app.wait('page-up-moved', lambda text: bool(app.reader_position(text))
              and app.reader_position(text) != initial)
     expected = app.reader_place('filtered-before')
