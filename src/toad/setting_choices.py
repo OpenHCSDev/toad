@@ -10,7 +10,7 @@ from textual.content import Content
 from toad.widgets.future_text import FutureText
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.setting_declarations import Choice
+from toad import setting_declarations
 
 
 @dataclass(frozen=True)
@@ -22,7 +22,7 @@ class SchemeName:
     """
 
 
-class Expansion(Choice, DeclaredFamily, affix="Expansion"):
+class Expansion(setting_declarations.Choice, DeclaredFamily, affix="Expansion"):
     patch_preview = True
 
     @classmethod
@@ -70,7 +70,7 @@ class BothExpansion(SuccessExpansion, FailExpansion):
         )
 
 
-class SessionBar(Choice, DeclaredFamily, affix="SessionBar"):
+class SessionBar(setting_declarations.Choice, DeclaredFamily, affix="SessionBar"):
     @classmethod
     @abstractmethod
     def shown(cls, count: int) -> bool: ...
@@ -96,7 +96,7 @@ class NeverSessionBar(SessionBar):
         return False
 
 
-class NotificationPolicy(Choice, DeclaredFamily, affix="Notification"):
+class NotificationPolicy(setting_declarations.Choice, DeclaredFamily, affix="Notification"):
     @classmethod
     def deliver(cls, app, message: str, *, title: str = "", sound: str | None = None) -> None:
         """Shared delivery belongs to the policy that admits it."""
@@ -140,7 +140,7 @@ class AlwaysNotification(NotificationPolicy):
         return True
 
 
-class Scrollbar(Choice, DeclaredFamily, affix="Scrollbar"):
+class Scrollbar(setting_declarations.Choice, DeclaredFamily, affix="Scrollbar"):
     """Spelling is the Textual reactive/CSS value, declared once by each member."""
 
 
@@ -156,7 +156,7 @@ class HiddenScrollbar(Scrollbar):
     pass
 
 
-class LoadingStyle(Choice, DeclaredFamily, affix="Loading"):
+class LoadingStyle(setting_declarations.Choice, DeclaredFamily, affix="Loading"):
     @classmethod
     @abstractmethod
     def widget(cls, screen): ...
