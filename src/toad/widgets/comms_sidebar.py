@@ -304,12 +304,7 @@ class ThreadStatusRow(CommsRow):
         self.retire_thread_row()
         super().set_label(label)
 
-    def retire(self) -> None:
-        self.retire_thread_row()
-        super().retire()
-
     def retire_thread_row(self) -> None:
-        self.tooltip = None
         self.stop_effect()
         self.thread_row = None
 
