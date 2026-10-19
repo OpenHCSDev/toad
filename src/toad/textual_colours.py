@@ -25,7 +25,6 @@ from textual.ansi_palette import AnsiPalette, NativeAnsiPalette, MappedAnsiPalet
 from textual.color import Color
 from textual.content import Content
 from textual.driver import TerminalGaveNoPalette
-from textual.css.styles import Styles
 from textual.style import Style as VisualStyle
 from textual.strip import Strip
 from toad.preferences import SavedSettings, ToadSettings
@@ -42,7 +41,7 @@ from ui_theme.colour import AnsiColour, Rgb, TerminalPalette, require_terminal_p
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Gradient, Mix, PlayedText, TextFrame
 from ui_theme.splash import TextEffect
-from ui_theme.scheme import BackgroundColour, BlockCursorBackgroundColour, BlockCursorForegroundColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, CoreColour, TextStyle
+from ui_theme.scheme import BackgroundColour, BlendColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, CoreColour, TextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 from toad.line_blocks import LineRole
@@ -290,17 +289,11 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def variables_changed(self, variables: dict[str, str]) -> None:
         palette = self.schemes[self.app.theme].palette
         variables = dict(variables)
-        cursor = Styles.parse(f"color: {variables[BlockCursorForegroundColour.name]}; "
-                              f"background: {variables[BlockCursorBackgroundColour.name]};",
-                              read_from=(__file__, "cursor colours"))
-        if cursor.auto_color:
-            variables[BlockCursorForegroundColour.name] = cursor.background.get_contrast_text(cursor.color.a).hex
-
         self._colours = {member: Color.parse(value) for member in ThemeColour.members()
                          if (value := variables.get(member.name)) is not None}
 
         for member in ThemeColour.members():
-            if not issubclass(member, (CoreColour, LayerColour)):
+            if issubclass(member, BlendColour):
                 derived = palette.derived(member, self._colours)
                 self._colours[member] = derived
                 variables[member.name] = derived.css
@@ -320,7 +313,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         colours = {colour.name: value.native(self) for colour, value in scheme.colours.items()
                    if issubclass(colour, (CoreColour, LayerColour))}
         theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
-                      variables={name: value.native(self) for name, value in scheme.elements.items()},
+                      variables={member.name: value.native(self) for member, value in scheme.resolved_elements.items()},
                       **colours)
         return theme
 
