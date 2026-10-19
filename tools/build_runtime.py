@@ -341,8 +341,14 @@ class TerminalApp:
 
     def wait(self, name, predicate, seconds=40):
         deadline = None if seconds is None else time.monotonic() + seconds
+        previous = ''
+        changes = self.output / f'{name}-changes.txt'
         while True:
             text = self.capture()
+            if text != previous:
+                with changes.open('a') as log:
+                    log.write(f'\n--- {time.monotonic()} ---\n{text}')
+                previous = text
             if predicate(text):
                 (self.output / f'{name}.txt').write_text(text)
                 return text
