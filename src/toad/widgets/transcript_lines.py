@@ -377,12 +377,18 @@ class Lines(ABC):
         return strips
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PreparedLines(Lines, LineBlock):
     """Immutable rows can also supply an already laid-out part of a fragment."""
 
     width: int
     rows: tuple[Row, ...]
+    retained_bytes: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "retained_bytes",
+            64 + sum(64 + 64 * len(row) + 4 * sum(len(segment.text) for segment in row)
+                     for row in self.rows))
 
     def __iter__(self) -> Iterator[Row]:
         return iter(self.rows)
@@ -390,11 +396,6 @@ class PreparedLines(Lines, LineBlock):
     @property
     def height(self) -> int:
         return len(self.rows)
-
-    @property
-    def retained_bytes(self) -> int:
-        return 64 + sum(64 + sum(64 + 4 * len(segment.text) for segment in row)
-                        for row in self.rows)
 
     def prepared_rows(self, width, draw) -> PreparedLines:
         if width != self.width:
@@ -661,10 +662,11 @@ class LinePreparation:
 
     blocks: tuple[LineBlock, ...]
     theme: LineTheme
+    retained_bytes: int = field(init=False)
 
-    @property
-    def retained_bytes(self) -> int:
-        return 256 + sum(block.retained_bytes for block in self.blocks)
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "retained_bytes",
+            256 + sum(block.retained_bytes for block in self.blocks))
 
     def wrap(self, width: int, renderer: RichLineRenderer) -> BlockLines:
         return BlockLines(width, self, renderer)
