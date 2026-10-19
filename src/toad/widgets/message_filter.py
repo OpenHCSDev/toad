@@ -119,4 +119,3 @@ def event_category(event: TranscriptEvent) -> type[MessageCategory]:
     consumer = TranscriptCategoryConsumer()
     consumer.dispatch_sync(event)
     return consumer.category
-
