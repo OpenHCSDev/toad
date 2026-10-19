@@ -11,7 +11,6 @@ from toad.navigation_target import NavigationTarget, ThreadTarget
 
 import asyncio
 from dataclasses import dataclass, field
-from pathlib import Path
 
 from agent_comms.display_order import ThreadSort
 from agent_comms.route_selection import RouteSelection
@@ -333,9 +332,9 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
             self._revision = None
         if not self.is_mounted or not self._visible():
             return
-        if self._refresh_task is not None and not self._refresh_task.done():
+        if self._refresh_task is not None and not self._refresh_task.is_finished:
             return
-        self._refresh_task = asyncio.create_task(self._refresh(self._generation))
+        self._refresh_task = self.run_worker(self._refresh(self._generation), group="relationships")
 
     async def _refresh(self, generation):
         await self.thread_view.thread_identity.inspect_owner(
@@ -356,8 +355,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
             # owned by this retained panel. Identity changes and unmount do.
             if generation != self._generation or not self.is_attached:
                 return
-            if snapshot.owner != owner or Path(snapshot.root).resolve() != identity.root_path():
-                raise ValueError("Relationship snapshot does not match this thread and wire")
             if self._snapshot is None and self.groups:
                 # Owner/root replacement is a new source lifetime. Do not
                 # adopt same-named native rows from the hidden previous tree.
@@ -392,11 +389,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
                 await self.remove_children([self.groups.pop(key) for key in absent])
         except asyncio.CancelledError:
             raise
-        except (OSError, ValueError) as error:
-            if generation == self._generation and self.is_attached:
-                context = self.query_one(".relationship-context", Static)
-                context.update(Content("Comms unavailable"), layout=False)
-                context.tooltip = str(error)
 
     @property
     def member_keys(self):
@@ -448,8 +440,6 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
             if (generation != self._generation or not self.is_attached
                     or not self.screen.is_current):
                 return
-            if snapshot.owner != identity.thread_name() or Path(snapshot.root).resolve() != identity.root_path():
-                raise ValueError("Relationship snapshot does not match this thread and wire")
             current = snapshot.current_entry(group_key, expected)
             if current is None:
                 self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
