@@ -10,7 +10,7 @@ from functools import partial
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, TypeGuard
 
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage, TranscriptReadIdentity
+from agent_comms.transcripts import TranscriptCursor, TranscriptPage
 from agent_comms.transcript_events import TranscriptCoverage
 from agent_comms.acp_extension import TranscriptDraftUpdate, TranscriptSnapshotUpdate
 from agent_comms.mro_dispatch import MroDispatch, handles
@@ -28,7 +28,6 @@ from toad.widgets.session_details import SessionDetails
 from toad.transcript_preparation import PreparedPageSource, SavedHistory
 from toad.core.events import CoreEventStream
 from toad.screens.session_view import SessionView
-from agent_comms.errors import UnregisteredThreadError
 
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
@@ -126,11 +125,7 @@ class TranscriptPublication(BoundFrame, ABC):
             if self.current():
                 self.owner.source_requests.defer(self)
                 return False
-        except (StaleRevision, UnregisteredThreadError):
-            # The original backend read lost its source. Every publication
-            # declines it here; only a new observation can accept another read.
-            return True
-        except (OSError, ValueError) as error:
+        except (StaleRevision, OSError, ValueError) as error:
             self.report_failure(error)
         return True
 
@@ -240,11 +235,6 @@ class ObservedSourcePublication(CanonicalSourcePublication):
         super().__init__(binding, owner, generation)
         self.presentation = presentation
         self.agent = binding.view.agent
-
-    async def read_snapshot(self):
-        return await self.read_past_history(
-            partial(self.binding.reader.updates, *self.thread_scope, self.owner.current_read),
-            read_identity=self.presentation.read_identity)
 
     async def publish_applied(self) -> bool:
         if self.current() and self.agent is not None and self.binding.view.agent is self.agent:
@@ -677,14 +667,12 @@ class TranscriptPresentation:
     def readable(self) -> bool:
         return self.binding.thread_scope is not None
 
-    async def get_transcript_page(self, *, before=None, after=None, through=None,
-                                  read_identity=None) -> TranscriptPage:
+    async def get_transcript_page(self, *, before=None, after=None, through=None) -> TranscriptPage:
         frame = self.binding.capture(self, BoundFrame)
         scope = self.binding.thread_scope
         if frame is None or scope is None:
             raise ValueError("Transcript paging requires a bound thread")
-        page = await frame.binding.reader.page(*scope, before=before, after=after, through=through,
-                                      read_identity=read_identity)
+        page = await frame.binding.reader.page(*scope, before=before, after=after, through=through)
         if self.binding.thread_scope != scope:
             raise ValueError("Thread source changed while reading transcript")
         return page
