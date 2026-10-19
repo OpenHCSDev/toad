@@ -8,7 +8,7 @@ from textual.widgets import OptionList, TextArea
 from textual.widgets.option_list import Option
 from textual.widgets.text_area import Selection
 
-from toad.widgets.prompt import Prompt, PromptTextArea
+from toad.widgets.prompt import MessagePrompt, MessageTextArea
 from toad.widgets.selection import SelectionOptionList
 
 
@@ -16,7 +16,7 @@ class MentionList(SelectionOptionList):
     DEFAULT_CSS = "MentionList { height: auto; max-height: 7; margin-bottom: 1; }"
 
 
-class ChannelTextArea(PromptTextArea):
+class ChannelTextArea(MessageTextArea):
     ATTACHES_IMAGES = False
 
     async def action_tab_complete(self) -> None:
@@ -44,7 +44,7 @@ class ChannelTextArea(PromptTextArea):
             self.query_ancestor(ChannelPrompt).refresh_mentions()
 
 
-class ChannelPrompt(Prompt):
+class ChannelPrompt(MessagePrompt):
     TEXT_AREA_CLASS = ChannelTextArea
 
     def __init__(self, **kwargs):

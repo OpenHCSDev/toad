@@ -172,7 +172,8 @@ async def test_an_ordinary_project_file_previews_with_wide_and_accented_text(wor
         await asyncio.wait_for(preview.wait_ready(), 10)
         await ui.step()
         code = preview.query_one(WorkerStatic)
-        painted = "\n".join(code.render_line(row).text for row in range(code.size.height))
+        # The widget paints its own lines with the paint state it inherits (Textual StylesCache).
+        painted = "\n".join(strip.text for strip in code.render_lines(code.size.region))
         assert "Project file: 界 café" in painted, painted[:800]
         await ui.press("ctrl+w")
         assert not app.screen.query(FilePreview)

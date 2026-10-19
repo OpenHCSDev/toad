@@ -16,7 +16,8 @@ class FilePreviewScreen(SessionView, can_focus=False):
     footer_compact = True
     shows_channels = False
 
-    AUTO_FOCUS = "TextArea, FilePreview"
+    # FilePreview scrolls in its body (1325acc3), so the body takes focus and the close key.
+    AUTO_FOCUS = "TextArea, FilePreview > VerticalScroll"
     BINDINGS = [
         Binding("escape", "back", "Previous tab", show=False),
         Binding("ctrl+w", "close_preview", "Close preview", show=False, priority=True),

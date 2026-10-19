@@ -8,7 +8,6 @@ from agent_comms.historical_views import ChannelDisplayHistory, ConversationHist
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage, PageBounds
-from agent_comms.presentation import ReadThrough
 from textual.app import ComposeResult
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
@@ -119,10 +118,6 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         marked = tuple(fragment for fragment in seen if fragment.evidence is page)
         return page.select(fragment.message.seq for fragment in marked), marked
 
-    @classmethod
-    @abstractmethod
-    async def mark_read(cls, comms, target, project, page): ...
-
 
 class ChannelConversation(ConversationKind):
     history_view = ChannelDisplayHistory
@@ -163,7 +158,7 @@ class ChannelConversation(ConversationKind):
     def prompt(cls, target):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(simple_input=True, placeholder=cls.placeholder(target))
+        return ChannelPrompt(placeholder=cls.placeholder(target))
 
     @classmethod
     def read_only(cls, catalog, target):
@@ -188,21 +183,6 @@ class ChannelConversation(ConversationKind):
         if not await history.source_is_current(source) or view.target != target:
             return
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
-
-    @classmethod
-    async def mark_read(cls, comms, target, project, page):
-        from agent_comms.route_selection import implicit_root, run_selected_write
-
-        assert page.display_scope is not None and page.newest_seq is not None
-        await asyncio.to_thread(
-            run_selected_write,
-            comms.root,
-            comms.views.mark_channel_view_read,
-            target,
-            worktree=project,
-            mark=ReadThrough(page.newest_seq, page.display_scope),
-            implicit=implicit_root(),
-        )
 
 
 class DmConversation(ConversationKind):
@@ -243,29 +223,13 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def prompt(cls, target):
-        from toad.widgets.prompt import Prompt
+        from toad.widgets.prompt import MessagePrompt
 
-        return Prompt(simple_input=True, placeholder=cls.placeholder(target))
+        return MessagePrompt(placeholder=cls.placeholder(target))
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:
         return (await asyncio.to_thread(comms.configuration.answer, target)).status_label
-
-    @classmethod
-    async def mark_read(cls, comms, target, project, page):
-        from agent_comms.route_selection import implicit_root, run_selected_write
-
-        assert page.display_basis is not None and page.newest_seq is not None
-        await asyncio.to_thread(
-            run_selected_write,
-            comms.root,
-            comms.views.mark_dm_view_read,
-            target,
-            worktree=project,
-            through=page.newest_seq,
-            expected_display_basis=page.display_basis,
-            implicit=implicit_root(),
-        )
 
 
 class IrcConversation(ChannelConversation):
