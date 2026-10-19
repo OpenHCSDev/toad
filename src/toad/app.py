@@ -2,8 +2,6 @@ from toad.core import events as core_events
 from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
-from agent_comms.route_selection import RouteSelection
-from agent_comms.coordination_errors import DMScopeChanged
 from toad.comms_root import CoordinationAccess
 from toad.widgets.message_notifications import VisibleReadMarking
 
@@ -404,59 +402,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         return [name for name in registered if name not in local_threads]
 
     def read_visible(self):
-        """Capture a painted native/CLI cursor before scheduling its guarded write."""
-        from toad.screens.main import MainScreen
-        from toad.widgets.conversation import Conversation, Window
-
-        screen = self.selected_session
-        if not isinstance(screen, MainScreen):
-            return
-        observed_root = screen.coordination_root
-        conversation = screen.query_one_optional(Conversation)
-        if conversation is None or not conversation.is_mounted:
-            return
-        from toad.widgets.message_filter import all_categories
-
-        if conversation.visible_categories != all_categories():
-            # Filtered-out assistant replies were not displayed. Do not
-            # acknowledge an unfiltered transcript cursor on their behalf.
-            return
-        window = conversation.query_one_optional(Window)
-        through = conversation.transcript.displayed_cursor
-        if through is None or window is None or not window.follows_tail:
-            return
-        if any(history.blocks_visible_read for history in window.histories):
-            return
-        # Capture only the selected view's painted intent on the UI loop. The
-        # original route and registry owners resolve it in the write worker;
-        # never consult a mutable widget after that worker has been scheduled.
-        access = self.coordination_access
-        name = screen.thread_identity.thread_name()
-        project = screen.project_path
-        source_root = screen.coordination_root
-        worktree = str(self.project_dir)
-
-        def acknowledge(cursor) -> None:
-            from toad.widgets.comms_chat import resolve_session_thread
-
-            selected = RouteSelection.capture(observed_root)
-            comms = access.require(selected).service
-
-            def mark() -> None:
-                resolved = resolve_session_thread(comms, project, name, source_root=source_root)
-                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=cursor)
-
-            access.write(selected, mark)
-
-        async def mark():
-            try:
-                await conversation.transcript.mark_read(
-                    through, acknowledge, lambda: self.selected_session is screen,
-                )
-            except DMScopeChanged as error:
-                self.show_error(error, "DM read not marked")
-
-        return mark()
+        return self.selected_session.read_visible()
 
 
     @property

@@ -87,7 +87,7 @@ def runtime_references(runtimes: list[Path]) -> dict[str, list[int]]:
 
 
 def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[Path] | None = None) -> dict:
-    """Keep the two published versions and every prefix still used by a process."""
+    """Records and build dates admit removal; process references can only veto it."""
     selected = current.resolve(strict=True)
     previous = previous.resolve(strict=True)
     directory = selected.parent
@@ -100,26 +100,33 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
         if any(path not in runtimes for path in remove):
             raise ValueError('Removal must name installed sibling runtimes')
         runtimes = remove
+    baseline = RuntimeBuild.recorded_baseline(selected)
+    installed = {selected, previous, baseline}
+    built_at = RuntimeBuild.built_at(selected)
     references = runtime_references(runtimes)
+    proposed = [path for path in runtimes
+                if path not in installed and not references[str(path)]
+                and RuntimeBuild.qualified_before(path, built_at)]
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
+              'baseline': str(baseline),
+              'kept': [str(path) for path in runtimes if path not in proposed],
               'kept_by_pid': {path: pids for path, pids in references.items() if pids},
-              'deleted': []}
+              'would_delete': list(map(str, proposed)), 'deleted': []}
+    free_before = shutil.disk_usage(directory).free
     if delete:
-        for path in runtimes:
-            if path in (selected, previous) or references[str(path)]:
-                continue
-            # Repeat immediately before deletion: a viewer may have started since
-            # the inventory. A changed default invalidates this whole operation.
+        for path in proposed:
             if current.resolve(strict=True) != selected:
                 raise RuntimeError('Default changed during runtime cleanup')
             borrowers = runtime_references([path])[str(path)]
             if borrowers:
                 result['kept_by_pid'][str(path)] = borrowers
+                result['kept'].append(str(path))
                 continue
             shutil.rmtree(path)
             result['deleted'].append(str(path))
             print(f'Removed unused runtime {path}', file=sys.stderr, flush=True)
     result['after'] = len(list(directory.iterdir()))
+    result['filesystem_free_change_bytes'] = shutil.disk_usage(directory).free - free_before
     return result
 
 
@@ -135,9 +142,7 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     from agent_comms.owner_cutover import StoppedOwnerInstallation
 
     publication = RuntimePublication.installed()
-    record = json.loads((publication.runtime / 'build.json').read_text())
-    if record['runtime'] != str(publication.runtime):
-        raise ValueError('Build record does not describe the installed runtime')
+    RuntimeBuild.recorded_baseline(publication.runtime)
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
     if previous == publication.runtime:
         raise ValueError('Runtime is already current; do not repeat publication')
@@ -721,6 +726,29 @@ class GitExport:
 
 @dataclass(frozen=True)
 class RuntimeBuild:
+    record = Path('build.json')
+    timestamp_format = '%Y%m%dT%H%M%SZ'
+
+    @classmethod
+    def built_at(cls, runtime: Path) -> datetime:
+        return datetime.strptime(runtime.name.rsplit('-', 1)[-1], cls.timestamp_format)
+
+    @classmethod
+    def recorded_baseline(cls, runtime: Path) -> Path:
+        record = json.loads((runtime / cls.record).read_text())
+        declared = Path(record['runtime'])
+        baseline = Path(record['baseline'])
+        if declared != runtime or not baseline.is_absolute():
+            raise ValueError(f'Build record does not describe {runtime}')
+        return baseline
+
+    @classmethod
+    def qualified_before(cls, runtime: Path, cutoff: datetime) -> bool:
+        if not (runtime / cls.record).is_file():
+            return False
+        cls.recorded_baseline(runtime)
+        return cls.built_at(runtime) < cutoff
+
     toad: GitExport
     core: GitExport
     baseline: Path
@@ -766,7 +794,7 @@ class RuntimeBuild:
             'git', '-C', str(self.core.repository), 'show', f'{core_commit}:stack/pi-native.sha256'
         ])
         native_pin = hashlib.sha256(manifest).hexdigest()
-        stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')
+        stamp = datetime.now(timezone.utc).strftime(self.timestamp_format)
         destination = self.runtimes / f'toad-{toad_commit[:9]}-core-{core_commit[:9]}-native-{native_pin[:16]}-{stamp}'
         cache = self.scratch / 'wheels'
         with tempfile.TemporaryDirectory(prefix='export-', dir=self.scratch) as temporary, ExitStack() as cleanup:
@@ -811,13 +839,13 @@ class RuntimeBuild:
             run(destination / 'bin/toad', '--version')
             run(python, '-c', 'import toad.cli, agent_comms.cli, textual, formbridge, objectstate')
             # Keep an installed but unqualified candidate available for diagnosis.
-            # Only build.json below certifies readiness; never rebuild to inspect it.
+            # Only the qualification record certifies readiness; never rebuild to inspect it.
             cleanup.pop_all()
         return destination
 
     def qualify(self, destination: Path) -> Path:
         """Finish the existing readiness checks on an installed candidate."""
-        if (destination / 'build.json').exists():
+        if (destination / self.record).exists():
             raise ValueError('Runtime is already qualified')
         toad_commit, core_commit = self.toad.commit, self.core.commit
         installed = read_inventory(destination / 'bin/python')
@@ -846,7 +874,7 @@ class RuntimeBuild:
             'startup': startup,
             'message_wake': wake,
         }
-        (destination / 'build.json').write_text(json.dumps(record, indent=2) + '\n')
+        (destination / self.record).write_text(json.dumps(record, indent=2) + '\n')
         print('qualify: ok', flush=True)
         return destination
 

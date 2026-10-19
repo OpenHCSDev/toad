@@ -7,7 +7,7 @@ viewport owns its measured rows. Unprepared source retains its initial preview.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Hashable, Iterable, Iterator, Mapping
+from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
@@ -670,6 +670,19 @@ class LinePreparation:
         return BlockLines(width, self, renderer)
 
 
+@dataclass(frozen=True)
+class BlockSpan:
+    """One source child's measured rows in its containing lines."""
+
+    index: int
+    first: int
+    height: int
+    drawn: bool
+
+    def contains(self, row: int) -> bool:
+        return self.first <= row < self.first + self.height
+
+
 class BlockLines(Lines):
     """A viewport retains immutable references to block-owned row snapshots."""
 
@@ -679,22 +692,15 @@ class BlockLines(Lines):
     def rewrap(self, width: int) -> BlockLines:
         return self if self.width == width else self.preparation.wrap(width, self.renderer)
 
-    def block_at(self, row: int) -> tuple[int, int, int]:
-        """The source child drawing this row, its first row and measured height."""
+    def block_span(self, accepts: Callable[[BlockSpan], bool]) -> BlockSpan | None:
+        """Find a requested child in one walk of the block-owned measurements."""
         first = 0
         for index, block in enumerate(self.prepared_blocks):
-            if first + block.height > row:
-                return index, first, block.height
-            first += block.height
-        raise IndexError(row)
-
-    def block_row(self, index: int) -> tuple[int, int, bool]:
-        """A source child's rows, or the next displayed child's when hidden."""
-        first = sum(block.height for block in self.prepared_blocks[:index])
-        for following, block in enumerate(self.prepared_blocks[index:], index):
-            if block.height:
-                return first, block.height, following == index
-        return first, 0, False
+            span = BlockSpan(index=index, first=first, height=block.height, drawn=bool(block.height))
+            if accepts(span):
+                return span
+            first += span.height
+        return None
 
     @cached_property
     def prepared_blocks(self) -> tuple[PreparedLines, ...]:

@@ -46,9 +46,10 @@ class ReaderPosition(ABC):
                       key=lambda placed: max(y, placed[0]), default=None)
         if reading is not None:
             first, page = reading
-            fragment, block, start, height = page.fragment_at(max(0, int(y - first)))
-            return FragmentPosition(fragment.arrival_position, (y - first - start) / height,
-                                    height, part=fragment.part_position.index, block=block)
+            span = page.fragment_at(max(0, int(y - first)))
+            fragment = span.fragment
+            return FragmentPosition(fragment.arrival_position, (y - first - span.first) / span.height,
+                                    span.height, part=fragment.part_position.index, block=span.index)
         if (position := BlockPosition.of(window)) is not None:
             return position
         return RowPosition(y)
@@ -215,9 +216,9 @@ class FragmentPosition(OffsetPosition):
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
-        first, height, drawn = page.fragment_row(self.position, self.part, self.block)
-        # A message the filter hides has no rows: the reader is at the next message drawn.
-        return window.row_of(page) + first + (self.fraction * height if drawn else 0)
+        span = page.fragment_row(self.position, self.part, self.block)
+        # A hidden child or message places the reader on the next one drawn.
+        return window.row_of(page) + span.first + (self.fraction * span.height if span.drawn else 0)
 
     def shifted(self, rows: float) -> ReaderPosition:
         return replace(self, fraction=self.fraction + rows / self.height)
