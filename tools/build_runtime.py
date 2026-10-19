@@ -133,6 +133,8 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     sys.path.insert(0, str(publisher.parents[1]))
     from tools.publish_runtime import RuntimePublication
     from agent_comms.owner_cutover import StoppedOwnerInstallation
+    from agent_comms.active_route import read_active_route
+    from agent_comms.comms import wire
 
     publication = RuntimePublication.installed()
     record = json.loads((publication.runtime / 'build.json').read_text())
@@ -141,7 +143,9 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
     if previous == publication.runtime:
         raise ValueError('Runtime is already current; do not repeat publication')
-    publication.publish(root)
+    comms = wire(read_active_route())
+    owners = tuple(thread.process_identity for thread in comms.registry.snapshot().threads.values())
+    publication.publish(root, owners)
     print(f'Linked {publication.runtime}', flush=True)
     # Report the actual prior pointer, not a build baseline or a persistent list.
     print(f'Previous {previous}', flush=True)
