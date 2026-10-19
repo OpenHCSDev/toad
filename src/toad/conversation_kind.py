@@ -163,7 +163,7 @@ class ChannelConversation(ConversationKind):
     def prompt(cls, target):
         from toad.widgets.channel_prompt import ChannelPrompt
 
-        return ChannelPrompt(simple_input=True, placeholder=cls.placeholder(target))
+        return ChannelPrompt(placeholder=cls.placeholder(target))
 
     @classmethod
     def read_only(cls, catalog, target):
@@ -243,9 +243,9 @@ class DmConversation(ConversationKind):
 
     @classmethod
     def prompt(cls, target):
-        from toad.widgets.prompt import Prompt
+        from toad.widgets.prompt import MessagePrompt
 
-        return Prompt(simple_input=True, placeholder=cls.placeholder(target))
+        return MessagePrompt(placeholder=cls.placeholder(target))
 
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:

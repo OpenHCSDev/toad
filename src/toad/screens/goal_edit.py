@@ -40,7 +40,7 @@ class GoalEdit(CoreEventReceiver, ModalScreen[str | None]):
         self.goal = goal
         self.on_save = on_save
         self.saving = False
-        self.editor = ChannelPrompt(simple_input=True)
+        self.editor = ChannelPrompt()
         self.editor.set_mention_candidates(candidates)
 
     def compose(self) -> ComposeResult:

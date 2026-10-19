@@ -277,7 +277,7 @@ class ModelSwitcher(ModelSelection, InfoPopup):
 
     @classmethod
     def for_prompt(cls, prompt: Prompt) -> Self | None:
-        return None if prompt.simple_input else cls().data_bind(history_scope=type(prompt).model_history_scope)
+        return cls().data_bind(history_scope=type(prompt).model_history_scope)
 
     @property
     def choices(self):
