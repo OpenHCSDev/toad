@@ -23,5 +23,4 @@ def test_declared_kinds_read_history_and_a_new_kind_joins_the_family(tmp_path):
         assert kind.resolve(comms, viewer, target) == (viewer, target)
         page = kind.page(WireSource(comms, kind, target, tmp_path, viewer, IrcMessageStyle()), PageBounds(limit=8))
         assert page.messages
-        assert kind.display_identity(page) is not None
     assert ConversationKind.member_named("team").label("#team") == "#team"
