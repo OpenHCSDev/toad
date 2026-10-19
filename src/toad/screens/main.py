@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import cast
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
+from agent_comms.coordination_errors import DMScopeChanged
+from agent_comms.route_selection import RouteSelection
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.mro_dispatch import handles
 from textual import containers, getters, on
@@ -266,6 +268,43 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self._project_panel: ProjectPanel | None = None
         self.content: ScreenContent = OpeningContent()
         self.presentation = OperationalSessionPresentation()
+
+    def read_visible(self):
+        """Capture this session's painted cursor before its guarded backend write."""
+        conversation = self.query_one_optional(Conversation)
+        if conversation is None:
+            return None
+        through = conversation.visible_read_cursor
+        if through is None:
+            return None
+        app = self.app
+        access = app.coordination_access
+        name = self.thread_identity.thread_name()
+        project = self.project_path
+        source_root = self.coordination_root
+        worktree = str(app.project_dir)
+
+        def acknowledge(cursor) -> None:
+            from toad.widgets.comms_chat import resolve_session_thread
+
+            selected = RouteSelection.capture(source_root)
+            comms = access.require(selected).service
+
+            def mark() -> None:
+                resolved = resolve_session_thread(comms, project, name, source_root=source_root)
+                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=cursor)
+
+            access.write(selected, mark)
+
+        async def mark():
+            try:
+                await conversation.transcript.mark_read(
+                    through, acknowledge, lambda: app.selected_session is self,
+                )
+            except DMScopeChanged as error:
+                app.show_error(error, "DM read not marked")
+
+        return mark()
 
     @classmethod
     def from_thread(cls, project: Path, root: str, target,
