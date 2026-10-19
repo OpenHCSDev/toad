@@ -73,16 +73,14 @@ class DeliveryFailureView:
         self._send_state = state
         self.prompt.text = body
         if self.is_attached:
-            self.run_worker(self.refresh_composer(), group="composer-access", exclusive=True)
+            async def refresh() -> None:
+                read_only = await self.composer_read_only()
+                await self.refresh_composer(read_only)
 
-    async def refresh_composer(self, read_only: bool | None = None, status: str = "") -> None:
-        """Project access and send state together; never retain an access flag.
+            self.run_worker(refresh(), group="composer-access", exclusive=True)
 
-        Source refresh passes its fresh Core answer. A later send transition
-        reads the source again, so finishing a send cannot undo retirement.
-        """
-        if read_only is None:
-            read_only = await self.composer_read_only()
+    async def refresh_composer(self, read_only: bool, status: str = "") -> None:
+        """Draw compose from the caller's Core answer and the current send state."""
         if not self.is_attached:
             return
         reason = self.send_block_reason or ("Read-only saved view" if read_only else "")
