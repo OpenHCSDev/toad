@@ -167,8 +167,14 @@ class KeyedRows:
     def rows_changed(self) -> None:
         pass
 
+    def place_row(self, row, index: int) -> None:
+        """Publish list-position facts only for a new or moved row."""
+
     def reconcile_keys(self, keys, *, changed: frozenset[str]):
         rows = self.rows
+        retained = set(rows.values())
+        previous = {row: index for index, row in enumerate(
+            child for child in self.member_container.children if child in retained)}
         wanted = set(keys)
         retired = [key for key in rows if key not in wanted and not self.keep_row(key)]
         for key in retired:
@@ -188,6 +194,9 @@ class KeyedRows:
                 self.update_row(key, rows[key])
         ordered = tuple(rows[key] for key in keys if key in rows)
         positions = {row: index for index, row in enumerate(ordered)}
+        for row, index in positions.items():
+            if previous.get(row) != index:
+                self.place_row(row, index)
         live = tuple(child for child in self.member_container.children if child in positions)
         reordered = bool(ordered) and live != ordered
         if reordered:
@@ -306,6 +315,11 @@ class SidebarGroup[RowT: "CommsRow"](KeyedRows, VerticalGroup):
 
     def update_row(self, key: str, row) -> None:
         self.show_member(key, row)
+
+    def place_row(self, row: RowT, index: int) -> None:
+        alternate = bool(index % 2)
+        if row.alternate != alternate:
+            row.alternate = alternate
 
     def retire_row(self, row) -> None:
         row.retire()
