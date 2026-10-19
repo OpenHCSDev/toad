@@ -401,7 +401,8 @@ class TerminalApp:
         self.log = (self.output / 'st.log').open('w')
         self.terminal = subprocess.Popen(
             ['st', '-f', 'DejaVu Sans Mono:pixelsize=16', '-g', f'{self.columns}x{self.rows}',
-             '-o', str(self.dump), '-e', *map(str, self.command)],
+             '-o', str(self.dump), '-e', 'env', f'HOME={self.environment["HOME"]}',
+             *map(str, self.command)],
             cwd=self.cwd, env=self.environment, stdout=self.log, stderr=self.log)
         self.owner = psutil.Process(self.terminal.pid)
         self.created = self.owner.create_time()
