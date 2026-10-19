@@ -51,7 +51,7 @@ class ToneLayer(PaintLayer):
 class TonePaint:
     """Paints a screen area on its declared theme tone; ``None`` keeps the parent's."""
 
-    tone: ClassVar[type[ThemeColour] | None]
+    tone: ClassVar[type[ThemeColour] | None] = None
     paint_background = paint_foreground = text_style = background_tint = None
     paint_opacity = 1.0
 
@@ -69,7 +69,6 @@ class TonePaint:
 class UntintedTonePaint(TonePaint):
     """Keep the parent's area tone without an additional focus tint."""
 
-    tone = None
     background_tint = TRANSPARENT
 
 
@@ -278,7 +277,7 @@ class EffectFinished(EffectPhase):
 EFFECT_UNSTARTED, EFFECT_RUNNING, EFFECT_FINISHED = EffectUnstarted(), EffectPhase(), EffectFinished()
 
 
-class AnimationEffects[FrameT: Frame]:
+class AnimationEffects[FrameT: Frame](TonePaint):
     """A native widget whose effect uses the app clock and published visibility."""
 
     text_fades: ClassVar[tuple[Fade, ...]] = ()
