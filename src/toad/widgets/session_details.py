@@ -109,8 +109,20 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         if self.is_mounted:
             self._refresh_summary()
 
+    @property
+    def label(self) -> str:
+        return "Session details"
+
     def summary_title(self, row: ThreadStatusModel) -> str:
-        return row.summary[0]
+        """The collapsed row: what this is, its status, saved history and delivery notices."""
+        parts = [self.label, row.summary[0], *self.history_details.summary]
+        if self.delivery is not None:
+            delivery = self.delivery.delivery
+            if delivery.notices:
+                parts.append(f"{delivery.notices} notices")
+            if delivery.error:
+                parts.append("Delivery unavailable")
+        return " · ".join(parts)
 
     def _refresh_summary(self, *_args) -> None:
         row = self.status_source()
@@ -124,7 +136,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         if not Content.from_text(self.title, markup=False).is_same(label):
             self.title = label
         self.overview_text = self.history_details.overview(row.lines)
-        self.display = bool(title)
+        self.display = bool(row.summary[0])
 
     def sync_turn(self) -> None:
         self._refresh_summary()
@@ -139,8 +151,9 @@ class ConversationSessionDetails(SessionDetails):
         self.target = target
         super().__init__(**kwargs)
 
-    def summary_title(self, row: ThreadStatusModel) -> str:
-        return f"{self.target.name} · {super().summary_title(row)}"
+    @property
+    def label(self) -> str:
+        return self.target.name
 
     async def _on_collapsible_title_toggle(self, event) -> None:
         event.prevent_default()
