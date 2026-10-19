@@ -42,9 +42,14 @@ class BoundFrame:
 
     def painted(self, cursor):
         if self.current():
+            view = self.binding.view
+            # A ready agent is not a painted transcript. Retire the splash only
+            # once a mounted page survives this frame's publication fence.
+            if self.binding.histories():
+                from toad.widgets.conversation import ThreadLoading
+                view.query(ThreadLoading).remove()
             self.owner.displayed_cursor = cursor
             self.binding.contents.check_notifications()
-            view = self.binding.view
             view.app.history_displayed()
             view.settle_user_message()
 
@@ -570,14 +575,11 @@ class BoundView(ViewBinding):
         view.call_after_refresh(partial(moment.refresh, publication))
 
     async def reveal_retained(self, owner, history):
-        from toad.widgets.conversation import ThreadLoading
         from toad.widgets.session_details import SessionDetails
         view = self.view
         if not view.is_attached:
             return
         self.painted(owner, history.page_source.through)
-        if (loading := view.query_one_optional(ThreadLoading)) is not None:
-            await loading.remove()
         view.query_one(SessionDetails)._refresh_summary()
 
     def capture(self, owner, kind, *args):

@@ -678,12 +678,9 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     @work
     async def _session_ready(self) -> None:
-        """The agent (or the shell) can take input: drop loading, then post start content."""
+        """The agent (or the shell) can take input; page publication owns the splash."""
         presentation = self.transcript
         if not presentation.binding.matches(self):
-            return
-        await self.query(ThreadLoading).remove()
-        if self.transcript is not presentation or not presentation.binding.matches(self):
             return
         if self._native_agent_started_here and (agent_data := self._agent_data) is not None:
             welcome = agent_data.welcome
