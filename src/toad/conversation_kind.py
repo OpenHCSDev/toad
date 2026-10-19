@@ -149,7 +149,7 @@ class ChannelConversation(ConversationKind):
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
         if me in comms.registry:
             me = comms.registry.require(me).name
-        return me, comms.channels.catalog.read().resolve(target).name
+        return me, comms.channels.catalog.read().require_channel(target).name
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
@@ -167,7 +167,7 @@ class ChannelConversation(ConversationKind):
 
     @classmethod
     def read_only(cls, catalog, target):
-        return catalog.resolve(target).read_only
+        return catalog.require_channel(target).read_only
 
     @classmethod
     async def update_mentions(cls, view, comms):
