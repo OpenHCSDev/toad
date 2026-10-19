@@ -189,18 +189,19 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
     @handles(TranscriptDraftUpdate)
     async def publish_draft(self, snapshot: TranscriptDraftUpdate) -> bool:
         if self.current():
-            self.show_draft(snapshot.draft)
+            self.show_draft(snapshot)
             self.owner.current_read = Published(snapshot.identity)
         return True
 
-    def show_draft(self, draft) -> None:
+    def show_draft(self, snapshot) -> None:
+        draft = snapshot.draft
         widget = self.binding.view.cli_draft
         if self.binding.contents.children[-1] is not widget:
             self.binding.contents.move_child(widget, after=-1)
         if draft is None:
             widget.clear()
         else:
-            widget.show(draft, resolve_sent=self.binding.history.sent_message_resolver())
+            widget.show(draft, resolve_sent=snapshot.identity.wire_frontier.resolve_sent_messages)
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
@@ -219,7 +220,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
                 return True
         published = await self.publish_source_page(page)
         if self.current():
-            self.show_draft(snapshot.draft)
+            self.show_draft(snapshot)
             if published and bound == snapshot.page.after:
                 self.owner.current_read = Published(snapshot.identity)
         if published and self.current() and self.destination is not None:
