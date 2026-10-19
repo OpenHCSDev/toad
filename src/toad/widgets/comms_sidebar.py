@@ -28,7 +28,7 @@ from textual.reactive import reactive, var
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
-from ui_theme.scheme import WarningColour, MutedColour
+from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
 
 
 from agent_comms.mro_dispatch import handles
@@ -154,12 +154,12 @@ def _display_path(path: Path) -> str:
 class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
 
-    DEFAULT_CSS = """
-    CommsRow:even {
-        background: $tone-alternate-row;
-    }
-    """
+    alternate: reactive[bool] = reactive(False, layout=False)
     leaving = var(False)
+
+    @property
+    def tone(self):
+        return AlternateRowToneColour if self.alternate else None
 
     @property
     def target_name(self) -> str:
