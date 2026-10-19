@@ -194,8 +194,6 @@ class CategorizedMount:
     """Mount blocks in their declared order with the conversation's category selection."""
 
     def mount(self, *widgets, **kwargs):
-        from toad.widgets.message_filter import apply_block_filter
-
         blocks = require_blocks(widgets)
         mounted = super().mount(*blocks, **kwargs)
         # Registration supplies the history's real parent before its filter
@@ -203,7 +201,7 @@ class CategorizedMount:
         self.sort_children(key=lambda block: block.conversation_order)
         selected = self.selected_categories
         for widget in blocks:
-            apply_block_filter(widget, selected)
+            widget.apply_message_filter(selected)
         self.call_after_refresh(self.check_notifications)
         return mounted
 
@@ -840,15 +838,13 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
     def watch_visible_categories(
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
-        from toad.widgets.message_filter import apply_block_filter
-
         # The reader stays on the message they are reading; when the new
         # selection hides it, on the next message still shown.
         window = self.window
         window.keep_reader()
         self.navigation.clear()
         for block in self.contents.children:
-            apply_block_filter(block, selected)
+            block.apply_message_filter(selected)
         screen = self.screen
         screen.selections = {
             widget: selection
@@ -1878,9 +1874,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
         if not self.contents.is_attached:
             return widget
         from toad.widgets.message_divider import AgentActivityDivider
-        from toad.widgets.message_filter import CategorizedBlock
-
-        if isinstance(widget, CategorizedBlock) and widget.starts_agent_activity(self._agent_activity_boundary):
+        if widget.starts_agent_activity(self._agent_activity_boundary):
             await self.contents.mount(AgentActivityDivider(widget.message_category), widget)
         else:
             await self.contents.mount(widget)

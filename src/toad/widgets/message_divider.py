@@ -1,7 +1,7 @@
 """A full-width, timestamped separator owned by one displayed message."""
 
 from __future__ import annotations
-from toad.block_navigation import ConversationBlock
+from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.block_content import BlockContent
 
 import time
@@ -25,7 +25,7 @@ from toad.widgets.transcript_lines import (
     LineTheme, LinkedRows, MessageRowBlock, PreparedLines, RichLineRenderer, link_place,
 )
 
-from toad.widgets.message_filter import CategorizedBlock, MessageCategory
+from toad.widgets.message_filter import MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 
 
