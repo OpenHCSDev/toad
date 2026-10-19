@@ -19,7 +19,8 @@ from toad.thread_identity import ThreadIdentity
 from agent_comms.native_turn_context import NativeContextData
 from agent_comms.pi_payloads import PiMessage
 from agent_comms.session_revision import SessionRevision, SessionObservation
-from agent_comms.threads import Thread
+from agent_comms.registry_document import RegistryEntry
+from agent_comms.thread_status import ActiveThreadPresence, ThreadStatus
 from agent_comms.turn_context import (
     CodexRolloutProvenance, ContextManifest, ContextSegment, ContextSourceText, NativeMessages, Provenance,
     SegmentManifest, TurnContext,
@@ -499,7 +500,7 @@ class AcquiredCoreInspection(CoreInspection):
 @dataclass(frozen=True)
 class ContextInspection:
     """Original observed objects and selection identity, shared by any frontend."""
-    owner: Thread
+    entry: RegistryEntry
     page: ContextManifestPage
     source: SessionObservation
     service: Comms
@@ -507,21 +508,31 @@ class ContextInspection:
     imported_sources: tuple[CodexRolloutProvenance, ...] = ()
     core: CoreInspection = field(default_factory=UnavailableCoreInspection)
 
-    @classmethod
-    def read(cls, comms, owner, *, cursor=None, previous=()):
-        thread = comms.registry.require(owner)
+    @property
+    def owner(self):
+        return self.entry.thread
+
+    @staticmethod
+    def read(comms, owner, *, cursor=None, previous=()):
+        entry = comms.registry.entry(owner).entry
+        thread = entry.thread
         page = comms.bus.log.context_manifest_page(owner, comms.registry,
             cursor=cursor, previous=previous)
         annotations = WorkingMemoryAnnotations.for_context(
             comms.root / "coordination.sqlite3",
             tuple(resource.value for resource in page.resources), JevClassifier.version())
         imported = ImportedSessionMetadata.sources_for_owner(comms.registry, thread)
-        return cls(thread, page, SessionRevision.observe(thread.session_file), comms,
-                   annotations, imported)
+        inspection_type = ThreadInspectionSource().dispatch_sync(entry.status)
+        return inspection_type(entry, page, SessionRevision.observe(thread.session_file), comms,
+                               annotations, imported)
+
+    async def acquire(self, revision):
+        return HoldingInspection(await self.acquire_core(), revision)
 
     def same_native_source(self, other: ContextInspection):
         """Whether a context read from the running agent for one still describes the other."""
-        return self.source == other.source and self.owner.same_launch(other.owner)
+        return (self.source == other.source and self.owner.same_launch(other.owner)
+                and self.entry.status == other.entry.status)
 
     def recorded(self):
         # Later observations of the same original turn supersede only its view.
@@ -658,6 +669,45 @@ class ContextInspection:
                      for i, segment in enumerate(context.segments))
 
 
+class SavedContextInspection(ContextInspection):
+    """A stopped thread borrows retained records, never an owner socket."""
+
+    async def acquire(self, revision):
+        return SavedInspection(self, revision)
+
+    def saved_manifest(self, manifest):
+        return self.page.reference(manifest).read(
+            self.service.bus.log, self.owner.name, self.service.registry)
+
+    async def recorded_source(self, manifest, position, source):
+        def read():
+            return self.saved_manifest(manifest).public_source_text(self.service, position, source)
+        return await Coordination.run_worker(read)
+
+    async def recorded_segment(self, manifest, position, contributors=()):
+        def read():
+            return self.saved_manifest(manifest).selected_segment(position, contributors)
+        segment = await Coordination.run_worker(read)
+
+        async def unavailable(original):
+            return "Public SDK text was not retained in this saved record; no live preview is available."
+
+        text = await segment.public_text(unavailable)
+        return ContextSourceText(segment.public_description(), text)
+
+
+class ThreadInspectionSource(MroProjection):
+    """The original registry state selects the inspection's source capability."""
+
+    @handles(ThreadStatus)
+    def saved(self, status):
+        return SavedContextInspection
+
+    @handles(ActiveThreadPresence)
+    def live(self, status):
+        return ContextInspection
+
+
 class InspectionState(DeclaredFamily, affix="Inspection"):
     """One inspection lifetime; Textual owns workers and Tree resources separately."""
 
@@ -676,8 +726,7 @@ class InspectionState(DeclaredFamily, affix="Inspection"):
             raise ValueError("Selected context belongs to another wire root")
         inspection = await Coordination.run_worker(partial(ContextInspection.read, service,
             identity.thread_name(), cursor=cursor, previous=self.manifest_sources))
-        inspection = await inspection.acquire_core()
-        return HoldingInspection(inspection, revision)
+        return await inspection.acquire(revision)
 
     def receive_inspection(self, acquired) -> InspectionState:
         return acquired
@@ -813,6 +862,21 @@ class HoldingInspection(InspectionState):
     @property
     def status(self):
         return f"{self.thread_identity.thread_name()} · {self.inspection.core.status}\nReading native context…"
+
+
+class SavedInspection(HoldingInspection):
+    """Only saved context is available; there is no native read to schedule."""
+
+    def prepare_native(self, consumer) -> None:
+        pass
+
+    def present_acquired(self, previous, consumer) -> None:
+        self.present(consumer)
+
+    @property
+    def status(self):
+        return (f"{self.thread_identity.thread_name()} · stopped · saved context records\n"
+                "Live Core/native preview unavailable; no owner process is required.")
 
 
 @dataclass(frozen=True)

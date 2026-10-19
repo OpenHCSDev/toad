@@ -210,10 +210,7 @@ class AgentController(OperationalTerminalOwner):
     async def reconcile_turn(self, coordination, authority):
         """Release snapshot ordering through a fresh read of the same owner."""
         self.require_owner(coordination, authority)
-        read = self.agent.thread_read()
-        if read is not None:
-            presentation = await self.transcripts.thread_presentation(*read.thread)
-            read.settle(presentation)
+        await self.agent.thread_read().reconcile(self.transcripts)
 
     def accepts_turn_snapshot(self, sequence):
         """A remote busy turn does not imply an ordered response on this client."""

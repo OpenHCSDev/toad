@@ -9,6 +9,10 @@ from toad.acp.agent_session import UnopenedSessionDisposition
 
 
 class AgentBinding(ABC):
+    def thread_read(self):
+        from toad.acp.comms_updates import NoPendingThreadRead
+        return NoPendingThreadRead()
+
     def model_info(self) -> Content:
         model = self.configuration.model.selected
         if model is None:
@@ -59,9 +63,6 @@ class NoAgentBound(AgentBinding):
 
     def get_info(self) -> str:
         return ""
-
-    def thread_read(self):
-        return None
 
     async def retire_surface(self, view) -> None:
         """There is no native surface to retire."""
