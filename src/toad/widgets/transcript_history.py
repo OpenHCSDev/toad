@@ -121,7 +121,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self.prepared = prepared
         self.visible_categories = all_categories()
         self.prepared.configure(batch_size=batch_size)
-        # Fragments drawn as plain text until their styled lines arrive, by identity.
+        # Current-width previews awaiting visible styled rows, by identity.
         self._pending: dict[int, TranscriptFragment] = {}
         self._render_task: asyncio.Task[None] | None = None
         # The rows this page draws are the rows layout last measured: each
@@ -185,9 +185,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._measured = False
         self.refresh(layout=True)
 
-    def _lines(self, fragment: TranscriptFragment, width: int) -> BlockLines:
+    def _lines(self, fragment: TranscriptFragment, width: int, *, styled: bool) -> BlockLines:
         theme = self.app.colours.line_theme
-        lines = fragment.lines_for(width, theme)
+        lines = fragment.lines_for(width, theme) if styled else None
         if lines is None:
             self._pending[id(fragment)] = fragment
             lines = fragment.plain_lines(width, self.app.colours.line_renderer)
@@ -204,16 +204,17 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._width, self._measured = width, True
         self._pending.clear()
         previous = {id(fragment): lines for fragment, _first, lines in self._layout}
+        visible = {id(fragment) for fragment in self.visible_fragments(self.history.window)} if previous else None
         layout, starts, y = [], [], 0
         repaint = []
         if width > 0:
             for fragment in self.prepared.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
                     continue
-                # Geometry belongs to this layout's width, including rows
-                # outside the viewport. RowAcquisition reuses styled source
-                # while rewrapping it; only styling work stays viewport-lazy.
-                lines = self._lines(fragment, width)
+                # Offscreen extent uses the existing cheap source preview at
+                # the new width, never old-width rows. Styled source is wrapped
+                # only when the viewport actually needs those rows.
+                lines = self._lines(fragment, width, styled=visible is None or id(fragment) in visible)
                 if id(fragment) in previous and lines is not previous[id(fragment)]:
                     repaint.append((y, lines.height))
                 layout.append((fragment, y, lines))
@@ -231,6 +232,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         theme = self.app.colours.line_theme
         visible = tuple(self.visible_rows(window))
         if any(lines.width != self._width or not fragment.retains_lines(lines, theme)
+               or (id(fragment) in self._pending and fragment.lines_for(self._width, theme) is not None)
                for fragment, _rows, lines in visible):
             self.range_changed()
             return
