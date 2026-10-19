@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from metaclass_registry import DuplicateRegistryKeyError
 
 from toad.ansi._ansi import ANSICommand, TerminalMode, TerminalState
 from toad.ansi._stream_parser import (
@@ -124,7 +125,7 @@ def test_declared_command_and_mode_need_no_dispatch_edit():
         assert state.current_directory == "/enabled"
         await state.write("\x1b[?987653l")
         assert state.current_directory == "/disabled"
-        with pytest.raises(TypeError, match="Duplicate family name"):
+        with pytest.raises(DuplicateRegistryKeyError):
 
             class DuplicateMode(TerminalMode, declared_name="987653"):
                 @classmethod
