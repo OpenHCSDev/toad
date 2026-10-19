@@ -48,6 +48,7 @@ from toad.line_blocks import LineRole
 from toad.render_tasks import TextEffectRenderTask
 
 if TYPE_CHECKING:
+    from toad.preferences import SavedSettings, ToadSettings
     from toad.app import ToadApp
 
 
@@ -435,12 +436,26 @@ class ThemedApp:
     """
 
     colours: TextualColours
+    saved_settings: SavedSettings
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        # Line styles read the diff settings, so a themed app holds settings before its colours.
+        self.saved_settings = self.open_settings()
         # Textual asks for the colour system and the palette while it builds the app.
         self.colours = TextualColours(self)  # type: ignore[arg-type]
         super().__init__(*args, **kwargs)
         self.colours.register_catalog()
+
+    def open_settings(self) -> SavedSettings:
+        """Settings held by this app alone; an app with a settings file opens it instead."""
+        from toad.preferences import SavedSettings
+
+        return SavedSettings()
+
+    @property
+    def settings(self) -> ToadSettings:
+        """The settings in use, to read from; `saved_settings` changes and saves them."""
+        return self.saved_settings.current
 
     def _display(self, screen: Screen, renderable: RenderableType | None) -> None:
         super()._display(screen, renderable)
