@@ -536,7 +536,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
-        self._thread_loading = next(iter(ThreadLoading.initial_contents(agent)), None)
+        self._thread_loading = ThreadLoading.initial_contents(agent)
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -915,8 +915,8 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     def retire_loading_splash(self) -> None:
         """The composed splash is consumed once when saved history paints or fails."""
-        splash, self._thread_loading = self._thread_loading, None
-        if splash is not None:
+        splashes, self._thread_loading = self._thread_loading, ()
+        for splash in splashes:
             splash.remove()
 
     def compose(self) -> ComposeResult:
@@ -924,8 +924,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with ConversationContents(id="contents"):
-                    if self._thread_loading is not None:
-                        yield self._thread_loading
+                    yield from self._thread_loading
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
