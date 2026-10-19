@@ -233,11 +233,11 @@ class ObservedSourcePublication(CanonicalSourcePublication):
     def __init__(self, binding, owner, generation, presentation):
         super().__init__(binding, owner, generation)
         self.presentation = presentation
-        self.agent = binding.view.agent
+        self.agent_binding = binding.view.agent_binding
 
     async def publish_applied(self) -> bool:
-        if self.current() and self.agent is not None and self.binding.view.agent is self.agent:
-            await self.agent.observe_thread_presentation(self.presentation)
+        if self.current() and self.binding.view.agent_binding is self.agent_binding:
+            await self.agent_binding.observe_thread_presentation(self.presentation)
         if self.current():
             return await super().publish_applied()
         return True

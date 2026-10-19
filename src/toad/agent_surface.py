@@ -22,7 +22,7 @@ class AttachedSurfaceBinding(SurfaceBinding, MroDispatch):
     def owns_publication(self, message, target):
         if not self.subscription.accepts(message.subscription):
             return False
-        if not self.owns(target) or target.agent is not message.publisher:
+        if not self.owns(target) or not target.agent_binding.matches_agent(message.publisher):
             return False
         if message.publisher.controller.surface is not self:
             return False

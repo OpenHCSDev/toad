@@ -142,15 +142,8 @@ class ProjectCommand(SlashCommand, LocalCommand):
     async def apply(self, conversation: Conversation) -> bool:
         if self.path is None:
             conversation.flash(Content(f"Project: {conversation.project_path}"))
-        elif conversation.agent is None:
-            conversation.flash(
-                "Project changes require an agent-comms session", style="error"
-            )
         else:
-            project = await conversation.agent.update_project(str(self.path))
-            conversation.flash(
-                Content(f"Project changed to {project}"), style="success"
-            )
+            await conversation.agent_binding.change_project(conversation, self.path)
         return True
 
 
@@ -221,12 +214,8 @@ class CompactCommand(SlashCommand, LocalCommand):
             conversation.flash(
                 "Wait for the current response before compacting", style="error"
             )
-        elif conversation.agent is None:
-            conversation.flash(
-                "Context compaction requires an agent-comms session", style="error"
-            )
         else:
-            conversation.compact_context(self.instructions)
+            conversation.agent_binding.request_compaction(conversation, self.instructions)
         return True
 
 
@@ -303,8 +292,8 @@ class SessionCloseCommand(NoArgumentsCommand, declared_name="toad:session-close"
     async def apply(self, conversation: Conversation) -> bool:
         from toad import messages
 
-        if conversation.turns.owner.busy and conversation.agent is not None:
-            await conversation.agent.cancel()
+        if conversation.turns.owner.busy:
+            await conversation.agent_binding.cancel()
         if conversation.screen.id is not None:
             conversation.app.session_navigation.events.publish(session_requests.SessionClose(conversation.screen.id))
         return True

@@ -266,13 +266,12 @@ class ManagedTurnBinding(TurnBinding):
 class ConversationTurn:
     """Read the actual source binding; the widget keeps no managed state or cursor."""
     def __init__(self, changed, source):
-        self._local = LocalTurnBinding()
         self._source = source
         self._changed = changed
 
     @property
     def binding(self):
-        return self._source() or self._local
+        return self._source()
 
     @property
     def owner(self):

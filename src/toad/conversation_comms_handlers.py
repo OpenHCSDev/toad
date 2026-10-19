@@ -28,10 +28,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
     def accepts(self, message: CoreEventMessage) -> bool:
         if not message.event.session_scoped:
             return True
-        agent = self.agent
-        if message.publisher is not agent:
-            return False
-        if message.event.session_id != agent.session_id:
+        if not self.agent_binding.accepts_message(message):
             return False
         return self.turns.owner.accepts_update(message.event.update)
 

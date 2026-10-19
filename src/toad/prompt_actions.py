@@ -42,7 +42,10 @@ class SubmitNowAction(SubmitAction):
     priority = True
 
     def available(self, editor):
-        return super().available(editor) and editor.agent_ready and editor.agent_busy and editor.queue_supported
+        from toad.widgets.prompt import Prompt
+
+        return (super().available(editor) and editor.agent_ready and editor.agent_busy
+                and editor.query_ancestor(Prompt).agent_binding.presentation.queue_supported)
 
     async def apply(self, editor):
         editor.schedule_submission(immediate=True)

@@ -95,7 +95,7 @@ class CommsChatView(Conversation):
                 project_path=Conversation.project_path,
                 working_directory=Conversation.working_directory,
                 agent_info=Conversation.agent_info,
-                agent=Conversation.agent,
+                agent_binding=Conversation.agent_binding,
                 status=Conversation.status,
             )
 
@@ -198,7 +198,7 @@ class CommsChatView(Conversation):
         if self.query_ancestor(SessionView).is_current:
             prompt.focus()
 
-    def watch_agent(self, agent) -> None:
+    def watch_agent_binding(self, agent) -> None:
         """Keep the inherited agent reactive from turning this into a shell session."""
         self.agent_info = Content(self._target_label())
 
