@@ -514,10 +514,6 @@ class TerminalApp:
     def keys(self, *keys):
         XvfbDisplay.input(self.owner, self.created, self.window, 'key', '--clearmodifiers', *keys)
 
-    def text(self, text):
-        XvfbDisplay.input(self.owner, self.created, self.window, 'type', '--clearmodifiers',
-                          '--delay', '10', text)
-
     def show_saved_thread(self, thread):
         self.wait('saved-ready', lambda text: thread in text
                   and '▶ Session details · Ready' in '\n'.join(text.splitlines()[-8:]))
