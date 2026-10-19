@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from agent_comms.historical_views import ConversationObservation
 
 from agent_comms.messages import Message
 from agent_comms.coordination_errors import StaleRevision
@@ -15,9 +15,6 @@ from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
-
-if TYPE_CHECKING:
-    from agent_comms.historical_views import ConversationRevision
 
 class WireHistory(VisibleReadMarking, LineHistory):
     """The line history of a channel or direct conversation.
@@ -35,7 +32,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
         self.view = view
         super().__init__(prepared, page_source, notification_view=notification_view)
         # Core's source observation is independent of paint readiness.
-        self.revision: ConversationRevision | None = None
+        self.revision = ConversationObservation()
 
     @classmethod
     def empty(cls, *, view, notification_view):

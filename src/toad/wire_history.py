@@ -19,7 +19,7 @@ from agent_comms.message_page import MessagePage
 from agent_comms.transcript_events import IncomingTranscript
 from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
-from agent_comms.historical_views import ConversationHistoryView, ConversationRevision
+from agent_comms.historical_views import ConversationHistoryView, ConversationObservation, ConversationRevision
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
@@ -255,7 +255,7 @@ class WireSource:
     def viewer(self) -> NamedViewer:
         return self.comms.views.display_viewer(str(self.project))
 
-    def observe(self, seen: ConversationRevision | None) -> WireObservation | None:
+    def observe(self, seen: ConversationObservation) -> WireObservation | None:
         """What changed since `seen`, or None when the stores are as they were."""
         revision = self.kind.history_view.revision(
             self.comms.views, self.target, seen, worktree=str(self.project))
@@ -264,7 +264,7 @@ class WireSource:
         high = AfterSequence(LiveCursor(self.comms.views.latest_sequence()))
         # Core's display view owns which stores can replace this reading.
         # Notification/read/activity writes do not require a page to learn that.
-        replaced = seen is None or revision.display_changed_since(seen)
+        replaced = revision.display_changed_since(seen)
         return WireObservation(revision, high, replaced)
 
     def read(self, request: PageRequest[WireCut], through: AfterSequence) -> PreparedTranscriptPage:
