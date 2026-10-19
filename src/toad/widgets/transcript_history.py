@@ -11,7 +11,7 @@ from collections import deque
 from contextlib import ExitStack, asynccontextmanager
 from dataclasses import dataclass, field, replace
 from functools import cached_property, partial
-from itertools import islice
+from itertools import chain, islice
 from collections.abc import AsyncIterator, Callable, Iterator
 from typing import TYPE_CHECKING
 from weakref import ref
@@ -267,17 +267,16 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def fragment_row(self, position: int | str, part: int, block: int) -> FragmentSpan | None:
         """A source child's first measured row, height and whether the page draws it.
 
-        A fragment without rows of its own (the filter hides it, or layout
-        has not measured it yet) is where the next drawn fragment starts, or
-        at the page's end when none follows. None when the fragment is not
-        loaded here.
+        A hidden fragment lands on the next drawn fragment, otherwise the
+        previous one. None means this page has no drawn destination for the
+        source position; an empty range is filled by source preparation.
         """
         loaded = self.prepared.fragments_in_range
         at = next((index for index, candidate in enumerate(loaded)
                    if candidate.matches_position(position, part)), None)
         if at is None:
             return None
-        for candidate in loaded[at:]:
+        for candidate in chain(loaded[at:], reversed(loaded[:at])):
             if (slot := self._fragment_slots.get(id(candidate))) is not None:
                 _fragment, first, lines = self._layout[slot]
                 same = candidate.matches_position(position, part)
@@ -286,8 +285,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
                 if span is not None:
                     placed = FragmentSpan.in_page(candidate, first, span)
                     return replace(placed, drawn=same and span.index == block)
-        return FragmentSpan(index=block, first=self._height, height=0, drawn=False,
-                            fragment=loaded[at])
+        return None
 
     @property
     def drawn_fragments(self) -> tuple[TranscriptFragment, ...]:
