@@ -2,7 +2,6 @@
 
 from agent_comms.routing import MessageRoute
 
-from support.agents import detached
 from toad.core.events import Update
 from toad.core_event_carrier import CoreEventMessage
 from toad.live_output import OutputStream, ResponseStream, ThoughtStream
@@ -57,7 +56,7 @@ async def test_queued_client_replies_of_one_local_turn_form_one_reply(workspace)
     """A generic ACP request can settle before its queued updates drain; its local turn still owns one reply."""
     async with workspace.app() as ui:
         view = ui.conversation
-        agent = detached(workspace.project, None)
+        agent = ui.detached_agent()
         ui.attach_agent(agent)
         subscription = agent.controller.surface.subscription
         view.turns.start_client()
@@ -85,7 +84,7 @@ async def test_a_different_turn_id_or_owner_notice_starts_a_new_block(workspace)
 async def test_an_update_published_by_another_agent_adds_no_block(workspace):
     async with workspace.app() as ui:
         view = ui.conversation
-        agent = detached(workspace.project, None)
+        agent = ui.detached_agent()
         ui.attach_agent(agent)
         subscription = agent.controller.surface.subscription
         view.turns.start_client()
@@ -95,7 +94,7 @@ async def test_an_update_published_by_another_agent_adds_no_block(workspace):
         await view.output.finish(ResponseStream)
         count = len(view.query(AgentResponse))
         # The view shows `agent`; an update published by any other agent is not its output.
-        other = detached(workspace.project, None, identity="another-agent")
+        other = ui.detached_agent(identity="another-agent")
         foreign = other.events.subscribe(lambda event, subscription: None)
         await view.on_acp_agent_message(CoreEventMessage(Update("text", "Retired source", ResponseStream()), foreign))
         assert len(view.query(AgentResponse)) == count

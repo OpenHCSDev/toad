@@ -175,7 +175,6 @@ class PreparedTranscriptPage:
         return (self.fragments is other.fragments
                 and page.before == incoming.before
                 and page.after == incoming.after
-                and page.snapshot is not None
                 and page.snapshot == incoming.snapshot)
 
     def for_view(self) -> PreparedTranscriptPage:

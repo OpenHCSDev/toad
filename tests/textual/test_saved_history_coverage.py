@@ -6,7 +6,7 @@ Not carried over from the old script: the wait for a nested rendering pager insi
 
 from agent_comms.threads import Thread
 
-from support import agents, journals
+from support import journals
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.session_details import SessionDetails
 from toad.widgets.transcript_history import TranscriptHistory
@@ -21,7 +21,7 @@ async def saved_history(workspace, ui):
     workspace.comms.registry.declare(Thread("saved", frozenset(), str(workspace.project), session_file=str(journal)))
     page = workspace.comms.transcripts.thread_transcript_page("saved")
     conversation = ui.conversation
-    ui.attach_agent(agents.detached(workspace.project))
+    ui.attach_agent(ui.detached_agent())
     await conversation.transcript.snapshot(page)
     await ui.until(lambda: conversation.contents.query_children(TranscriptHistory), why="the saved history")
     return page, conversation.contents.query_children(TranscriptHistory).first(), conversation.query_one(SessionDetails)
