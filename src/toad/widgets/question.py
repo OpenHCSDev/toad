@@ -114,13 +114,13 @@ class Option(PrimaryActivation, containers.HorizontalGroup):
 
     def on_click(self, event: events.Click) -> None:
         event.stop()
-        self.action_select()
+        self.select_option()
 
     @property
     def primary_activation(self):
-        return self.action_select
+        return self.select_option
 
-    def action_select(self) -> None:
+    def select_option(self) -> None:
         self.post_message(self.Selected(self.index))
 
 
