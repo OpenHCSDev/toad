@@ -28,7 +28,7 @@ from textual.reactive import reactive, var
 from ui_theme.effects import SIDEBAR_ENTER, SIDEBAR_EXIT
 from textual.widgets import Static
 from textual._activation import PrimaryActivation
-from ui_theme.scheme import WarningColour, MutedColour, AlternateRowToneColour
+from ui_theme.scheme import WarningColour, MutedColour
 
 
 from agent_comms.mro_dispatch import handles
@@ -39,7 +39,6 @@ from toad.widgets.thread_identity import ShowsThreadIdentity
 from toad.core_event_carrier import CoreEventReceiver
 from toad.navigation_target import channel_target, ThreadTarget
 from toad.session_tracker import SidebarSelection
-from toad.frame_presentation import AlternatingTonePaint
 from toad.widgets.selection import ChangingText, HoverSelection, ViewLabel
 from toad.application_actions import NewThreadAction
 from toad.widgets.session_sort import ChannelListSort, SessionSort
@@ -152,10 +151,14 @@ def _display_path(path: Path) -> str:
         return str(path.resolve())
 
 
-class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, AlternatingTonePaint, HoverSelection, ViewLabel):
+class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
 
-    alternate_tone = AlternateRowToneColour
+    DEFAULT_CSS = """
+    CommsRow:even {
+        background: $tone-alternate-row;
+    }
+    """
     leaving = var(False)
 
     @property
