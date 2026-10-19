@@ -378,8 +378,6 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         if read is not None:
             presentation = read.settle(presentation)
         self.thread_presented(presentation)
-        if (prompt := self.query_one_optional(Prompt)) is not None:
-            prompt.sync_session()
 
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)
@@ -857,6 +855,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     def _observed_activity_changed(self, event: ObservedThreadActivity.Changed) -> None:
         event.stop()
         self._sync_working()
+        if (prompt := self.query_one_optional(Prompt)) is not None:
+            prompt.sync_session()
 
     @on(events.Key)
     async def on_key(self, event: events.Key):

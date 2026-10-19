@@ -17,6 +17,7 @@ import importlib.metadata
 import importlib.util
 import json
 import os
+import re
 import select
 import signal
 from pathlib import Path
@@ -410,6 +411,7 @@ class TerminalApp:
             self.window = int(subprocess.check_output(
                 ['xdotool', 'search', '--sync', '--onlyvisible', '--pid', str(self.terminal.pid)],
                 env=self.environment, text=True, timeout=10).splitlines()[0])
+            self._read_grid()
             # -o enables st's raw printer too; Ctrl+Print leaves only explicit dumps.
             self.keys('ctrl+Print')
             self.wait('terminal', lambda text: bool(text.strip()))
@@ -430,7 +432,7 @@ class TerminalApp:
             with self.dump.open('rb') as stream:
                 stream.seek(offset)
                 data = stream.read()
-            if data.count(b'\n') >= self.rows - 1:
+            if data.count(b'\n') >= self.rows:
                 return data.decode('utf-8')
             if self.terminal.poll() is not None or time.monotonic() >= deadline:
                 raise RuntimeError('st did not finish its screen dump')
@@ -539,13 +541,28 @@ class TerminalApp:
         prefix, panel = line.rsplit('│', 1)
         self.click_cell(cell_len(prefix + '│' + panel[:panel.index('▐')]) + 1, row)
 
-    def click_cell(self, column, row):
+    def _read_grid(self):
+        """st declares one cell plus its padding as the X minimum window size."""
         geometry = subprocess.check_output(
             ['xdotool', 'getwindowgeometry', '--shell', str(self.window)],
             env=self.environment, text=True)
         size = dict(line.split('=', 1) for line in geometry.splitlines() if '=' in line)
-        x = 2 + int((column + .5) * (int(size['WIDTH']) - 4) / self.columns)
-        y = 2 + int((row + .5) * (int(size['HEIGHT']) - 4) / self.rows)
+        hints = subprocess.check_output(
+            ['xprop', '-display', self.display.name, '-id', str(self.window), 'WM_NORMAL_HINTS'],
+            env=self.environment, text=True)
+        declared = {name: (int(width), int(height)) for name, width, height in re.findall(
+            r'program specified (minimum size|base size): (\d+) by (\d+)', hints)}
+        base_x, base_y = declared['base size']
+        minimum_x, minimum_y = declared['minimum size']
+        self.cell_width, self.cell_height = minimum_x - base_x, minimum_y - base_y
+        self.border_x, self.border_y = base_x / 2, base_y / 2
+        self.columns = (int(size['WIDTH']) - base_x) // self.cell_width
+        self.rows = (int(size['HEIGHT']) - base_y) // self.cell_height
+
+    def click_cell(self, column, row):
+        self._read_grid()
+        x = int(self.border_x + (column + .5) * self.cell_width)
+        y = int(self.border_y + (row + .5) * self.cell_height)
         XvfbDisplay.input(self.owner, self.created, self.window, 'mousemove', '--window',
                           str(self.window), str(x), str(y), 'click', '1')
 

@@ -217,7 +217,7 @@ class FragmentPosition(OffsetPosition):
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
         span = page.fragment_row(self.position, self.part, self.block)
-        # A hidden child or message places the reader on the next one drawn.
+        # A hidden child lands on the next drawn sibling, otherwise the previous.
         return window.row_of(page) + span.first + (self.fraction * span.height if span.drawn else 0)
 
     def shifted(self, rows: float) -> ReaderPosition:
