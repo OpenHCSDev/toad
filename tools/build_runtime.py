@@ -283,34 +283,34 @@ class InstallWatchers:
             restore.callback(lambda: (self.restore(), self.path.unlink()) if self.path.exists() else None)
             self.stop()
             desktop = json.loads(desktop_path.read_text()) if desktop_path.exists() else []
-            for process in psutil.process_iter(['pid', 'ppid', 'cmdline', 'status']):
+            for process in psutil.process_iter():
                 try:
-                    command = process.info['cmdline'] or []
-                    if not command or process.info['status'] == psutil.STATUS_ZOMBIE:
+                    identity = ProcessIdentity.capture(process.pid)
+                except ProcessLookupError:
+                    continue
+                try:
+                    command = process.cmdline()
+                    if not command:
                         continue
-                    children = process.children()
-                    bridges = [(child, ProcessIdentity.capture(child.pid)) for child in children if any(
-                        Path(arg).name == 'agent-comms-claude-bridge' for arg in child.cmdline())]
+                    bridges = []
+                    for child in process.children():
+                        try:
+                            child_identity = ProcessIdentity.capture(child.pid)
+                        except ProcessLookupError:
+                            continue
+                        if any(Path(arg).name == 'agent-comms-claude-bridge' for arg in child.cmdline()):
+                            bridges.append(child_identity)
                     if bridges and any('agent-comms-claude-bridge watch' in arg for arg in command):
-                        for child, _ in bridges:
-                            if not child.is_running():
-                                raise ProcessLookupError('Selected bridge exited before publication')
-                        identity = ProcessIdentity.capture(process.pid)
-                        if not process.is_running():
-                            raise ProcessLookupError('Selected bridge shell exited before publication')
                         paused.append(identity)
                         _atomic_write_text(bridge_path, json.dumps(FieldCodec.encode(tuple(paused))),
                                            fsync_parent=True)
                         identity.signal(signal.SIGSTOP)
-                        for _, bridge_identity in bridges:
+                        for bridge_identity in bridges:
                             ObservedProcess(bridge_identity).stop_sync()
                     elif Path(command[0]).name == 'toad':
                         terminal = process.parent()
                         if terminal.name() != 'st' or terminal.environ().get('DISPLAY') != ':0':
                             continue
-                        identity = ProcessIdentity.capture(process.pid)
-                        if not process.is_running():
-                            raise ProcessLookupError('Selected desktop exited before publication')
                         desktop.append({'command': ['st', '-e', str(Path.home() / 'bin/toad-comms')],
                                         'cwd': terminal.cwd(), 'environment': terminal.environ()})
                         _atomic_write_text(desktop_path, json.dumps(desktop), fsync_parent=True)
