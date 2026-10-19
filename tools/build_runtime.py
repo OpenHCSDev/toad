@@ -27,6 +27,7 @@ import sys
 import tempfile
 import time
 import zipfile
+from rich.cells import cell_len
 
 # Isolated Python omits the script directory; this tool owns its sibling imports.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -438,13 +439,24 @@ class TerminalApp:
                 rows.append(body.replace(control, ' ' * len(control)))
         return tuple(rows)
 
+    @staticmethod
+    def reader_position(text):
+        """First visible message and its screen row, excluding the scrollbar gutter."""
+        for row, line in enumerate(text.splitlines()):
+            panes = line.split('│')
+            if len(panes) >= 3:
+                body = '│'.join(panes[1:-1])[:-2]
+                if body.startswith('▌') and body.strip('▌ '):
+                    return row, body
+        return ()
+
     def reader_place(self, name):
         """Observe a settled message viewport after one navigation action."""
         previous = ()
 
         def settled(text):
             nonlocal previous
-            rows = self.message_rows(text)
+            rows = self.reader_position(text)
             # This connection banner occupies a transcript row until it closes.
             # Compare reader positions only after the viewport has its full height.
             same = ('Agent Comms connected' not in text
@@ -452,7 +464,7 @@ class TerminalApp:
             previous = rows
             return same
 
-        return self.message_rows(self.wait(name, settled))
+        return self.reader_position(self.wait(name, settled))
 
     def screenshot(self, name):
         path = self.output / f'{name}.png'
@@ -492,7 +504,20 @@ class TerminalApp:
     def click(self, label):
         text = self.wait('find-' + label.replace('/', '-'), lambda text: label in text)
         row, line = next((row, line) for row, line in enumerate(text.splitlines()) if label in line)
-        self.click_cell(line.index(label) + len(label) // 2, row)
+        self.click_cell(cell_len(line[:line.index(label)]) + cell_len(label) // 2, row)
+
+    def hide_category(self, label):
+        """Click this checkbox in the right sidebar, never matching saved message text."""
+        def control(text):
+            return next(((row, line) for row, line in enumerate(text.splitlines())
+                         if '│' in line and label in line.rsplit('│', 1)[-1]), None)
+        text = self.wait('find-filter-' + label.replace('/', '-'), lambda text: control(text) is not None)
+        row, line = control(text)
+        prefix, panel = line.rsplit('│', 1)
+        self.click_cell(cell_len(prefix + '│' + panel[:panel.index('▐')]) + 1, row)
+        self.wait('hidden-' + label.replace('/', '-'), lambda text: any(
+            label in line.rsplit('│', 1)[-1] and '▐ ▌' in line.rsplit('│', 1)[-1]
+            for line in text.splitlines() if '│' in line))
 
     def click_cell(self, column, row):
         geometry = subprocess.check_output(
@@ -631,14 +656,14 @@ print(json.dumps(RestartEnvironment(root=str(c.root),
                 initial = app.reader_place('plain-initial')
                 app.click_cell(app.columns // 2, app.rows // 2)
                 app.keys('PPage', 'PPage', 'PPage')
-                app.wait('plain-page-up-moved', lambda text: bool(app.message_rows(text))
-                         and app.message_rows(text) != initial)
+                app.wait('plain-page-up-moved', lambda text: bool(app.reader_position(text))
+                         and app.reader_position(text) != initial)
                 plain_before = app.reader_place('plain-before')
                 app.click('#any')
                 app.wait('any', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
                 app.screenshot('any')
                 app.keys('Escape')
-                app.wait('plain-return', lambda text: app.message_rows(text) == plain_before)
+                app.wait('plain-return', lambda text: app.reader_position(text) == plain_before)
                 check_filtered_return(app)
         result = dict(import_count=len(modules), plain='passed', welcome='passed', saved='passed',
                       channel='passed', filtered_return='passed', evidence=str(output))
@@ -650,23 +675,23 @@ def check_filtered_return(app: TerminalApp) -> None:
     """Choose user-only checkboxes, PageUp and compare the visible returned rows."""
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
-        app.click(label)
-    app.click_cell(app.columns // 2, app.rows - 5)
+        app.hide_category(label)
+    app.click_cell(app.columns // 2, app.rows // 2)
     initial = app.reader_place('filtered-initial')
     app.keys('PPage', 'PPage', 'PPage')
-    app.wait('page-up-moved', lambda text: bool(app.message_rows(text))
-             and app.message_rows(text) != initial)
+    app.wait('page-up-moved', lambda text: bool(app.reader_position(text))
+             and app.reader_position(text) != initial)
     expected = app.reader_place('filtered-before')
     app.screenshot('filtered-before')
     app.click('#any')
     app.wait('filtered-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
     app.keys('Escape')
-    app.wait('filtered-return', lambda text: app.message_rows(text) == expected)
+    app.wait('filtered-return', lambda text: app.reader_position(text) == expected)
     app.screenshot('filtered-return')
     app.click('#any')
     app.wait('filtered-click-away', lambda text: '#any · all comms' in text and 'IRC / Markdown' in text)
     app.click('startup-saved')
-    app.wait('filtered-click-return', lambda text: app.message_rows(text) == expected)
+    app.wait('filtered-click-return', lambda text: app.reader_position(text) == expected)
     app.screenshot('filtered-click-return')
 
 
