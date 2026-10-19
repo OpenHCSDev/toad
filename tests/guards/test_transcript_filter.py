@@ -18,7 +18,9 @@ def test_deleted_scan_flags_and_external_projection_probes():
     for path in (ROOT/'transcript_filter.py', ROOT/'transcript_state.py',
                  ROOT/'widgets/transcript_history.py'):
         tree = ast.parse(path.read_text())
-        parents = {child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)}
+        protocol_receivers = {node.func.value for node in ast.walk(tree)
+                              if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                              and node.func.attr in operations}
         for node in ast.walk(tree):
             if isinstance(node, ast.Name):
                 assert node.id not in retired
@@ -27,18 +29,9 @@ def test_deleted_scan_flags_and_external_projection_probes():
             if isinstance(node, ast.Attribute):
                 assert node.attr not in retired
                 if path.name != 'transcript_filter.py' and ast.unparse(node) in {'self.filter.overlay', 'owner.filter.overlay'}:
-                    parent = parents[node]
-                    # Calling the shared overlay protocol delegates behavior;
-                    # comparing identities fences a replaced projection. Neither
-                    # inspects which projection case is active.
-                    delegated = (isinstance(parent, ast.Attribute) and parent.attr in operations
-                                 and isinstance(parents.get(parent), ast.Call)
-                                 and parents[parent].func is parent)
-                    identity = (isinstance(parent, ast.Compare)
-                                and all(isinstance(op, (ast.Is, ast.IsNot)) for op in parent.ops)
-                                and not any(isinstance(value, ast.Constant)
-                                            for value in (parent.left, *parent.comparators)))
-                    assert delegated or identity, (path, node.lineno, ast.unparse(parent))
+                    # Only calls to the declared overlay operations cross this
+                    # boundary. Case/identity decisions belong to FilterState.
+                    assert node in protocol_receivers, (path, node.lineno, ast.unparse(node))
                 elif path.name == 'transcript_filter.py' and node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:
                     raise AssertionError('Filter must ask history admission owner')
 

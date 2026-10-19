@@ -127,10 +127,13 @@ class FilterState(DeclaredFamily, affix="Filter"):
         self.worker = self.owner.run_worker(self.scan_older, group="filtered-history")
         return self.worker
 
+    def owns_projection(self, projection) -> bool:
+        """Only this history's current filter may publish its projection."""
+        return self.owner.filter is self and self.overlay is projection
+
     def require_projection(self, snapshot, projection) -> None:
         from toad.widgets.transcript_history import _DrawingStopped
-        if (not snapshot.current(self.owner) or self.owner.filter is not self
-                or self.overlay is not projection):
+        if not snapshot.current(self.owner) or not self.owns_projection(projection):
             raise _DrawingStopped
 
     def transfer_scan(self, successor: FilterState) -> None:
