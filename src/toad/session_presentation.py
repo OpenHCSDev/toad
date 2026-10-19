@@ -344,7 +344,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
                 conversation = self.sources.make_conversation(screen)
             self.widget = conversation
             screen._initial_prompt = None
-            conversation.display = False
         if not returning:
             if self.state is not None:
                 conversation._initial_prompt = self.state.initial_prompt
@@ -359,7 +358,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.state = None
         await self.attach_binding(conversation)
         await self.transcript.bind(conversation).restore(self.transcript)
-        conversation.display = True
         if returning:
             conversation.start_native_session()
         conversation.prompt.focus()
@@ -418,7 +416,6 @@ class NativeSessionSurface:
             for history in tuple(conversation.window.histories):
                 await history.retire_source(parked=True)
             await screen.presentation.release_binding(conversation, screen)
-            conversation.display = False
             self.view = None
 
     async def activate(self, screen: "MainScreen") -> None:
