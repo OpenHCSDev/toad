@@ -10,9 +10,17 @@ def test_deleted_scan_flags_and_external_projection_probes():
     retired = {'ScanState', 'IdleScan', 'ForcedIdleScan', 'RunningScan',
                'ForcedRunningScan', 'force_pending', 'clear_force',
                'FilterSnapshot', 'filter_snapshot', 'filter_publication_available'}
+    overlays = ast.parse((ROOT/'transcript_filter.py').read_text())
+    overlay = next(node for node in ast.walk(overlays)
+                   if isinstance(node, ast.ClassDef) and node.name == 'NoProjectionOverlay')
+    operations = {node.name for node in overlay.body
+                  if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
     for path in (ROOT/'transcript_filter.py', ROOT/'transcript_state.py',
                  ROOT/'widgets/transcript_history.py'):
         tree = ast.parse(path.read_text())
+        protocol_receivers = {node.func.value for node in ast.walk(tree)
+                              if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                              and node.func.attr in operations}
         for node in ast.walk(tree):
             if isinstance(node, ast.Name):
                 assert node.id not in retired
@@ -20,10 +28,11 @@ def test_deleted_scan_flags_and_external_projection_probes():
                 assert node.name not in retired
             if isinstance(node, ast.Attribute):
                 assert node.attr not in retired
-                if path.name != 'transcript_filter.py':
-                    assert ast.unparse(node) != 'self.filter.overlay'
-                    assert ast.unparse(node) != 'owner.filter.overlay'
-                elif node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:
+                if path.name != 'transcript_filter.py' and ast.unparse(node) in {'self.filter.overlay', 'owner.filter.overlay'}:
+                    # Only calls to the declared overlay operations cross this
+                    # boundary. Case/identity decisions belong to FilterState.
+                    assert node in protocol_receivers, (path, node.lineno, ast.unparse(node))
+                elif path.name == 'transcript_filter.py' and node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:
                     raise AssertionError('Filter must ask history admission owner')
 
 
