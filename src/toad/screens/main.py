@@ -276,20 +276,18 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
             return NothingToRead()
         app = self.app
         access = app.coordination_access
-        name = self.thread_identity.thread_name()
+        identity = self.thread_identity
         project = self.project_path
-        source_root = self.coordination_root
+        source_root = identity.wire_root()
         worktree = str(app.project_dir)
 
         def acknowledge(cursor) -> None:
-            from toad.widgets.comms_chat import resolve_session_thread
-
             selected = RouteSelection.capture(source_root)
             comms = access.require(selected).service
 
             def mark() -> None:
-                resolved = resolve_session_thread(comms, project, name, source_root=source_root)
-                comms.views.mark_thread_view_read(resolved or name, worktree=worktree, through=cursor)
+                resolved = identity.resolve_thread(comms.registry, project)
+                comms.views.mark_thread_view_read(resolved, worktree=worktree, through=cursor)
 
             access.write(selected, mark)
 
