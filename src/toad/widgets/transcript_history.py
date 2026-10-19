@@ -1128,7 +1128,7 @@ class ProjectedTranscriptHistory(TranscriptHistory):
 
     async def _page_added(self, page: TranscriptPage, fragments: tuple[TranscriptFragment, ...]) -> None:
         owner = self._projection_owner()
-        if owner is not None and owner.filter.overlay is self:
+        if owner is not None and owner.filter.owns_projection(self):
             await owner._page_added(replace(page, events=tuple(
                 event for fragment in fragments for event in fragment.events
             )), fragments)
