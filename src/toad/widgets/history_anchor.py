@@ -724,6 +724,10 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
         if not self._restoring and changed:
             self.scroll_revision += 1
         if anchor:
+            # Tail intent replaces earlier motion even while a publication has
+            # no scrollable rows. Native cancellation depends on the scrollbar.
+            self.app.animator.force_stop_animation(self, "scroll_y", complete=False)
+            self.scroll_target_y = self.scroll_y
             self._anchor_released = False
             # A reader cannot move a window they cannot see: a parked place stays.
             if self.shown:
