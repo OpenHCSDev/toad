@@ -15,6 +15,7 @@ from agent_comms.transcript_events import TranscriptEvent
 from agent_comms.sent_message import OutgoingMessageReference
 
 from toad.widgets.presentation_window import OLDER_END, PageEnd, PageRequest
+from toad.widgets.message_notifications import NothingToRead, PaintedRead
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
@@ -531,8 +532,8 @@ class ClosedHistory(PreparedPageSource):
     def schedule_refresh(self, view):
         return None
 
-    def painted_read(self, history):
-        return None
+    def painted_read(self, history) -> PaintedRead:
+        return NothingToRead()
 
     async def change_style(self, history) -> None:
         return

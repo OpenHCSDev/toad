@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import replace
+from abc import ABC, abstractmethod
+from collections.abc import Awaitable
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from textual.app import ComposeResult
@@ -70,6 +72,27 @@ class MessageNotifications(Collapsible):
         self.set_class(status.unavailable, "-unavailable")
 
 
+class PaintedRead(ABC):
+    """What a view can start after its current rows have been painted."""
+
+    @abstractmethod
+    def start(self, marker: VisibleReadMarking) -> None:
+        pass
+
+
+class NothingToRead(PaintedRead):
+    def start(self, marker: VisibleReadMarking) -> None:
+        pass
+
+
+@dataclass(frozen=True)
+class ReadWork(PaintedRead):
+    work: Awaitable[None]
+
+    def start(self, marker: VisibleReadMarking) -> None:
+        marker._read_worker = marker.run_worker(self.work, group="painted-read")
+
+
 class VisibleReadMarking:
     """One painted-read operation at a time, for pagers and native/CLI sessions."""
 
@@ -80,8 +103,7 @@ class VisibleReadMarking:
     def mark_visible(self) -> None:
         if self._read_worker is not None and not self._read_worker.is_finished:
             return
-        if (work := self.read_visible()) is not None:
-            self._read_worker = self.run_worker(work, group="painted-read")
+        self.read_visible().start(self)
 
 
 class HistoryNotifications:
