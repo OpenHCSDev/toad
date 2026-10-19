@@ -200,7 +200,7 @@ class SubmissionExecution(SubmissionStart):
         if local:
             view.turns.start_client()
         try:
-            if view.agent_binding.presentation.queue_supported:
+            if self.agent.presentation.queue_supported:
                 reason = await self.agent.send_prompt(self.submission.text, request=self.request)
             else:
                 reason = await self.agent.send_prompt(self.submission.text)
