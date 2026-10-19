@@ -146,7 +146,6 @@ class CommsChatView(Conversation):
             return
         self.settle_user_message()
         if (not history.state.accepts_source_work
-                or history.undrawn
                 or not source.uses_observation(access.observation.observed())):
             return
         if self._refreshed_from != access.revision:
@@ -228,15 +227,6 @@ class CommsChatView(Conversation):
             history = self.message_history
             announced = self.app.coordination_access.revision
             newly_announced = announced != self._refreshed_from
-            self._refreshed_from = announced
-            snapshot = history.source_snapshot()
-            if not await history.source_is_current(snapshot):
-                return
-            source = history.page_source
-            read_only = await source.read_only()
-            if not await history.source_is_current(snapshot):
-                return
-            await self.refresh_composer(read_only)
             undrawn = history.undrawn
             if undrawn:
                 self.on_work_started()
@@ -245,10 +235,19 @@ class CommsChatView(Conversation):
             finally:
                 if undrawn:
                     self.on_work_finished()
+            # Source observation and its pending first page belong to the
+            # history, even before this tab is drawable. Composer work follows.
+            source = history.page_source
+            snapshot = history.source_snapshot()
+            if not await history.source_is_current(snapshot):
+                return
+            read_only = await source.read_only()
+            if not await history.source_is_current(snapshot):
+                return
+            await self.refresh_composer(read_only)
+            self._refreshed_from = announced
             # A sent message may now be drawn: composing resumes before mentions are read.
             self.settle_user_message()
-            if changed and undrawn and (placeholder := self.query_one_optional("#history-loading")):
-                placeholder.remove()
         except (CoordinationReadUnavailable, StaleRevision):
             raise
         except (OSError, ValueError, RuntimeError) as error:

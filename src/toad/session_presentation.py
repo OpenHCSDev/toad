@@ -129,7 +129,10 @@ class OperationalSessionSources:
         )
 
     def external_transcript_changed(self, conversation: Conversation) -> None:
-        """Native sessions receive their text through their own ACP stream."""
+        """Core publishes native and CLI drafts through the same transcript store."""
+        from toad.transcript_publication import CanonicalSourcePublication
+
+        conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     def prompt(self, conversation: Conversation):
         from toad.widgets.prompt import Prompt
@@ -246,11 +249,6 @@ class MailboxSessionSources(OperationalSessionSources):
 
     def input_ready(self, conversation: Conversation) -> bool:
         return conversation.transcript.readable
-
-    def external_transcript_changed(self, conversation: Conversation) -> None:
-        from toad.transcript_publication import CanonicalSourcePublication
-
-        conversation.transcript.source_requests.request(CanonicalSourcePublication)
 
     async def present(self, conversation: Conversation) -> None:
         await super().present(conversation)
