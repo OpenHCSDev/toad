@@ -116,10 +116,8 @@ class DeviceControlSequence(TerminatedSequence, declared_name="P"):
 class DesignateSequence(EscapeSequence):
     FINAL = character_range(0x30, 0x7E)
 
-    @property
-    @abstractmethod
-    def slot(self) -> int:
-        """DEC character-set slot."""
+    slot: ClassVar[int]
+    """DEC character-set slot each member declares."""
 
     @classmethod
     def read(cls, introducer: str) -> PatternCheck:
@@ -158,10 +156,8 @@ class G3RightSequence(DesignateSequence, declared_name="/"):
 
 
 class InvokeSequence(EscapeSequence):
-    @property
-    @abstractmethod
-    def invocation(self) -> DECInvoke:
-        """The declared character-set invocation."""
+    invocation: ClassVar[DECInvoke]
+    """The character-set invocation each member declares."""
 
     @classmethod
     def read(cls, introducer: str) -> PatternCheck:
