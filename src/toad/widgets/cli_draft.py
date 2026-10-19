@@ -11,7 +11,7 @@ from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
 from toad.widgets.linked_rows import LinkedRows, ReferenceRendering
 from toad.widgets.transcript_lines import BlockLines, LinePreparation, TranscriptLinesRenderTask
-from toad.widgets.transcript_fragments import FragmentLineConsumer
+from toad.widgets.transcript_fragments import transcript_fragments
 
 
 class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
@@ -23,6 +23,7 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         super().__init__()
         self.draft: DraftRow | None = None
         self._lines: BlockLines | None = None
+        self._blocks = ()
         self._width = 0
         self._render_worker: Worker[None] | None = None
         self.display = False
@@ -35,15 +36,20 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
         self._request_render()
         self.refresh(layout=True)
 
-    def show(self, draft: DraftRow | None) -> None:
+    def clear(self) -> None:
+        self.draft = None
+        self._blocks = ()
+        self._lines = None
+        self.display = False
+
+    def show(self, draft: DraftRow, *, resolve_sent) -> None:
         if draft == self.draft:
             return
+        self._blocks = tuple(block for fragment in transcript_fragments(
+            draft.events, resolve_sent=resolve_sent,
+        ) for block in fragment.line_blocks)
         self.draft = draft
-        if draft is None:
-            self.display = False
-            self._lines = None
-        else:
-            self._request_render()
+        self._request_render()
 
     def _request_render(self) -> None:
         if self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
@@ -56,12 +62,10 @@ class CliDraft(ReferenceRendering, ConversationBlock, LinkedRows, Widget):
             if width <= 0:
                 return
             theme = self.app.colours.line_theme
-            consumer = FragmentLineConsumer(show_divider=True)
-            for event in draft.events:
-                consumer.dispatch_sync(event)
+            blocks = self._blocks
             context = await LinkContext.acquire(self)
             source = await self.app.render_processes.submit(
-                TranscriptLinesRenderTask(LinePreparation(tuple(consumer.blocks), theme), context))
+                TranscriptLinesRenderTask(LinePreparation(blocks, theme), context))
             if not context.current_for(self):
                 continue
             if not self.is_attached or self.draft is None:
