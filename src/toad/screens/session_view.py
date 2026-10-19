@@ -4,9 +4,11 @@ from textual.widget import Widget
 from textual.reactive import reactive
 from pathlib import Path
 from contextlib import contextmanager
+from agent_comms.mro_dispatch import handles
 from toad.core.events import ThreadIdentityChanged
+from toad.core.source_events import TranscriptSourceWorkFinished
 from typing import TYPE_CHECKING
-from toad.core_event_carrier import CoreEventReceiver
+from toad.core_event_carrier import CoreEventMessage, CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.project_path_owner import ProjectPathOwner
 from toad.widgets.message_notifications import VisibleReadMarking
@@ -89,6 +91,12 @@ class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Verti
     def read_visible(self):
         """Views without a conversation have no native transcript to mark read."""
         return None
+
+    @handles(TranscriptSourceWorkFinished)
+    def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
+        message.stop()
+        if self.is_current:
+            self.mark_visible()
 
     async def open_direct_messages(self) -> None:
         """Open this session's direct-message destination when it has one."""
