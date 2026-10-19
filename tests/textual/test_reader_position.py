@@ -23,7 +23,8 @@ from unittest.mock import patch
 import pytest
 
 from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.message_filter import AgentCategory, ThinkingCategory, all_categories
@@ -53,8 +54,8 @@ def page(number: int) -> TranscriptPage:
         AssistantTranscript(f"ANSWER {number}.{index}\n\n" + "\n".join(
             f"- item {number}.{index}.{row}" for row in range(5)) + wide)
         for index in range(PER_PAGE))
-    return TranscriptPage(events, TranscriptCursor(FILE, number * 100), TranscriptCursor(FILE, (number + 1) * 100),
-                          number > 0, number < PAGES - 1)
+    return TranscriptPage(events, NativeTranscriptCursor(FILE, number * 100), NativeTranscriptCursor(FILE, (number + 1) * 100),
+                          number > 0, number < PAGES - 1, FIXTURE_SNAPSHOT)
 
 
 @dataclass(frozen=True)

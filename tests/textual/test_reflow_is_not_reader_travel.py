@@ -8,7 +8,8 @@ owners no longer exist).
 from dataclasses import replace
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -21,9 +22,9 @@ async def test_trim_and_resize_reflow_are_not_travel_samples_but_a_key_is(worksp
         window.presentation_budget = replace(window.presentation_budget, scroll_idle_seconds=5)
         histories = []
         for index in range(3):
-            cursor = TranscriptCursor(f"saved-{index}", 1)
+            cursor = NativeTranscriptCursor(f"saved-{index}", 1)
             text = f"## SAVED SOURCE {index}\n\n" + "\n".join(f"- saved record {index}, row {row}" for row in range(120))
-            history = TranscriptHistory(TranscriptPage((AssistantTranscript(text),), cursor, cursor, False, False))
+            history = TranscriptHistory(TranscriptPage((AssistantTranscript(text),), cursor, cursor, False, False, FIXTURE_SNAPSHOT))
             histories.append(history)
             await view.contents.mount(history)
         await ui.until(lambda: all(history.is_mounted for history in histories), why="three histories")

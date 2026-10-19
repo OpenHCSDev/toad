@@ -9,7 +9,8 @@ from unittest.mock import patch
 import pytest
 
 from agent_comms.transcript_events import AssistantTranscript, ThinkingTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.message_filter import ThinkingCategory, all_categories
 from toad.widgets.presentation_window import PresentationBudget
@@ -39,8 +40,8 @@ async def test_projection_scans_older_history_within_bounds_and_revisits_every_m
         else:
             stop = min(limit, before.offset if before is not None else limit)
             start = max(0, stop - 32)
-        return TranscriptPage(events[start:stop], TranscriptCursor(identity, start),
-                              TranscriptCursor(identity, stop), start > 0, stop < limit)
+        return TranscriptPage(events[start:stop], NativeTranscriptCursor(identity, start),
+                              NativeTranscriptCursor(identity, stop), start > 0, stop < limit, FIXTURE_SNAPSHOT)
 
     async with workspace.app(size=(100, 26)) as ui:
         view = ui.conversation

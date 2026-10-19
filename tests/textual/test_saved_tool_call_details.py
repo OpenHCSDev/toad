@@ -3,21 +3,22 @@
 from agent_comms.transcript_events import (
     AssistantTranscript, ContextTranscript, ToolEndTranscript, ToolStartTranscript,
 )
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.transcript_fragments import ToolTranscriptFragment
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 def saved_page():
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeTranscriptCursor("fixture", 1)
     return TranscriptPage((
         AssistantTranscript("BEFORE_THE_TOOL"),
         ContextTranscript("CONTEXT_GIVEN_TO_THE_AGENT"),
         ToolStartTranscript(tool_call_id="call-1", tool_name="bash", raw_input={"command": "ls"}),
         ToolEndTranscript(tool_call_id="call-1", tool_name="bash", text="OUTPUT_LINE_ONE\nOUTPUT_LINE_TWO"),
         AssistantTranscript("AFTER_THE_TOOL"),
-    ), cursor, cursor, False, False)
+    ), cursor, cursor, False, False, FIXTURE_SNAPSHOT)
 
 
 async def test_a_saved_tool_call_and_context_open_and_close_by_click_and_by_space(workspace):

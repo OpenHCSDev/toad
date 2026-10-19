@@ -5,7 +5,8 @@ import asyncio
 from agent_comms.messages import Message, MessageType
 from agent_comms.routing import MessageRoute
 from agent_comms.transcript_events import AssistantTranscript, IncomingTranscript, ThinkingTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 from toad.widgets.message_filter import InboundCategory, ThinkingCategory
 from toad.widgets.transcript_history import TranscriptHistory
 
@@ -15,7 +16,7 @@ async def test_late_older_page_from_a_previous_filter_is_not_shown(workspace):
         app, _ = ui.textual
         view = ui.conversation
         file = "fixture"
-        cursor = TranscriptCursor(file, 100)
+        cursor = NativeTranscriptCursor(file, 100)
         entered, release = asyncio.Event(), asyncio.Event()
         message = Message("peer", "owner", "OLD_INBOUND", MessageType.INFO)
         incoming = IncomingTranscript(message.body, route=MessageRoute(message.sender, (message.target,)),
@@ -27,10 +28,10 @@ async def test_late_older_page_from_a_previous_filter_is_not_shown(workspace):
             calls.append(kwargs)
             entered.set()
             await release.wait()
-            return TranscriptPage((incoming, thinking), TranscriptCursor(file, 0), cursor, False, True)
+            return TranscriptPage((incoming, thinking), NativeTranscriptCursor(file, 0), cursor, False, True, FIXTURE_SNAPSHOT)
 
         tail = tuple(AssistantTranscript(f"unselected {i}\n" + "long text " * 20) for i in range(24))
-        pager = TranscriptHistory(TranscriptPage(tail, cursor, TranscriptCursor(file, 200), True, False),
+        pager = TranscriptHistory(TranscriptPage(tail, cursor, NativeTranscriptCursor(file, 200), True, False, FIXTURE_SNAPSHOT),
                                   loader=older)
         try:
             await view.contents.mount(pager)

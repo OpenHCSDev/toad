@@ -6,7 +6,8 @@ from types import SimpleNamespace
 import unittest
 
 from agent_comms.transcript_events import AssistantTranscript, UserTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 from textual._context import active_app
 from textual.app import App
 from textual.selection import Selection
@@ -17,12 +18,12 @@ from toad.widgets.transcript_lines import LineTheme, PlainLines
 
 
 def page_view(count: int) -> TranscriptPageView:
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeTranscriptCursor("fixture", 1)
     events = tuple(
         (UserTranscript if index % 3 == 0 else AssistantTranscript)(
             f"Message {index} " + "word " * (index % 40) + "\n\n- item\n- another item")
         for index in range(count))
-    return TranscriptPageView(TranscriptPage(events, cursor, cursor, False, False), batch_size=count)
+    return TranscriptPageView(TranscriptPage(events, cursor, cursor, False, False, FIXTURE_SNAPSHOT), batch_size=count)
 
 
 class TranscriptPageWidth(unittest.TestCase):

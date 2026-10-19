@@ -1,7 +1,8 @@
 """Textual-facing: where the scroll position goes when a block is clicked (the block cursor's scroll is the frontend's)."""
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.note import Note
@@ -45,9 +46,9 @@ async def test_clicking_a_block_that_fits_the_viewport_does_not_scroll(workspace
 
 
 async def test_clicking_saved_history_does_not_scroll(workspace):
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeTranscriptCursor("fixture", 1)
     page = TranscriptPage(tuple(AssistantTranscript(f"RECORD_{i} " + "word " * 60) for i in range(60)),
-                          cursor, cursor, False, False)
+                          cursor, cursor, False, False, FIXTURE_SNAPSHOT)
     async with workspace.app(size=(110, 38)) as ui:
         view = ui.conversation
         history = TranscriptHistory(page)

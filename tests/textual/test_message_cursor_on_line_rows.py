@@ -1,7 +1,8 @@
 """Textual-facing: messages drawn as rows sit on their view's background, and the block cursor rests on one of them: Alt+Up/Down move it message by message, its menu copies the message and (in a channel) opens the sender or destination, and hovering shows the message's full time."""
 
 from agent_comms.transcript_events import AssistantTranscript
-from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+from support.roots import FIXTURE_SNAPSHOT
 
 from toad.widgets.menu import Menu
 from toad.widgets.message_divider import MessageClock
@@ -95,9 +96,9 @@ async def test_channel_rows_have_the_view_background_and_the_cursor_acts_on_one_
 
 
 async def test_saved_thread_history_rows_have_the_view_background_and_the_cursor_copies_one_message(workspace):
-    cursor = TranscriptCursor("fixture", 1)
+    cursor = NativeTranscriptCursor("fixture", 1)
     page = TranscriptPage(tuple(AssistantTranscript(f"RECORD_{i} in *Markdown*") for i in range(6)),
-                          cursor, cursor, False, False)
+                          cursor, cursor, False, False, FIXTURE_SNAPSHOT)
     async with workspace.app(size=(110, 38)) as ui:
         app, _pilot = ui.textual
         view = ui.conversation

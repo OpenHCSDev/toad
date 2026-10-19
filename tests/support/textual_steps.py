@@ -141,7 +141,8 @@ async def replay_with_pending_render(workspace, events=None):
     Yields (ui, owner tab, replay tab, release); `release()` lets the render finish.
     """
     from agent_comms.transcript_events import AssistantTranscript
-    from agent_comms.transcripts import TranscriptCursor, TranscriptPage
+    from agent_comms.transcripts import NativeTranscriptCursor, TranscriptPage
+    from support.roots import FIXTURE_SNAPSHOT
     from support.agents import peer
     from toad.acp.agent import Agent
     from toad.core.events import AgentReady
@@ -152,8 +153,8 @@ async def replay_with_pending_render(workspace, events=None):
     if events is None:
         events = tuple(AssistantTranscript("Paragraph.\n\n" * 100) for _ in range(20))
         events += (AssistantTranscript("PREPARED_REPLAY_END"),)
-    page = TranscriptPage(events, TranscriptCursor("fixture", 0), TranscriptCursor("fixture", len(events)),
-                          False, False)
+    page = TranscriptPage(events, NativeTranscriptCursor("fixture", 0), NativeTranscriptCursor("fixture", len(events)),
+                          False, False, FIXTURE_SNAPSHOT)
     dispatch, entered, released = asyncio.Event(), asyncio.Event(), asyncio.Event()
     shown = []
 
