@@ -9,6 +9,7 @@ from agent_comms.mro_dispatch import handles
 from textual.content import Content
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
+from toad.acp.client_session import ClientSessionRequest
 from toad.widgets.note import Note
 from toad.widgets.markdown_note import MarkdownNote
 
@@ -19,12 +20,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
         self, update: CursorPresentation, message: CoreEventMessage
     ) -> None:
         message.stop()
-        if (
-            message.publisher is not self.agent
-            or self.agent is None
-            or message.event.session_id != self.agent.session_id
-            or message.event.sequence <= self._private_cursor_sequence
-        ):
+        if message.event.sequence <= self._private_cursor_sequence:
             return
         self._private_cursor_sequence = message.event.sequence
         self.native_history_status = update.status
@@ -34,19 +30,9 @@ class ConversationCommsHandlers(CoreEventReceiver):
         self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
     ) -> None:
         """Show the MCP server summary only within the active turn it describes."""
-        # The message carries the validated turn identity; a delayed or queued
-        # message from an older agent cannot attach to a successor turn here.
-        agent_session = self.agent.session_id if self.agent else None
-        if (
-            message.publisher is not self.agent
-            or (self.agent.current_turn.managed_id if self.agent else None)
-            != update.turn_id
-            or self.turns.managed_id is None
-            or update.turn_id != self.turns.managed_id
-            or (agent_session is not None and message.event.session_id != agent_session)
-        ):
-            # Late or forged: the projection dies with its turn and is never
-            # shown outside the active-turn lifetime.
+        # Session identity was checked before dispatch. ConversationTurn reads
+        # the agent's original binding; checking agent.current_turn repeats it.
+        if update.turn_id != self.turns.managed_id:
             return
         if self._mcp_live_note is not None:
             return  # The package emits at most one server summary per turn.
@@ -86,18 +72,14 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_queue_view_update(
         self, update: QueuePresentation, message: CoreEventMessage
     ) -> None:
-        if (
-            self.agent is None
-            or message.publisher is not self.agent
-            or message.event.session_id != self.agent.session_id
-        ):
-            return
+        authority = ClientSessionRequest(message.publisher, message.event.session_id)
         async with self.window.preserve_history(root=self.contents):
             for started in update.starts:
-                if (
-                    message.publisher is not self.agent
-                    or message.event.session_id != self.agent.session_id
-                ):
+                # Taking the history lock or posting a row can yield. Keep the
+                # original session's authority, not a second session-id test.
+                if not authority.current:
+                    return
+                if self.agent is not authority.agent:
                     return
                 await self.present_started_input(started)
             self.submissions.publish_pending()
@@ -106,16 +88,9 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_input_started(
         self, update: InputStartedUpdate, message: CoreEventMessage
     ) -> None:
-        if (
-            self.agent is None
-            or message.publisher is not self.agent
-            or message.event.session_id != self.agent.session_id
-        ):
-            return
-        if update.text is not None:
-            async with self.window.preserve_history(root=self.contents):
-                await self.present_started_input(update)
-                self.submissions.publish_pending()
+        async with self.window.preserve_history(root=self.contents):
+            await self.present_started_input(update)
+            self.submissions.publish_pending()
 
     @handles(InputFailedUpdate)
     def on_input_failed(
@@ -141,8 +116,10 @@ class ConversationCommsHandlers(CoreEventReceiver):
 
     @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
-        if (event.publisher is not self.agent
-                or event.event.session_id != self.agent.session_id):
+        if event.publisher is not self.agent:
+            event.stop()
+            return
+        if event.event.session_id != self.agent.session_id:
             event.stop()
             return
         await self.dispatch(event.event.update, event)

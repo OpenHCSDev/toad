@@ -1400,6 +1400,8 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     async def present_started_input(self, started) -> None:
         from toad.widgets.committed_presentation import StartedInputClaim
 
+        if started.text is None:
+            return
         self.output.boundary()
         if not self.transcript.covers_input(started.native_id):
             await self.post(UserInput(started.text, claim=StartedInputClaim(started)))
