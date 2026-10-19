@@ -86,11 +86,11 @@ class DeliveryFailureView:
             return
         try:
             async with self.app.coordination_access.transcripts.bind(root) as comms:
-                catalog = await self.app.preparation.run_thread(comms.channels.catalog.read)
+                read_only = await self.app.preparation.run_thread(kind.read_only, comms, target)
         except (OSError, ValueError, RuntimeError) as error:
             self.delivery_refused(str(error), body)
             return
-        if kind.read_only(catalog, target):
+        if read_only:
             self.prompt.text = body
             self.prompt.prompt_text_area.disabled = True
             self.status = "Read-only saved view; open an exact channel to send"
