@@ -109,6 +109,11 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     # What is drawn
 
+    def rows_published(self) -> None:
+        super().rows_published()
+        if not self.undrawn and (placeholder := self.view.query_one_optional("#history-loading")):
+            placeholder.remove()
+
     async def accept_extension(self, edge, prepared) -> bool:
         if self.page_source.accepts_page(edge.prepared.page, prepared.page):
             return True

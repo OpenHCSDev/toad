@@ -52,6 +52,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation = 0
         self.page_source = page_source
         self._source_observation = ResourceRelease()
+        self._latest_request: LatestViewportRequest | None = None
         super().__init__(*args, **kwargs)
 
     @property
@@ -131,6 +132,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
+            request = self._latest_request
+            if request is not None and request.resume(self):
+                self._latest_request = None
             for page in self.pages:
                 page.prepare_viewport(self.window)
             self.state.check_edges(self)
@@ -163,7 +167,10 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         native geometry after publication. Neither restoration is another user
         scroll; movement during I/O invalidates the captured request revision.
         """
-        if not self.can_draw_on_screen or not request.current(self.window):
+        if not request.current(self.window):
+            return False
+        if not self.can_draw_on_screen:
+            request.defer(self)
             return False
         request.restore(self.window)
         snapshot = self.source_snapshot()
@@ -173,6 +180,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
             # published source, rather than the request that acceptance replaced.
             self.call_after_refresh(self._complete_latest, self.source_snapshot(), request)
             return True
+        request.defer(self)
         return False
 
     async def _publish_latest(self, current: Callable[[], bool]) -> bool:
@@ -331,7 +339,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self.window.check_follow()
                 # The admitted operation owns source and reader progress.
                 # Native compensation and unchanged reads cannot rearm it.
-                if operation.progressed(self):
+                if operation.progressed(self) or self._latest_request is not None:
                     self.request_preparation()
                 self.publish_core(TranscriptSourceWorkFinished())
                 HeldReaderDestination.settle(self.window)

@@ -161,6 +161,16 @@ class LatestViewportRequest:
         if self.current(owner.window):
             owner.state.request_latest(owner, self)
 
+    def defer(self, owner) -> None:
+        """Keep this destination until its history can admit drawing again."""
+        if self.current(owner.window):
+            owner._latest_request = self
+
+    def resume(self, owner) -> bool:
+        """Consume a superseded destination or admit its next source read."""
+        return (not self.current(owner.window)
+                or owner.schedule_source_work(partial(owner._jump_latest, self)) is not None)
+
 
 @dataclass(frozen=True, eq=False)
 class WaitingSourceWork:
