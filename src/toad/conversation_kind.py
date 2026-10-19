@@ -75,7 +75,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
         return target
 
     @classmethod
-    def read_only(cls, catalog, target):
+    def read_only(cls, comms, target):
         return False
 
     @classmethod
@@ -145,7 +145,7 @@ class ChannelConversation(ConversationKind):
     def resolve(cls, comms: Comms, me: str, target: str) -> tuple[str, str]:
         if me in comms.registry:
             me = comms.registry.require(me).name
-        return me, comms.channels.catalog.read().require_channel(target).name
+        return me, comms.bus.require_channel(target).name
 
     @classmethod
     def compose_activity(cls, view) -> ComposeResult:
@@ -162,8 +162,8 @@ class ChannelConversation(ConversationKind):
         return ChannelPrompt(placeholder=cls.placeholder(target))
 
     @classmethod
-    def read_only(cls, catalog, target):
-        return catalog.require_channel(target).read_only
+    def read_only(cls, comms, target):
+        return comms.bus.require_channel(target).read_only
 
     @classmethod
     async def update_mentions(cls, view, comms):
