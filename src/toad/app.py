@@ -3,7 +3,6 @@ from toad.core_event_carrier import CoreEventMessage
 from toad.workspace_sessions import WorkspaceSessionShutdown
 from inspect import isabstract
 from toad.comms_root import CoordinationAccess
-from toad.widgets.message_notifications import VisibleReadMarking
 
 from toad.thread_actions import ThreadActions
 from toad.widgets.comms_transfer import Transfers
@@ -127,7 +126,7 @@ class ScreenWidth(IntEnum):
     WIDE = (100, Scalar(50, Unit.PERCENT, Unit.WIDTH))
 
 
-class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
+class ToadApp(CoreEventReceiver, DeclaredWidgetActions, WorkspaceSessionShutdown, ThemedApp, App, inherit_bindings=False):
     """The top level app."""
 
     CSS_PATH = ["toad.tcss", "screens/comms.tcss"]
@@ -401,10 +400,6 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         local_threads = self.local_coordination_threads()
         return [name for name in registered if name not in local_threads]
 
-    def read_visible(self):
-        return self.selected_session.read_visible()
-
-
     @property
     def running_loop(self) -> asyncio.AbstractEventLoop:
         loop = self._loop
@@ -437,7 +432,7 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
     def history_displayed(self) -> None:
         """A view's history was painted."""
         self.heap.history_displayed(self)
-        self.mark_visible()
+        self.selected_session.mark_visible()
 
     @handles(session_requests.WorkspaceSessionRequest)
     async def on_workspace_session_request(self, event: CoreEventMessage) -> None:

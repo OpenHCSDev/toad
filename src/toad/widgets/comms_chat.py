@@ -264,9 +264,11 @@ class CommsChatView(Conversation):
             read_only = await source.read_only()
             if not await history.source_is_current(snapshot):
                 return
+            area = self.prompt.prompt_text_area
+            area.disabled = read_only or bool(self.send_block_reason)
+            area.tooltip = self.send_block_reason or (
+                "Saved view: read-only history; open an exact channel to send" if read_only else None)
             if read_only:
-                self.prompt.prompt_text_area.disabled = True
-                self.prompt.prompt_text_area.tooltip = "Saved view: read-only history; open an exact channel to send"
                 self.status = "Read-only saved view"
             undrawn = history.undrawn
             if undrawn:
