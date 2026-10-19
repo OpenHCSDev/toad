@@ -228,7 +228,7 @@ class InstallWatchers:
         wrapper can be replaced while a worker finishes its turn.
         """
         import psutil
-        from agent_comms.child_process import ProcessIdentity
+        from agent_comms.child_process import ObservedProcess, ProcessIdentity
         from agent_comms.owner_cutover import StoppedOwnerInstallation
         from agent_comms.store_files import _atomic_write_text
         from agent_comms.field_codec import FieldCodec
@@ -298,8 +298,7 @@ class InstallWatchers:
                                            fsync_parent=True)
                         identity.signal(signal.SIGSTOP)
                         for bridge in bridges:
-                            bridge.terminate()
-                            bridge.wait(timeout=20)
+                            ObservedProcess(ProcessIdentity.capture(bridge.pid)).stop_sync()
                     elif Path(command[0]).name == 'toad':
                         terminal = process.parent()
                         if terminal.name() != 'st' or terminal.environ().get('DISPLAY') != ':0':
@@ -307,8 +306,7 @@ class InstallWatchers:
                         desktop.append({'command': ['st', '-e', str(Path.home() / 'bin/toad-comms')],
                                         'cwd': terminal.cwd(), 'environment': terminal.environ()})
                         _atomic_write_text(desktop_path, json.dumps(desktop), fsync_parent=True)
-                        process.terminate()
-                        process.wait(timeout=20)
+                        ObservedProcess(ProcessIdentity.capture(process.pid)).stop_sync()
                 except psutil.NoSuchProcess:
                     continue
             if not settings_backup.exists():
@@ -756,17 +754,19 @@ finally:
                     worker.stdin.write('SEND\n')
                     worker.stdin.flush()
                     token = environment['BUILD_WAKE_TOKEN']
+                    def reply_is_visible(text):
+                        return any(row.strip('▌ ') == token for row in app.message_cells(text))
                     def replied(text):
                         if worker.poll() not in (None, 0):
                             raise RuntimeError(f'Private agent failed; see {output / "wake.log"}')
-                        return (output / 'result.json').exists() and token in text
+                        return (output / 'result.json').exists() and reply_is_visible(text)
                     app.wait('reply', replied, seconds=None)
                     app.screenshot('reply')
                     app.click('#any')
                     app.wait('reply-channel', lambda text: '#any · all comms' in text
-                             and 'IRC / Markdown' in text and token in text)
+                             and 'IRC / Markdown' in text and reply_is_visible(text))
                     app.click('build-wake')
-                    app.wait('reply-return', lambda text: token in text and 'User messages' in text)
+                    app.wait('reply-return', lambda text: reply_is_visible(text) and 'User messages' in text)
                     app.screenshot('reply-return')
             worker.wait(timeout=30)
             if worker.returncode:
