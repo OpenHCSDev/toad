@@ -31,13 +31,17 @@ class GoalControl(InlineSelection, PrimaryActivation, CoreEventReceiver, Static,
     GoalControl { width: auto; height: 1; margin-right: 2; color: $text-secondary; pointer: pointer; }
     """
 
+    def __init__(self, interaction: type[GoalInteraction]):
+        super().__init__(interaction.label, id=interaction.control_id())
+        self.interaction = interaction
+
     @property
     def primary_activation(self):
         return self.action_activate
 
     def action_activate(self):
         if not self.disabled:
-            self.publish_core(GoalControlActivated(GoalInteraction.member_named(self.id.removeprefix("goal-"))))
+            self.publish_core(GoalControlActivated(self.interaction))
 
     def on_click(self, event: events.Click):
         event.stop()
@@ -94,6 +98,21 @@ class GoalBar(VerticalGroup):
         self._prompt = prompt
         self._horizontal_layout = HorizontalLayout()
         self._grid_layout = GridLayout()
+        self.header: ChangingText = ChangingText("", markup=False, classes="goal-header")
+        self.pulse: StandbyPulse = StandbyPulse()
+        self.execution_text: GoalText = GoalText(classes="goal-execution")
+        self.execution_row: HorizontalGroup = HorizontalGroup(
+            self.pulse, self.execution_text, classes="goal-execution-row"
+        )
+        self.summary: GoalText = GoalText(classes="goal-summary")
+        self.progress: GoalText = GoalText(classes="goal-progress")
+        self.document: VerticalScroll = VerticalScroll(
+            self.summary, self.progress, classes="goal-document"
+        )
+        self.actions: tuple[GoalControl, ...] = tuple(
+            GoalControl(action) for action in GoalInteraction.members_with(GoalInteraction)
+        )
+        self.controls: HorizontalGroup = HorizontalGroup(*self.actions, classes="goal-controls")
 
     @property
     def goal_display(self):
@@ -139,16 +158,10 @@ class GoalBar(VerticalGroup):
         self._update_goal_text()
 
     def compose(self) -> ComposeResult:
-        yield ChangingText("", markup=False, classes="goal-header")
-        with HorizontalGroup(classes="goal-execution-row"):
-            yield StandbyPulse()
-            yield GoalText(classes="goal-execution")
-        with VerticalScroll(classes="goal-document"):
-            yield GoalText(classes="goal-summary")
-            yield GoalText(classes="goal-progress")
-        with HorizontalGroup(classes="goal-controls"):
-            for action in GoalInteraction.members_with(GoalInteraction):
-                yield GoalControl(action.label, id=action.control_id())
+        yield self.header
+        yield self.execution_row
+        yield self.document
+        yield self.controls
 
     def watch_collapsed(self) -> None:
         self.set_class(self.collapsed, "-collapsed")
@@ -165,9 +178,8 @@ class GoalBar(VerticalGroup):
             self._end_resize()
         self._update_goal_text()
         if self.is_attached:
-            progress = self.query_one(".goal-progress", GoalText)
-            progress.update_goal_text(f"Progress: {progress_text}")
-            progress.display = goal.shows_progress
+            self.progress.update_goal_text(f"Progress: {progress_text}")
+            self.progress.display = goal.shows_progress
             self._update_control_layout()
 
     def watch_execution(self) -> None:
@@ -176,26 +188,24 @@ class GoalBar(VerticalGroup):
     def _update_goal_text(self) -> None:
         if not self.is_attached:
             return
-        header = self.query_one(".goal-header", Static)
         state = self.goal_display
         goal = state.snapshot
         objective = goal.objective
         execution = self.execution
-        header.update(state.heading(execution))
-        for action in GoalInteraction.members_with(GoalInteraction):
-            control = self.query_one(f"#{action.control_id()}", GoalControl)
+        self.header.update(state.heading(execution))
+        for control in self.actions:
+            action = control.interaction
             control.disabled = not action.enabled(state)
             control.display = action.visible(state)
             control.update(action.caption(state, self.collapsed))
-        self.query_one(".goal-document").display = goal.shows_document and not self.collapsed
-        self.query_one(".goal-summary", GoalText).update_goal_text(f"Objective: {objective}")
+        self.document.display = goal.shows_document and not self.collapsed
+        self.summary.update_goal_text(f"Objective: {objective}")
         standby = state.standby(execution)
-        self.query_one(".goal-execution-row").display = standby and not self.collapsed
-        self.query_one(StandbyPulse).active = standby and not self.collapsed
-        status = self.query_one(".goal-execution", GoalText)
-        status.display = standby
+        self.execution_row.display = standby and not self.collapsed
+        self.pulse.active = standby and not self.collapsed
+        self.execution_text.display = standby
         if standby:
-            status.update_goal_text(execution.presentation("").summary)
+            self.execution_text.update_goal_text(execution.presentation("").summary)
         self._update_control_layout()
         self.call_after_refresh(self.update_document_height)
 
@@ -214,7 +224,7 @@ class GoalBar(VerticalGroup):
         )
         if own_edge or loading_edge:
             event.stop()
-            self._resize_origin = (event.screen_y, self.query_one(".goal-document").region.height)
+            self._resize_origin = (event.screen_y, self.document.region.height)
             self.set_class(True, "-resizing")
             self.capture_mouse()
 
@@ -258,13 +268,13 @@ class GoalBar(VerticalGroup):
     def _update_control_layout(self) -> None:
         if not self.is_attached or not self.goal_display.visible or not self.content_size.width:
             return
-        controls = self.query_one(".goal-controls")
+        controls = self.controls
         widths = [
             cell_len(str(control.render())) + control.styles.margin.width
-            for control in controls.query(GoalControl) if control.display
+            for control in self.actions if control.display
         ]
         width = self.content_size.width
-        header_width = cell_len(str(self.query_one(".goal-header", Static).render()))
+        header_width = cell_len(str(self.header.render()))
         inline = self.collapsed and sum(widths) + header_width <= width
         controls.styles.dock = "left" if inline else "top" if self.collapsed else "none"
         controls.styles.width = "auto" if inline else "1fr"
@@ -288,12 +298,12 @@ class GoalBar(VerticalGroup):
         # without a document. Querying that hidden document's geometry forces
         # a full compositor map after the visible viewport was already laid out.
         if self.is_attached and self.goal_display.snapshot.shows_document and not self.collapsed:
-            document = self.query_one(".goal-document", VerticalScroll)
+            document = self.document
             width = document.content_size.width
             height = (
                 sum(
                     child.visual.get_height(child.styles, width)
-                    for child in document.query(GoalText)
+                    for child in (self.summary, self.progress)
                     if child.display
                 )
                 if width
