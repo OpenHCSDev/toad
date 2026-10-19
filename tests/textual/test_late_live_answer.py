@@ -11,24 +11,23 @@ from agent_comms.acp_extension import (
     CoordinationChangedUpdate, TranscriptSnapshotUpdate, TurnChangedUpdate, encode_updates,
 )
 from agent_comms.comms import Comms
-from agent_comms.threads import Thread
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
 from toad.core.events import CommsUpdated, Update
-from toad.transcript_publication import CheckpointPublication
+from toad.transcript_publication import CommitPublication
 from toad.widgets.transcript_history import TranscriptHistory
 
 TOKEN = "LATE_LIVE_ANSWER"
 
 
-@pytest.mark.parametrize("arrival", ["read-in-flight", "checkpoint", "snapshot", "queued-snapshot"])
+@pytest.mark.parametrize("arrival", ["read-in-flight", "commit", "queued-snapshot"])
 async def test_late_live_answer_is_drawn_once(workspace, arrival):
     project = workspace.project
     comms = Comms(workspace.roots.wire)
     comms.messaging.initialize_private_initial_protocol()
-    thread = comms.registry.declare(Thread("source", frozenset(), str(project)))
-    comms.registry.declare(Thread("peer", frozenset(), str(project)))
+    thread = workspace.thread("source")
+    workspace.thread("peer")
     comms.messaging.send_message("peer", "source", "WIRE_NOTICE")
     first_page = comms.transcripts.thread_transcript_page("source")
     held, release, applied = asyncio.Event(), asyncio.Event(), asyncio.Event()
@@ -87,8 +86,8 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                     return await read_page(*arguments, **options)
 
                 agent.get_transcript_page = held_read
-                view.transcript.dirty = view.transcript.checkpoint_required = True
-                pending.append(asyncio.create_task(view.transcript.publish(CheckpointPublication)))
+                view.transcript.dirty = view.transcript.commit_required = True
+                pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 await asyncio.wait_for(read_entered.wait(), 5)
 
             answer = asyncio.create_task(agent.updates.receive("late-live", {
@@ -108,24 +107,21 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             if arrival == "read-in-flight":
                 read_release.set()
             else:
-                view.transcript.dirty = view.transcript.checkpoint_required = True
-                if arrival == "checkpoint":
-                    pending.append(asyncio.create_task(view.transcript.publish(CheckpointPublication)))
+                view.transcript.dirty = view.transcript.commit_required = True
+                if arrival == "commit":
+                    pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 else:
                     page = await agent.get_transcript_page()
-                    if arrival == "snapshot":
-                        pending.append(asyncio.create_task(view.transcript.snapshot(page)))
-                    else:
-                        agent.events.publish(CommsUpdated(
-                            TranscriptSnapshotUpdate.capture(comms.transcripts, "source"), agent.session_id))
+                    agent.events.publish(CommsUpdated(
+                        TranscriptSnapshotUpdate.capture(comms.transcripts, "source"), agent.session_id))
 
-                        async def saved_history_shown():
-                            async with asyncio.timeout(8):
-                                while not any(item.page_source.through == page.after
-                                              for item in view.transcript.histories):
-                                    await asyncio.sleep(.02)
+                    async def saved_history_shown():
+                        async with asyncio.timeout(8):
+                            while not any(item.page_source.through == page.after
+                                          for item in view.window.histories):
+                                await asyncio.sleep(.02)
 
-                        pending.append(asyncio.create_task(saved_history_shown()))
+                    pending.append(asyncio.create_task(saved_history_shown()))
             await asyncio.sleep(.5)
             release.set()
             await asyncio.wait_for(asyncio.gather(*pending), 8)

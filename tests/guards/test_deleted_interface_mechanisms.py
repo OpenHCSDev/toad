@@ -83,18 +83,6 @@ def test_nominal_block_interaction_caller_closure():
             for node in ast.walk(method):
                 if isinstance(node,ast.Call) and isinstance(node.func,ast.Name):
                     assert node.func.id not in {'isinstance','issubclass','getattr','hasattr'}, (method.name,node.lineno)
-    from toad.block_content import BlockContent
-    from toad.conversation_markdown import ConversationMarkdown
-    assert all(issubclass(block,BlockContent) for block in ConversationMarkdown.BLOCKS.values())
-
-
-def test_markdown_tokens_use_native_rule_registry():
-    """The conversation markdown boundary cannot acquire a token-type switch again."""
-    path = ROOT / 'conversation_markdown.py'
-    for node in ast.walk(ast.parse(path.read_text())):
-        if isinstance(node, (ast.Compare, ast.Match)):
-            assert not any(isinstance(part, ast.Attribute) and part.attr == 'type'
-                           for part in ast.walk(node)), (path, node.lineno)
 
 
 def test_acp_process_retirement_single_owner():

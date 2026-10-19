@@ -2,19 +2,18 @@
 
 from dataclasses import replace
 
-from agent_comms.goals import Goal
-from agent_comms.ui_model.goal import GoalDisplay
+from agent_comms.goals import Goal, NoGoal
 from textual.containers import VerticalScroll
 
 from toad.widgets.goal_bar import GoalBar
 from toad.widgets.throbber import Throbber
 
-GOAL = Goal("Long goal detail.\n" * 100, "resizing", revision=7)
+GOAL = Goal("Long goal detail.\n" * 100, "resizing", 1, revision=7)
 
 
 async def shown_bar(ui):
     view = ui.conversation
-    view.goal_display = GoalDisplay.current(GOAL)
+    view.goal_display = GOAL
     view.prompt.text = "Keep draft while resizing"
     bar = view.query_one(GoalBar)
     document = bar.query_one(".goal-document", VerticalScroll)
@@ -55,7 +54,7 @@ async def test_dragged_height_survives_a_new_revision_and_a_collapse_cycle(works
         view, bar, document = await shown_bar(ui)
         await drag(ui, bar, bar, 3)
         resized = document.region.height
-        view.goal_display = GoalDisplay.current(replace(GOAL, revision=8))
+        view.goal_display = replace(GOAL, revision=8)
         await ui.step()
         assert document.region.height == resized
         await pilot.click("#goal-collapse")
@@ -94,6 +93,6 @@ async def test_removing_the_goal_during_a_drag_releases_the_mouse(workspace):
         view, bar, document = await shown_bar(ui)
         assert await pilot.mouse_down(bar, offset=(3, 0))
         assert app.mouse_captured is bar
-        view.goal_display = GoalDisplay.current(None)
+        view.goal_display = NoGoal()
         await ui.until(lambda: app.mouse_captured is None and not bar.display,
                        why="the mouse released and the bar hidden")

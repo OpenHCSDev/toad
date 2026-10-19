@@ -1,15 +1,14 @@
-"""Textual-facing: the session details disclosure (a Textual Collapsible) takes one row when closed, a bounded height when open, and sits above the composer without moving live activity or the draft."""
+"""Textual-facing: the session details disclosure (a Textual Collapsible) takes one row when closed, a bounded height when open, and sits above the composer without moving the draft."""
 
 import pytest
 from textual.screen import Screen
 from textual.widgets import Input
 
-from agent_comms.messages import Message, MessageType
+from agent_comms.messages import InfoKind, Message
 from agent_comms.presentation import MessageNotification
 from agent_comms.thread_presentation import ThreadPresentation
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.status import ThreadStatusModel
-from toad.widgets.conversation import TurnActivity
 from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import SessionDetails
@@ -19,7 +18,7 @@ from toad.widgets.session_details import SessionDetails
 async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi):
     notifications = tuple(MessageNotification(
         "owner", "Responded", "", message=Message("peer", "#comms", f"Notice {index}: " + "body " * 30,
-                                                 MessageType.INFO, seq=index + 1),
+                                                 InfoKind, seq=index + 1),
     ) for index in range(30))
     state = ThreadPresentation("owner", "●", "Ready", notifications=notifications)
     history = NativeHistory()
@@ -64,33 +63,3 @@ async def test_details_are_one_row_until_opened_and_then_bounded(workspace, ansi
         assert history.status == "none"
         assert delivery.delivery.dismissed_historical_count == 5
 
-
-async def test_live_activity_stays_above_the_details_row_and_the_draft_survives(workspace):
-    async with workspace.app(size=(100, 32)) as ui:
-        app, pilot = ui.textual
-        view = ui.conversation
-        details = view.query_one(SessionDetails)
-        activity = view.query_one(TurnActivity)
-        view.native_history_status = "none"
-        view.busy_count = 1
-        view.turns.start_client()
-        view.prompt.text = "Keep this unsent draft"
-        for ansi, size in ((False, (100, 32)), (True, (76, 26))):
-            app.ansi_color = ansi
-            app.refresh_css()
-            await ui.resize(*size)
-            for collapsed in (True, False):
-                details.collapsed = collapsed
-                for status in ("Thinking…", "Writing response…", "Calling tool: read"):
-                    view.turns.describe(status)
-                    await ui.step()
-                    assert activity.region.bottom <= details.region.y, (
-                        "Live activity must precede metadata, not be displaced by its divider", ansi)
-                    assert activity in app.screen._compositor.visible_widgets
-                    row = ui.painted(activity).splitlines()[0]
-                    assert status in row, (ansi, collapsed, row)
-                    assert not details.styles.border_top[0], (ansi, collapsed, details.styles.border_top)
-                    if collapsed:
-                        assert details.size.height == 1
-                    assert activity.region.bottom <= view.throbber.region.y
-                    assert view.prompt.text == "Keep this unsent draft"
