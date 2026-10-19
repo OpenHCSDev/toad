@@ -40,9 +40,6 @@ class AgentBinding(ABC):
     @abstractmethod
     def matches_agent(self, agent) -> bool: ...
 
-    @abstractmethod
-    def turn_projection(self): ...
-
 
 class NoAgentBound(AgentBinding):
     """A real saved view before it acquires any native connection."""
@@ -64,9 +61,6 @@ class NoAgentBound(AgentBinding):
         return ""
 
     def thread_read(self):
-        return None
-
-    def turn_projection(self):
         return None
 
     async def retire_surface(self, view) -> None:

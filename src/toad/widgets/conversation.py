@@ -467,7 +467,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
 
     _shell: var[Shell | None] = var(None)
 
-    agent_binding: var[AgentBinding] = var(NoAgentBound(), bindings=True)
+    agent_binding: var[AgentBinding] = var(NoAgentBound, bindings=True)
     agent_info: var[Content] = var(Content())
     model_history_scope = var("")
     @property
@@ -506,7 +506,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         transcript: TranscriptPresentation | None = None,
     ) -> None:
         super().__init__()
-        self.turns = ConversationTurn(self._turn_changed, lambda: self.agent_binding.turn_projection())
+        self.turns = ConversationTurn(self._turn_changed, lambda: self.agent_binding.presentation.turns)
         self.throbber = BelowThrobber(self.working, id="throbber")
         self.throbber_above = AboveThrobber(self.working)
         self._initialize_session(project_path, agent, agent_session_id, session_pk,

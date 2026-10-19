@@ -196,9 +196,6 @@ class OperationalSessionSources:
             if screen.is_current:
                 conversation.start_native_session()
 
-    def wire(self, conversation: Conversation) -> None:
-        """The view borrows its agent during present, through bind_agent."""
-
     async def present(self, conversation: Conversation) -> None:
         shell, self.shell = self.shell, None
         if shell is not None:
@@ -351,7 +348,6 @@ class OperationalSessionPresentation(EditorSessionSurfaceLifetime):
             self.widget = conversation
             screen._initial_prompt = None
             conversation.display = False
-        self.sources.wire(conversation)
         if not returning:
             if self.state is not None:
                 conversation._initial_prompt = self.state.initial_prompt

@@ -552,7 +552,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
     display_directory = var("")
     agent_info = var(Content(""))
     _ask: var[Ask | None] = var(None)
-    agent_binding = var(NoAgentBound())
+    agent_binding = var(NoAgentBound)
     model_history_scope = var("")
     status: var[str | Content | RichText] = var("")
 

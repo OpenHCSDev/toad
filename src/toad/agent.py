@@ -90,9 +90,6 @@ class AgentBase(AgentBinding):
     def accepts_message(self, message) -> bool:
         return message.publisher is self and message.event.session_id == self.session_id
 
-    def turn_projection(self):
-        return self.presentation.turns
-
     def refresh_projection(self, view) -> None:
         view.status = self.context_measurement.status()
         view.turns.bound()
