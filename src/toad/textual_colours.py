@@ -25,7 +25,6 @@ from textual.ansi_palette import AnsiPalette, NativeAnsiPalette, MappedAnsiPalet
 from textual.color import Color
 from textual.content import Content
 from textual.driver import TerminalGaveNoPalette
-from textual.css.styles import Styles
 from textual.style import Style as VisualStyle
 from textual.strip import Strip
 from toad.preferences import SavedSettings, ToadSettings
@@ -42,7 +41,7 @@ from ui_theme.colour import AnsiColour, Rgb, TerminalPalette, require_terminal_p
 from ui_theme.depth import ColourDepth
 from ui_theme.effects import Band, Gradient, Mix, PlayedText, TextFrame
 from ui_theme.splash import TextEffect
-from ui_theme.scheme import BackgroundColour, BlockCursorBackgroundColour, BlockCursorForegroundColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, CoreColour, TextStyle
+from ui_theme.scheme import BackgroundColour, BlendColour, ColourScheme, ForegroundColour, LayerColour, ThemeColour, CoreColour, TextStyle, ThemeTextStyle
 from ui_theme.wal import WalFile
 from toad.widgets.transcript_lines import LineTheme, RichLineRenderer
 from toad.line_blocks import LineRole
@@ -290,20 +289,16 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def variables_changed(self, variables: dict[str, str]) -> None:
         palette = self.schemes[self.app.theme].palette
         variables = dict(variables)
-        cursor = Styles.parse(f"color: {variables[BlockCursorForegroundColour.name]}; "
-                              f"background: {variables[BlockCursorBackgroundColour.name]};",
-                              read_from=(__file__, "cursor colours"))
-        if cursor.auto_color:
-            variables[BlockCursorForegroundColour.name] = cursor.background.get_contrast_text(cursor.color.a).hex
+        self._colours = {member: Color.parse(variables[member.name])
+                         for member in (*CoreColour.members(), *LayerColour.members())}
+        self._colours.update({member: value.native(self)
+                              for member, value in self.scheme.resolved_elements.items()
+                              if issubclass(member, ThemeColour)})
 
-        self._colours = {member: Color.parse(value) for member in ThemeColour.members()
-                         if (value := variables.get(member.name)) is not None}
-
-        for member in ThemeColour.members():
-            if not issubclass(member, (CoreColour, LayerColour)):
-                derived = palette.derived(member, self._colours)
-                self._colours[member] = derived
-                variables[member.name] = derived.css
+        for member in BlendColour.members():
+            derived = palette.derived(member, self._colours)
+            self._colours[member] = derived
+            variables[member.name] = derived.css
         self.variables = variables
         self.refresh_line_renderer()
 
@@ -317,30 +312,29 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     # The backend.
 
     def theme(self, scheme: ColourScheme) -> Theme:
-        colours = {colour.name: value.native(self) for colour, value in scheme.colours.items()
+        colours = {colour.name: value.native(self).css for colour, value in scheme.colours.items()
                    if issubclass(colour, (CoreColour, LayerColour))}
+        elements = scheme.resolved_elements
+        variables = {member.name: value.native(self).css for member, value in elements.items()
+                     if issubclass(member, ThemeColour)}
+        variables.update({member.name: value.native(self) for member, value in elements.items()
+                          if issubclass(member, ThemeTextStyle)})
         theme = Theme(name=scheme.name, dark=scheme.dark, ansi=scheme.from_terminal,
-                      variables={name: value.native(self) for name, value in scheme.elements.items()},
-                      **colours)
+                      variables=variables, **colours)
         return theme
 
     def palette(self, palette: TerminalPalette) -> TerminalTheme:
         ansi = [colour.triple for colour in palette.ansi]
         return TerminalTheme(palette.background.triple, palette.foreground.triple, ansi[:8], ansi[8:])
 
-    def rgb(self, colour: Rgb) -> str:
-        if colour.alpha == 1:
-            return colour.hex
-        # Textual reads alpha exactly as #rrggbbaa or as a percentage.
-        byte = colour.alpha * 255
-        return (f"{colour.hex}{round(byte):02x}" if abs(byte - round(byte)) < 1e-6
-                else f"{colour.hex} {colour.alpha * 100:g}%")
+    def rgb(self, colour: Rgb) -> Color:
+        return Color(colour.red, colour.green, colour.blue, colour.alpha)
 
-    def ansi(self, colour: AnsiColour) -> str:
-        return f"ansi_{colour.name}"
+    def ansi(self, colour: AnsiColour) -> Color:
+        return Color(0, 0, 0, ansi=colour.index)
 
-    def terminal_default(self) -> str:
-        return "ansi_default"
+    def terminal_default(self) -> Color:
+        return Color(0, 0, 0, ansi=-1)
 
     def text_style(self, style: TextStyle) -> str:
         return style.value
