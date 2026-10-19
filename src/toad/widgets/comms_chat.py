@@ -330,7 +330,7 @@ class CommsChatView(Conversation):
             return
         if not await history.source_is_current(snapshot) or self.target != target:
             return
-        await self.refresh_composer(status=status)
+        await self.refresh_composer(read_only, status)
         if self.window.follows_tail:
             self.window.anchor()
         if NEWER_END.visible_more(history) or (OLDER_END.visible_more(history) and self.window.max_scroll_y == 0):
