@@ -38,11 +38,8 @@ class MessageClock:
         timestamp = self.timestamp
         if timestamp is None:
             return "time unknown", None
-        try:
-            local = time.localtime(timestamp)
-            return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
-        except (OverflowError, OSError, ValueError):
-            return "time unknown", None
+        local = time.localtime(timestamp)
+        return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
 
     @classmethod
     def recorded(cls, timestamp: float | None) -> MessageClock:

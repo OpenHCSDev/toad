@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from toad.format_path import format_path
 from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
@@ -136,11 +137,7 @@ class ThreadIdentity(NamedThreadIdentity):
         return self.root, self.thread_name()
 
     def display_root(self) -> str:
-        path = self.root_path()
-        try:
-            return f"~/{path.relative_to(Path.home())}"
-        except ValueError:
-            return str(path)
+        return format_path(self.root_path())
 
     def inspection_state(self):
         from toad.core.context_inspection import ReadingOwnerInspection

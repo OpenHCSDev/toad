@@ -434,20 +434,17 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
         if generation != self._generation or not expected.available:
             return
         identity = self.thread_view.thread_identity
-        try:
-            service = await self.relationship_source(identity)
-            snapshot = await asyncio.to_thread(service.snapshot, identity.thread_name())
-            if (generation != self._generation or not self.is_attached
-                    or not self.screen.is_current):
-                return
-            current = snapshot.current_entry(group_key, expected)
-            if current is None:
-                self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
-                self.refresh_relationships(force=True)
-                return
-            self.open_target(entry_target(current))
-        except (OSError, ValueError) as error:
-            self.app.show_error(error, "Comms target unavailable")
+        service = await self.relationship_source(identity)
+        snapshot = await asyncio.to_thread(service.snapshot, identity.thread_name())
+        if (generation != self._generation or not self.is_attached
+                or not self.screen.is_current):
+            return
+        current = snapshot.current_entry(group_key, expected)
+        if current is None:
+            self.notify("This relationship changed; refresh the list before opening it.", title="Comms")
+            self.refresh_relationships(force=True)
+            return
+        self.open_target(entry_target(current))
 
     def show_row_menu(self, row, offset):
         from toad.widgets.comms_menu import show_target_menu

@@ -81,10 +81,7 @@ class SessionResumeModal(ModalScreen[Session]):
             )
 
     async def dissmiss_with_session(self, row_key_value: str) -> Session | None:
-        try:
-            session_id = int(row_key_value)
-        except ValueError:
-            return
+        session_id = int(row_key_value)
         db = DB()
         session = await db.session_get(session_id)
         self.dismiss(session)

@@ -336,9 +336,6 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             self.state.present(lambda current: self._inspection_acquired(previous, current, force))
         except asyncio.CancelledError:
             raise
-        except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if self._reading(identity):
-                status.update(f"{identity.thread_name()} · context unavailable: {error}")
 
     def _inspection_acquired(self, previous, current, force):
         self.query_one("#context-older", Button).disabled = not current.inspection.page.has_older()
@@ -359,9 +356,6 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
             native = await captured.inspection.native()
         except asyncio.CancelledError:
             raise
-        except (OSError, ValueError, RuntimeError, ConnectionError, RequestError) as error:
-            if self._reading(captured.thread_identity):
-                self._native_acquired(self.state.native_failed(captured.inspection, error))
         else:
             if self._reading(captured.thread_identity):
                 self._native_acquired(self.state.with_native(captured.inspection, native))
@@ -400,12 +394,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         if not self._selected(model):
             return
         worktree = self.query_ancestor(SessionView).project_root
-        try:
-            await model.correct(answer, worktree)
-        except (OSError, ValueError, RuntimeError, RequestError) as error:
-            if self._selected(model):
-                self.app.show_error(error, "Annotation correction failed")
-            return
+        await model.correct(answer, worktree)
         if self._selected(model):
             self.notify("Original human correction recorded")
             self._read()
@@ -475,12 +464,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
     async def _search(self, captured: HoldingInspection, query, selected):
         status = self.query_one(".context-status", Static)
         status.update("Searching original public context…")
-        try:
-            matches = await captured.find(query, selected)
-        except (OSError, ValueError, RuntimeError, RequestError) as error:
-            if self._searching(captured, query, selected):
-                status.update(f"Context search unavailable: {error}")
-            return
+        matches = await captured.find(query, selected)
         if not self._searching(captured, query, selected):
             return
         description = selected.search_description() if selected is not None else "Current public context"
@@ -514,12 +498,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         node = self.query_one(ContextTree).cursor_node
         if self.query_one(ContextTree).owns_node(node):
             model = node.data
-            try:
-                detail = await model.read()
-            except (OSError, ValueError, RuntimeError, RequestError) as error:
-                if self._selected(model):
-                    self.app.show_error(error, "Context copy failed")
-                return
+            detail = await model.read()
             if self._selected(model):
                 self.app.copy_to_clipboard(detail)
                 self.notify("Complete selected public text and source copied")
@@ -535,14 +514,9 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         if not destination:
             self.notify("Choose a new output file path", severity="warning")
             return
-        try:
-            await model.export(Path(destination).expanduser())
-        except (OSError, ValueError, RuntimeError) as error:
-            if self.is_attached:
-                self.app.show_error(error, "Context export failed")
-        else:
-            if self.is_attached:
-                self.notify(f"Exported selected public text and source to {destination}")
+        await model.export(Path(destination).expanduser())
+        if self.is_attached:
+            self.notify(f"Exported selected public text and source to {destination}")
 
     @on(Tree.NodeHighlighted, "#context-tree")
     def node_highlighted(self, event):
@@ -565,10 +539,7 @@ class ContextExplorer(ShowsThreadIdentity, SidebarVisibilityObserver, Vertical):
         area = self.query_one(ProcessTextArea)
         # A read borrows the native document; it does not replace the reader's
         # selection and scroll with a temporary one-line document.
-        try:
-            detail = await model.read()
-        except (OSError, ValueError, RuntimeError, RequestError) as error:
-            detail = f"Selected context detail unavailable: {error}"
+        detail = await model.read()
         if self._selected(model):
             # A new authenticated node may supply identical displayed text.
             # Its source is still read above; unchanged native answers need

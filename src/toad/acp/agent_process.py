@@ -15,6 +15,26 @@ from toad.acp.shell_command import ShellCommand
 from toad.core.events import LogAgentFail
 
 
+class PromptWrite:
+    def acknowledge(self) -> None:
+        raise NotImplementedError
+
+
+class NoPromptWrite(PromptWrite):
+    """Startup and notification frames have no prompt writer to acknowledge."""
+    def acknowledge(self) -> None:
+        pass
+
+
+class PendingPromptWrite(PromptWrite):
+    def __init__(self):
+        self.written = asyncio.get_running_loop().create_future()
+
+    def acknowledge(self) -> None:
+        if not self.written.done():
+            self.written.set_result(None)
+
+
 class AgentProcess(Client):
     def __init__(self, agent):
         self.agent = agent
@@ -31,7 +51,7 @@ class AgentProcess(Client):
         self.command = None
         self.attachment_lock = asyncio.Lock()
         self._incoming: ContextVar[dict] = ContextVar('acp_incoming')
-        self._prompt_written: ContextVar[asyncio.Future] = ContextVar('acp_prompt_written')
+        self._prompt_written: ContextVar[PromptWrite] = ContextVar('acp_prompt_written', default=NoPromptWrite())
 
     @property
     def rpc(self) -> ClientSideConnection:
@@ -55,22 +75,15 @@ class AgentProcess(Client):
     async def start(self, agent, processes=()):
         agent.session.reopen()
         agent.session.starting()
-        try:
-            await asyncio.to_thread(
-                agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)
-        except OSError:
-            pass
+        await asyncio.to_thread(
+            agent.presentation.log_path.parent.mkdir, parents=True, exist_ok=True)
         from agent_comms.route_selection import RouteSelection
         env = os.environ.copy()
         cwd = str(agent.project_root_path.resolve())
         selection = RouteSelection.for_child(env, cwd)
         with ExitStack() as acquisition:
-            try:
-                acquisition.enter_context(selection.route.hold_client_route())
-                await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
-            except (OSError, ValueError, RuntimeError) as error:
-                agent.session.startup_failed(str(error))
-                return self
+            acquisition.enter_context(selection.route.hold_client_route())
+            await AcpIngress(selection, Path(cwd), self.attached_root(agent)).preflight()
             if not agent.session.accepts_updates:
                 return self
             for connection in dict.fromkeys((self, *processes)):
@@ -102,8 +115,9 @@ class AgentProcess(Client):
 
     async def prompt(self, agent, content, metadata, require):
         """Core admits the actual SDK write, not the duration of the reply."""
-        written = asyncio.get_running_loop().create_future()
-        token = self._prompt_written.set(written)
+        writer = PendingPromptWrite()
+        written = writer.written
+        token = self._prompt_written.set(writer)
         try:
             async with self.ingress(agent).prompt():
                 require()
@@ -134,13 +148,7 @@ class AgentProcess(Client):
             sender = 'agent'
         else:
             sender = 'client'
-            try:
-                written = self._prompt_written.get()
-            except LookupError:
-                pass
-            else:
-                if not written.done():
-                    written.set_result(None)
+            self._prompt_written.get().acknowledge()
         line = f'[{sender}] {json.dumps(event.message)}'
         for session in tuple(self.sessions):
             session.agent.log(line)
@@ -287,7 +295,7 @@ class AgentProcess(Client):
                 ShellCommand.current().argv(command), env=env,
                 stdio=StreamingChildStdio(limit=10 * 1024 * 1024),
             )
-        except (OSError, ValueError, RuntimeError) as error:
+        except (FileNotFoundError, PermissionError) as error:
             agent.session.startup_failed(str(error))
             return
         assert process.stdout is not None

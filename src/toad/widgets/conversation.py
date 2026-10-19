@@ -377,11 +377,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         read = self._thread_read
         self.arm_thread_read()
         if read is not None:
-            try:
-                presentation = read.settle(presentation)
-            except ValueError as error:
-                self.log.warning("Observed thread presentation not settled", error)
-                return
+            presentation = read.settle(presentation)
         self.thread_presented(presentation)
         if (prompt := self.query_one_optional(Prompt)) is not None:
             prompt.sync_session()
@@ -814,12 +810,11 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         return None
 
     def insert_path_into_prompt(self, path: Path) -> None:
-        try:
-            insert_path_text = str(path.relative_to(self.project_path))
-        except ValueError:
+        if not path.is_relative_to(self.project_path):
             # Paths outside the project have no prompt reference.
             self.app.bell()
             return
+        insert_path_text = str(path.relative_to(self.project_path))
 
         insert_text = (
             f'@"{insert_path_text}"'
@@ -1164,8 +1159,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
             self.flash(
                 "Provider login finished; model catalogue refreshed", style="success"
             )
-        except (ValueError, OSError, TimeoutError, RequestError) as error:
-            self.app.show_error(error, "Provider login")
         finally:
             if (prompt := self.query_one_optional(Prompt)) is not None:
                 prompt.disabled = False
@@ -1487,14 +1480,9 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         source = self.query_ancestor(SessionView)
         if not source.is_current:
             return
-        try:
-            catalog = await self.read_command_catalog()
-        except (OSError, ValueError) as error:
-            self.prompt.slash_commands = []
-            self.flash(str(error), style='error')
-        else:
-            if self.is_attached and source.is_current:
-                self.prompt.slash_commands = catalog.commands
+        catalog = await self.read_command_catalog()
+        if self.is_attached and source.is_current:
+            self.prompt.slash_commands = catalog.commands
 
     async def read_command_catalog(self) -> CommandCatalog:
         from toad.screens.session_view import SessionView
@@ -1587,14 +1575,10 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     @work(group="context-compaction")
     async def compact_context(self, instructions: str | None) -> None:
         """Keep processing owner notifications while compaction is in flight."""
-        try:
-            self.window.anchor()
-            self.flash("Compaction requested")
-            await self.agent_binding.compact_context(instructions)
-            self.flash("Context compacted", style="success")
-        except (OSError, ValueError, RequestError) as error:
-            self.app.show_error(error, "Compaction request")
-            self.transcript.require_commit()
+        self.window.anchor()
+        self.flash("Compaction requested")
+        await self.agent_binding.compact_context(instructions)
+        self.flash("Context compacted", style="success")
 
     def open_queue_menu(self) -> None:
         """Remote edits require exact input IDs and backend revision-CAS support."""

@@ -62,18 +62,15 @@ class TargetContext:
         selected_screen = sidebar.app.screen
         source = sidebar.app.selected_session
         async def read():
-            try:
-                choices = await self.command_choices()
-                if (not sidebar.is_attached or sidebar.app.selected_session is not source
-                        or not sidebar.model_state.serves(self.comms.root.resolve())
-                        or sidebar.app.screen is not selected_screen):
-                    return
-                show_target_menu(selected_screen, offset, self.title,
-                    [(command.command.removeprefix('/'), command.label(self)) for command in choices],
-                    {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
-                     for command in choices})
-            except (OSError, ValueError) as error:
-                sidebar.app.show_error(error, 'Target actions')
+            choices = await self.command_choices()
+            if (not sidebar.is_attached or sidebar.app.selected_session is not source
+                    or not sidebar.model_state.serves(self.comms.root.resolve())
+                    or sidebar.app.screen is not selected_screen):
+                return
+            show_target_menu(selected_screen, offset, self.title,
+                [(command.command.removeprefix('/'), command.label(self)) for command in choices],
+                {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
+                 for command in choices})
         sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
     async def command_choices(self):
@@ -85,11 +82,8 @@ class TargetContext:
         return self
 
     def execute_menu(self, sidebar, command):
-        try:
-            self.current()
-            command.execute(self)
-        except (OSError, ValueError) as error:
-            sidebar.app.show_error(error, 'Target action')
+        self.current()
+        command.execute(self)
 
 
 class ContextualCommand(CommandPresentation, ABC):

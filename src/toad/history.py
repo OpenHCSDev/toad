@@ -64,19 +64,15 @@ class History:
             Returns:
                 `True` on success.
             """
-            try:
-                self.path.touch(exist_ok=True)
-                with self.path.open("r") as history_file:
-                    self._lines = history_file.readlines()
+            self.path.touch(exist_ok=True)
+            with self.path.open("r") as history_file:
+                self._lines = history_file.readlines()
 
-                inputs: list[str] = []
-                for line in self._lines:
-                    if (input := json.loads(line).get("input")) is not None:
-                        inputs.append(input.split(" ", 1)[0])
-                self.complete.add_words(inputs)
-            except OSError:
-                # An unreadable history file leaves this session without recall.
-                return False
+            inputs: list[str] = []
+            for line in self._lines:
+                if (input := json.loads(line).get("input")) is not None:
+                    inputs.append(input.split(" ", 1)[0])
+            self.complete.add_words(inputs)
             return True
 
         self._opened = await asyncio.to_thread(read_history)
@@ -105,16 +101,13 @@ class History:
             """Append a line to the history.
 
             Returns:
-                `True` on success, `False` if write failed.
+                `True` on success. Write failures propagate.
             """
             history_entry = HistoryEntry(input, time())
             line = json.dumps(asdict(history_entry))
+            with self.path.open("a") as history_file:
+                history_file.write(f"{line}\n")
             self._lines.append(line)
-            try:
-                with self.path.open("a") as history_file:
-                    history_file.write(f"{line}\n")
-            except OSError:
-                return False
             return True
 
         if not self._opened:

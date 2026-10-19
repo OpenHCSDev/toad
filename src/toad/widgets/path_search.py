@@ -319,13 +319,9 @@ class PathSearch(CompletionPopup):
 
         dir_entry = event.node.data
         if dir_entry is not None:
-            try:
-                path = await asyncio.to_thread(
-                    self.make_relative, dir_entry.path, self.root
-                )
-            except ValueError:
-                # Being defensive here, shouldn't occur
-                return
+            path = await asyncio.to_thread(
+                self.make_relative, dir_entry.path, self.root
+            )
             tree_path = str(path)
             self.post_message(PromptSuggestion(tree_path))
 
@@ -335,12 +331,9 @@ class PathSearch(CompletionPopup):
 
         dir_entry = event.node.data
         if dir_entry is not None:
-            try:
-                path = await asyncio.to_thread(
-                    self.make_relative, dir_entry.path, self.root
-                )
-            except ValueError:
-                return
+            path = await asyncio.to_thread(
+                self.make_relative, dir_entry.path, self.root
+            )
             tree_path = str(path)
             self.post_message(InsertPath(tree_path))
             self.post_message(Dismiss(self))
@@ -419,10 +412,7 @@ class PathSearch(CompletionPopup):
     async def watch_paths(self, paths: list[Path]) -> None:
 
         def path_display(path: Path) -> str:
-            try:
-                is_directory = path.is_dir()
-            except OSError:
-                is_directory = False
+            is_directory = path.is_dir()
             if is_directory:
                 return str(path.relative_to(self.root)) + "/"
             else:

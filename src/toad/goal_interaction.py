@@ -154,17 +154,13 @@ class GoalSession:
         if not self.owns(view.agent_binding):
             return
         agent = view.agent_binding
-        try:
-            await view.goal_observation.refresh()
-            if not self.owns(agent):
-                return
-            if not action.enabled(view.goal_display):
-                view.flash(view.goal_display.heading(view.goal_execution))
-                return
-            await action.apply(self)
-        except (OSError, ValueError) as error:
-            if self.owns(agent):
-                view.flash(str(error), style="error")
+        await view.goal_observation.refresh()
+        if not self.owns(agent):
+            return
+        if not action.enabled(view.goal_display):
+            view.flash(view.goal_display.heading(view.goal_execution))
+            return
+        await action.apply(self)
 
     async def change(self, action: type[GoalAction], text: str = "") -> None:
         view = self.view
@@ -173,15 +169,11 @@ class GoalSession:
         agent = view.agent_binding
         if not self.owns(agent):
             raise ValueError("The goal presentation changed; reopen its controls.")
-        try:
-            # The existing Agent boundary encodes the declared goal operation.
-            # Goal state governs continuation, never interruption of an active turn.
-            await self.write(agent, agent.update_goal(action, text))
-            if self.owns(agent):
-                view.prompt.focus()
-        except (OSError, ValueError) as error:
-            if self.owns(agent):
-                view.flash(str(error), style="error")
+        # The existing Agent boundary encodes the declared goal operation.
+        # Goal state governs continuation, never interruption of an active turn.
+        await self.write(agent, agent.update_goal(action, text))
+        if self.owns(agent):
+            view.prompt.focus()
 
     async def write(self, agent, operation):
         """Every write settles by reading the owner, including rejected writes."""

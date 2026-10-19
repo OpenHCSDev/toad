@@ -207,16 +207,12 @@ class WelcomeScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False
     async def open_sidebar_target(self, target: NavigationTarget) -> str:
         app = cast("ToadApp", self.app)
         project = str(self.project_path)
-        try:
-            from toad.thread_identity import ThreadIdentity
-            def identity():
-                service = app.coordination_access.observation.observed().service
-                return ThreadIdentity(service.messaging.user_identity(project).incarnation, str(service.root))
-            with self.changing_identity():
-                self._identity = await app.preparation.run_thread(identity)
-        except (OSError, ValueError, RuntimeError) as error:
-            self.app.show_error(error, "Comms target unavailable")
-            return app.selected_mode
+        from toad.thread_identity import ThreadIdentity
+        def identity():
+            service = app.coordination_access.observation.observed().service
+            return ThreadIdentity(service.messaging.user_identity(project).incarnation, str(service.root))
+        with self.changing_identity():
+            self._identity = await app.preparation.run_thread(identity)
         return await super().open_sidebar_target(target)
 
     async def prepare_presentation(self) -> None:

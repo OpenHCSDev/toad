@@ -204,7 +204,7 @@ class SubmissionExecution(SubmissionStart):
                 reason = await self.agent.send_prompt(self.submission.text, request=self.request)
             else:
                 reason = await self.agent.send_prompt(self.submission.text)
-        except (RequestError, OSError, ValueError) as error:
+        except RequestError as error:
             if self.current:
                 from toad.widgets.conversation import INTERNAL_EROR
                 from toad.widgets.markdown_note import MarkdownNote
@@ -311,7 +311,7 @@ class ConversationSubmissions:
         try:
             if await agent.controller.send_now():
                 return
-        except (RequestError, OSError, ValueError) as error:
+        except RequestError as error:
             if self.view.agent_binding is agent and agent.session_id == session:
                 self.view.flash(f'Send now failed: {error}', style='error')
         if self.view.agent_binding is agent and agent.queue_attachment.accepts_request(scope):
