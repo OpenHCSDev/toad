@@ -72,7 +72,6 @@ class TranscriptPublication(BoundFrame, ABC):
         super().__init__(binding, owner, generation)
         self.thread_scope = binding.thread_scope
         self.destination = HeldReaderDestination.held(binding.window)
-        self.history = next(iter(binding.histories()), None)
         self.captured = binding.view.turns.owner.captured_snapshot(tuple(binding.contents.children))
 
     def native_current(self) -> bool:
@@ -173,11 +172,11 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
 
     async def read_past_history(self, read, **whole):
         """What follows the mounted history's end while its source only grew, else the whole latest page."""
-        if self.history is not None:
-            try:
-                return await read(after=self.history.page_source.through)
-            except TranscriptChanged:
-                pass  # Another source file replaced the history's.
+        history = self.binding.history
+        try:
+            return await read(after=history.page_source.through)
+        except TranscriptChanged:
+            pass  # Another source file replaced the history's.
         return await read(**whole)
 
     async def publish_applied(self) -> bool:
@@ -201,8 +200,7 @@ class CanonicalSourcePublication(MroDispatch, TranscriptPublication):
         if draft is None:
             widget.clear()
         else:
-            history = self.binding.draft_history(draft)
-            widget.show(draft, resolve_sent=history.sent_message_resolver())
+            widget.show(draft, resolve_sent=self.binding.history.sent_message_resolver())
 
     @handles(TranscriptSnapshotUpdate)
     async def publish_snapshot(self, snapshot: TranscriptSnapshotUpdate) -> bool:
@@ -326,8 +324,8 @@ class CommitPublication(CanonicalSourcePublication):
         if any(isinstance(child, CommitBarrier) for child in self.binding.contents.children):
             return False
         potential = tuple(child for child in self.binding.contents.children
-                          if child is not self.history and isinstance(child, CommitParticipant))
-        return self.plan.ready(self.history) and self.plan.permits(view, potential)
+                          if child is not self.binding.history and isinstance(child, CommitParticipant))
+        return self.plan.ready(self.binding.history) and self.plan.permits(view, potential)
 
     async def publish_applied(self) -> bool:
         if self.ready_to_commit():
@@ -341,9 +339,9 @@ class CommitPublication(CanonicalSourcePublication):
         window, contents = self.binding.window, self.binding.contents
         # A page cannot replace live blocks posted while its read or fragment
         # preparation is in flight unless it explicitly contains their identity.
-        plan, history = self.plan, self.history
+        plan, history = self.plan, self.binding.history
         is_current = partial(self.source_current, page.after)
-        if history is None and not page.events or not is_current():
+        if not is_current():
             return True
         prepared = await plan.prepare(view, history, page, self.captured, is_current)
         if prepared is None or not is_current():
@@ -369,7 +367,7 @@ class CommitPublication(CanonicalSourcePublication):
                 retired = retirement_candidates(contents.children, evidence)
                 if (
                     not is_current()
-                    or history is not next(iter(self.binding.histories()), None)
+                    or history is not self.binding.history
                     or not plan.ready(prepared.history)
                     or not plan.permits(view, retired)
                 ):
@@ -431,6 +429,10 @@ class ViewBinding:
 
     def histories(self):
         return ()
+
+    @property
+    def history(self) -> TranscriptHistory:
+        raise ValueError("Saved history requires a bound view")
 
     def observe_thread(self, owner):
         pass
@@ -519,8 +521,9 @@ class BoundView(ViewBinding):
     def histories(self):
         return tuple(self.contents.query_children(TranscriptHistory))
 
-    def draft_history(self, draft):
-        history, = (history for history in self.histories() if history.owns_draft(draft))
+    @property
+    def history(self) -> TranscriptHistory:
+        history, = self.histories()
         return history
 
     def observe_thread(self, owner):
@@ -560,16 +563,13 @@ class BoundView(ViewBinding):
         view.resume_retained_history()
         if not owner.readable:
             return
-        first_history = next(iter(self.histories()), None)
         moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
         position = self.window.reader_position
-        for history in self.histories():
-            if not await history.restore_reader_ranges(position.ranges, moment.current):
-                return
+        if not await self.history.restore_reader_ranges(position.ranges, moment.current):
+            return
         if not moment.current():
             return
-        if first_history is not None:
-            await self.reveal_retained(owner, first_history)
+        await self.reveal_retained(owner, self.history)
         view.refresh_native_projection()
         publication = self.capture(owner, CanonicalSourcePublication)
         view.call_after_refresh(partial(moment.refresh, publication))
@@ -691,10 +691,9 @@ class TranscriptPresentation:
 
     def received(self, page: TranscriptPage) -> None:
         """A read page resumes parked history; a commit adds what the history lacks."""
-        for history in self.binding.histories():
-            history.state.validate_snapshot(history, page)
-        history = next(iter(self.binding.histories()), None)
-        if history is None or not history.page_source.through.contains(page.after):
+        history = self.binding.history
+        history.state.validate_snapshot(history, page)
+        if not history.page_source.through.contains(page.after):
             self.require_commit()
 
     @property
