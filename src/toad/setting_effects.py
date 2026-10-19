@@ -10,25 +10,25 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-from toad import setting_declarations
+from toad.setting_declarations import Effect
 
 
-@setting_declarations.Effect
+@Effect
 def visibility(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.prompt import Prompt
-    for widget in setting_declarations.Effect.open_widgets(app, SettingVisibility):
+    for widget in Effect.open_widgets(app, SettingVisibility):
         if widget.visibility_setting == field.path.value:
             widget.display = field.value
-    for prompt in setting_declarations.Effect.open_widgets(app, Prompt):
+    for prompt in Effect.open_widgets(app, Prompt):
         prompt.refresh(layout=True)
 
 
-@setting_declarations.Effect
+@Effect
 def wheel_scroll_rows(app: ToadApp, field: DeclaredField) -> None:
     app.scroll_sensitivity_y = field.value
 
 
-@setting_declarations.Effect
+@Effect
 def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
     for view in app.workspace_sessions.views.values():
         for window in view.query(HistoryWindow):
@@ -36,36 +36,36 @@ def history_buffer_viewports(app: ToadApp, field: DeclaredField) -> None:
             window.request_preparation()
 
 
-@setting_declarations.Effect
+@Effect
 def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.conversation import Conversation
-    for conversation in setting_declarations.Effect.open_widgets(app, Conversation):
+    for conversation in Effect.open_widgets(app, Conversation):
         conversation.apply_layout_preferences()
 
 
-@setting_declarations.Effect
+@Effect
 def sidebar_filters(app: ToadApp, field: DeclaredField) -> None:
     app.coordination_access.update_sidebar_interest()
 
 
-@setting_declarations.Effect
+@Effect
 def theme(app: ToadApp, field: DeclaredField) -> None:
     app.colours.choose(field.value)
 
 
-@setting_declarations.Effect
+@Effect
 def vim_keys(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.prompt import PromptTextArea
-    for editor in setting_declarations.Effect.open_widgets(app, PromptTextArea):
+    for editor in Effect.open_widgets(app, PromptTextArea):
         editor.apply_keyboard_profile()
     app.refresh_bindings()
 
 
-@setting_declarations.Effect
+@Effect
 def sessions_bar(app: ToadApp, field: DeclaredField) -> None:
     app.update_show_sessions()
 
 
-@setting_declarations.Effect
+@Effect
 def blink_title(app: ToadApp, field: DeclaredField) -> None:
     app.terminal_attention.update()

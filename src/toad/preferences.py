@@ -23,7 +23,8 @@ from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
 from toad import atomic, paths
 from toad import setting_effects as effects
-from toad import patch, setting_declarations
+from toad.setting_declarations import Effect, FamilyChoices
+from toad.patch import DiffSettings
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
@@ -88,7 +89,7 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     sessions_bar: Annotated[
         type[SessionBar],
         FieldLabel("Show sessions bar?"),
-        setting_declarations.FamilyChoices(SessionBar),
+        FamilyChoices(SessionBar),
         effects.sessions_bar,
     ] = field(default=AlwaysSessionBar, metadata=saved_as("sessions-bar"))
     """When to show the sessions bar (tabs at top of screen)."""
@@ -122,12 +123,12 @@ class UiSettings(AnnotatedDataclassValidationMixin):
     scrollbar: Annotated[
         type[Scrollbar],
         FieldLabel("Scrollbar size"),
-        setting_declarations.FamilyChoices(Scrollbar),
+        FamilyChoices(Scrollbar),
         effects.conversation_layout,
     ] = NormalScrollbar
 
     throbber: Annotated[
-        type[LoadingStyle], FieldLabel("Thinking animation"), setting_declarations.FamilyChoices(LoadingStyle)
+        type[LoadingStyle], FieldLabel("Thinking animation"), FamilyChoices(LoadingStyle)
     ] = PulseLoading
     """Animation to show while waiting for the agent to respond"""
 
@@ -150,7 +151,7 @@ class NotificationsSettings(AnnotatedDataclassValidationMixin):
     system: Annotated[
         type[NotificationPolicy],
         FieldLabel("Show Toad notifications on your desktop?"),
-        setting_declarations.FamilyChoices(NotificationPolicy),
+        FamilyChoices(NotificationPolicy),
     ] = BlurNotification
 
     blink_title: Annotated[
@@ -188,7 +189,7 @@ class AgentSettings(AnnotatedDataclassValidationMixin):
 @dataclass(frozen=True)
 class ToolsSettings(AnnotatedDataclassValidationMixin):
     expand: Annotated[
-        type[Expansion], FieldLabel("Tool call expand"), setting_declarations.FamilyChoices(Expansion)
+        type[Expansion], FieldLabel("Tool call expand"), FamilyChoices(Expansion)
     ] = FailExpansion
     """When should Toad expand tool calls?"""
 
@@ -277,8 +278,8 @@ class ToadSettings(AnnotatedDataclassValidationMixin):
     )
     """Customize shell interactions."""
 
-    diff: Annotated[patch.DiffSettings, FieldLabel("Diff view settings")] = field(
-        default_factory=patch.DiffSettings
+    diff: Annotated[DiffSettings, FieldLabel("Diff view settings")] = field(
+        default_factory=DiffSettings
     )
     """Customize how diffs are displayed."""
 
@@ -458,7 +459,7 @@ class SavedSettings:
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
         def applied(field: DeclaredField) -> None:
-            if (effect := field.metadata(setting_declarations.Effect)) is not None:
+            if (effect := field.metadata(Effect)) is not None:
                 effect.apply(app, field)
 
         def report(error: atomic.AtomicWriteError) -> None:
