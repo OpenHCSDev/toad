@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING, ClassVar
 
 from toad.conversation_kind import ConversationKind, ChannelConversation, DmConversation, IrcConversation
 from toad.constants import ALL_COMMS_TARGET
-from toad.line_blocks import LineLink, OpenHistoricalTarget, OpenTarget
 
 if TYPE_CHECKING:
     from toad.app import ToadApp
@@ -59,9 +58,6 @@ class NavigationTarget(DeclaredFamily, affix="Target"):
                 return ThreadTarget(name)
         raise TypeError("Expected a named channel or thread target")
 
-    def message_link(self, history: str | None) -> LineLink:
-        return OpenTarget(self.name)
-
     def menu_context(self, sidebar, *, mode_name=None, channel=None):
         from toad.target_commands import TargetContext
         return TargetContext(sidebar.app, sidebar.model_state.observed.service, self.name,
@@ -89,10 +85,6 @@ class SessionTarget(NavigationTarget):
 
 
 class ThreadTarget(NavigationTarget):
-    def message_link(self, history: str | None) -> LineLink:
-        return (OpenHistoricalTarget(self.name, history)
-                if history is not None else OpenTarget(self.name))
-
     async def open(self, context: NavigationContext) -> str:
         return await context.app.thread_navigation.open(
             owner_mode=context.owner_mode, project_path=context.project_path, target=self.name,

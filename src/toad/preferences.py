@@ -23,26 +23,23 @@ from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
 
 from toad import atomic, paths
 from toad import setting_effects as effects
+from toad.setting_declarations import Effect, FamilyChoices
+from toad.patch import DiffSettings
 from toad.forms.declared_views import DeclaredField
 from toad.forms.field_path import FieldPath
 from toad.forms.kinds import Multiline
 from toad.setting_choices import (
     AlwaysSessionBar,
-    AutoDiff,
     BlurNotification,
-    DiffMode,
     Expansion,
     FailExpansion,
-    FamilyChoices,
     LoadingStyle,
     NormalScrollbar,
     NotificationPolicy,
-    NoWrapMode,
     PulseLoading,
     SchemeName,
     Scrollbar,
     SessionBar,
-    WrapMode,
 )
 from toad.widgets.presentation_window import PresentationBudget
 
@@ -225,18 +222,6 @@ class ShellSettings(AnnotatedDataclassValidationMixin):
 
     file_commands: Annotated[str, FieldLabel("File commands"), Multiline()] = "cat"
     """List of commands (one per line) which accept only a non-directory as their first argument (used in tab completion)."""
-
-
-@dataclass(frozen=True)
-class DiffSettings(AnnotatedDataclassValidationMixin):
-    view: Annotated[
-        type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode), effects.diff_style
-    ] = AutoDiff
-
-    annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?"), effects.diff_style] = False
-
-    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), effects.diff_style] = NoWrapMode
-    """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
 
 
 @dataclass(frozen=True)
@@ -474,7 +459,7 @@ class SavedSettings:
         raw = json.loads(path.read_text("utf-8")) if path.exists() else {}
 
         def applied(field: DeclaredField) -> None:
-            if (effect := field.metadata(effects.Effect)) is not None:
+            if (effect := field.metadata(Effect)) is not None:
                 effect.apply(app, field)
 
         def report(error: atomic.AtomicWriteError) -> None:

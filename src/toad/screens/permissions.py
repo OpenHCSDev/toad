@@ -1,4 +1,4 @@
-from toad.setting_choices import DiffMode, AutoDiff
+from toad.patch import DiffMode, AutoDiff
 from weakref import ref
 import os
 from textual import work, on

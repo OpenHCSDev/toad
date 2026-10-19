@@ -1,7 +1,6 @@
 """What the app does when a declared setting changes."""
 from __future__ import annotations
-from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from typing import TYPE_CHECKING
 from toad.forms.declared_views import DeclaredField
 from toad.setting_widget import SettingVisibility
@@ -11,14 +10,7 @@ if TYPE_CHECKING:
     from toad.app import ToadApp
 
 
-@dataclass(frozen=True)
-class Effect:
-    apply: Callable[[ToadApp, DeclaredField], None]
-
-    @staticmethod
-    def open_widgets(app, widget_type):
-        roots = (*app.workspace_sessions.views.values(), *app.screen_stack)
-        return {widget for root in roots for widget in root.walk_children(widget_type)}
+from toad.setting_declarations import Effect
 
 
 @Effect
@@ -49,12 +41,6 @@ def conversation_layout(app: ToadApp, field: DeclaredField) -> None:
     from toad.widgets.conversation import Conversation
     for conversation in Effect.open_widgets(app, Conversation):
         conversation.apply_layout_preferences()
-
-
-@Effect
-def diff_style(app: ToadApp, field: DeclaredField) -> None:
-    app.colours.refresh_line_renderer()
-    app.theme_changed_signal.publish(app.current_theme)
 
 
 @Effect

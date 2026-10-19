@@ -10,30 +10,7 @@ from textual.content import Content
 from toad.widgets.future_text import FutureText
 
 from agent_comms.declared_family import DeclaredFamily
-from python_introspect import AnnotationChoices
-
-
-class Choice(ABC):
-    title: ClassVar[str | None] = None
-
-    @classmethod
-    def label(cls) -> str:
-        return (
-            cls.title or cls.declared_name.replace("-", " ").replace("_", " ").title()
-        )
-
-
-@dataclass(frozen=True)
-class FamilyChoices(AnnotationChoices):
-    """A setting holding one member of a choice family: `Annotated[type[F], FamilyChoices(F)]`."""
-
-    family: type[DeclaredFamily]
-
-    def choices(self) -> tuple[object, ...]:
-        return tuple(self.family.members_with(self.family))
-
-    def label(self, choice: object) -> str:
-        return choice.label()  # type: ignore[attr-defined]
+from toad.setting_declarations import Choice
 
 
 @dataclass(frozen=True)
@@ -161,53 +138,6 @@ class AlwaysNotification(NotificationPolicy):
     @classmethod
     def enabled(cls, focused: bool) -> bool:
         return True
-
-
-class DiffMode(Choice, DeclaredFamily, affix="Diff"):
-    split = False
-    auto_split = False
-
-    @classmethod
-    def use_split(cls, width: int, required: int) -> bool:
-        return cls.split
-
-
-class UnifiedDiff(DiffMode):
-    pass
-
-
-class SplitDiff(DiffMode):
-    split = True
-
-
-class AutoDiff(DiffMode):
-    title = "Best fit"
-    auto_split = True
-
-    @classmethod
-    def use_split(cls, width: int, required: int) -> bool:
-        return width >= required
-
-
-class WrapMode(Choice, DeclaredFamily, affix="Mode"):
-    enabled = False
-
-    @classmethod
-    def fitted_width(cls, available: int, content: int) -> int:
-        return max(available, content)
-
-
-class NoWrapMode(WrapMode, declared_name="no-wrap"):
-    title = "Don't wrap"
-
-
-class WrapModeEnabled(WrapMode, declared_name="wrap"):
-    title = "Wrap long lines"
-    enabled = True
-
-    @classmethod
-    def fitted_width(cls, available: int, content: int) -> int:
-        return available
 
 
 class Scrollbar(Choice, DeclaredFamily, affix="Scrollbar"):
