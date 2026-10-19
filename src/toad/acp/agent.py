@@ -35,7 +35,7 @@ import toad
 from toad import paths
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.acp.comms_updates import CommsUpdateConsumer, ThreadRead
+from toad.acp.comms_updates import CommsUpdateConsumer, NoPendingThreadRead, PendingThreadRead, ThreadRead
 from toad.acp.projection_attachment import CursorAttachment
 from toad.acp.queue_attachment import QueueAttachment
 from toad.core.events import UnsupportedResumeAgentFail, AgentReady
@@ -253,13 +253,13 @@ class Agent(AgentBase):
             return None
         return coordination.wire_root, coordination.thread.name
 
-    def thread_read(self) -> ThreadRead | None:
+    def thread_read(self) -> ThreadRead:
         """Capture, before a presentation read, what its result must still match."""
         from .comms_updates import OwnerSnapshotConsumer
 
         if (thread := self.observed_thread()) is None:
-            return None
-        return ThreadRead(self, thread, ClientSessionRequest(self, self.session_id),
+            return NoPendingThreadRead()
+        return PendingThreadRead(self, thread, ClientSessionRequest(self, self.session_id),
                           OwnerSnapshotConsumer(self, self.session_id,
                                                 turn_token=self.presentation.turns.sequence))
 

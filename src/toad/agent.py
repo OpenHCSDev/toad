@@ -127,10 +127,6 @@ class AgentBase(AgentBinding):
         """The (wire root, thread name) whose status this agent shows; none without coordination."""
         return None
 
-    def thread_read(self):
-        """Agents without a coordination identity read no thread presentation."""
-        return None
-
     async def observe_thread_presentation(self, presentation: ThreadPresentation | None) -> None:
         """Consume a published canonical change; unmanaged agents need no binding."""
 
