@@ -1,30 +1,26 @@
-"""Textual-facing: a wire message body becomes one Textual `Content` with emphasis, links and mention spans."""
+"""A wire message body becomes inline spans with emphasis, code and typed links."""
 
-from agent_comms.mentions import ThreadMention
-from toad.line_blocks import OpenTarget, OpenUrl
-from toad.widgets.inline_message import inline_message
-
-
-def meta_at(content, offset):
-    return next(span.style.meta for span in content.spans
-                if span.start <= offset < span.end and not isinstance(span.style, str) and span.style.meta)
+from agent_comms.display_references import ProjectReferences
+from toad.inline_spans import inline_spans
+from toad.line_blocks import CodeRole, EmphasisRole, StrongRole, TextRole, UrlRole
+from toad.markdown_links import LinkContext
+from toad.project_link import ExternalProjectLink
 
 
-def test_emphasis_code_links_and_mentions_become_spans():
-    source = "**Bold** *italic* `x = 1` [docs](https://example.test) and @peer [literal]"
-    start = source.index("@peer")
-    content = inline_message(source, (ThreadMention("peer", start, start + 5),))
-    assert content.plain == "Bold italic x = 1 docs and @peer [literal]"
-    assert any(span.start == 0 and span.style == "bold" for span in content.spans)
-    assert any(span.start == 5 and span.style == "italic" for span in content.spans)
-    assert meta_at(content, content.plain.index("docs"))["@click"] == OpenUrl("https://example.test").click
-    assert meta_at(content, content.plain.index("@peer"))["@click"] == OpenTarget("peer").click
+def test_emphasis_code_and_links_become_spans(tmp_path):
+    spans = inline_spans("**Bold** *italic* `x = 1` [docs](https://example.test) [literal]",
+                         LinkContext(tmp_path, ProjectReferences()))
+    assert "".join(span.text for span in spans) == "Bold italic x = 1 docs [literal]"
+    roles = {span.text: span.role for span in spans}
+    assert (roles["Bold"], roles["italic"], roles["x = 1"], roles["docs"]) == (
+        StrongRole, EmphasisRole, CodeRole, UrlRole)
+    assert next(span.link for span in spans if span.text == "docs") == ExternalProjectLink("https://example.test")
 
 
-def test_unsafe_links_and_plain_text_stay_literal():
-    assert inline_message("[link](javascript:alert)").plain == "[link](javascript:alert)"
-    # A file is opened, not run: its link is drawn as its label.
-    file_link = inline_message("[Open diagnostic](file:///var/tmp/failure.json)")
-    assert file_link.plain == "Open diagnostic"
-    assert meta_at(file_link, 0)["@click"] == OpenUrl("file:///var/tmp/failure.json").click
-    assert inline_message("snake_case remains\nwrapped text").plain == "snake_case remains\nwrapped text"
+def test_unsafe_links_and_plain_text_stay_literal(tmp_path):
+    context = LinkContext(tmp_path, ProjectReferences())
+    unsafe = inline_spans("[link](javascript:alert)", context)
+    assert "".join(span.text for span in unsafe) == "[link](javascript:alert)"
+    assert all(span.link is None and span.role is TextRole for span in unsafe)
+    plain = inline_spans("snake_case remains\nwrapped text", context)
+    assert "".join(span.text for span in plain) == "snake_case remains\nwrapped text"

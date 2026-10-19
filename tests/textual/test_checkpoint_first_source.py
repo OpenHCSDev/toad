@@ -8,19 +8,18 @@ from dataclasses import replace
 import os
 
 from agent_comms.acp_extension import CoordinationChangedUpdate
-from agent_comms.threads import Thread
 
 from support import journals
 from toad.live_output import ResponseStream
-from toad.transcript_publication import CheckpointPublication
+from toad.transcript_publication import CommitPublication
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_response(workspace):
     comms = workspace.comms
-    thread = comms.registry.declare(Thread("source", frozenset(), str(workspace.project)))
-    comms.registry.declare(Thread("peer", frozenset(), str(workspace.project)))
+    thread = workspace.thread("source")
+    workspace.thread("peer")
     notice = comms.messaging.send_message("peer", "source", "ORIGINAL_WIRE_NOTICE")
     old_page = comms.transcripts.thread_transcript_page("source")
     assert not old_page.after.session_file
@@ -50,9 +49,9 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
         assert not old.accepts_commit(page.after)
         view.window.anchor()
         view.prompt.focus()
-        view.transcript.dirty = view.transcript.checkpoint_required = True
-        publication = CheckpointPublication(view.transcript, view, view.window, view.contents)
-        assert publication.admitted() and publication.native_current()
+        view.transcript.dirty = view.transcript.commit_required = True
+        publication = view.transcript.binding.capture(view.transcript, CommitPublication)
+        assert publication.current() and publication.native_current()
         task = asyncio.create_task(publication.publish())
         try:
             await ui.until(task.done, seconds=8, why="the checkpoint published")
@@ -62,9 +61,9 @@ async def test_first_native_file_replaces_the_wire_history_and_the_covered_live_
                 task.cancel()
                 await asyncio.gather(task, return_exceptions=True)
         await ui.step()
-        histories = view.transcript.histories
+        histories = view.window.histories
         replacement = histories[0]
-        assert len(view.window.histories) == len(histories) == 1
+        assert len(histories) == 1
         assert not old.is_attached and not live.is_attached
         assert not list(view.contents.query(AgentResponse)), "the covered live response is still mounted"
         await ui.until(lambda: ui.painted(view.window).count("FIRST_SAVED_NATIVE_RESPONSE") == 1,

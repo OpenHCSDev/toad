@@ -13,7 +13,6 @@ from toad.ansi._stream_parser import (
     Read,
     ReadPattern,
     ReadPatterns,
-    ReadRegex,
     ReadUntil,
 )
 
@@ -147,7 +146,6 @@ def test_reads_own_consumption_and_pattern_exhaustion():
     cases = [
         (Read(2), "abc", 2, "ab"),
         (ReadUntil(":"), "ab:cd", 2, "ab"),
-        (ReadRegex("[0-9]+"), "ab12cd", 4, "ab12"),
     ]
     for reader, source, consumed, value in cases:
         count, tokens = reader.feed(source)
@@ -210,7 +208,6 @@ def test_terminal_dispatch_deletion_guard():
                         "StreamRead",
                         "Read",
                         "ReadUntil",
-                        "ReadRegex",
                         "ReadPattern",
                         "ReadPatterns",
                     }

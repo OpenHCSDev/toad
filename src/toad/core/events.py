@@ -7,7 +7,7 @@ from abc import abstractmethod
 from dataclasses import InitVar, dataclass, field
 from functools import cached_property
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, ClassVar
 from weakref import WeakMethod, WeakSet, WeakValueDictionary, ref
 
 from agent_comms.declared_family import DeclaredFamily
@@ -24,6 +24,8 @@ from toad.acp.attachment_presentation import CursorPresentation, QueuePresentati
 
 class CoreEvent(DeclaredFamily, affix="Event"):
     """An application publication; its wire shape belongs to FieldCodec."""
+
+    session_scoped: ClassVar[bool] = False
 
     def subscribers(self, stream: CoreEventStream):
         for event_type in type(self).__mro__:
@@ -56,6 +58,8 @@ class Update(CoreEvent):
 @dataclass(frozen=True)
 class CommsUpdated(CoreEvent):
     """The original typed publication retains its emission-time context."""
+
+    session_scoped = True
 
     update: AgentCommsUpdate | QueuePresentation | CursorPresentation
     session_id: str | None = None

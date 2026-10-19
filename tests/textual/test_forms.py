@@ -15,7 +15,7 @@ from textual.widgets import Checkbox, Select
 
 import toad.preferences  # noqa: F401  names the process-wide root ObjectState asks for (ObjectState issue #44)
 from toad.forms import editors
-from toad.forms.field_path import FieldPath, label
+from toad.forms.field_path import FieldPath
 from toad.forms.form_view import FormView, GroupView, ValueView
 from toad.forms.kinds import Multiline
 
@@ -98,7 +98,7 @@ async def test_each_kind_of_field_gets_the_editor_registered_for_its_declaration
         assert isinstance(shown["limit"].member, editors.IntEditor)
         group = app.form.parts[-1]
         assert isinstance(group, GroupView) and [type(part) for part in group.parts] == [ValueView]
-        assert label(FieldPath(Everything).inner.depth) == "How deep"
+        assert app.form.values["inner.depth"].field.label == "How deep"
         assert "Levels below the surface." in str(app.form.values["inner.depth"].description())
 
 
