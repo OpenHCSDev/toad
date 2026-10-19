@@ -18,13 +18,11 @@ class ConversationCommsHandlers(CoreEventReceiver):
         if not message.event.session_scoped:
             return True
         agent = self.agent
-        if not agent:
-            return False
         if message.publisher is not agent:
             return False
         if message.event.session_id != agent.session_id:
             return False
-        return message.event.update.matches_turn(self.turns.managed_id)
+        return self.turns.owner.accepts_update(message.event.update)
 
     @handles(CursorPresentation)
     def on_private_native_cursor_update(
