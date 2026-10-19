@@ -3,7 +3,7 @@
 from __future__ import annotations
 from toad.block_navigation import ConversationEntry, FragmentBlockCursor
 
-from toad.widgets.message_filter import OtherCategory
+from agent_comms.ui_model.message_category import OtherCategory
 
 import asyncio
 from bisect import bisect_right
@@ -55,7 +55,7 @@ from toad.widgets.transcript_lines import (
 )
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition
-from toad.widgets.message_filter import (
+from agent_comms.ui_model.message_category import (
     all_categories, MessageCategory,
 )
 from toad.widgets.transcript_fragments import (

@@ -346,7 +346,7 @@ class FailureLog:
     async def show_log(self, view) -> None:
         from toad.project_link import AcpLogLink
         from toad.widgets.agent_response import AgentResponse
-        from toad.widgets.message_filter import OtherCategory
+        from agent_comms.ui_model.message_category import OtherCategory
 
         link = AgentResponse(AcpLogLink.markdown(self.log_path),
                              show_divider=False, category=OtherCategory)

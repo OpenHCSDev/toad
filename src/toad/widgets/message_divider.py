@@ -25,7 +25,7 @@ from toad.widgets.transcript_lines import (
     LineTheme, LinkedRows, MessageRowBlock, PreparedLines, RichLineRenderer, link_place,
 )
 
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
 
 

@@ -19,7 +19,7 @@ from toad.widgets.message_notifications import NothingToRead, PaintedRead
 from toad.widgets.transcript_fragments import TranscriptFragment
 from toad.widgets.transcript_fragments import transcript_fragments
 from toad.render_backend import ReusableRenderTask
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 from toad.work_preparation import (
     PreparationRuntime,
     PreparedResult,
