@@ -196,24 +196,24 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
     def _measure(self, width: int) -> None:
         if self.is_mounted:
             self.history.window.keep_reader()
+        if width != self._width:
+            # Native box/arrangement caches can retain A/B/A width variants.
+            # Their numeric heights cannot restore this page's row snapshot;
+            # retire them when replacing the geometry they were measured from.
+            self._invalidate_layout()
         self._width, self._measured = width, True
         self._pending.clear()
         previous = {id(fragment): lines for fragment, _first, lines in self._layout}
-        visible = {id(fragment) for fragment in self.visible_fragments(self.history.window)} if previous else set()
-        theme = self.app.colours.line_theme
         layout, starts, y = [], [], 0
         repaint = []
         if width > 0:
             for fragment in self.prepared.fragments_in_range:
                 if not fragment.shown_in(self.visible_categories):
                     continue
-                # Offscreen rows retain their existing measured geometry.
-                # A different Lines.width already expresses pending wrapping;
-                # there is no second stale flag or resize cache.
-                lines = previous.get(id(fragment))
-                if (lines is None or id(fragment) in visible
-                        or not fragment.retains_lines(lines, theme)):
-                    lines = self._lines(fragment, width)
+                # Geometry belongs to this layout's width, including rows
+                # outside the viewport. RowAcquisition reuses styled source
+                # while rewrapping it; only styling work stays viewport-lazy.
+                lines = self._lines(fragment, width)
                 if id(fragment) in previous and lines is not previous[id(fragment)]:
                     repaint.append((y, lines.height))
                 layout.append((fragment, y, lines))
@@ -527,7 +527,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
 
     @property
     def line_width(self) -> int:
-        """Native content width; offscreen pages may retain older row widths."""
+        """Native content width used by preparation and page measurement."""
         return max(0, self.size.width - self.scrollbar_gutter.width)
 
     async def prepare_rows(self, current: Callable[[], bool], *, window: HistoryWindow,
