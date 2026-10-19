@@ -7,7 +7,7 @@ import sys
 
 from acp.schema import SessionConfigOptionSelect, SessionConfigSelectOption
 from toad.acp.status import EndTurnStopReason
-from support.agents import command
+from support.agents import AppAgents, command
 from toad.acp.agent import Agent
 from toad.command_catalog import CommandCatalog
 from toad.db import DB
@@ -35,8 +35,8 @@ def catalogue():
 class PickerAgent(Agent):
     """An agent object that advertises the catalogue and answers model changes without a process."""
 
-    def __init__(self, project, models):
-        super().__init__(project, command("false", name="Picker test", identity="picker-test"), "picker")
+    def __init__(self, *args, models, **kwargs):
+        super().__init__(*args, **kwargs)
         self.calls = []
         self.configuration.receive([SessionConfigOptionSelect(
             id='model', name='Model', category='model', type='select',
@@ -75,7 +75,9 @@ class Picker:
 @asynccontextmanager
 async def picker_session(workspace):
     async with workspace.app(size=(120, 40)) as ui:
-        agent = PickerAgent(workspace.project, catalogue())
+        app, _pilot = ui.textual
+        agent = AppAgents(app).agent(PickerAgent, command("false", name="Picker test", identity="picker-test"),
+                                     "picker", models=catalogue())
         ui.attach_agent(agent)
         ui.conversation.model_history_scope = SCOPE
         agent.configuration.publish()
