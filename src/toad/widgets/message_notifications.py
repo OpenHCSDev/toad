@@ -170,6 +170,10 @@ class HistoryNotifications:
 class SourceNotifications:
     notification_view: HistoryNotifications
 
+    def rows_published(self) -> None:
+        self._source_state.rows_published(self)
+        self.notification_view.call_after_refresh(self.notification_view.check_notifications)
+
     def prepare_viewport(self) -> None:
         super().prepare_viewport()
         self.notification_view.check_notifications()

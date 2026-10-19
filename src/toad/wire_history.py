@@ -352,7 +352,6 @@ class WirePageBuffer(SavedHistory):
 
     def schedule_refresh(self, view):
         history = view.message_history
-        history.notification_view.check_notifications()
         return history.schedule_source_work(view._refresh_source)
 
     def painted_read(self, history) -> PaintedRead:

@@ -240,7 +240,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                     return False
                 await self.remove_children(page for page in previous if page not in views)
                 self._update_edges()
-                self._source_state.rows_published(self)
+                self.rows_published()
             return True
 
     @property

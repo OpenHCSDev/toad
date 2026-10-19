@@ -60,7 +60,6 @@ class BoundFrame:
 
     def record(self, cursor):
         self.owner.displayed_cursor = cursor
-        self.binding.contents.check_notifications()
         view = self.binding.view
         view.app.history_displayed()
         view.settle_user_message()

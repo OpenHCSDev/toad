@@ -965,7 +965,7 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
                     await self._extend_and_trim(edge, end, local, protected, staged, current=current)
                     self._require_can_draw()
                     self.repaint(arrivals)
-                    self._source_state.rows_published(self)
+                    self.rows_published()
             self.state.delivered(self)
             advanced = end.edge(self.pages)
             if (advanced is edge and edge.prepared.capture_range() == page_range
