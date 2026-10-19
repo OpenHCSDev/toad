@@ -786,6 +786,19 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
     prompt = getters.query_one(Prompt)
     app = getters.app(ToadApp)
 
+    @property
+    def visible_read_cursor(self):
+        """Only a painted, unfiltered tail can acknowledge the full transcript."""
+        if not self.is_mounted or self.visible_categories != all_categories():
+            return None
+        window = self.query_one_optional(Window)
+        through = self.transcript.displayed_cursor
+        if through is None or window is None or not window.follows_tail:
+            return None
+        if any(history.blocks_visible_read for history in window.histories):
+            return None
+        return through
+
     def watch_visible_categories(
         self, previous: frozenset[type[MessageCategory]], selected: frozenset[type[MessageCategory]],
     ) -> None:
