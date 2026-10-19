@@ -198,8 +198,10 @@ class MessageShown(Shown):
     status: NotificationStatus = field(default_factory=UncheckedNotifications)
 
 
+@dataclass(frozen=True, slots=True)
 class PartPosition(ABC):
-    __slots__ = ()
+    # Ordinal within the source event, not another source-position counter.
+    index: int = 0
 
     @property
     @abstractmethod
@@ -256,6 +258,9 @@ class TranscriptFragment:
     def arrival_position(self) -> int | str:
         """The first event owns the fragment's stable source position."""
         return self.events[0].position
+
+    def matches_position(self, position: int | str, part: int) -> bool:
+        return self.arrival_position == position and self.part_position.index == part
 
     def shown_live_by(self, claim: CommitClaim) -> bool:
         """Whether the live block that claim retires already showed this saved row."""
@@ -568,6 +573,14 @@ def transcript_fragments(
             fragments.append(replace(source, output_parts=parts))
         else:
             fragments.append(source)
+    # Partitioning can make several fragments from one source event. Keep
+    # their address distinct without changing the event's source position.
+    ordinals: dict[int | str, int] = {}
+    for fragment in fragments:
+        position = fragment.arrival_position
+        index = ordinals.get(position, 0)
+        fragment.part_position = replace(fragment.part_position, index=index)
+        ordinals[position] = index + 1
     return tuple(fragments)
 
 
