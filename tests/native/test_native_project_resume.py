@@ -36,7 +36,7 @@ async def test_saved_project_and_later_changes_replace_the_launch_directory(work
         assert conversation.project_path == saved
         assert Path(tree.path) == saved
         assert saved.name in str(tree.root.label)
-        shell = await conversation.shell._operation.custody()
+        shell = await conversation.shell._operation.process()
 
         def shell_directory():
             return psutil.Process(shell.child.pid).cwd()

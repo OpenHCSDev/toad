@@ -20,7 +20,7 @@ async def test_executable_and_arguments_reach_the_process_unchanged(app_agents, 
         terminal_id = (await request("terminal/create", command=str(executable), args=[argument, ""],
                                      cwd=str(tmp_path)))["terminalId"]
         execution = agent.controller.terminals.require(terminal_id)
-        process = await execution.custody()
+        process = await execution.process()
         assert (await request("terminal/wait_for_exit", terminalId=terminal_id))["exitCode"] == 0
         assert (await request("terminal/output", terminalId=terminal_id))["output"] == argument + "|"
         await request("terminal/release", terminalId=terminal_id)

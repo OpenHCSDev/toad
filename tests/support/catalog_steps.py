@@ -77,7 +77,7 @@ async def run_action(ui, name: str, *, edited: str | None = None, cancel: bool =
         assert await pilot.click(runner.ok_button)
     await ui.until(lambda: app.screen is modal, why="the agent dialog again")
     execution = pane.execution
-    process = await execution.custody()
+    process = await execution.process()
     assert execution.outcome.finished, "The command is still running after its dialog closed"
     assert process.child.returncode is not None and process.master.closed
     assert process.child.retired, "The command's process outlived its dialog"
