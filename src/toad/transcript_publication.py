@@ -565,11 +565,12 @@ class BoundView(ViewBinding):
             return
         moment = self.Restoration.capture(self, owner, revision=view.window.scroll_revision)
         position = self.window.reader_position
-        if not await self.history.restore_reader_ranges(position.ranges, moment.current):
-            return
-        if not moment.current():
-            return
-        await self.reveal_retained(owner, self.history)
+        for history in self.histories():
+            if not await history.restore_reader_ranges(position.ranges, moment.current):
+                return
+            if not moment.current():
+                return
+            await self.reveal_retained(owner, history)
         view.refresh_native_projection()
         publication = self.capture(owner, CanonicalSourcePublication)
         view.call_after_refresh(partial(moment.refresh, publication))
