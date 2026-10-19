@@ -11,7 +11,13 @@ from toad.private_native_cursor import CursorStatus
 class CursorPresentation:
     status: type[CursorStatus]
 
+    def matches_turn(self, turn_id: str | None) -> bool:
+        return True
+
 
 @dataclass(frozen=True)
 class QueuePresentation:
     starts: tuple[InputStartedUpdate, ...] = ()
+
+    def matches_turn(self, turn_id: str | None) -> bool:
+        return True

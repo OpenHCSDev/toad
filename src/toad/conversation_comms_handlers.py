@@ -9,12 +9,23 @@ from agent_comms.mro_dispatch import handles
 from textual.content import Content
 from toad.core import events as core_events
 from toad.acp.attachment_presentation import CursorPresentation, QueuePresentation
-from toad.acp.client_session import ClientSessionRequest
 from toad.widgets.note import Note
 from toad.widgets.markdown_note import MarkdownNote
 
 
 class ConversationCommsHandlers(CoreEventReceiver):
+    def accepts(self, message: CoreEventMessage) -> bool:
+        if not message.event.session_scoped:
+            return True
+        agent = self.agent
+        if agent is None:
+            return False
+        if message.publisher is not agent:
+            return False
+        if message.event.session_id != agent.session_id:
+            return False
+        return message.event.update.matches_turn(self.turns.managed_id)
+
     @handles(CursorPresentation)
     def on_private_native_cursor_update(
         self, update: CursorPresentation, message: CoreEventMessage
@@ -30,10 +41,6 @@ class ConversationCommsHandlers(CoreEventReceiver):
         self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
     ) -> None:
         """Show the MCP server summary only within the active turn it describes."""
-        # Session identity was checked before dispatch. ConversationTurn reads
-        # the agent's original binding; checking agent.current_turn repeats it.
-        if update.turn_id != self.turns.managed_id:
-            return
         if self._mcp_live_note is not None:
             return  # The package emits at most one server summary per turn.
         rows = update.acknowledgement.servers
@@ -72,15 +79,8 @@ class ConversationCommsHandlers(CoreEventReceiver):
     async def on_queue_view_update(
         self, update: QueuePresentation, message: CoreEventMessage
     ) -> None:
-        authority = ClientSessionRequest(message.publisher, message.event.session_id)
         async with self.window.preserve_history(root=self.contents):
             for started in update.starts:
-                # Taking the history lock or posting a row can yield. Keep the
-                # original session's authority, not a second session-id test.
-                if not authority.current:
-                    return
-                if self.agent is not authority.agent:
-                    return
                 await self.present_started_input(started)
             self.submissions.publish_pending()
 
@@ -116,12 +116,6 @@ class ConversationCommsHandlers(CoreEventReceiver):
 
     @handles(core_events.CommsUpdated)
     async def on_comms_updated(self, event: CoreEventMessage) -> None:
-        if event.publisher is not self.agent:
-            event.stop()
-            return
-        if event.event.session_id != self.agent.session_id:
-            event.stop()
-            return
         await self.dispatch(event.event.update, event)
 
     @handles(CoordinationChangedUpdate)
