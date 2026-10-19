@@ -8,7 +8,7 @@ from functools import partial
 from typing import TYPE_CHECKING
 
 from agent_comms.declared_family import DeclaredFamily
-from toad.widgets.message_filter import all_categories
+from agent_comms.ui_model.message_category import all_categories
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.widgets.presentation_window import OLDER_END, PageRequest
 from toad.transcript_preparation import NoProjection

@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 from abc import ABC
 from dataclasses import dataclass, field, replace
-from functools import cached_property, partial, singledispatch
+from functools import partial, singledispatch
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
@@ -27,7 +27,6 @@ from toad.message_rows import MessageRow, WireMessageStyle
 from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
 )
-from toad.widgets.message_filter import MessageCategory, OtherCategory
 from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
 
@@ -172,10 +171,6 @@ class WireFragment(TranscriptFragment):
     @property
     def message(self) -> Message:
         return self.events[0].message
-
-    @cached_property
-    def categories(self) -> frozenset[type[MessageCategory]]:
-        return frozenset({OtherCategory})
 
     @property
     def timestamp(self) -> float | None:

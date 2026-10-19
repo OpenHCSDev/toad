@@ -24,7 +24,7 @@ from textual.widgets import Checkbox, Static
 
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsRow, ThreadStatusRow
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.session_sort import SortControl, ThreadSortForm
 from toad.widgets.side_bar import SideBar, SideBarCollapsible, SidebarVisibilityObserver
 from toad.widgets.sidebar_tree import SidebarChange, SidebarGroup, SidebarModelView, SearchFollower, TargetTree

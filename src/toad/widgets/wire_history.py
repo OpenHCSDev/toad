@@ -12,7 +12,6 @@ from toad.transcript_preparation import ClosedHistory, PreparedTranscriptPage
 from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
-from toad.widgets.message_filter import OtherCategory, all_categories
 from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
@@ -76,9 +75,7 @@ class WireHistory(VisibleReadMarking, LineHistory):
 
     @property
     def selected_categories(self):
-        # Every wire message is in one category: a filter shows all or none.
-        return (all_categories() if OtherCategory in self.view.visible_categories
-                else frozenset())
+        return self.view.visible_categories
 
     # Reading the source
 
