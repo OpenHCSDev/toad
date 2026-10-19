@@ -28,7 +28,7 @@ from textual.app import App
 from textual.await_complete import AwaitComplete
 from textual.content import Content
 from textual.css.scalar import Scalar, Unit
-from textual.notifications import Notify
+from textual.notifications import Notify, SeverityLevel
 from textual.reactive import var
 from textual.screen import Screen
 
@@ -256,6 +256,10 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
     def on_notify(self, event: Notify) -> None:
         self.terminal_attention.notification(event.notification)
+
+    def show_error(self, error: Exception, title: str, severity: SeverityLevel = "error") -> None:
+        """Every error Toad shows: its text verbatim, never parsed as markup."""
+        self.notify(str(error), title=title, severity=severity, markup=False)
 
 
     async def on_load(self) -> None:
