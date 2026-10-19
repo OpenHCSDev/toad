@@ -35,6 +35,9 @@ class WorkspaceSource(DeclaredFamily, affix="WorkspaceSource"):
     async def retire(self) -> "WorkspaceSource": ...
 
     @abstractmethod
+    def hide(self) -> None: ...
+
+    @abstractmethod
     def commands(self) -> set: ...
 
     @abstractmethod
@@ -58,6 +61,9 @@ class DetachedWorkspaceSource(WorkspaceSource):
 
     async def retire(self):
         return self
+
+    def hide(self) -> None:
+        pass
 
     def commands(self):
         return set()
@@ -91,8 +97,10 @@ class BoundWorkspaceSource(WorkspaceSource):
         # scene. Blurring or hiding first changes the widget's CSS state and
         # discards the document's source placement before its owner can take it.
         await self.view.retire_presentation()
-        self.view.display = False
         return ParkedWorkspaceSource(self.view)
+
+    def hide(self) -> None:
+        self.view.display = False
 
     def commands(self):
         return self.view.COMMANDS
@@ -161,6 +169,7 @@ class WorkspaceSessions:
         destination = await self.prepare(identity)
         if self.source.shown(destination):
             return destination
+        departing = self.source
         await self.retire()
         # The loop runs due input and timers between the steps (the switch holds the frames).
         await after_input()
@@ -168,10 +177,13 @@ class WorkspaceSessions:
         # LoadingWorkspaceSource admits any destination preparation callbacks.
         self.app.workspace_screen.frame_presentation.begin()
         self.source = LoadingWorkspaceSource(destination)
+        await destination.prepare_presentation()
+        # Preparation joins the arriving tree's existing rows. The workspace
+        # alone swaps the two mounted trees, without a frame between them.
+        departing.hide()
         destination.display = True
         await self.app.workspace_chrome.select(destination)
         await after_input()
-        await destination.prepare_presentation()
         destination.activate_session()
         if destination.AUTO_FOCUS:
             if target := destination.query_one_optional(destination.AUTO_FOCUS):

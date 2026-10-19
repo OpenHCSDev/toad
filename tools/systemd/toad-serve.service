@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 WorkingDirectory=/home/ts
 ExecStart=/home/ts/.local/share/agent-comms/current/bin/python -c "from textual_serve.server import Server; Server('/home/ts/bin/toad-comms', host='127.0.0.1', port=8040, public_url='https://desktop.tail553874.ts.net:8443').serve()"
-UnsetEnvironment=AGENT_COMMS_RUNTIME_ROOT PYTHONPATH NO_COLOR TOAD_VALIDATION
+UnsetEnvironment=PYTHONPATH NO_COLOR TOAD_VALIDATION
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
 RestartSec=5
