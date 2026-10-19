@@ -272,7 +272,7 @@ See on-screen instructions for details.
 
     @property
     def queue_supported(self) -> bool:
-        return not self.simple_input and self.query_ancestor(Prompt).queue_supported
+        return not self.simple_input and self.query_ancestor(Prompt).agent_binding.presentation.queue_supported
 
     @property
     def can_enter_shell(self) -> bool:
@@ -594,10 +594,6 @@ class Prompt(TonePaint, containers.VerticalGroup):
         return self.simple_input or self.shell_mode or self.operational_submissions.ready
 
     @property
-    def queue_supported(self) -> bool:
-        return self.agent_binding.queue_supported
-
-    @property
     def text(self) -> str:
         return self.prompt_text_area.text
 
@@ -667,7 +663,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
 
     @on(events.Click, "AgentInfo")
     def on_agent_info_click(self):
-        if self.agent_binding.model_available:
+        if self.agent_binding.configuration.model.available:
             self.model_switcher.focus()
 
     def update_modes(self) -> None:
@@ -716,7 +712,7 @@ class Prompt(TonePaint, containers.VerticalGroup):
         projection = submissions.queue_projection
         queued = [row.text for row in submissions.queued_inputs]
         restored = [row.text for row in projection.restored]
-        feedback = projection.feedback(self.queue_supported)
+        feedback = projection.feedback(self.agent_binding.presentation.queue_supported)
         delivering = submissions.delivering
         self.set_class(bool(queued or restored or delivering or feedback), "-has-queue")
         parts: list[str] = []

@@ -4,6 +4,7 @@ import asyncio
 from weakref import ref
 
 from agent_comms.goal_presentation import GoalSnapshot
+from toad.agent_binding import UnboundAgentError
 from agent_comms.ui_model.delivery import InputDelivery
 from agent_comms.ui_model.goal import GoalUnavailable
 
@@ -29,6 +30,11 @@ class SessionObservation(ABC):
         if view is None or not view.is_attached:
             return
         view.agent_binding.invalidate_observation(self)
+
+    def schedule(self):
+        self.revision += 1
+        if not self.active:
+            self.task = asyncio.create_task(self._run())
 
     async def refresh(self):
         self.invalidate()
@@ -71,8 +77,26 @@ class SessionObservation(ABC):
 
     async def _run(self):
         while (view := self.view) is not None and view.is_attached:
-            if not await view.agent_binding.observe_once(self, view):
+            revision = self.revision
+            try:
+                agent = view.agent_binding.delivery_owner()
+            except UnboundAgentError:
                 return
+            try:
+                result = await self.read(agent)
+            except self.errors as error:
+                if self.view is not view or not view.is_attached:
+                    return
+                if revision != self.revision or not view.agent_binding.matches_agent(agent):
+                    continue
+                self.failed(view, error)
+                return
+            if self.view is not view or not view.is_attached:
+                return
+            if revision != self.revision or not view.agent_binding.matches_agent(agent):
+                continue
+            self.publish(view, result)
+            return
 
     @abstractmethod
     async def read(self, agent): ...

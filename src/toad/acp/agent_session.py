@@ -34,11 +34,6 @@ class SessionDisposition(DeclaredFamily, affix="SessionDisposition"):
     # shared process has to ask it to close the session.
     held_by_agent = True
 
-    @staticmethod
-    def of(agent) -> "SessionDisposition":
-        """A view that has not started an agent holds no session."""
-        return UnopenedSessionDisposition() if agent is None else agent.session.disposition
-
     def close(self, agent):
         return self
 

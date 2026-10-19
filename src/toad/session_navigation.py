@@ -77,9 +77,9 @@ class SessionNavigation:
     @property
     def processes(self):
         """Borrow connections from actual native sources; keep no second roster."""
-        return tuple(agent.process for member in self.members
+        return tuple(process for member in self.members
                      if (source := member.source(self)) is not None
-                     and (agent := source.presentation.operational_agent) is not None)
+                     for process in source.presentation.operational_binding.borrowed_processes())
 
     def get(self, mode: str) -> SessionEntry | None:
         return next((group[mode] for group in self.entries.values() if mode in group), None)

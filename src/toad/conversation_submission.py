@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import asyncio
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import partial
 from typing import ClassVar
@@ -56,7 +56,7 @@ class QueueNowInputSubmission(InputSubmission):
     def matches(cls, event, view):
         if event.shell or event.body.strip():
             return False
-        return event.immediate and view.queue_supported
+        return event.immediate and view.agent_binding.presentation.queue_supported
     async def execute(self, owner):
         projection = owner.queue_projection
         if projection.status == 'available' and projection.items:
@@ -81,6 +81,22 @@ class ShellInputSubmission(InputSubmission):
         view.jump_to_latest()
 
 
+class SubmissionStart(ABC):
+    """The result of acquiring a submission's source, not an optional request."""
+
+    @abstractmethod
+    async def prepare(self): ...
+
+
+class UnboundSubmissionStart(SubmissionStart):
+    def __init__(self, owner, submission):
+        self.owner, self.submission = owner, submission
+
+    async def prepare(self):
+        self.owner.view.delivery_refused(
+            "No connected owner; your input has not been submitted", self.submission.source_text)
+
+
 class AgentInputSubmission(InputSubmission):
     @property
     @abstractmethod
@@ -92,7 +108,7 @@ class AgentInputSubmission(InputSubmission):
         if execution.retired:
             return
         view.jump_to_latest()
-        await view._auto_name_from_prompt(self.text)
+        await view.auto_name_from_prompt(self.text)
         if execution.retired:
             return
         waiting = 'Waiting for replies…' if self.text.startswith(('@', '#', '!relay ')) else 'Thinking…'
@@ -102,20 +118,7 @@ class AgentInputSubmission(InputSubmission):
     async def execute(self, owner):
         view = owner.view
         view.transcript.invalidate_publications()
-        execution = owner.begin(self)
-        if execution is None:
-            return
-        owner.publish_pending()
-        view.run_worker(partial(view.input_histories.prompt.record, self.source_text), group='history')
-        try:
-            await self.feedback(execution)
-            if execution.current:
-                return view.run_worker(partial(execution.send), group='conversation-submission')
-            else:
-                owner.finish(execution)
-        except BaseException:
-            owner.finish(execution)
-            raise
+        return await owner.begin(self).prepare()
 
 
 class OrdinaryInputSubmission(AgentInputSubmission):
@@ -137,7 +140,7 @@ class DeferredInputSubmission(OrdinaryInputSubmission):
             return False
         if event.immediate:
             return False
-        return view.turns.owner.busy and view.queue_supported
+        return view.turns.owner.busy and view.agent_binding.presentation.queue_supported
     @property
     def request(self):
         return QueuePromptRequest(self.text, True)
@@ -152,12 +155,12 @@ class ImmediateInputSubmission(OrdinaryInputSubmission):
     def matches(cls, event, view):
         if not super().matches(event, view):
             return False
-        return event.immediate and view.queue_supported
+        return event.immediate and view.agent_binding.presentation.queue_supported
     @property
     def request(self):
         return SteerPromptRequest(self.text)
 
-class SubmissionExecution:
+class SubmissionExecution(SubmissionStart):
     """Immutable source binding and the real outstanding local request."""
     def __init__(self, owner, submission, agent):
         self.owner, self.submission, self.agent = owner, submission, agent
@@ -165,6 +168,20 @@ class SubmissionExecution:
         self.scope = agent.queue_attachment.scope
         self.request = submission.request
         self.started_update: InputStartedUpdate | None = None
+
+    async def prepare(self):
+        owner, submission = self.owner, self.submission
+        view = owner.view
+        owner.publish_pending()
+        view.run_worker(partial(view.input_histories.prompt.record, submission.source_text), group='history')
+        try:
+            await submission.feedback(self)
+            if self.current:
+                return view.run_worker(partial(self.send), group='conversation-submission')
+            owner.finish(self)
+        except BaseException:
+            owner.finish(self)
+            raise
 
     @property
     def current(self):
@@ -185,7 +202,7 @@ class SubmissionExecution:
         if local:
             view.turns.start_client()
         try:
-            if view.queue_supported:
+            if view.agent_binding.presentation.queue_supported:
                 reason = await self.agent.send_prompt(self.submission.text, request=self.request)
             else:
                 reason = await self.agent.send_prompt(self.submission.text)
@@ -215,6 +232,14 @@ class ConversationSubmissions:
 
     def begin(self, submission):
         return self.view.agent_binding.begin_submission(self, submission)
+
+    def unbound(self, submission):
+        return UnboundSubmissionStart(self, submission)
+
+    def start(self, submission, agent):
+        execution = SubmissionExecution(self, submission, agent)
+        self.active.append(execution)
+        return execution
 
     @property
     def ready(self):
@@ -278,6 +303,11 @@ class ConversationSubmissions:
 
     def send_now(self):
         return self.view.agent_binding.send_now(self)
+
+    def send_bound_now(self, agent):
+        session, scope = agent.session_id, agent.queue_attachment.scope
+        return self.view.run_worker(partial(self._send_now, agent, session, scope),
+                                    group='send-queued-now', exclusive=True)
 
     async def _send_now(self, agent, session, scope):
         try:
