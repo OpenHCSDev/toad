@@ -10,9 +10,15 @@ def test_deleted_scan_flags_and_external_projection_probes():
     retired = {'ScanState', 'IdleScan', 'ForcedIdleScan', 'RunningScan',
                'ForcedRunningScan', 'force_pending', 'clear_force',
                'FilterSnapshot', 'filter_snapshot', 'filter_publication_available'}
+    overlays = ast.parse((ROOT/'transcript_filter.py').read_text())
+    overlay = next(node for node in ast.walk(overlays)
+                   if isinstance(node, ast.ClassDef) and node.name == 'NoProjectionOverlay')
+    operations = {node.name for node in overlay.body
+                  if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
     for path in (ROOT/'transcript_filter.py', ROOT/'transcript_state.py',
                  ROOT/'widgets/transcript_history.py'):
         tree = ast.parse(path.read_text())
+        parents = {child: parent for parent in ast.walk(tree) for child in ast.iter_child_nodes(parent)}
         for node in ast.walk(tree):
             if isinstance(node, ast.Name):
                 assert node.id not in retired
@@ -20,10 +26,20 @@ def test_deleted_scan_flags_and_external_projection_probes():
                 assert node.name not in retired
             if isinstance(node, ast.Attribute):
                 assert node.attr not in retired
-                if path.name != 'transcript_filter.py':
-                    assert ast.unparse(node) != 'self.filter.overlay'
-                    assert ast.unparse(node) != 'owner.filter.overlay'
-                elif node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:
+                if path.name != 'transcript_filter.py' and ast.unparse(node) in {'self.filter.overlay', 'owner.filter.overlay'}:
+                    parent = parents[node]
+                    # Calling the shared overlay protocol delegates behavior;
+                    # comparing identities fences a replaced projection. Neither
+                    # inspects which projection case is active.
+                    delegated = (isinstance(parent, ast.Attribute) and parent.attr in operations
+                                 and isinstance(parents.get(parent), ast.Call)
+                                 and parents[parent].func is parent)
+                    identity = (isinstance(parent, ast.Compare)
+                                and all(isinstance(op, (ast.Is, ast.IsNot)) for op in parent.ops)
+                                and not any(isinstance(value, ast.Constant)
+                                            for value in (parent.left, *parent.comparators)))
+                    assert delegated or identity, (path, node.lineno, ast.unparse(parent))
+                elif path.name == 'transcript_filter.py' and node.attr in {'_loading', '_advancing', '_generation', '_selected_categories', '_prefetch_distance'}:
                     raise AssertionError('Filter must ask history admission owner')
 
 
