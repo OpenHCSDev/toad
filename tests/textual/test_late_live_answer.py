@@ -28,7 +28,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
     comms.messaging.initialize_private_initial_protocol()
     thread = workspace.thread("source")
     workspace.thread("peer")
-    comms.messaging.send_message("peer", "source", "WIRE_NOTICE")
+    comms.messaging.send("peer", "source", "WIRE_NOTICE")
     first_page = comms.transcripts.thread_transcript_page("source")
     held, release, applied = asyncio.Event(), asyncio.Event(), asyncio.Event()
     read_release = asyncio.Event()
@@ -68,7 +68,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
             turns = agent.presentation.managed_turns()
             turns.receive(TurnState(ActiveTurn("first-turn", os.getpid(), phase=PublishingPhase())))
             agent.session.settled.clear()
-            history = await saved_history(view, first_page, agent.get_transcript_page)
+            history = await saved_history(view, first_page, view.transcript.get_transcript_page)
             await view.contents.mount(history)
             await ui.step()
             agent.session.settled.set()
@@ -77,14 +77,14 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
 
             if arrival == "read-in-flight":
                 read_entered = asyncio.Event()
-                read_page = agent.get_transcript_page
+                read_page = view.transcript.get_transcript_page
 
                 async def held_read(*arguments, **options):
                     read_entered.set()
                     await read_release.wait()
                     return await read_page(*arguments, **options)
 
-                agent.get_transcript_page = held_read
+                view.transcript.get_transcript_page = held_read
                 view.transcript.dirty = view.transcript.commit_required = True
                 pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 await asyncio.wait_for(read_entered.wait(), 5)
@@ -110,7 +110,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                 if arrival == "commit":
                     pending.append(asyncio.create_task(view.transcript.publish(CommitPublication)))
                 else:
-                    page = await agent.get_transcript_page()
+                    page = await view.transcript.get_transcript_page()
                     agent.events.publish(CommsUpdated(
                         TranscriptSnapshotUpdate.capture(comms.transcripts, "source"), agent.session_id))
 

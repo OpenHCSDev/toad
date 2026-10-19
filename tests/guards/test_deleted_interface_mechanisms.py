@@ -142,7 +142,7 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
     # A channel is a line history, and not a saved transcript: it covers no live blocks.
     assert issubclass(WireHistory, LineHistory) and not issubclass(WireHistory, TranscriptHistory)
     # Paging, lookahead and trimming are the line history's, for both; the reader's position is the window's.
-    for name in ('_load_page', '_publish_latest', 'extend_source'):
+    for name in ('_load_page', 'extend_source'):
         assert name in vars(LineHistory), name
         assert name not in vars(WireHistory) and name not in vars(TranscriptHistory), name
     for name in ('covers_incoming', 'covers_input', 'coverage_events'):

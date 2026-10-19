@@ -34,7 +34,7 @@ async def test_cancelled_commit_with_the_output_owner_busy_retires_the_old_histo
         view = ui.conversation
         agent = ui.detached_agent()
         ui.attach_agent(agent)
-        old = await saved_history(view, old_page, agent.get_transcript_page)
+        old = await saved_history(view, old_page, view.transcript.get_transcript_page)
         await view.contents.mount(old)
         await ui.until(lambda: old in view.window.histories, why="the old history")
         thread = workspace.comms.registry.require("replacement")

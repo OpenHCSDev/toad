@@ -1,8 +1,8 @@
 """Textual-facing: an older-page read that started on a history widget is published only if the widget's source is unchanged."""
 
 import asyncio
+from dataclasses import replace
 
-from agent_comms.threads import Thread
 
 from support import journals
 
@@ -15,7 +15,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
     journal = journals.write_journal(workspace.project / "saved.jsonl", *(
         journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(4)))
     transcripts = workspace.comms.transcripts
-    workspace.comms.registry.declare(Thread("saved", frozenset(), str(workspace.project), session_file=str(journal)))
+    workspace.comms.registry.declare(replace(workspace.thread("saved"), session_file=str(journal)))
     page = transcripts.thread_transcript_page("saved", max_messages=1)
     assert page.has_older
     async with workspace.app(size=(110, 35)) as ui:
@@ -70,7 +70,7 @@ async def test_requested_older_page_is_read_by_the_history_worker(workspace):
     journal = journals.write_journal(workspace.project / "saved.jsonl", *(
         journals.assistant_entry(f"Saved row {i}.", id=f"a{i}", parent=f"a{i - 1}" if i else None) for i in range(4)))
     transcripts = workspace.comms.transcripts
-    workspace.comms.registry.declare(Thread("saved", frozenset(), str(workspace.project), session_file=str(journal)))
+    workspace.comms.registry.declare(replace(workspace.thread("saved"), session_file=str(journal)))
     page = transcripts.thread_transcript_page("saved", max_messages=1)
 
     async def loader(**bounds):
