@@ -445,7 +445,10 @@ class TerminalApp:
         def settled(text):
             nonlocal previous
             rows = self.message_rows(text)
-            same = bool(rows) and rows == previous
+            # This connection banner occupies a transcript row until it closes.
+            # Compare reader positions only after the viewport has its full height.
+            same = ('Agent Comms connected' not in text
+                    and bool(rows) and rows == previous)
             previous = rows
             return same
 
