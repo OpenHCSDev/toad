@@ -133,7 +133,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
             self.latest = self.latest.resume(self)
-            for page in self.pages:
+            for page in self.visible_pages():
                 page.prepare_viewport(self.window)
             self.state.check_edges(self)
 
