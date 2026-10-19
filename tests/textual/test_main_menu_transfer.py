@@ -13,7 +13,7 @@ from toad.widgets.side_bar import MainMenuButton, TabHistoryButton, TabHistoryCo
 async def open_main_menu(ui):
     app, _ = ui.textual
     await ui.until(lambda: app.screen.query_one_optional(MainMenuButton) is not None, why="the main menu button")
-    app.screen.query_one(MainMenuButton).action_open_menu()
+    app.screen.query_one(MainMenuButton).open_menu()
     await ui.until(lambda: isinstance(app.screen, ContextMenu), why="the menu")
     # The menu focuses its first choice once mounted; choosing before that chooses nothing.
     await ui.until(lambda: isinstance(app.screen.focused, ContextMenuItem), why="the menu's first choice focused")

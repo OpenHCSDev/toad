@@ -18,7 +18,7 @@ class InspectionToolOutputPart(SpecificTextToolOutputPart):
 
     @property
     def line_blocks(self):
-        return (Body("case owns: " + self.text, markdown=False),)
+        return (Body("case owns: " + self.text),)
 
 
 def new_case_call() -> ToolCall:
