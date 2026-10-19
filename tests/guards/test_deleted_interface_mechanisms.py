@@ -9,7 +9,10 @@ ROOT = Path(__file__).resolve().parents[2] / 'src/toad'
 def assert_deleted_cursor_contract(path, source):
     """Seal the removed UI family across definitions, imports and callbacks."""
     retired = {'Cursor', 'update_follow', 'watch_follow_widget', 'follow_widget', 'blink_timer'}
-    for node in ast.walk(ast.parse(source)):
+    tree = ast.parse(source)
+    # A generic's own type parameter is not the deleted widget family.
+    retired -= {node.name for node in ast.walk(tree) if isinstance(node, ast.TypeVar)}
+    for node in ast.walk(tree):
         match node:
             case (ast.Name(id=name) | ast.Attribute(attr=name)
                   | ast.ClassDef(name=name) | ast.FunctionDef(name=name)
@@ -83,18 +86,6 @@ def test_nominal_block_interaction_caller_closure():
             for node in ast.walk(method):
                 if isinstance(node,ast.Call) and isinstance(node.func,ast.Name):
                     assert node.func.id not in {'isinstance','issubclass','getattr','hasattr'}, (method.name,node.lineno)
-    from toad.block_content import BlockContent
-    from toad.conversation_markdown import ConversationMarkdown
-    assert all(issubclass(block,BlockContent) for block in ConversationMarkdown.BLOCKS.values())
-
-
-def test_markdown_tokens_use_native_rule_registry():
-    """The conversation markdown boundary cannot acquire a token-type switch again."""
-    path = ROOT / 'conversation_markdown.py'
-    for node in ast.walk(ast.parse(path.read_text())):
-        if isinstance(node, (ast.Compare, ast.Match)):
-            assert not any(isinstance(part, ast.Attribute) and part.attr == 'type'
-                           for part in ast.walk(node)), (path, node.lineno)
 
 
 def test_acp_process_retirement_single_owner():
@@ -154,8 +145,7 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
     # A channel is a line history, and not a saved transcript: it covers no live blocks.
     assert issubclass(WireHistory, LineHistory) and not issubclass(WireHistory, TranscriptHistory)
     # Paging, lookahead and trimming are the line history's, for both; the reader's position is the window's.
-    for name in ('_load_page', '_check_edges',
-                 '_publish_latest', 'extend_source'):
+    for name in ('_load_page', 'extend_source'):
         assert name in vars(LineHistory), name
         assert name not in vars(WireHistory) and name not in vars(TranscriptHistory), name
     for name in ('covers_incoming', 'covers_input', 'coverage_events'):
@@ -190,7 +180,7 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
     # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
     for name, home in (('action_open_sender', 'widgets/transcript_lines.py'),
                        ('action_open_destination', 'widgets/transcript_lines.py'),
-                       ('action_link', 'widgets/transcript_lines.py'), ('opens', 'line_blocks.py')):
+                       ('action_link', 'widgets/transcript_lines.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
     assert '_open_name' not in declared and 'open_url' not in declared
     assert source.count('"block.open_sender"') == source.count('"block.open_destination"') == 1

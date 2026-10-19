@@ -77,6 +77,9 @@ class CoreEventReceiver(MroDispatch):
     def publish_core(self, event: CoreEvent) -> None:
         self.core_publications.publish(event)
 
+    def accepts(self, message: CoreEventMessage) -> bool:
+        return True
+
     async def consume_handlers(self, message, handlers, *args, **kwargs):
         # Textual callbacks may return native Worker resources. Publications
         # retain their identity; callback returns do not replace their data.
@@ -133,6 +136,9 @@ class CoreEventReceiver(MroDispatch):
 
     async def on_core_event_message(self, message: CoreEventMessage) -> None:
         if not message.subscription.active:
+            message.stop()
+            return
+        if not self.accepts(message):
             message.stop()
             return
         await message.consume(self, message)

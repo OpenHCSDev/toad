@@ -1,10 +1,7 @@
 """One declared conversation family owns history reads and route preparation."""
 
 from __future__ import annotations
-from toad.widgets.presentation_window import NEWER_END
-
 import asyncio
-from dataclasses import replace
 from abc import abstractmethod
 from typing import TYPE_CHECKING, ClassVar
 from agent_comms.historical_views import ChannelDisplayHistory, ConversationHistoryView, DMDisplayHistory
@@ -17,6 +14,7 @@ from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
 from agent_comms.channel_targets import ThreadTarget
+from toad.widgets.sidebar_tree import UnpaintedChannel
 
 if TYPE_CHECKING:
     from toad.wire_history import WireSource
@@ -89,6 +87,15 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     async def status_text(cls, comms, target, *, read_only: bool) -> str: ...
 
     @classmethod
+    def activity_members(cls, model, target):
+        return (target,)
+
+    @classmethod
+    def active_members(cls, model, target):
+        return tuple(model.threads.rows[name] for name in cls.activity_members(model, target)
+                     if model.threads.rows[name].active)
+
+    @classmethod
     def activity_details(cls, name):
         row = ConversationSessionDetails(
             ThreadTarget(name), history=NativeHistory(), status_source=lambda: row.row)
@@ -104,12 +111,13 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     def prompt(cls, target): ...
 
     @classmethod
-    @abstractmethod
     def seen_page(cls, history, seen):
-        """The page to mark read for the seen fragments and the fragments it settles, or None.
-
-        Every fragment in `seen` still holds its page's read evidence.
-        """
+        """Acknowledge only visible fragments using their original page's proof."""
+        if not seen:
+            return None
+        page = seen[0].evidence
+        marked = tuple(fragment for fragment in seen if fragment.evidence is page)
+        return page.select(fragment.message.seq for fragment in marked), marked
 
     @classmethod
     @abstractmethod
@@ -118,6 +126,10 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
 
 class ChannelConversation(ConversationKind):
     history_view = ChannelDisplayHistory
+
+    @classmethod
+    def activity_members(cls, model, target):
+        return model.channels.rows.get(target, UnpaintedChannel(target)).members
 
     @classmethod
     def channels_needed(cls, root, target):
@@ -176,20 +188,6 @@ class ChannelConversation(ConversationKind):
         if not await history.source_is_current(source) or view.target != target:
             return
         view.query_one(ChannelPrompt).set_mention_candidates(mentions)
-
-    @classmethod
-    def seen_page(cls, history, seen):
-        if not seen:
-            return None
-        page = seen[0].evidence
-        marked = tuple(fragment for fragment in seen if fragment.evidence is page)
-        selected = {fragment.message.seq for fragment in marked}
-        scope = page.display_scope
-        return replace(
-            page,
-            messages=tuple(message for message in page.messages if message.seq in selected),
-            display_scope=replace(scope, displayed=scope.displayed.select(selected)),
-        ), marked
 
     @classmethod
     async def mark_read(cls, comms, target, project, page):
@@ -252,28 +250,6 @@ class DmConversation(ConversationKind):
     @classmethod
     async def status_text(cls, comms, target, *, read_only: bool) -> str:
         return (await asyncio.to_thread(comms.configuration.answer, target)).status_label
-
-    @classmethod
-    def seen_page(cls, history, seen):
-        # Only the newest page marks a direct conversation read, and only as a
-        # whole: its newest message and every message from the peer were seen.
-        newest = history.pages[-1]
-        source = newest.prepared.page.source
-        page = source.newest_evidence if source is not None else None
-        if NEWER_END.visible_more(history) or page is None:
-            return None
-        painted = {fragment.message.seq for fragment in seen if fragment.evidence is page}
-        if page.newest_seq not in painted:
-            return None
-        basis = page.display_basis
-        if any(message.seq not in painted for message in page.messages
-               if message.sender in basis.peer_names and message.target in basis.viewer_names):
-            return None
-        return replace(
-            page,
-            messages=tuple(message for message in page.messages if message.seq in painted),
-            display_basis=replace(basis, displayed=basis.displayed.select(painted)),
-        ), tuple(fragment for fragment in newest.prepared.fragments if fragment.evidence is page)
 
     @classmethod
     async def mark_read(cls, comms, target, project, page):

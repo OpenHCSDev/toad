@@ -1,27 +1,26 @@
 """A handshake, authentication, mode, new or load call that returns after the session binding changed is rejected."""
 import asyncio
 
-from support.agents import detached
-from toad import jsonrpc
-from toad.acp import api
+from acp.exceptions import RequestError
 
 
-async def test_pending_session_calls_reject_a_binding_that_was_replaced(tmp_path, monkeypatch):
-    for method, api_name, result, args in (
-        ('initialize', 'initialize', {'agentCapabilities': {'loadSession': True}, 'authMethods': [{'id': 'late'}]}, ()),
-        ('authenticate', 'authenticate', {}, ('terminal',)),
-        ('set_mode', 'session_set_mode', {}, ('late',)),
-        ('new', 'session_new', {'sessionId': 'late-new'}, ()),
-        ('load', 'session_load', {}, ()),
+async def test_pending_session_calls_reject_a_binding_that_was_replaced(app_agents, tmp_path):
+    for method, sdk_name, args in (
+        ('initialize', 'initialize', ()),
+        ('authenticate', 'authenticate', ('terminal',)),
+        ('set_mode', 'set_session_mode', ('late',)),
+        ('new', 'new_session', ()),
+        ('load', 'load_session', ()),
     ):
-        agent = detached(tmp_path, 'first')
+        agent = app_agents.detached_agent('first')
         entered, release = asyncio.Event(), asyncio.Event()
-        class Pending:
-            async def wait(self):
-                entered.set()
-                await release.wait()
-                return result
-        monkeypatch.setattr(api, api_name, lambda *a, **k: Pending())
+        class PendingConnection:
+            pass
+        async def pending(*a, **k):
+            entered.set()
+            await release.wait()
+        setattr(PendingConnection, sdk_name, staticmethod(pending))
+        agent.process.connection = PendingConnection()
         binding = agent.controller.session
         task = asyncio.create_task(getattr(agent.session, method)(*args))
         await entered.wait()
@@ -31,8 +30,8 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(tmp_path
         release.set()
         try:
             response = await task
-        except jsonrpc.InvalidParams:
-            pass
+        except RequestError as error:
+            assert error.code == -32602
         else:
             # Mode's existing public failure contract returns actionable feedback.
             assert method == 'set_mode' and 'retired session' in response
@@ -40,4 +39,5 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(tmp_path
         assert not agent.session.capabilities.load_session
         assert not agent.presentation.auth_methods
         assert not agent.session.ready
+        agent.process.connection = None
         await agent.stop()

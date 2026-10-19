@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from functools import cached_property
-from collections.abc import Awaitable
 from typing import ClassVar, cast
 from agent_comms.declared_family import DeclaredFamily
 from textual.geometry import Region
@@ -12,6 +11,7 @@ from toad.block_content import BlockContent
 from toad.frame_presentation import AnimationEffects
 from ui_theme.effects import NEW_TEXT, Fade, Mix  # type: ignore[import-untyped]
 from toad.widgets.presentation_window import PageEnd, OlderEnd, NewerEnd
+from toad.widgets.message_filter import MessageCategory, OtherCategory
 
 
 class CursorDirection(PageEnd, DeclaredFamily, affix="Cursor"):
@@ -287,6 +287,12 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
     # Saved source blocks precede this live tail; equal orders retain arrival order.
     conversation_order: ClassVar[int] = 1
 
+    def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
+        self.set_display_constraint("message-category", OtherCategory in selected)
+
+    def starts_agent_activity(self, boundary) -> bool:
+        return OtherCategory.observe(boundary)
+
     def repaint(self) -> None:
         # The widgets inside the entry draw its rows.
         for widget in cast(Widget, self).walk_children(with_self=True):
@@ -300,15 +306,28 @@ class ConversationEntry(AnimationEffects[Mix], BlockContent):
         return AtomicBlockCursor(self)
 
 
+class CategorizedBlock(ConversationEntry):
+    """An entry whose declared category owns filtering and activity grouping."""
+
+    @property
+    def message_category(self) -> type[MessageCategory]:
+        raise NotImplementedError
+
+    def apply_message_filter(self, selected: frozenset[type[MessageCategory]]) -> None:
+        self.set_display_constraint("message-category", self.message_category in selected)
+
+    def starts_agent_activity(self, boundary) -> bool:
+        return self.message_category.observe(boundary)
+
+
 class ConversationBlock(ConversationEntry):
     """A live entry: it fades into its own colours as it appears."""
 
     text_fades: ClassVar[tuple[Fade, ...]] = (NEW_TEXT,)
 
-    def on_mount(self) -> Awaitable[None] | None:
+    def on_mount(self) -> None:
         for fade in self.text_fades:
             self.run_effect(fade)
-        return None
 
 
 class ContentNavigation:

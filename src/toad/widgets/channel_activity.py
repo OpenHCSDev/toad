@@ -1,20 +1,26 @@
 """Live channel members use the sidebar's keyed widget reconciliation."""
 
+from textual import widgets
+from textual.content import Content
 from textual.containers import VerticalGroup
 
 from toad.screens.session_view import SessionView
 from toad.widgets.observed_thread_activity import StatusThread
-from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView, UnpaintedChannel
+from toad.widgets.sidebar_tree import KeyedRows, SidebarChange, SidebarModelView
 
 
 class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
     def __init__(self, view):
         self.view = view
         self._members = VerticalGroup()
+        self.details = widgets.Collapsible(self._members, title="0 active", collapsed=True)
+        self.details.styles.padding = 0
         super().__init__()
+        self.styles.overflow_y = "auto"
+        self.styles.max_height = "33vh"
 
     def compose(self):
-        yield self._members
+        yield self.details
 
     @property
     def member_container(self):
@@ -25,10 +31,12 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
         return {row.target.name: row for row in self.member_container.children if not row.is_leaving}
 
     @property
+    def members(self):
+        return self.view.conversation_kind.active_members(self.model_state.shown, self.view.target)
+
+    @property
     def member_keys(self):
-        model = self.model_state.shown
-        channel = model.channels.rows.get(self.view.target, UnpaintedChannel(self.view.target))
-        return tuple(name for name in channel.members if model.threads.rows[name].active)
+        return tuple(row.name for row in self.members)
 
     def accepts_observation(self) -> bool:
         return (self.view.query_ancestor(SessionView).is_current
@@ -46,6 +54,10 @@ class ChannelActivity(SidebarModelView, KeyedRows, VerticalGroup):
             self.model_state.root(), name, self.app.coordination_access)
         return row
 
-    def sync_members(self) -> None:
+    def sync_members(self, changed: frozenset[str]) -> None:
         if self.is_attached and not self.is_leaving:
-            self.reconcile_keys(self.member_keys, changed=frozenset())
+            members = self.members
+            names = ", ".join(row.name for row in members[:2])
+            remaining = f" +{len(members) - 2}" if len(members) > 2 else ""
+            self.details.title = Content(f"{len(members)} active · {names}{remaining}")
+            self.reconcile_keys(tuple(row.name for row in members), changed=changed)

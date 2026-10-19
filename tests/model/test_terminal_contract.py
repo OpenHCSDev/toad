@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from metaclass_registry import DuplicateRegistryKeyError
 
 from toad.ansi._ansi import ANSICommand, TerminalMode, TerminalState
 from toad.ansi._stream_parser import (
@@ -13,7 +14,6 @@ from toad.ansi._stream_parser import (
     Read,
     ReadPattern,
     ReadPatterns,
-    ReadRegex,
     ReadUntil,
 )
 
@@ -125,7 +125,7 @@ def test_declared_command_and_mode_need_no_dispatch_edit():
         assert state.current_directory == "/enabled"
         await state.write("\x1b[?987653l")
         assert state.current_directory == "/disabled"
-        with pytest.raises(TypeError, match="Duplicate family name"):
+        with pytest.raises(DuplicateRegistryKeyError):
 
             class DuplicateMode(TerminalMode, declared_name="987653"):
                 @classmethod
@@ -147,7 +147,6 @@ def test_reads_own_consumption_and_pattern_exhaustion():
     cases = [
         (Read(2), "abc", 2, "ab"),
         (ReadUntil(":"), "ab:cd", 2, "ab"),
-        (ReadRegex("[0-9]+"), "ab12cd", 4, "ab12"),
     ]
     for reader, source, consumed, value in cases:
         count, tokens = reader.feed(source)
@@ -210,7 +209,6 @@ def test_terminal_dispatch_deletion_guard():
                         "StreamRead",
                         "Read",
                         "ReadUntil",
-                        "ReadRegex",
                         "ReadPattern",
                         "ReadPatterns",
                     }

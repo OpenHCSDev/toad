@@ -11,7 +11,7 @@ from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 from ui_theme.effects import NEW_TEXT
 
-from support.agents import deliver, detached
+from support.agents import deliver
 from support.textual_steps import tool_status
 from toad.frame_presentation import EFFECT_UNSTARTED
 from toad.widgets.agent_response import AgentResponse
@@ -46,7 +46,7 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
     comms.messaging.send_message("peer", "source", "EARLIER_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        agent = detached(project, "arrival-fade", app=ui.app)
+        agent = ui.detached_agent("arrival-fade")
         view.set_reactive(type(view).agent, agent)
         view.bind_agent(agent)
         coordination = CoordinationChangedUpdate(
@@ -62,6 +62,8 @@ async def test_a_commit_retiring_a_live_block_still_fades_another_senders_row(wo
         # The saved history the commit grows: the earlier notice, read once the view binds its thread.
         await ui.until(lambda: "EARLIER_NOTICE" in ui.painted(view.window), why="the saved history")
         history = view.contents.query_one(TranscriptHistory)
+        # Saved history is not a live block: its rows fade as they arrive, not the whole body on mount.
+        assert history.effect_phase(NEW_TEXT) is EFFECT_UNSTARTED
         view.window.anchor()
         await deliver(agent, {
             "sessionUpdate": "agent_message_chunk", "content": {"type": "text", "text": ANSWER}})

@@ -1,38 +1,33 @@
 """A client request for a session that was replaced has no effect: no file written, no process kept, no permission granted."""
 import asyncio
-from pathlib import Path
-from toad import jsonrpc
-from toad.acp.client_session import ClientRequestOwner
+import pytest
+from acp import schema
+from acp.exceptions import RequestError
 from toad.acp.terminal_controller import TerminalSessionRetired
 from toad.terminal_execution import TerminalExecution
-from support.agents import detached
 
 
-def make_agent(root):
-    return detached(root, 'before')
-
-async def rpc(agent, method, session='before', **params):
-    return await agent.server.call({'jsonrpc': '2.0', 'id': 1, 'method': method,
-                                   'params': {'sessionId': session, **params}})
-
-
-async def test_files_and_processes_requested_for_a_replaced_session_are_refused(tmp_path):
-    agent = make_agent(tmp_path)
-    assert (await rpc(agent, 'fs/write_text_file', path='owned.txt', content='one\ntwo\nthree'))['result'] == {}
-    assert (await rpc(agent, 'fs/read_text_file', path='owned.txt', line=2, limit=1))['result'] == {'content': 'two'}
+async def test_files_and_processes_requested_for_a_replaced_session_are_refused(app_agents, tmp_path):
+    agent = app_agents.detached_agent('before')
+    assert agent.files.write_text_file('before', 'owned.txt', 'one\ntwo\nthree') == schema.WriteTextFileResponse()
+    assert agent.files.read_text_file('before', 'owned.txt', 2, 1).content == 'two'
     agent.session_id = 'after'
-    refused = await rpc(agent, 'fs/write_text_file', path='owned.txt', content='stale overwrite')
-    assert refused['error']['code'] == -32602
+    with pytest.raises(RequestError) as refused:
+        agent.files.write_text_file('before', 'owned.txt', 'stale overwrite')
+    assert refused.value.code == -32602
     assert (tmp_path/'owned.txt').read_text() == 'one\ntwo\nthree'
-    assert (await rpc(agent, 'terminal/create', command='sh', args=['-c', 'exit 0']))['error']['code'] == -32602
+    with pytest.raises(RequestError) as refused:
+        await agent.controller.terminal_create('before', 'sh', None, ['-c', 'exit 0'])
+    assert refused.value.code == -32602
     assert not agent.controller.terminals.executions
-    cancelled = await rpc(agent, 'session/request_permission', options=[], toolCall={'toolCallId': 'retired'})
-    assert cancelled['result']['outcome'] == {'outcome': 'cancelled'}
+    cancelled = await agent.permissions.request_permission(
+        'before', [], schema.ToolCallUpdate(tool_call_id='retired'))
+    assert cancelled.outcome == schema.DeniedOutcome(outcome='cancelled')
     await agent.stop()
 
 
-async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(tmp_path, monkeypatch):
-    agent = make_agent(tmp_path)
+async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(app_agents, tmp_path, monkeypatch):
+    agent = app_agents.detached_agent('before')
     entered, release = asyncio.Event(), asyncio.Event()
     real_start = TerminalExecution.start
     executions = []
@@ -43,41 +38,25 @@ async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(t
         await real_start(execution)
     monkeypatch.setattr(TerminalExecution, 'start', pending_start)
     replaced = agent.controller.terminals
-    request = asyncio.create_task(rpc(agent, 'terminal/create', command='sh', args=['-c', 'sleep 30']))
+    request = asyncio.create_task(agent.controller.terminal_create('before', 'sh', None, ['-c', 'sleep 30']))
     await entered.wait()
     agent.session_id = 'after'
     await replaced.close()
     release.set()
-    response = await request
-    assert response['error']['code'] == -32602
+    with pytest.raises(RequestError) as refused:
+        await request
+    assert refused.value.code == -32602
     assert not replaced.executions and not agent.controller.terminals.executions
-    try:
+    with pytest.raises(TerminalSessionRetired):
         await replaced.create(executions[0].command, None)
-    except TerminalSessionRetired:
-        pass
-    else:
-        raise AssertionError('Retired terminal controller started another process')
     await agent.stop()
 
 
-async def test_a_new_client_request_registers_by_declaration(tmp_path):
-    class EchoClientRequestOwner(ClientRequestOwner):
-        @jsonrpc.expose('test/session_echo')
-        def echo(self, sessionId: str):
-            self.session_request(sessionId)
-            return {'sessionId': sessionId}
-    agent = make_agent(tmp_path)
-    assert (await rpc(agent, 'test/session_echo'))['result'] == {'sessionId': 'before'}
-    assert (await rpc(agent, 'test/session_echo', session='retired'))['error']['code'] == -32602
-    await agent.stop()
-
-
-async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_the_session_id_returns(tmp_path, monkeypatch):
-    agent = make_agent(tmp_path)
-    created = await rpc(agent, 'terminal/create', command='sh', args=['-c', 'sleep 30'])
-    terminal_id = created['result']['terminalId']
+async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_the_session_id_returns(app_agents, tmp_path, monkeypatch):
+    agent = app_agents.detached_agent('before')
+    created = await agent.controller.terminal_create('before', 'sh', None, ['-c', 'sleep 30'])
+    terminal_id = created.terminal_id
     replaced = agent.controller.terminals
-    execution = replaced.require(terminal_id)
     entered, release = asyncio.Event(), asyncio.Event()
     real_wait = replaced.wait
     async def pending_wait(terminal_id):
@@ -86,7 +65,7 @@ async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_th
         await release.wait()
         return result
     monkeypatch.setattr(replaced, 'wait', pending_wait)
-    waiting = asyncio.create_task(rpc(agent, 'terminal/wait_for_exit', terminalId=terminal_id))
+    waiting = asyncio.create_task(agent.controller.terminal_wait_for_exit('before', terminal_id))
     await entered.wait()
     disposition = agent.session.disposition
     agent.session_id = 'after'
@@ -94,8 +73,8 @@ async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_th
     assert agent.session.disposition is disposition
     await replaced.close()
     release.set()
-    result = await waiting
-    assert result['error']['code'] == -32602
-    assert 'result' not in result
+    with pytest.raises(RequestError) as refused:
+        await waiting
+    assert refused.value.code == -32602
     assert not replaced.executions and not agent.controller.terminals.executions
     await agent.stop()

@@ -19,7 +19,7 @@ async def test_a_start_notice_after_the_saved_history_draws_the_message_once(wor
         Thread("source", frozenset(), str(workspace.project), session_file=str(journal)))
     async with workspace.app(size=(110, 35)) as ui:
         view = ui.conversation
-        agent = agents.detached(workspace.project, "source")
+        agent = ui.detached_agent("source")
         ui.attach_agent(agent)
         # The page read finds the message in the session file before Core's start notice arrives.
         await view.transcript.snapshot(workspace.comms.transcripts.thread_transcript_page("source"))

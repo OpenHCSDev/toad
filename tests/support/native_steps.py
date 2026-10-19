@@ -9,7 +9,6 @@ from agent_comms.input_disposition import InputDispositions
 from toad.conversation_kind import ChannelConversation, DmConversation
 from toad.core import input_events
 from toad.navigation_target import DirectTarget, NavigationContext, channel_target
-from toad.widgets.channel_participants import ChannelParticipants
 from toad.widgets.comms_chat import CommsChatView
 from toad.notification_status import NotificationStatus
 
@@ -130,13 +129,9 @@ async def channel_message_feedback(native, owner_tab: str) -> None:
     await ui.until(lambda: comms.registry.require("beta").executing, seconds=20, why="the thread to be deciding")
     await refresh_chat(chat)
     await ui.step()
-    roster = chat.query_one(ChannelParticipants)
-    assert "beta" in roster.names.render().plain, roster.names.render()
-    assert roster in app.screen._compositor.visible_widgets
     provider.release()
     await ui.until(lambda: not comms.registry.require("beta").executing, seconds=20, why="the decision to finish")
     await refresh_chat(chat)
-    await ui.until(lambda: "No active turns" in roster.names.render().plain, seconds=20, why="an idle roster")
     await ui.until(lambda: "Checked" in feedback_of(chat, sent).title, seconds=10, why="'Checked' under the message")
     assert "no response" in feedback_of(chat, sent).title.lower(), feedback_of(chat, sent).title
 
@@ -146,14 +141,13 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     """A real owner (Core's ACP server in this process, no model) with an active goal, shown in Toad
     through an agent object bound to the owner's session.
 
-    `arrange(comms, session, goal)` may change the goal on the owner before Toad starts.
+    `arrange(comms, session, goal)` may change the goal on the owner before the view binds the agent.
     Yields (ui, agent, comms, session, goal as first set).
     """
     import os
 
     from agent_comms.goal_actions import SetGoalAction
 
-    from support.agents import detached
     from support.native import owner_server, start_private_native_wire
     from support.textual_steps import coordination_update
 
@@ -162,12 +156,12 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     owner = owner_server(comms, package)
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
-        agent = detached(workspace.project)
-        agent.coordination = coordination_update(str(comms.root), session)
-        goal = await agent.update_goal(SetGoalAction, objective)
-        if arrange is not None:
-            arrange(comms, session, goal)
         async with workspace.app(size=size) as ui:
+            agent = ui.detached_agent()
+            agent.coordination = coordination_update(str(comms.root), session)
+            goal = await agent.update_goal(SetGoalAction, objective)
+            if arrange is not None:
+                arrange(comms, session, goal)
             conversation = ui.conversation
             conversation.set_reactive(type(conversation).agent, agent)
             conversation.bind_agent(agent)

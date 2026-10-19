@@ -9,6 +9,7 @@ from ui_theme.scheme import ColourScheme
 from ui_theme.splash import loading_splash
 
 from toad.frame_presentation import Animated
+from toad.block_navigation import ConversationBlock
 
 
 class SplashText(Animated[TextFrame], Static):
@@ -48,3 +49,28 @@ class SplashText(Animated[TextFrame], Static):
         if played is not None:
             return self.app.colours.paint_text(self.effect_frame(played), None)
         return Content(self.TEXT)
+
+
+class ThreadLoading(ConversationBlock, SplashText):
+    """The splash while a thread attaches: its label swept into the theme's colours."""
+
+    LABEL = TEXT = "Loading thread and history…"
+
+    @classmethod
+    def initial_contents(cls, agent):
+        """The loading declaration serves first composition and source rebinding."""
+        return (cls(),) if agent is not None else ()
+
+    DEFAULT_CSS = """
+    ThreadLoading {
+        width: 1fr;
+        height: auto;
+        margin: 0;
+        content-align: center middle;
+        color: $text-muted;
+        text-style: bold;
+    }
+    """
+
+    def on_mount(self) -> None:
+        self.play()

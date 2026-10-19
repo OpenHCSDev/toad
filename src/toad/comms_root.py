@@ -58,6 +58,8 @@ class UnselectedRoute:
 class Observation:
     access: CoordinationAccess = field(compare=False)
     subscriptions: ResourceRelease = field(default_factory=ResourceRelease, compare=False)
+    # View updates end before the views close; `subscriptions` retires the observation after them.
+    updates: ResourceRelease = field(default_factory=ResourceRelease, compare=False)
 
     def observed(self):
         return self
@@ -188,11 +190,18 @@ class Observing(Observation):
         self.loop.add_reader(self.process.fileno(), self.receive, access)
         access.update_sidebar_interest()
         self.thread_interest(access)
-        self.subscriptions.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
+        self.updates.callback(self.answer_reads)
+        self.updates.enter_context(access.app.events.subscribe(OpenTabsChanged, self.views_changed))
+        self.subscriptions.enter_context(self.updates)
         self.views_changed()
 
-    def retire(self, access):
+    def answer_reads(self):
+        # The closing views may still read and state interest; only reads are answered now.
         self.process.request(StopObserving())
+        self.loop.remove_reader(self.process.fileno())
+        self.loop.add_reader(self.process.fileno(), self.process.results)
+
+    def retire(self, access):
         self.loop.remove_reader(self.process.fileno())
         self.process.abandon_reads(StaleRevision("The Comms service was replaced before the read was answered"))
         task = asyncio.ensure_future(asyncio.to_thread(self.process.close))
@@ -480,10 +489,12 @@ class CoordinationAccess(MroDispatch):
             self.route_task = None
         self.events.close_threads()
         self.app.workers.cancel_group(self.app, "thread-interest")
-        self.observation.subscriptions.close()
+        self.observation.updates.close()
 
     async def close(self) -> None:
+        """Retire the observation once the views it served have closed."""
         await self.stop_observing()
+        self.observation.subscriptions.close()
         self.observation = NotObserving(access=self)
         await asyncio.gather(*self.retiring, return_exceptions=True)
         self.cleanup.close()
