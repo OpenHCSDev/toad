@@ -7,17 +7,18 @@ from agent_comms.acp_extension import InputStartedUpdate
 from toad.private_native_cursor import CursorStatus
 
 
+class AttachmentPresentation:
+    """Local attachment observations belong to their session, not a turn."""
+
+    def matches_turn(self, turn_id: object) -> bool:
+        return True
+
+
 @dataclass(frozen=True)
-class CursorPresentation:
+class CursorPresentation(AttachmentPresentation):
     status: type[CursorStatus]
 
-    def matches_turn(self, turn_id: str | None) -> bool:
-        return True
-
 
 @dataclass(frozen=True)
-class QueuePresentation:
+class QueuePresentation(AttachmentPresentation):
     starts: tuple[InputStartedUpdate, ...] = ()
-
-    def matches_turn(self, turn_id: str | None) -> bool:
-        return True

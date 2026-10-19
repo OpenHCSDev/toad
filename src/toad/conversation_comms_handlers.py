@@ -18,7 +18,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
         if not message.event.session_scoped:
             return True
         agent = self.agent
-        if agent is None:
+        if not agent:
             return False
         if message.publisher is not agent:
             return False
@@ -41,7 +41,7 @@ class ConversationCommsHandlers(CoreEventReceiver):
         self, update: McpClientAcknowledgementUpdate, message: CoreEventMessage
     ) -> None:
         """Show the MCP server summary only within the active turn it describes."""
-        if self._mcp_live_note is not None:
+        if self._mcp_live_note:
             return  # The package emits at most one server summary per turn.
         rows = update.acknowledgement.servers
         summary = (
