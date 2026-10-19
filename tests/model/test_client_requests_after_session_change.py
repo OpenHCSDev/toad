@@ -5,19 +5,15 @@ from toad import jsonrpc
 from toad.acp.client_session import ClientRequestOwner
 from toad.acp.terminal_controller import TerminalSessionRetired
 from toad.terminal_execution import TerminalExecution
-from support.agents import detached
 
-
-def make_agent(root):
-    return detached(root, 'before')
 
 async def rpc(agent, method, session='before', **params):
     return await agent.server.call({'jsonrpc': '2.0', 'id': 1, 'method': method,
                                    'params': {'sessionId': session, **params}})
 
 
-async def test_files_and_processes_requested_for_a_replaced_session_are_refused(tmp_path):
-    agent = make_agent(tmp_path)
+async def test_files_and_processes_requested_for_a_replaced_session_are_refused(app_agents, tmp_path):
+    agent = app_agents.detached_agent('before')
     assert (await rpc(agent, 'fs/write_text_file', path='owned.txt', content='one\ntwo\nthree'))['result'] == {}
     assert (await rpc(agent, 'fs/read_text_file', path='owned.txt', line=2, limit=1))['result'] == {'content': 'two'}
     agent.session_id = 'after'
@@ -31,8 +27,8 @@ async def test_files_and_processes_requested_for_a_replaced_session_are_refused(
     await agent.stop()
 
 
-async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(tmp_path, monkeypatch):
-    agent = make_agent(tmp_path)
+async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(app_agents, tmp_path, monkeypatch):
+    agent = app_agents.detached_agent('before')
     entered, release = asyncio.Event(), asyncio.Event()
     real_start = TerminalExecution.start
     executions = []
@@ -60,20 +56,20 @@ async def test_a_terminal_that_starts_after_its_session_was_replaced_is_closed(t
     await agent.stop()
 
 
-async def test_a_new_client_request_registers_by_declaration(tmp_path):
+async def test_a_new_client_request_registers_by_declaration(app_agents, tmp_path):
     class EchoClientRequestOwner(ClientRequestOwner):
         @jsonrpc.expose('test/session_echo')
         def echo(self, sessionId: str):
             self.session_request(sessionId)
             return {'sessionId': sessionId}
-    agent = make_agent(tmp_path)
+    agent = app_agents.detached_agent('before')
     assert (await rpc(agent, 'test/session_echo'))['result'] == {'sessionId': 'before'}
     assert (await rpc(agent, 'test/session_echo', session='retired'))['error']['code'] == -32602
     await agent.stop()
 
 
-async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_the_session_id_returns(tmp_path, monkeypatch):
-    agent = make_agent(tmp_path)
+async def test_a_terminal_wait_is_refused_when_its_owner_was_replaced_even_if_the_session_id_returns(app_agents, tmp_path, monkeypatch):
+    agent = app_agents.detached_agent('before')
     created = await rpc(agent, 'terminal/create', command='sh', args=['-c', 'sleep 30'])
     terminal_id = created['result']['terminalId']
     replaced = agent.controller.terminals

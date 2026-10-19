@@ -15,7 +15,6 @@ from agent_comms.threads import Thread
 from agent_comms.turn_lease import ActiveTurn, TurnState
 from agent_comms.turn_phase import PublishingPhase
 
-from support.agents import detached
 from toad.core.events import CommsUpdated, Update
 from toad.transcript_publication import CheckpointPublication
 from toad.widgets.transcript_history import TranscriptHistory
@@ -62,7 +61,7 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                 await dispatch(message)
 
             view._dispatch_message = hold_the_live_answer
-            agent = detached(project, "late-live")
+            agent = ui.detached_agent("late-live")
             view.set_reactive(type(view).agent, agent)
             view.bind_agent(agent)
             agent.coordination = CoordinationChangedUpdate(

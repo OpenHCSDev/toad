@@ -1,12 +1,11 @@
 """A session update that was being validated when its session or process was replaced publishes nothing."""
 import asyncio
 from toad.acp.agent_session import ActiveSessionDisposition
-from support.agents import detached
 from toad.acp.sdk_boundary import ValidateSessionUpdateTask
 
 
-async def test_a_pending_update_is_dropped_after_the_session_or_process_is_replaced(tmp_path, monkeypatch):
-    agent = detached(tmp_path, 'A')
+async def test_a_pending_update_is_dropped_after_the_session_or_process_is_replaced(app_agents, tmp_path, monkeypatch):
+    agent = app_agents.detached_agent('A')
     emitted = []
     subscription = agent.events.subscribe(lambda event, source: emitted.append(event))
     for replace in ('binding', 'process'):
@@ -41,7 +40,7 @@ async def test_a_pending_update_is_dropped_after_the_session_or_process_is_repla
     subscription.close()
 
 
-async def test_comms_facts_survive_validation_workers_and_reach_the_message_route(tmp_path):
+async def test_comms_facts_survive_validation_workers_and_reach_the_message_route(app_agents, tmp_path):
     from agent_comms.acp_extension import TextRouteUpdate, encode_updates
     from agent_comms.routing import MessageRoute
     from toad.acp.agent_controller import ProcessTaskRunner, ThreadTaskRunner
@@ -56,7 +55,7 @@ async def test_comms_facts_survive_validation_workers_and_reach_the_message_rout
     raw = {'sessionUpdate': 'agent_message_chunk',
            'content': {'type': 'text', 'text': 'routed content'}, '_meta': metadata}
     pool = RenderProcessPool(max_workers=1, max_pending=2)
-    agent = detached(tmp_path, 'A')
+    agent = app_agents.detached_agent('A')
     emitted = []
     subscription = agent.events.subscribe(lambda event, source: emitted.append(event))
     try:

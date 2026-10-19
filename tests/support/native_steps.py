@@ -146,14 +146,13 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     """A real owner (Core's ACP server in this process, no model) with an active goal, shown in Toad
     through an agent object bound to the owner's session.
 
-    `arrange(comms, session, goal)` may change the goal on the owner before Toad starts.
+    `arrange(comms, session, goal)` may change the goal on the owner before the view binds the agent.
     Yields (ui, agent, comms, session, goal as first set).
     """
     import os
 
     from agent_comms.goal_actions import SetGoalAction
 
-    from support.agents import detached
     from support.native import owner_server, start_private_native_wire
     from support.textual_steps import coordination_update
 
@@ -162,12 +161,12 @@ async def goal_on_real_owner(workspace, package, objective: str, *, size=(110, 3
     owner = owner_server(comms, package)
     try:
         session = (await owner.new_session(cwd=str(workspace.project))).session_id
-        agent = detached(workspace.project)
-        agent.coordination = coordination_update(str(comms.root), session)
-        goal = await agent.update_goal(SetGoalAction, objective)
-        if arrange is not None:
-            arrange(comms, session, goal)
         async with workspace.app(size=size) as ui:
+            agent = ui.detached_agent()
+            agent.coordination = coordination_update(str(comms.root), session)
+            goal = await agent.update_goal(SetGoalAction, objective)
+            if arrange is not None:
+                arrange(comms, session, goal)
             conversation = ui.conversation
             conversation.set_reactive(type(conversation).agent, agent)
             conversation.bind_agent(agent)

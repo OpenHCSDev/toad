@@ -12,6 +12,7 @@ import sys
 
 import pytest
 
+from support.agents import AppAgents
 from support.requirements import Requirement
 from support.roots import ATTEMPT, Roots
 from support.workspace import Workspace
@@ -31,6 +32,12 @@ def open_defects() -> dict[str, tuple[str, bool]]:
 def pytest_addoption(parser):
     parser.addoption("--test-timeout", type=float, default=165,
                      help="Wall seconds one app test may take, once (no retries)")
+
+
+@pytest.fixture
+def app_agents(tmp_path) -> AppAgents:
+    """Agents of an app built on the test's own directory and never run."""
+    return AppAgents.unrun(tmp_path)
 
 
 @pytest.fixture
