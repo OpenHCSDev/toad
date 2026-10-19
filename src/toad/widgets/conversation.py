@@ -186,7 +186,7 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
     def can_draw_on_screen(self):
         return self.is_attached and self.is_on_screen
 
-    def notification_targets(self):
+    def notification_targets(self) -> tuple[SourceNotifications, ...]:
         return tuple(history for history in self.screen._compositor.visible_widgets
                      if isinstance(history, SourceNotifications) and history.notification_view is self)
 
