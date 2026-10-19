@@ -14,7 +14,6 @@ from agent_comms.cli_commands import StartCliCommand
 from agent_comms.comms import Comms
 from agent_comms.route_selection import current_root, run_selected_write
 from agent_comms.thread_identity import ThreadRole
-from agent_comms.threads import Thread
 
 from support.routes import private_root, select_root_by_default_route
 from support.textual_steps import refresh_chat, request_target_command
@@ -33,8 +32,8 @@ async def test_delayed_view_writes_wait_out_a_route_publication_and_are_then_ref
     legacy = home / ".agent-comms"
     legacy.mkdir(mode=0o700)
     old = Comms(legacy)
-    old.registry.declare(Thread("user", frozenset(), str(project), role=ThreadRole.USER))
-    old.registry.declare(Thread("peer", frozenset({"team"}), str(project / "peer")))
+    old.registry.declare(old.registry.new_thread("user", frozenset(), str(project), role=ThreadRole.USER))
+    old.registry.declare(old.registry.new_thread("peer", frozenset({"team"}), str(project / "peer")))
     old.messaging.send("peer", "#team", "LEGACY-PAINT")
     private, private_id = private_root(attempt / "private", project, "PRIVATE-PAINT")
     route = ActiveRoute(private, private_id, native_package)

@@ -9,7 +9,6 @@ from agent_comms.goal_actions import (
     ActiveGoalAction, ClearGoalAction, EditGoalAction, GoalPrecondition, OwnerInvocable, PausedGoalAction,
     StandbyGoalAction,
 )
-from agent_comms.threads import Thread
 from textual.containers import VerticalScroll
 from textual.widgets import Static
 
@@ -25,7 +24,7 @@ OBJECTIVE = "OBJECTIVE_BEGIN " + "Fully wrapped acceptance criteria. " * 40 + " 
 def standing_by_for_a_peer(workspace):
     """Arrange the owner's goal to wait for a peer whose turn is running (this process plays the peer)."""
     def arrange(comms, session, goal):
-        comms.registry.declare(Thread("peer", frozenset(), str(workspace.project),
+        comms.registry.declare(comms.registry.new_thread("peer", frozenset(), str(workspace.project),
                                       process_identity=ProcessIdentity.capture(os.getpid())))
         comms.agents.begin_turn("peer", "peer-turn-the-goal-waits-for")
         comms.goals.update_goal(session, StandbyGoalAction(

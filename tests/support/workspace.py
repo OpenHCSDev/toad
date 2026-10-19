@@ -5,7 +5,6 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from functools import cached_property
 import os
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 from support.agents import AppAgents
@@ -40,13 +39,10 @@ class Workspace:
     def thread(self, name: str, *tags: str, running: bool = False, title: str | None = None):
         """Declare a thread on the wire; a running thread is owned by this process."""
         from agent_comms.child_process import NoProcess, ProcessIdentity
-        from agent_comms.storage_rules import StorageRule
-        from agent_comms.threads import Thread
 
         identity = ProcessIdentity.capture(os.getpid()) if running else NoProcess()
-        self.comms.registry.declare(Thread(
-            name, frozenset(tags), str(self.project), title=title, process_identity=identity,
-            storage_roots=StorageRule.load(self.roots.wire).initial_roots(name)))
+        self.comms.registry.declare(self.comms.registry.new_thread(
+            name, frozenset(tags), str(self.project), title=title, process_identity=identity))
         return self.comms.registry.require(name)
 
     def child_processes(self, marker: str) -> list:

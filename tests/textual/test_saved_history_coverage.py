@@ -4,7 +4,6 @@ Not carried over from the old script: the wait for a nested rendering pager insi
 (agent text is line-drawn now, so a live message has no pager of its own).
 """
 
-from agent_comms.threads import Thread
 
 from support import journals
 from toad.widgets.agent_response import AgentResponse
@@ -18,7 +17,7 @@ async def saved_history(workspace, ui):
                                  "Canonical retained source owns coverage independently of painted resources.",
                                  id=f"a{number}", parent=f"a{number - 1}" if number else None)
         for number in range(8)))
-    workspace.comms.registry.declare(Thread("saved", frozenset(), str(workspace.project), session_file=str(journal)))
+    workspace.comms.registry.declare(workspace.comms.registry.new_thread("saved", frozenset(), str(workspace.project), session_file=str(journal)))
     page = workspace.comms.transcripts.thread_transcript_page("saved")
     conversation = ui.conversation
     ui.attach_agent(ui.detached_agent())

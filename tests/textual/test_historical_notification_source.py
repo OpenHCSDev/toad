@@ -14,14 +14,13 @@ def test_historical_notification_keeps_selected_source_and_lifetime(
     from types import SimpleNamespace
 
     from agent_comms.historical_views import HistoricalThread, HistorySource
-    from agent_comms.threads import Thread
     from toad.screens.historical_sessions import HistoricalSessions
     from toad.widgets.wire_message_handling import WireMessageHandling
 
     old, live = Comms(tmp_path / "old"), Comms(tmp_path / "live")
-    old.registry.declare(Thread("sender", frozenset(), str(tmp_path), created_at=10.0))
-    old.registry.declare(Thread("agent", frozenset(), str(tmp_path), created_at=12.0))
-    live.registry.declare(Thread("agent", frozenset(), str(tmp_path), created_at=212.0))
+    old.registry.declare(old.registry.new_thread("sender", frozenset(), str(tmp_path), created_at=10.0))
+    old.registry.declare(old.registry.new_thread("agent", frozenset(), str(tmp_path), created_at=12.0))
+    live.registry.declare(live.registry.new_thread("agent", frozenset(), str(tmp_path), created_at=212.0))
     old.messaging.initialize_private_initial_protocol()
     messages = (old.messaging.send_initial_cohort("sender", "agent", "historical notification"),)
     source = live.views.attach_history(old.root)

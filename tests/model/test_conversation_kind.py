@@ -2,7 +2,6 @@
 
 from agent_comms.comms import wire
 from agent_comms.field_codec import FieldCodec
-from agent_comms.threads import Thread
 from toad.conversation_kind import ChannelConversation, ConversationKind
 
 
@@ -11,7 +10,7 @@ def test_declared_kinds_read_history_and_a_new_kind_joins_the_family(tmp_path):
         pass
 
     comms = wire(tmp_path / "wire")
-    comms.registry.declare(Thread("peer", frozenset({"team"}), str(tmp_path)))
+    comms.registry.declare(comms.registry.new_thread("peer", frozenset({"team"}), str(tmp_path)))
     viewer = comms.messaging.user_identity(str(tmp_path)).name
     comms.messaging.send("peer", "#team", "channel body")
     comms.messaging.send("peer", viewer, "direct body")
