@@ -50,7 +50,7 @@ from toad.message_rows import MessageRow
 from toad.markdown_links import ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
+    HorizontalRows, Lines, BlockLines, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
     selection_painted,
 )
 from toad.widgets.committed_presentation import CommittedHistory
@@ -117,9 +117,9 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         # drawn fragment, its first row and its lines at the measured width.
         # A changed range draws nothing new until layout has given it a box.
         self._width = 0
-        self._layout: list[tuple[TranscriptFragment, int, Lines]] = []
+        self._layout: list[tuple[TranscriptFragment, int, BlockLines]] = []
         self._starts: list[int] = []
-        self._fragment_rows: dict[int, range] = {}
+        self._fragment_slots: dict[int, int] = {}
         self._height = 0
         self._measured = False
         super().__init__()
@@ -174,7 +174,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._measured = False
         self.refresh(layout=True)
 
-    def _lines(self, fragment: TranscriptFragment, width: int) -> Lines:
+    def _lines(self, fragment: TranscriptFragment, width: int) -> BlockLines:
         theme = self.app.colours.line_theme
         lines = fragment.lines_for(width, theme)
         if lines is None:
@@ -211,7 +211,7 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         self._layout, self._starts, self._height = layout, starts, y
         for first, height in repaint:
             self.refresh(Region(0, first, width, height))
-        self._fragment_rows = {id(fragment): range(first, first + lines.height) for fragment, first, lines in layout}
+        self._fragment_slots = {id(fragment): index for index, (fragment, _first, _lines) in enumerate(layout)}
         if self.is_mounted:
             self.history.request_preparation()
 
@@ -253,8 +253,8 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
             strip = history.effect_phase(NEW_TEXT).paint(history, NEW_TEXT, strip)
         return selection_painted(self, self.on_background(strip, paint, y), y)
 
-    def fragment_row(self, position: int | str, part: int) -> tuple[int, int, bool] | None:
-        """A position's first measured row, height and whether the page draws it.
+    def fragment_row(self, position: int | str, part: int, block: int) -> tuple[int, int, bool] | None:
+        """A source child's first measured row, height and whether the page draws it.
 
         A fragment without rows of its own (the filter hides it, or layout
         has not measured it yet) is where the next drawn fragment starts, or
@@ -267,8 +267,12 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         if at is None:
             return None
         for candidate in loaded[at:]:
-            if (rows := self._fragment_rows.get(id(candidate))) is not None:
-                return rows.start, len(rows), candidate.matches_position(position, part)
+            if (slot := self._fragment_slots.get(id(candidate))) is not None:
+                _fragment, first, lines = self._layout[slot]
+                same = candidate.matches_position(position, part)
+                start, height, drawn = lines.block_row(block if same else 0)
+                if height:
+                    return first + start, height, same and drawn
         return self._height, 0, False
 
     @property
@@ -278,7 +282,10 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
 
     def fragment_rows(self, fragment: TranscriptFragment) -> range | None:
         """The rows of this page that draw a fragment."""
-        return self._fragment_rows.get(id(fragment))
+        if (slot := self._fragment_slots.get(id(fragment))) is None:
+            return None
+        _fragment, first, lines = self._layout[slot]
+        return range(first, first + lines.height)
 
     @property
     def screen_region(self) -> Region | None:
@@ -299,13 +306,14 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         fragment = self.fragment_under_mouse()
         return None if fragment is None else MessageClock.recorded(fragment.timestamp).display()[1]
 
-    def fragment_at(self, row: int) -> tuple[TranscriptFragment, int] | None:
-        """The loaded fragment drawn at a row of this page, and the row within it."""
+    def fragment_at(self, row: int) -> tuple[TranscriptFragment, int, int, int] | None:
+        """The fragment and source child drawn here, with its first row and height."""
         slot = bisect_right(self._starts, row) - 1
         if slot < 0:
             return None
-        fragment, first, _lines = self._layout[slot]
-        return fragment, row - first
+        fragment, first, lines = self._layout[slot]
+        block, start, height = lines.block_at(row - first)
+        return fragment, block, first + start, height
 
     def visible_rows(self, window) -> Iterator[tuple[TranscriptFragment, range, Lines]]:
         """Each loaded fragment in the window's viewport, with its rows that are in view."""
@@ -332,13 +340,13 @@ class TranscriptPageView(ReferenceRendering, HorizontalRows, Widget):
         from toad.widgets.history_anchor import HistoryWindow
 
         window = self.query_ancestor(HistoryWindow)
-        rows = self._fragment_rows
+        slots = self._fragment_slots
         pending = [fragment for fragment in self.visible_fragments(window)
                    if id(fragment) in self._pending]
         # Render only visible viewport rows, nearest the reader first.
         if (offset := window.placed_row(self)) is not None:
             reader = window.scroll_y - offset
-            pending.sort(key=lambda fragment: abs(rows[id(fragment)].start - reader))
+            pending.sort(key=lambda fragment: abs(self._layout[slots[id(fragment)]][1] - reader))
         return pending[:self.RENDER_BATCH]
 
     async def _render_pending(self) -> None:
@@ -588,12 +596,12 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         position = fragment.arrival_position
         part = fragment.part_position.index
         for page in self.pages:
-            placed = page.fragment_row(position, part)
+            placed = page.fragment_row(position, part, 0)
             if placed is None:
                 continue
             _first, height, drawn = placed
             if drawn:
-                self.window.reader_position = FragmentPosition(position, 0, height, part=part)
+                self.window.reader_position = FragmentPosition(position, 0, height, part=part, block=0)
             return
 
     def can_expand(self) -> bool | None:

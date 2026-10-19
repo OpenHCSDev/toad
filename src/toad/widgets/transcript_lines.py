@@ -679,6 +679,23 @@ class BlockLines(Lines):
     def rewrap(self, width: int) -> BlockLines:
         return self if self.width == width else self.preparation.wrap(width, self.renderer)
 
+    def block_at(self, row: int) -> tuple[int, int, int]:
+        """The source child drawing this row, its first row and measured height."""
+        first = 0
+        for index, block in enumerate(self.prepared_blocks):
+            if first + block.height > row:
+                return index, first, block.height
+            first += block.height
+        raise IndexError(row)
+
+    def block_row(self, index: int) -> tuple[int, int, bool]:
+        """A source child's rows, or the next displayed child's when hidden."""
+        first = sum(block.height for block in self.prepared_blocks[:index])
+        for following, block in enumerate(self.prepared_blocks[index:], index):
+            if block.height:
+                return first, block.height, following == index
+        return first, 0, False
+
     @cached_property
     def prepared_blocks(self) -> tuple[PreparedLines, ...]:
         draw = self.renderer.at_width(self.width)

@@ -46,11 +46,9 @@ class ReaderPosition(ABC):
                       key=lambda placed: max(y, placed[0]), default=None)
         if reading is not None:
             first, page = reading
-            fragment, _ = page.fragment_at(max(0, int(y - first)))
-            position = fragment.arrival_position
-            part = fragment.part_position.index
-            start, height, _ = page.fragment_row(position, part)
-            return FragmentPosition(position, (y - first - start) / height, height, part=part)
+            fragment, block, start, height = page.fragment_at(max(0, int(y - first)))
+            return FragmentPosition(fragment.arrival_position, (y - first - start) / height,
+                                    height, part=fragment.part_position.index, block=block)
         if (position := BlockPosition.of(window)) is not None:
             return position
         return RowPosition(y)
@@ -184,20 +182,21 @@ class RowPosition(OffsetPosition):
 class FragmentPosition(OffsetPosition):
     """A message of a line-drawn history.
 
-    The fraction records where the reader is within the message, independent
-    of wrapping. Its captured height converts explicit reader motion to that
-    coordinate. Its saved arrival position names the message after a reload.
+    The source child and fraction within it survive changes to sibling blocks.
+    Its captured child height converts explicit reader motion to that coordinate;
+    the saved arrival and part positions name the message after a reload.
     """
 
     position: int | str
     fraction: float
     height: int
     part: int = field(kw_only=True)
+    block: int = field(kw_only=True)
 
     def page(self, window: "HistoryWindow"):
         """The displayed page that holds this message."""
         return next((page for page in window.drawn_pages()
-                     if page.fragment_row(self.position, self.part) is not None), None)
+                     if page.fragment_row(self.position, self.part, self.block) is not None), None)
 
     def bodies(self, window: "HistoryWindow") -> tuple[Widget, ...] | None:
         page = self.page(window)
@@ -216,7 +215,7 @@ class FragmentPosition(OffsetPosition):
 
     def destination(self, window: "HistoryWindow") -> float:
         page = self.page(window)
-        first, height, drawn = page.fragment_row(self.position, self.part)
+        first, height, drawn = page.fragment_row(self.position, self.part, self.block)
         # A message the filter hides has no rows: the reader is at the next message drawn.
         return window.row_of(page) + first + (self.fraction * height if drawn else 0)
 
