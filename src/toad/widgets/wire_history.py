@@ -13,7 +13,7 @@ from toad.transcript_source_preparation import HistorySourceSnapshot
 from toad.transcript_state import LatestViewportRequest
 from toad.widgets.history_anchor import LatestPosition
 from toad.widgets.message_filter import OtherCategory, all_categories
-from toad.widgets.message_notifications import VisibleReadMarking
+from toad.widgets.message_notifications import NothingToRead, PaintedRead, VisibleReadMarking
 from toad.widgets.transcript_history import LineHistory
 from toad.wire_history import PreparedWirePage, WirePage, WirePageBuffer, WireSource
 
@@ -136,11 +136,11 @@ class WireHistory(VisibleReadMarking, LineHistory):
     def source_resumed(self) -> None:
         self.mark_visible()
 
-    def read_visible(self):
+    def read_visible(self) -> PaintedRead:
         if not self.is_attached:
-            return None
+            return NothingToRead()
         if not any(fragment.evidence is not None for fragment in self.read_fragments()):
-            return None
+            return NothingToRead()
         return self.page_source.painted_read(self)
 
     async def _mark_read(self, snapshot: HistorySourceSnapshot) -> None:

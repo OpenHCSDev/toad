@@ -28,6 +28,7 @@ from toad.transcript_preparation import (
     PageRequest, PreparedTranscriptPage, SavedHistory, TranscriptPageWork,
 )
 from toad.widgets.message_filter import MessageCategory, OtherCategory
+from toad.widgets.message_notifications import PaintedRead, ReadWork
 from toad.widgets.transcript_fragments import BusMessageFragment, MessageShown, TranscriptFragment
 
 if TYPE_CHECKING:
@@ -354,8 +355,8 @@ class WirePageBuffer(SavedHistory):
         history.notification_view.check_notifications()
         return history.schedule_source_work(view._refresh_source)
 
-    def painted_read(self, history):
-        return history._mark_read(history.source_snapshot())
+    def painted_read(self, history) -> PaintedRead:
+        return ReadWork(history._mark_read(history.source_snapshot()))
 
     async def change_style(self, history) -> None:
         if not history.can_draw_on_screen:
