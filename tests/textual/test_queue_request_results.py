@@ -12,7 +12,7 @@ from agent_comms.acp_extension import (
 )
 from agent_comms.thread_identity import ClaimedIdentity, RecordedThreadIncarnation
 
-from support.agents import deliver, detached
+from support.agents import deliver
 from toad.conversation_submission import DeferredInputSubmission
 from toad.widgets.prompt import QueueSummary
 from toad.jsonrpc import InvalidParams
@@ -41,7 +41,7 @@ class Response:
 async def test_late_answer_to_a_replaced_session_request_changes_neither_session_queue_nor_draft(
         workspace, first_kind, successor):
     async with workspace.app(size=(115, 38)) as ui:
-        agent = detached(workspace.project, "old-session" if first_kind == "load" else None)
+        agent = ui.detached_agent("old-session" if first_kind == "load" else None)
         ui.attach_agent(agent)
         await ui.step()
         await ui.write_draft("untouched local draft")
@@ -84,7 +84,7 @@ async def test_late_answer_to_a_replaced_session_request_changes_neither_session
 @pytest.mark.parametrize("successor", ["agent", "owner", "unavailable"])
 async def test_a_failed_retired_send_does_not_roll_back_the_successors_draft_or_queue(workspace, successor):
     async with workspace.app(size=(115, 38)) as ui:
-        agent = detached(workspace.project, "beta")
+        agent = ui.detached_agent("beta")
         ui.attach_agent(agent)
         view = ui.conversation
         loaded = Response()
@@ -103,7 +103,7 @@ async def test_a_failed_retired_send_does_not_roll_back_the_successors_draft_or_
             worker = await DeferredInputSubmission("old request").execute(view.submissions)
             await entered.wait()
             if successor == "agent":
-                ui.attach_agent(detached(workspace.project, "beta"))
+                ui.attach_agent(ui.detached_agent("beta"))
             elif successor == "owner":
                 loaded = Response()
                 loaded.result.set_result(response("beta", next_owner=True))

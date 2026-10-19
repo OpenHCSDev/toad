@@ -3,7 +3,7 @@
 from agent_comms.acp_extension import TranscriptSnapshotUpdate
 from agent_comms.threads import Thread
 
-from support.agents import deliver, detached
+from support.agents import deliver
 from support.coordination import carrying
 from support.journals import assistant_entry, write_journal
 
@@ -17,7 +17,7 @@ async def test_saved_message_in_parts_shows_as_one_message(workspace):
     read = workspace.comms.transcripts.capture_page_read("worker")
     saved = read.read()
     async with workspace.app(size=(110, 38)) as ui:
-        agent = detached(workspace.project, "fixture")
+        agent = ui.detached_agent("fixture")
         ui.attach_agent(agent)
         await deliver(agent, carrying(TranscriptSnapshotUpdate(saved, read.identity)))
         await ui.until(lambda: ui.shows("value = 123") and not ui.shows("## Plan"), why="the styled message")

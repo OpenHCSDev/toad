@@ -9,7 +9,7 @@ import pytest
 from agent_comms.acp_extension import CoordinationChangedUpdate, encode_updates
 from agent_comms.context_reading import UnmeasuredContext
 
-from support.agents import deliver, detached
+from support.agents import deliver
 from toad.widgets.transcript_history import TranscriptHistory
 
 
@@ -26,7 +26,7 @@ async def test_closing_the_app_after_the_observation_process_exits_raises_nothin
     comms.messaging.send_message("peer", "source", "SAVED_NOTICE")
     async with workspace.app(size=(120, 35)) as ui:
         view = ui.conversation
-        agent = detached(project, "closing", app=ui.app)
+        agent = ui.detached_agent("closing")
         view.set_reactive(type(view).agent, agent)
         view.bind_agent(agent)
         agent.coordination = CoordinationChangedUpdate(
