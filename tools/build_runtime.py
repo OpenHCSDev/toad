@@ -690,7 +690,7 @@ with CheckRoot(Comms(source),(name,),out/'wire').open() as c:
                     app.show_saved_thread(thread)
                     app.screenshot('saved')
                     initial = app.reader_place('plain-initial')
-                    app.click_cell(app.columns // 2, app.rows // 2)
+                    app.click_cell(app.columns // 2, app.rows - 4)
                     app.keys('Page_Up', 'Page_Up', 'Page_Up')
                     app.wait('plain-page-up-moved', lambda text: bool(app.reader_position(text))
                              and app.reader_position(text) != initial)
@@ -722,7 +722,7 @@ def check_filtered_return(app: TerminalApp, thread: str) -> None:
     app.wait('saved-return', lambda text: 'User messages' in text)
     for label in ('Agent messages', 'Messages in', 'Messages out', 'Thinking', 'Tool calls', 'Other / notices'):
         app.hide_category(label)
-    app.click_cell(app.columns // 2, app.rows // 2)
+    app.click_cell(app.columns // 2, app.rows - 4)
     initial = app.reader_place('filtered-initial')
     app.keys('Page_Up', 'Page_Up', 'Page_Up')
     app.wait('page-up-moved', lambda text: bool(app.reader_position(text))
