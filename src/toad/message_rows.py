@@ -11,22 +11,63 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
+import time
+from typing import ClassVar
 
+from agent_comms.channel_targets import CommandTarget, ChannelTarget, ThreadTarget
+from agent_comms.mro_dispatch import MroDispatch, handles
 from agent_comms.declared_family import DeclaredFamily
 from agent_comms.messages import Message
 from agent_comms.routing import MessageRoute
 
 from toad.inline_spans import inline_spans
 from toad.menus import MenuItem
-from toad.navigation_target import NavigationTarget
 from toad.line_blocks import (
     MarkdownBody, Divider, IncomingRole, LineBlock, LineLink, LineRole, NameRole,
-    OutgoingRole, Span, Spans,
+    OpenHistoricalTarget, OpenTarget, OutgoingRole, Span, Spans,
 )
 
 
+class MessageClock:
+    """When a displayed message happened, independent of its native divider."""
+
+    fresh: ClassVar[bool] = False
+    timestamp: float | None
+
+    def display(self) -> tuple[str, str | None]:
+        timestamp = self.timestamp
+        if timestamp is None:
+            return "time unknown", None
+        try:
+            local = time.localtime(timestamp)
+            return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
+        except (OverflowError, OSError, ValueError):
+            return "time unknown", None
+
+    @classmethod
+    def recorded(cls, timestamp: float | None) -> MessageClock:
+        return UnknownMessageClock() if timestamp is None else RecordedMessageClock(timestamp)
+
+
+class LiveMessageClock(MessageClock):
+    fresh = True
+
+    @property
+    def timestamp(self) -> float:
+        return time.time()
+
+
 @dataclass(frozen=True)
-class MessageRow:
+class RecordedMessageClock(MessageClock):
+    timestamp: float
+
+
+class UnknownMessageClock(MessageClock):
+    timestamp = None
+
+
+@dataclass(frozen=True)
+class MessageRow(MroDispatch):
     """One message: who sent it to whom, when, its text, and whether the reader's thread sent it."""
 
     message: Message
@@ -59,7 +100,17 @@ class MessageRow:
 
     def name(self, target: str, role: type[LineRole] = NameRole) -> Span:
         """A thread or channel name that opens what it names."""
-        return Span(target, role, NavigationTarget.named(target).message_link(self.history))
+        identity = CommandTarget.named(target)
+        return Span(target, role, next(self.handlers_for(identity))(identity))
+
+    @handles(ThreadTarget)
+    def thread_link(self, target: ThreadTarget) -> LineLink:
+        return (OpenHistoricalTarget(target.name, self.history)
+                if self.history is not None else OpenTarget(target.name))
+
+    @handles(ChannelTarget)
+    def channel_link(self, target: ChannelTarget) -> LineLink:
+        return OpenTarget(target.name)
 
     @property
     def sender(self) -> LineLink:

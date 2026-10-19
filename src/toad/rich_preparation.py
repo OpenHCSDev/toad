@@ -6,18 +6,18 @@ import copyreg
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, replace
 from io import StringIO
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Literal
 
-from rich.console import Console, ConsoleOptions, ConsoleRenderable, JustifyMethod, RenderableType
+from rich.console import Console, ConsoleOptions, JustifyMethod, RenderableType
 from rich.segment import Segment
 from rich.style import Style
+from rich.styled import Styled
 from rich.syntax import ClassNotFound, Syntax
 from pygments.lexers import get_lexer_for_filename
 from rich.text import Text
 from textual.render import measure
 from textual.strip import Strip
 from textual.geometry import Offset, Region
-from textual.widget import _Styled
 from textual.content import Content
 from textual.style import Style as NativeStyle
 from textual.selection import Selection
@@ -336,10 +336,12 @@ def prepare_rich(source: RichSource, presentation: RichPresentation) -> Prepared
     width = max(1, measure(console, renderable, options.max_width,
                            container_width=options.max_width) if presentation.auto_width else options.max_width)
     segments = console.render(
-        _Styled(cast(ConsoleRenderable, renderable), presentation.base_style, presentation.link_style),
+        Styled(renderable, presentation.base_style),
         options.update(width=width, height=None, highlight=False),
     )
     lines = tuple(Strip(line) for line in Segment.split_and_crop_lines(
         segments, width, include_new_lines=False, pad=False,
     ))
+    if presentation.link_style is not None:
+        lines = tuple(line._apply_link_style(presentation.link_style) for line in lines)
     return PreparedRichContent(width, lines)

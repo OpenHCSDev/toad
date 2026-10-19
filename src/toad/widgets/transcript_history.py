@@ -40,7 +40,7 @@ from toad.transcript_preparation import (
     ProjectedTranscriptSource,
 )
 from toad.response_delivery import ResponseDelivery
-from toad.widgets.message_divider import MessageClock
+from toad.message_rows import MessageClock
 from toad.widgets.selection import HoverSelection
 from rich.style import Style as RichStyle
 from ui_theme.effects import NEW_TEXT
@@ -49,9 +49,9 @@ from toad.line_blocks import ToggleDetails
 from toad.message_rows import MessageRow
 from toad.markdown_links import ReferenceRendering
 from toad.widgets.message_notifications import HistoryNotifications, SourceNotifications
+from toad.widgets.linked_rows import HorizontalRows, OpensMessageNames, selection_painted
 from toad.widgets.transcript_lines import (
-    HorizontalRows, Lines, BlockLines, BlockSpan, LinePreparation, OpensMessageNames, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
-    selection_painted,
+    Lines, BlockLines, BlockSpan, LinePreparation, PreparedLines, TranscriptLinesBatchRenderTask, TranscriptLinesRenderTask,
 )
 from toad.widgets.committed_presentation import CommittedHistory
 from toad.widgets.history_anchor import HeldReaderDestination, HistoryWindow, LatestPosition

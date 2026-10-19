@@ -6,7 +6,8 @@ from textual import containers
 from toad.widgets.line_markdown import LineMarkdown
 
 from toad.line_blocks import Body, Divider, UserRole
-from toad.widgets.message_divider import MessageDivider, MessageClock, LiveMessageClock
+from toad.message_rows import MessageClock, LiveMessageClock
+from toad.widgets.message_divider import MessageDivider
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.committed_presentation import CAPTURED_CLAIM, CommitClaim, SnapshotPresentation
 

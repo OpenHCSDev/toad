@@ -9,7 +9,8 @@ from textual.worker import Worker
 from textual._measurement import INDEPENDENT_HEIGHT, height_dependency
 from toad.block_navigation import ConversationBlock
 from toad.widgets.history_anchor import HistoryWindow
-from toad.widgets.transcript_lines import BlockLines, LinkedRows, LinePreparation, TranscriptLinesRenderTask
+from toad.widgets.linked_rows import LinkedRows
+from toad.widgets.transcript_lines import BlockLines, LinePreparation, TranscriptLinesRenderTask
 from toad.widgets.transcript_fragments import FragmentLineConsumer
 
 

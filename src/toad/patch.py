@@ -6,10 +6,76 @@ from itertools import zip_longest
 import re
 
 from rich.text import Text
+from typing import Annotated
+from agent_comms.declared_family import DeclaredFamily
+from python_introspect import AnnotatedDataclassValidationMixin, FieldLabel
+from toad.setting_declarations import Choice, Effect, FamilyChoices
 
 from toad.line_blocks import LineBlock, LineRole, TextRole, AddedCodeRole, RemovedCodeRole
 
 _HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
+
+
+class DiffMode(Choice, DeclaredFamily, affix="Diff"):
+    split = False
+    auto_split = False
+
+    @classmethod
+    def use_split(cls, width: int, required: int) -> bool:
+        return cls.split
+
+
+class UnifiedDiff(DiffMode):
+    pass
+
+
+class SplitDiff(DiffMode):
+    split = True
+
+
+class AutoDiff(DiffMode):
+    title = "Best fit"
+    auto_split = True
+
+    @classmethod
+    def use_split(cls, width: int, required: int) -> bool:
+        return width >= required
+
+
+class WrapMode(Choice, DeclaredFamily, affix="Mode"):
+    enabled = False
+
+    @classmethod
+    def fitted_width(cls, available: int, content: int) -> int:
+        return max(available, content)
+
+
+class NoWrapMode(WrapMode, declared_name="no-wrap"):
+    title = "Don't wrap"
+
+
+class WrapModeEnabled(WrapMode, declared_name="wrap"):
+    title = "Wrap long lines"
+    enabled = True
+
+    @classmethod
+    def fitted_width(cls, available: int, content: int) -> int:
+        return available
+
+
+@dataclass(frozen=True)
+class DiffSettings(AnnotatedDataclassValidationMixin):
+    @Effect
+    def changed(app, field) -> None:
+        app.colours.refresh_line_renderer()
+        app.theme_changed_signal.publish(app.current_theme)
+
+    view: Annotated[
+        type[DiffMode], FieldLabel("Display preference"), FamilyChoices(DiffMode), changed
+    ] = AutoDiff
+    annotations: Annotated[bool, FieldLabel("Show annotations (+/- symbols)?"), changed] = False
+    wrap: Annotated[type[WrapMode], FieldLabel("Wrap code?"), FamilyChoices(WrapMode), changed] = NoWrapMode
+    """If wrapping is disabled you can horizontal scroll with the trackpad or the mouse wheel plus shift."""
 
 
 @dataclass(frozen=True)

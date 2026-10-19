@@ -29,7 +29,7 @@ from toad.forms.presentation import FormModal
 from toad.widget_view import WidgetView
 from toad.forms.kinds import Placeholder
 from toad.preferences import SETTINGS
-from toad.setting_choices import FamilyChoices
+from toad.setting_declarations import FamilyChoices
 
 
 @dataclass(frozen=True)

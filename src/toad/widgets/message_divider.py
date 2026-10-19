@@ -4,9 +4,7 @@ from __future__ import annotations
 from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.block_content import BlockContent
 
-import time
-from dataclasses import dataclass, replace
-from typing import ClassVar
+from dataclasses import replace
 
 from rich.style import Style
 from textual.geometry import Size
@@ -20,55 +18,12 @@ from ui_theme.effects import NEW_MESSAGE, Mix
 
 from toad.line_blocks import Divider, LineBlock
 from toad.frame_presentation import Animated
-from toad.message_rows import MessageRow
-from toad.widgets.transcript_lines import (
-    LineTheme, LinkedRows, MessageRowBlock, PreparedLines, RichLineRenderer, link_place,
-)
+from toad.message_rows import MessageClock, LiveMessageClock, MessageRow
+from toad.widgets.linked_rows import LinkedRows, MessageRowBlock
+from toad.widgets.transcript_lines import LineTheme, PreparedLines, RichLineRenderer, link_place
 
 from agent_comms.ui_model.message_category import MessageCategory
 from toad.widgets.committed_presentation import SnapshotPresentation
-
-
-class MessageClock:
-    """When a displayed message happened."""
-
-    # True for a message happening now (not one read back from history).
-    fresh: ClassVar[bool] = False
-
-    # Each clock says when: now, a recorded time, or not known.
-    timestamp: float | None
-
-    def display(self) -> tuple[str, str | None]:
-        """The time as a rule shows it, and in full with its zone."""
-        timestamp = self.timestamp
-        if timestamp is None:
-            return "time unknown", None
-        try:
-            local = time.localtime(timestamp)
-            return time.strftime("%Y-%m-%d %H:%M:%S", local), time.strftime("%Y-%m-%d %H:%M:%S %Z", local)
-        except (OverflowError, OSError, ValueError):
-            return "time unknown", None
-
-    @classmethod
-    def recorded(cls, timestamp: float | None) -> MessageClock:
-        return UnknownMessageClock() if timestamp is None else RecordedMessageClock(timestamp)
-
-
-class LiveMessageClock(MessageClock):
-    fresh = True
-
-    @property
-    def timestamp(self) -> float:
-        return time.time()
-
-
-@dataclass(frozen=True)
-class RecordedMessageClock(MessageClock):
-    timestamp: float
-
-
-class UnknownMessageClock(MessageClock):
-    timestamp = None
 
 
 class SingleLineBlock(LinkedRows, BlockContent, Widget):

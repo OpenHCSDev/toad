@@ -8,10 +8,11 @@ from toad.block_navigation import CategorizedBlock, ConversationBlock
 from toad.message_rows import MessageRow
 from toad.response_delivery import ResponseDelivery
 from toad.widgets.agent_response import AgentResponse
-from toad.widgets.message_divider import LiveMessageClock, MessageRowDivider
+from toad.message_rows import LiveMessageClock
+from toad.widgets.message_divider import MessageRowDivider
 from agent_comms.ui_model.message_category import OutboundCategory
 from toad.widgets.message_notifications import MessageNotifications
-from toad.widgets.transcript_lines import MessageRowBlock
+from toad.widgets.linked_rows import MessageRowBlock
 from toad.notification_status import CheckedNotifications, NotificationStatus
 from toad.widgets.committed_presentation import CommitParticipant, OutgoingMessageClaim
 

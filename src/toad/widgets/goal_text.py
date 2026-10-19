@@ -4,7 +4,7 @@ from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.widgets.selection import ChangingText
 
 from toad.widgets.inline_message import inline_message
-from toad.widgets.transcript_lines import OpensLinks
+from toad.widgets.linked_rows import OpensLinks
 
 
 def goal_mention_candidates(observed) -> tuple[MentionCandidate, ...]:
