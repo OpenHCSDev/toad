@@ -683,9 +683,8 @@ class Prompt(TonePaint, containers.VerticalGroup):
         if (editor := self.query_one_optional(PromptTextArea)) is not None:
             self.set_class(SubmitNowAction().available(editor), "-queue-mode")
             editor.refresh_bindings()
-        from toad.widgets.goal_bar import GoalBar
-        for goal_bar in self.parent.query(GoalBar):
-            goal_bar._queue_separator_update()
+        from toad.widgets.conversation import Conversation
+        self.query_ancestor(Conversation).goal_bar._queue_separator_update()
 
     def sync_queue(self) -> None:
         if self.is_mounted:
@@ -903,6 +902,10 @@ class MessagePrompt(Prompt):
     @property
     def supports_completion(self) -> bool:
         return False
+
+    def sync_turn(self) -> None:
+        # Message composers have no delivery controls or operational turn.
+        pass
 
     def sync_configuration(self) -> None:
         pass
