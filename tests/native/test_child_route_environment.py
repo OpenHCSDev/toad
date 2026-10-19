@@ -1,4 +1,4 @@
-"""The environment an ACP child is given follows the published default route; contradictory selections are refused."""
+"""The root an ACP child is given follows the published default route unless the child names its own."""
 
 import os
 from types import SimpleNamespace
@@ -8,7 +8,6 @@ import pytest
 import agent_comms.private_nk_entrypoint as private_nk_entrypoint
 from agent_comms.acp_ingress import AcpIngress
 from agent_comms.active_route import ActiveRoute, publish_active_route
-from agent_comms.private_nk_entrypoint import PACKAGE_ENV, ROOT_ID_ENV
 from agent_comms.route_selection import RouteSelection, current_root, run_selected_write
 
 from support.routes import private_root, select_root_by_default_route
@@ -51,42 +50,13 @@ class Launches:
         return SimpleNamespace(pid=123, returncode=0)
 
 
-async def test_a_default_route_child_is_pinned_to_the_selected_private_root_and_package(published):
-    launches = Launches()
-    with patch("agent_comms.child_process.AttachedChild.start", launches):
-        await spawn_through_ingress("fake-private", env=dict(os.environ), cwd=published.cwd)
-    assert launches.env["AGENT_COMMS_ROOT"] == str(published.private)
-    assert launches.env[ROOT_ID_ENV] == published.private_id
-    assert launches.env[PACKAGE_ENV] == str(published.route.native_package)
-
-
-async def test_a_child_naming_another_private_root_id_is_not_launched(published):
-    launches = Launches()
-    with patch("agent_comms.child_process.AttachedChild.start", launches):
-        with pytest.raises(ValueError, match="conflicts with route"):
-            await spawn_through_ingress("wrong-private-id", env=dict(os.environ, **{ROOT_ID_ENV: "f" * 32}),
-                                        cwd=published.cwd)
-    assert not launches.env
-
-
-async def test_an_explicit_child_root_is_independent_of_the_default_route(published):
-    launches = Launches()
-    explicit = dict(os.environ, AGENT_COMMS_ROOT=str(published.legacy))
-    with patch("agent_comms.child_process.AttachedChild.start", launches):
-        await spawn_through_ingress("fake-explicit", env=explicit, cwd=published.cwd)
-    assert launches.env["AGENT_COMMS_ROOT"] == str(published.legacy)
-    assert ROOT_ID_ENV not in launches.env
-    assert PACKAGE_ENV not in launches.env
-
-
-async def test_an_explicit_child_root_with_private_route_flags_is_refused(published):
-    launches = Launches()
-    contradictory = dict(os.environ, AGENT_COMMS_ROOT=str(published.legacy), **{
-        ROOT_ID_ENV: published.private_id, PACKAGE_ENV: str(published.route.native_package)})
-    with patch("agent_comms.child_process.AttachedChild.start", launches):
-        with pytest.raises(Exception, match="(?i)private"):
-            await spawn_through_ingress("explicit-legacy-with-private-flags", env=contradictory, cwd=published.cwd)
-    assert not launches.env
+async def test_a_child_is_given_the_root_its_selection_names(published):
+    for env, root in ((dict(os.environ), published.private),
+                      (dict(os.environ, AGENT_COMMS_ROOT=str(published.legacy)), published.legacy)):
+        launches = Launches()
+        with patch("agent_comms.child_process.AttachedChild.start", launches):
+            await spawn_through_ingress("fake-child", env=env, cwd=published.cwd)
+        assert launches.env["AGENT_COMMS_ROOT"] == str(root)
 
 
 async def test_an_explicit_prompt_holds_the_published_route_while_it_runs(published):

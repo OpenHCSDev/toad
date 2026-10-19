@@ -1,18 +1,19 @@
 """Textual-facing: a wire message's lines wrap at the full width as Rich draws them, and its names stay clickable at every width."""
 
-from agent_comms.messages import Message, MessageType
+from agent_comms.messages import InfoKind, Message
 from textual.app import App
 
 from toad.line_blocks import OpenTarget
-from toad.widgets.transcript_lines import LineTheme, PlainLines, PlainRowCount, RichLineRenderer
+from toad.widgets.transcript_lines import LineTheme, PlainLines, RichLineRenderer
 from toad.message_rows import IrcMessageStyle, MarkdownMessageStyle
-from toad.wire_history import MessageFragment, MessageShown
+from toad.widgets.transcript_fragments import MessageShown
+from toad.wire_history import WireFragment
 
 
 def fragment(target, style=IrcMessageStyle()):
     message = Message(sender="explorer-grandchild", target=target,
-                      body="payload " * 30 + "\nsecond paragraph [literal markup]", type=MessageType.INFO)
-    return MessageFragment((message,), shown=MessageShown(style), evidence=None, outgoing=False)
+                      body="payload " * 30 + "\nsecond paragraph [literal markup]", type=InfoKind)
+    return WireFragment.of(message, shown=MessageShown(style=style), evidence=None, reader="reader")
 
 
 def theme():
@@ -46,11 +47,11 @@ def test_the_rows_that_count_as_reading_are_the_text_between_header_and_notifica
         shown = fragment("#all", style)
         for width in (36, 80):
             lines = PlainLines(width, theme(), shown.line_blocks)
-            assert lines.height == len(lines.rows) == PlainRowCount(width).height(shown.line_blocks)
+            assert lines.height == len(lines.rows)
             rows = shown.text_rows(lines)
             assert (rows.start, rows.stop) == (2, lines.height - 1)
             # With its details open the notification takes more rows below the text.
             opened = fragment("#all", style)
-            opened.show(MessageShown(style, details_open=True))
+            opened.show(MessageShown(style=style, details_open=True))
             taller = PlainLines(width, theme(), opened.line_blocks)
             assert opened.text_rows(taller) == rows and taller.height > lines.height

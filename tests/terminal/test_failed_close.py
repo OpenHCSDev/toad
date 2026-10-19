@@ -18,8 +18,8 @@ async def test_a_close_step_that_raises_still_ends_the_process_and_saves_the_fai
         # Toad starts with no tab open; Enter on the welcome view's New Session opens the conversation.
         await terminal.until_shows("New Session")
         await terminal.send("\r")
-        await terminal.until((workspace.project / "watching").exists, seconds=60,
-                             why="a conversation to watch the project directory")
+        await terminal.until((workspace.project / "conversation-open").exists, seconds=60,
+                             why="a conversation to open")
         started = psutil.Process(terminal.process.pid).children(recursive=True)
         assert any("spawn_main" in " ".join(process.cmdline()) for process in started), started
         await terminal.send("\x11")  # ctrl+q
