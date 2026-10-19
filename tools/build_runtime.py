@@ -586,7 +586,8 @@ class CopiedCheck:
 
 
 @contextmanager
-def check_startup(runtime: Path, output: Path, baseline: Path, thread: str) -> Iterator[CopiedCheck]:
+def check_startup(runtime: Path, output: Path, baseline: Path, thread: str, *,
+                  source: Path | None = None) -> Iterator[CopiedCheck]:
     """Keep Core's bounded check root open through startup and the fresh reply."""
     output.mkdir()
     python = runtime / 'bin/python'
@@ -607,10 +608,12 @@ import json,sys,os
 from agent_comms.active_route import read_active_route
 from agent_comms.comms import wire
 from agent_comms.launch_runtime import RestartEnvironment
-c=wire(read_active_route());t=c.registry.require(sys.argv[1])
+source=json.loads(sys.argv[2])
+c=wire(source) if source is not None else wire(read_active_route())
+t=c.registry.require(sys.argv[1])
 print(json.dumps(dict(root=str(c.root),path=str(t.runtime.path),model=t.model,
     config=str(RestartEnvironment.inherit(os.environ).native_config))))
-''', thread))
+''', thread, json.dumps(str(source) if source is not None else None)))
     home = output / 'home'
     home.mkdir(mode=0o700)
     current = home / '.local/share/agent-comms/current'
