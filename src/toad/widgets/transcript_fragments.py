@@ -25,8 +25,8 @@ from toad.menus import MenuItem
 from toad.render_backend import ReusableRenderTask
 from toad.markdown_preparation import PreparedMarkdownPart
 from toad.acp.status import ToolCallStatus
-from toad.widgets.agent_activity import AgentActivityBoundary, AgentActivityPresentation
-from toad.widgets.message_filter import MessageCategory, event_category
+from toad.widgets.agent_activity import AgentActivityPresentation
+from agent_comms.ui_model.message_category import AgentActivityBoundary, MessageCategory
 from toad.widgets.transcript_lines import AcquiredRows, NoRows, RowAcquisition
 
 if TYPE_CHECKING:
@@ -316,7 +316,7 @@ class TranscriptFragment:
     @cached_property
     def categories(self) -> frozenset[type[MessageCategory]]:
         """The message categories of this fragment's events, derived once."""
-        return frozenset(map(event_category, self.events))
+        return frozenset(event.category for event in self.events)
 
     @property
     def timestamp(self) -> float | None:
@@ -511,7 +511,7 @@ class TranscriptFragmentConsumer(MroProjection):
 
     @handles(UserTranscript, MarkdownTranscript)
     def text(self, event: TextTranscript, kind: type[TranscriptFragment] = TranscriptFragment, **kwargs):
-        starts_activity = self.boundary.observe(event_category(event)) if event.starts_activity else False
+        starts_activity = self.boundary.observe(event.category) if event.starts_activity else False
         source = PreparedMarkdownPart.capture(event.text)
         parts = kind.text_parts(source, self.budget) if self.split_text else (source,)
         self.fragments.extend(
@@ -530,7 +530,7 @@ class TranscriptFragmentConsumer(MroProjection):
             self.tools[event.tool_call_id] = len(self.fragments)
             self.fragments.append(TranscriptFragment(
                 (event,), continuation=self.continuation,
-                starts_agent_activity=self.boundary.observe(event_category(event)),
+                starts_agent_activity=self.boundary.observe(event.category),
             ))
 
 

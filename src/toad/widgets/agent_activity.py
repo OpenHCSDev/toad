@@ -5,7 +5,6 @@ from dataclasses import replace
 
 from toad.acp.status import ToolCallStatus
 from toad.line_blocks import Body, MarkdownBody, Gap, LineBlock, Span, Summary, ThinkingRole, ToggleDetails, ToolOutputRole
-from toad.widgets.message_filter import MessageCategory
 
 
 class AgentActivityPresentation:
@@ -40,20 +39,3 @@ class AgentActivityPresentation:
         if not details_open:
             return (summary,)
         return (summary, Body(title, role=ToolOutputRole), *details)
-
-
-class AgentActivityBoundary:
-    """Thinking/tool output needs a role header if no agent content precedes it.
-
-    This is display grouping only. It does not infer or control execution turns.
-    Ordinary reply/routing headers remain owned by their message widgets.
-    """
-
-    def __init__(self) -> None:
-        self._pending = True
-
-    def reset(self) -> None:
-        self._pending = True
-
-    def observe(self, category: type[MessageCategory]) -> bool:
-        return category.observe(self)

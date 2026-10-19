@@ -9,7 +9,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.routing import MessageRoute
 
 if TYPE_CHECKING:
-    from toad.widgets.message_filter import MessageCategory
+    from agent_comms.ui_model.message_category import MessageCategory
 
 
 class ResponseDelivery(DeclaredFamily, affix="Response"):
@@ -27,7 +27,7 @@ class ResponseDelivery(DeclaredFamily, affix="Response"):
 class UnroutedResponse(ResponseDelivery):
     @property
     def category(self):
-        from toad.widgets.message_filter import AgentCategory
+        from agent_comms.ui_model.message_category import AgentCategory
         return AgentCategory
 
 
@@ -37,5 +37,5 @@ class RoutedResponse(ResponseDelivery):
 
     @property
     def category(self):
-        from toad.widgets.message_filter import OutboundCategory
+        from agent_comms.ui_model.message_category import OutboundCategory
         return OutboundCategory

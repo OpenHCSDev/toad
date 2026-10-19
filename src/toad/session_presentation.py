@@ -21,7 +21,7 @@ from toad.input_history import InputHistories
 from toad.agent_surface import AttachedSurfaceBinding
 from toad.widgets.conversation import Conversation
 from toad.widgets.history_anchor import ParkedPosition
-from toad.widgets.message_filter import MessageCategory
+from agent_comms.ui_model.message_category import MessageCategory
 
 if TYPE_CHECKING:
     from toad.app import ToadApp

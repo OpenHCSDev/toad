@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from toad.widgets.agent_response import AgentResponse
 from toad.widgets.agent_thought import AgentThought
-from toad.widgets.message_filter import ThinkingCategory, all_categories
+from agent_comms.ui_model.message_category import ThinkingCategory, all_categories
 
 
 async def test_category_change_does_not_restyle_the_whole_conversation(workspace):

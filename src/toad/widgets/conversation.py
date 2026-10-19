@@ -94,7 +94,7 @@ from toad.widgets.input_delivery import (
     InputDeliveryDetails,
 )
 from toad.widgets.user_input import UserInput
-from toad.widgets.message_filter import all_categories, MessageCategory
+from agent_comms.ui_model.message_category import all_categories, MessageCategory
 from toad.layout import trim_trailing_margin
 from toad.command_catalog import CommandCatalog
 from toad.menus import MenuItem
@@ -507,7 +507,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._mcp_live_note: Note | None = None
         self._private_cursor_sequence = 0
         self.submissions = ConversationSubmissions(self)
-        from toad.widgets.agent_activity import AgentActivityBoundary
+        from agent_comms.ui_model.message_category import AgentActivityBoundary
 
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
