@@ -6,7 +6,7 @@ from pathlib import Path
 from textual.widgets import Input, Select, Static
 
 from toad.widgets.comms_menu import ContextMenu
-from toad.widgets.comms_transfer import ThreadImportDialog, ThreadImportRequest, WireExportDialog
+from toad.widgets.comms_transfer import ThreadImportDialog, WireExportDialog
 from toad.widgets.side_bar import BackTabButton, ForwardTabButton, MainMenuButton, TabHistoryControls
 
 
@@ -22,8 +22,15 @@ async def open_main_menu(ui):
     return menu
 
 
-def highlighted_action(menu):
-    return menu.options.get_option_at_index(menu.options.highlighted).action
+# PR #759 (29faa049) declared the application menu in this order.
+MENU = ["New thread", "Settings", "Export wire history…", "Thread Import…", "Exit"]
+
+
+async def choose(ui, menu, label: str):
+    """Assert the declared menu, then reach ``label`` with the arrow keys and press enter, as a user does."""
+    options = menu.options
+    assert [str(options.get_option_at_index(i).prompt) for i in range(options.option_count)] == MENU
+    await ui.press(*["down"] * MENU.index(label), "enter")
 
 
 async def test_main_menu_sits_left_of_back_and_forward(workspace):
@@ -40,8 +47,7 @@ async def test_main_menu_exports_the_wire_as_jsonl(workspace):
     workspace.comms.messaging.send("sender", "#all", "exported message")
     destination = workspace.project / "export.jsonl"
     async with workspace.app(size=(110, 40)) as ui:
-        await open_main_menu(ui)
-        await ui.press("enter")
+        await choose(ui, await open_main_menu(ui), "Export wire history…")
         await ui.until(lambda: isinstance(ui.textual[0].screen, WireExportDialog), why="the export dialog")
         dialog = ui.textual[0].screen
         dialog.query_one("#export-scope", Select).value = "channel"
@@ -66,10 +72,7 @@ async def test_main_menu_imports_a_session_as_a_stopped_thread(workspace):
     comms = workspace.comms
     async with workspace.app(size=(110, 40)) as ui:
         menu = await open_main_menu(ui)
-        await ui.press("down")
-        assert highlighted_action(menu) == ThreadImportRequest.declared_name, (
-            "Import must be the second main-menu choice", highlighted_action(menu))
-        await ui.press("enter")
+        await choose(ui, menu, "Thread Import…")
         await ui.until(lambda: isinstance(ui.textual[0].screen, ThreadImportDialog), why="the import dialog")
         dialog = ui.textual[0].screen
         await ui.until(lambda: dialog.query("#import-format") and dialog.query_one("#import-format", Select).value == "opencode",

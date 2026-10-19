@@ -115,7 +115,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     def summary_title(self, row: ThreadStatusModel) -> str:
         """The collapsed row: what this is, its status, saved history and delivery notices."""
-        parts = [self.label, row.summary[0], *self.history_details.summary]
+        parts = [self.label, *row.summary, *self.history_details.summary]
         if self.delivery is not None:
             delivery = self.delivery.delivery
             if delivery.notices:
