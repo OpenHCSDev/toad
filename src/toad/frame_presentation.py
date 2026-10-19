@@ -333,6 +333,8 @@ class AnimationEffects[FrameT: Frame](TonePaint):
         self.refresh()
 
     def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
+        # Background-origin text rises from the widget's tone; accent flashes
+        # keep their declared origin. Both finish at each run's own ink.
         for frame in (*frames, *(replace(self.effect_frame(effect), start=self.text_background)
                                  if effect.start is BackgroundColour else self.effect_frame(effect)
                                  for effect in self.text_fades)):
