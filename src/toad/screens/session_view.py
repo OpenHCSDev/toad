@@ -32,15 +32,16 @@ class SessionOrigin:
 
     def resolve_thread(self) -> str:
         """Resolve a navigation name without rebinding this displayed source."""
-        preferred = self.thread_identity.thread_name()
+        from agent_comms.route_selection import RouteSelection
+
+        identity = self.thread_identity
         try:
-            service = self.app.coordination_access.observation.observed().service
-            return service.registry.session_thread(
-                self.project_path, preferred, source_root=self.coordination_root,
-            ).name_or(preferred)
+            selected = RouteSelection.capture(identity.wire_root())
+            service = self.app.coordination_access.require(selected).service
+            return identity.resolve_thread(service.registry, self.project_path)
         except (OSError, ValueError, RuntimeError):
-            # An unavailable route does not change this origin's retained name.
-            return preferred
+            # An unavailable route does not change this origin's name.
+            return identity.thread_name()
 
     def has_agent(self) -> bool:
         return self._agent is not None
