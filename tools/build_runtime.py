@@ -131,6 +131,11 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     Native stopping/restarting remains with Core's existing cutover owner.
     """
     publisher = (publication_tools / 'publish_runtime.py').resolve(strict=True)
+    # Keep the qualified package's native artifacts and resource identity.
+    # Only Python installer behavior comes from reviewed Core source.
+    import agent_comms
+    import agent_comms.native_package
+    agent_comms.__path__.insert(0, str(publisher.parents[1] / 'src/agent_comms'))
     sys.path.insert(0, str(publisher.parents[1]))
     from tools.publish_runtime import RuntimePublication
     from agent_comms.owner_cutover import StoppedOwnerInstallation
@@ -226,7 +231,8 @@ class InstallWatchers:
         desktop_path = self.path.with_suffix('.desktop.json')
         settings_path = Path.home() / '.pi/agent/settings.json'
         previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
-        settings = json.loads(settings_path.read_text())
+        settings_before = settings_path.read_bytes()
+        settings = json.loads(settings_before)
         compiled = compiled_global_extensions(runtime)
         old_compiled = compiled_global_extensions(previous)
         replacements = {str(old_compiled[key]): str(value) for key, value in compiled.items()}
@@ -289,7 +295,7 @@ class InstallWatchers:
                             bridge.wait(timeout=20)
                     elif Path(command[0]).name == 'toad':
                         terminal = process.parent()
-                        if terminal.name() != 'st':
+                        if terminal.name() != 'st' or terminal.environ().get('DISPLAY') != ':0':
                             continue
                         desktop.append({'command': ['st', '-e', str(Path.home() / 'bin/toad-comms')],
                                         'cwd': terminal.cwd(), 'environment': terminal.environ()})
@@ -299,7 +305,7 @@ class InstallWatchers:
                 except psutil.NoSuchProcess:
                     continue
             if not settings_backup.exists():
-                _atomic_write_text(settings_backup, settings_path.read_text(), fsync_parent=True)
+                _atomic_write_text(settings_backup, settings_before.decode('utf-8'), fsync_parent=True)
             _atomic_write_text(settings_path, json.dumps(settings, indent=2) + '\n', fsync_parent=True)
             yield
 
