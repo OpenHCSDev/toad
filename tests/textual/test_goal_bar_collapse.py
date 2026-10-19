@@ -3,15 +3,15 @@
 from dataclasses import replace
 
 from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
-from agent_comms.goals import Goal
 from agent_comms.thread_identity import RecordedThreadIncarnation
 from agent_comms.ui_model.goal import GoalUnavailable
 from textual.widgets import Static
 
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
+from support.goals import published_goal
 
-GOAL = Goal("OBJECTIVE " * 150, "goal", 1, progress="PROGRESS", revision=29)
+GOAL = published_goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
 
 
 async def shown_bar(ui):

@@ -81,6 +81,8 @@ class ModeSwitcher(CoreEventReceiver, SelectionOptionList):
 
 class AgentInfo(SettingVisibility, WidgetView, PrimaryActivation, Label, setting="ui.agent_title"):
     width = AUTO
+    # Any agent state, connected or not, leaves the status line its room.
+    max_width = Scalar.parse("60%")
     margin = Spacing(0, 1, 0, 0)
 
     @property

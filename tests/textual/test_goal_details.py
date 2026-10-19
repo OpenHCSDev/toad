@@ -1,19 +1,18 @@
 """Textual-facing: the goal details screen's scroll container and the frame it paints at narrow sizes."""
 
-from agent_comms.goals import Goal
-from agent_comms.ui_model.goal import GoalDisplay
 from textual.containers import VerticalScroll
 
 from toad.screens.goal_details import GoalDetails
+from support.goals import published_goal
 
 
 async def test_long_objective_and_progress_scroll_fully_at_narrow_sizes(workspace):
     async with workspace.app(size=(100, 35)) as ui:
         app, pilot = ui.textual
         conversation = ui.conversation
-        goal = Goal("GOAL_BEGIN\n" + "Long objective with important details.\n" * 100,
-                    "goal", progress="Progress details.\n" * 80 + "PROGRESS_END")
-        conversation.goal_display = GoalDisplay.current(goal)
+        goal = published_goal("GOAL_BEGIN\n" + "Long objective with important details.\n" * 100,
+                              "goal", progress="Progress details.\n" * 80 + "PROGRESS_END")
+        conversation.goal_display = goal
         conversation.prompt.text = "Keep this draft"
         await ui.until_shows("History")
         await ui.click("History")

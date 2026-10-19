@@ -5,9 +5,9 @@ import asyncio
 from agent_comms.threads import Thread
 
 from support import journals
-from toad.widgets.transcript_history import TranscriptHistory
 
 import pytest
+from support.textual_steps import saved_history
 
 
 @pytest.mark.parametrize("cause", ("current", "revision", "edge", "parked", "loader"))
@@ -27,7 +27,7 @@ async def test_older_page_is_published_only_when_the_source_did_not_change_durin
             await release.wait()
             return await asyncio.to_thread(transcripts.thread_transcript_page, "saved", max_messages=1, **bounds)
 
-        history = TranscriptHistory(page, loader)
+        history = await saved_history(view, page, loader)
         await view.contents.mount(history)
         # Reserved source work keeps automatic edge requests from reading before this controlled read.
         history.reserve_source_work()
@@ -77,7 +77,7 @@ async def test_requested_older_page_is_read_by_the_history_worker(workspace):
         return await asyncio.to_thread(transcripts.thread_transcript_page, "saved", max_messages=1, **bounds)
 
     async with workspace.app(size=(110, 35)) as ui:
-        scheduled = TranscriptHistory(page, loader)
+        scheduled = await saved_history(ui.conversation, page, loader)
         await ui.conversation.contents.mount(scheduled)
         scheduled._request_page(True)
         await ui.until(lambda: len(scheduled.pages) >= 2 and scheduled.checkpoint_available, why="the older page read")

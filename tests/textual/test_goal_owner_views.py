@@ -5,11 +5,10 @@ from dataclasses import replace
 from agent_comms.acp_extension import GoalChangedUpdate
 from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
 from agent_comms.goal_states import PausedGoal
-from agent_comms.goals import Goal
-from agent_comms.ui_model.goal import GoalDisplay
+from agent_comms.thread_identity import RecordedThreadIncarnation
 from textual.widgets import Button, Static
 
-from support.goals import ScriptedGoalOwner
+from support.goals import ScriptedGoalOwner, published_goal
 from toad.line_blocks import OpenTarget
 from support.textual_steps import channel_roster
 from toad.core.events import CommsUpdated
@@ -19,16 +18,16 @@ from toad.widgets.goal_bar import GoalBar
 from toad.widgets.throbber import Throbber
 
 
-def goal_owner(workspace):
-    goal = Goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4)
-    execution = GoalExecution(GoalExecutionState.STANDBY, goal.id, (GoalWaitTarget("peer", 1.0),))
+def goal_owner(app):
+    goal = published_goal("Coordinate with @peer", "stable-goal", progress="Keep evidence", revision=4)
+    execution = GoalExecution(GoalExecutionState.STANDBY, goal.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),))
     history = [
         {"sequence": 1, "kind": "baseline", "observed_at": 1000.0, "before": None,
          "after": replace(goal, text="HISTORICAL_OBJECTIVE", revision=4).to_wire()},
         {"sequence": 2, "kind": "transition", "observed_at": 1001.0,
          "before": replace(goal, revision=4).to_wire(), "after": goal.to_wire()},
     ]
-    owner = ScriptedGoalOwner(workspace.project, goal, execution, history=history)
+    owner = ScriptedGoalOwner(app, goal, execution, history=history)
     owner.reject = True
     return owner
 
@@ -36,11 +35,11 @@ def goal_owner(workspace):
 async def shown_goal(workspace, ui):
     workspace.thread("peer")
     await channel_roster(ui, "#all")
-    owner = goal_owner(workspace)
+    owner = goal_owner(ui.app)
     ui.attach_agent(owner)
     view = ui.conversation
     view.agent_ready = True
-    view.goal_display = GoalDisplay.current(owner.goal)
+    view.goal_display = owner.goal
     view.goal_execution = owner.execution
     view.prompt.text = "Composer draft stays"
     bar = view.query_one(GoalBar)

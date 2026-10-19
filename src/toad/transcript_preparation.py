@@ -209,9 +209,9 @@ class PageFragmentRange:
 
 
 @dataclass(frozen=True)
-class PageRevision[Cursor = TranscriptCursor | None](WorkRevision):
-    through: Cursor | None
-    request: PageRequest[Cursor]
+class PageRevision[PageCursor = TranscriptCursor | None](WorkRevision):
+    through: PageCursor | None
+    request: PageRequest[PageCursor]
     size: ClassVar[int] = 512
 
 
@@ -425,11 +425,11 @@ class TranscriptPageRenderTask(ReusableRenderTask[PreparedTranscriptPage]):
 
 
 @dataclass(frozen=True)
-class TranscriptPageWork[Cursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
+class TranscriptPageWork[PageCursor = TranscriptCursor | None](ReusableWork[PreparedTranscriptPage], ScopedWork[PreparedTranscriptPage]):
     scope: PreparationScope
     loader: Callable[..., Awaitable[TranscriptPage]]
-    through: Cursor
-    request: PageRequest[Cursor]
+    through: PageCursor
+    request: PageRequest[PageCursor]
     lane = WorkLane.MODEL
 
     @property

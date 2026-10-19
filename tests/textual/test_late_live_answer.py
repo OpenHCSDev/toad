@@ -16,7 +16,7 @@ from agent_comms.turn_phase import PublishingPhase
 
 from toad.core.events import CommsUpdated, Update
 from toad.transcript_publication import CommitPublication
-from toad.widgets.transcript_history import TranscriptHistory
+from support.textual_steps import saved_history
 
 TOKEN = "LATE_LIVE_ANSWER"
 
@@ -67,12 +67,11 @@ async def test_late_live_answer_is_drawn_once(workspace, arrival):
                 thread.incarnation, str(workspace.roots.wire), os.getpid(), str(project), None, None, thread.name, None)
             turns = agent.presentation.managed_turns()
             turns.receive(TurnState(ActiveTurn("first-turn", os.getpid(), phase=PublishingPhase())))
-            view.set_reactive(type(view).agent_ready, False)
-            history = TranscriptHistory(first_page)
+            agent.session.settled.clear()
+            history = await saved_history(view, first_page, agent.get_transcript_page)
             await view.contents.mount(history)
             await ui.step()
-            view.set_reactive(type(view).agent_ready, True)
-            history.loader = agent.get_transcript_page
+            agent.session.settled.set()
             view.window.anchor()
             view.prompt.focus()
 

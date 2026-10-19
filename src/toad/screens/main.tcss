@@ -348,6 +348,8 @@ Prompt {
         AgentInfo {
             color: $text-primary;
             background: $primary 10%;
+            text-wrap: nowrap;
+            text-overflow: ellipsis;
             &:ansi {
                 background: ansi_default;
                 color: ansi_default;
@@ -397,10 +399,6 @@ Prompt {
     }
 
     &.-has-model #info-container AgentInfo {
-        max-width: 60%;
-        height: 1;
-        text-wrap: nowrap;
-        text-overflow: ellipsis;
         pointer: pointer;
         &:hover { text-style: underline; }
     }

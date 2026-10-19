@@ -5,8 +5,8 @@ import asyncio
 from agent_comms.threads import Thread
 
 from support import journals
+from support.textual_steps import saved_history
 from toad.transcript_state import DetachedTranscript, LiveTranscript, ProvisionalTranscript
-from toad.widgets.transcript_history import TranscriptHistory
 
 
 async def test_source_state_follows_mount_commit_worker_retirement_and_removal(workspace):
@@ -14,10 +14,13 @@ async def test_source_state_follows_mount_commit_worker_retirement_and_removal(w
                                     journals.assistant_entry("Retain the source", id="a1"))
     workspace.comms.registry.declare(Thread("source", frozenset(), str(workspace.project), session_file=str(source)))
     page = workspace.comms.transcripts.thread_transcript_page("source")
-    history = TranscriptHistory(page, committed=False)
-    assert isinstance(history.state, DetachedTranscript)
-    assert not history.state.can_draw
     async with workspace.app() as ui:
+        async def loader(**bounds):
+            return await asyncio.to_thread(workspace.comms.transcripts.thread_transcript_page, "source", **bounds)
+
+        history = await saved_history(ui.conversation, page, loader, committed=False)
+        assert isinstance(history.state, DetachedTranscript)
+        assert not history.state.can_draw
         await ui.conversation.post(history)
         await ui.until(lambda: history.is_mounted, why="the history mounted")
         assert isinstance(history.state, ProvisionalTranscript)

@@ -142,8 +142,7 @@ def test_channel_messages_are_drawn_by_the_line_history_alone():
     # A channel is a line history, and not a saved transcript: it covers no live blocks.
     assert issubclass(WireHistory, LineHistory) and not issubclass(WireHistory, TranscriptHistory)
     # Paging, lookahead and trimming are the line history's, for both; the reader's position is the window's.
-    for name in ('_load_page', '_check_edges',
-                 '_publish_latest', 'extend_source'):
+    for name in ('_load_page', '_publish_latest', 'extend_source'):
         assert name in vars(LineHistory), name
         assert name not in vars(WireHistory) and name not in vars(TranscriptHistory), name
     for name in ('covers_incoming', 'covers_input', 'coverage_events'):
@@ -178,7 +177,7 @@ def test_a_bus_message_has_one_row_drawing_and_links_open_in_one_place():
     # The message owns its menu and one class runs it: a view has no open actions or menu entries of its own.
     for name, home in (('action_open_sender', 'widgets/transcript_lines.py'),
                        ('action_open_destination', 'widgets/transcript_lines.py'),
-                       ('action_link', 'widgets/transcript_lines.py'), ('opens', 'line_blocks.py')):
+                       ('action_link', 'widgets/transcript_lines.py'), ('opens', 'project_link.py')):
         assert declared[name] == [home], (name, declared[name])
     assert '_open_name' not in declared and 'open_url' not in declared
     assert source.count('"block.open_sender"') == source.count('"block.open_destination"') == 1

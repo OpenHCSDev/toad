@@ -1,12 +1,13 @@
 """Goal display permissions and a new nominal case use the same contract."""
 
 from agent_comms.goal_presentation import IdleGoalExecution
-from agent_comms.goals import Goal, GoalDeclaration, NoGoal
+from agent_comms.goals import GoalDeclaration, NoGoal
 from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
+from support.goals import published_goal
 
 
 def test_each_goal_state_answers_visibility_control_and_snapshot():
-    goal = Goal("Keep the objective", "display-state", 1)
+    goal = published_goal("Keep the objective", "display-state")
     idle = IdleGoalExecution()
     for state, visible, enabled, snapshot in (
         (NoGoal(), False, False, NoGoal()),  # nothing to control: Core answers a control with "This goal has been cleared."
@@ -22,7 +23,7 @@ def test_each_goal_state_answers_visibility_control_and_snapshot():
 
 
 def test_a_new_goal_state_needs_only_its_own_declaration():
-    goal = Goal("Keep the objective", "display-state", 1)
+    goal = published_goal("Keep the objective", "display-state")
 
     class OwnerReconnecting(GoalDisplay):
         can_control = False
