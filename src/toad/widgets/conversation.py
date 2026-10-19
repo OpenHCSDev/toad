@@ -377,9 +377,10 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         presentation = self.app.coordination_access.thread_status.open(self.status_thread().name).presentation
         read = self._thread_read
         self.arm_thread_read()
-        if read is not None:
-            presentation = read.settle(presentation)
-        self.thread_presented(presentation)
+        if read is None:
+            self.thread_presented(presentation)
+        else:
+            read.settle(presentation).present(self.thread_presented)
 
     def foreign_thread_read(self, presentation) -> None:
         self.thread_presented(presentation)

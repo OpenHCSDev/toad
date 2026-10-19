@@ -221,6 +221,29 @@ class OwnerSnapshotConsumer(CommsUpdateConsumer):
         self.turn_changed(TurnChangedUpdate(thread.turn_state))
 
 
+class ThreadReadOutcome:
+    """A status read may publish only while its captured source still holds."""
+
+    def present(self, consumer) -> None:
+        """Expired observations leave the newer session's presentation alone."""
+
+
+class EndedSessionRead(ThreadReadOutcome):
+    """The read's client session ended before its result arrived."""
+
+
+class ChangedAttachmentRead(ThreadReadOutcome):
+    """The read's original thread is no longer attached to this client."""
+
+
+@dataclass(frozen=True)
+class SettledThreadRead(ThreadReadOutcome):
+    presentation: ThreadPresentation | None
+
+    def present(self, consumer) -> None:
+        consumer(self.presentation)
+
+
 @dataclass(frozen=True)
 class ThreadRead:
     """One presentation read of an agent's thread, captured before the read.
@@ -235,12 +258,11 @@ class ThreadRead:
     authority: ClientSessionRequest
     snapshot: OwnerSnapshotConsumer
 
-    def settle(self, presentation: ThreadPresentation | None) -> ThreadPresentation | None:
+    def settle(self, presentation: ThreadPresentation | None) -> ThreadReadOutcome:
         if self.agent.observed_thread() != self.thread:
-            raise ValueError("Thread attachment changed while reading status")
+            return ChangedAttachmentRead()
         if self.authority.retired:
-            # Not a client request to refuse: the read simply outlived its session.
-            raise ValueError("Client session ended while reading status")
+            return EndedSessionRead()
         if presentation is not None:
             self.snapshot.dispatch_sync(presentation)
-        return presentation
+        return SettledThreadRead(presentation)
