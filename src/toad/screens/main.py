@@ -271,8 +271,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
 
     def read_visible(self):
         """Capture this session's painted cursor before its guarded backend write."""
-        if not self.is_current:
-            return None
         conversation = self.query_one_optional(Conversation)
         if conversation is None:
             return None
