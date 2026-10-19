@@ -16,6 +16,7 @@ def frontend(output: Path, thread: str, project: str) -> None:
     from toad.application_lifetime import ApplicationLifetime
     from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import TranscriptPageView
+    from toad.widgets.presentation_window import OLDER_END
 
     trace = (output / "geometry.jsonl").open("w", buffering=1)
 
@@ -23,7 +24,8 @@ def frontend(output: Path, thread: str, project: str) -> None:
         return dict(y=window.scroll_y, target=window.scroll_target_y,
                     max_y=window.max_scroll_y, max_x=window.max_scroll_x,
                     follow=window.follows_tail, position=repr(window.reader_position),
-                    changing=window.history_change is not None)
+                    changing=window.history_change is not None,
+                    has_older=any(history.has_more(OLDER_END) for history in window.histories))
 
     original_watch = HistoryWindow.watch_scroll_y
     def watch(window, old, new):
@@ -59,7 +61,9 @@ def frontend(output: Path, thread: str, project: str) -> None:
                                       content_widths=sorted({lines.content_width for lines in page.line_sets}),
                                       height=page.line_count))
                 windows.append(dict(**state(window), pages=pages))
-            (output / "current.json").write_text(json.dumps(windows))
+            pending = output / "current.pending"
+            pending.write_text(json.dumps(windows))
+            pending.replace(output / "current.json")
         app.set_interval(.1, snapshot)
     ApplicationLifetime.observe_next_start(started)
     from toad.cli import main
@@ -81,25 +85,32 @@ def capture(output: Path) -> None:
                    and key not in ("NO_COLOR", "TOAD_VALIDATION")}
     environment.update(HOME=str(home), XDG_CONFIG_HOME=str(home / "config"),
                        XDG_STATE_HOME=str(home / "state"), XDG_DATA_HOME=str(home / "data"))
-    thread = "dqdock-a517609faad9f8d57"
-    with CheckRoot(wire(), (thread,), output / "wire").open() as copied:
+    class LongHistoryCopy(CheckRoot):
+        # Preserve the selected conversation, including claim acquisitions
+        # preceding the ordinary 200-record check-root slice.
+        max_records = 10000
+        max_bytes = 64 * 1024 * 1024
+
+    thread = os.environ.get("VIEWPORT_THREAD", "pi-cn-p3")
+    with LongHistoryCopy(wire(), (thread,), output / "wire").open() as copied:
         environment["AGENT_COMMS_ROOT"] = str(copied.root)
         project = copied.registry.require(thread).worktree
         command = [sys.executable, str(Path(__file__).resolve()), "--frontend", str(output), thread, project]
         with BuildDisplay(output) as display, TerminalApp(command, display, output / "terminal", environment, home) as app:
-            app.wait("ready", lambda text: thread in text and "Saved history available" in text, seconds=45)
+            app.wait("ready", lambda text: thread in text and ("Saved history available" in text or "Session details · Ready" in text), seconds=45)
             app.click_cell(app.columns // 2, app.rows - 4)
             captures = []
             def record(label):
                 # Capture changes as well as the settled screen to expose a bounce.
                 previous = None
-                deadline = time.monotonic() + 8
+                started = time.monotonic()
+                deadline = started + 8
                 frames = []
                 while time.monotonic() < deadline:
                     text = app.capture()
                     if text != previous:
                         frames.append(text)
-                    if text == previous:
+                    if text == previous and time.monotonic() - started >= .5:
                         break
                     previous = text
                     time.sleep(.2)
@@ -110,7 +121,7 @@ def capture(output: Path) -> None:
                     log.write(f"\n--- {label} ---\n{text}")
                 return text
             record("initial")
-            for index in range(30):
+            for index in range(int(os.environ.get("VIEWPORT_UP", "30"))):
                 app.keys("Page_Up")
                 record(f"up-{index + 1:02}")
             for index in range(10):
@@ -121,9 +132,14 @@ def capture(output: Path) -> None:
             record("sidebar-open")
             app.click_cell(app.columns // 2, app.rows - 4)
             # Continue loading earlier saved pages until the true top is reached.
-            for index in range(45):
+            for index in range(400):
                 app.keys("Page_Up")
                 record(f"sidebar-up-{index + 1:02}")
+                geometry = json.loads((output / "current.json").read_text())
+                if geometry and all(w['y'] == 0 and not w['has_older'] for w in geometry):
+                    break
+            else:
+                raise RuntimeError("The saved history top was not reached")
             app.screenshot("sidebar-top")
             record("sidebar-top")
             for index in range(10):
