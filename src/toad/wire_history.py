@@ -19,7 +19,9 @@ from agent_comms.message_page import MessagePage
 from agent_comms.transcript_events import IncomingTranscript
 from agent_comms.page_traversal import LiveCursor, NewerTraversal, OlderTraversal, PageCursor
 from agent_comms.messages import Message, ConversationRole, NoticeRole, Membership
-from agent_comms.historical_views import ConversationHistoryView, ConversationObservation, ConversationRevision
+from agent_comms.historical_views import (
+    ConversationHistoryView, ConversationObservation, ConversationRevision,
+)
 
 from toad.conversation_kind import ConversationKind
 from toad.line_blocks import Body, Gap, LineBlock, MutedRole, Summary
