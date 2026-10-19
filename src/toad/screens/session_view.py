@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from toad.core_event_carrier import CoreEventReceiver
 from toad.thread_identity import SessionIdentity, NoThreadIdentity
 from toad.project_path_owner import ProjectPathOwner
+from toad.widgets.message_notifications import VisibleReadMarking
 
 if TYPE_CHECKING:
     from toad.agent_schema import AgentDefinition
@@ -48,7 +49,7 @@ class SessionOrigin:
     def has_agent(self) -> bool:
         return self._agent is not None
 
-class SessionView(CoreEventReceiver, ProjectPathOwner, Vertical):
+class SessionView(VisibleReadMarking, CoreEventReceiver, ProjectPathOwner, Vertical):
     title = reactive("")
     sub_title = reactive("")
 
