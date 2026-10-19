@@ -1,6 +1,6 @@
 """Transcript publication states and the single Textual lifecycle boundary."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from contextlib import ExitStack, contextmanager
 from dataclasses import dataclass
 from functools import partial
@@ -147,8 +147,21 @@ class SuspendedTranscript(TranscriptState):
     def successors(cls): ...
 
 
+class LatestViewportState(ABC):
+    @abstractmethod
+    def resume(self, owner) -> bool: ...
+
+    def prepare(self, owner) -> None:
+        """No pending destination needs another preparation frame."""
+
+
+class NoLatestRequest(LatestViewportState):
+    def resume(self, owner) -> bool:
+        return True
+
+
 @dataclass(frozen=True)
-class LatestViewportRequest:
+class LatestViewportRequest(LatestViewportState):
     destination: "LatestPosition"
 
     def current(self, window) -> bool:
@@ -164,12 +177,18 @@ class LatestViewportRequest:
     def defer(self, owner) -> None:
         """Keep this destination until its history can admit drawing again."""
         if self.current(owner.window):
-            owner._latest_request = self
+            owner.keep_latest(self)
+
+    def prepare(self, owner) -> None:
+        owner.request_preparation()
 
     def resume(self, owner) -> bool:
         """Consume a superseded destination or admit its next source read."""
-        return (not self.current(owner.window)
-                or owner.schedule_source_work(partial(owner._jump_latest, self)) is not None)
+        if (not self.current(owner.window)
+                or owner.schedule_source_work(partial(owner._jump_latest, self)) is not None):
+            owner.keep_latest(NoLatestRequest())
+            return True
+        return False
 
 
 @dataclass(frozen=True, eq=False)

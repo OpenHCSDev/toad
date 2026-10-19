@@ -11,7 +11,7 @@ from textual.worker import Worker, WorkerCancelled
 from textual.await_complete import AwaitComplete
 from toad.core_event_carrier import CoreEventReceiver
 from toad.resource_release import ResourceRelease
-from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest
+from toad.transcript_state import TranscriptState, RetiredSourceTranscript, ParkedSourceTranscript, WorkingTranscript, LatestViewportRequest, LatestViewportState, NoLatestRequest
 from toad.transcript_preparation import PreparedPageSource, PreparedTranscriptPage
 from toad.core.source_events import TranscriptSourceWorkFinished
 from toad.widgets.history_anchor import HeldReaderDestination, LatestPosition
@@ -52,7 +52,7 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         self._generation = 0
         self.page_source = page_source
         self._source_observation = ResourceRelease()
-        self._latest_request: LatestViewportRequest | None = None
+        self.latest: LatestViewportState = NoLatestRequest()
         super().__init__(*args, **kwargs)
 
     @property
@@ -129,12 +129,13 @@ class TranscriptSourcePreparation(CoreEventReceiver):
         if self.can_draw_on_screen:
             self.screen.frame_presentation.defer(self, self.prepare_viewport)
 
+    def keep_latest(self, request: LatestViewportState) -> None:
+        self.latest = request
+
     def prepare_viewport(self) -> None:
         """Consume committed geometry once, on this source's own pump."""
         if self.can_draw_on_screen:
-            request = self._latest_request
-            if request is not None and request.resume(self):
-                self._latest_request = None
+            self.latest.resume(self)
             for page in self.pages:
                 page.prepare_viewport(self.window)
             self.state.check_edges(self)
@@ -339,8 +340,9 @@ class TranscriptSourcePreparation(CoreEventReceiver):
                 self.window.check_follow()
                 # The admitted operation owns source and reader progress.
                 # Native compensation and unchanged reads cannot rearm it.
-                if operation.progressed(self) or self._latest_request is not None:
+                if operation.progressed(self):
                     self.request_preparation()
+                self.latest.prepare(self)
                 self.publish_core(TranscriptSourceWorkFinished())
                 HeldReaderDestination.settle(self.window)
 
