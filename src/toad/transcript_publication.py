@@ -789,8 +789,11 @@ class TranscriptPresentation:
             self.binding.request(self)
 
     def source_work_finished(self, history) -> None:
+        from toad.screens.session_view import SessionView
+
         if history in self.binding.histories():
             self.retry()
+            self.binding.view.query_ancestor(SessionView).mark_visible()
 
     async def close(self) -> None:
         self.closed = True

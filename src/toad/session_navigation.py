@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, cast
 
 
 from agent_comms.presentation import NoRevision, ReadState
+from agent_comms.revision_views import RegistrationsView
 from agent_comms.errors import UnknownChannelError, UnregisteredThreadError
 from agent_comms.route_selection import RouteChanged, root_is_current
 from agent_comms.thread_identity import ThreadIncarnation
@@ -294,7 +295,7 @@ class SessionNavigation:
                 for owner, _ in (*member.original_threads(self), *member.original_channels())):
             return
         revision = event.revision
-        if not revision.registrations_changed_since(self._retired_at):
+        if not revision.changed_since(RegistrationsView(), self._retired_at):
             return
         self._retired_at = revision
         # The registry read takes hundreds of milliseconds; awaiting it here held
