@@ -7,7 +7,7 @@ viewport owns its measured rows. Unprepared source retains its initial preview.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Hashable, Iterable, Iterator, Mapping, Sequence
+from collections.abc import Hashable, Iterable, Iterator, Mapping
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
@@ -367,7 +367,7 @@ class Lines(ABC):
     def content_width(self) -> int:
         return max((sum(segment.cell_length for segment in row) for row in self), default=self.width)
 
-    def strips_at(self, place: Hashable) -> Sequence[Strip]:
+    def strips_at(self, place: Hashable) -> tuple[Strip, ...] | JoinedStrips:
         """Link placement decorates this view's paint, never shared preparation."""
         strips = self.__dict__.get("strips")
         if strips is None:
@@ -403,16 +403,17 @@ class PreparedLines(Lines, LineBlock):
 
 
 @dataclass(frozen=True)
-class JoinedStrips(Sequence[Strip]):
-    """Index two existing strip sequences without copying either."""
+class JoinedStrips:
+    """Integer row positions across two existing strip collections; no slicing."""
 
-    head: Sequence[Strip]
-    tail: Sequence[Strip]
+    head: tuple[Strip, ...] | JoinedStrips
+    tail: tuple[Strip, ...] | JoinedStrips
 
     def __len__(self) -> int:
         return len(self.head) + len(self.tail)
 
     def __getitem__(self, index: int) -> Strip:
+        index = range(len(self))[index]
         return self.head[index] if index < len(self.head) else self.tail[index - len(self.head)]
 
 
@@ -434,7 +435,7 @@ class JoinedLines(Lines):
     def __iter__(self) -> Iterator[Row]:
         return chain(self.head, self.tail)
 
-    def strips_at(self, place: Hashable) -> Sequence[Strip]:
+    def strips_at(self, place: Hashable) -> tuple[Strip, ...] | JoinedStrips:
         # A tail link is distinct from an equal link in the retained prefix.
         return JoinedStrips(self.head.strips_at(place), self.tail.strips_at((place, 1)))
 
