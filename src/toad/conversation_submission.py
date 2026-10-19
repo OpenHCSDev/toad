@@ -70,7 +70,6 @@ class ShellInputSubmission(InputSubmission):
         return event.shell and bool(event.body.strip())
     async def execute(self, owner):
         view = owner.view
-        view.transcript.invalidate_publications()
         shell = view.shell
         if await shell.is_busy():
             shell.focus_output()
@@ -101,7 +100,6 @@ class AgentInputSubmission(InputSubmission):
 
     async def execute(self, owner):
         view = owner.view
-        view.transcript.invalidate_publications()
         execution = owner.begin(self)
         if execution is None:
             return
