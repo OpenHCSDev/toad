@@ -55,7 +55,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
 
     def __init__(
         self, *,
-        history: NativeHistory, delivery: InputDeliveryBar | None = None,
+        history: NativeHistory, delivery: InputDeliveryBar,
         transcript: TranscriptPresentation | None = None,
         status_source: Callable[[], ThreadStatusModel],
     ) -> None:
@@ -66,7 +66,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         self.notifications = Static("", markup=False)
         super().__init__(
             DetailAction("Inspect session", markup=False, id="session-inspect"),
-            self.notifications, *(item for item in (history, delivery) if item is not None),
+            self.notifications, history, delivery,
             title="", collapsed=True, id=self.DEFAULT_ID,
         )
 
@@ -96,8 +96,7 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
         super().on_mount()
         self.query_children(self.Contents).first().styles.max_height = self.DETAIL_ROWS
         self.watch(self.history, "status", self._refresh_summary)
-        if self.delivery is not None:
-            self.watch(self.delivery, "delivery", self._refresh_summary)
+        self.watch(self.delivery, "delivery", self._refresh_summary)
         self._refresh_summary()
 
     def activity_changed(self) -> None:
@@ -116,12 +115,11 @@ class SessionDetails(TonePaint, Collapsible, ObservedThreadActivity, MroProjecti
     def summary_title(self, row: ThreadStatusModel) -> str:
         """The collapsed row: what this is, its status, saved history and delivery notices."""
         parts = [self.label, *row.summary, *self.history_details.summary]
-        if self.delivery is not None:
-            delivery = self.delivery.delivery
-            if delivery.notices:
-                parts.append(f"{delivery.notices} notices")
-            if delivery.error:
-                parts.append("Delivery unavailable")
+        delivery = self.delivery.delivery
+        if delivery.notices:
+            parts.append(f"{delivery.notices} notices")
+        if delivery.error:
+            parts.append("Delivery unavailable")
         return " · ".join(parts)
 
     def _refresh_summary(self, *_args) -> None:
