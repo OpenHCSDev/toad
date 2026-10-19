@@ -7,11 +7,11 @@ viewport owns its measured rows. Unprepared source retains its initial preview.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Mapping
+from collections.abc import Hashable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from functools import cached_property
 import io
-from itertools import count
+from itertools import chain, count
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
@@ -133,7 +133,7 @@ def link_place() -> int:
     return next(_row_owners)
 
 
-def _each_link_apart(rows: tuple[Row, ...], place: int) -> tuple[Row, ...]:
+def _each_link_apart(rows: Iterable[Row], place: Hashable) -> tuple[Row, ...]:
     """Rows whose every link is told apart from equal links drawn elsewhere.
 
     Textual highlights the cells that share the hovered cell's link identity,
@@ -285,7 +285,7 @@ class LinkedRows(OpensLinks):
 
     def get_selection(self, selection: Selection) -> tuple[str, str] | None:
         rows = "\n".join("".join(segment.text for segment in row).rstrip()
-                         for lines in self.line_sets for row in lines.rows)
+                         for lines in self.line_sets for row in lines)
         return selection.extract(rows), "\n"
 
     def on_background(self, strip: Strip, paint: PaintState, y: int, x: int = 0) -> Strip:
@@ -351,27 +351,29 @@ class PatchLayout:
         return divide_line(text, self.code_width, fold=True) if self.settings.wrap.enabled else []
 
 
-class Lines:
-    """Rows at one width; each drawing owner builds its own marked strips."""
+class Lines(ABC):
+    """Rows at one width; storage and composition own their height and iteration."""
 
     width: int
-    rows: tuple[Row, ...]
+
+    @abstractmethod
+    def __iter__(self) -> Iterator[Row]: ...
 
     @property
-    def height(self) -> int:
-        return len(self.rows)
+    @abstractmethod
+    def height(self) -> int: ...
 
     @cached_property
     def content_width(self) -> int:
-        return max((sum(segment.cell_length for segment in row) for row in self.rows), default=self.width)
+        return max((sum(segment.cell_length for segment in row) for row in self), default=self.width)
 
-    def strips_at(self, place: int) -> tuple[Strip, ...]:
+    def strips_at(self, place: Hashable) -> Sequence[Strip]:
         """Link placement decorates this view's paint, never shared preparation."""
         strips = self.__dict__.get("strips")
         if strips is None:
             width = self.width
             strips = self.__dict__["strips"] = tuple(
-                Strip(row).extend_cell_length(width) for row in _each_link_apart(self.rows, place))
+                Strip(row).extend_cell_length(width) for row in _each_link_apart(self, place))
         return strips
 
 
@@ -382,6 +384,13 @@ class PreparedLines(Lines, LineBlock):
     width: int
     rows: tuple[Row, ...]
 
+    def __iter__(self) -> Iterator[Row]:
+        return iter(self.rows)
+
+    @property
+    def height(self) -> int:
+        return len(self.rows)
+
     @property
     def retained_bytes(self) -> int:
         return 64 + sum(64 + sum(64 + 4 * len(segment.text) for segment in row)
@@ -391,6 +400,49 @@ class PreparedLines(Lines, LineBlock):
         if width != self.width:
             raise ValueError("Prepared rows belong to a different width")
         return self
+
+
+@dataclass(frozen=True)
+class JoinedStrips(Sequence[Strip]):
+    """Index two existing strip sequences without copying either."""
+
+    head: Sequence[Strip]
+    tail: Sequence[Strip]
+
+    def __len__(self) -> int:
+        return len(self.head) + len(self.tail)
+
+    def __getitem__(self, index: int | slice) -> Strip | tuple[Strip, ...]:
+        if isinstance(index, slice):
+            return tuple(self[i] for i in range(*index.indices(len(self))))
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        return self.head[index] if index < len(self.head) else self.tail[index - len(self.head)]
+
+
+@dataclass(frozen=True)
+class JoinedLines(Lines):
+    """A styled prefix and plain continuation keep their own rows and strips."""
+
+    head: Lines
+    tail: Lines
+
+    @property
+    def width(self) -> int:
+        return self.head.width
+
+    @property
+    def height(self) -> int:
+        return self.head.height + self.tail.height
+
+    def __iter__(self) -> Iterator[Row]:
+        return chain(self.head, self.tail)
+
+    def strips_at(self, place: Hashable) -> Sequence[Strip]:
+        # A tail link is distinct from an equal link in the retained prefix.
+        return JoinedStrips(self.head.strips_at(place), self.tail.strips_at((place, 1)))
 
 
 class PreparedBlock(LineBlock):
@@ -641,9 +693,8 @@ class BlockLines(Lines):
     def height(self) -> int:
         return sum(block.height for block in self.prepared_blocks)
 
-    @property
-    def rows(self) -> tuple[Row, ...]:
-        return tuple(row for block in self.prepared_blocks for row in block.rows)
+    def __iter__(self) -> Iterator[Row]:
+        return chain.from_iterable(self.prepared_blocks)
 
 
 class PlainLines(BlockLines):

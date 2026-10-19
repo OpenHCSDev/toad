@@ -20,7 +20,7 @@ from toad.block_content import BlockContent
 from toad.markdown_links import LinkContext, ReferenceRendering
 from toad.line_blocks import Body, MarkdownBody, LineBlock, LineRole, TextRole
 from toad.widgets.transcript_lines import (
-    BlockLines, Lines, LinkedRows, LinePreparation, PreparedLines, TranscriptLinesRenderTask, link_place,
+    BlockLines, JoinedLines, Lines, LinkedRows, LinePreparation, PreparedLines, TranscriptLinesRenderTask, link_place,
 )
 
 
@@ -37,7 +37,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         self.text = text
         self.role, self.bar, self.body_type = role, bar, body
         self._styled: BlockLines | None = None
-        self._plain: PreparedLines | None = None
+        self._plain: Lines | None = None
         self._width = 0
         self._link_place = link_place()
         self._render_worker: Worker[None] | None = None
@@ -78,7 +78,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
             self._redraw(rows)
 
     def _row_count(self) -> int | None:
-        return len(self._lines(self._width).rows) if self._width else None
+        return self._lines(self._width).height if self._width else None
 
     def _redraw(self, rows: int | None) -> None:
         """Repaint; lay out again only when the height changed.
@@ -105,6 +105,8 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
         styled, covered = self._styled, self._styled_text
         if styled is not None:
             self._styled = styled = styled.rewrap(width)
+        if self._plain is not None and self._plain.width == width:
+            return self._plain
         tail = self.text[len(covered):] if self.text.startswith(covered) else None
         # A styled prefix is drawn only whole or ending at a paragraph
         # boundary; anything else would split the paragraph it ends in.
@@ -112,22 +114,15 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
                 not tail or tail.startswith("\n\n")):
             if not tail:
                 return styled
-            key = (width, len(self.text), id(styled))
-            if self._plain is None or self._plain_key != key:
-                # Styled rows end at a paragraph boundary; the plain tail is
-                # the following paragraphs, after the blank row between them.
-                self._plain = PreparedLines(width, styled.rows + ((),) + self._plain_rows(
-                    self.text[len(covered):].lstrip("\n"), width, complete=True))
-                self._plain_key = key
-            return self._plain
-        key = (width, len(self.text), None)
-        if self._plain is None or self._plain_key != key:
+            # The separator and new paragraphs belong only to the plain tail.
+            plain = PreparedLines(width, ((),) + self._plain_rows(
+                tail.lstrip("\n"), width, complete=True))
+            self._plain = JoinedLines(styled, plain)
+        else:
             self._plain = PreparedLines(width, self._plain_rows(self.text, width))
-            self._plain_key = key
         return self._plain
 
     _styled_text = ""
-    _plain_key: tuple | None = None
 
     def _request_render(self) -> None:
         if self._width and self.is_attached and (self._render_worker is None or self._render_worker.is_finished):
@@ -167,6 +162,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
                     if not complete or self.text == target:
                         rows = self._row_count()
                         self._styled, self._styled_text = source.wrap(self._width, self.app.colours.line_renderer), target
+                        self._plain = None
                         self._redraw(rows)
             if target == self.text:
                 return
@@ -182,7 +178,7 @@ class LineMarkdown(ReferenceRendering, LinkedRows, BlockContent, Widget):
             self._width = width
             if self._styled is None:
                 self.call_later(self._request_render)
-        return len(self._lines(width).rows)
+        return self._lines(width).height
 
     def render_line(self, y: int, paint: PaintState) -> Strip:
         width = self._width
