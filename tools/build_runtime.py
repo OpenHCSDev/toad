@@ -965,7 +965,7 @@ class RuntimeBuild:
             cleanup.pop_all()
         return destination
 
-    def qualify(self, destination: Path) -> Path:
+    def qualify(self, destination: Path, *, message_check=check_message_wake) -> Path:
         """Finish the existing readiness checks on an installed candidate."""
         if (destination / self.record).exists():
             raise ValueError('Runtime is already qualified')
@@ -986,8 +986,8 @@ class RuntimeBuild:
         native_pin = hashlib.sha256(manifest).hexdigest()
         with check_startup(destination, self.scratch / f'startup-{destination.name}',
                            self.baseline, self.thread) as startup:
-            wake = check_message_wake(destination, self.scratch / f'wake-{destination.name}',
-                                      self.scratch / f'startup-{destination.name}')
+            wake = message_check(destination, self.scratch / f'wake-{destination.name}',
+                                 self.scratch / f'startup-{destination.name}')
         record = {
             'baseline': str(self.baseline),
             'toad_commit': toad_commit, 'core_commit': core_commit,
