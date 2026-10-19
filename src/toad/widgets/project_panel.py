@@ -73,6 +73,8 @@ class ProjectPanel(SidebarPanelWidget, Vertical):
 
     def compose(self) -> ComposeResult:
         yield ProjectSearchButton()
+        self.directory_tree = ProjectDirectoryTree(self.path).data_bind(path=ProjectPanel.path)
+        self.directory_tree.guide_depth = 3
 
     def on_show(self) -> None:
         self.call_after_refresh(self._ensure_tree)
@@ -92,12 +94,7 @@ class ProjectPanel(SidebarPanelWidget, Vertical):
 
     @work(group="project-tree")
     async def _mount_tree(self) -> None:
-        self.directory_tree = ProjectDirectoryTree(self.path, id="project_directory_tree")
         await self.mount(self.directory_tree)
-
-    def watch_path(self, path: Path) -> None:
-        if self.directory_tree is not None:
-            self.directory_tree.path = path
 
     def invalidate(self) -> None:
         if self.directory_tree is not None:
@@ -109,7 +106,7 @@ class ProjectPanel(SidebarPanelWidget, Vertical):
 
     def capture_intent(self) -> ProjectTreeIntent | None:
         """Read the completed native projection at this panel's owner."""
-        if self.directory_tree is not None:
+        if self.directory_tree is not None and self.directory_tree.is_mounted:
             return ProjectTreeIntent.capture(self.directory_tree)
         return None
 
@@ -131,7 +128,6 @@ class RestorableProjectPanel(ProjectPanel):
         self._intent = None
         if self.directory_tree is not None:
             self.workers.cancel_group(self, "project-tree")
-        super().watch_path(path)
 
     @work(group="project-tree")
     async def _mount_tree(self) -> None:

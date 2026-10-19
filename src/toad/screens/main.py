@@ -240,7 +240,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
     @property
     def side_bar(self):
         return self.screen.query_one(ChannelsSidebar)
-    project_directory_tree = getters.query_one("#project_directory_tree")
 
     project_path: var[Path] = var(Path("./").expanduser().absolute())
 
@@ -554,10 +553,6 @@ class MainScreen(SessionOrigin, SessionView, NavigationOwner, can_focus=False):
         self.observe_core(self.app.coordination_access.events)
         # Keep the screen-wide navigation row independent of sidebar geometry,
         # including when restoring a previously mounted owner tab.
-        for tree in self.query("#project_directory_tree").results(DirectoryTree):
-            tree.data_bind(path=MainScreen.project_path)
-        for tree in self.query(DirectoryTree):
-            tree.guide_depth = 3
         self.update_title()
 
     @on(OptionList.OptionHighlighted)
