@@ -691,6 +691,14 @@ class LineHistory(SourceNotifications, OpensMessageNames, TranscriptSourcePrepar
         window.release_anchor()
         window.scroll_to(y=destination, animate=False, immediate=True)
 
+    def owns_draft(self, draft) -> bool:
+        """The source snapshot owns the external draft's recorded incarnation."""
+        return self.pages[-1].prepared.page.snapshot.thread.incarnation.require_recorded().lookup == draft.thread
+
+    def sent_message_resolver(self):
+        """The draft follows this history's newest published wire frontier."""
+        return self.pages[-1].prepared.page.resolve_sent_messages
+
     @property
     def source_identity(self):
         return self.page_source.reload_key(), self.page_source.through, self.selected_categories
