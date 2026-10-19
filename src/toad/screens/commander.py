@@ -34,12 +34,19 @@ class CommanderUnit(Collapsible):
                          title=Content(card.line), collapsed=True)
         self.unit = card.unit
         self.position = 0
+        self.momentum_widget = Static("\n".join(item.line for item in card.momentum), markup=False)
+
+    def compose(self) -> ComposeResult:
+        yield from super().compose()
+        # Outside Collapsible's contents: the forecast stays visible when closed.
+        yield self.momentum_widget
 
     def present(self, card: UnitCard, position: int) -> None:
         self.position = position
         self.title = Content(card.line)
         self.detail_widget.update(card.detail.text)
         self.turns_widget.update("\n".join(card.detail.turn_lines))
+        self.momentum_widget.update("\n".join(item.line for item in card.momentum))
 
 
 class CommanderScreen(ModalScreen[None]):
