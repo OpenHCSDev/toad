@@ -517,10 +517,6 @@ See on-screen instructions for details.
 
 class MessageTextArea(PromptTextArea):
     @property
-    def agent_ready(self) -> bool:
-        return True
-
-    @property
     def queue_supported(self) -> bool:
         return False
 
