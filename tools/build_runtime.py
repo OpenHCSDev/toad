@@ -130,27 +130,14 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     Run with the qualified target Python inside the reviewed publication window.
     Native stopping/restarting remains with Core's existing cutover owner.
     """
-    publisher = (publication_tools / 'publish_runtime.py').resolve(strict=True)
-    # Keep the qualified package's native artifacts and resource identity.
-    # Only Python installer behavior comes from reviewed Core source.
-    import agent_comms
-    import agent_comms.native_package
-    agent_comms.__path__.insert(0, str(publisher.parents[1] / 'src/agent_comms'))
-    sys.path.insert(0, str(publisher.parents[1]))
     from tools.publish_runtime import RuntimePublication
     from agent_comms.owner_cutover import StoppedOwnerInstallation
-    from agent_comms.active_route import read_active_route
-    from agent_comms.comms import wire
 
     publication = RuntimePublication.installed()
-    record = json.loads((publication.runtime / 'build.json').read_text())
-    if record['runtime'] != str(publication.runtime):
-        raise ValueError('Build record does not describe the installed runtime')
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
-    comms = wire(read_active_route())
-    owners = tuple(thread.process_identity for thread in comms.registry.snapshot().threads.values())
     watchers = InstallWatchers(root / 'runtime-publication-readers.json')
-    publication.publish(root, owners, resources=watchers.publication(publication.runtime))
+    publication.publish(root, checkout=publication_tools.parent,
+                        resources=watchers.publication(publication.runtime))
     print(f'Linked {publication.runtime}', flush=True)
     # Report the actual prior pointer, not a build baseline or a persistent list.
     print(f'Previous {previous}', flush=True)
