@@ -43,7 +43,7 @@ from toad.navigation_preparation import (
     NavigationReader,
 )
 from toad.db import DB
-from toad.preferences import SavedSettings, ToadSettings
+from toad.preferences import SavedSettings
 from toad.session_tracker import (
     OpenTab,
     SessionDetails,
@@ -168,7 +168,6 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
 
         Renderer.prepare_spawn()
         self.events = core_events.CoreEventStream(self)
-        self.saved_settings = SavedSettings.open(self)
         self.preparation = PreparationRuntime(RenderProcessPool())
         self.render_processes: Renderer = PreparedRenderer(self.preparation)
         self.background_render_slots = asyncio.Semaphore(1)
@@ -238,10 +237,8 @@ class ToadApp(VisibleReadMarking, CoreEventReceiver, DeclaredWidgetActions, Work
         self.background_render_slots.release()
 
 
-    @property
-    def settings(self) -> ToadSettings:
-        """The settings in use, to read from; `saved_settings` changes and saves them."""
-        return self.saved_settings.current
+    def open_settings(self) -> SavedSettings:
+        return SavedSettings.open(self)
 
     async def get_db(self) -> DB:
         """Get an instance of the database."""
