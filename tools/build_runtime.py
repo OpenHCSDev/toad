@@ -17,6 +17,7 @@ import importlib.metadata
 import json
 import os
 import select
+import signal
 from pathlib import Path
 import shutil
 import shlex
@@ -141,11 +142,10 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     if record['runtime'] != str(publication.runtime):
         raise ValueError('Build record does not describe the installed runtime')
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
-    if previous == publication.runtime:
-        raise ValueError('Runtime is already current; do not repeat publication')
     comms = wire(read_active_route())
     owners = tuple(thread.process_identity for thread in comms.registry.snapshot().threads.values())
-    publication.publish(root, owners)
+    watchers = InstallWatchers(root / 'runtime-publication-readers.json')
+    publication.publish(root, owners, resources=watchers.publication(publication.runtime))
     print(f'Linked {publication.runtime}', flush=True)
     # Report the actual prior pointer, not a build baseline or a persistent list.
     print(f'Previous {previous}', flush=True)
@@ -191,7 +191,8 @@ class InstallWatchers:
         units = json.loads(run('systemctl', '--user', 'list-units', '--type=service',
                                '--state=active', '--output=json'))
         names = [unit['unit'] for unit in units if unit['unit'] in (
-            'codex-comms-inbox.service', 'opencode-comms-inbox.service', 'toad-serve.service')]
+            'codex-comms-inbox.service', 'opencode-comms-inbox.service', 'toad-serve.service',
+            'agent-comms-connector.service')]
         with self.path.open('x') as output:
             json.dump(names, output)
             output.flush()
@@ -206,6 +207,101 @@ class InstallWatchers:
             for name in names:
                 run('systemctl', '--user', 'is-active', name)
         print(json.dumps({'watchers_restarted': names}))
+
+    @contextmanager
+    def publication(self, runtime: Path):
+        """Own frontend readers only; Core calls this AFTER its idle proof.
+
+        Discover the bridge and desktop here, not before the drain: a bridge
+        wrapper can be replaced while a worker finishes its turn.
+        """
+        import psutil
+        from agent_comms.child_process import ProcessIdentity
+        from agent_comms.owner_cutover import StoppedOwnerInstallation
+        from agent_comms.store_files import _atomic_write_text
+        from agent_comms.field_codec import FieldCodec
+
+        bridge_path = self.path.with_suffix('.bridges.json')
+        settings_backup = self.path.with_suffix('.settings.json')
+        desktop_path = self.path.with_suffix('.desktop.json')
+        settings_path = Path.home() / '.pi/agent/settings.json'
+        previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
+        settings = json.loads(settings_path.read_text())
+        compiled = compiled_global_extensions(runtime)
+        old_compiled = compiled_global_extensions(previous)
+        replacements = {str(old_compiled[key]): str(value) for key, value in compiled.items()}
+        settings['extensions'] = [replacements.get(path, path) for path in settings['extensions']]
+
+        def resume_bridges():
+            if bridge_path.exists():
+                for identity in FieldCodec.decode(tuple[ProcessIdentity, ...],
+                        FieldCodec.parse(bridge_path.read_bytes())):
+                    if identity.alive():
+                        identity.signal(signal.SIGCONT)
+                bridge_path.unlink()
+
+        def restore_settings():
+            if settings_backup.exists():
+                if StoppedOwnerInstallation.current_pointer().resolve(strict=True) != runtime:
+                    _atomic_write_text(settings_path, settings_backup.read_text(), fsync_parent=True)
+                settings_backup.unlink()
+
+        def restore_desktop():
+            if not desktop_path.exists():
+                return
+            for saved in json.loads(desktop_path.read_text()):
+                environment = {key: value for key, value in saved['environment'].items()
+                    if not key.startswith(('AGENT_COMMS_', 'PI_', 'PYTHON'))
+                    and key not in ('VIRTUAL_ENV', 'TMUX')}
+                subprocess.Popen(saved['command'], env=environment, cwd=saved['cwd'],
+                    start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            desktop_path.unlink()
+
+        with ExitStack() as restore:
+            # Register before each mutation, including partial context entry.
+            restore.callback(restore_desktop)
+            restore.callback(restore_settings)
+            restore.callback(resume_bridges)
+            resume_bridges()
+            paused = []
+            if self.path.exists():
+                self.restore()
+                self.path.unlink()
+            restore.callback(lambda: (self.restore(), self.path.unlink()) if self.path.exists() else None)
+            self.stop()
+            desktop = json.loads(desktop_path.read_text()) if desktop_path.exists() else []
+            for process in psutil.process_iter(['pid', 'ppid', 'cmdline', 'status']):
+                try:
+                    command = process.info['cmdline'] or []
+                    if not command or process.info['status'] == psutil.STATUS_ZOMBIE:
+                        continue
+                    children = process.children()
+                    bridges = [child for child in children if any(
+                        Path(arg).name == 'agent-comms-claude-bridge' for arg in child.cmdline())]
+                    if bridges and any('agent-comms-claude-bridge watch' in arg for arg in command):
+                        identity = ProcessIdentity.capture(process.pid)
+                        paused.append(identity)
+                        _atomic_write_text(bridge_path, json.dumps(FieldCodec.encode(tuple(paused))),
+                                           fsync_parent=True)
+                        identity.signal(signal.SIGSTOP)
+                        for bridge in bridges:
+                            bridge.terminate()
+                            bridge.wait(timeout=20)
+                    elif Path(command[0]).name == 'toad':
+                        terminal = process.parent()
+                        if terminal.name() != 'st':
+                            continue
+                        desktop.append({'command': ['st', '-e', str(Path.home() / 'bin/toad-comms')],
+                                        'cwd': terminal.cwd(), 'environment': terminal.environ()})
+                        _atomic_write_text(desktop_path, json.dumps(desktop), fsync_parent=True)
+                        process.terminate()
+                        process.wait(timeout=20)
+                except psutil.NoSuchProcess:
+                    continue
+            if not settings_backup.exists():
+                _atomic_write_text(settings_backup, settings_path.read_text(), fsync_parent=True)
+            _atomic_write_text(settings_path, json.dumps(settings, indent=2) + '\n', fsync_parent=True)
+            yield
 
 
 def inventory() -> dict:
