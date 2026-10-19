@@ -334,6 +334,7 @@ class AnimationEffects[FrameT: Frame](TonePaint):
 
     def paint_effects(self, strip: Strip, *frames: Mix) -> Strip:
         for frame in (*frames, *(replace(self.effect_frame(effect), start=self.text_background)
+                                 if effect.start is BackgroundColour else self.effect_frame(effect)
                                  for effect in self.text_fades)):
             strip = self.app.colours.paint_rising(frame, strip)
         return strip

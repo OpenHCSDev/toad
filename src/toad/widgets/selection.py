@@ -30,7 +30,8 @@ class ChangingText[FrameT: Frame](Animated[FrameT], Static):
             return
         super().update(content, layout=layout)
         if self.is_mounted:
-            self.run_effect(NEW_TEXT)
+            for effect in self.text_fades:
+                self.run_effect(effect)
 
 
 class ViewLabel(ChangingText[TextFrame]):
