@@ -185,7 +185,7 @@ class Contents(HistoryNotifications, containers.VerticalGroup, can_focus=False):
 
     @property
     def can_draw_on_screen(self):
-        return self.app.workspace_sessions.shows(self)
+        return self.is_attached and self.is_on_screen
 
     def notification_targets(self):
         return tuple(history for history in self.line_histories() if history.can_draw_on_screen)

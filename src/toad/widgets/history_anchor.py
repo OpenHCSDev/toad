@@ -503,8 +503,9 @@ class HistoryWindow(WorkspaceHosted, VerticalScroll):
 
     @property
     def shown(self) -> bool:
-        """Whether the selected logical source displays this window."""
-        return self.app.workspace_sessions.shows(self)
+        """Whether layout draws this window: its screen is the current one and nothing above it is hidden."""
+        return (self.is_attached and self.screen.is_current
+                and all(node.display for node in self.ancestors_with_self if isinstance(node, Widget)))
 
     def displays(self, widget: Widget) -> bool:
         """Whether a widget inside this window is displayed, with everything between them."""
