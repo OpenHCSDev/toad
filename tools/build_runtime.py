@@ -289,24 +289,32 @@ class InstallWatchers:
                     if not command or process.info['status'] == psutil.STATUS_ZOMBIE:
                         continue
                     children = process.children()
-                    bridges = [child for child in children if any(
+                    bridges = [(child, ProcessIdentity.capture(child.pid)) for child in children if any(
                         Path(arg).name == 'agent-comms-claude-bridge' for arg in child.cmdline())]
+                    for child, _ in bridges:
+                        if not child.is_running():
+                            raise ProcessLookupError('Selected bridge exited before publication')
                     if bridges and any('agent-comms-claude-bridge watch' in arg for arg in command):
                         identity = ProcessIdentity.capture(process.pid)
+                        if not process.is_running():
+                            raise ProcessLookupError('Selected bridge shell exited before publication')
                         paused.append(identity)
                         _atomic_write_text(bridge_path, json.dumps(FieldCodec.encode(tuple(paused))),
                                            fsync_parent=True)
                         identity.signal(signal.SIGSTOP)
-                        for bridge in bridges:
-                            ObservedProcess(ProcessIdentity.capture(bridge.pid)).stop_sync()
+                        for _, bridge_identity in bridges:
+                            ObservedProcess(bridge_identity).stop_sync()
                     elif Path(command[0]).name == 'toad':
                         terminal = process.parent()
                         if terminal.name() != 'st' or terminal.environ().get('DISPLAY') != ':0':
                             continue
+                        identity = ProcessIdentity.capture(process.pid)
+                        if not process.is_running():
+                            raise ProcessLookupError('Selected desktop exited before publication')
                         desktop.append({'command': ['st', '-e', str(Path.home() / 'bin/toad-comms')],
                                         'cwd': terminal.cwd(), 'environment': terminal.environ()})
                         _atomic_write_text(desktop_path, json.dumps(desktop), fsync_parent=True)
-                        ObservedProcess(ProcessIdentity.capture(process.pid)).stop_sync()
+                        ObservedProcess(identity).stop_sync()
                 except psutil.NoSuchProcess:
                     continue
             if not settings_backup.exists():
