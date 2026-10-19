@@ -768,14 +768,14 @@ try:
                   for m in WireRecord.public_from_wire(json.loads(line)).messages()]
         replies=[m for m in messages if m.sender==child.name and m.target=='build-sender' and token in m.body]
         current=c.registry.require(child.name)
-        if replies and not current.turn_state.active.executing:break
+        if replies and not current.executing:break
         time.sleep(.25)
     assert hashlib.sha256(source.read_bytes()).hexdigest()==digest
     (out/'result.json').write_text(json.dumps(dict(completed=True,reply=replies[-1].body,
         session=forked.path,original_unchanged=True,drain_diagnostics=0,reply_seconds=time.monotonic()-started)))
     (out/'input.json').write_text(json.dumps(dict(status='COMPLETED',replay=False,target=child.name)))
 finally:
-    if not c.registry.require(child.name).turn_state.active.executing:
+    if not c.registry.require(child.name).executing:
         c.owners.stop(child.name)
 ''', str(output), str(startup), str(runtime)], env=environment, stdout=subprocess.PIPE,
             stdin=subprocess.PIPE, stderr=log, text=True)
