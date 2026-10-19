@@ -213,7 +213,7 @@ class GoalBar(VerticalGroup):
         self._update_control_layout()
         self.call_after_refresh(self.update_document_height)
 
-    def begin_separator_resize(self, event: events.MouseDown) -> None:
+    def on_mouse_down(self, event: events.MouseDown) -> None:
         if event.button != 1 or self.collapsed or not self.goal_display.visible or not self.goal_display.snapshot.shows_document:
             return
         throbber = self._throbber
@@ -294,8 +294,8 @@ class GoalBar(VerticalGroup):
             controls.styles.height = (len(widths) + columns - 1) // columns
 
     def update_document_height(self) -> None:
-        # Conversation resize also reaches an absent goal or an outage header
-        # without a document. Querying that hidden document's geometry forces
+        # An absent goal or an outage header has no document. Querying that
+        # hidden document's geometry forces
         # a full compositor map after the visible viewport was already laid out.
         if self.is_attached and self.goal_display.snapshot.shows_document and not self.collapsed:
             document = self.document
@@ -311,8 +311,8 @@ class GoalBar(VerticalGroup):
             )
             # Explicit bounded height prevents an auto-height parent from reserving
             # the scroll document's full virtual height before applying its cap.
-            limit = (
-                self.screen.size.height // 5 if self._document_height is None
-                else min(self._document_height, self.screen.size.height // 2)
-            )
+            # Native viewport units reapply the cap even if this bar's own
+            # size does not change when the screen resizes.
+            document.styles.max_height = "20vh" if self._document_height is None else "50vh"
+            limit = height if self._document_height is None else self._document_height
             document.styles.height = min(max(1, height), max(1, limit))
