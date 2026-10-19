@@ -20,7 +20,6 @@ from toad.widgets.presentation_window import PageEnd, PageRequest, OLDER_END, NE
 if TYPE_CHECKING:
     from collections.abc import Callable
     from textual.screen import Screen
-    from toad.widgets.history_anchor import HistoryWindow
     from toad.widgets.transcript_history import TranscriptPageView
 
 
