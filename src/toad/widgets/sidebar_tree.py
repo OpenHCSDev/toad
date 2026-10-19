@@ -401,9 +401,8 @@ class AllSidebarRows(SidebarChange):
         sidebar.open_views = sidebar.find_open_views()
         with sidebar.reconcile_members():
             for name, group in sidebar.groups.items():
-                if (channel := rows.get(name)) is not None:
-                    group.present(channel)
-                    group.sync_members(frozenset(group.member_keys))
+                group.present(rows[name])
+                group.sync_members(frozenset(group.member_keys))
 
     def apply_welcome(self, channel_list, thread_list) -> None:
         channel_list.sync_members(frozenset(channel_list.member_keys))
@@ -424,9 +423,9 @@ class ChangedChannels(SidebarChange):
     def apply_comms(self, sidebar, rows) -> None:
         with sidebar.reconcile_members():
             for name in self.names:
-                group, channel = sidebar.groups.get(name), rows.get(name)
-                if group is not None and channel is not None:
-                    group.present(channel)
+                group = sidebar.groups.get(name)
+                if group is not None:
+                    group.present(rows[name])
                     group.sync_members(frozenset(group.member_keys))
 
     def apply_welcome(self, channel_list, thread_list) -> None:
