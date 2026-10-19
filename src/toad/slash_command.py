@@ -119,7 +119,7 @@ class NoArgumentsCommand(SlashCommand, LocalCommand):
 class CommanderCommand(SlashCommand, LocalCommand):
     help = "Open Core's live commander board and alarms"
     hint = "<commander-thread>"
-    commander: str
+    commander: str = ""
 
     @classmethod
     def parse(cls, arguments: str) -> Self:

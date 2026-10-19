@@ -2,25 +2,30 @@
 from __future__ import annotations
 
 from dataclasses import replace
-from agent_comms.thread_identity import ThreadIncarnation
-from agent_comms.ui_model.commander import CommanderModel, ObserveCommander, UnitCard
+
 from textual import containers, on
 from textual.app import ComposeResult
 from textual.content import Content
 from textual.widgets import Collapsible, Static
-
 from toad.screens.modal import ModalScreen
+
+from agent_comms.thread_identity import ThreadIncarnation
+from agent_comms.ui_model.commander import CommanderModel, ObserveCommander, UnitCard
 
 
 class CommanderUnit(Collapsible):
     DEFAULT_CSS = """
-    CommanderUnit { padding: 0; margin: 0; }
+    CommanderUnit { border: none; padding: 0; margin: 0; }
     CommanderUnit > CollapsibleTitle { height: 1; text-overflow: ellipsis; }
     CommanderUnit Static { height: auto; }
+    CommanderUnit .commander-turns { text-wrap: nowrap; text-overflow: ellipsis; }
     """
 
     def __init__(self, card: UnitCard) -> None:
-        super().__init__(Static(card.detail.text, markup=False),
+        self.detail_widget = Static(card.detail.text, markup=False)
+        self.turns_widget = Static("\n".join(card.detail.turn_lines), markup=False,
+                                   classes="commander-turns")
+        super().__init__(self.detail_widget, self.turns_widget,
                          title=Content(card.line), collapsed=True)
         self.unit = card.unit
         self.position = 0
@@ -28,7 +33,8 @@ class CommanderUnit(Collapsible):
     def present(self, card: UnitCard, position: int) -> None:
         self.position = position
         self.title = Content(card.line)
-        self.query_one(Static).update(card.detail.text)
+        self.detail_widget.update(card.detail.text)
+        self.turns_widget.update("\n".join(card.detail.turn_lines))
 
 
 class CommanderScreen(ModalScreen[None]):
@@ -77,6 +83,7 @@ class CommanderScreen(ModalScreen[None]):
         for row in self.rows.values():
             row.remove()
         self.rows.clear()
+        self.query_one("#commander-alarm-lines", Static).update("Alarms unavailable.")
 
     def commander_observed(self, model: CommanderModel) -> None:
         board = self.query_one("#commander-board", containers.VerticalScroll)
@@ -96,7 +103,7 @@ class CommanderScreen(ModalScreen[None]):
             "Overdue first · Enter/click a unit to expand · Esc to return")
         self.query_one("#commander-alarm-lines", Static).update(
             "Alarms\n" + ("\n".join(alarm.line for alarm in model.alarms)
-                          or "No stalled orders or recorded failed deliveries."))
+                          or "No stalled orders or recorded send/delivery alarms."))
 
     @on(Collapsible.Expanded, "CommanderUnit")
     @on(Collapsible.Collapsed, "CommanderUnit")
