@@ -54,8 +54,8 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
         raise ValueError('Removal must name installed sibling runtimes')
     records = RuntimeBuild.retained_runtimes(runtimes)
     result = {'before': len(runtimes), 'current': str(selected), 'previous': str(previous),
-              'kept_by_record': sorted(map(str, records)),
-              'kept_unqualified': [str(path) for path in runtimes if path not in records],
+              'kept_by_record': sorted(str(path) for path in runtimes if path in records),
+              'missing_by_record': sorted(str(path) for path in records if not path.exists()),
               'deleted': []}
     free_before = shutil.disk_usage(directory).free
     for path in remove or ():
@@ -75,7 +75,9 @@ def prune_runtimes(current: Path, previous: Path, *, delete: bool, remove: list[
             result['deleted'].append(str(path))
             print(f'Removed released runtime {path}', file=sys.stderr, flush=True)
     result['after'] = len(list(directory.iterdir()))
-    result['filesystem_bytes_freed'] = shutil.disk_usage(directory).free - free_before
+    result['kept_unqualified'] = [str(path) for path in runtimes
+                                if path not in records and path.exists()]
+    result['filesystem_free_change_bytes'] = shutil.disk_usage(directory).free - free_before
     return result
 
 
