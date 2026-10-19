@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from support.agents import AppAgents
 from support.routes import private_root, publish_route, select_root_by_default_route
 
 
@@ -25,7 +26,7 @@ async def started_agent(project):
     from toad.acp.agent import Agent
     from toad.agent_schema import AgentDefinition
 
-    agent = Agent(project, AgentDefinition("fake", "fake", {"*": "true"}), None)
+    agent = AppAgents.unrun(project).agent(Agent, AgentDefinition("fake", "fake", {"*": "true"}))
     await agent.start()
     assert agent.process.runner is not None
     await agent.process.runner

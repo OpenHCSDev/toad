@@ -37,6 +37,8 @@ if [[ ! -e "$environment" ]]; then
         --no-emit-package agent-comms --no-hashes -o "$stage/requirements.txt"
     "$uv" pip install -q --python "$stage/bin/python" -r "$stage/requirements.txt"
     "$uv" pip install -q --python "$stage/bin/python" -e "$agent_comms[acp]"
+    # Toad reads its own distribution metadata; its source still comes from src.
+    "$uv" pip install -q --python "$stage/bin/python" --no-deps "$toad_root"
     mv -- "$stage" "$environment"
     trap - EXIT
 fi

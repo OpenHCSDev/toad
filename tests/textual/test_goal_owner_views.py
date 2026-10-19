@@ -29,7 +29,7 @@ def goal_owner(workspace, app):
         {"sequence": 2, "kind": "transition", "observed_at": 1001.0,
          "before": replace(goal, revision=4).to_wire(), "after": goal.to_wire()},
     ]
-    owner = ScriptedGoalOwner(app, goal, execution, history=history)
+    owner = ScriptedGoalOwner.owning(app, goal, execution, history=tuple(history))
     owner.reject = True
     return owner
 

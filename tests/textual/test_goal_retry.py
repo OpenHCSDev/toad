@@ -12,7 +12,7 @@ async def test_blocked_goal_offers_retry_and_retry_reaches_the_owner(workspace):
         view = ui.conversation
         goal = published_goal("Learn architectural factoring", "goal-control",
                               state=BlockedGoal(block_reason="Original turn failed"))
-        owner = ScriptedGoalOwner(ui.app, goal)
+        owner = ScriptedGoalOwner.owning(ui.app, goal)
         ui.attach_agent(owner)
         view.agent_ready = True
         view.goal_display = goal
