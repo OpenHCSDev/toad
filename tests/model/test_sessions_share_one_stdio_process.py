@@ -94,7 +94,7 @@ async def test_closing_one_session_leaves_the_others_on_the_shared_process(attac
             await agent.stop()
         await asyncio.gather(*permissions, return_exceptions=True)
     assert shared is not None and shared.process is None and not shared.sessions
-    assert not shared.custody._exit_callbacks
+    assert not shared.cleanup._exit_callbacks
 
 
 async def test_stopping_a_session_the_agent_refused_leaves_the_shared_process(attachment_scope):

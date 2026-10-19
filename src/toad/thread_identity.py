@@ -1,7 +1,9 @@
 """A session's absent, local or wire-bound thread, with its owned behavior."""
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from agent_comms.errors import UnregisteredThreadError
 from agent_comms.thread_identity import ThreadIncarnation, UnrecordedThreadIncarnation
 
 
@@ -59,6 +61,10 @@ class SessionIdentity(ABC):
     def bind_history(self, histories) -> None:
         """An unbound session keeps its native input-history scope."""
 
+    def command_target[T](self, target: Callable[[str], T]) -> T:
+        """A named session addresses backend commands as its thread."""
+        return target(self.thread_name())
+
 
 @dataclass(frozen=True)
 class NoThreadIdentity(SessionIdentity):
@@ -67,6 +73,10 @@ class NoThreadIdentity(SessionIdentity):
 
     def display_thread(self) -> str:
         return "No thread"
+
+    def command_target[T](self, target: Callable[[str], T]) -> T:
+        """An unbound session has no backend thread; local commands remain."""
+        raise UnregisteredThreadError("An unbound session has no backend thread")
 
 
 @dataclass(frozen=True)

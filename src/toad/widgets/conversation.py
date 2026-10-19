@@ -1492,7 +1492,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         comms = await self.app.preparation.run_thread(lambda: self.app.coordination_access.observation.observed().service)
         if not self.is_attached or screen.navigation_context != nav:
             raise ValueError('Command view changed during discovery')
-        return TargetContext(self.app, comms, nav.actor, nav.actor, nav.project_path, nav.owner_mode)
+        return screen.thread_identity.command_target(lambda actor: TargetContext(self.app, comms, actor, actor, nav.project_path, nav.owner_mode))
 
     @work(group='command-catalog', exclusive=True)
     async def update_slash_commands(self) -> None:
@@ -1522,7 +1522,7 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
         source = self.query_ancestor(SessionView)
         navigation = source.navigation_context
         agent = self.agent
-        context = await self.command_target_context()
+        context = self.command_target_context()
         catalog = await CommandCatalog.read(self.app,
             agent.presentation.commands if agent is not None else (), context)
         if (not self.is_attached or source.navigation_context != navigation

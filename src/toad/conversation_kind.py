@@ -9,6 +9,7 @@ from agent_comms.declared_family import DeclaredFamily
 from agent_comms.comms import Comms
 from agent_comms.message_page import MessagePage, PageBounds
 from textual.app import ComposeResult
+from toad.widgets.input_delivery import InputDeliveryBar
 from toad.widgets.native_history import NativeHistory
 from toad.widgets.session_details import ConversationSessionDetails
 from toad.widgets.channel_activity import ChannelActivity
@@ -97,7 +98,7 @@ class ConversationKind(DeclaredFamily, affix="Conversation"):
     @classmethod
     def activity_details(cls, name):
         row = ConversationSessionDetails(
-            ThreadTarget(name), history=NativeHistory(), status_source=lambda: row.row)
+            ThreadTarget(name), history=NativeHistory(), delivery=InputDeliveryBar(), status_source=lambda: row.row)
         return row
 
     @classmethod

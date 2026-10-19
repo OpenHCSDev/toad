@@ -1,7 +1,7 @@
 """One derived command view joins ACP advertisements and local declarations."""
 
 from dataclasses import dataclass
-from collections.abc import Sequence
+from collections.abc import Awaitable, Sequence
 from typing import TYPE_CHECKING
 
 from toad.slash_command import AgentAdvertisedCommand, CommandPresentation, LocalCommand, SlashCommand
@@ -18,7 +18,7 @@ class CommandCatalog:
 
     @classmethod
     async def read(cls, app, advertised: Sequence[AgentAdvertisedCommand],
-                   context: TargetContext | None = None):
+                   context: Awaitable[TargetContext]):
         """Acquire one operation's projection through the shared read worker.
 
         This value is consumed by a refresh or execution and then released;
@@ -28,21 +28,25 @@ class CommandCatalog:
 
         # Local declaration spelling remains authoritative when unavailable.
         commands = {command.command: command for command in advertised}
-        if context is not None:
-            try:
-                definitions = await app.preparation.run_thread(context.available_actions)
-            except UnregisteredThreadError:
-                # A shell-only view has no backend thread. The registry query,
-                # rather than a second UI-side presence read, owns that fact.
-                context = None
-            else:
-                for definition in definitions:
-                    command = ThreadCommand(definition)
-                    commands[command.command] = command
+        try:
+            target = await context
+            definitions = await app.preparation.run_thread(target.available_actions)
+        except UnregisteredThreadError:
+            # An unbound or shell-only view has no backend thread. The session
+            # identity and the registry query, not a UI-side presence read, own that fact.
+            return cls.joined(commands)
+        for definition in definitions:
+            command = ThreadCommand(definition)
+            commands[command.command] = command
+        return cls.joined(commands, target)
+
+    @classmethod
+    def joined(cls, commands: dict[str, CommandPresentation], *context: TargetContext):
+        """Local declarations join last, so their spelling stays authoritative."""
         for member in SlashCommand.members_with(LocalCommand):
             command = member()
             commands[command.command] = command
-        return cls(tuple(sorted(commands.values(), key=lambda command: command.command)), context)
+        return cls(tuple(sorted(commands.values(), key=lambda command: command.command)), *context)
 
     @property
     def commands(self) -> list[SlashCommand]:

@@ -11,7 +11,7 @@ from time import time_ns
 from typing import Annotated, Any
 
 import aiosqlite
-from agent_comms.field_codec import PathText, TimestampText
+from agent_comms.field_codec import PathText, RecordedTimestamp, TimestampText
 from agent_comms.typed_table import Column, JsonStorage, TextStorage, TypedTable
 
 from toad import paths
@@ -27,7 +27,11 @@ MODEL_HISTORY_SCHEMA = """
 """
 
 
-SessionTimestamp = Annotated[datetime, TimestampText]
+SessionTimestamp = Annotated[RecordedTimestamp, TimestampText]
+
+
+def recorded_now() -> RecordedTimestamp:
+    return RecordedTimestamp.written(datetime.now(UTC))
 
 
 @dataclass(frozen=True)
@@ -55,11 +59,11 @@ class Session(TypedTable, declared_name="sessions"):
     protocol: str = "acp"
     prompt_count: int = 0
     created_at: SessionTimestamp = field(
-        default_factory=lambda: datetime.now(UTC),
+        default_factory=recorded_now,
         metadata={"sql": Column(storage=TextStorage)},
     )
     last_used: SessionTimestamp = field(
-        default_factory=lambda: datetime.now(UTC),
+        default_factory=recorded_now,
         metadata={"sql": Column(storage=TextStorage)},
     )
     # The column keeps the durable file name; its value is always typed metadata.
@@ -164,7 +168,7 @@ class DB:
         return await self._sessions(update, False)
 
     async def session_update_last_used(self, id: int) -> bool:
-        return await self._update_session(id, last_used=datetime.now(UTC))
+        return await self._update_session(id, last_used=recorded_now())
 
     async def session_update_title(self, id: int, title: str) -> bool:
         return await self._update_session(id, title=title)
