@@ -1388,7 +1388,6 @@ class Conversation(DeliveryFailureView, ConversationCommsHandlers, DeclaredWidge
 
     @handles(TranscriptSourceWorkFinished)
     def on_transcript_source_work_finished(self, message: CoreEventMessage) -> None:
-        message.stop()
         self.transcript.source_work_finished(message.publisher)
 
     def on_worker_state_changed(self, message) -> None:
