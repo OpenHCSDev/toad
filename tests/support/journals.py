@@ -14,7 +14,7 @@ from pathlib import Path
 
 def message_entry(role: str, text: str, *, id: str, parent: str | None = None) -> dict:
     """One ``message`` line: `role` is ``assistant`` or ``user``."""
-    return {"type": "message", "id": id, "parentId": parent,
+    return {"type": "message", "id": id, "parentId": parent, "timestamp": "2026-10-18T00:00:00+00:00",
             "message": {"role": role, "content": [{"type": "text", "text": text}]}}
 
 

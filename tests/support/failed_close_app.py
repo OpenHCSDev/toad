@@ -28,17 +28,14 @@ class FailedCloseApp(ToadApp):
     async def on_mount(self, event):
         event.prevent_default()
         await super().on_mount()
-        self.noting = self.set_interval(0.05, self.note_watcher)
+        self.noting = self.set_interval(0.05, self.break_release)
 
-    def note_watcher(self):
-        """Once a conversation watches the project directory, break its release and tell the test."""
+    def break_release(self):
+        """Once a conversation is open, break its release and tell the test."""
         for conversation in self.screen.query(Conversation):
-            watcher = conversation._directory_watcher
-            if watcher is not None and watcher.enabled:
-                self.noting.stop()
-                # The release step that runs before the watcher is closed.
-                conversation.goal_controls.close = fail
-                (Path(self.project_dir) / "watching").touch()
+            self.noting.stop()
+            conversation.goal_controls.close = fail
+            (Path(self.project_dir) / "conversation-open").touch()
 
 
 if __name__ == "__main__":

@@ -123,8 +123,6 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         # A second ACP attachment to the same owner shows the same history and asks the model nothing.
         asked = len(native.provider.requests)
         owner_process = comms.registry.require("beta").process_identity
-        watcher = view._directory_watcher
-        assert watcher is not None
         await agent.session.reconnect()
         await ui.until(agent.session.settled.is_set, seconds=30, why="the reconnect to settle")
         assert agent.session.connected
@@ -134,8 +132,6 @@ async def test_input_queued_behind_a_running_turn_is_consumed_and_saved(workspac
         await ui.until(lambda: view.submissions.queue_projection.status == "available", seconds=20,
                        why="the queue view after reattaching")
         assert not view.submissions.queue_projection.items
-        await ui.step()
-        assert view._directory_watcher is watcher
 
 
 async def test_input_queued_while_the_tab_is_hidden_is_shown_on_return(workspace, native_package):

@@ -1,6 +1,7 @@
 """The status line shows context use as reported; a zero after compaction means unknown, not empty."""
 
-from agent_comms.acp_extension import ContextUsage
+from agent_comms.context_reading import ContextUsage, UnmeasuredContext
+from toad.acp.context_measurement import ContextMeasurement
 
 from support.agents import deliver, peer, script
 from support.coordination import carrying, coordination_fact
@@ -19,9 +20,9 @@ async def test_usage_updates_reach_the_status_line(workspace):
         await ui.until(lambda: ui.shows("120.0K") and ui.shows("44.1%"), why="usage and percentage on screen")
 
         await deliver(agent, usage(0))
-        await ui.until(lambda: "Context unavailable" in ui.status(), why="zero usage shown as unavailable")
+        await ui.until(lambda: "has not reported context usage" in ui.status(), why="zero usage shown as unmeasured")
         assert "0.0K" not in ui.status()
-        assert not agent.context_measurement.available
+        assert agent.context_measurement == ContextMeasurement.saved(UnmeasuredContext())
 
         await deliver(agent, usage(27000))
         await ui.until(lambda: "27.0K" in ui.status(), why="the next valid estimate")
@@ -29,8 +30,8 @@ async def test_usage_updates_reach_the_status_line(workspace):
         saved = coordination_fact("fixture", workspace.roots.wire, worktree=str(workspace.project),
                                   context_usage=ContextUsage(38723, 272000))
         await deliver(agent, carrying(saved))
-        await ui.until(lambda: "38.7K" in ui.status() and "last response" in ui.status(),
-                       why="the saved measurement labelled as the last response")
+        await ui.until(lambda: "38,723/272,000 tokens" in ui.status(),
+                       why="the saved measurement as Core reads it")
         await agent.stop()
 
 

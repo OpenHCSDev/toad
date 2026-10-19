@@ -3,19 +3,20 @@
 from dataclasses import replace
 
 from agent_comms.goal_presentation import GoalExecution, GoalExecutionState, GoalWaitTarget
-from agent_comms.goals import Goal
-from agent_comms.ui_model.goal import GoalDisplay, GoalUnavailable
+from agent_comms.thread_identity import RecordedThreadIncarnation
+from agent_comms.ui_model.goal import GoalUnavailable
 from textual.widgets import Static
 
 from toad.screens.goal_details import GoalDetails
 from toad.widgets.goal_bar import GoalBar, GoalControl, StandbyPulse
+from support.goals import published_goal
 
-GOAL = Goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
+GOAL = published_goal("OBJECTIVE " * 150, "goal", progress="PROGRESS", revision=29)
 
 
 async def shown_bar(ui):
     view = ui.conversation
-    view.goal_display = GoalDisplay.current(GOAL)
+    view.goal_display = GOAL
     view.prompt.text = "Keep this draft"
     await ui.step()
     bar = view.query_one(GoalBar)
@@ -48,7 +49,7 @@ async def test_collapsed_header_follows_owner_updates_and_stays_usable_when_narr
         view, bar, history, toggle, header, controls = await shown_bar(ui)
         assert await pilot.click(toggle)
         await ui.step()
-        view.goal_display = GoalDisplay.current(replace(GOAL, revision=30, progress="UPDATED_PROGRESS"))
+        view.goal_display = replace(GOAL, revision=30, progress="UPDATED_PROGRESS")
         await ui.until(lambda: "rev 30" in str(header.render()), why="the revision in the collapsed header")
         assert bar.collapsed
         for width in (65, 58, 100):
@@ -78,8 +79,8 @@ async def test_expanding_shows_standby_and_the_latest_progress(workspace):
         view, bar, history, toggle, header, controls = await shown_bar(ui)
         assert await pilot.click(toggle)
         await ui.step()
-        view.goal_display = GoalDisplay.current(replace(GOAL, revision=30, progress="UPDATED_PROGRESS"))
-        view.goal_execution = GoalExecution(GoalExecutionState.STANDBY, GOAL.id, (GoalWaitTarget("peer", 1.0),))
+        view.goal_display = replace(GOAL, revision=30, progress="UPDATED_PROGRESS")
+        view.goal_execution = GoalExecution(GoalExecutionState.STANDBY, GOAL.id, (GoalWaitTarget(RecordedThreadIncarnation("peer", 1.0)),))
         await ui.until(lambda: "Standby" in str(header.render()), why="Standby in the collapsed header")
         assert not bar.query_one(StandbyPulse).active
         assert await pilot.click(toggle)
