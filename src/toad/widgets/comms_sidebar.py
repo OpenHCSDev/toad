@@ -154,8 +154,11 @@ def _display_path(path: Path) -> str:
 class CommsRow(TargetTreeMember, PrimaryActivation, CoreEventReceiver, HoverSelection, ViewLabel):
     """One interactive row: a channel or a thread."""
 
-    alternate: reactive[bool] = reactive(False, layout=False)
+    alternate: reactive[bool] = reactive(False, repaint=False)
     leaving = var(False)
+
+    def watch_alternate(self) -> None:
+        self.refresh_paint()
 
     @property
     def tone(self):
