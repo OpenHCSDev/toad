@@ -378,7 +378,7 @@ See on-screen instructions for details.
             else:
                 self.notify("No text or supported image in the clipboard", title="Paste")
         except (OSError, ValueError, TimeoutError) as error:
-            self.notify(str(error), title="Paste failed", severity="error")
+            self.app.show_error(error, "Paste failed")
 
 
     def _submit(self) -> None:

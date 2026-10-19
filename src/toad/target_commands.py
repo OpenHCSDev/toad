@@ -71,7 +71,7 @@ class TargetContext:
                     {command.command.removeprefix('/'): partial(self.execute_menu, sidebar, command)
                      for command in choices})
             except (OSError, ValueError) as error:
-                sidebar.notify(str(error), title='Target actions', severity='error')
+                sidebar.app.show_error(error, 'Target actions')
         sidebar.run_worker(read(), name='target-menu', group='target-menu', exclusive=True)
 
     async def command_choices(self):
@@ -87,7 +87,7 @@ class TargetContext:
             self.current()
             command.execute(self)
         except (OSError, ValueError) as error:
-            sidebar.notify(str(error), title='Target action', severity='error')
+            sidebar.app.show_error(error, 'Target action')
 
 
 class ContextualCommand(CommandPresentation, ABC):

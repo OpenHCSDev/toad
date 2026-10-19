@@ -102,11 +102,7 @@ class DirectoryDisplay(CoreEventReceiver, containers.HorizontalGroup):
         path = Path(event.value).expanduser().resolve()
         self.edit = False
         if not path.is_dir():
-            self.notify(
-                f"Unable to change directory to {str(path)!r}",
-                title="Change directory",
-                severity="error",
-            )
+            self.app.show_error(f"Unable to change directory to {str(path)!r}", "Change directory")
             return
         self.condensed_path.path = format_path(path, directory=True)
         self.publish_core(input_events.ChangeDirectory(str(path)))
@@ -536,11 +532,7 @@ class StoreScreen(CoreEventReceiver, Screen):
         try:
             self._agents = await read_agents()
         except AgentReadError as error:
-            self.notify(
-                f"Failed to read agents data ({error})",
-                title="Agents data",
-                severity="error",
-            )
+            self.app.show_error(f"Failed to read agents data ({error})", "Agents data")
         else:
             await self.container.mount_compose(self.compose_agents())
             with suppress(NoMatches):

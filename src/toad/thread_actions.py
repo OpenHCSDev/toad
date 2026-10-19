@@ -34,7 +34,7 @@ class ThreadActions:
         try:
             selected = RouteSelection.capture(source_root)
         except (OSError, ValueError, RuntimeError) as error:
-            app.notify(str(error), title="Session action", severity="error")
+            app.show_error(error, "Session action")
             return
         if any(target in self.requests for target in action.resources):
             app.notify(f"An action for {subject} is already in progress", title="Session action")
@@ -78,7 +78,7 @@ class ThreadActionExecution:
             # native connection resource refresh, never backend status mutation.
             await self.action.completed(app, self.selected, result)
         except (OSError, ValueError, RuntimeError) as error:
-            app.notify(str(error), title=f"Session action: {self.subject}", severity="error")
+            app.show_error(error, f"Session action: {self.subject}")
         finally:
             # The action's store writes reach views through Core's observation.
             self.owner.finished(self)
@@ -114,8 +114,7 @@ class ThreadAction:
             failures = [f"{item.target}: {item.error}" for item in result.outcomes
                         if isinstance(item, TargetFailed)]
             completed = sum(item.successful for item in result.outcomes)
-            app.notify(f"{completed}/{len(result.outcomes)} completed\n" + "\n".join(failures),
-                       title=title, severity="error")
+            app.show_error(f"{completed}/{len(result.outcomes)} completed\n" + "\n".join(failures), title)
         else:
             app.notify(self.definition.label, title=title)
 
@@ -137,7 +136,7 @@ class ThreadAction:
                 ctx.app.thread_actions.invoke(cls(definition, request, ctx), ctx.title,
                                              source_root=ctx.comms.root)
             except (OSError, ValueError) as error:
-                ctx.app.notify(str(error), title=definition.label, severity='error')
+                ctx.app.show_error(error, definition.label)
 
         async def prepare():
             if definition.editable_fields or definition.confirmation:
@@ -147,7 +146,7 @@ class ThreadAction:
                         lambda: asyncio.run(definition.prepare_fields()))
                     ctx.current()
                 except (NativePiUnavailable, RouteChanged) as error:
-                    ctx.app.notify(str(error), title=definition.label, severity='error')
+                    ctx.app.show_error(error, definition.label)
                     return
                 if ctx.app.screen is screen:
                     ctx.app.push_screen(CommandDialog(definition, ctx.title, fields), accepted)

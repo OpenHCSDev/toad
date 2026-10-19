@@ -457,7 +457,7 @@ class ThreadCommsSidebar(ShowsThreadIdentity, SidebarModelView, SidebarVisibilit
                 return
             self.open_target(entry_target(current))
         except (OSError, ValueError) as error:
-            self.notify(str(error), title="Comms target unavailable", severity="error")
+            self.app.show_error(error, "Comms target unavailable")
 
     def show_row_menu(self, row, offset):
         from toad.widgets.comms_menu import show_target_menu

@@ -234,8 +234,7 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
         try:
             scheme = WalFile.read(self.wal_directory / WalFile.NAME).scheme
         except (OSError, ValueError) as error:
-            self.app.notify(f"pywal colours were not applied: {error}", title="Theme",
-                            severity="error", timeout=10)
+            self.app.show_error(error, "pywal colours were not applied")
             return
         self.register(scheme)
         if self.app.is_running and self.app.theme == scheme.name:
@@ -262,10 +261,9 @@ class TextualColours(Backend[Theme, Color, Any, Strip], TerminalBackend[Terminal
     def choose(self, name: str) -> None:
         if name not in self.schemes:
             # `wal` exists once pywal has written its palette.
-            self.app.notify(f"Theme {name!r} is not available"
-                            + (f": pywal has not written {self.wal_directory / WalFile.NAME}"
-                               if name == WalFile.SCHEME else ""),
-                            title="Theme", severity="error", timeout=10)
+            self.app.show_error(f"Theme {name!r} is not available"
+                                + (f": pywal has not written {self.wal_directory / WalFile.NAME}"
+                                   if name == WalFile.SCHEME else ""), "Theme")
             return
         self.app.theme = name
 

@@ -1,6 +1,6 @@
 """The saved-session database reads saved rows into typed sessions, writes typed metadata and waits for a busy writer off the event loop."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 import asyncio
 import json
 from pathlib import Path
@@ -8,6 +8,7 @@ import sqlite3
 from unittest.mock import patch
 
 import pytest
+from agent_comms.field_codec import RecordedTimestamp
 
 from toad.agent_schema import AgentDefinition
 from toad.db import DB, Session, SessionMeta
@@ -18,27 +19,20 @@ SAVED_AGENT = {"identity": "id", "name": "Agent", "run_command": {"*": "agent"}}
 async def test_saved_row_reads_as_typed_session_and_updates_keep_its_agent(tmp_path):
     with patch("toad.db.paths.get_state", return_value=tmp_path):
         store = DB()
-        # A row in the current durable schema, with the agent definition as Toad saves it.
+        assert await store.create()
+        # A row as Toad saves it, in the STRICT schema DB.create declares.
+        written = RecordedTimestamp.written(datetime.now(UTC)).text
         with sqlite3.connect(store.path) as db:
-            db.execute("""CREATE TABLE sessions (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              agent TEXT NOT NULL, agent_identity TEXT NOT NULL,
-              agent_session_id TEXT NOT NULL, title TEXT NOT NULL,
-              protocol TEXT NOT NULL, prompt_count INTEGER DEFAULT 0,
-              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-              meta_json TEXT DEFAULT '{}')""")
             db.execute(
                 """INSERT INTO sessions
-                (agent,agent_identity,agent_session_id,title,protocol,meta_json)
-                VALUES (?,?,?,?,?,?)""",
-                ("Agent", "id", "session", "Saved", "acp",
+                (agent,agent_identity,agent_session_id,title,protocol,prompt_count,created_at,last_used,meta_json)
+                VALUES (?,?,?,?,?,?,?,?,?)""",
+                ("Agent", "id", "session", "Saved", "acp", 0, written, written,
                  json.dumps({"cwd": str(tmp_path), "agent_data": SAVED_AGENT})),
             )
-        assert await store.create()
         before = await store.session_get(1)
         assert isinstance(before, Session)
-        assert isinstance(before.created_at, datetime)
+        assert before.created_at.text == written
         assert before.prompt_count == 0
         assert before.meta_json.cwd == tmp_path
         assert await store.session_update_project(1, tmp_path / "changed")
@@ -54,7 +48,7 @@ async def test_saved_row_reads_as_typed_session_and_updates_keep_its_agent(tmp_p
         assert (await store.session_get(pk)).meta_json == metadata
         assert len(await store.session_get_recent(1)) == 1
         with sqlite3.connect(store.path) as db:
-            db.execute("UPDATE sessions SET prompt_count='not a count' WHERE id=1")
+            db.execute("UPDATE sessions SET meta_json='not metadata' WHERE id=1")
         with pytest.raises(ValueError):
             await store.session_get(1)
 
