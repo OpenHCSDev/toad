@@ -40,7 +40,8 @@ from toad.session_tracker import SidebarState
 from toad.thread_identity import SessionIdentity, ThreadIdentity
 from toad.core.input_events import SelectTarget
 from toad.widgets.comms_sidebar import CommsSidebar
-from toad.widgets.conversation import Conversation, ThreadLoading
+from toad.widgets.conversation import Conversation
+from toad.widgets.splash_text import ThreadLoading
 from toad.widgets.session_thread_sidebar import SessionThreadSidebar
 from toad.widgets.project_directory_tree import ProjectDirectoryTree
 from toad.widgets.project_panel import ProjectPanel, ProjectSearchButton

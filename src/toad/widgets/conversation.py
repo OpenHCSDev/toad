@@ -57,7 +57,7 @@ from textual.widgets import Static
 
 from toad import messages, paths
 from acp.exceptions import RequestError
-from toad.widgets.splash_text import SplashText
+from toad.widgets.splash_text import ThreadLoading
 
 from toad.core import events as core_events
 from toad.widgets.comms_menu import ContextMenu
@@ -163,31 +163,6 @@ class Loading(ConversationBlock, Static):
         height: auto;        
     }
     """
-
-
-class ThreadLoading(ConversationBlock, SplashText):
-    """The splash while a thread attaches: its label swept into the theme's colours."""
-
-    LABEL = TEXT = "Loading thread and history…"
-
-    @classmethod
-    def initial_contents(cls, agent):
-        """The loading declaration serves first composition and source rebinding."""
-        return (cls(),) if agent is not None else ()
-
-    DEFAULT_CSS = """
-    ThreadLoading {
-        width: 1fr;
-        height: auto;
-        margin: 0;
-        content-align: center middle;
-        color: $text-muted;
-        text-style: bold;
-    }
-    """
-
-    def on_mount(self) -> None:
-        self.play()
 
 
 class CategorizedMount:
@@ -561,6 +536,7 @@ class ConversationSessionBinding(WorkspaceHosted, ThreadStatusOwner, containers.
         self._agent_activity_boundary = AgentActivityBoundary()
         self._last_escape_time = 0.0
         self._agent_data = agent
+        self._thread_loading = next(iter(ThreadLoading.initial_contents(agent)), None)
         self.set_reactive(
             ConversationSessionBinding.model_history_scope, agent.identity if agent else ""
         )
@@ -937,12 +913,19 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
             self.prompt.focus()
             self.prompt.prompt_text_area.post_message(event)
 
+    def retire_loading_splash(self) -> None:
+        """The composed splash is consumed once when saved history paints or fails."""
+        splash, self._thread_loading = self._thread_loading, None
+        if splash is not None:
+            splash.remove()
+
     def compose(self) -> ComposeResult:
         with AgentWindow():
             with ContentsGrid():
                 yield CursorContainer(id="cursor-container")
                 with ConversationContents(id="contents"):
-                    yield from ThreadLoading.initial_contents(self._agent_data)
+                    if self._thread_loading is not None:
+                        yield self._thread_loading
                     yield self.cli_draft
         yield Flash()
         with containers.Vertical(id="prompt-stack"):
@@ -1138,7 +1121,7 @@ class Conversation(DeliveryFailureView, CoreEventReceiver, DeclaredWidgetActions
 
     @handles(AgentFail)
     async def on_agent_fail(self, message: CoreEventMessage) -> None:
-        await self.query(ThreadLoading).remove()
+        self.retire_loading_splash()
         self.turns.finish_client()
         self._agent_fail = True
         self.prompt.sync_session()

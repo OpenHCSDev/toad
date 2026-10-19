@@ -1,14 +1,13 @@
 """A terminal the agent asks for runs the exact executable and arguments it named, spaces and quotes included."""
 
-from support.agents import detached
 
 
-async def test_executable_and_arguments_reach_the_process_unchanged(tmp_path):
+async def test_executable_and_arguments_reach_the_process_unchanged(app_agents, tmp_path):
     executable = tmp_path / "argv with spaces # %.sh"
     executable.write_text("#!/bin/sh\nprintf '%s|%s' \"$1\" \"$2\"\n")
     executable.chmod(0o700)
     argument = "literal # % ' \" spaces"
-    agent = detached(tmp_path, "argv-session")
+    agent = app_agents.detached_agent("argv-session")
     calls = iter(range(1, 100))
 
     async def request(method, **params):

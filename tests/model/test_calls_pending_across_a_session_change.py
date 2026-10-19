@@ -1,12 +1,11 @@
 """A handshake, authentication, mode, new or load call that returns after the session binding changed is rejected."""
 import asyncio
 
-from support.agents import detached
 from toad import jsonrpc
 from toad.acp import api
 
 
-async def test_pending_session_calls_reject_a_binding_that_was_replaced(tmp_path, monkeypatch):
+async def test_pending_session_calls_reject_a_binding_that_was_replaced(app_agents, tmp_path, monkeypatch):
     for method, api_name, result, args in (
         ('initialize', 'initialize', {'agentCapabilities': {'loadSession': True}, 'authMethods': [{'id': 'late'}]}, ()),
         ('authenticate', 'authenticate', {}, ('terminal',)),
@@ -14,7 +13,7 @@ async def test_pending_session_calls_reject_a_binding_that_was_replaced(tmp_path
         ('new', 'session_new', {'sessionId': 'late-new'}, ()),
         ('load', 'session_load', {}, ()),
     ):
-        agent = detached(tmp_path, 'first')
+        agent = app_agents.detached_agent('first')
         entered, release = asyncio.Event(), asyncio.Event()
         class Pending:
             async def wait(self):

@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from support.agents import AppAgents
 from support.roots import Roots
 from support.ui import TextualUi
 
@@ -78,6 +79,10 @@ class Workspace:
 
     def prompts_received(self) -> list[str]:
         return [fact["prompt"] for fact in self.received() if "prompt" in fact]
+
+    @cached_property
+    def agents(self) -> AppAgents:
+        return AppAgents.unrun(self.project)
 
     @asynccontextmanager
     async def app(self, *, size: tuple[int, int] = (120, 40), agent: AgentDefinition | None = None,
