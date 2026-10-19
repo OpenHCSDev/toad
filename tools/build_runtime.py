@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from email import message_from_bytes
 import hashlib
 import importlib.metadata
+import importlib.util
 import json
 import os
 import select
@@ -137,10 +138,21 @@ def publish_runtime(publication_tools: Path, root: Path) -> None:
     Run with the qualified target Python inside the reviewed publication window.
     Native stopping/restarting remains with Core's existing cutover owner.
     """
-    from tools.publish_runtime import RuntimePublication
     from agent_comms.owner_cutover import StoppedOwnerInstallation
 
-    publication = RuntimePublication.installed()
+    # Load only the explicit checkout tools, under their own namespace. Core
+    # itself comes only from the target interpreter's installed package.
+    package_spec = importlib.util.spec_from_file_location(
+        '_core_checkout_tools', publication_tools / '__init__.py')
+    package = importlib.util.module_from_spec(package_spec)
+    sys.modules[package_spec.name] = package
+    package_spec.loader.exec_module(package)
+    spec = importlib.util.spec_from_file_location(
+        '_core_checkout_tools.publish_runtime', publication_tools / 'publish_runtime.py')
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    publication = module.RuntimePublication.installed()
     RuntimeBuild.recorded_baseline(publication.runtime)
     previous = StoppedOwnerInstallation.current_pointer().resolve(strict=True)
     watchers = InstallWatchers(root / 'runtime-publication-readers.json')
