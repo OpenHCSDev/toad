@@ -25,7 +25,7 @@ from toad.widgets.committed_presentation import (
 )
 from toad.widgets.transcript_history import TranscriptHistory
 from toad.widgets.session_details import SessionDetails
-from toad.transcript_preparation import SavedHistory
+from toad.transcript_preparation import PreparedPageSource, SavedHistory
 from toad.core.events import CoreEventStream
 from toad.screens.session_view import SessionView
 from agent_comms.errors import UnregisteredThreadError
@@ -33,7 +33,6 @@ from agent_comms.errors import UnregisteredThreadError
 if TYPE_CHECKING:
     from toad.screens.session_view import SessionOrigin
     from toad.widgets.conversation import Conversation
-    from toad.transcript_preparation import PreparedPageSource
 
 
 @dataclass(frozen=True)
